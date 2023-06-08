@@ -142,9 +142,7 @@ class TypeInferrerImpl implements TypeInferrer {
       this.dataForTesting,
       FunctionType unknownFunctionNonNullable,
       FunctionType unknownFunctionLegacy)
-      // ignore: unnecessary_null_comparison
-      : assert(libraryBuilder != null),
-        unknownFunction = libraryBuilder.isNonNullableByDefault
+      : unknownFunction = libraryBuilder.isNonNullableByDefault
             ? unknownFunctionNonNullable
             : unknownFunctionLegacy,
         instrumentation = isTopLevel ? null : engine.instrumentation,
@@ -193,8 +191,6 @@ class TypeInferrerImpl implements TypeInferrer {
   @override
   InferredFunctionBody inferFunctionBody(InferenceHelper helper, int fileOffset,
       DartType returnType, AsyncMarker asyncMarker, Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(body != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ClosureContext closureContext =
         new ClosureContext(visitor, asyncMarker, returnType, false);
@@ -292,8 +288,6 @@ class TypeInferrerImpl implements TypeInferrer {
       Expression initializer,
       DartType declaredType,
       bool hasDeclaredInitializer) {
-    // ignore: unnecessary_null_comparison
-    assert(declaredType != null);
     InferenceVisitorBase visitor = _createInferenceVisitor(helper);
     ExpressionInferenceResult result =
         visitor.inferExpression(initializer, declaredType);

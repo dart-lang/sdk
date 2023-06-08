@@ -1024,11 +1024,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder sourceLibraryBuilder, Scope scope,
       {required bool checkForInstanceVsStaticConflict,
       required bool checkForMethodVsSetterConflict}) {
-    // ignore: unnecessary_null_comparison
-    assert(checkForInstanceVsStaticConflict != null);
-    // ignore: unnecessary_null_comparison
-    assert(checkForMethodVsSetterConflict != null);
-
     scope.forEachLocalSetter((String name, MemberBuilder setter) {
       Builder? getable = scope.lookupLocalMember(name, setter: false);
       if (getable == null) {
@@ -2907,10 +2902,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       AsyncMarker asyncModifier,
       {required bool isInstanceMember,
       required bool isExtensionMember}) {
-    // ignore: unnecessary_null_comparison
-    assert(isInstanceMember != null);
-    // ignore: unnecessary_null_comparison
-    assert(isExtensionMember != null);
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
@@ -4337,8 +4328,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           String enclosingName = issue.enclosingType == null
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
-          // ignore: unnecessary_null_comparison
-          assert(enclosingName != null);
           if (issueInferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument,
@@ -4577,7 +4566,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(cstefantsova): Find a better way than relying on [interfaceTarget].
     Member? method =
         membersHierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
-    // ignore: unnecessary_null_comparison
     if (method == null || method is! Procedure) {
       return;
     }
@@ -4669,8 +4657,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri fileUri,
       int offset,
       {required bool inferred}) {
-    // ignore: unnecessary_null_comparison
-    assert(inferred != null);
     if (typeArguments.isEmpty) return;
 
     List<TypeParameter> functionTypeParameters = functionType.typeParameters;
@@ -5276,10 +5262,7 @@ class TypeParameterScopeBuilder {
       this.extensions,
       this._name,
       this._charOffset,
-      this.parent) {
-    // ignore: unnecessary_null_comparison
-    assert(_name != null);
-  }
+      this.parent);
 
   TypeParameterScopeBuilder.library()
       : this(
@@ -5687,9 +5670,6 @@ List<TypeVariableBuilder> _sortTypeVariablesTopologically(
 
 void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
     Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
-  // ignore: unnecessary_null_comparison
-  assert(root != null);
-
   List<TypeVariableBuilder>? typeVariables;
   List<TypeBuilder>? internalDependents;
 

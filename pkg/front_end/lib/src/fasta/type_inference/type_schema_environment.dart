@@ -370,8 +370,6 @@ class TypeSchemaEnvironment extends HierarchyBasedTypeEnvironment
   bool isSpecialCasesBinaryForReceiverType(
       Procedure member, DartType receiverType,
       {required bool isNonNullableByDefault}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNonNullableByDefault != null);
     if (!isNonNullableByDefault) {
       // TODO(paulberry): this matches what is defined in the spec.  It would be
       // nice if we could change kernel to match the spec and not have to

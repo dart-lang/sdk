@@ -736,8 +736,6 @@ class FrontendCompiler implements CompilerInterface {
   Future<void> writeJavaScriptBundle(KernelCompilationResults results,
       String filename, String fileSystemScheme, String moduleFormat,
       {required bool fullComponent}) async {
-    // ignore: unnecessary_null_comparison
-    assert(fullComponent != null);
     var packageConfig = await loadPackageConfigUri(
         _compilerOptions.packagesFileUri ??
             File('.dart_tool/package_config.json').absolute.uri);

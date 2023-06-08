@@ -104,11 +104,7 @@ class _DemotionNullabilityNormalization extends ReplacementVisitor {
 
   const _DemotionNullabilityNormalization(
       {required this.demoteTypeVariables,
-      required this.forNonNullableByDefault})
-      // ignore: unnecessary_null_comparison
-      : assert(demoteTypeVariables != null),
-        // ignore: unnecessary_null_comparison
-        assert(forNonNullableByDefault != null);
+      required this.forNonNullableByDefault});
 
   @override
   Nullability? visitNullability(DartType node) {

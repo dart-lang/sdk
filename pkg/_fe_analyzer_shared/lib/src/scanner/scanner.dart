@@ -85,8 +85,6 @@ ScannerResult scanString(String source,
     {ScannerConfiguration? configuration,
     bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged}) {
-  // ignore: unnecessary_null_comparison
-  assert(source != null, 'source must not be null');
   StringScanner scanner = new StringScanner(source,
       configuration: configuration,
       includeComments: includeComments,

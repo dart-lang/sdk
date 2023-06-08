@@ -439,8 +439,7 @@ class ProcessedOptions {
   Future<List<Component>> loadAdditionalDills(CanonicalName? nameRoot) async {
     if (_additionalDillComponents == null) {
       List<Uri> uris = _raw.additionalDills;
-      // ignore: unnecessary_null_comparison
-      if (uris == null || uris.isEmpty) return const <Component>[];
+      if (uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
       List<List<int>?> allBytes = await Future.wait(
           uris.map((uri) => _readAsBytes(fileSystem.entityForUri(uri))));

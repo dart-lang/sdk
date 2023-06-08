@@ -382,9 +382,7 @@ abstract class NamedTypeBuilder extends TypeBuilder {
     if (declaration!.isTypeVariable) {
       message =
           templateSupertypeIsTypeVariable.withArguments(fullNameForErrors);
-    } else
-    // ignore: unnecessary_null_comparison
-    if (type != null && type.nullability == Nullability.nullable) {
+    } else if (type.nullability == Nullability.nullable) {
       message = templateSupertypeIsNullableAliased.withArguments(
           fullNameForErrors, type, library.isNonNullableByDefault);
     } else {

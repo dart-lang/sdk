@@ -32,8 +32,6 @@ class Forest {
       List<NamedExpression>? named,
       bool hasExplicitTypeArguments = true,
       List<Object?>? argumentsOriginalOrder}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     if (!hasExplicitTypeArguments) {
       ArgumentsImpl arguments = new ArgumentsImpl(positional,
           types: <DartType>[],
@@ -61,8 +59,6 @@ class Forest {
       List<Expression> positionalArguments = const <Expression>[],
       List<NamedExpression> namedArguments = const <NamedExpression>[],
       List<Object?>? argumentsOriginalOrder}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ArgumentsImpl.forExtensionMethod(
         extensionTypeParameterCount, typeParameterCount, receiver,
         extensionTypeArguments: extensionTypeArguments,
@@ -75,8 +71,6 @@ class Forest {
   }
 
   ArgumentsImpl createArgumentsEmpty(int fileOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return createArguments(fileOffset, <Expression>[]);
   }
 
@@ -100,30 +94,22 @@ class Forest {
   /// Return a representation of a boolean literal at the given [fileOffset].
   /// The literal has the given [value].
   BoolLiteral createBoolLiteral(int fileOffset, bool value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new BoolLiteral(value)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a double literal at the given [fileOffset]. The
   /// literal has the given [value].
   DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new DoubleLiteral(value)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an integer literal at the given [fileOffset].
   /// The literal has the given [value].
   IntLiteral createIntLiteral(int fileOffset, int value, [String? literal]) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IntJudgment(value, literal)..fileOffset = fileOffset;
   }
 
   IntLiteral createIntLiteralLarge(int fileOffset, String literal) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ShadowLargeIntLiteral(literal, fileOffset);
   }
 
@@ -137,10 +123,6 @@ class Forest {
   ListLiteral createListLiteral(
       int fileOffset, DartType typeArgument, List<Expression> expressions,
       {required bool isConst}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isConst != null);
     return new ListLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = fileOffset;
@@ -156,10 +138,6 @@ class Forest {
   SetLiteral createSetLiteral(
       int fileOffset, DartType typeArgument, List<Expression> expressions,
       {required bool isConst}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isConst != null);
     return new SetLiteral(expressions,
         typeArgument: typeArgument, isConst: isConst)
       ..fileOffset = fileOffset;
@@ -177,10 +155,6 @@ class Forest {
   MapLiteral createMapLiteral(int fileOffset, DartType keyType,
       DartType valueType, List<MapLiteralEntry> entries,
       {required bool isConst}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isConst != null);
     return new MapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
       ..fileOffset = fileOffset;
@@ -188,8 +162,6 @@ class Forest {
 
   /// Return a representation of a null literal at the given [fileOffset].
   NullLiteral createNullLiteral(int fileOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new NullLiteral()..fileOffset = fileOffset;
   }
 
@@ -197,22 +169,16 @@ class Forest {
   /// [fileOffset]. The literal has the given [value]. This does not include
   /// either adjacent strings or interpolated strings.
   StringLiteral createStringLiteral(int fileOffset, String value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new StringLiteral(value)..fileOffset = fileOffset;
   }
 
   /// Return a representation of a symbol literal defined by [value] at the
   /// given [fileOffset].
   SymbolLiteral createSymbolLiteral(int fileOffset, String value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new SymbolLiteral(value)..fileOffset = fileOffset;
   }
 
   TypeLiteral createTypeLiteral(int fileOffset, DartType type) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new TypeLiteral(type)..fileOffset = fileOffset;
   }
 
@@ -222,32 +188,22 @@ class Forest {
   /// to compute the value.
   MapLiteralEntry createMapEntry(
       int fileOffset, Expression key, Expression value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new MapLiteralEntry(key, value)..fileOffset = fileOffset;
   }
 
   LoadLibrary createLoadLibrary(
       int fileOffset, LibraryDependency dependency, Arguments? arguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new LoadLibraryImpl(dependency, arguments)..fileOffset = fileOffset;
   }
 
   Expression checkLibraryIsLoaded(
       int fileOffset, LibraryDependency dependency) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new CheckLibraryIsLoaded(dependency)..fileOffset = fileOffset;
   }
 
   Expression createAsExpression(
       int fileOffset, Expression expression, DartType type,
       {required bool forNonNullableByDefault, bool forDynamic = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(forNonNullableByDefault != null);
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new AsExpression(expression, type)
       ..fileOffset = fileOffset
       ..isForNonNullableByDefault = forNonNullableByDefault
@@ -256,10 +212,6 @@ class Forest {
 
   Expression createSpreadElement(int fileOffset, Expression expression,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new SpreadElement(expression, isNullAware: isNullAware)
       ..fileOffset = fileOffset;
   }
@@ -267,8 +219,6 @@ class Forest {
   Expression createIfElement(
       int fileOffset, Expression condition, Expression then,
       [Expression? otherwise]) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IfElement(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
@@ -278,8 +228,6 @@ class Forest {
       required PatternGuard patternGuard,
       required Expression then,
       Expression? otherwise}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IfCaseElement(
         prelude: prelude,
         expression: expression,
@@ -292,8 +240,6 @@ class Forest {
   MapLiteralEntry createIfMapEntry(
       int fileOffset, Expression condition, MapLiteralEntry then,
       [MapLiteralEntry? otherwise]) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IfMapEntry(condition, then, otherwise)..fileOffset = fileOffset;
   }
 
@@ -303,8 +249,6 @@ class Forest {
       required PatternGuard patternGuard,
       required MapLiteralEntry then,
       MapLiteralEntry? otherwise}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IfCaseMapEntry(
         prelude: prelude,
         expression: expression,
@@ -320,8 +264,6 @@ class Forest {
       Expression? condition,
       List<Expression> updates,
       Expression body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ForElement(variables, condition, updates, body)
       ..fileOffset = fileOffset;
   }
@@ -333,8 +275,6 @@ class Forest {
       required Expression? condition,
       required List<Expression> updates,
       required Expression body}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new PatternForElement(
         patternVariableDeclaration: patternVariableDeclaration,
         intermediateVariables: intermediateVariables,
@@ -351,8 +291,6 @@ class Forest {
       Expression? condition,
       List<Expression> updates,
       MapLiteralEntry body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ForMapEntry(variables, condition, updates, body)
       ..fileOffset = fileOffset;
   }
@@ -364,8 +302,6 @@ class Forest {
       required Expression? condition,
       required List<Expression> updates,
       required MapLiteralEntry body}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new PatternForMapEntry(
         patternVariableDeclaration: patternVariableDeclaration,
         intermediateVariables: intermediateVariables,
@@ -385,8 +321,6 @@ class Forest {
       Expression body,
       Expression? problem,
       {bool isAsync = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ForInElement(variable, iterable, synthesizedAssignment,
         expressionEffects, body, problem,
         isAsync: isAsync)
@@ -402,8 +336,6 @@ class Forest {
       MapLiteralEntry body,
       Expression? problem,
       {bool isAsync = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ForInMapEntry(variable, iterable, synthesizedAssignment,
         expressionEffects, body, problem,
         isAsync: isAsync)
@@ -414,16 +346,12 @@ class Forest {
   /// initializer list.
   AssertInitializer createAssertInitializer(
       int fileOffset, AssertStatement assertStatement) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new AssertInitializer(assertStatement)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an assert that appears as a statement.
   AssertStatement createAssertStatement(int fileOffset, Expression condition,
       Expression? message, int conditionStartOffset, int conditionEndOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new AssertStatement(condition,
         conditionStartOffset: conditionStartOffset,
         conditionEndOffset: conditionEndOffset,
@@ -432,8 +360,6 @@ class Forest {
   }
 
   Expression createAwaitExpression(int fileOffset, Expression operand) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new AwaitExpression(operand)..fileOffset = fileOffset;
   }
 
@@ -441,8 +367,6 @@ class Forest {
   /// [fileOffset].
   Block createBlock(
       int fileOffset, int fileEndOffset, List<Statement> statements) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     List<Statement>? copy;
     for (int i = 0; i < statements.length; i++) {
       Statement statement = statements[i];
@@ -460,8 +384,6 @@ class Forest {
 
   /// Return a representation of a break statement.
   Statement createBreakStatement(int fileOffset, Object? label) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
     return new BreakStatementImpl(isContinue: false)
       ..fileOffset = fileOffset
@@ -476,8 +398,6 @@ class Forest {
       VariableDeclaration? stackTraceParameter,
       DartType stackTraceType,
       Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new Catch(exceptionParameter, body,
         guard: exceptionType, stackTrace: stackTraceParameter)
       ..fileOffset = fileOffset;
@@ -499,8 +419,6 @@ class Forest {
 
   /// Return a representation of a continue statement.
   Statement createContinueStatement(int fileOffset, Object? label) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     // TODO(johnniwinther): Use [label]?
     return new BreakStatementImpl(isContinue: true)..fileOffset = fileOffset;
   }
@@ -508,23 +426,17 @@ class Forest {
   /// Return a representation of a do statement.
   Statement createDoStatement(
       int fileOffset, Statement body, Expression condition) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new DoStatement(body, condition)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an expression statement at the given
   /// [fileOffset] containing the [expression].
   Statement createExpressionStatement(int fileOffset, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ExpressionStatement(expression)..fileOffset = fileOffset;
   }
 
   /// Return a representation of an empty statement  at the given [fileOffset].
   Statement createEmptyStatement(int fileOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new EmptyStatement()..fileOffset = fileOffset;
   }
 
@@ -535,8 +447,6 @@ class Forest {
       Expression? condition,
       List<Expression> updaters,
       Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ForStatement(variables ?? [], condition, updaters, body)
       ..fileOffset = fileOffset;
   }
@@ -544,8 +454,6 @@ class Forest {
   /// Return a representation of an `if` statement.
   Statement createIfStatement(int fileOffset, Expression condition,
       Statement thenStatement, Statement? elseStatement) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IfStatement(condition, thenStatement, elseStatement)
       ..fileOffset = fileOffset;
   }
@@ -553,8 +461,6 @@ class Forest {
   /// Return a representation of a `switch` statement.
   Statement createSwitchStatement(
       int fileOffset, Expression expression, List<SwitchCase> cases) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new SwitchStatement(expression, cases)..fileOffset = fileOffset;
   }
 
@@ -565,10 +471,6 @@ class Forest {
   Expression createIsExpression(
       int fileOffset, Expression operand, DartType type,
       {required bool forNonNullableByDefault, int? notFileOffset}) {
-    // ignore: unnecessary_null_comparison
-    assert(forNonNullableByDefault != null);
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     Expression result = new IsExpression(operand, type)
       ..fileOffset = fileOffset
       ..isForNonNullableByDefault = forNonNullableByDefault;
@@ -583,8 +485,6 @@ class Forest {
   /// (either `&&` or `||`).
   Expression createLogicalExpression(int fileOffset, Expression leftOperand,
       String operatorString, Expression rightOperand) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     LogicalExpressionOperator operator;
     if (operatorString == '&&') {
       operator = LogicalExpressionOperator.AND;
@@ -600,8 +500,6 @@ class Forest {
   }
 
   Expression createNot(int fileOffset, Expression operand) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new Not(operand)..fileOffset = fileOffset;
   }
 
@@ -609,10 +507,6 @@ class Forest {
   /// rethrow at [rethrowFileOffset] and the statement at [statementFileOffset].
   Statement createRethrowStatement(
       int rethrowFileOffset, int statementFileOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(rethrowFileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(statementFileOffset != null);
     return new ExpressionStatement(
         new Rethrow()..fileOffset = rethrowFileOffset)
       ..fileOffset = statementFileOffset;
@@ -621,16 +515,12 @@ class Forest {
   /// Return a representation of a return statement.
   Statement createReturnStatement(int fileOffset, Expression? expression,
       {bool isArrow = true}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ReturnStatementImpl(isArrow, expression)
       ..fileOffset = fileOffset;
   }
 
   Expression createStringConcatenation(
       int fileOffset, List<Expression> expressions) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new StringConcatenation(expressions)..fileOffset = fileOffset;
   }
@@ -643,15 +533,11 @@ class Forest {
   }
 
   Expression createThisExpression(int fileOffset) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ThisExpression()..fileOffset = fileOffset;
   }
 
   /// Return a representation of a throw expression at the given [fileOffset].
   Expression createThrow(int fileOffset, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new Throw(expression)..fileOffset = fileOffset;
   }
 
@@ -659,8 +545,6 @@ class Forest {
 
   Statement createTryStatement(int fileOffset, Statement tryBlock,
       List<Catch>? catchBlocks, Statement? finallyBlock) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new TryStatement(tryBlock, catchBlocks ?? <Catch>[], finallyBlock)
       ..fileOffset = fileOffset;
   }
@@ -692,8 +576,6 @@ class Forest {
   /// consisting of the given [condition] and [body].
   Statement createWhileStatement(
       int fileOffset, Expression condition, Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new WhileStatement(condition, body)..fileOffset = fileOffset;
   }
 
@@ -702,10 +584,6 @@ class Forest {
   /// statement is a yield* statement.
   Statement createYieldStatement(int fileOffset, Expression expression,
       {required bool isYieldStar}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isYieldStar != null);
     return new YieldStatement(expression, isYieldStar: isYieldStar)
       ..fileOffset = fileOffset;
   }
@@ -741,8 +619,6 @@ class Forest {
       bool isCovariantByDeclaration = false,
       bool isLocalFunction = false,
       bool isSynthesized = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new VariableDeclarationImpl(name,
         type: type,
         initializer: initializer,
@@ -778,8 +654,6 @@ class Forest {
       DartType returnType = const DynamicType(),
       AsyncMarker asyncMarker = AsyncMarker.Sync,
       AsyncMarker? dartAsyncMarker}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new FunctionNode(body,
         typeParameters: typeParameters,
         positionalParameters: positionalParameters,
@@ -807,66 +681,48 @@ class Forest {
 
   FunctionExpression createFunctionExpression(
       int fileOffset, FunctionNode function) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new FunctionExpression(function)..fileOffset = fileOffset;
   }
 
   Expression createExpressionInvocation(
       int fileOffset, Expression expression, Arguments arguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ExpressionInvocation(expression, arguments)
       ..fileOffset = fileOffset;
   }
 
   Expression createMethodInvocation(
       int fileOffset, Expression expression, Name name, Arguments arguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new MethodInvocation(expression, name, arguments)
       ..fileOffset = fileOffset;
   }
 
   NamedExpression createNamedExpression(
       int fileOffset, String name, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new NamedExpression(name, expression)..fileOffset = fileOffset;
   }
 
   StaticInvocation createStaticInvocation(
       int fileOffset, Procedure procedure, Arguments arguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new StaticInvocation(procedure, arguments)..fileOffset = fileOffset;
   }
 
   SuperMethodInvocation createSuperMethodInvocation(
       int fileOffset, Name name, Procedure procedure, Arguments arguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new SuperMethodInvocation(name, arguments, procedure)
       ..fileOffset = fileOffset;
   }
 
   NullCheck createNullCheck(int fileOffset, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new NullCheck(expression)..fileOffset = fileOffset;
   }
 
   Expression createPropertyGet(int fileOffset, Expression receiver, Name name) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new PropertyGet(receiver, name)..fileOffset = fileOffset;
   }
 
   Expression createPropertySet(
       int fileOffset, Expression receiver, Name name, Expression value,
       {required bool forEffect, bool readOnlyReceiver = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new PropertySet(receiver, name, value,
         forEffect: forEffect, readOnlyReceiver: readOnlyReceiver)
       ..fileOffset = fileOffset;
@@ -874,25 +730,17 @@ class Forest {
 
   IndexGet createIndexGet(
       int fileOffset, Expression receiver, Expression index) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new IndexGet(receiver, index)..fileOffset = fileOffset;
   }
 
   IndexSet createIndexSet(
       int fileOffset, Expression receiver, Expression index, Expression value,
       {required bool forEffect}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(forEffect != null);
     return new IndexSet(receiver, index, value, forEffect: forEffect)
       ..fileOffset = fileOffset;
   }
 
   VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new VariableGetImpl(variable, forNullGuardedAccess: false)
       ..fileOffset = fileOffset;
   }
@@ -900,47 +748,33 @@ class Forest {
   EqualsExpression createEquals(
       int fileOffset, Expression left, Expression right,
       {required bool isNot}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
-    // ignore: unnecessary_null_comparison
-    assert(isNot != null);
     return new EqualsExpression(left, right, isNot: isNot)
       ..fileOffset = fileOffset;
   }
 
   BinaryExpression createBinary(
       int fileOffset, Expression left, Name binaryName, Expression right) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new BinaryExpression(left, binaryName, right)
       ..fileOffset = fileOffset;
   }
 
   UnaryExpression createUnary(
       int fileOffset, Name unaryName, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new UnaryExpression(unaryName, expression)..fileOffset = fileOffset;
   }
 
   ParenthesizedExpression createParenthesized(
       int fileOffset, Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new ParenthesizedExpression(expression)..fileOffset = fileOffset;
   }
 
   ConstructorTearOff createConstructorTearOff(int fileOffset, Member target) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(target is Constructor || (target is Procedure && target.isFactory),
         "Unexpected constructor tear off target: $target");
     return new ConstructorTearOff(target)..fileOffset = fileOffset;
   }
 
   StaticTearOff createStaticTearOff(int fileOffset, Procedure procedure) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(procedure.kind == ProcedureKind.Method,
         "Unexpected static tear off target: $procedure");
     assert(!procedure.isRedirectingFactory,
@@ -949,24 +783,18 @@ class Forest {
   }
 
   StaticGet createStaticGet(int fileOffset, Member target) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(target is Field || (target is Procedure && target.isGetter));
     return new StaticGet(target)..fileOffset = fileOffset;
   }
 
   RedirectingFactoryTearOff createRedirectingFactoryTearOff(
       int fileOffset, Procedure procedure) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(procedure.isRedirectingFactory);
     return new RedirectingFactoryTearOff(procedure)..fileOffset = fileOffset;
   }
 
   Instantiation createInstantiation(
       int fileOffset, Expression expression, List<DartType> typeArguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new Instantiation(expression, typeArguments)
       ..fileOffset = fileOffset;
   }
@@ -976,8 +804,6 @@ class Forest {
       List<TypeParameter> typeParameters,
       Expression expression,
       List<DartType> typeArguments) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     return new TypedefTearOff(typeParameters, expression, typeArguments)
       ..fileOffset = fileOffset;
   }

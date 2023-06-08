@@ -67,11 +67,7 @@ class SpreadElement extends Expression with ControlFlowElement {
   /// during the desugaring.
   DartType? elementType;
 
-  SpreadElement(this.expression, {required this.isNullAware})
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNullAware != null) {
+  SpreadElement(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -82,20 +78,14 @@ class SpreadElement extends Expression with ControlFlowElement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -126,11 +116,7 @@ class IfElement extends Expression with ControlFlowElement {
   Expression then;
   Expression? otherwise;
 
-  IfElement(this.condition, this.then, this.otherwise)
-      // ignore: unnecessary_null_comparison
-      : assert(condition != null),
-        // ignore: unnecessary_null_comparison
-        assert(then != null) {
+  IfElement(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
@@ -145,16 +131,10 @@ class IfElement extends Expression with ControlFlowElement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transform(otherwise!);
       otherwise?.parent = this;
@@ -163,16 +143,10 @@ class IfElement extends Expression with ControlFlowElement {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transformOrRemoveExpression(otherwise!);
       otherwise?.parent = this;
@@ -229,9 +203,7 @@ class ForElement extends Expression with ControlFlowElement {
   final List<Expression> updates; // May be empty, but not null.
   Expression body;
 
-  ForElement(this.variables, this.condition, this.updates, this.body)
-      // ignore: unnecessary_null_comparison
-      : assert(body != null) {
+  ForElement(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -254,11 +226,8 @@ class ForElement extends Expression with ControlFlowElement {
       condition?.parent = this;
     }
     v.transformList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -269,11 +238,8 @@ class ForElement extends Expression with ControlFlowElement {
       condition?.parent = this;
     }
     v.transformExpressionList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -331,13 +297,7 @@ class ForInElement extends Expression with ControlFlowElement {
 
   ForInElement(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionEffects, this.body, this.problem,
-      {this.isAsync = false})
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(iterable != null),
-        // ignore: unnecessary_null_comparison
-        assert(body != null) {
+      {this.isAsync = false}) {
     variable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
@@ -363,16 +323,10 @@ class ForInElement extends Expression with ControlFlowElement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
     if (syntheticAssignment != null) {
       syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
@@ -381,11 +335,8 @@ class ForInElement extends Expression with ControlFlowElement {
       expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     if (problem != null) {
       problem = v.transform(problem!);
       problem?.parent = this;
@@ -394,16 +345,10 @@ class ForInElement extends Expression with ControlFlowElement {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
     if (syntheticAssignment != null) {
       syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
       syntheticAssignment?.parent = this;
@@ -412,11 +357,8 @@ class ForInElement extends Expression with ControlFlowElement {
       expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
       expressionEffects?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     if (problem != null) {
       problem = v.transformOrRemoveExpression(problem!);
       problem?.parent = this;
@@ -493,11 +435,7 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
   /// during the desugaring.
   DartType? entryType;
 
-  SpreadMapEntry(this.expression, {required this.isNullAware})
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNullAware != null) {
+  SpreadMapEntry(this.expression, {required this.isNullAware}) {
     expression.parent = this;
   }
 
@@ -508,20 +446,14 @@ class SpreadMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -542,11 +474,7 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
   MapLiteralEntry then;
   MapLiteralEntry? otherwise;
 
-  IfMapEntry(this.condition, this.then, this.otherwise)
-      // ignore: unnecessary_null_comparison
-      : assert(condition != null),
-        // ignore: unnecessary_null_comparison
-        assert(then != null) {
+  IfMapEntry(this.condition, this.then, this.otherwise) {
     condition.parent = this;
     then.parent = this;
     otherwise?.parent = this;
@@ -561,16 +489,10 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transform(otherwise!);
       otherwise?.parent = this;
@@ -579,16 +501,10 @@ class IfMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transformOrRemove(otherwise!, dummyMapLiteralEntry);
       otherwise?.parent = this;
@@ -620,9 +536,7 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
   final List<Expression> updates; // May be empty, but not null.
   MapLiteralEntry body;
 
-  ForMapEntry(this.variables, this.condition, this.updates, this.body)
-      // ignore: unnecessary_null_comparison
-      : assert(body != null) {
+  ForMapEntry(this.variables, this.condition, this.updates, this.body) {
     setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -645,11 +559,8 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
       condition?.parent = this;
     }
     v.transformList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -660,11 +571,8 @@ class ForMapEntry extends TreeNode with ControlFlowMapEntry {
       condition?.parent = this;
     }
     v.transformExpressionList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -705,13 +613,7 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 
   ForInMapEntry(this.variable, this.iterable, this.syntheticAssignment,
       this.expressionEffects, this.body, this.problem,
-      {required this.isAsync})
-      // ignore: unnecessary_null_comparison
-      : assert(iterable != null),
-        // ignore: unnecessary_null_comparison
-        assert(body != null),
-        // ignore: unnecessary_null_comparison
-        assert(isAsync != null) {
+      {required this.isAsync}) {
     variable.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
@@ -737,16 +639,10 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
     if (syntheticAssignment != null) {
       syntheticAssignment = v.transform(syntheticAssignment!);
       syntheticAssignment?.parent = this;
@@ -755,11 +651,8 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       expressionEffects = v.transform(expressionEffects!);
       expressionEffects?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     if (problem != null) {
       problem = v.transform(problem!);
       problem?.parent = this;
@@ -768,16 +661,10 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
     if (syntheticAssignment != null) {
       syntheticAssignment = v.transformOrRemoveExpression(syntheticAssignment!);
       syntheticAssignment?.parent = this;
@@ -786,11 +673,8 @@ class ForInMapEntry extends TreeNode with ControlFlowMapEntry {
       expressionEffects = v.transformOrRemoveStatement(expressionEffects!);
       expressionEffects?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     if (problem != null) {
       problem = v.transformOrRemoveExpression(problem!);
       problem?.parent = this;

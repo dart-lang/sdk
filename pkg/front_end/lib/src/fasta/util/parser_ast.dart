@@ -55,11 +55,6 @@ CompilationUnitEnd getAST(List<int> rawBytes,
     },
   );
   Token firstToken = scanner.tokenize();
-  // ignore: unnecessary_null_comparison
-  if (firstToken == null) {
-    throw "firstToken is null";
-  }
-
   ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {

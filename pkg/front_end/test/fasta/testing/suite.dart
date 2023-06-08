@@ -278,16 +278,10 @@ class FolderOptions {
       // can be null
       this.overwriteCurrentSdkVersion,
       this.showOffsets = false})
-      // ignore: unnecessary_null_comparison
-      : assert(nnbdAgnosticMode != null),
-        assert(
+      : assert(
             // no this doesn't make any sense but left to underline
             // that this is allowed to be null!
-            defines != null || defines == null),
-        // ignore: unnecessary_null_comparison
-        assert(noVerify != null),
-        // ignore: unnecessary_null_comparison
-        assert(target != null);
+            defines != null || defines == null);
 
   Map<ExperimentalFlag, bool> computeExplicitExperimentalFlags(
       Map<ExperimentalFlag, bool> forcedExperimentalFlags) {
@@ -315,9 +309,7 @@ class TestOptions {
       {required this.nnbdMode,
       required this.allowedExperimentalFlags,
       required this.experimentEnabledVersion,
-      required this.experimentReleasedVersion})
-      // ignore: unnecessary_null_comparison
-      : assert(linkDependencies != null);
+      required this.experimentReleasedVersion});
 }
 
 class FastaContext extends ChainContext with MatchContext {
@@ -2335,10 +2327,7 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
           backendTarget.performModularTransformations = true;
         }
         try {
-          // ignore: unnecessary_null_comparison
-          if (sourceTarget.loader.coreTypes != null) {
-            sourceTarget.runBuildTransformations();
-          }
+          sourceTarget.runBuildTransformations();
         } finally {
           if (backendTarget is TestTarget) {
             backendTarget.performModularTransformations = false;
@@ -2463,10 +2452,7 @@ class Transform extends Step<ComponentResult, ComponentResult, FastaContext> {
         backendTarget.performModularTransformations = true;
       }
       try {
-        // ignore: unnecessary_null_comparison
-        if (sourceTarget.loader.coreTypes != null) {
-          sourceTarget.runBuildTransformations();
-        }
+        sourceTarget.runBuildTransformations();
       } finally {
         if (backendTarget is TestTarget) {
           backendTarget.performModularTransformations = false;

@@ -53,9 +53,6 @@ class _ConstCanonicalTypeVisitor extends ReplacementVisitor {
 /// https://github.com/dart-lang/language/blob/master/accepted/future-releases/nnbd/feature-specification.md#constant-instances
 DartType? computeConstCanonicalType(DartType type, CoreTypes coreTypes,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   return type.accept1(
       new _ConstCanonicalTypeVisitor(coreTypes,
           isNonNullableByDefault: isNonNullableByDefault),

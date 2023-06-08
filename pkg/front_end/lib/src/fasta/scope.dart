@@ -149,10 +149,7 @@ class MutableScope {
   final ScopeKind kind;
 
   MutableScope(this.kind, this._local, this._setters, this._extensions,
-      this._parent, this.classNameOrDebugName) {
-    // ignore: unnecessary_null_comparison
-    assert(classNameOrDebugName != null);
-  }
+      this._parent, this.classNameOrDebugName);
 
   Scope? get parent => _parent;
 

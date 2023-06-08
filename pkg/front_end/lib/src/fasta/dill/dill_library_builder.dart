@@ -340,8 +340,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       String name;
       if (sourceBuildersMap?.containsKey(reference) == true) {
         declaration = sourceBuildersMap![reference]!;
-        // ignore: unnecessary_null_comparison
-        assert(declaration != null);
         if (declaration is ModifierBuilder) {
           name = declaration.name!;
         } else {
@@ -394,14 +392,6 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           declaration =
               library.exportScope.lookupLocalMember(name, setter: false)!;
           exportScope.addLocalMember(name, declaration, setter: false);
-        }
-        // ignore: unnecessary_null_comparison
-        if (declaration == null) {
-          internalProblem(
-              templateUnspecified.withArguments(
-                  "Exported element '$name' not found in '$libraryUri'."),
-              -1,
-              fileUri);
         }
       }
 

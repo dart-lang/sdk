@@ -188,10 +188,6 @@ void processField(
 
   Token beginToken = classFields.beginToken;
   Token endToken = classFields.endToken;
-  // ignore: unnecessary_null_comparison
-  assert(beginToken != null);
-  // ignore: unnecessary_null_comparison
-  assert(endToken != null);
 
   String frozenCheckCode =
       """if (frozen) throw "Trying to modify frozen node!";""";

@@ -1475,8 +1475,7 @@ class NewWorldTest {
         for (Uri uri in component!.uriToSource.keys) {
           // null is always there, so allow it implicitly.
           // Dart scheme uris too.
-          // ignore: unnecessary_null_comparison
-          if (uri == null || uri.isScheme("org-dartlang-sdk")) continue;
+          if (uri.isScheme("org-dartlang-sdk")) continue;
           if (!allowed.contains(uri)) {
             return new Result<TestData>(
                 data,

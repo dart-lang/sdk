@@ -615,10 +615,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TypeParameter visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
     newNode.bound = visitType(node.bound);
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType != null) {
-      newNode.defaultType = visitType(node.defaultType);
-    }
+    newNode.defaultType = visitType(node.defaultType);
     return newNode
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(clone).toList()
@@ -1209,8 +1206,6 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
             cloneAnnotations: cloneAnnotations);
 
   Member? _findSuperMember(Name name, {required bool isSetter}) {
-    // ignore: unnecessary_null_comparison
-    assert(isSetter != null);
     Map<Name, Member> cache;
     if (isSetter) {
       cache = _setterMap ??= {};

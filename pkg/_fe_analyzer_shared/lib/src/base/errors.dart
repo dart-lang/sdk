@@ -53,11 +53,7 @@ abstract class ErrorCode {
     required String problemMessage,
     required this.uniqueName,
   })  : _correctionMessage = correctionMessage,
-        _problemMessage = problemMessage,
-        // ignore: unnecessary_null_comparison
-        assert(hasPublishedDocs != null),
-        // ignore: unnecessary_null_comparison
-        assert(isUnresolvedIdentifier != null);
+        _problemMessage = problemMessage;
 
   /**
    * The template used to create the correction to be displayed for this error,

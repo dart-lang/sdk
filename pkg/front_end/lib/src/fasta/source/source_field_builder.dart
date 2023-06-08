@@ -623,14 +623,6 @@ class RegularFieldEncoding implements FieldEncoding {
       required Reference? getterReference,
       required Reference? setterReference,
       required bool isEnumElement}) {
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isConst != null);
-    // ignore: unnecessary_null_comparison
-    assert(isLate != null);
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
     bool isImmutable =
         isLate ? (isFinal && hasInitializer) : (isFinal || isConst);
     _field = isImmutable
@@ -759,9 +751,7 @@ class SourceFieldMember extends BuilderClassMember {
   @override
   final bool forSetter;
 
-  SourceFieldMember(this.memberBuilder, {required this.forSetter})
-      // ignore: unnecessary_null_comparison
-      : assert(forSetter != null);
+  SourceFieldMember(this.memberBuilder, {required this.forSetter});
 
   @override
   void inferType(ClassMembersBuilder membersBuilder) {
@@ -1011,8 +1001,6 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
 
   Procedure? _createSetter(Uri fileUri, int charOffset, Reference? reference,
       {required bool isCovariantByDeclaration}) {
-    // ignore: unnecessary_null_comparison
-    assert(isCovariantByDeclaration != null);
     VariableDeclaration parameter = new VariableDeclaration("${name}#param")
       ..isCovariantByDeclaration = isCovariantByDeclaration
       ..fileOffset = fileOffset;
@@ -1433,9 +1421,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   final bool isInternalImplementation;
 
   _SynthesizedFieldClassMember(this.fieldBuilder, this._member, this._kind,
-      {this.forSetter = false, required this.isInternalImplementation})
-      // ignore: unnecessary_null_comparison
-      : assert(isInternalImplementation != null);
+      {this.forSetter = false, required this.isInternalImplementation});
 
   @override
   Member getMember(ClassMembersBuilder membersBuilder) {
@@ -1519,10 +1505,7 @@ class _SynthesizedFieldClassMember implements ClassMember {
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = classBuilder.fullNameForErrors;
-    // ignore: unnecessary_null_comparison
-    return className == null
-        ? "${fullNameForErrors}$suffix"
-        : "${className}.${fullNameForErrors}$suffix";
+    return "${className}.${fullNameForErrors}$suffix";
   }
 
   @override
@@ -1591,17 +1574,7 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
       required bool isFinal,
       required bool isCovariantByDeclaration,
       required bool isNonNullableByDefault})
-      // ignore: unnecessary_null_comparison
-      : assert(isAbstract != null),
-        // ignore: unnecessary_null_comparison
-        assert(isExternal != null),
-        // ignore: unnecessary_null_comparison
-        assert(isFinal != null),
-        // ignore: unnecessary_null_comparison
-        assert(isCovariantByDeclaration != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNonNullableByDefault != null),
-        _isExtensionInstanceMember = isExternal &&
+      : _isExtensionInstanceMember = isExternal &&
             nameScheme.isExtensionMember &&
             nameScheme.isInstanceMember,
         _isInlineClassInstanceMember = isExternal &&

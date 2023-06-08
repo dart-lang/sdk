@@ -246,11 +246,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {bool isVoidAllowed = false, bool forEffect = false}) {
     registerIfUnreachableForTesting(expression);
 
-    // `null` should never be used as the type context.  An instance of
-    // `UnknownType` should be used instead.
-    // ignore: unnecessary_null_comparison
-    assert(typeContext != null);
-
     ExpressionInferenceResult result;
     if (expression is ExpressionJudgment) {
       result = expression.acceptInference(this, typeContext);
@@ -260,9 +255,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       result = expression.accept1(this, typeContext);
     }
     DartType inferredType = result.inferredType;
-    // ignore: unnecessary_null_comparison
-    assert(inferredType != null,
-        "No type inferred for $expression (${expression.runtimeType}).");
     if (inferredType is VoidType && !isVoidAllowed) {
       if (expression.parent is! ArgumentsImpl) {
         helper.addProblem(
@@ -943,15 +935,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   BlockExpression _createBlockExpression(
       int fileOffset, Block body, Expression value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new BlockExpression(body, value)..fileOffset = fileOffset;
   }
 
   ExpressionStatement _createExpressionStatement(Expression expression) {
-    // ignore: unnecessary_null_comparison
-    assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     return new ExpressionStatement(expression)
       ..fileOffset = expression.fileOffset;
@@ -1019,21 +1007,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ExpressionInferenceResult visitExtensionTearOff(
       ExtensionTearOff node, DartType typeContext) {
-    // ignore: unnecessary_null_comparison
-    FunctionType calleeType = node.target != null
-        ? node.target.function.computeFunctionType(libraryBuilder.nonNullable)
-        : new FunctionType([], const DynamicType(), libraryBuilder.nonNullable);
+    FunctionType calleeType =
+        node.target.function.computeFunctionType(libraryBuilder.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         staticTarget: node.target);
     StaticInvocation replacement =
         new StaticInvocation(node.target, node.arguments);
-    // ignore: unnecessary_null_comparison
-    if (node.target != null) {
-      libraryBuilder.checkBoundsInStaticInvocation(
-          replacement, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
-    }
+    libraryBuilder.checkBoundsInStaticInvocation(
+        replacement, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
     return instantiateTearOff(
         result.inferredType, typeContext, result.applyResult(replacement));
   }
@@ -1550,9 +1533,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Statement? expressionEffects,
       {bool isAsync = false,
       required bool hasProblem}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasProblem != null);
-
     ForInVariable forInVariable =
         computeForInVariable(syntheticAssignment, hasProblem);
     DartType elementType = forInVariable.computeElementType(this);
@@ -3545,8 +3525,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   VariableDeclaration _createVariable(Expression expression, DartType type) {
-    // ignore: unnecessary_null_comparison
-    assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     return new VariableDeclaration.forValue(expression, type: type)
       ..fileOffset = expression.fileOffset;
@@ -3559,15 +3537,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   VariableGet _createVariableGet(VariableDeclaration variable) {
-    // ignore: unnecessary_null_comparison
-    assert(variable != null);
     assert(variable.fileOffset != TreeNode.noOffset);
     return new VariableGet(variable)..fileOffset = variable.fileOffset;
   }
 
   VariableGet _createNullCheckedVariableGet(VariableDeclaration variable) {
-    // ignore: unnecessary_null_comparison
-    assert(variable != null);
     assert(variable.fileOffset != TreeNode.noOffset);
     DartType promotedType =
         variable.type.withDeclaredNullability(libraryBuilder.nonNullable);
@@ -3581,8 +3555,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   MapLiteral _createMapLiteral(int fileOffset, DartType keyType,
       DartType valueType, List<MapLiteralEntry> entries,
       {bool isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new MapLiteral(entries,
         keyType: keyType, valueType: valueType, isConst: isConst)
@@ -3592,8 +3564,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ListLiteral _createListLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
       {bool isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ListLiteral(elements,
         typeArgument: elementType, isConst: isConst)
@@ -3603,8 +3573,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   SetLiteral _createSetLiteral(
       int fileOffset, DartType elementType, List<Expression> elements,
       {bool isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new SetLiteral(elements, typeArgument: elementType, isConst: isConst)
       ..fileOffset = fileOffset;
@@ -3613,10 +3581,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   Expression _createAdd(
       Expression receiver, InterfaceType receiverType, Expression argument,
       {required bool isSet}) {
-    // ignore: unnecessary_null_comparison
-    assert(receiver != null);
-    // ignore: unnecessary_null_comparison
-    assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
@@ -3635,10 +3599,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createAddAll(Expression receiver, InterfaceType receiverType,
       Expression argument, bool isSet) {
-    // ignore: unnecessary_null_comparison
-    assert(receiver != null);
-    // ignore: unnecessary_null_comparison
-    assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
@@ -3658,10 +3618,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createMapAddAll(
       Expression receiver, InterfaceType receiverType, Expression argument) {
-    // ignore: unnecessary_null_comparison
-    assert(receiver != null);
-    // ignore: unnecessary_null_comparison
-    assert(argument != null);
     assert(argument.fileOffset != TreeNode.noOffset,
         "No fileOffset on ${argument}.");
     DartType functionType = Substitution.fromInterfaceType(receiverType)
@@ -3679,8 +3635,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createEqualsNull(Expression expression,
       {bool notEquals = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(expression != null);
     assert(expression.fileOffset != TreeNode.noOffset);
     Expression check = new EqualsNull(expression)
       ..fileOffset = expression.fileOffset;
@@ -3692,8 +3646,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createIndexSet(int fileOffset, Expression receiver,
       InterfaceType receiverType, Expression key, Expression value) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     DartType functionType = Substitution.fromInterfaceType(receiverType)
         .substituteType(engine.mapPutFunctionType);
@@ -3710,8 +3662,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   AsExpression _createImplicitAs(
       int fileOffset, Expression expression, DartType type) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new AsExpression(expression, type)
       ..isTypeError = true
@@ -3721,8 +3671,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   IfStatement _createIf(int fileOffset, Expression condition, Statement then,
       [Statement? otherwise]) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new IfStatement(condition, then, otherwise)..fileOffset = fileOffset;
   }
@@ -3730,8 +3678,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   IfCaseStatement _createIfCase(int fileOffset, Expression condition,
       DartType matchedValueType, PatternGuard patternGuard, Statement then,
       [Statement? otherwise]) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new IfCaseStatement(condition, patternGuard, then, otherwise)
       ..matchedValueType = matchedValueType
@@ -3740,8 +3686,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createGetKey(
       int fileOffset, Expression receiver, InterfaceType entryType) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     DartType resultType = Substitution.fromInterfaceType(entryType)
         .substituteType(engine.mapEntryKey.type);
@@ -3753,8 +3697,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createGetValue(
       int fileOffset, Expression receiver, InterfaceType entryType) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     DartType resultType = Substitution.fromInterfaceType(entryType)
         .substituteType(engine.mapEntryValue.type);
@@ -3766,8 +3708,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   Expression _createGetEntries(
       int fileOffset, Expression receiver, InterfaceType mapType) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     DartType resultType = Substitution.fromInterfaceType(mapType)
         .substituteType(engine.mapEntries.getterType);
@@ -3783,8 +3723,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression? condition,
       List<Expression> updates,
       Statement body) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ForStatement(variables, condition, updates, body)
       ..fileOffset = fileOffset;
@@ -3793,8 +3731,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ForInStatement _createForInStatement(int fileOffset,
       VariableDeclaration variable, Expression iterable, Statement body,
       {bool isAsync = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ForInStatement(variable, iterable, body, isAsync: isAsync)
       ..fileOffset = fileOffset;
@@ -3819,8 +3755,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression then,
       Expression otherwise,
       DartType type) {
-    // ignore: unnecessary_null_comparison
-    assert(fileOffset != null);
     assert(fileOffset != TreeNode.noOffset);
     return new ConditionalExpression(condition, then, otherwise, type)
       ..fileOffset = fileOffset;
@@ -6023,8 +5957,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ExpressionInferenceResult _computeEqualsExpression(
       int fileOffset, Expression left, DartType leftType, Expression right,
       {required bool isNot}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNot != null);
     ExpressionInfo<DartType>? equalityInfo =
         flowAnalysis.equalityOperand_end(left, leftType);
 
@@ -6693,8 +6625,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       {required bool isThisReceiver,
       ObjectAccessTarget? readTarget,
       Expression? propertyGetNode}) {
-    // ignore: unnecessary_null_comparison
-    assert(isThisReceiver != null);
     Map<DartType, NonPromotionReason> Function() whyNotPromoted =
         flowAnalysis.whyNotPromoted(receiver);
 
@@ -6747,8 +6677,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression value,
       {required DartType valueType,
       required bool forEffect}) {
-    // ignore: unnecessary_null_comparison
-    assert(forEffect != null);
     Expression write;
     DartType writeType = valueType;
     switch (writeTarget.kind) {
@@ -8103,19 +8031,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitStaticInvocation(
       StaticInvocation node, DartType typeContext) {
-    // ignore: unnecessary_null_comparison
-    FunctionType calleeType = node.target != null
-        ? node.target.function.computeFunctionType(libraryBuilder.nonNullable)
-        : new FunctionType([], const DynamicType(), libraryBuilder.nonNullable);
+    FunctionType calleeType =
+        node.target.function.computeFunctionType(libraryBuilder.nonNullable);
     TypeArgumentsInfo typeArgumentsInfo = getTypeArgumentsInfo(node.arguments);
     InvocationInferenceResult result = inferInvocation(this, typeContext,
         node.fileOffset, calleeType, node.arguments as ArgumentsImpl,
         staticTarget: node.target);
-    // ignore: unnecessary_null_comparison
-    if (node.target != null) {
-      libraryBuilder.checkBoundsInStaticInvocation(
-          node, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
-    }
+    libraryBuilder.checkBoundsInStaticInvocation(
+        node, typeSchemaEnvironment, helper.uri, typeArgumentsInfo);
     return new ExpressionInferenceResult(
         result.inferredType, result.applyResult(node));
   }
@@ -9138,18 +9061,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
                 receiver.literal.length);
             return new ExpressionInferenceResult(const DynamicType(), error);
           }
-          // ignore: unnecessary_null_comparison
-          if (intValue != null) {
-            Expression? error = checkWebIntLiteralsErrorIfUnexact(
-                intValue, receiver.literal, receiver.fileOffset);
-            if (error != null) {
-              return new ExpressionInferenceResult(const DynamicType(), error);
-            }
-            expressionResult = new ExpressionInferenceResult(
-                coreTypes.intRawType(libraryBuilder.nonNullable),
-                new IntLiteral(-intValue)
-                  ..fileOffset = node.expression.fileOffset);
+          Expression? error = checkWebIntLiteralsErrorIfUnexact(
+              intValue, receiver.literal, receiver.fileOffset);
+          if (error != null) {
+            return new ExpressionInferenceResult(const DynamicType(), error);
           }
+          expressionResult = new ExpressionInferenceResult(
+              coreTypes.intRawType(libraryBuilder.nonNullable),
+              new IntLiteral(-intValue)
+                ..fileOffset = node.expression.fileOffset);
         }
       }
     }

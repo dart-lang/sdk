@@ -55,9 +55,6 @@ class NullabilityBuilder {
   }
 
   Nullability build(LibraryBuilder libraryBuilder) {
-    // ignore: unnecessary_null_comparison
-    assert(libraryBuilder != null);
-
     switch (_syntacticNullability) {
       case SyntacticNullability.legacy:
         return Nullability.legacy;

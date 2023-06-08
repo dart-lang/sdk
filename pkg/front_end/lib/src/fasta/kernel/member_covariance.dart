@@ -155,8 +155,6 @@ class Covariance {
   /// aspect of [member]. Otherwise, the covariance for the getter/method aspect
   /// of [member] is computed.
   factory Covariance.fromMember(Member member, {required bool forSetter}) {
-    // ignore: unnecessary_null_comparison
-    assert(forSetter != null);
     if (member is Procedure) {
       if (member.kind == ProcedureKind.Getter) {
         return const Covariance.empty();

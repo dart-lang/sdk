@@ -166,29 +166,20 @@ mixin FinalizableTransformer on Transformer {
     // [variable] in scope.
 
     // First, transform the iterable, which does not have variable in scope.
-    // ignore: unnecessary_null_comparison
-    if (node.iterable != null) {
-      node.iterable = transform(node.iterable);
-      node.iterable.parent = node;
-    }
+    node.iterable = transform(node.iterable);
+    node.iterable.parent = node;
 
     final scope = _Scope(node, parent: _currentScope);
     _currentScope = scope;
 
     // Then, transform the variable, adding it to the new scope.
-    // ignore: unnecessary_null_comparison
-    if (node.variable != null) {
-      assert(node.variable.initializer == null);
-      node.variable = transform(node.variable);
-      node.variable.parent = node;
-    }
+    assert(node.variable.initializer == null);
+    node.variable = transform(node.variable);
+    node.variable.parent = node;
 
     // Then transform the body, with the new variable in scope.
-    // ignore: unnecessary_null_comparison
-    if (node.body != null) {
-      node.body = transform(node.body);
-      node.body.parent = node;
-    }
+    node.body = transform(node.body);
+    node.body.parent = node;
 
     _appendReachabilityFences(node.body, scope.toFenceThisScope);
 

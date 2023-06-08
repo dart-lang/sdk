@@ -234,8 +234,7 @@ int computeModifiers(Class cls) {
   if (cls.isAbstract) {
     modifiers |= abstractMask;
   }
-  // ignore: unnecessary_null_comparison
-  if (cls.isMixinApplication && cls.name != null) {
+  if (cls.isMixinApplication) {
     modifiers |= namedMixinApplicationMask;
   }
   return modifiers;

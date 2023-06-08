@@ -521,10 +521,7 @@ class ComplexTypeInfo implements TypeInfo {
 
   ComplexTypeInfo(Token beforeStart, this.typeArguments)
       : this.start = beforeStart.next!,
-        recovered = typeArguments.recovered {
-    // ignore: unnecessary_null_comparison
-    assert(typeArguments != null);
-  }
+        recovered = typeArguments.recovered;
 
   ComplexTypeInfo._nonNullable(
       this.start,
@@ -1226,10 +1223,6 @@ class ComplexTypeParamOrArgInfo extends TypeParamOrArgInfo {
   ComplexTypeParamOrArgInfo(
       Token token, this.inDeclaration, this.allowsVariance)
       : assert(optional('<', token.next!)),
-        // ignore: unnecessary_null_comparison
-        assert(inDeclaration != null),
-        // ignore: unnecessary_null_comparison
-        assert(allowsVariance != null),
         start = token.next!;
 
   /// Parse the tokens and return the receiver or [noTypeParamOrArg] if there

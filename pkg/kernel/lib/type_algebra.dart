@@ -527,10 +527,7 @@ class _InnerTypeSubstitutor extends _TypeSubstitutor {
     TypeParameterType typeParameterType = substitution[node] =
         new TypeParameterType.forAlphaRenaming(node, fresh);
     fresh.bound = visit(node.bound);
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType != null) {
-      fresh.defaultType = visit(node.defaultType);
-    }
+    fresh.defaultType = visit(node.defaultType);
     // If the bound was changed from substituting the bound we need to update
     // implicit nullability to be based on the new bound. If the bound wasn't
     // changed the computation below results in the same nullability.
@@ -998,8 +995,6 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(!variables.contains(node));
     if (node.bound.accept(this)) return true;
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
 }
@@ -1085,8 +1080,6 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(variables.contains(node));
     if (node.bound.accept(this)) return true;
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
 }
@@ -1173,8 +1166,6 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
   bool handleTypeParameter(TypeParameter node) {
     assert(boundVariables.contains(node));
     if (node.bound.accept(this)) return true;
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType == null) return false;
     return node.defaultType.accept(this);
   }
 }
@@ -1389,14 +1380,7 @@ abstract class NullabilityAwareTypeVariableEliminatorBase
   NullabilityAwareTypeVariableEliminatorBase(
       {required this.bottomType,
       required this.topType,
-      required this.topFunctionType})
-      :
-        // ignore: unnecessary_null_comparison
-        assert(bottomType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topFunctionType != null);
+      required this.topFunctionType});
 
   bool containsTypeVariablesToEliminate(DartType type);
 
@@ -1480,15 +1464,7 @@ class NullabilityAwareTypeVariableEliminator
       required DartType topType,
       required DartType topFunctionType,
       this.unhandledTypeHandler})
-      // ignore: unnecessary_null_comparison
-      : assert(eliminationTargets != null),
-        // ignore: unnecessary_null_comparison
-        assert(bottomType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topFunctionType != null),
-        super(
+      : super(
             bottomType: bottomType,
             topType: topType,
             topFunctionType: topFunctionType);
@@ -1523,14 +1499,7 @@ class NullabilityAwareFreeTypeVariableEliminator
       {required DartType bottomType,
       required DartType topType,
       required DartType topFunctionType})
-      :
-        // ignore: unnecessary_null_comparison
-        assert(bottomType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topType != null),
-        // ignore: unnecessary_null_comparison
-        assert(topFunctionType != null),
-        super(
+      : super(
             bottomType: bottomType,
             topType: topType,
             topFunctionType: topFunctionType);
@@ -1568,9 +1537,6 @@ class NullabilityAwareFreeTypeVariableEliminator
 /// [Nullability.undetermined], depending on the bound.
 DartType computeTypeWithoutNullabilityMarker(DartType type,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   if (type is TypeParameterType) {
     // The default nullability for library is used when there are no
     // nullability markers on the type.
@@ -1599,9 +1565,6 @@ DartType computeTypeWithoutNullabilityMarker(DartType type,
 /// and S extends Object.
 bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   // The default nullability for library is used when there are no nullability
   // markers on the type.
   return type.declaredNullability ==
@@ -1611,8 +1574,6 @@ bool isTypeParameterTypeWithoutNullabilityMarker(TypeParameterType type,
 
 bool isTypeWithoutNullabilityMarker(DartType type,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
   return !type.accept(new _NullabilityMarkerDetector(isNonNullableByDefault));
 }
 
@@ -1732,9 +1693,6 @@ bool isNullableTypeConstructorApplication(DartType type) {
 /// dynamic or void.
 bool isLegacyTypeConstructorApplication(DartType type,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
-
   if (type is TypeParameterType) {
     // The legacy nullability is considered an application of the legacy
     // nullability constructor if it doesn't match the default nullability
@@ -1751,8 +1709,6 @@ bool isLegacyTypeConstructorApplication(DartType type,
 
 Nullability _defaultNullabilityForTypeParameterType(TypeParameter parameter,
     {required bool isNonNullableByDefault}) {
-  // ignore: unnecessary_null_comparison
-  assert(isNonNullableByDefault != null);
   return isNonNullableByDefault
       ? TypeParameterType.computeNullabilityFromBound(parameter)
       : Nullability.legacy;

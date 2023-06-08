@@ -413,8 +413,7 @@ Future<TestResult<T>> runTestForConfig<T>(MarkerOptions markerOptions,
 
     errorMap.forEach((Uri uri, Map<int, List<FormattedMessage>> map) {
       map.forEach((int offset, List<FormattedMessage> list) {
-        // ignore: unnecessary_null_comparison
-        if (offset == null || offset < 0) {
+        if (offset < 0) {
           // Position errors without offset in the begin of the file.
           offset = 0;
         }
@@ -578,8 +577,7 @@ void printMessageInLocation(
     if (source == null) {
       print('$uri@$offset: $message');
     } else {
-      // ignore: unnecessary_null_comparison
-      if (offset != null && offset >= 1) {
+      if (offset >= 1) {
         Location location = source.getLocation(uri, offset);
         print('$location: $message');
         if (!succinct) {

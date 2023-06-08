@@ -955,15 +955,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeNonNullReference(Reference reference) {
-    // ignore: unnecessary_null_comparison
-    if (reference == null) {
-      throw new ArgumentError('Got null reference');
-    } else {
-      assert(reference.isConsistent, reference.getInconsistency());
-      CanonicalName name = _ensureCanonicalName(reference);
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    assert(reference.isConsistent, reference.getInconsistency());
+    CanonicalName name = _ensureCanonicalName(reference);
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   /// Returns the canonical name for [reference].
@@ -1046,14 +1041,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNonNullCanonicalNameReference(Reference reference) {
     CanonicalName name = _ensureCanonicalName(reference);
-    // ignore: unnecessary_null_comparison
-    if (name == null) {
-      throw new ArgumentError(
-          'Expected a canonical name to be valid but was `null`.');
-    } else {
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   void writeOffset(int offset) {
@@ -1068,11 +1057,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassReference(Class class_) {
-    // ignore: unnecessary_null_comparison
-    if (class_ == null) {
-      throw new ArgumentError(
-          'Expected a class reference to be valid but was `null`.');
-    }
     writeNonNullCanonicalNameReference(class_.reference);
   }
 

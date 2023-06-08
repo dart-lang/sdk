@@ -1897,8 +1897,6 @@ class Parser {
   /// ```
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
-    // ignore: unnecessary_null_comparison
-    assert(parameterKind != null);
     token = parseMetadataStar(token);
 
     Token? skippedNonRequiredRequired;
@@ -3159,14 +3157,10 @@ class Parser {
   /// identifier in the given [context], create a synthetic identifier, report
   /// an error, and return the synthetic identifier.
   Token ensureIdentifier(Token token, IdentifierContext context) {
-    // ignore: unnecessary_null_comparison
-    assert(context != null);
     _tryRewriteNewToIdentifier(token, context);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifier(token, this);
-      // ignore: unnecessary_null_comparison
-      assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
     }
     listener.handleIdentifier(identifier, context);
@@ -3224,14 +3218,10 @@ class Parser {
   /// to use the token as an identifier, even if it isn't a valid identifier.
   Token ensureIdentifierPotentiallyRecovered(
       Token token, IdentifierContext context, bool isRecovered) {
-    // ignore: unnecessary_null_comparison
-    assert(context != null);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifierPotentiallyRecovered(
           token, this, isRecovered);
-      // ignore: unnecessary_null_comparison
-      assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
     }
     listener.handleIdentifier(identifier, context);

@@ -262,9 +262,7 @@ class DillClassMember extends BuilderClassMember {
   @override
   final bool forSetter;
 
-  DillClassMember(this.memberBuilder, {required this.forSetter})
-      // ignore: unnecessary_null_comparison
-      : assert(forSetter != null);
+  DillClassMember(this.memberBuilder, {required this.forSetter});
 
   @override
   bool get isSourceDeclaration => false;

@@ -40,14 +40,11 @@ Future<VersionAndPackageUri> languageVersionForUri(
     bool good = false;
     late final int currentSdkVersionMajor;
     late final int currentSdkVersionMinor;
-    // ignore: unnecessary_null_comparison
-    if (currentSdkVersion != null) {
-      List<String> dotSeparatedParts = currentSdkVersion.split(".");
-      if (dotSeparatedParts.length >= 2) {
-        currentSdkVersionMajor = int.parse(dotSeparatedParts[0]);
-        currentSdkVersionMinor = int.parse(dotSeparatedParts[1]);
-        good = true;
-      }
+    List<String> dotSeparatedParts = currentSdkVersion.split(".");
+    if (dotSeparatedParts.length >= 2) {
+      currentSdkVersionMajor = int.parse(dotSeparatedParts[0]);
+      currentSdkVersionMinor = int.parse(dotSeparatedParts[1]);
+      good = true;
     }
     if (!good) {
       throw new StateError("Unparsable sdk version given: $currentSdkVersion");
@@ -67,9 +64,7 @@ Future<VersionAndPackageUri> languageVersionForUri(
     Uri packageUri = uri;
     if (!packageUri.isScheme('dart') &&
         !packageUri.isScheme('package') &&
-        package != null &&
-        // ignore: unnecessary_null_comparison
-        package.name != null) {
+        package != null) {
       packageUri = new Uri(scheme: 'package', path: package.name);
     }
 

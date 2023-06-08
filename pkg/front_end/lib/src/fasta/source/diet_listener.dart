@@ -827,10 +827,6 @@ class DietListener extends StackListenerImpl {
         builder.computeTypeParameterScope(memberScope);
     final Scope formalParameterScope =
         builder.computeFormalParameterScope(typeParameterScope);
-    // ignore: unnecessary_null_comparison
-    assert(typeParameterScope != null);
-    // ignore: unnecessary_null_comparison
-    assert(formalParameterScope != null);
     return createListener(
         builder.bodyBuilderContext, builder, typeParameterScope,
         thisVariable: builder.thisVariable,

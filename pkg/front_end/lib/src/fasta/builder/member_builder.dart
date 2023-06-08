@@ -188,10 +188,7 @@ abstract class BuilderClassMember implements ClassMember {
   String get fullName {
     String suffix = isSetter ? "=" : "";
     String className = classBuilder.fullNameForErrors;
-    // ignore: unnecessary_null_comparison
-    return className == null
-        ? "${fullNameForErrors}$suffix"
-        : "${className}.${fullNameForErrors}$suffix";
+    return "${className}.${fullNameForErrors}$suffix";
   }
 
   @override

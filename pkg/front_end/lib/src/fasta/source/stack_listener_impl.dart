@@ -89,8 +89,6 @@ abstract class StackListenerImpl extends StackListener {
 
   void reportMissingNonNullableSupport(Token token) {
     assert(!libraryBuilder.isNonNullableByDefault);
-    // ignore: unnecessary_null_comparison
-    assert(token != null);
     if (libraryFeatures.nonNullable.isSupported) {
       if (libraryBuilder.languageVersion.isExplicit) {
         addProblem(

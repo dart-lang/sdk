@@ -253,11 +253,7 @@ class ForInStatementWithSynthesizedVariable extends InternalStatement {
 
   ForInStatementWithSynthesizedVariable(this.variable, this.iterable,
       this.syntheticAssignment, this.expressionEffects, this.body,
-      {required this.isAsync, required this.hasProblem})
-      // ignore: unnecessary_null_comparison
-      : assert(isAsync != null),
-        // ignore: unnecessary_null_comparison
-        assert(hasProblem != null) {
+      {required this.isAsync, required this.hasProblem}) {
     variable?.parent = this;
     iterable.parent = this;
     syntheticAssignment?.parent = this;
@@ -286,11 +282,7 @@ class TryStatement extends InternalStatement {
   List<Catch> catchBlocks;
   Statement? finallyBlock;
 
-  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock)
-      // ignore: unnecessary_null_comparison
-      : assert(tryBlock != null),
-        // ignore: unnecessary_null_comparison
-        assert(catchBlocks != null) {
+  TryStatement(this.tryBlock, this.catchBlocks, this.finallyBlock) {
     tryBlock.parent = this;
     setParents(catchBlocks, this);
     finallyBlock?.parent = this;
@@ -328,9 +320,7 @@ class SwitchCaseImpl extends SwitchCase {
   SwitchCaseImpl(this.caseOffsets, List<Expression> expressions,
       List<int> expressionOffsets, Statement body,
       {bool isDefault = false, required this.hasLabel})
-      // ignore: unnecessary_null_comparison
-      : assert(hasLabel != null),
-        super(expressions, expressionOffsets, body, isDefault: isDefault);
+      : super(expressions, expressionOffsets, body, isDefault: isDefault);
 
   @override
   String toString() {
@@ -342,10 +332,7 @@ class BreakStatementImpl extends BreakStatement {
   Statement? targetStatement;
   final bool isContinue;
 
-  BreakStatementImpl({required this.isContinue})
-      // ignore: unnecessary_null_comparison
-      : assert(isContinue != null),
-        super(dummyLabeledStatement);
+  BreakStatementImpl({required this.isContinue}) : super(dummyLabeledStatement);
 
   @override
   String toString() {
@@ -599,11 +586,7 @@ class Cascade extends InternalExpression {
   /// variable.  Caller is responsible for ensuring that [variable]'s
   /// initializer is the expression preceding the first `..` of the cascade
   /// expression.
-  Cascade(this.variable, {required this.isNullAware})
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNullAware != null) {
+  Cascade(this.variable, {required this.isNullAware}) {
     variable.parent = this;
   }
 
@@ -651,11 +634,7 @@ class DeferredCheck extends InternalExpression {
   VariableDeclaration variable;
   Expression expression;
 
-  DeferredCheck(this.variable, this.expression)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(expression != null) {
+  DeferredCheck(this.variable, this.expression) {
     variable.parent = this;
     expression.parent = this;
   }
@@ -856,11 +835,7 @@ class IfNullExpression extends InternalExpression {
   Expression left;
   Expression right;
 
-  IfNullExpression(this.left, this.right)
-      // ignore: unnecessary_null_comparison
-      : assert(left != null),
-        // ignore: unnecessary_null_comparison
-        assert(right != null) {
+  IfNullExpression(this.left, this.right) {
     left.parent = this;
     right.parent = this;
   }
@@ -995,9 +970,7 @@ class ShadowInvalidFieldInitializer extends LocalInitializer
 
   ShadowInvalidFieldInitializer(
       this.field, this.value, VariableDeclaration variable)
-      // ignore: unnecessary_null_comparison
-      : assert(value != null),
-        super(variable) {
+      : super(variable) {
     value.parent = this;
   }
 
@@ -1016,11 +989,7 @@ class ExpressionInvocation extends InternalExpression {
   Expression expression;
   Arguments arguments;
 
-  ExpressionInvocation(this.expression, this.arguments)
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null),
-        // ignore: unnecessary_null_comparison
-        assert(arguments != null) {
+  ExpressionInvocation(this.expression, this.arguments) {
     expression.parent = this;
     arguments.parent = this;
   }
@@ -1056,11 +1025,7 @@ class NullAwareMethodInvocation extends InternalExpression {
   /// The expression that invokes the method on [variable].
   Expression invocation;
 
-  NullAwareMethodInvocation(this.variable, this.invocation)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(invocation != null) {
+  NullAwareMethodInvocation(this.variable, this.invocation) {
     variable.parent = this;
     invocation.parent = this;
   }
@@ -1121,11 +1086,7 @@ class NullAwarePropertyGet extends InternalExpression {
   /// The expression that reads the property from [variable].
   Expression read;
 
-  NullAwarePropertyGet(this.variable, this.read)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(read != null) {
+  NullAwarePropertyGet(this.variable, this.read) {
     variable.parent = this;
     read.parent = this;
   }
@@ -1174,11 +1135,7 @@ class NullAwarePropertySet extends InternalExpression {
   /// The expression that writes the value to the property in [variable].
   Expression write;
 
-  NullAwarePropertySet(this.variable, this.write)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null) {
+  NullAwarePropertySet(this.variable, this.write) {
     variable.parent = this;
     write.parent = this;
   }
@@ -1390,9 +1347,7 @@ class VariableGetImpl extends VariableGet {
 
   VariableGetImpl(VariableDeclaration variable,
       {required this.forNullGuardedAccess})
-      // ignore: unnecessary_null_comparison
-      : assert(forNullGuardedAccess != null),
-        super(variable);
+      : super(variable);
 
   @override
   String toString() {
@@ -1481,17 +1436,7 @@ class IfNullPropertySet extends InternalExpression {
   IfNullPropertySet(this.receiver, this.propertyName, this.rhs,
       {required this.forEffect,
       required this.readOffset,
-      required this.writeOffset})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null) {
+      required this.writeOffset}) {
     receiver.parent = this;
     rhs.parent = this;
   }
@@ -1538,13 +1483,7 @@ class IfNullSet extends InternalExpression {
   /// If `true`, the expression is only need for effect and not for its value.
   final bool forEffect;
 
-  IfNullSet(this.read, this.write, {required this.forEffect})
-      // ignore: unnecessary_null_comparison
-      : assert(read != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+  IfNullSet(this.read, this.write, {required this.forEffect}) {
     read.parent = this;
     write.parent = this;
   }
@@ -1641,19 +1580,7 @@ class CompoundExtensionSet extends InternalExpression {
       {required this.forEffect,
       required this.readOffset,
       required this.binaryOffset,
-      required this.writeOffset})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null) {
+      required this.writeOffset}) {
     receiver.parent = this;
     rhs.parent = this;
   }
@@ -1711,19 +1638,7 @@ class CompoundPropertySet extends InternalExpression {
       {required this.forEffect,
       required this.readOffset,
       required this.binaryOffset,
-      required this.writeOffset})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null) {
+      required this.writeOffset}) {
     receiver.parent = this;
     rhs.parent = this;
   }
@@ -1772,11 +1687,7 @@ class PropertyPostIncDec extends InternalExpression {
   /// property on [variable].
   VariableDeclarationImpl write;
 
-  PropertyPostIncDec(this.variable, this.read, this.write)
-      // ignore: unnecessary_null_comparison
-      : assert(read != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null) {
+  PropertyPostIncDec(this.variable, this.read, this.write) {
     variable?.parent = this;
     read.parent = this;
     write.parent = this;
@@ -1813,11 +1724,7 @@ class LocalPostIncDec extends InternalExpression {
   /// local variable.
   VariableDeclarationImpl write;
 
-  LocalPostIncDec(this.read, this.write)
-      // ignore: unnecessary_null_comparison
-      : assert(read != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null) {
+  LocalPostIncDec(this.read, this.write) {
     read.parent = this;
     write.parent = this;
   }
@@ -1849,11 +1756,7 @@ class StaticPostIncDec extends InternalExpression {
   /// static member.
   VariableDeclarationImpl write;
 
-  StaticPostIncDec(this.read, this.write)
-      // ignore: unnecessary_null_comparison
-      : assert(read != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null) {
+  StaticPostIncDec(this.read, this.write) {
     read.parent = this;
     write.parent = this;
   }
@@ -1885,11 +1788,7 @@ class SuperPostIncDec extends InternalExpression {
   /// static member.
   VariableDeclarationImpl write;
 
-  SuperPostIncDec(this.read, this.write)
-      // ignore: unnecessary_null_comparison
-      : assert(read != null),
-        // ignore: unnecessary_null_comparison
-        assert(write != null) {
+  SuperPostIncDec(this.read, this.write) {
     read.parent = this;
     write.parent = this;
   }
@@ -1914,11 +1813,7 @@ class IndexGet extends InternalExpression {
   /// The index expression of the operation.
   Expression index;
 
-  IndexGet(this.receiver, this.index)
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null) {
+  IndexGet(this.receiver, this.index) {
     receiver.parent = this;
     index.parent = this;
   }
@@ -1968,15 +1863,7 @@ class IndexSet extends InternalExpression {
 
   final bool forEffect;
 
-  IndexSet(this.receiver, this.index, this.value, {required this.forEffect})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+  IndexSet(this.receiver, this.index, this.value, {required this.forEffect}) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2026,11 +1913,7 @@ class SuperIndexSet extends InternalExpression {
   /// The value expression of the operation.
   Expression value;
 
-  SuperIndexSet(this.setter, this.index, this.value)
-      // ignore: unnecessary_null_comparison
-      : assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null) {
+  SuperIndexSet(this.setter, this.index, this.value) {
     index.parent = this;
     value.parent = this;
   }
@@ -2088,13 +1971,7 @@ class ExtensionIndexSet extends InternalExpression {
   ExtensionIndexSet(this.extension, this.explicitTypeArguments, this.receiver,
       this.setter, this.index, this.value)
       : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null) {
+            explicitTypeArguments.length == extension.typeParameters.length) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2175,21 +2052,7 @@ class IfNullIndexSet extends InternalExpression {
       {required this.readOffset,
       required this.testOffset,
       required this.writeOffset,
-      required this.forEffect})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(testOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+      required this.forEffect}) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2255,19 +2118,7 @@ class IfNullSuperIndexSet extends InternalExpression {
       {required this.readOffset,
       required this.testOffset,
       required this.writeOffset,
-      required this.forEffect})
-      // ignore: unnecessary_null_comparison
-      : assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(testOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+      required this.forEffect}) {
     index.parent = this;
     value.parent = this;
   }
@@ -2342,21 +2193,7 @@ class IfNullExtensionIndexSet extends InternalExpression {
       required this.writeOffset,
       required this.forEffect})
       : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(testOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+            explicitTypeArguments.length == extension.typeParameters.length) {
     receiver.parent = this;
     index.parent = this;
     value.parent = this;
@@ -2421,23 +2258,7 @@ class CompoundIndexSet extends InternalExpression {
       required this.binaryOffset,
       required this.writeOffset,
       required this.forEffect,
-      required this.forPostIncDec})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(forPostIncDec != null) {
+      required this.forPostIncDec}) {
     receiver.parent = this;
     index.parent = this;
     rhs.parent = this;
@@ -2546,21 +2367,7 @@ class NullAwareCompoundSet extends InternalExpression {
       required this.binaryOffset,
       required this.writeOffset,
       required this.forEffect,
-      required this.forPostIncDec})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(forPostIncDec != null) {
+      required this.forPostIncDec}) {
     receiver.parent = this;
     rhs.parent = this;
     fileOffset = binaryOffset;
@@ -2648,19 +2455,7 @@ class NullAwareIfNullSet extends InternalExpression {
       {required this.readOffset,
       required this.writeOffset,
       required this.testOffset,
-      required this.forEffect})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(testOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+      required this.forEffect}) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -2736,21 +2531,7 @@ class CompoundSuperIndexSet extends InternalExpression {
       required this.binaryOffset,
       required this.writeOffset,
       required this.forEffect,
-      required this.forPostIncDec})
-      // ignore: unnecessary_null_comparison
-      : assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(forPostIncDec != null) {
+      required this.forPostIncDec}) {
     index.parent = this;
     rhs.parent = this;
     fileOffset = binaryOffset;
@@ -2839,23 +2620,7 @@ class CompoundExtensionIndexSet extends InternalExpression {
       required this.forEffect,
       required this.forPostIncDec})
       : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(index != null),
-        // ignore: unnecessary_null_comparison
-        assert(rhs != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(binaryOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(writeOffset != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(forPostIncDec != null) {
+            explicitTypeArguments.length == extension.typeParameters.length) {
     receiver.parent = this;
     index.parent = this;
     rhs.parent = this;
@@ -2914,16 +2679,9 @@ class ExtensionSet extends InternalExpression {
   final bool forEffect;
 
   ExtensionSet(this.extension, this.explicitTypeArguments, this.receiver,
-      this.target, this.value,
-      {required this.forEffect})
+      this.target, this.value, {required this.forEffect})
       : assert(explicitTypeArguments == null ||
-            explicitTypeArguments.length == extension.typeParameters.length),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null) {
+            explicitTypeArguments.length == extension.typeParameters.length) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -2953,11 +2711,7 @@ class NullAwareExtension extends InternalExpression {
   VariableDeclarationImpl variable;
   Expression expression;
 
-  NullAwareExtension(this.variable, this.expression)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null),
-        // ignore: unnecessary_null_comparison
-        assert(expression != null) {
+  NullAwareExtension(this.variable, this.expression) {
     variable.parent = this;
     expression.parent = this;
   }
@@ -2993,9 +2747,7 @@ class ExtensionTearOff extends InternalExpression {
   /// The arguments provided to the top-level method.
   Arguments arguments;
 
-  ExtensionTearOff(this.target, this.arguments)
-      // ignore: unnecessary_null_comparison
-      : assert(arguments != null) {
+  ExtensionTearOff(this.target, this.arguments) {
     arguments.parent = this;
   }
 
@@ -3017,13 +2769,7 @@ class EqualsExpression extends InternalExpression {
   Expression right;
   bool isNot;
 
-  EqualsExpression(this.left, this.right, {required this.isNot})
-      // ignore: unnecessary_null_comparison
-      : assert(left != null),
-        // ignore: unnecessary_null_comparison
-        assert(right != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNot != null) {
+  EqualsExpression(this.left, this.right, {required this.isNot}) {
     left.parent = this;
     right.parent = this;
   }
@@ -3057,11 +2803,7 @@ class BinaryExpression extends InternalExpression {
   Name binaryName;
   Expression right;
 
-  BinaryExpression(this.left, this.binaryName, this.right)
-      // ignore: unnecessary_null_comparison
-      : assert(left != null),
-        // ignore: unnecessary_null_comparison
-        assert(right != null) {
+  BinaryExpression(this.left, this.binaryName, this.right) {
     left.parent = this;
     right.parent = this;
   }
@@ -3093,9 +2835,7 @@ class UnaryExpression extends InternalExpression {
   Name unaryName;
   Expression expression;
 
-  UnaryExpression(this.unaryName, this.expression)
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null) {
+  UnaryExpression(this.unaryName, this.expression) {
     expression.parent = this;
   }
 
@@ -3128,9 +2868,7 @@ class UnaryExpression extends InternalExpression {
 class ParenthesizedExpression extends InternalExpression {
   Expression expression;
 
-  ParenthesizedExpression(this.expression)
-      // ignore: unnecessary_null_comparison
-      : assert(expression != null) {
+  ParenthesizedExpression(this.expression) {
     expression.parent = this;
   }
 
@@ -3198,11 +2936,7 @@ class MethodInvocation extends InternalExpression {
 
   Arguments arguments;
 
-  MethodInvocation(this.receiver, this.name, this.arguments)
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(arguments != null) {
+  MethodInvocation(this.receiver, this.name, this.arguments) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -3240,9 +2974,7 @@ class PropertyGet extends InternalExpression {
 
   Name name;
 
-  PropertyGet(this.receiver, this.name)
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null) {
+  PropertyGet(this.receiver, this.name) {
     receiver.parent = this;
   }
 
@@ -3286,15 +3018,7 @@ class PropertySet extends InternalExpression {
   final bool readOnlyReceiver;
 
   PropertySet(this.receiver, this.name, this.value,
-      {required this.forEffect, required this.readOnlyReceiver})
-      // ignore: unnecessary_null_comparison
-      : assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(value != null),
-        // ignore: unnecessary_null_comparison
-        assert(forEffect != null),
-        // ignore: unnecessary_null_comparison
-        assert(readOnlyReceiver != null) {
+      {required this.forEffect, required this.readOnlyReceiver}) {
     receiver.parent = this;
     value.parent = this;
   }
