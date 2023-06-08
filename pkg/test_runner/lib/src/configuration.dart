@@ -240,7 +240,8 @@ class TestConfiguration {
             mode: mode,
             isChecked: isChecked,
             isReload: isReload,
-            arch: architecture);
+            arch: architecture,
+            system: system);
 
         _timeout = 60 * compilerMultiplier * runtimeMultiplier;
       }

@@ -72,7 +72,8 @@ abstract class RuntimeConfiguration {
       {required Mode mode,
       bool isChecked = false,
       bool isReload = false,
-      required Architecture arch}) {
+      required Architecture arch,
+      required System system}) {
     return 1;
   }
 
@@ -278,7 +279,8 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       {required Mode mode,
       bool isChecked = false,
       bool isReload = false,
-      required Architecture arch}) {
+      required Architecture arch,
+      required System system}) {
     var multiplier = 1;
 
     switch (arch) {
@@ -290,6 +292,12 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
         multiplier *= 4;
         break;
     }
+
+    // TODO(dart-engprod): Remove after replacing Cavium with GCE instances.
+    if (arch == Architecture.arm64 && system == System.linux) {
+      multiplier *= 2;
+    }
+
     if (_configuration.useQemu) {
       multiplier *= 2;
     }
