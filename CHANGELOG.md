@@ -1,8 +1,6 @@
 # 3.1.0-wip
 
 - new lint: `no_wildcard_variable_uses`
-- fix `prefer_interpolation_to_compose_strings` for false-positive when
-  `toString()` is invoked with arguments.
 
 ---
 
