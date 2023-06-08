@@ -1867,9 +1867,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     if (cls == null) return false;
     var cachedResult = _typeParametersInHierarchyCache[cls];
     if (cachedResult != null) return cachedResult;
-    var hasTypeParameters = cls.typeParameters.isNotEmpty
-        ? true
-        : _typeParametersInHierarchy(cls.superclass);
+    var hasTypeParameters = cls.typeParameters.isNotEmpty ||
+        (cls.isMixinApplication &&
+            _typeParametersInHierarchy(cls.mixedInClass)) ||
+        _typeParametersInHierarchy(cls.superclass);
     _typeParametersInHierarchyCache[cls] = hasTypeParameters;
     return hasTypeParameters;
   }
