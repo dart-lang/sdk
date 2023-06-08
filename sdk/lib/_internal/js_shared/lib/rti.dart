@@ -1964,6 +1964,31 @@ class _Universe {
   static void addRules(Object? universe, Object? rules) =>
       _Utils.objectAssign(typeRules(universe), rules);
 
+  /// Adds or updates existing type rules in the type [universe].
+  ///
+  /// This update is intended to add new rules to the set of rules that exist
+  /// for the target type but will overwrite on a collision of rule keys.
+  ///
+  /// NOTE this operation does not support the forwarding rule format where the
+  /// rule is simply a string directing to another type rule.
+  static void addOrUpdateRules(Object? universe, Object? newRules) {
+    var targetTypes = _Utils.objectKeys(newRules);
+    var typeCount = _Utils.arrayLength(targetTypes);
+    for (int i = 0; i < typeCount; i++) {
+      var targetType = _Utils.asString(_Utils.arrayAt(targetTypes, i));
+      var updatedRule = JS('', '#.#', newRules, targetType);
+      var rule = _findRule(universe, targetType);
+      if (rule == null) {
+        // Create a completely new type rule to add to the type universe.
+        JS('', '#.#  = #', typeRules(universe), targetType, updatedRule);
+      } else {
+        // Updating a forwarding rule isn't expected.
+        assert(!_Utils.isString(rule));
+        _Utils.objectAssign(rule, updatedRule);
+      }
+    }
+  }
+
   static void addErasedTypes(Object? universe, Object? types) =>
       _Utils.objectAssign(erasedTypes(universe), types);
 

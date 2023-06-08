@@ -58,13 +58,17 @@ bind(obj, name, method) {
   var objType = getType(obj);
   var methodType = getMethodType(objType, name);
   if (JS_GET_FLAG('NEW_RUNTIME_TYPES')) {
-    if (rti.isGenericFunctionType(methodType)) {
-      // Attach the default type argument values to the new function in case
-      // they are needed for a dynamic call.
-      var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
-      JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
+    // Native JavaScript methods do not have Dart signatures attached that need
+    // to be copied.
+    if (methodType != null) {
+      if (rti.isGenericFunctionType(methodType)) {
+        // Attach the default type argument values to the new function in case
+        // they are needed for a dynamic call.
+        var defaultTypeArgs = getMethodDefaultTypeArgs(objType, name);
+        JS('', '#._defaultTypeArgs = #', f, defaultTypeArgs);
+      }
+      JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), methodType);
     }
-    JS('', '#[#] = #', f, JS_GET_NAME(JsGetName.SIGNATURE_NAME), methodType);
   } else {
     JS('', '#[#] = #', f, _runtimeType, methodType);
   }
