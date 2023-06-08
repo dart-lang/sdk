@@ -517,7 +517,7 @@ deps = {
               "version": Var("clang_version"),
           },
       ],
-      "condition": "host_cpu == x64 and host_os == win",
+      "condition": "host_os == win", # On ARM64 Windows too because Fuchsia doesn't provide the host-arm64 toolchain.
       "dep_type": "cipd",
   },
   Var("dart_root") + "/buildtools/linux-arm64/clang": {
