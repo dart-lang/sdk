@@ -39,14 +39,14 @@ library libA;
 /// Longer description.
 class A {}
 ''');
-    newFile('$testPackageLibPath/b.dart', '''
+    final b = newFile('$testPackageLibPath/b.dart', '''
 library libB;
 import "a.dart" as foo;
 part 'test.dart';
 ''');
     addTestSource('part of libB; void f() {^}');
 
-    await resolveFile('$testPackageLibPath/b.dart');
+    await resolveFile(b);
 
     // Build the request
     var resolvedUnit = await getResolvedUnit(testFile.path);

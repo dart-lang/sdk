@@ -166,7 +166,7 @@ class AddMissingParameterRequiredTest_Workspace
   }
 
   Future<void> test_function_inPackage_inWorkspace() async {
-    newFile('/home/aaa/lib/a.dart', 'void test() {}');
+    final a = newFile('/home/aaa/lib/a.dart', 'void test() {}');
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
@@ -175,7 +175,7 @@ class AddMissingParameterRequiredTest_Workspace
 
     _workspace = DartChangeWorkspace([
       await session,
-      await sessionFor('/home/aaa'),
+      await sessionFor(a),
     ]);
 
     await resolveTestCode('''

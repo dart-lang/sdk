@@ -52,7 +52,7 @@ class RenameRefactoringTest extends RefactoringTest {
   /// Fails if no [RenameRefactoring] can be created.
   void createRenameRefactoringForElement(Element? element) {
     var workspace = RefactoringWorkspace(
-      [driverFor(testFile.path)],
+      [driverFor(testFile)],
       searchEngine,
     );
     var refactoring =

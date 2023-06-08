@@ -104,7 +104,7 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
   void setUp() {
     super.setUp();
     searchEngine = SearchEngineImpl([
-      driverFor(testPackageRootPath),
+      driverFor(testFile),
     ]);
   }
 

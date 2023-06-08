@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/test_utilities/find_element.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
@@ -33,11 +34,9 @@ class PubPackageResolutionTest extends AbstractContextTest {
     newFile(testFile.path, content);
   }
 
-  /// Resolve the file with the [path] into [result].
-  Future<void> resolveFile2(String path) async {
-    path = convertPath(path);
-
-    result = await resolveFile(path);
+  /// Resolve the [file] into [result].
+  Future<void> resolveFile2(File file) async {
+    result = await resolveFile(file);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);
@@ -50,7 +49,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFile.path);
+    return resolveFile2(testFile);
   }
 }
 
@@ -61,7 +60,7 @@ class SearchEngineImplTest extends PubPackageResolutionTest {
   }
 
   Future<void> test_membersOfSubtypes_classByClass_hasMembers() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    final a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -83,7 +82,7 @@ class C extends A {
 }
 ''');
 
-    await resolveFile2('$testPackageLibPath/a.dart');
+    await resolveFile2(a);
     var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
@@ -125,7 +124,7 @@ enum E with M {
   }
 
   Future<void> test_membersOfSubtypes_noMembers() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    final a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -138,7 +137,7 @@ import 'a.dart';
 class B extends A {}
 ''');
 
-    await resolveFile2('$testPackageLibPath/a.dart');
+    await resolveFile2(a);
     var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
@@ -146,7 +145,7 @@ class B extends A {}
   }
 
   Future<void> test_membersOfSubtypes_noSubtypes() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    final a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void b() {}
@@ -161,7 +160,7 @@ class B {
 }
 ''');
 
-    await resolveFile2('$testPackageLibPath/a.dart');
+    await resolveFile2(a);
     var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
@@ -169,7 +168,7 @@ class B {
   }
 
   Future<void> test_membersOfSubtypes_private() async {
-    newFile('$testPackageLibPath/a.dart', '''
+    final a = newFile('$testPackageLibPath/a.dart', '''
 class A {
   void a() {}
   void _b() {}
@@ -191,7 +190,7 @@ class D extends B {
 }
 ''');
 
-    await resolveFile2('$testPackageLibPath/a.dart');
+    await resolveFile2(a);
     var A = findElement.class_('A');
 
     var members = await searchEngine.membersOfSubtypes(A);
@@ -220,7 +219,7 @@ class C implements B {}
   Future<void> test_searchAllSubtypes_acrossDrivers() async {
     var aaaRootPath = _configureForPackage_aaa();
 
-    newFile('$aaaRootPath/lib/a.dart', '''
+    final a = newFile('$aaaRootPath/lib/a.dart', '''
 class T {}
 class A extends T {}
 ''');
@@ -231,7 +230,7 @@ class B extends A {}
 class C extends B {}
 ''');
 
-    await resolveFile2('$aaaRootPath/lib/a.dart');
+    await resolveFile2(a);
     var element = findElement.class_('T');
 
     var subtypes = <InterfaceElement>{};
@@ -366,8 +365,8 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(testFile.path)
-        .getLibraryByUri('dart:core') as LibraryElementResult;
+    var coreLibResult = await driverFor(testFile).getLibraryByUri('dart:core')
+        as LibraryElementResult;
     var intElement = coreLibResult.element.getClass('int')!;
 
     var matches = await searchEngine.searchReferences(intElement);

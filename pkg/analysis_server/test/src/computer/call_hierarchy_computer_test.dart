@@ -670,7 +670,7 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
     super.setUp();
     otherFile = convertPath('$testPackageLibPath/other.dart');
     searchEngine = SearchEngineImpl([
-      driverFor(testPackageRootPath),
+      driverFor(testFile),
     ]);
   }
 

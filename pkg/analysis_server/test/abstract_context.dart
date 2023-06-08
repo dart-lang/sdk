@@ -64,7 +64,7 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
+  Future<AnalysisSession> get session => sessionFor(testFile);
 
   /// The path for `analysis_options.yaml` in [testPackageRootPath].
   String get testAnalysisOptionsPath =>
@@ -87,7 +87,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get workspaceRootPath => '/home';
 
   Future<void> analyzeTestPackageFiles() async {
-    var analysisContext = contextFor(testPackageRootPath);
+    var analysisContext = contextFor(testFile);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
       await analysisContext.applyPendingFileChanges();
@@ -95,13 +95,13 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  void changeFile(String path) {
-    path = convertPath(path);
-    driverFor(path).changeFile(path);
+  void changeFile(File file) {
+    final path = file.path;
+    driverFor(file).changeFile(path);
   }
 
-  AnalysisContext contextFor(String path) {
-    return _contextFor(path);
+  AnalysisContext contextFor(File file) {
+    return _contextFor(file);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -147,8 +147,8 @@ class AbstractContextTest with ResourceProviderMixin {
     newFile(analysisOptionsPath, buffer.toString());
   }
 
-  AnalysisDriver driverFor(String path) {
-    return _contextFor(path).driver;
+  AnalysisDriver driverFor(File file) {
+    return _contextFor(file).driver;
   }
 
   /// Return the existing analysis context that should be used to analyze the
@@ -181,14 +181,14 @@ class AbstractContextTest with ResourceProviderMixin {
     return super.newFile(path, content);
   }
 
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    path = convertPath(path);
-    var session = await sessionFor(path);
+  Future<ResolvedUnitResult> resolveFile(File file) async {
+    final path = file.path;
+    var session = await sessionFor(file);
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
-  Future<AnalysisSession> sessionFor(String path) async {
-    var analysisContext = _contextFor(path);
+  Future<AnalysisSession> sessionFor(File file) async {
+    var analysisContext = _contextFor(file);
     await analysisContext.applyPendingFileChanges();
     return analysisContext.currentSession;
   }
@@ -297,11 +297,9 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  DriverBasedAnalysisContext _contextFor(String path) {
+  DriverBasedAnalysisContext _contextFor(File file) {
     _createAnalysisContexts();
-
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].

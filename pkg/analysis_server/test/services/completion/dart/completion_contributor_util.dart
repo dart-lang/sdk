@@ -117,7 +117,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
     newFile(testFile.path, content);
-    driverFor(testFile.path).changeFile(testFile.path);
+    driverFor(testFile).changeFile(testFile.path);
   }
 
   void assertCoreTypeSuggestions() {

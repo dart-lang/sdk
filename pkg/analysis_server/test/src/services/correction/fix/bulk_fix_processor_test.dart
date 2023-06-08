@@ -52,7 +52,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile.path);
+    var analysisContext = contextFor(testFile);
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(

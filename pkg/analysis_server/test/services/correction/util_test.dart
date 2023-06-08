@@ -40,7 +40,7 @@ void f(bool? b4, bool? b5) {
     expect(result, expected);
     // For compactness we put multiple cases into one test method.
     // Prepare for resolving the test file one again.
-    changeFile(testFile.path);
+    changeFile(testFile);
   }
 
   Future<void> test_addLibraryImports_dart_doubleQuotes() async {
