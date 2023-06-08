@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "extension_from_dill_lib2.dart" as ext;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   ext::Extension|foo("");
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "extension_from_dill_lib2.dart" as ext;
 additionalExports = (ext::Extension)
@@ -16,7 +16,7 @@ additionalExports = (ext::Extension)
 export "org-dartlang-testcase:///extension_from_dill_lib2.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as ext;
 import "dart:core" as core;
 

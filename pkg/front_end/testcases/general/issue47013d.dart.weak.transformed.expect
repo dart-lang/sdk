@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -30,11 +30,11 @@ static method main() → dynamic {
   self::B b = new self::B::•();
   self::throws(() → void => b.{self::B::m}(invalid-expression "pkg/front_end/testcases/general/issue47013d.dart:15:20: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   throws(() => b.m(1.5, 0));
-                   ^" in 1.5 as{TypeError,ForNonNullableByDefault} core::int, 0){(core::int, core::num) → void});
+                   ^" in 1.5 as{TypeError} core::int, 0){(core::int, core::num) → void});
   self::A a = b;
   self::throws(() → void => a.{self::A::m}(1, invalid-expression "pkg/front_end/testcases/general/issue47013d.dart:17:23: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   throws(() => a.m(1, 1.5));
-                      ^" in 1.5 as{TypeError,ForNonNullableByDefault} core::int){(core::num, core::int) → void});
+                      ^" in 1.5 as{TypeError} core::int){(core::num, core::int) → void});
 }
 static method throws(() → void f) → dynamic {
   try {

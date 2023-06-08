@@ -1,5 +1,5 @@
 @dart.js_interop::JS::•()
-library static_interop /*isNonNullableByDefault*/;
+library static_interop;
 import self as self;
 import "dart:js_interop" as js_;
 import "dart:core" as core;

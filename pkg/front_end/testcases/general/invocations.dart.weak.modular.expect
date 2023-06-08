@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -61,9 +61,9 @@ static method main() → dynamic {
       z(\"Hello, World!\") +
       ^"){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:15:7: Error: Undefined name 'z'.
       z.print(\"Hello, World!\") +
-      ^"{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Undefined name 'y'.
+      ^"{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:16:7: Error: Undefined name 'y'.
       y.z.print(\"Hello, World!\") +
-      ^"{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:17:7: Error: Undefined name 'x'.
+      ^"{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num){(core::num) → core::double}.{core::double::+}(invalid-expression "pkg/front_end/testcases/general/invocations.dart:17:7: Error: Undefined name 'x'.
       x.y.z.print(\"Hello, World!\");
-      ^"{<invalid>}.y{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::double};
+      ^"{<invalid>}.y{<invalid>}.z{dynamic}.print("Hello, World!") as{TypeError,ForDynamic} core::num){(core::num) → core::double};
 }

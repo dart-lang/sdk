@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,8 +6,8 @@ static method method() → dynamic {
   core::int v1 = 42;
   block {
     core::int #t1;
-    final synthesized dynamic #0#0 = ("The string!" as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
-    if(!(let final dynamic #t2 = #t1 = #0#0 as{ForNonNullableByDefault} core::int in true))
+    final synthesized dynamic #0#0 = ("The string!" as dynamic) as{TypeError,ForDynamic} core::int;
+    if(!(let final dynamic #t2 = #t1 = #0#0 as core::int in true))
       throw new core::StateError::•("Pattern matching error");
     v1 = #t1;
   } =>#0#0;

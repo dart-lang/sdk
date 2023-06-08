@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,10 +12,10 @@ static method test(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::int? #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::C).{self::C::f}{core::int?};
+    late final synthesized core::int? #0#2 = (#0#0 as{Unchecked} self::C).{self::C::f}{core::int?};
     {
       hoisted core::int f;
-      if(#0#0 is{ForNonNullableByDefault} self::C && (let final dynamic #t1 = #0#2 as{ForNonNullableByDefault} core::int in let final dynamic #t2 = f = #0#2 as{ForNonNullableByDefault} core::int in true)) {
+      if(#0#0 is self::C && (let final dynamic #t1 = #0#2 as core::int in let final dynamic #t2 = f = #0#2 as core::int in true)) {
         {
           break #L1;
         }

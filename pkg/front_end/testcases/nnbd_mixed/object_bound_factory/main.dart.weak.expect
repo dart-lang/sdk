@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "opt_in_lib.dart" as opt;
 import "dart:core" as core;
@@ -29,7 +29,7 @@ static method main() → dynamic {
   opt::testOptIn();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:ffi" as ffi;
@@ -21,7 +21,7 @@ final class StructInlineArray extends ffi::Struct {
     return new ffi::Array::_<ffi::Uint8>( block {
       synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
       synthesized core::int #offset = #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C3, #C13);
+    } =>#typedDataBase is{ForLegacy} ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<ffi::Uint8>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}){([core::int, core::int?]) → typ::Uint8List}, #C3, #C13);
   @#C9
   set a0(ffi::Array<ffi::Uint8> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C11.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C10, #C12.{core::List::[]}(ffi::_abi()){(core::int) → core::int*});

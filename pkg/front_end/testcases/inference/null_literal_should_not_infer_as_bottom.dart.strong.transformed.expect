@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ static method foo((core::Object*) →* core::int* f) → void {}
 static method test() → dynamic {
   (core::Object*) →* Null f = (core::Object* x) → Null => null;
   core::String* y = f(42){(core::Object*) →* Null};
-  f = (core::Object* x) → Null => "hello" as{TypeError} Null;
+  f = (core::Object* x) → Null => "hello" as{TypeError,ForLegacy} Null;
   has-declared-initializer dynamic g = null;
   g = "hello";
   g{dynamic}.foo();

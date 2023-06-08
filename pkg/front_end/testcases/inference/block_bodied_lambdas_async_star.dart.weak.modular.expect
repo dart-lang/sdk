@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -12,6 +12,6 @@ static method test() → dynamic {
     yield* s;
   };
   asy::Stream<core::num*>* g = f(){() →* asy::Stream<core::num*>*};
-  asy::Stream<core::int*>* h = f(){() →* asy::Stream<core::num*>*} as{TypeError} asy::Stream<core::int*>*;
+  asy::Stream<core::int*>* h = f(){() →* asy::Stream<core::num*>*} as{TypeError,ForLegacy} asy::Stream<core::int*>*;
 }
 static method main() → dynamic {}

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "mixin_library.dart" as mix;
@@ -156,7 +156,7 @@ class D2 = self::Super<dynamic> with mix::Mixin<dynamic> {
 static method main() → dynamic
   ;
 
-library test.mixin_library /*isNonNullableByDefault*/;
+library test.mixin_library;
 import self as mix;
 import "dart:core" as core;
 

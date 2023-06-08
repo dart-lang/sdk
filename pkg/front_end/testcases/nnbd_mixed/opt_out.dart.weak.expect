@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -39,7 +39,7 @@ static method noErrors() → dynamic {
   let final dynamic #t2 = c in #t2 == null ?{dynamic} null : #t2{dynamic}.[](0);
 }
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

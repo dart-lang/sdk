@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -412,10 +412,10 @@ static method test() → dynamic {
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
     function ##0#2#initializer() → core::bool
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+      return (#0#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
     late final synthesized core::bool #0#2 = ##0#2#initializer(){() → core::bool};
     function ##0#3#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
     if(!(#0#2 && (let final core::int #t20 = a = #0#3{core::int} in true) && #0#2 && (let final core::int #t21 = b = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -425,10 +425,10 @@ static method test() → dynamic {
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
     function ##1#2#initializer() → core::bool
-      return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+      return (#1#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
     late final synthesized core::bool #1#2 = ##1#2#initializer(){() → core::bool};
     function ##1#3#initializer() → core::int?
-      return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C2){(core::Object?) → core::int?};
+      return (#1#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C2){(core::Object?) → core::int?};
     late final synthesized core::int? #1#3 = ##1#3#initializer(){() → core::int?};
     if(!(#1#2 && (let final core::int #t22 = c = #1#3{core::int} in true) && #1#2 && (let final core::int #t23 = d = #1#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -438,10 +438,10 @@ static method test() → dynamic {
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
     function ##2#2#initializer() → core::bool
-      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+      return (#2#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
     late final synthesized core::bool #2#2 = ##2#2#initializer(){() → core::bool};
     function ##2#3#initializer() → core::int?
-      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#2#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #2#3 = ##2#3#initializer(){() → core::int?};
     if(!(#2#2 && (let final core::int #t24 = a1 = #2#3{core::int} in true) && #2#2 && (let final core::int #t25 = b1 = #2#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -451,10 +451,10 @@ static method test() → dynamic {
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
     function ##3#2#initializer() → core::bool
-      return (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+      return (#3#0 as{Unchecked} core::Map<core::double, core::int>).{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
     late final synthesized core::bool #3#2 = ##3#2#initializer(){() → core::bool};
     function ##3#3#initializer() → core::int?
-      return (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
+      return (#3#0 as{Unchecked} core::Map<core::double, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
     late final synthesized core::int? #3#3 = ##3#3#initializer(){() → core::int?};
     if(!(#3#2 && (let final core::int #t26 = a2 = #3#3{core::int} in true) && #3#2 && (let final core::int #t27 = b2 = #3#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
@@ -464,10 +464,10 @@ static method test() → dynamic {
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
     function ##4#2#initializer() → core::bool
-      return (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+      return (#4#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
     late final synthesized core::bool #4#2 = ##4#2#initializer(){() → core::bool};
     function ##4#3#initializer() → core::int?
-      return (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C4){(core::Object?) → core::int?};
+      return (#4#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C4){(core::Object?) → core::int?};
     late final synthesized core::int? #4#3 = ##4#3#initializer(){() → core::int?};
     if(!(#4#2 && (let final core::int #t28 = a3 = #4#3{core::int} in true) && #4#2 && (let final core::int #t29 = b3 = #4#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");

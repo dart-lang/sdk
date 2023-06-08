@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -215,7 +215,7 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
     return this.{self::MyMap::_map}{core::Map<self::MyMap::K%, self::MyMap::V%>}.{core::Map::remove}(key){(core::Object?) → self::MyMap::V?};
 }
 static get hasUnsoundNullSafety() → core::bool
-  return #C3 is{ForNonNullableByDefault} core::List<core::Object>;
+  return #C3 is core::List<core::Object>;
 static method method(core::Map<core::int, core::String?> m) → core::int {
   #L1:
   {

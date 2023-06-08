@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,10 +10,10 @@ static method _extension#0|get#q(lowered final core::Object #this) → core::int
 static method main() → void {
   #L1:
   {
-    final synthesized dynamic #0#0 = new core::Object::•() as{ForNonNullableByDefault} dynamic;
+    final synthesized dynamic #0#0 = new core::Object::•() as dynamic;
     {
       hoisted core::int x;
-      if(#0#0 is{ForNonNullableByDefault} core::Object && (let final dynamic #t1 = x = self::_extension#0|get#q(#0#0{core::Object}) in true)) {
+      if(#0#0 is core::Object && (let final dynamic #t1 = x = self::_extension#0|get#q(#0#0{core::Object}) in true)) {
         {
           core::print(x);
         }

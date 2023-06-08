@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:supported.by.spec" as spec;
 import "dart:_supported.by.target" as by_;
@@ -36,7 +36,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library dart.supported.by.spec /*isNonNullableByDefault*/;
+library dart.supported.by.spec;
 import self as spec;
 import "dart:_supported.by.target" as by_;
 additionalExports = (by_::supportedByTarget)
@@ -45,7 +45,7 @@ export "dart:_supported.by.target";
 
 static method supportedBySpec() → void {}
 
-library dart.unsupported.by.spec /*isUnsupported,isNonNullableByDefault*/;
+library dart.unsupported.by.spec /*isUnsupported*/;
 import self as spec2;
 import "dart:_unsupported.by.spec_internal" as spe;
 additionalExports = (spe::unsupportedBySpecInternal)
@@ -54,29 +54,29 @@ export "dart:_unsupported.by.spec_internal";
 
 static method unsupportedBySpec() → void {}
 
-library dart.unsupported.by.target /*isNonNullableByDefault*/;
+library dart.unsupported.by.target;
 import self as tar;
 
 static method unsupportedByTarget() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as spe2;
 import "dart:core" as core;
 
 static field core::String field = "supported.by.spec";
 
-library /*isNonNullableByDefault*/;
+library;
 import self as tar2;
 import "dart:core" as core;
 
 static field core::String field = "supported.by.target";
 
-library dart._supported.by_target /*isUnsupported,isNonNullableByDefault*/;
+library dart._supported.by_target /*isUnsupported*/;
 import self as by_;
 
 static method supportedByTarget() → void {}
 
-library dart._unsupported.by.spec_internal /*isUnsupported,isNonNullableByDefault*/;
+library dart._unsupported.by.spec_internal /*isUnsupported*/;
 import self as spe;
 
 static method unsupportedBySpecInternal() → void {}

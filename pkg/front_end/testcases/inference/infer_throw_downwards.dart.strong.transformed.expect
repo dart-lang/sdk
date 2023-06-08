@@ -1,11 +1,11 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
-static field Never x = throw let dynamic #t1 = self::f<dynamic>() in #t1 == null ?{core::Object} #t1 as{TypeError,ForNonNullableByDefault} core::Object : #t1{core::Object};
+static field Never x = throw let dynamic #t1 = self::f<dynamic>() in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
 static method f<T extends core::Object? = dynamic>() → self::f::T%
   return throw "";
 static method g() → void {
-  Never x = throw let dynamic #t2 = self::f<dynamic>() in #t2 == null ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object};
+  Never x = throw let dynamic #t2 = self::f<dynamic>() in #t2 == null ?{core::Object} #t2 as{TypeError} core::Object : #t2{core::Object};
 }
 static method main() → dynamic {}

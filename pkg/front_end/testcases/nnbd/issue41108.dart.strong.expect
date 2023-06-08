@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -15,7 +15,7 @@ static method test() → dynamic async /* futureValueType= dynamic */ {
   core::List<dynamic> y = invalid-expression "pkg/front_end/testcases/nnbd/issue41108.dart:6:12: Error: A value of type 'List<dynamic>?' can't be assigned to a variable of type 'List<dynamic>' because 'List<dynamic>?' is nullable and 'List<dynamic>' isn't.
  - 'List' is from 'dart:core'.
   List y = await l(); // should be a List?
-           ^" in await self::l() /* runtimeCheckType= asy::Future<core::List<dynamic>?> */ as{TypeError,ForNonNullableByDefault} core::List<dynamic>;
+           ^" in await self::l() /* runtimeCheckType= asy::Future<core::List<dynamic>?> */ as{TypeError} core::List<dynamic>;
 }
 static method l() → asy::Future<core::List<dynamic>>?
   return null;

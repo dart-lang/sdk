@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "typedef_identical_lib.dart" as typ;
@@ -27,7 +27,7 @@ static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H
 static method /* from org-dartlang-testcase:///typedef_identical_lib.dart */ _#H#redirect#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>() → typ::A<self::_#H#redirect#tearOff::Y%>
   return typ::A::_#redirect#tearOff<self::_#H#redirect#tearOff::Y%>();
 
-library /*isNonNullableByDefault*/;
+library;
 import self as typ;
 import "dart:core" as core;
 

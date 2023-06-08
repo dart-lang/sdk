@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///b_lib.dart";
@@ -8,7 +8,7 @@ static method main() → dynamic
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "a_lib.dart" as a_l;
 import "m_lib.dart" as m_l;
@@ -34,7 +34,7 @@ class B extends self2::_B&A&M {
     return new self2::B::•(d: d);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as m_l;
 import "a_lib.dart" as a_l;
 
@@ -45,7 +45,7 @@ abstract class M extends a_l::A /*isMixinDeclaration*/  {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as a_l;
 import "dart:core" as core;
 
@@ -68,7 +68,7 @@ class A extends core::Object {
 static method _defaultStringy(core::String t) → core::String
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

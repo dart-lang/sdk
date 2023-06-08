@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,7 +31,7 @@ static method test() → dynamic {
   () → self::A f2 = #C5;
   () → self::A f3 = #C6;
   self::A x1 = f1(){() → self::A};
-  self::B x2 = f2(){() → self::A} as{ForNonNullableByDefault} self::B;
+  self::B x2 = f2(){() → self::A} as self::B;
   self::A x3;
   f3(){() → self::A};
 }

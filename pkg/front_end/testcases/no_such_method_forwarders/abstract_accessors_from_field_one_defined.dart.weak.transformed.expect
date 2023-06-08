@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -37,7 +37,7 @@ class E extends self::D {
     : super self::D::•()
     ;
   no-such-method-forwarder get foo() → core::int?
-    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 1, #C2, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int?;
+    return this.{self::D::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 1, #C2, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::int?;
 }
 static method expectTypeError(() → dynamic callback) → void {
   try {
@@ -49,7 +49,7 @@ static method expectTypeError(() → dynamic callback) → void {
 }
 static method main() → dynamic {
   self::C c = new self::C::•();
-  self::expectTypeError(() → core::String => (c as{ForNonNullableByDefault} dynamic){dynamic}.foo = "bar");
+  self::expectTypeError(() → core::String => (c as dynamic){dynamic}.foo = "bar");
   self::E e = new self::E::•();
   self::expectTypeError(() → core::int? => e.{self::E::foo}{core::int?});
 }

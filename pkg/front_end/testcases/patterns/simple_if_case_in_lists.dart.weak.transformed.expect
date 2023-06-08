@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,9 +9,9 @@ static method test1(dynamic x) → dynamic
       hoisted core::int y;
       final synthesized dynamic #0#0 = x;
       function ##0#6#initializer() → dynamic
-        return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+        return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
       late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#6{core::int} in true)))
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (#0#6 is core::int && (let final core::int #t2 = y = #0#6{core::int} in true)))
         #t1.{core::List::add}{Invariant}(y){(core::int) → void};
     }
     #t1.{core::List::add}{Invariant}(1){(core::int) → void};
@@ -22,7 +22,7 @@ static method test2(dynamic x) → dynamic
     {
       hoisted core::String y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
+      if(#0#0 is core::String && (let final core::String #t4 = y = #0#0{core::String} in true))
         #t3.{core::List::add}{Invariant}(y){(core::Object?) → void};
       else
         #t3.{core::List::add}{Invariant}(null){(core::Object?) → void};
@@ -35,20 +35,20 @@ static method test3(dynamic x) → dynamic
     {
       hoisted core::bool b;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t6 = b = #0#0{core::bool} in true) && b)
+      if(#0#0 is core::bool && (let final core::bool #t6 = b = #0#0{core::bool} in true) && b)
         #t5.{core::List::add}{Invariant}(b){(core::Object) → void};
     }
     #t5.{core::List::add}{Invariant}(3){(core::Object) → void};
   } =>#t5;
 static method main() → dynamic {
-  self::expectEquals(self::listToString(self::test1(core::_GrowableList::_literal3<core::int>(0, 1, 2)) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(1, 0, 1)));
-  self::expectEquals(self::listToString(self::test1(core::_GrowableList::•<dynamic>(0)) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(1, 1)));
-  self::expectEquals(self::listToString(self::test1(core::_GrowableList::_literal1<Null>(null)) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(1, 1)));
-  self::expectEquals(self::listToString(self::test2("foo") as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(2, "foo", 2)));
-  self::expectEquals(self::listToString(self::test2(0) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(2, null, 2)));
-  self::expectEquals(self::listToString(self::test3(true) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(3, true, 3)));
-  self::expectEquals(self::listToString(self::test3(false) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(3, 3)));
-  self::expectEquals(self::listToString(self::test3(null) as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(3, 3)));
+  self::expectEquals(self::listToString(self::test1(core::_GrowableList::_literal3<core::int>(0, 1, 2)) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(1, 0, 1)));
+  self::expectEquals(self::listToString(self::test1(core::_GrowableList::•<dynamic>(0)) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(1, 1)));
+  self::expectEquals(self::listToString(self::test1(core::_GrowableList::_literal1<Null>(null)) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(1, 1)));
+  self::expectEquals(self::listToString(self::test2("foo") as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(2, "foo", 2)));
+  self::expectEquals(self::listToString(self::test2(0) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(2, null, 2)));
+  self::expectEquals(self::listToString(self::test3(true) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal3<dynamic>(3, true, 3)));
+  self::expectEquals(self::listToString(self::test3(false) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(3, 3)));
+  self::expectEquals(self::listToString(self::test3(null) as{TypeError,ForDynamic} core::List<dynamic>), self::listToString(core::_GrowableList::_literal2<dynamic>(3, 3)));
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

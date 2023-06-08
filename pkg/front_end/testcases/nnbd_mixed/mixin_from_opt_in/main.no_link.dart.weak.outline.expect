@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///test_lib.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///test_lib.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 import "org-dartlang-testcase:///opt_out_lib.dart";
@@ -14,7 +14,7 @@ import "org-dartlang-testcase:///opt_out_lib.dart";
 static method test() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as self3;
 import "opt_in_lib.dart" as opt;
 import "dart:core" as core;
@@ -56,7 +56,7 @@ class SubClass extends self3::_SubClass&Class&Mixin {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt;
 import "dart:core" as core;
 

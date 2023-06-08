@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,10 +7,10 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     function ##0#5#initializer() → core::Object?
-      return ((let dynamic #t1 = #0#0 in #t1 == null ?{core::Object} #t1 as{ForNonNullableByDefault} core::Object : #t1{core::Object}) as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
+      return ((let dynamic #t1 = #0#0 in #t1 == null ?{core::Object} #t1 as core::Object : #t1{core::Object}) as{Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
     late final synthesized core::Object? #0#5 = ##0#5#initializer(){() → core::Object?};
     {
-      if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as{ForNonNullableByDefault} core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as{ForNonNullableByDefault} core::Object : #t4{core::Object}) is{ForNonNullableByDefault} core::Map<core::Object?, core::Object?> && (!(#0#5 == null) || null is{ForNonNullableByDefault} core::Object? && ((let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as{ForNonNullableByDefault} core::Object : #t5{core::Object}) as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#5) {
+      if(let final core::Object #t2 = let dynamic #t3 = #0#0 in #t3 == null ?{core::Object} #t3 as core::Object : #t3{core::Object} in (let dynamic #t4 = #0#0 in #t4 == null ?{core::Object} #t4 as core::Object : #t4{core::Object}) is core::Map<core::Object?, core::Object?> && (!(#0#5 == null) || null is core::Object? && ((let dynamic #t5 = #0#0 in #t5 == null ?{core::Object} #t5 as core::Object : #t5{core::Object}) as{Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#5) {
         {
           break #L1;
         }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -20,7 +20,7 @@ class C<X extends (self::C::X%) →? void = (Never) →? void> extends core::Obj
       return;
     z{(Never) → void}(invalid-expression "pkg/front_end/testcases/nnbd/issue43716b.dart:17:7: Error: The argument type 'int' can't be assigned to the parameter type 'Never'.
     z(42); // Error.
-      ^" in 42 as{TypeError,ForNonNullableByDefault} Never){(Never) → void};
+      ^" in 42 as{TypeError} Never){(Never) → void};
   }
 }
 static field core::bool b = true;

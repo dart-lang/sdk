@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -241,8 +241,8 @@ static method testUnresolved(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t1 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:13:21: Error: Can't declare 'o' because it was already used in this scope.
@@ -250,13 +250,13 @@ static method testUnresolved(dynamic o) → dynamic {
                     ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t2 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t3 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t3 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L1:
@@ -264,7 +264,7 @@ static method testUnresolved(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t4 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t4 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L1;
         }
@@ -278,7 +278,7 @@ static method testUnresolved(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t6 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t6 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t5 = "matched";
           break #L2;
         }
@@ -297,8 +297,8 @@ static method testNonType(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t7 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:29:18: Error: Can't declare 'o' because it was already used in this scope.
@@ -306,13 +306,13 @@ static method testNonType(dynamic o) → dynamic {
                  ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t8 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t9 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t9 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L3:
@@ -320,7 +320,7 @@ static method testNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t10 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t10 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L3;
         }
@@ -334,7 +334,7 @@ static method testNonType(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t12 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t12 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t11 = "matched";
           break #L4;
         }
@@ -353,8 +353,8 @@ static method testExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t13 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t13 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:45:20: Error: Can't declare 'o' because it was already used in this scope.
@@ -362,13 +362,13 @@ static method testExtension(dynamic o) → dynamic {
                    ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t14 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t15 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t15 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L5:
@@ -376,7 +376,7 @@ static method testExtension(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t16 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t16 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L5;
         }
@@ -390,7 +390,7 @@ static method testExtension(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t18 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t18 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t17 = "matched";
           break #L6;
         }
@@ -409,8 +409,8 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t19 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t19 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:61:28: Error: Can't declare 'o' because it was already used in this scope.
@@ -418,13 +418,13 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
                            ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t20 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t21 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t21 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L7:
@@ -432,7 +432,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t22 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t22 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L7;
         }
@@ -446,7 +446,7 @@ static method testPrefixedUnresolved(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t24 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t24 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t23 = "matched";
           break #L8;
         }
@@ -465,8 +465,8 @@ static method testPrefixedNonType(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t25 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t25 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:77:25: Error: Can't declare 'o' because it was already used in this scope.
@@ -474,13 +474,13 @@ static method testPrefixedNonType(dynamic o) → dynamic {
                         ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t26 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t27 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t27 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L9:
@@ -488,7 +488,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t28 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t28 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L9;
         }
@@ -502,7 +502,7 @@ static method testPrefixedNonType(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t30 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t30 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t29 = "matched";
           break #L10;
         }
@@ -521,8 +521,8 @@ static method testPrefixedExtension(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t31 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t31 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:93:27: Error: Can't declare 'o' because it was already used in this scope.
@@ -530,13 +530,13 @@ static method testPrefixedExtension(dynamic o) → dynamic {
                           ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t32 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t33 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t33 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L11:
@@ -544,7 +544,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t34 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t34 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L11;
         }
@@ -558,7 +558,7 @@ static method testPrefixedExtension(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t36 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t36 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t35 = "matched";
           break #L12;
         }
@@ -577,8 +577,8 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t37 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t37 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:109:26: Error: Can't declare 'o' because it was already used in this scope.
@@ -586,13 +586,13 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
                          ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t38 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t39 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t39 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L13:
@@ -600,7 +600,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t40 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t40 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L13;
         }
@@ -614,7 +614,7 @@ static method testUnresolvedPrefix(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t42 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t42 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t41 = "matched";
           break #L14;
         }
@@ -633,8 +633,8 @@ static method testMemberAccess(dynamic o) → dynamic {
   hoisted has-declared-initializer core::int field;
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized invalid-type #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} invalid-type){<invalid>}.field;
-    if(!(#0#0 is{ForNonNullableByDefault} invalid-type && (#0#2 is{ForNonNullableByDefault} core::int && (let final dynamic #t43 = field = #0#2 in true))))
+    late final synthesized invalid-type #0#2 = (#0#0 as{Unchecked} invalid-type){<invalid>}.field;
+    if(!(#0#0 is invalid-type && (#0#2 is core::int && (let final dynamic #t43 = field = #0#2 in true))))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted invalid-type o = invalid-expression "pkg/front_end/testcases/patterns/non_type_object_pattern.dart:125:27: Error: Can't declare 'o' because it was already used in this scope.
@@ -642,13 +642,13 @@ static method testMemberAccess(dynamic o) → dynamic {
                           ^";
   {
     final synthesized dynamic #1#0 = o;
-    if(!(#1#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
+    if(!(#1#0 is invalid-type && (let final dynamic #t44 = o = #1#0{invalid-type}{<invalid>}.o in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   {
     hoisted invalid-type field;
     final synthesized dynamic #2#0 = o;
-    if(#2#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t45 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
+    if(#2#0 is invalid-type && (let final dynamic #t45 = field = #2#0{invalid-type}{<invalid>}.field in true)) {
     }
   }
   #L15:
@@ -656,7 +656,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted invalid-type field;
-      if(#3#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t46 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
+      if(#3#0 is invalid-type && (let final dynamic #t46 = field = #3#0{invalid-type}{<invalid>}.field in true)) {
         {
           break #L15;
         }
@@ -670,7 +670,7 @@ static method testMemberAccess(dynamic o) → dynamic {
     {
       {
         hoisted invalid-type field;
-        if(#4#0 is{ForNonNullableByDefault} invalid-type && (let final dynamic #t48 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
+        if(#4#0 is invalid-type && (let final dynamic #t48 = field = #4#0{invalid-type}{<invalid>}.field in true)) {
           #t47 = "matched";
           break #L16;
         }

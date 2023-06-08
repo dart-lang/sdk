@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -35,10 +35,10 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
     hoisted core::double boz;
     hoisted core::int foobar;
     final synthesized dynamic #0#0 = x;
-    late final synthesized core::int? #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::A).{self::A::foo}{core::int?};
-    late final synthesized core::int? #0#5 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::A).{self::A::baz}{core::int?};
-    late final synthesized core::num #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::A).{self::A::boz}{core::num};
-    if(#0#0 is{ForNonNullableByDefault} self::A && (let final dynamic #t1 = #0#2! in let final dynamic #t2 = foo = #0#2! in true) && (let final dynamic #t3 = bar = #0#0{self::A}.{self::A::bar}{core::int} in true) && (!(#0#5 == null) ?{core::bool} let final dynamic #t4 = baz = #0#5{core::int} in true : false) && (let final dynamic #t5 = #0#7 as{ForNonNullableByDefault} core::double in let final dynamic #t6 = boz = #0#7 as{ForNonNullableByDefault} core::double in true) && (let final dynamic #t7 = foobar = #0#0{self::A}.{self::A::foobar}{core::int} in true)) {
+    late final synthesized core::int? #0#2 = (#0#0 as{Unchecked} self::A).{self::A::foo}{core::int?};
+    late final synthesized core::int? #0#5 = (#0#0 as{Unchecked} self::A).{self::A::baz}{core::int?};
+    late final synthesized core::num #0#7 = (#0#0 as{Unchecked} self::A).{self::A::boz}{core::num};
+    if(#0#0 is self::A && (let final dynamic #t1 = #0#2! in let final dynamic #t2 = foo = #0#2! in true) && (let final dynamic #t3 = bar = #0#0{self::A}.{self::A::bar}{core::int} in true) && (!(#0#5 == null) ?{core::bool} let final dynamic #t4 = baz = #0#5{core::int} in true : false) && (let final dynamic #t5 = #0#7 as core::double in let final dynamic #t6 = boz = #0#7 as core::double in true) && (let final dynamic #t7 = foobar = #0#0{self::A}.{self::A::foobar}{core::int} in true)) {
       return 0;
     }
     else {
@@ -48,20 +48,20 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
       hoisted core::double boz;
       hoisted dynamic foobar;
       final synthesized dynamic #1#0 = x;
-      late final synthesized core::Object? #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).foo{core::Object?};
-      late final synthesized core::Object? #1#5 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).baz{core::Object?};
-      late final synthesized core::Object? #1#7 = (#1#0 as{ForNonNullableByDefault,Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).$1{core::Object?};
-      if(#1#0 is{ForNonNullableByDefault} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final dynamic #t8 = #1#2! in let final dynamic #t9 = foo = #1#2! in true) && (let final dynamic #t10 = bar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && (!(#1#5 == null) ?{core::bool} let final dynamic #t11 = baz = #1#5 in true : false) && (let final dynamic #t12 = #1#7 as{ForNonNullableByDefault} core::double in let final dynamic #t13 = boz = #1#7 as{ForNonNullableByDefault} core::double in true) && (let final dynamic #t14 = foobar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?} in true)) {
+      late final synthesized core::Object? #1#2 = (#1#0 as{Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).foo{core::Object?};
+      late final synthesized core::Object? #1#5 = (#1#0 as{Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).baz{core::Object?};
+      late final synthesized core::Object? #1#7 = (#1#0 as{Unchecked} (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})).$1{core::Object?};
+      if(#1#0 is (core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?}) && (let final dynamic #t8 = #1#2! in let final dynamic #t9 = foo = #1#2! in true) && (let final dynamic #t10 = bar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.bar{core::Object?} in true) && (!(#1#5 == null) ?{core::bool} let final dynamic #t11 = baz = #1#5 in true : false) && (let final dynamic #t12 = #1#7 as core::double in let final dynamic #t13 = boz = #1#7 as core::double in true) && (let final dynamic #t14 = foobar = #1#0{(core::Object?, {bar: core::Object?, baz: core::Object?, foo: core::Object?, foobar: core::Object?})}.foobar{core::Object?} in true)) {
         return 1;
       }
       else {
         final synthesized dynamic #2#0 = x;
-        if(#2#0 is{ForNonNullableByDefault} self::A) {
+        if(#2#0 is self::A) {
           return 2;
         }
         else {
           final synthesized dynamic #3#0 = x;
-          if(#3#0 is{ForNonNullableByDefault} (core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/variable_names.dart:26:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
+          if(#3#0 is (core::Object?) && invalid-expression "pkg/front_end/testcases/patterns/variable_names.dart:26:22: Error: The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern.
   } else if (x case (: [1, 2])) { // Error
                      ^") {
             return 3;
@@ -73,8 +73,8 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   block {
     dynamic #t15;
     dynamic #t16;
-    final synthesized dynamic #4#0 = y as{TypeError,ForDynamic,ForNonNullableByDefault} self::A;
-    if(!(#4#0 is{ForNonNullableByDefault} self::A && (let final dynamic #t17 = #t15 = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final dynamic #t18 = #t16 = #4#0{self::A}.{self::A::quux}{core::String} in true)))
+    final synthesized dynamic #4#0 = y as{TypeError,ForDynamic} self::A;
+    if(!(#4#0 is self::A && (let final dynamic #t17 = #t15 = #4#0{self::A}.{self::A::qux}{core::bool} in true) && (let final dynamic #t18 = #t16 = #4#0{self::A}.{self::A::quux}{core::String} in true)))
       throw new core::StateError::•("Pattern matching error");
     qux = #t15;
     quux = #t16;
@@ -82,8 +82,8 @@ static method test(dynamic x, dynamic y, dynamic z) → dynamic {
   block {
     dynamic #t19;
     dynamic #t20;
-    final synthesized dynamic #5#0 = z as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic, {quux: dynamic});
-    if(!(#5#0 is{ForNonNullableByDefault} (core::Object?, {quux: core::Object?}) && (let final dynamic #t21 = #t19 = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final dynamic #t22 = #t20 = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
+    final synthesized dynamic #5#0 = z as{TypeError,ForDynamic} (dynamic, {quux: dynamic});
+    if(!(#5#0 is (core::Object?, {quux: core::Object?}) && (let final dynamic #t21 = #t19 = #5#0{(core::Object?, {quux: core::Object?})}.$1{core::Object?} in true) && (let final dynamic #t22 = #t20 = #5#0{(core::Object?, {quux: core::Object?})}.quux{core::Object?} in true)))
       throw new core::StateError::•("Pattern matching error");
     qux = #t19;
     quux = #t20;

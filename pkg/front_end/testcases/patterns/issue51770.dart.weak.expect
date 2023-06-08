@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -79,7 +79,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic>) {
+      if(#0#0 is core::List<dynamic>) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -90,7 +90,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     {
-      if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+      if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -101,7 +101,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #2#0 = o;
     {
-      if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+      if(#2#0 is core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -113,7 +113,7 @@ static method method2(dynamic o) → dynamic {
     final synthesized dynamic #3#0 = o;
     {
       hoisted core::List<dynamic> a;
-      if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && (let final dynamic #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#3#0 is core::List<dynamic> && (let final dynamic #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -125,7 +125,7 @@ static method method2(dynamic o) → dynamic {
     final synthesized dynamic #4#0 = o;
     {
       hoisted core::List<dynamic> a;
-      if(#4#0 is{ForNonNullableByDefault} core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t5 = a = #4#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t5 = a = #4#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }
@@ -135,10 +135,10 @@ static method method2(dynamic o) → dynamic {
   #L12:
   {
     final synthesized dynamic #5#0 = o;
-    late final synthesized core::int #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::int #5#2 = (#5#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       hoisted core::List<dynamic> a;
-      if(#5#0 is{ForNonNullableByDefault} core::List<dynamic> && #5#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t6 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, #5#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#5#0 is core::List<dynamic> && #5#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t6 = a = #5#0{core::List<dynamic>}.{core::List::sublist}(0, #5#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(a);
         }

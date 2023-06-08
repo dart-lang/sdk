@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -150,18 +150,18 @@ class Subclass extends self::Class {
     (core::num) → void f = super.{self::Class::method};
     (core::num) → void g = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:34:36: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
     void Function(num) g = Class().method; // Error: type `void Function(int)`.
-                                   ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+                                   ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError} (core::num) → void;
     super.{self::Class::method}(b);
     new self::Class::•().{self::Class::method}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:36:20: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     Class().method(b); // Error.
-                   ^" in b as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                   ^" in b as{TypeError} core::int){(core::int) → void};
   }
   operator [](covariant-by-declaration core::int a) → core::num {
     core::num b = a;
     super.{self::Class::[]}(b);
     new self::Class::•().{self::Class::[]}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:42:13: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[b]; // Error.
-            ^" in b as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::num};
+            ^" in b as{TypeError} core::int){(core::int) → core::num};
     return 0;
   }
   operator []=(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → void {
@@ -169,22 +169,22 @@ class Subclass extends self::Class {
     super.{self::Class::[]=}(a, c);
     new self::Class::•().{self::Class::[]=}(a, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:49:18: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[a] = c; // Error.
-                 ^" in c as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void};
+                 ^" in c as{TypeError} core::int){(core::int, core::int) → void};
     super.{self::Class::[]=}(c, b);
     new self::Class::•().{self::Class::[]=}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:51:13: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[c] = b; // Error.
-            ^" in c as{TypeError,ForNonNullableByDefault} core::int, b){(core::int, core::int) → void};
+            ^" in c as{TypeError} core::int, b){(core::int, core::int) → void};
     let final core::int #t1 = a in super.{self::Class::[]=}(#t1, super.{self::Class::[]}(#t1).{core::num::+}(c){(core::num) → core::num});
     let final self::Class #t2 = new self::Class::•() in let final core::int #t3 = a in #t2.{self::Class::[]=}(#t3, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:53:16: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[a] += c; // Error.
-               ^" in #t2.{self::Class::[]}(#t3){(core::int) → core::num}.{core::num::+}(c){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void};
+               ^" in #t2.{self::Class::[]}(#t3){(core::int) → core::num}.{core::num::+}(c){(core::num) → core::num} as{TypeError} core::int){(core::int, core::int) → void};
   }
   set setter(covariant-by-declaration core::int a) → void {
     core::num b = a;
     super.{self::Class::setter} = b;
     new self::Class::•().{self::Class::setter} = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:59:22: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class().setter = b; // Error.
-                     ^" in b as{TypeError,ForNonNullableByDefault} core::int;
+                     ^" in b as{TypeError} core::int;
   }
 }
 class Subclass1 extends self::Class1 {
@@ -199,7 +199,7 @@ class Subclass1 extends self::Class1 {
     let final core::int #t4 = a in super.{self::Class1::[]}(#t4) == null ?{core::num} super.{self::Class1::[]=}(#t4, c) : null;
     let final self::Class1 #t5 = new self::Class1::•() in let final core::int #t6 = b in #t5.{self::Class1::[]}(#t6){(core::int) → core::num?} == null ?{core::num} #t5.{self::Class1::[]=}(#t6, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:71:21: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class1()[b] ??= c; // Error.
-                    ^" in c as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void} : null;
+                    ^" in c as{TypeError} core::int){(core::int, core::int) → void} : null;
   }
 }
 abstract class Mixin extends self::Class /*isMixinDeclaration*/  {
@@ -207,56 +207,56 @@ abstract class Mixin extends self::Class /*isMixinDeclaration*/  {
     core::num b = a;
     (core::num) → void f = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:78:34: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
     void Function(num) f = super.method; // Error: type `void Function(int)`.
-                                 ^" in super.{self::Class::method} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+                                 ^" in super.{self::Class::method} as{TypeError} (core::num) → void;
     (core::num) → void g = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:79:36: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
     void Function(num) g = Class().method; // Error: type `void Function(int)`.
-                                   ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+                                   ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError} (core::num) → void;
     super.{self::Class::method}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:80:18: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     super.method(b); // Error.
-                 ^" in b as{TypeError,ForNonNullableByDefault} core::int);
+                 ^" in b as{TypeError} core::int);
     new self::Class::•().{self::Class::method}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:81:20: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     Class().method(b); // Error.
-                   ^" in b as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                   ^" in b as{TypeError} core::int){(core::int) → void};
   }
   operator [](covariant-by-declaration core::int a) → core::num {
     core::num b = a;
     super.{self::Class::[]}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:86:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     super[b]; // Error.
-          ^" in b as{TypeError,ForNonNullableByDefault} core::int);
+          ^" in b as{TypeError} core::int);
     new self::Class::•().{self::Class::[]}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:87:13: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[b]; // Error.
-            ^" in b as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::num};
+            ^" in b as{TypeError} core::int){(core::int) → core::num};
     return 0;
   }
   operator []=(covariant-by-declaration core::int a, covariant-by-declaration core::int b) → void {
     core::num c = a;
     super.{self::Class::[]=}(a, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:93:16: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     super[a] = c; // Error.
-               ^" in c as{TypeError,ForNonNullableByDefault} core::int);
+               ^" in c as{TypeError} core::int);
     new self::Class::•().{self::Class::[]=}(a, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:94:18: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[a] = c; // Error.
-                 ^" in c as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void};
+                 ^" in c as{TypeError} core::int){(core::int, core::int) → void};
     super.{self::Class::[]=}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:95:11: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
     super[c] = b; // Error.
-          ^" in c as{TypeError,ForNonNullableByDefault} core::int, b);
+          ^" in c as{TypeError} core::int, b);
     new self::Class::•().{self::Class::[]=}(invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:96:13: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[c] = b; // Error.
-            ^" in c as{TypeError,ForNonNullableByDefault} core::int, b){(core::int, core::int) → void};
+            ^" in c as{TypeError} core::int, b){(core::int, core::int) → void};
     let final core::int #t7 = a in super.{self::Class::[]=}(#t7, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:97:14: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     super[a] += c; // Error.
-             ^" in super.{self::Class::[]}(#t7).{core::num::+}(c){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int);
+             ^" in super.{self::Class::[]}(#t7).{core::num::+}(c){(core::num) → core::num} as{TypeError} core::int);
     let final self::Class #t8 = new self::Class::•() in let final core::int #t9 = a in #t8.{self::Class::[]=}(#t9, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:98:16: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class()[a] += c; // Error.
-               ^" in #t8.{self::Class::[]}(#t9){(core::int) → core::num}.{core::num::+}(c){(core::num) → core::num} as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void};
+               ^" in #t8.{self::Class::[]}(#t9){(core::int) → core::num}.{core::num::+}(c){(core::num) → core::num} as{TypeError} core::int){(core::int, core::int) → void};
   }
   set setter(covariant-by-declaration core::int a) → void {
     core::num b = a;
     super.{self::Class::setter} = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:103:20: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     super.setter = b; // Error.
-                   ^" in b as{TypeError,ForNonNullableByDefault} core::int;
+                   ^" in b as{TypeError} core::int;
     new self::Class::•().{self::Class::setter} = invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:104:22: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class().setter = b; // Error.
-                     ^" in b as{TypeError,ForNonNullableByDefault} core::int;
+                     ^" in b as{TypeError} core::int;
   }
 }
 abstract class Mixin1 extends self::Class1 /*isMixinDeclaration*/  {
@@ -264,9 +264,9 @@ abstract class Mixin1 extends self::Class1 /*isMixinDeclaration*/  {
     core::num c = a;
     let final core::int #t10 = a in super.{self::Class1::[]}(#t10) == null ?{core::num} super.{self::Class1::[]=}(#t10, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:111:18: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     super[a] ??= c; // Error.
-                 ^" in c as{TypeError,ForNonNullableByDefault} core::int) : null;
+                 ^" in c as{TypeError} core::int) : null;
     let final self::Class1 #t11 = new self::Class1::•() in let final core::int #t12 = b in #t11.{self::Class1::[]}(#t12){(core::int) → core::num?} == null ?{core::num} #t11.{self::Class1::[]=}(#t12, invalid-expression "pkg/front_end/testcases/general/super_signature_access.dart:112:21: Error: A value of type 'num' can't be assigned to a variable of type 'int'.
     Class1()[b] ??= c; // Error.
-                    ^" in c as{TypeError,ForNonNullableByDefault} core::int){(core::int, core::int) → void} : null;
+                    ^" in c as{TypeError} core::int){(core::int, core::int) → void} : null;
   }
 }

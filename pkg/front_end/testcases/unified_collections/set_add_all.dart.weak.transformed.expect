@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -56,21 +56,21 @@ static method useAddAll() → void {
   core::Set<core::int*>* set1 = block {
     final core::Set<core::int*>* #t9 = new col::_Set::•<core::int*>();
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t11 = #t10 as{TypeError} core::int*;
+          final core::int* #t11 = #t10 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t11){(core::int*) →* core::bool*};
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t13 = #t12 as{TypeError} core::int*;
+          final core::int* #t13 = #t12 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t13){(core::int*) →* core::bool*};
         }
       }
@@ -81,7 +81,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t14 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t15 = #t14 as{TypeError} core::int*;
+          final core::int* #t15 = #t14 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t15){(core::int*) →* core::bool*};
         }
       }
@@ -91,7 +91,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t17 = #t16 as{TypeError} core::int*;
+          final core::int* #t17 = #t16 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t17){(core::int*) →* core::bool*};
         }
       }
@@ -102,7 +102,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t18 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t19 = #t18 as{TypeError} core::int*;
+          final core::int* #t19 = #t18 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t19){(core::int*) →* core::bool*};
         }
       }
@@ -112,7 +112,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t20 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t21 = #t20 as{TypeError} core::int*;
+          final core::int* #t21 = #t20 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t21){(core::int*) →* core::bool*};
         }
       }
@@ -122,21 +122,21 @@ static method useAddAll() → void {
   core::Set<core::num*>* set2 = block {
     final core::Set<core::num*>* #t22 = new col::_Set::•<core::num*>();
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t23 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::num* #t24 = #t23 as{TypeError} core::num*;
+          final core::num* #t24 = #t23 as{TypeError,ForLegacy} core::num*;
           #t22.{core::Set::add}{Invariant}(#t24){(core::num*) →* core::bool*};
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t25 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::num* #t26 = #t25 as{TypeError} core::num*;
+          final core::num* #t26 = #t25 as{TypeError,ForLegacy} core::num*;
           #t22.{core::Set::add}{Invariant}(#t26){(core::num*) →* core::bool*};
         }
       }
@@ -151,24 +151,24 @@ static method useAddAll() → void {
   self::expect(core::_GrowableList::generate<core::num*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::num*>*}, set2);
   core::Set<core::int*>* set3 = block {
     final core::Set<core::int*>* #t27 = new col::_Set::•<core::int*>();
-    final core::Iterable<dynamic>* #t28 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t28 = dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t28 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t28.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t29 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t30 = #t29 as{TypeError} core::int*;
+          final core::int* #t30 = #t29 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t30){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t31 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t31 = dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t31 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t31.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t32 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t33 = #t32 as{TypeError} core::int*;
+          final core::int* #t33 = #t32 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t33){(core::int*) →* core::bool*};
         }
       }
@@ -182,7 +182,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t36 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t37 = #t36 as{TypeError} core::int*;
+          final core::int* #t37 = #t36 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t37){(core::int*) →* core::bool*};
         }
       }
@@ -193,7 +193,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t39 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t40 = #t39 as{TypeError} core::int*;
+          final core::int* #t40 = #t39 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t40){(core::int*) →* core::bool*};
         }
       }
@@ -207,7 +207,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t43 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t44 = #t43 as{TypeError} core::int*;
+          final core::int* #t44 = #t43 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t44){(core::int*) →* core::bool*};
         }
       }
@@ -218,7 +218,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t46 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t47 = #t46 as{TypeError} core::int*;
+          final core::int* #t47 = #t46 as{TypeError,ForLegacy} core::int*;
           #t27.{core::Set::add}{Invariant}(#t47){(core::int*) →* core::bool*};
         }
       }
@@ -227,24 +227,24 @@ static method useAddAll() → void {
   self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set3);
   core::Set<core::num*>* set4 = block {
     final core::Set<core::num*>* #t48 = new col::_Set::•<core::num*>();
-    final core::Iterable<dynamic>* #t49 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t49 = dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t49 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t49.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t50 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::num* #t51 = #t50 as{TypeError} core::num*;
+          final core::num* #t51 = #t50 as{TypeError,ForLegacy} core::num*;
           #t48.{core::Set::add}{Invariant}(#t51){(core::num*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t52 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t52 = dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t52 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t52.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t53 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::num* #t54 = #t53 as{TypeError} core::num*;
+          final core::num* #t54 = #t53 as{TypeError,ForLegacy} core::num*;
           #t48.{core::Set::add}{Invariant}(#t54){(core::num*) →* core::bool*};
         }
       }
@@ -272,21 +272,21 @@ static method useAddAll() → void {
   core::Set<core::int*>* set5 = block {
     final core::Set<core::int*>* #t61 = new col::_Set::•<core::int*>();
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t62 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t63 = #t62 as{TypeError} core::int*;
+          final core::int* #t63 = #t62 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t63){(core::int*) →* core::bool*};
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t64 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t65 = #t64 as{TypeError} core::int*;
+          final core::int* #t65 = #t64 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t65){(core::int*) →* core::bool*};
         }
       }
@@ -297,7 +297,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t66 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t67 = #t66 as{TypeError} core::int*;
+          final core::int* #t67 = #t66 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t67){(core::int*) →* core::bool*};
         }
       }
@@ -307,7 +307,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t68 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t69 = #t68 as{TypeError} core::int*;
+          final core::int* #t69 = #t68 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t69){(core::int*) →* core::bool*};
         }
       }
@@ -318,7 +318,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t70 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t71 = #t70 as{TypeError} core::int*;
+          final core::int* #t71 = #t70 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t71){(core::int*) →* core::bool*};
         }
       }
@@ -328,7 +328,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t72 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t73 = #t72 as{TypeError} core::int*;
+          final core::int* #t73 = #t72 as{TypeError,ForLegacy} core::int*;
           #t61.{core::Set::add}{Invariant}(#t73){(core::int*) →* core::bool*};
         }
       }
@@ -336,8 +336,8 @@ static method useAddAll() → void {
   } =>#t61;
   self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set5);
   core::Set<dynamic>* set6 = block {
-    final core::Set<dynamic>* #t74 = col::LinkedHashSet::of<dynamic>(dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*);
-    #t74.{core::Set::addAll}{Invariant}(dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
+    final core::Set<dynamic>* #t74 = col::LinkedHashSet::of<dynamic>(dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*);
+    #t74.{core::Set::addAll}{Invariant}(dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*){(core::Iterable<dynamic>*) →* void};
     #t74.{core::Set::addAll}{Invariant}(iterableIntSet){(core::Iterable<dynamic>*) →* void};
     #t74.{core::Set::addAll}{Invariant}(iterableNumSet1){(core::Iterable<dynamic>*) →* void};
     #t74.{core::Set::addAll}{Invariant}(iterableNumSet2){(core::Iterable<dynamic>*) →* void};
@@ -348,24 +348,24 @@ static method useAddAll() → void {
   self::expect(core::_GrowableList::generate<dynamic>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<dynamic>*}, set6);
   core::Set<core::int*>* set7 = block {
     final core::Set<core::int*>* #t75 = new col::_Set::•<core::int*>();
-    final core::Iterable<dynamic>* #t76 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t76 = dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t76 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t76.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t77 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t78 = #t77 as{TypeError} core::int*;
+          final core::int* #t78 = #t77 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t78){(core::int*) →* core::bool*};
         }
       }
     }
-    final core::Iterable<dynamic>* #t79 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t79 = dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t79 == null)) {
       synthesized core::Iterator<dynamic>* :sync-for-iterator = #t79.{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t80 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t81 = #t80 as{TypeError} core::int*;
+          final core::int* #t81 = #t80 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t81){(core::int*) →* core::bool*};
         }
       }
@@ -379,7 +379,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t84 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t85 = #t84 as{TypeError} core::int*;
+          final core::int* #t85 = #t84 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t85){(core::int*) →* core::bool*};
         }
       }
@@ -390,7 +390,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t87 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t88 = #t87 as{TypeError} core::int*;
+          final core::int* #t88 = #t87 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t88){(core::int*) →* core::bool*};
         }
       }
@@ -404,7 +404,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t91 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t92 = #t91 as{TypeError} core::int*;
+          final core::int* #t92 = #t91 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t92){(core::int*) →* core::bool*};
         }
       }
@@ -415,7 +415,7 @@ static method useAddAll() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t94 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t95 = #t94 as{TypeError} core::int*;
+          final core::int* #t95 = #t94 as{TypeError,ForLegacy} core::int*;
           #t75.{core::Set::add}{Invariant}(#t95){(core::int*) →* core::bool*};
         }
       }
@@ -424,10 +424,10 @@ static method useAddAll() → void {
   self::expect(core::_GrowableList::generate<core::int*>(24, (core::int* i) → core::int* => i).{core::Iterable::toSet}(){() →* core::Set<core::int*>*}, set7);
   core::Set<dynamic>* set8 = block {
     final core::Set<dynamic>* #t96 = new col::_Set::•<dynamic>();
-    final core::Iterable<dynamic>* #t97 = dynamicSet1 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t97 = dynamicSet1 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t97 == null))
       #t96.{core::Set::addAll}{Invariant}(#t97){(core::Iterable<dynamic>*) →* void};
-    final core::Iterable<dynamic>* #t98 = dynamicSet2 as{TypeError,ForDynamic} core::Iterable<dynamic>*;
+    final core::Iterable<dynamic>* #t98 = dynamicSet2 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*;
     if(!(#t98 == null))
       #t96.{core::Set::addAll}{Invariant}(#t98){(core::Iterable<dynamic>*) →* void};
     final core::Iterable<dynamic>* #t99 = iterableIntSet;

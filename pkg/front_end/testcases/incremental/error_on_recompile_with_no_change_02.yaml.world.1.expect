@@ -6,7 +6,7 @@ library from "package:flutter/object.dart" as obj {
       : super obj::RenderObject::•()
       ;
     get constraints() → obj::FooConstraints
-      return super.{obj::RenderObject::constraints} as{ForNonNullableByDefault} obj::FooConstraints;
+      return super.{obj::RenderObject::constraints} as obj::FooConstraints;
   }
   class FooConstraints extends obj::Constraints {
     synthetic constructor •() → obj::FooConstraints
@@ -63,7 +63,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : super obj::RenderObject::•()
       ;
     get renderObject() → lib1::Adaptor
-      return super.{obj::RenderObject::renderObject} as{ForNonNullableByDefault} lib1::Adaptor;
+      return super.{obj::RenderObject::renderObject} as lib1::Adaptor;
     method foo() → void {
       dart.core::print(this.{main::AdaptorElement::renderObject}{lib1::Adaptor}.{obj::RenderFoo::constraints}{obj::FooConstraints}.{obj::FooConstraints::axis}{dart.core::String});
     }

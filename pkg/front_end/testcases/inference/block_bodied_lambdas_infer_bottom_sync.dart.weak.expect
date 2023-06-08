@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ static method test() → dynamic {
     return null;
   };
   core::String* y = f(42){(core::Object*) →* Null};
-  f = (core::Object* x) → Null => "hello" as{TypeError} Null;
+  f = (core::Object* x) → Null => "hello" as{TypeError,ForLegacy} Null;
   self::foo((core::Object* x) → Null {
     return null;
   });

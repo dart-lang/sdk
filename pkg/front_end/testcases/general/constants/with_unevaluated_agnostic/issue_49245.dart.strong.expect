@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,7 +9,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstCons
     ;
 }
 static method bar<T extends core::Object? = dynamic>(core::String o) → self::bar::T%
-  return o as{ForNonNullableByDefault} self::bar::T%;
+  return o as self::bar::T%;
 static method main() → void {
   const self::Foo<core::int> myValue = #C10;
 }

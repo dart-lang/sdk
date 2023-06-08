@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -27,21 +27,21 @@ static field core::List<core::num> x2 = <core::num>[1, 2.0, 3];
 static method test1() → dynamic {
   self::x1.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:10:71: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
   x1. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                      ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                                                                      ^" in "hi" as{TypeError} core::int){(core::int) → void};
   self::x1.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:11:71: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   x1. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 4.0);
-                                                                      ^" in 4.0 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+                                                                      ^" in 4.0 as{TypeError} core::int){(core::int) → void};
   self::x1.{core::List::add}(4){(core::int) → void};
   core::List<core::num> y = self::x1;
 }
 static method test2() → dynamic {
   self::x2.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:18:71: Error: The argument type 'String' can't be assigned to the parameter type 'num'.
   x2. /*@target=List.add*/ add(/*error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ 'hi');
-                                                                      ^" in "hi" as{TypeError,ForNonNullableByDefault} core::num){(core::num) → void};
+                                                                      ^" in "hi" as{TypeError} core::num){(core::num) → void};
   self::x2.{core::List::add}(4.0){(core::num) → void};
   core::List<core::int> y = invalid-expression "pkg/front_end/testcases/inference/list_literals_top_level.dart:20:42: Error: A value of type 'List<num>' can't be assigned to a variable of type 'List<int>'.
  - 'List' is from 'dart:core'.
   List<int> y = /*info:ASSIGNMENT_CAST*/ x2;
-                                         ^" in self::x2 as{TypeError,ForNonNullableByDefault} core::List<core::int>;
+                                         ^" in self::x2 as{TypeError} core::List<core::int>;
 }
 static method main() → dynamic {}

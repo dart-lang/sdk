@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -27,9 +27,9 @@ library /*isNonNullableByDefault*/;
 import self as self;
 import "dart:core" as core;
 
-static final field core::bool isLegacySubtyping1a = core::_GrowableList::•<Null>(0) is{ForNonNullableByDefault} core::List<core::int>;
+static final field core::bool isLegacySubtyping1a = core::_GrowableList::•<Null>(0) is core::List<core::int>;
 static const field core::bool isLegacySubtyping1b = #C1;
-static final field core::bool isLegacySubtyping2a = core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>;
+static final field core::bool isLegacySubtyping2a = core::_GrowableList::•<core::int?>(0) is core::List<core::int>;
 static const field core::bool isLegacySubtyping2b = #C1;
 static const field core::List<core::int> assertLegacySubtyping1 = invalid-expression "Expected constant '<Null>[]' to be of type 'List<int>', but was of type 'List<Null>'.
  - 'List' is from 'dart:core'.";

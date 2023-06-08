@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Foo<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field core::List<core::int> foo;
   const constructor •(core::List<dynamic> x) → self::Foo<self::Foo::T%>
-    : self::Foo::foo = x is{ForNonNullableByDefault} core::List<self::Foo::T%> ?{core::List<core::int>} const <core::int>[1] : const <core::int>[2], super core::Object::•()
+    : self::Foo::foo = x is core::List<self::Foo::T%> ?{core::List<core::int>} const <core::int>[1] : const <core::int>[2], super core::Object::•()
     ;
 }
 static method main() → dynamic

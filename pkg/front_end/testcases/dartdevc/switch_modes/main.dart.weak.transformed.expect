@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///main_lib1.dart";
 import "org-dartlang-testcase:///main_lib2.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -26,7 +26,7 @@ class EnumLike extends core::Object /*hasConstConstructor*/  {
     return this.{self2::EnumLike::value}{core::int};
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "main_lib1.dart" as self2;
 import "dart:core" as core;

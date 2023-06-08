@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -20,10 +20,10 @@ static method foo(core::Object o, core::num value) → void {
   #L1:
   {
     final synthesized core::Object #0#0 = o;
-    late final synthesized (core::int) → void #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::B).{self::B::g}{(core::int) → void};
+    late final synthesized (core::int) → void #0#2 = (#0#0 as{Unchecked} self::B).{self::B::g}{(core::int) → void};
     {
       hoisted (core::num) → void f;
-      if(#0#0 is{ForNonNullableByDefault} self::B && (let final dynamic #t3 = #0#2 in true) && (let final dynamic #t4 = f = #0#2 as{CovarianceCheck,ForNonNullableByDefault} (core::num) → void in true)) {
+      if(#0#0 is self::B && (let final dynamic #t3 = #0#2 in true) && (let final dynamic #t4 = f = #0#2 as{CovarianceCheck} (core::num) → void in true)) {
         {
           f(value){(core::num) → void};
         }

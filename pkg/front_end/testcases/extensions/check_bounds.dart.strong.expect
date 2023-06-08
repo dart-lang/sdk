@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -977,28 +977,28 @@ static final field dynamic field4 = self::Extension|method<self::B>(invalid-expr
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field4 = Extension<B>(classA).method();
-                            ^" in self::classA as{TypeError,ForNonNullableByDefault} self::Class<self::B>);
+                            ^" in self::classA as{TypeError} self::Class<self::B>);
 static final field dynamic field5 = self::Extension|genericMethod<self::A, self::A>(self::classA, self::a);
 static final field dynamic field6 = self::Extension|genericMethod<self::A, self::A>(self::classA, self::a);
 static final field dynamic field7 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:67:51: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field7 = Extension(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                                  ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                                  ^" in self::a as{TypeError} self::B);
 static final field dynamic field8 = self::Extension|genericMethod<self::A, self::A>(self::classA, self::a);
 static final field dynamic field9 = self::Extension|genericMethod<self::A, self::A>(self::classA, self::a);
 static final field dynamic field10 = self::Extension|genericMethod<self::A, self::B>(self::classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:72:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                          ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                          ^" in self::a as{TypeError} self::B);
 static final field dynamic field11 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field12 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field13 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:77:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field13 = Extension<B>(classB).genericMethod<B>(a);
-                                                      ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                                      ^" in self::a as{TypeError} self::B);
 static final field dynamic field14 = self::Extension|method<self::B>(self::classB);
 static final field dynamic field15 = self::Extension|method<self::B>(self::classB);
 static final field dynamic field16 = self::Extension|method<self::A>(self::classB);
@@ -1009,28 +1009,28 @@ static final field dynamic field20 = self::Extension|genericMethod<self::B, self
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field20 = classB.genericMethod<B>(a);
-                                        ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in self::a as{TypeError} self::B);
 static final field dynamic field21 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field22 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field23 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:90:52: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field23 = Extension(classB).genericMethod<B>(a);
-                                                   ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                                   ^" in self::a as{TypeError} self::B);
 static final field dynamic field24 = self::Extension|genericMethod<self::A, self::A>(self::classB, self::a);
 static final field dynamic field25 = self::Extension|genericMethod<self::A, self::A>(self::classB, self::a);
 static final field dynamic field26 = self::Extension|genericMethod<self::A, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:96:43: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
     Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
-                                          ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                          ^" in self::a as{TypeError} self::B);
 static final field dynamic field27 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field28 = self::Extension|genericMethod<self::B, self::A>(self::classB, self::a);
 static final field dynamic field29 = self::Extension|genericMethod<self::B, self::B>(self::classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:101:55: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
 final field29 = Extension<B>(classB).genericMethod<B>(a);
-                                                      ^" in self::a as{TypeError,ForNonNullableByDefault} self::B);
+                                                      ^" in self::a as{TypeError} self::B);
 static method Extension|method<T extends self::B>(lowered final self::Class<self::Extension|method::T> #this) → dynamic {}
 static method Extension|get#method<T extends self::B>(lowered final self::Class<self::Extension|get#method::T> #this) → () → dynamic
   return () → dynamic => self::Extension|method<self::Extension|get#method::T>(#this);
@@ -1056,21 +1056,21 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                     ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                     ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classA, a);
   self::Extension|genericMethod<self::A, self::A>(classA, a);
   self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:33:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:36:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod<B>(a);
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|method<self::B>(classB);
   self::Extension|method<self::B>(classB);
   self::Extension|method<self::A>(classB);
@@ -1081,28 +1081,28 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   classB.genericMethod<B>(a);
-                          ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                          ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:48:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classB).genericMethod<B>(a);
-                                     ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                     ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classB, a);
   self::Extension|genericMethod<self::A, self::A>(classB, a);
   self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:51:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds.dart:54:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod<B>(a);
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
 }
 static method /* from org-dartlang-testcase:///check_bounds_lib.dart */ testInPart(self::A a) → dynamic {
   self::Class<self::A> classA = new self::Class::•<self::A>();
@@ -1122,21 +1122,21 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                     ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                     ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classA, a);
   self::Extension|genericMethod<self::A, self::A>(classA, a);
   self::Extension|genericMethod<self::A, self::B>(classA, invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:20:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classA).genericMethod<B>(a); // Expect bounds mismatch.
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:23:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod<B>(a);
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|method<self::B>(classB);
   self::Extension|method<self::B>(classB);
   self::Extension|method<self::A>(classB);
@@ -1147,26 +1147,26 @@ Try correcting the name to the name of an existing method, or defining a method 
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   classB.genericMethod<B>(a);
-                          ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                          ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:35:38: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension(classB).genericMethod<B>(a);
-                                     ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                     ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::A, self::A>(classB, a);
   self::Extension|genericMethod<self::A, self::A>(classB, a);
   self::Extension|genericMethod<self::A, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:38:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<A>(classB).genericMethod<B>(a); // Expect bounds mismatch.
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::A>(classB, a);
   self::Extension|genericMethod<self::B, self::B>(classB, invalid-expression "pkg/front_end/testcases/extensions/check_bounds_lib.dart:41:41: Error: The argument type 'A' can't be assigned to the parameter type 'B'.
  - 'A' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
  - 'B' is from 'pkg/front_end/testcases/extensions/check_bounds.dart'.
   Extension<B>(classB).genericMethod<B>(a);
-                                        ^" in a as{TypeError,ForNonNullableByDefault} self::B);
+                                        ^" in a as{TypeError} self::B);
 }

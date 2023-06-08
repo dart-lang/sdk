@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,13 +6,13 @@ static method foo(dynamic x) → dynamic {
   #L1:
   {
     final synthesized dynamic #0#0 = x;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#10 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#10 = (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C1){(core::Object?) → dynamic};
     dynamic #t1;
     {
       lowered hoisted core::int a#case#0;
       lowered hoisted core::int a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#10 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#10 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a#case#1 = #0#10{core::int} in true)) && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && (#0#6 is core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is core::Map<dynamic, dynamic> && (!(#0#10 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (#0#10 is core::int && (let final dynamic #t4 = a#case#1 = #0#10{core::int} in true)) && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
         core::int a = #t1{core::int};
         {
           return a;

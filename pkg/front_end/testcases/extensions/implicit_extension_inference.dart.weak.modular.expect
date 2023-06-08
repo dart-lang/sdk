@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -65,22 +65,22 @@ static method main() → dynamic {
   self::GenericClass<self::A*>* aClass;
   self::GenericClass<self::B*>* bClass;
   self::GenericClass<self::C*>* cClass;
-  cVariable = self::GenericExtension|get#property<self::A*>(aClass) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|get#property<self::B*>(bClass) as{TypeError} self::C*;
+  cVariable = self::GenericExtension|get#property<self::A*>(aClass) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|get#property<self::B*>(bClass) as{TypeError,ForLegacy} self::C*;
   aVariable = self::GenericExtension|get#property<self::C*>(cClass);
-  cVariable = self::GenericExtension|method<self::A*>(aClass, aVariable) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|method<self::B*>(bClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
-  aVariable = self::GenericExtension|method<self::C*>(cClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::A*, self::A*>(aClass, aVariable) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::A*, self::B*>(aClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::B*, self::A*>(bClass, aVariable) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::B*, self::B*>(bClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError} self::C*);
-  cVariable = self::GenericExtension|genericMethod1<self::C*, self::A*>(cClass, aVariable) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::C*, self::B*>(cClass, aVariable as{TypeError} self::B*) as{TypeError} self::C*;
-  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError} self::C*);
+  cVariable = self::GenericExtension|method<self::A*>(aClass, aVariable) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|method<self::B*>(bClass, aVariable as{TypeError,ForLegacy} self::B*) as{TypeError,ForLegacy} self::C*;
+  aVariable = self::GenericExtension|method<self::C*>(cClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::A*>(aClass, aVariable) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::B*>(aClass, aVariable as{TypeError,ForLegacy} self::B*) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::A*, self::C*>(aClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::A*>(bClass, aVariable) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::B*>(bClass, aVariable as{TypeError,ForLegacy} self::B*) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::B*, self::C*>(bClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError,ForLegacy} self::C*);
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::A*>(cClass, aVariable) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::B*>(cClass, aVariable as{TypeError,ForLegacy} self::B*) as{TypeError,ForLegacy} self::C*;
+  cVariable = self::GenericExtension|genericMethod1<self::C*, self::C*>(cClass, aVariable as{TypeError,ForLegacy} self::C*);
 }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:async" as asy;
 
@@ -18,7 +18,7 @@ static method test2() → FutureOr<FutureOr<void>> {
   return asy::Future::value<void>(0);
 }
 static method test3() → FutureOr<FutureOr<void>> {
-  return null as{ForNonNullableByDefault} FutureOr<void>;
+  return null as FutureOr<void>;
 }
 static method test4() → FutureOr<FutureOr<void>> {
   return asy::Future::value<asy::Future<void>>(asy::Future::value<void>(null));

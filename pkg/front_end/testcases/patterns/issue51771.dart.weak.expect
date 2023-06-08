@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -64,7 +64,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -75,7 +75,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     {
-      if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) {
+      if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -86,7 +86,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #2#0 = o;
     {
-      if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+      if(#2#0 is core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -97,7 +97,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #3#0 = o;
     {
-      if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && #3#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
+      if(#3#0 is core::List<dynamic> && #3#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -108,7 +108,7 @@ static method method2(dynamic o) → dynamic {
   {
     final synthesized dynamic #4#0 = o;
     {
-      if(#4#0 is{ForNonNullableByDefault} core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
+      if(#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -193,7 +193,7 @@ static method method4(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -204,7 +204,7 @@ static method method4(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     {
-      if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
+      if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C1 =={core::num::==}{(core::Object) → core::bool} #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -216,7 +216,7 @@ static method method4(dynamic o) → dynamic {
     final synthesized dynamic #2#0 = o;
     {
       hoisted core::List<dynamic> a;
-      if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t3 = a = #2#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#2#0 is core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t3 = a = #2#0{core::List<dynamic>}.{core::List::sublist}(1){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -226,10 +226,10 @@ static method method4(dynamic o) → dynamic {
   #L20:
   {
     final synthesized dynamic #3#0 = o;
-    late final synthesized core::int #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::int #3#2 = (#3#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
       hoisted core::List<dynamic> a;
-      if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0, #3#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
+      if(#3#0 is core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && (let final dynamic #t4 = a = #3#0{core::List<dynamic>}.{core::List::sublist}(0, #3#2.{core::num::-}(1){(core::num) → core::int}){(core::int, [core::int?]) → core::List<dynamic>} in true)) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -240,7 +240,7 @@ static method method4(dynamic o) → dynamic {
   {
     final synthesized dynamic #4#0 = o;
     {
-      if(#4#0 is{ForNonNullableByDefault} core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
+      if(#4#0 is core::List<dynamic> && #4#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -250,9 +250,9 @@ static method method4(dynamic o) → dynamic {
   #L22:
   {
     final synthesized dynamic #5#0 = o;
-    late final synthesized core::int #5#2 = (#5#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::int #5#2 = (#5#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
-      if(#5#0 is{ForNonNullableByDefault} core::List<dynamic> && #5#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{core::List<dynamic>}.{core::List::[]}(#5#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
+      if(#5#0 is core::List<dynamic> && #5#2.{core::num::>=}(#C2){(core::num) → core::bool} && #C1 =={core::num::==}{(core::Object) → core::bool} #5#0{core::List<dynamic>}.{core::List::[]}(#5#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic}) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -265,7 +265,7 @@ static method method5(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int) {
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -276,7 +276,7 @@ static method method5(dynamic o) → dynamic {
   {
     final synthesized dynamic #1#0 = o;
     {
-      if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int && #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} is{ForNonNullableByDefault} core::String) {
+      if(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int && #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} is core::String) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -287,7 +287,7 @@ static method method5(dynamic o) → dynamic {
   {
     final synthesized dynamic #2#0 = o;
     {
-      if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int) {
+      if(#2#0 is core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -297,9 +297,9 @@ static method method5(dynamic o) → dynamic {
   #L26:
   {
     final synthesized dynamic #3#0 = o;
-    late final synthesized core::int #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::int #3#2 = (#3#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
-      if(#3#0 is{ForNonNullableByDefault} core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && #3#0{core::List<dynamic>}.{core::List::[]}(#3#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is{ForNonNullableByDefault} core::String) {
+      if(#3#0 is core::List<dynamic> && #3#2.{core::num::>=}(#C1){(core::num) → core::bool} && #3#0{core::List<dynamic>}.{core::List::[]}(#3#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is core::String) {
         {
           core::print(o{core::List<dynamic>});
         }
@@ -309,9 +309,9 @@ static method method5(dynamic o) → dynamic {
   #L27:
   {
     final synthesized dynamic #4#0 = o;
-    late final synthesized core::int #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+    late final synthesized core::int #4#2 = (#4#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     {
-      if(#4#0 is{ForNonNullableByDefault} core::List<dynamic> && #4#2.{core::num::>=}(#C2){(core::num) → core::bool} && #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::String && #4#0{core::List<dynamic>}.{core::List::[]}(#4#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is{ForNonNullableByDefault} core::int) {
+      if(#4#0 is core::List<dynamic> && #4#2.{core::num::>=}(#C2){(core::num) → core::bool} && #4#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::String && #4#0{core::List<dynamic>}.{core::List::[]}(#4#2.{core::num::-}(1){(core::num) → core::int}){(core::int) → dynamic} is core::int) {
         {
           core::print(o{core::List<dynamic>});
         }

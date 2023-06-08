@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -143,12 +143,12 @@ static method errors() → dynamic {
  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
  - 'StructA' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   structA.property = struct.property; // error
-                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError,ForNonNullableByDefault} self::StructA?);
+                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError} self::StructA?);
   self::Extension|set#property<self::StructB?>(structB, invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:50:29: Error: A value of type 'Struct?' can't be assigned to a variable of type 'StructB?'.
  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
  - 'StructB' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   structB.property = struct.property; // error
-                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError,ForNonNullableByDefault} self::StructB?);
+                            ^" in self::Extension|get#property<self::Struct?>(struct) as{TypeError} self::StructB?);
   self::Extension|set#property<self::Struct>(new self::Struct::•(), invalid-expression "pkg/front_end/testcases/extensions/on_type_variable_inference2.dart:52:27: Error: The value 'null' can't be assigned to a variable of type 'Struct' because 'Struct' is not nullable.
  - 'Struct' is from 'pkg/front_end/testcases/extensions/on_type_variable_inference2.dart'.
   new Struct().property = null; // error

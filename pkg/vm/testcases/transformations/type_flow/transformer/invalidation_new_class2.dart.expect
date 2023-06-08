@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -67,9 +67,9 @@ static method allocateE() → dynamic {
   new self::E::•();
 }
 static method main(core::List<core::String> args) → dynamic {
-  self::use1(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A);
+  self::use1(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic} self::A);
   self::allocateB();
-  self::use2(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A);
+  self::use2(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic} self::A);
   self::allocateE();
-  self::use3(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A);
+  self::use3(new self::Intermediate::•(), self::getDynamic() as{TypeError,ForDynamic} self::A);
 }

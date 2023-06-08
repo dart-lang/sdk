@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -78,11 +78,11 @@ class NoSuchMethod<invariant T extends core::Object? = dynamic> extends core::Ob
   method noSuchMethod(core::Invocation _) → dynamic
     return 3;
   no-such-method-forwarder get x() → self::NoSuchMethod::T?
-    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::NoSuchMethod::T?;
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 1, #C3, #C4, core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T?;
   no-such-method-forwarder set x(self::NoSuchMethod::T? value) → void
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C6, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
   no-such-method-forwarder method method(self::NoSuchMethod::T% x) → self::NoSuchMethod::T%
-    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::NoSuchMethod::T%;
+    return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::NoSuchMethod::T%;
   no-such-method-forwarder set y(self::NoSuchMethod::T% x) → void
     return this.{self::NoSuchMethod::noSuchMethod}(new core::_InvocationMirror::_withType(#C8, 2, #C3, core::List::unmodifiable<dynamic>(<dynamic>[x]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C5))){(core::Invocation) → dynamic};
 }
@@ -92,10 +92,10 @@ static method main() → dynamic {
   a.{self::A::method}(3, (core::num num) → void {}, "test"){(core::int, (core::num) → void, core::String) → void};
   a.{self::A::method2}(3){(core::int, [core::int?]) → void};
   a.{self::A::x} = 3;
-  core::Map<core::num, self::Contravariant<core::String>> mapContra = a.{self::A::mapContra}{core::Map<core::num, self::Contravariant<core::String>>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, self::Contravariant<core::String>>;
-  core::Map<core::num, (core::String) → void> mapContraFn = a.{self::A::mapContraFn}{core::Map<core::num, (core::String) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, (core::String) → void>;
-  core::Map<core::num, self::Invariant<core::String>> mapInv = a.{self::A::mapInv}{core::Map<core::num, self::Invariant<core::String>>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, self::Invariant<core::String>>;
-  core::Map<core::num, (core::String) → core::String> mapInvFn = a.{self::A::mapInvFn}{core::Map<core::num, (core::String) → core::String>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} core::Map<core::num, (core::String) → core::String>;
+  core::Map<core::num, self::Contravariant<core::String>> mapContra = a.{self::A::mapContra}{core::Map<core::num, self::Contravariant<core::String>>} as{TypeError,CovarianceCheck} core::Map<core::num, self::Contravariant<core::String>>;
+  core::Map<core::num, (core::String) → void> mapContraFn = a.{self::A::mapContraFn}{core::Map<core::num, (core::String) → void>} as{TypeError,CovarianceCheck} core::Map<core::num, (core::String) → void>;
+  core::Map<core::num, self::Invariant<core::String>> mapInv = a.{self::A::mapInv}{core::Map<core::num, self::Invariant<core::String>>} as{TypeError,CovarianceCheck} core::Map<core::num, self::Invariant<core::String>>;
+  core::Map<core::num, (core::String) → core::String> mapInvFn = a.{self::A::mapInvFn}{core::Map<core::num, (core::String) → core::String>} as{TypeError,CovarianceCheck} core::Map<core::num, (core::String) → core::String>;
   self::B<core::int> b = new self::B::•<core::int>();
   b.{self::B::x} = 3;
   self::expect(3, b.{self::B::x}{core::int?});

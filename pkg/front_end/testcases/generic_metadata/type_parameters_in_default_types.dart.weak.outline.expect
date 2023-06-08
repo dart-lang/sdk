@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 static method foo<X extends <Y extends self::foo::X = dynamic>() → dynamic = <Y extends dynamic>() → dynamic>() → dynamic

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -62,7 +62,7 @@ static method test1(dynamic x) → dynamic {
       }
       {
         hoisted dynamic b1;
-        if((let final dynamic #t3 = b1 = #0#0 in true) && #0#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b1{dynamic}.<(0) as{TypeError,ForNonNullableByDefault} core::bool) {
+        if((let final dynamic #t3 = b1 = #0#0 in true) && #0#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b1{dynamic}.<(0) as{TypeError} core::bool) {
           #t1 = 1;
           break #L1;
         }
@@ -92,7 +92,7 @@ static method test2(dynamic x) → dynamic {
     }
     {
       hoisted dynamic b2;
-      if((let final dynamic #t5 = b2 = #0#0 in true) && #0#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b2{dynamic}.<(0) as{TypeError,ForNonNullableByDefault} core::bool) {
+      if((let final dynamic #t5 = b2 = #0#0 in true) && #0#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b2{dynamic}.<(0) as{TypeError} core::bool) {
         {
           return 1;
         }
@@ -119,7 +119,7 @@ static method test3(dynamic x) → dynamic {
       hoisted dynamic b3;
       final synthesized dynamic #1#0 = x;
       final const synthesized dynamic #1#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
-      if((let final dynamic #t7 = b3 = #1#0 in true) && #1#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b3{dynamic}.<(0) as{TypeError,ForNonNullableByDefault} core::bool) {
+      if((let final dynamic #t7 = b3 = #1#0 in true) && #1#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b3{dynamic}.<(0) as{TypeError} core::bool) {
         return 1;
       }
       else {
@@ -142,7 +142,7 @@ static method test4(dynamic x) → dynamic {
       hoisted dynamic b4;
       final synthesized dynamic #1#0 = x;
       final const synthesized dynamic #1#1 = invalid-expression "Read of a non-const variable is not a constant expression.";
-      if((let final dynamic #t10 = b4 = #1#0 in true) && #1#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b4{dynamic}.<(0) as{TypeError,ForNonNullableByDefault} core::bool)
+      if((let final dynamic #t10 = b4 = #1#0 in true) && #1#0 =={core::Object::==}{(core::Object) → core::bool} invalid-expression "Read of a non-const variable is not a constant expression." && b4{dynamic}.<(0) as{TypeError} core::bool)
         #t8.{core::List::add}{Invariant}(1){(core::int) → void};
     }
   } =>#t8;

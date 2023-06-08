@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ static method main() → dynamic {
   #C2;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -147,14 +147,14 @@ static method main() → dynamic {
   c.{self::C::field1}{core::num};
   c.{self::C::field2}{() → core::num};
   try {
-    c.{self::C::field3}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+    c.{self::C::field3}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field4}{(core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → core::num;
+    c.{self::C::field4}{(core::num) → core::num} as{TypeError,CovarianceCheck} (core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
@@ -162,14 +162,14 @@ static method main() → dynamic {
   }
   c.{self::C::field5}{() → () → core::num};
   try {
-    c.{self::C::field6}{(() → core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (() → core::num) → void;
+    c.{self::C::field6}{(() → core::num) → void} as{TypeError,CovarianceCheck} (() → core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field7}{(() → core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (() → core::num) → core::num;
+    c.{self::C::field7}{(() → core::num) → core::num} as{TypeError,CovarianceCheck} (() → core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
@@ -178,42 +178,42 @@ static method main() → dynamic {
   c.{self::C::field8}{((core::num) → void) → void};
   c.{self::C::field9}{((core::num) → void) → core::num};
   try {
-    c.{self::C::field10}{((core::num) → core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} ((core::num) → core::num) → void;
+    c.{self::C::field10}{((core::num) → core::num) → void} as{TypeError,CovarianceCheck} ((core::num) → core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field11}{((core::num) → core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} ((core::num) → core::num) → core::num;
+    c.{self::C::field11}{((core::num) → core::num) → core::num} as{TypeError,CovarianceCheck} ((core::num) → core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field12}{<S extends core::num = dynamic>() → S} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>() → S;
+    c.{self::C::field12}{<S extends core::num = dynamic>() → S} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>() → S;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field13}{<S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>(S) → void;
+    c.{self::C::field13}{<S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>(S) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field14}{<S extends core::num = dynamic>(S) → S} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>(S) → S;
+    c.{self::C::field14}{<S extends core::num = dynamic>(S) → S} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>(S) → S;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::field15}{(<S extends core::num = dynamic>() → S) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (<S extends core::num = dynamic>() → S) → void;
+    c.{self::C::field15}{(<S extends core::num = dynamic>() → S) → void} as{TypeError,CovarianceCheck} (<S extends core::num = dynamic>() → S) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
@@ -222,14 +222,14 @@ static method main() → dynamic {
   c.{self::C::getter1}{core::num};
   c.{self::C::getter2}{() → core::num};
   try {
-    c.{self::C::getter3}{(core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → void;
+    c.{self::C::getter3}{(core::num) → void} as{TypeError,CovarianceCheck} (core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter4}{(core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (core::num) → core::num;
+    c.{self::C::getter4}{(core::num) → core::num} as{TypeError,CovarianceCheck} (core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
@@ -237,14 +237,14 @@ static method main() → dynamic {
   }
   c.{self::C::getter5}{() → () → core::num};
   try {
-    c.{self::C::getter6}{(() → core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (() → core::num) → void;
+    c.{self::C::getter6}{(() → core::num) → void} as{TypeError,CovarianceCheck} (() → core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter7}{(() → core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (() → core::num) → core::num;
+    c.{self::C::getter7}{(() → core::num) → core::num} as{TypeError,CovarianceCheck} (() → core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
@@ -253,42 +253,42 @@ static method main() → dynamic {
   c.{self::C::getter8}{((core::num) → void) → void};
   c.{self::C::getter9}{((core::num) → void) → core::num};
   try {
-    c.{self::C::getter10}{((core::num) → core::num) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} ((core::num) → core::num) → void;
+    c.{self::C::getter10}{((core::num) → core::num) → void} as{TypeError,CovarianceCheck} ((core::num) → core::num) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter11}{((core::num) → core::num) → core::num} as{TypeError,CovarianceCheck,ForNonNullableByDefault} ((core::num) → core::num) → core::num;
+    c.{self::C::getter11}{((core::num) → core::num) → core::num} as{TypeError,CovarianceCheck} ((core::num) → core::num) → core::num;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter12}{<S extends core::num = dynamic>() → S} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>() → S;
+    c.{self::C::getter12}{<S extends core::num = dynamic>() → S} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>() → S;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter13}{<S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>(S) → void;
+    c.{self::C::getter13}{<S extends core::num = dynamic>(S) → void} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>(S) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter14}{<S extends core::num = dynamic>(S) → S} as{TypeError,CovarianceCheck,ForNonNullableByDefault} <S extends core::num = dynamic>(S) → S;
+    c.{self::C::getter14}{<S extends core::num = dynamic>(S) → S} as{TypeError,CovarianceCheck} <S extends core::num = dynamic>(S) → S;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print(e);
   }
   try {
-    c.{self::C::getter15}{(<S extends core::num = dynamic>() → S) → void} as{TypeError,CovarianceCheck,ForNonNullableByDefault} (<S extends core::num = dynamic>() → S) → void;
+    c.{self::C::getter15}{(<S extends core::num = dynamic>() → S) → void} as{TypeError,CovarianceCheck} (<S extends core::num = dynamic>() → S) → void;
     throw "TypeError expected";
   }
   on core::TypeError catch(final core::TypeError e) {

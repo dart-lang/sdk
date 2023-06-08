@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -76,7 +76,7 @@ static method main() → dynamic {
   core::print(new self::C::•().{self::_C&Object&A&B::method}(0){(core::num) → core::String});
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

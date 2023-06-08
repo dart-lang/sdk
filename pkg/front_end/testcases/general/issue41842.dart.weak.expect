@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -272,7 +272,7 @@ static method main() → void {
   new self::B::foo<core::int>(24);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

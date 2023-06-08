@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -106,11 +106,11 @@ Try correcting the name to the name of an existing method, or defining a method 
   y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:34:4: Error: The operator '+' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   y++; // Error.
-   ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+   ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic} Never?;
   y = invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:35:5: Error: The operator '+' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
   y += 1; // Error.
-    ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic,ForNonNullableByDefault} Never?;
+    ^" in y{<unresolved>}.+(1) as{TypeError,ForDynamic} Never?;
   invalid-expression "pkg/front_end/testcases/nnbd/never_receiver.dart:36:4: Error: The operator '[]' isn't defined for the class 'Never?'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.
   y[42]; // Error.

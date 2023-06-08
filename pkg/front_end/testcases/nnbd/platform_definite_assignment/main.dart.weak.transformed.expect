@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:test" as test;
 import "dart:core" as core;
@@ -9,7 +9,7 @@ static method main() → dynamic {
   test::Class<core::num>? c;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

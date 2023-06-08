@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -59,7 +59,7 @@ base class ImplementsBaseMixinTypeDefOutside extends core::Object implements mai
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

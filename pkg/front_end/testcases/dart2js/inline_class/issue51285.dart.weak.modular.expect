@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,7 +19,7 @@ inline class K<T extends core::Object? = dynamic> /* declaredRepresentationType 
   tearoff _ = self::K|_#_#tearOff;
 }
 static method I|() → self::I
-  return 0 as{ForNonNullableByDefault} self::I;
+  return 0 as self::I;
 static method I|_#new#tearOff() → self::I
   return self::I|();
 static method J|(core::int i) → self::J

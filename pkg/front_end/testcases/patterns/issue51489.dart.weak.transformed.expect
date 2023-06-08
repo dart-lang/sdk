@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -26,28 +26,28 @@ static method test2(dynamic x, dynamic another) → dynamic
     final core::Map<dynamic, dynamic> #t4 = <dynamic, dynamic>{};
     #t4.{core::Map::[]=}{Invariant}(1, 1){(dynamic, dynamic) → void};
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t5 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
           hoisted dynamic i;
           {
             final synthesized dynamic #0#0 = #t5;
-            if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+            if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t6 = i = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
               throw new core::StateError::•("Pattern matching error");
           }
           {
-            synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+            synthesized core::Iterator<dynamic> :sync-for-iterator = (x as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
             for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
               final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
               {
                 hoisted dynamic j;
                 {
                   final synthesized dynamic #1#0 = #t7;
-                  if(!(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t8 = j = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
+                  if(!(#1#0 is core::List<dynamic> && #1#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (let final dynamic #t8 = j = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)))
                     throw new core::StateError::•("Pattern matching error");
                 }
-                #t4.{core::Map::addAll}{Invariant}(another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+                #t4.{core::Map::addAll}{Invariant}(another as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
               }
             }
           }
@@ -56,9 +56,9 @@ static method test2(dynamic x, dynamic another) → dynamic
     }
   } =>#t4;
 static method main() → dynamic {
-  self::expectEquals(self::mapToString(self::test1() as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{}));
-  self::expectEquals(self::mapToString(self::test2(core::_GrowableList::•<dynamic>(0), <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1}));
-  self::expectEquals(self::mapToString(self::test2(core::_GrowableList::_literal3<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(1), core::_GrowableList::_literal1<core::int>(2)), <core::int, core::int>{2: 2}) as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2}));
+  self::expectEquals(self::mapToString(self::test1() as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{}));
+  self::expectEquals(self::mapToString(self::test2(core::_GrowableList::•<dynamic>(0), <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1}));
+  self::expectEquals(self::mapToString(self::test2(core::_GrowableList::_literal3<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(0), core::_GrowableList::_literal1<core::int>(1), core::_GrowableList::_literal1<core::int>(2)), <core::int, core::int>{2: 2}) as{TypeError,ForDynamic} core::Map<dynamic, dynamic>), self::mapToString(<dynamic, dynamic>{1: 1, 2: 2}));
 }
 static method expectEquals(dynamic x, dynamic y) → dynamic {
   if(!(x =={core::Object::==}{(core::Object) → core::bool} y)) {

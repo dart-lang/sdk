@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,25 +7,25 @@ import "dart:core" as core;
 [231]  {
 [239]    [239] final synthesized dynamic #0#0 = [239] [239] o;
 [-1]    function ##0#2#initializer() → core::int
-[-1]      return [253] [253] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+[-1]      return [253] [253] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
 [-1]    [-1] late final synthesized core::int #0#2 = [-1] [-1] ##0#2#initializer [-1](){() → core::int};
 [-1]    function ##0#4#initializer() → core::bool
 [-1]      return [253] [253] [-1] [-1] #0#2 =={core::num::==}{(core::Object) → core::bool} [253] [253] #C1;
 [-1]    [-1] late final synthesized core::bool #0#4 = [-1] [-1] ##0#4#initializer [-1](){() → core::bool};
 [-1]    function ##0#6#initializer() → dynamic
-[-1]      return [253] [253] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}[253]([253] 0){(core::int) → dynamic};
+[-1]      return [253] [253] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}[253]([253] 0){(core::int) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#6 = [-1] [-1] ##0#6#initializer [-1](){() → dynamic};
 [-1]    function ##0#8#initializer() → core::bool
 [-1]      return [282] [282] [-1] [-1] #0#2 =={core::num::==}{(core::Object) → core::bool} [282] [282] #C2;
 [-1]    [-1] late final synthesized core::bool #0#8 = [-1] [-1] ##0#8#initializer [-1](){() → core::bool};
 [-1]    function ##0#10#initializer() → dynamic
-[-1]      return [282] [282] [239]([239] [239] [239] #0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}[282]([282] 1){(core::int) → dynamic};
+[-1]      return [282] [282] [239]([239] [239] [239] #0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}[282]([282] 1){(core::int) → dynamic};
 [-1]    [-1] late final synthesized dynamic #0#10 = [-1] [-1] ##0#10#initializer [-1](){() → dynamic};
 [-1]    [-1] dynamic #t1;
 [248]    {
 [258]      [258] lowered hoisted dynamic a#case#0;
 [290]      [290] lowered hoisted dynamic a#case#1;
-[248]      if([231] [231] [268] [268] [253] [253] [253] [253] [253] [253] [239] [239] #0#0 is{ForNonNullableByDefault} core::List<dynamic> && [-1] [-1] #0#4 && [258]([258] let [258] final dynamic #t2 = [258] [258] a#case#0 = [-1] [-1] #0#6 in [258] [258] true) && [268] [268] [268] [268] [266] [266] a#case#0{dynamic}.< [268]([270] 5) as{TypeError,ForNonNullableByDefault} core::bool || [300] [300] [282] [282] [282] [282] [282] [282] [239] [239] #0#0 is{ForNonNullableByDefault} core::List<dynamic> && [-1] [-1] #0#8 && [290]([290] let [290] final dynamic #t3 = [290] [290] a#case#1 = [-1] [-1] #0#10 in [290] [290] true) && [300] [300] [300] [300] [298] [298] a#case#1{dynamic}.> [300]([302] 5) as{TypeError,ForNonNullableByDefault} core::bool) {
+[248]      if([231] [231] [268] [268] [253] [253] [253] [253] [253] [253] [239] [239] #0#0 is core::List<dynamic> && [-1] [-1] #0#4 && [258]([258] let [258] final dynamic #t2 = [258] [258] a#case#0 = [-1] [-1] #0#6 in [258] [258] true) && [268] [268] [268] [268] [266] [266] a#case#0{dynamic}.< [268]([270] 5) as{TypeError} core::bool || [300] [300] [282] [282] [282] [282] [282] [282] [239] [239] #0#0 is core::List<dynamic> && [-1] [-1] #0#8 && [290]([290] let [290] final dynamic #t3 = [290] [290] a#case#1 = [-1] [-1] #0#10 in [290] [290] true) && [300] [300] [300] [300] [298] [298] a#case#1{dynamic}.> [300]([302] 5) as{TypeError} core::bool) {
 [248]        {
 [321]          [311] [311] core::print [316]([317] "1");
 [231]          break #L1;
@@ -35,7 +35,7 @@ import "dart:core" as core;
 [327]    {
 [337]      [337] lowered hoisted dynamic b#case#0;
 [369]      [369] lowered hoisted dynamic b#case#1;
-[327]      if([231] [231] [337] [337] [347] [347] [332] [332] [332] [332] [332] [332] [239] [239] #0#0 is{ForNonNullableByDefault} core::List<dynamic> && [-1] [-1] #0#4 && [337]([337] let [337] final dynamic #t4 = [337] [337] b#case#0 = [-1] [-1] #0#6 in [337] [337] true) && [347] [347] [347] [347] [345] [345] b#case#0{dynamic}.< [347]([349] 5) as{TypeError,ForNonNullableByDefault} core::bool && [231]([231] let [231] final dynamic #t5 = [231] [231] #t1 = [337] [337] b#case#0 in [337] [337] true) || [369] [369] [379] [379] [361] [361] [361] [361] [361] [361] [239] [239] #0#0 is{ForNonNullableByDefault} core::List<dynamic> && [-1] [-1] #0#8 && [369]([369] let [369] final dynamic #t6 = [369] [369] b#case#1 = [-1] [-1] #0#10 in [369] [369] true) && [379] [379] [379] [379] [377] [377] b#case#1{dynamic}.> [379]([381] 5) as{TypeError,ForNonNullableByDefault} core::bool && [231]([231] let [231] final dynamic #t7 = [231] [231] #t1 = [369] [369] b#case#1 in [369] [369] true)) {
+[327]      if([231] [231] [337] [337] [347] [347] [332] [332] [332] [332] [332] [332] [239] [239] #0#0 is core::List<dynamic> && [-1] [-1] #0#4 && [337]([337] let [337] final dynamic #t4 = [337] [337] b#case#0 = [-1] [-1] #0#6 in [337] [337] true) && [347] [347] [347] [347] [345] [345] b#case#0{dynamic}.< [347]([349] 5) as{TypeError} core::bool && [231]([231] let [231] final dynamic #t5 = [231] [231] #t1 = [337] [337] b#case#0 in [337] [337] true) || [369] [369] [379] [379] [361] [361] [361] [361] [361] [361] [239] [239] #0#0 is core::List<dynamic> && [-1] [-1] #0#8 && [369]([369] let [369] final dynamic #t6 = [369] [369] b#case#1 = [-1] [-1] #0#10 in [369] [369] true) && [379] [379] [379] [379] [377] [377] b#case#1{dynamic}.> [379]([381] 5) as{TypeError} core::bool && [231]([231] let [231] final dynamic #t7 = [231] [231] #t1 = [369] [369] b#case#1 in [369] [369] true)) {
 [337]        [337] dynamic b = [-1] [-1] #t1{dynamic};
 [327]        {
 [398]          [390] [390] core::print [395]([396] b);

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ class C extends core::Object {
   }
 }
 static method test() → dynamic {
-  (null as{ForNonNullableByDefault} invalid-type){dynamic}.bar();
+  (null as invalid-type){dynamic}.bar();
   invalid-expression "pkg/front_end/testcases/general/invalid_type.dart:13:8: Error: The method 'bar' isn't defined for the class 'Null'.
 Try correcting the name to the name of an existing method, or defining a method named 'bar'.
   null.bar();

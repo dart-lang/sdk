@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -10,6 +10,6 @@ import self as self;
 import "dart:core" as core;
 
 static method test(dynamic x) → dynamic {
-  if(x as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+  if(x as{TypeError,ForDynamic} core::bool) {
   }
 }

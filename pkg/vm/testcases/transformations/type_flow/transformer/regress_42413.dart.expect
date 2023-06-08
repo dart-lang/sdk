@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -19,7 +19,7 @@ class A extends core::Object {
 [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:4,getterSelectorId:5]  @#C3
   method forIn() → void {
     {
-      synthesized core::Iterator<dynamic> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B>]([@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B>] this.{self::A::list}{dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+      synthesized core::Iterator<dynamic> :sync-for-iterator = [@vm.direct-call.metadata=dart.core::_GrowableList.iterator] [@vm.inferred-type.metadata=dart._internal::ListIterator<#lib::B>]([@vm.direct-call.metadata=#lib::A.list] [@vm.inferred-type.metadata=dart.core::_GrowableList?<#lib::B>] this.{self::A::list}{dynamic} as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; [@vm.direct-call.metadata=dart._internal::ListIterator.moveNext] [@vm.inferred-type.metadata=dart.core::bool (skip check)] :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         dynamic e = [@vm.direct-call.metadata=dart._internal::ListIterator.current] [@vm.inferred-type.metadata=#lib::B] :sync-for-iterator.{core::Iterator::current}{dynamic};
         core::print([@vm.direct-call.metadata=#lib::B.x] [@vm.inferred-type.metadata=dart.core::_Smi (value: 0) (receiver not int)] e{dynamic}.x);

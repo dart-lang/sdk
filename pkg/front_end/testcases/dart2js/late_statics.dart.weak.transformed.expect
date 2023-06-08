@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;
@@ -80,7 +80,7 @@ static method testInitializedFinalTopLevelField() → void {
   core::print(lat::d);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as lat;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;

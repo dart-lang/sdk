@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 static method foo(dynamic a, dynamic b) → dynamic

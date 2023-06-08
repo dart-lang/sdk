@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -87,7 +87,7 @@ static method test1(dynamic x) → dynamic {
     dynamic #t4;
     {
       hoisted core::int i;
-      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t5 = i = #0#0{core::int} in true) && (let final core::int #t6 = #t1 = i in true)) {
+      if(#C1 =={core::num::==}{(core::Object) → core::bool} #0#0 || #0#0 is core::int && (let final core::int #t5 = i = #0#0{core::int} in true) && (let final core::int #t6 = #t1 = i in true)) {
         invalid-type i = #t1{invalid-type};
         {
           return i;
@@ -96,7 +96,7 @@ static method test1(dynamic x) → dynamic {
     }
     {
       hoisted core::String s;
-      if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t7 = s = #0#0{core::String} in true) && (let final core::String #t8 = #t2 = s in true) || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0) {
+      if(#0#0 is core::String && (let final core::String #t7 = s = #0#0{core::String} in true) && (let final core::String #t8 = #t2 = s in true) || #C2 =={core::String::==}{(core::Object) → core::bool} #0#0) {
         core::String s = #t2{core::String};
         {
           return s;
@@ -105,7 +105,7 @@ static method test1(dynamic x) → dynamic {
     }
     {
       hoisted core::double d;
-      if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t9 = d = #0#0{core::double} in true) && (let final core::double #t10 = #t3 = d in true) || #0#0{dynamic}.<(#C3) as{ForNonNullableByDefault} core::bool) {
+      if(#0#0 is core::double && (let final core::double #t9 = d = #0#0{core::double} in true) && (let final core::double #t10 = #t3 = d in true) || #0#0{dynamic}.<(#C3) as core::bool) {
         core::double d = #t3{core::double};
         {
           return d;
@@ -114,7 +114,7 @@ static method test1(dynamic x) → dynamic {
     }
     {
       hoisted core::bool b;
-      if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C4 || #0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t11 = b = #0#0{core::bool} in true) && (let final core::bool #t12 = #t4 = b in true)) {
+      if(#0#0 =={core::Object::==}{(core::Object) → core::bool} #C4 || #0#0 is core::bool && (let final core::bool #t11 = b = #0#0{core::bool} in true) && (let final core::bool #t12 = #t4 = b in true)) {
         invalid-type b = #t4{invalid-type};
         {
           return b;
@@ -139,7 +139,7 @@ static method test2(dynamic x) → dynamic {
     #L3:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t13 = 0;
             break #L3;
@@ -147,14 +147,14 @@ static method test2(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t14 = i2 = #0#0{core::int} in true)) {
+        if(#0#0 is core::int && (let final core::int #t14 = i2 = #0#0{core::int} in true)) {
           #t13 = 0;
           break #L3;
         }
       }
       {
         hoisted core::String s2;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t15 = s2 = #0#0{core::String} in true) || true) {
+        if(#0#0 is core::String && (let final core::String #t15 = s2 = #0#0{core::String} in true) || true) {
           {
             return invalid-expression "pkg/front_end/testcases/patterns/issue51604.dart:33:14: Error: Non-nullable variable 's2' must be assigned before it can be used.
       return s2; // Error.
@@ -187,14 +187,14 @@ static method test3(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5;
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#8#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#8 = ##0#8#initializer(){() → dynamic};
     dynamic #t17;
     dynamic #t18;
     #L6:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t16 = 0;
             break #L6;
@@ -202,7 +202,7 @@ static method test3(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t19 = i3 = #0#0{core::int} in true) && (let final core::int #t20 = #t17 = i3 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#6 && (#0#8 is{ForNonNullableByDefault} core::int && (let final core::int #t21 = i3#1 = #0#8{core::int} in true)) && (let final core::int #t22 = #t17 = i3#1 in true)) {
+        if(#0#0 is core::int && (let final core::int #t19 = i3 = #0#0{core::int} in true) && (let final core::int #t20 = #t17 = i3 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::int && (let final core::int #t21 = i3#1 = #0#8{core::int} in true)) && (let final core::int #t22 = #t17 = i3#1 in true)) {
           #t16 = 0;
           break #L6;
         }
@@ -210,7 +210,7 @@ static method test3(dynamic x) → dynamic {
       {
         lowered hoisted core::String s3#case#0;
         lowered hoisted core::String s3#case#1;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t23 = s3#case#0 = #0#0{core::String} in true) && (let final core::String #t24 = #t18 = s3#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#6 && (#0#8 is{ForNonNullableByDefault} core::String && (let final core::String #t25 = s3#case#1 = #0#8{core::String} in true)) && (let final core::String #t26 = #t18 = s3#case#1 in true) || true) {
+        if(#0#0 is core::String && (let final core::String #t23 = s3#case#0 = #0#0{core::String} in true) && (let final core::String #t24 = #t18 = s3#case#0 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::String && (let final core::String #t25 = s3#case#1 = #0#8{core::String} in true)) && (let final core::String #t26 = #t18 = s3#case#1 in true) || true) {
           core::String s3 = #t18{core::String};
           {
             return s3;
@@ -241,14 +241,14 @@ static method test4(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5;
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#8#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#8 = ##0#8#initializer(){() → dynamic};
     dynamic #t28;
     dynamic #t29;
     #L9:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t27 = 0;
             break #L9;
@@ -256,7 +256,7 @@ static method test4(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t30 = i4 = #0#0{core::int} in true) && (let final core::int #t31 = #t28 = i4 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#6 && (#0#8 is{ForNonNullableByDefault} core::double && (let final core::double #t32 = i4#1 = #0#8{core::double} in true)) && (let final core::double #t33 = #t28 = i4#1 in true)) {
+        if(#0#0 is core::int && (let final core::int #t30 = i4 = #0#0{core::int} in true) && (let final core::int #t31 = #t28 = i4 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::double && (let final core::double #t32 = i4#1 = #0#8{core::double} in true)) && (let final core::double #t33 = #t28 = i4#1 in true)) {
           #t27 = 0;
           break #L9;
         }
@@ -264,7 +264,7 @@ static method test4(dynamic x) → dynamic {
       {
         lowered hoisted core::String s4#case#0;
         lowered final hoisted core::String s4#case#1;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t34 = s4#case#0 = #0#0{core::String} in true) && (let final core::String #t35 = #t29 = s4#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#6 && (#0#8 is{ForNonNullableByDefault} core::String && (let final core::String #t36 = s4#case#1 = #0#8{core::String} in true)) && (let final core::String #t37 = #t29 = s4#case#1 in true) || true) {
+        if(#0#0 is core::String && (let final core::String #t34 = s4#case#0 = #0#0{core::String} in true) && (let final core::String #t35 = #t29 = s4#case#0 in true) || #0#0 is core::List<dynamic> && #0#6 && (#0#8 is core::String && (let final core::String #t36 = s4#case#1 = #0#8{core::String} in true)) && (let final core::String #t37 = #t29 = s4#case#1 in true) || true) {
           core::String s4 = #t29{core::String};
           {
             return s4;
@@ -295,7 +295,7 @@ static method test5(dynamic x) → dynamic {
     #L12:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t38 = 0;
             break #L12;
@@ -303,14 +303,14 @@ static method test5(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t39 = i5 = #0#0{core::int} in true) && i5 =={core::num::==}{(core::Object) → core::bool} 1) {
+        if(#0#0 is core::int && (let final core::int #t39 = i5 = #0#0{core::int} in true) && i5 =={core::num::==}{(core::Object) → core::bool} 1) {
           #t38 = 0;
           break #L12;
         }
       }
       {
         hoisted core::String s5;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t40 = s5 = #0#0{core::String} in true) && s5 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
+        if(#0#0 is core::String && (let final core::String #t40 = s5 = #0#0{core::String} in true) && s5 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
           {
             return null;
           }
@@ -337,7 +337,7 @@ static method test6(dynamic x, core::bool b) → dynamic {
     #L15:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t41 = 0;
             break #L15;
@@ -345,14 +345,14 @@ static method test6(dynamic x, core::bool b) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t42 = i6 = #0#0{core::int} in true)) {
+        if(#0#0 is core::int && (let final core::int #t42 = i6 = #0#0{core::int} in true)) {
           #t41 = 0;
           break #L15;
         }
       }
       {
         hoisted core::String s6;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t43 = s6 = #0#0{core::String} in true) || true) {
+        if(#0#0 is core::String && (let final core::String #t43 = s6 = #0#0{core::String} in true) || true) {
           {
             if(b) {
               if(b) {
@@ -390,7 +390,7 @@ static method test7(dynamic x) → dynamic {
     #L18:
     {
       {
-        if(#0#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+        if(#0#0{dynamic}.<=(#C1) as core::bool) {
           {
             #t44 = 0;
             break #L18;
@@ -398,14 +398,14 @@ static method test7(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t45 = i7 = #0#0{core::int} in true) && i7 =={core::num::==}{(core::Object) → core::bool} 1) {
+        if(#0#0 is core::int && (let final core::int #t45 = i7 = #0#0{core::int} in true) && i7 =={core::num::==}{(core::Object) → core::bool} 1) {
           #t44 = 0;
           break #L18;
         }
       }
       {
         hoisted core::String s7;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t46 = s7 = #0#0{core::String} in true) && s7 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
+        if(#0#0 is core::String && (let final core::String #t46 = s7 = #0#0{core::String} in true) && s7 =={core::String::==}{(core::Object) → core::bool} "foo" || true) {
           {
             core::String s7 = "foo";
             return s7;

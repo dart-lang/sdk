@@ -1,7 +1,7 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 static method foo(dynamic obj) → core::String*
-  return obj is core::String* ?{core::String*} obj{core::String*}.{core::String::toUpperCase}(){() →* core::String*} : null;
+  return obj is{ForLegacy} core::String* ?{core::String*} obj{core::String*}.{core::String::toUpperCase}(){() →* core::String*} : null;
 static method main() → dynamic {}

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -15,7 +15,7 @@ abstract class RenderSliver extends mai::RenderObject {
     : super mai::RenderObject::•()
     ;
   get constraints() → self::SliverConstraints
-    return super.{mai::RenderObject::constraints} as{ForNonNullableByDefault} self::SliverConstraints;
+    return super.{mai::RenderObject::constraints} as self::SliverConstraints;
 }
 abstract class _RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin = self::RenderSliver with mai::RenderObjectWithChildMixin /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_RenderSliverSingleBoxAdapter&RenderSliver&RenderObjectWithChildMixin
@@ -30,7 +30,7 @@ abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBox
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

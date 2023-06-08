@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ static method test(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<invalid-type> && #0#0{core::List<invalid-type>}.{core::List::length}{core::int}.{core::num::<=}(#C1){(core::num) → core::bool}) {
+      if(#0#0 is core::List<invalid-type> && #0#0{core::List<invalid-type>}.{core::List::length}{core::int}.{core::num::<=}(#C1){(core::num) → core::bool}) {
       }
     }
   }

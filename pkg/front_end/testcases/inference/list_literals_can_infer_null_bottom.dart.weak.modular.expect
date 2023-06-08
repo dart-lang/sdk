@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -13,6 +13,6 @@ static method test1() → dynamic {
   core::List<Null> x = <Null>[null];
   x.{core::List::add}(invalid-expression "pkg/front_end/testcases/inference/list_literals_can_infer_null_bottom.dart:10:62: Error: The argument type 'int' can't be assigned to the parameter type 'Null'.
   x. /*@target=List.add*/ add(/*error:INVALID_CAST_LITERAL*/ 42);
-                                                             ^" in 42 as{TypeError,ForNonNullableByDefault} Null){(Null) → void};
+                                                             ^" in 42 as{TypeError} Null){(Null) → void};
 }
 static method main() → dynamic {}

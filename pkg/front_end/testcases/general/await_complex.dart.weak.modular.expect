@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,14 +22,14 @@ class C extends core::Object {
   static get staticGetter() → core::int
     return self::C::staticField;
   static set staticSetter(dynamic val) → void {
-    self::C::staticField = val as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    self::C::staticField = val as{TypeError,ForDynamic} core::int;
   }
   static method staticFoo(core::int param) → core::int
     return param;
   get getter() → core::int
     return this.{self::C::field}{core::int};
   set setter(dynamic val) → void {
-    this.{self::C::field} = val as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    this.{self::C::field} = val as{TypeError,ForDynamic} core::int;
   }
   method foo(core::int param) → core::int
     return param;
@@ -49,72 +49,72 @@ static method topLevelFoo(core::int param) → core::int
 static get topLevelGetter() → core::int
   return self::globalVariable;
 static set topLevelSetter(dynamic val) → void {
-  self::globalVariable = val as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  self::globalVariable = val as{TypeError,ForDynamic} core::int;
 }
 static method dummy() → dynamic
   return 1;
 static method staticMembers() → dynamic async /* futureValueType= dynamic */ {
-  core::num a = self::C::staticField.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num a = self::C::staticField.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
-  core::num f = (self::C::staticField = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num f = (self::C::staticField = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, f);
-  core::num b = self::C::staticGetter.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num b = self::C::staticGetter.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, b);
-  core::num c = (self::C::staticSetter = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num c = (self::C::staticSetter = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, c);
-  core::num d = self::C::staticFoo(2).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num d = self::C::staticFoo(2).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(3, d);
-  core::num e = self::C::staticField.{core::num::+}(self::C::staticGetter){(core::num) → core::int}.{core::num::+}(self::C::staticSetter = 1){(core::num) → core::int}.{core::num::+}(self::C::staticFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num e = self::C::staticField.{core::num::+}(self::C::staticGetter){(core::num) → core::int}.{core::num::+}(self::C::staticSetter = 1){(core::num) → core::int}.{core::num::+}(self::C::staticFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
 static method topLevelMembers() → dynamic async /* futureValueType= dynamic */ {
-  core::num a = self::globalVariable.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num a = self::globalVariable.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
-  core::num b = self::topLevelGetter.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num b = self::topLevelGetter.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, b);
-  core::num c = (self::topLevelSetter = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num c = (self::topLevelSetter = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, c);
-  core::num d = self::topLevelFoo(1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num d = self::topLevelFoo(1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, d);
-  core::num e = self::globalVariable.{core::num::+}(self::topLevelGetter){(core::num) → core::int}.{core::num::+}(self::topLevelSetter = 1){(core::num) → core::int}.{core::num::+}(self::topLevelFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num e = self::globalVariable.{core::num::+}(self::topLevelGetter){(core::num) → core::int}.{core::num::+}(self::topLevelSetter = 1){(core::num) → core::int}.{core::num::+}(self::topLevelFoo(1)){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
 static method instanceMembers() → dynamic async /* futureValueType= dynamic */ {
   self::C inst = new self::C::•();
-  core::num a = inst.{self::C::field}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num a = inst.{self::C::field}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, a);
-  core::num b = inst.{self::C::getter}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num b = inst.{self::C::getter}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, b);
-  core::num c = (inst.{self::C::setter} = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num c = (inst.{self::C::setter} = 1).{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, c);
-  core::num d = inst.{self::C::foo}(1){(core::int) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num d = inst.{self::C::foo}(1){(core::int) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, d);
-  core::num e = inst.{self::C::field}{core::int}.{core::num::+}(inst.{self::C::getter}{core::int}){(core::num) → core::int}.{core::num::+}(inst.{self::C::setter} = 1){(core::num) → core::int}.{core::num::+}(inst.{self::C::foo}(1){(core::int) → core::int}){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num e = inst.{self::C::field}{core::int}.{core::num::+}(inst.{self::C::getter}{core::int}){(core::num) → core::int}.{core::num::+}(inst.{self::C::setter} = 1){(core::num) → core::int}.{core::num::+}(inst.{self::C::foo}(1){(core::int) → core::int}){(core::num) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(5, e);
 }
 static method others() → dynamic async /* futureValueType= dynamic */ {
   core::String a = "${self::globalVariable} ${await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ } ".{core::String::+}(await "someString" /* runtimeCheckType= asy::Future<core::String> */ ){(core::String) → core::String};
   self::expect("1 1 someString", a);
   self::C c = new self::C::•();
-  core::num d = c.{self::C::field}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num d = c.{self::C::field}{core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   core::int cnt = 2;
   core::List<core::int> b = <core::int>[1, 2, 3];
-  b.{core::List::[]=}(cnt, await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int, core::int) → void};
+  b.{core::List::[]=}(cnt, await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::int){(core::int, core::int) → void};
   self::expect(1, b.{core::List::[]}(cnt){(core::int) → core::int});
-  core::num e = b.{core::List::[]}(0){(core::int) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::num){(core::num) → core::num};
+  core::num e = b.{core::List::[]}(0){(core::int) → core::int}.{core::num::+}(await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::num){(core::num) → core::num};
   self::expect(2, e);
 }
 static method conditionals() → dynamic async /* futureValueType= dynamic */ {
   core::bool a = false;
   core::bool b = true;
-  core::bool c = a || b || await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool;
+  core::bool c = a || b || await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::bool;
   self::expect(true, c);
   dynamic d = a || b ?{dynamic} a : await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ ;
   self::expect(false, d);
-  dynamic e = a is{ForNonNullableByDefault} core::int ?{dynamic} await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ : 2;
+  dynamic e = a is core::int ?{dynamic} await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ : 2;
   self::expect(2, e);
   try {
-    dynamic f = a is{ForNonNullableByDefault} core::int ?{dynamic} await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ : 2;
+    dynamic f = a is core::int ?{dynamic} await self::dummy() /* runtimeCheckType= asy::Future<dynamic> */ : 2;
   }
   on core::Object catch(final core::Object e) {
   }
@@ -124,7 +124,7 @@ static method asserts() → dynamic async /* futureValueType= dynamic */ {
     assert(await func<core::bool>(true){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ );
     assert(invalid-expression "pkg/front_end/testcases/general/await_complex.dart:120:12: Error: A value of type 'FutureOr<bool>' can't be assigned to a variable of type 'bool'.
     assert(id(true), await func(\"message\"));
-           ^" in self::id<core::bool>(true) as{TypeError,ForNonNullableByDefault} core::bool, await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );
+           ^" in self::id<core::bool>(true) as{TypeError} core::bool, await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );
     assert(await func<core::bool>(true){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ , await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );
     try {
       assert(await func<core::bool>(false){(core::bool) → FutureOr<core::bool>} /* runtimeCheckType= asy::Future<core::bool> */ , await func<core::String>("message"){(core::String) → FutureOr<core::String>} /* runtimeCheckType= asy::Future<core::String> */ );

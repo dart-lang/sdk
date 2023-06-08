@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -62,7 +62,7 @@ static field core::Map<dynamic, dynamic> map1 = block {
   if (i > 0) ...nullableMap, // error
                 ^", null){(dynamic, dynamic) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
-    #t1.{core::Map::addAll}{Invariant}(self::dynamicMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
+    #t1.{core::Map::addAll}{Invariant}(self::dynamicMap as{TypeError,ForDynamic} core::Map<dynamic, dynamic>){(core::Map<dynamic, dynamic>) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
     #t1.{core::Map::addAll}{Invariant}(self::nullableMap!){(core::Map<dynamic, dynamic>) → void};
 } =>#t1;
@@ -74,7 +74,7 @@ static field core::Set<dynamic> set1 = block {
   if (i > 0) ...nullableList, // error
                 ^"){(dynamic) → core::bool};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
-    #t2.{core::Set::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+    #t2.{core::Set::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
     #t2.{core::Set::addAll}{Invariant}(self::nullableList!){(core::Iterable<dynamic>) → void};
 } =>#t2;
@@ -85,7 +85,7 @@ static field core::List<dynamic> list1 = block {
   if (i > 0) ...nullableList, // error
                 ^"){(dynamic) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
-    #t3.{core::List::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
+    #t3.{core::List::addAll}{Invariant}(self::dynamicList as{TypeError,ForDynamic} core::Iterable<dynamic>){(core::Iterable<dynamic>) → void};
   if(self::i.{core::num::>}(0){(core::num) → core::bool})
     #t3.{core::List::addAll}{Invariant}(self::nullableList!){(core::Iterable<dynamic>) → void};
 } =>#t3;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -8,10 +8,10 @@ static method test(core::Object? o) → core::String {
   {
     final synthesized core::Object? #0#0 = o;
     function ##0#14#initializer() → core::Object?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
+      return (#0#0 as{Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?};
     late final synthesized core::Object? #0#14 = ##0#14#initializer(){() → core::Object?};
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<core::Object?> && #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?}) {
+      if(#0#0 is core::List<core::Object?> && #0#0{core::List<core::Object?>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(0){(core::int) → core::Object?} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::Object?>}.{core::List::[]}(1){(core::int) → core::Object?}) {
         {
           toReturn = "list";
           break #L1;
@@ -19,7 +19,7 @@ static method test(core::Object? o) → core::String {
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::Object?, core::Object?> && (!(#0#14 == null) || null is{ForNonNullableByDefault} core::Object? && #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::Object? #t1 = #0#14 in true)) {
+      if(#0#0 is core::Map<core::Object?, core::Object?> && (!(#0#14 == null) || null is core::Object? && #0#0{core::Map<core::Object?, core::Object?>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::Object? #t1 = #0#14 in true)) {
         {
           toReturn = "map";
           break #L1;

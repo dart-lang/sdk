@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -78,17 +78,17 @@ abstract class Class<T extends core::Object? = dynamic> extends self::Super<self
   forwarding-stub forwarding-semi-stub set /* signature-type: (core::List<self::Class::T%>) → void */ setter4(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
     return super.{self::Super::setter4} = a;
   forwarding-stub method method1(covariant-by-declaration core::num a) → void
-    return super.{self::Super::method1}(a as core::int);
+    return super.{self::Super::method1}(a as{ForLegacy} core::int);
   forwarding-stub method method2({covariant-by-declaration core::num? a}) → void
-    return super.{self::Super::method2}(a: a as core::int?);
+    return super.{self::Super::method2}(a: a as{ForLegacy} core::int?);
   forwarding-stub method method7(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
-    return super.{self::Super::method7}(a as core::List<self::Class::T%>);
+    return super.{self::Super::method7}(a as{ForLegacy} core::List<self::Class::T%>);
   forwarding-stub method method8({covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%>? a}) → void
-    return super.{self::Super::method8}(a: a as core::List<self::Class::T%>?);
+    return super.{self::Super::method8}(a: a as{ForLegacy} core::List<self::Class::T%>?);
   forwarding-stub set setter1(covariant-by-declaration core::num a) → void
-    return super.{self::Super::setter1} = a as core::int;
+    return super.{self::Super::setter1} = a as{ForLegacy} core::int;
   forwarding-stub set setter3(covariant-by-declaration covariant-by-class core::Iterable<self::Class::T%> a) → void
-    return super.{self::Super::setter3} = a as core::List<self::Class::T%>;
+    return super.{self::Super::setter3} = a as{ForLegacy} core::List<self::Class::T%>;
 }
 class Subclass<T extends core::Object? = dynamic> extends self::Class<self::Subclass::T%> {
   synthetic constructor •() → self::Subclass<self::Subclass::T%>

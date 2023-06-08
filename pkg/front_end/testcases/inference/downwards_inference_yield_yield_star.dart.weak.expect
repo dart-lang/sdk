@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -42,12 +42,12 @@ static method foo() → asy::Stream<core::List<core::int>> async* {
  - 'MyStream' is from 'pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart'.
  - 'List' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic */ MyStream();
-                                                                    ^" in self::MyStream::•<dynamic>() as{TypeError,ForNonNullableByDefault} core::List<core::int>;
+                                                                    ^" in self::MyStream::•<dynamic>() as{TypeError} core::List<core::int>;
   yield* invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:17:64: Error: A value of type 'List<dynamic>' can't be assigned to a variable of type 'Stream<List<int>>'.
  - 'List' is from 'dart:core'.
  - 'Stream' is from 'dart:async'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                               ^" in <dynamic>[] as{TypeError,ForNonNullableByDefault} asy::Stream<core::List<core::int>>;
+                                                               ^" in <dynamic>[] as{TypeError} asy::Stream<core::List<core::int>>;
   yield* self::MyStream::•<core::List<core::int>>();
 }
 static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
@@ -56,12 +56,12 @@ static method bar() → core::Iterable<core::Map<core::int, core::int>> sync* {
  - 'List' is from 'dart:core'.
  - 'Map' is from 'dart:core'.
   yield /*error:YIELD_OF_INVALID_TYPE*/ /*@typeArgs=dynamic*/ [];
-                                                              ^" in <dynamic>[] as{TypeError,ForNonNullableByDefault} core::Map<core::int, core::int>;
+                                                              ^" in <dynamic>[] as{TypeError} core::Map<core::int, core::int>;
   yield* invalid-expression "pkg/front_end/testcases/inference/downwards_inference_yield_yield_star.dart:24:79: Error: A value of type 'Map<dynamic, dynamic>' can't be assigned to a variable of type 'Iterable<Map<int, int>>'.
  - 'Map' is from 'dart:core'.
  - 'Iterable' is from 'dart:core'.
   yield* /*error:YIELD_OF_INVALID_TYPE*/ new /*@ typeArgs=dynamic, dynamic */ Map();
-                                                                              ^" in core::Map::•<dynamic, dynamic>() as{TypeError,ForNonNullableByDefault} core::Iterable<core::Map<core::int, core::int>>;
+                                                                              ^" in core::Map::•<dynamic, dynamic>() as{TypeError} core::Iterable<core::Map<core::int, core::int>>;
   yield*<core::Map<core::int, core::int>>[];
 }
 static method main() → dynamic {}

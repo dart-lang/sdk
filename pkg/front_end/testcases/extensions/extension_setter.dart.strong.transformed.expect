@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -79,9 +79,9 @@ static method Extension|get#setterWithClosure(lowered final self::Class* #this) 
   return #this.{self::Class::field}{core::int*};
 static method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void {
   function abs(dynamic value) → dynamic {
-    return value{dynamic}.<(0) as{TypeError,ForDynamic} core::bool* ?{dynamic} value{dynamic}.unary-() : value;
+    return value{dynamic}.<(0) as{TypeError,ForDynamic,ForLegacy} core::bool* ?{dynamic} value{dynamic}.unary-() : value;
   }
-  #this.{self::Class::field} = abs(value){(dynamic) →* dynamic} as{TypeError,ForDynamic} core::int*;
+  #this.{self::Class::field} = abs(value){(dynamic) →* dynamic} as{TypeError,ForDynamic,ForLegacy} core::int*;
 }
 static method Extension|testInternal(lowered final self::Class* #this) → dynamic {
   self::expect(null, #this.{self::Class::field}{core::int*});

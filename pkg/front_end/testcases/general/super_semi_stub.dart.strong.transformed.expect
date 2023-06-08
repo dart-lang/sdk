@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -46,7 +46,7 @@ class Subclass extends self::Class {
     (core::num) → void sup2 = super.{self::Class::method};
     (core::num) → void cls1 = invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:19:39: Error: A value of type 'void Function(int)' can't be assigned to a variable of type 'void Function(num)'.
     void Function(num) cls1 = Class().method; // error
-                                      ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError,ForNonNullableByDefault} (core::num) → void;
+                                      ^" in new self::Class::•().{self::Class::method}{(core::int) → void} as{TypeError} (core::num) → void;
     (core::int) → void cls2 = new self::Class::•().{self::Class::method}{(core::int) → void};
     (core::int) → void cls3 = new self::Class::•().{self::Class::method}{(core::int) → void};
   }
@@ -56,19 +56,19 @@ class Subclass extends self::Class {
     new self::Class::•().{self::Class::setter} = 0;
     new self::Class::•().{self::Class::setter} = invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:28:22: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
     Class().setter = 0.5; // error
-                     ^" in 0.5 as{TypeError,ForNonNullableByDefault} core::int;
+                     ^" in 0.5 as{TypeError} core::int;
   }
 }
 static method test(self::Subclass sub) → dynamic {
   sub.{self::Subclass::method}(0){(core::int) → void};
   sub.{self::Subclass::method}(invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:34:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   sub.method(0.5); // error
-             ^" in 0.5 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+             ^" in 0.5 as{TypeError} core::int){(core::int) → void};
   self::Class cls = sub;
   cls.{self::Class::method}(0){(core::int) → void};
   cls.{self::Class::method}(invalid-expression "pkg/front_end/testcases/general/super_semi_stub.dart:38:14: Error: The argument type 'double' can't be assigned to the parameter type 'int'.
   cls.method(0.5); // error
-             ^" in 0.5 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → void};
+             ^" in 0.5 as{TypeError} core::int){(core::int) → void};
   self::Super sup = sub;
   sup.{self::Super::method}(0){(core::num) → void};
   sup.{self::Super::method}(0.5){(core::num) → void};

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -24,4 +24,4 @@ static method _extension#0|checkStaticType<T extends core::Object? = dynamic, R 
 static method _extension#0|get#checkStaticType<T extends core::Object? = dynamic>(lowered final self::_extension#0|get#checkStaticType::T% #this) → <R extends (self::_extension#0|get#checkStaticType::T%) → self::_extension#0|get#checkStaticType::T% = (dynamic) → dynamic>() → void
   return <R extends (self::_extension#0|get#checkStaticType::T%) → self::_extension#0|get#checkStaticType::T% = (dynamic) → dynamic>() → void => self::_extension#0|checkStaticType<self::_extension#0|get#checkStaticType::T%, R>(#this);
 static method contextType<T extends core::Object? = dynamic>(core::Object? o) → self::contextType::T%
-  return o as{ForNonNullableByDefault} self::contextType::T%;
+  return o as self::contextType::T%;

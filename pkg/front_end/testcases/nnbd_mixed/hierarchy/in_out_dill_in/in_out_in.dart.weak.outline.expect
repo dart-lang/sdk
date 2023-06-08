@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -123,7 +123,7 @@ class ClassMixedInQ extends in_::LegacyMixedInQ implements in_2::Super {
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as in_;
 import "in_out_in_lib1.dart" as in_2;
 import "dart:core" as core;
@@ -223,7 +223,7 @@ abstract class LegacyMixedInQ extends in_::_LegacyMixedInQ&Object&SuperQ impleme
   abstract member-signature method optionalArgumentsMethod(core::int* i, [core::int* j]) → core::int*; -> in_2::SuperExtra::optionalArgumentsMethod
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as in_2;
 import "dart:core" as core;
 

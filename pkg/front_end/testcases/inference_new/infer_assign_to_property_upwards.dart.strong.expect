@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -16,11 +16,11 @@ class Test1 extends core::Object {
     ;
   static method test(self::Test1* t) → void {
     core::int* v1 = t.{self::Test1::prop} = self::getInt();
-    core::num* v2 = t.{self::Test1::prop} = self::getNum() as{TypeError} core::int*;
+    core::num* v2 = t.{self::Test1::prop} = self::getNum() as{TypeError,ForLegacy} core::int*;
     core::int* v4 = let final self::Test1* #t1 = t in let final core::int* #t2 = #t1.{self::Test1::prop}{core::int*} in #t2 == null ?{core::int*} #t1.{self::Test1::prop} = self::getInt() : #t2;
-    core::num* v5 = let final self::Test1* #t3 = t in let final core::int* #t4 = #t3.{self::Test1::prop}{core::int*} in #t4 == null ?{core::num*} #t3.{self::Test1::prop} = self::getNum() as{TypeError} core::int* : #t4;
+    core::num* v5 = let final self::Test1* #t3 = t in let final core::int* #t4 = #t3.{self::Test1::prop}{core::int*} in #t4 == null ?{core::num*} #t3.{self::Test1::prop} = self::getNum() as{TypeError,ForLegacy} core::int* : #t4;
     core::int* v7 = let final self::Test1* #t5 = t in #t5.{self::Test1::prop} = #t5.{self::Test1::prop}{core::int*}.{core::num::+}(self::getInt()){(core::num*) →* core::int*};
-    core::num* v8 = let final self::Test1* #t6 = t in #t6.{self::Test1::prop} = #t6.{self::Test1::prop}{core::int*}.{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError} core::int*;
+    core::num* v8 = let final self::Test1* #t6 = t in #t6.{self::Test1::prop} = #t6.{self::Test1::prop}{core::int*}.{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int*;
     core::int* v10 = let final self::Test1* #t7 = t in #t7.{self::Test1::prop} = #t7.{self::Test1::prop}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*};
     core::int* v11 = let final self::Test1* #t8 = t in let final core::int* #t9 = #t8.{self::Test1::prop}{core::int*} in let final core::int* #t10 = #t8.{self::Test1::prop} = #t9.{core::num::+}(1){(core::num*) →* core::int*} in #t9;
   }
@@ -70,9 +70,9 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   static method test3(self::Test3* t) → void {
-    core::num* v2 = t.{self::Test3::prop} = self::getNum() as{TypeError} core::double*;
+    core::num* v2 = t.{self::Test3::prop} = self::getNum() as{TypeError,ForLegacy} core::double*;
     core::double* v3 = t.{self::Test3::prop} = self::getDouble();
-    core::num* v5 = let final self::Test3* #t24 = t in let final core::double* #t25 = #t24.{self::Test3::prop}{core::double*} in #t25 == null ?{core::num*} #t24.{self::Test3::prop} = self::getNum() as{TypeError} core::double* : #t25;
+    core::num* v5 = let final self::Test3* #t24 = t in let final core::double* #t25 = #t24.{self::Test3::prop}{core::double*} in #t25 == null ?{core::num*} #t24.{self::Test3::prop} = self::getNum() as{TypeError,ForLegacy} core::double* : #t25;
     core::double* v6 = let final self::Test3* #t26 = t in let final core::double* #t27 = #t26.{self::Test3::prop}{core::double*} in #t27 == null ?{core::double*} #t26.{self::Test3::prop} = self::getDouble() : #t27;
     core::double* v7 = let final self::Test3* #t28 = t in #t28.{self::Test3::prop} = #t28.{self::Test3::prop}{core::double*}.{core::double::+}(self::getInt()){(core::num*) →* core::double*};
     core::double* v8 = let final self::Test3* #t29 = t in #t29.{self::Test3::prop} = #t29.{self::Test3::prop}{core::double*}.{core::double::+}(self::getNum()){(core::num*) →* core::double*};

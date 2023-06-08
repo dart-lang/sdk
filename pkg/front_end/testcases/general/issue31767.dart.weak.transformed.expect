@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue31767_lib.dart" as iss;
@@ -75,7 +75,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library;
+library /*isLegacy*/;
 import self as iss;
 import "dart:core" as core;
 import "issue31767.dart" as self;

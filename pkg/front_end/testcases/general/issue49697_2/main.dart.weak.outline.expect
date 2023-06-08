@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -45,7 +45,7 @@ static method d2(mai::D? d) → core::int?
 static method test() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

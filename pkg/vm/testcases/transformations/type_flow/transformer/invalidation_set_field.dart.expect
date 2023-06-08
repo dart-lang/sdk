@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -59,7 +59,7 @@ static method main(core::List<core::String> args) → dynamic {
   new self::A::•();
   new self::T1::•();
   new self::T2::•();
-  self::use1(new self::DeepCaller1::•(), self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A);
-  self::use2(new self::DeepCaller2::•(), self::getDynamic() as{TypeError,ForDynamic,ForNonNullableByDefault} self::A);
+  self::use1(new self::DeepCaller1::•(), self::getDynamic() as{TypeError,ForDynamic} self::A);
+  self::use2(new self::DeepCaller2::•(), self::getDynamic() as{TypeError,ForDynamic} self::A);
   self::setField2(new self::A::•(), new self::T2::•());
 }

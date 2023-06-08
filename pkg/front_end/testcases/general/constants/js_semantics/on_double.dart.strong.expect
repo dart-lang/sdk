@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -108,10 +108,10 @@ import "dart:core" as core;
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   const constructor doubleShift(dynamic i1, dynamic i2) → self::Class
-    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Class::a = i1{dynamic}.>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
     ;
   const constructor tripleShift(dynamic i1, dynamic i2) → self::Class
-    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Class::a = i1{dynamic}.>>>(i2) as{TypeError,ForDynamic} core::int, super core::Object::•()
     ;
   static method _#doubleShift#tearOff(dynamic i1, dynamic i2) → self::Class
     return new self::Class::doubleShift(i1, i2);

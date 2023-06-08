@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,7 +7,7 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     {
-      if(let final core::Object #t1 = #0#0 in #0#0 is{ForNonNullableByDefault} core::Map<core::Object?, core::Object?> && (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?}) {
+      if(let final core::Object #t1 = #0#0 in #0#0 is core::Map<core::Object?, core::Object?> && (#0#0 as{Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} (#0#0 as{Unchecked} core::Map<core::Object?, core::Object?>).{core::Map::[]}(#C1){(core::Object?) → core::Object?}) {
         {
           break #L1;
         }

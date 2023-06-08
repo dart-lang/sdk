@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -21,7 +21,7 @@ class Foo<T extends self::X> extends core::Object {
     : this self::Foo::_internal(x: invalid-expression "pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart:13:42: Error: The argument type 'X' can't be assigned to the parameter type 'T'.
  - 'X' is from 'pkg/front_end/testcases/general/redirecting_initializer_arguments_assignable2.dart'.
   Foo.fromX(X _init) : this._internal(x: _init);
-                                         ^" in _init as{TypeError,ForNonNullableByDefault} Never)
+                                         ^" in _init as{TypeError} Never)
     ;
   constructor fromT(self::Foo::T _init) → self::Foo<self::Foo::T>
     : this self::Foo::_internal(x: _init)

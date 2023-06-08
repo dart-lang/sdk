@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -76,7 +76,7 @@ Try removing the return type.
  - 'C' is from 'pkg/front_end/testcases/rasta/issue_000044.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'h'.
   C notEvenAConstructor(a) = h;
-                             ^" in this{<unresolved>}.h as{TypeError,ForDynamic,ForNonNullableByDefault} self::C;
+                             ^" in this{<unresolved>}.h as{TypeError,ForDynamic} self::C;
 }
 static method b(dynamic c) → invalid-type
   return invalid-expression "pkg/front_end/testcases/rasta/issue_000044.dart:7:10: Error: Undefined name 'd'.

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -286,7 +286,7 @@ Try changing the type of the variable.
  - 'B' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return new Future<B?>.value(x); // Error.
-                 ^" in asy::Future::value<self::B?>(x) as{TypeError,ForNonNullableByDefault} self::A;
+                 ^" in asy::Future::value<self::B?>(x) as{TypeError} self::A;
     }
   }
   return invalid-expression "pkg/front_end/testcases/nnbd/assignability_error_messages.dart:51:10: Error: A value of type 'B?' can't be returned from a function with return type 'A' because 'B?' is nullable and 'A' isn't.
@@ -393,7 +393,7 @@ static method boz(Null x) → self::A {
  - 'Future' is from 'dart:async'.
  - 'A' is from 'pkg/front_end/testcases/nnbd/assignability_error_messages.dart'.
       return new Future<Null>.value(null); // Error.
-                 ^" in asy::Future::value<Null>(null) as{TypeError,ForNonNullableByDefault} self::A;
+                 ^" in asy::Future::value<Null>(null) as{TypeError} self::A;
     }
   }
 }

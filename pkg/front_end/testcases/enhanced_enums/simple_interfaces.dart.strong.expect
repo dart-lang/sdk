@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -87,7 +87,7 @@ static method test(self::E1 e1, self::E2 e2, self::E3 e3, self::E4 e4) → dynam
  - 'E4' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
  - 'I' is from 'pkg/front_end/testcases/enhanced_enums/simple_interfaces.dart'.
   bar(e4); // Error.
-      ^" in e4 as{TypeError,ForNonNullableByDefault} self::I);
+      ^" in e4 as{TypeError} self::I);
 }
 static method main() → dynamic {}
 

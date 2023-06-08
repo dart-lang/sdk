@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -6,7 +6,7 @@ import "dart:core" as core;
 static method getNull() → dynamic
   return null;
 static method fn() → asy::Future<core::Object> async /* futureValueType= core::Object */ {
-  core::Object o = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} core::Object;
-  return await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::Object>;
+  core::Object o = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} core::Object;
+  return await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ as{TypeError,ForDynamic} FutureOr<core::Object>;
 }
 static method main() → dynamic {}

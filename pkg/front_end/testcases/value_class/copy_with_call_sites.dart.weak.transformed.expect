@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -60,7 +60,7 @@ class Cat extends self::Animal {
     : self::Cat::numberOfWhiskers = numberOfWhiskers, super self::Animal::•(numberOfLegs)
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::Cat && this.{self::Animal::numberOfLegs}{core::int?} =={core::num::==}{(core::Object) → core::bool} other{self::Cat}.{self::Animal::numberOfLegs}{core::int?} && this.{self::Cat::numberOfWhiskers}{core::int?} =={core::num::==}{(core::Object) → core::bool} other{self::Cat}.{self::Cat::numberOfWhiskers}{core::int?};
+    return other is{ForLegacy} self::Cat && this.{self::Animal::numberOfLegs}{core::int?} =={core::num::==}{(core::Object) → core::bool} other{self::Cat}.{self::Animal::numberOfLegs}{core::int?} && this.{self::Cat::numberOfWhiskers}{core::int?} =={core::num::==}{(core::Object) → core::bool} other{self::Cat}.{self::Cat::numberOfWhiskers}{core::int?};
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish(val::JenkinsSmiHash::combine(val::JenkinsSmiHash::combine("org-dartlang-testcase:///copy_with_call_sites.dartCat".{core::String::hashCode}{core::int}, this.{self::Animal::numberOfLegs}{core::int?}.{core::num::hashCode}{core::int}), this.{self::Cat::numberOfWhiskers}{core::int?}.{core::num::hashCode}{core::int}));
   method /*isLegacy*/ toString() → core::String
@@ -86,7 +86,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::A;
+    return other is{ForLegacy} self::A;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///copy_with_call_sites.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
@@ -98,24 +98,24 @@ static method main() → dynamic {
   self::Cat cat = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:29:20: Error: No named parameter with the name 'numberOfWhiskers'.
  Cat cat = new Cat(numberOfWhiskers: 20, numberOfLegs: 4);
                    ^^^^^^^^^^^^^^^^";
-  self::Cat cat2 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfWhiskers: 4) as{ForNonNullableByDefault} self::Cat;
-  self::Cat cat3 = (((cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfWhiskers: 4) as{ForNonNullableByDefault} self::Cat) as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfLegs: 3) as{ForNonNullableByDefault} self::Cat;
+  self::Cat cat2 = (cat as dynamic){dynamic}.copyWith(numberOfWhiskers: 4) as self::Cat;
+  self::Cat cat3 = (((cat as dynamic){dynamic}.copyWith(numberOfWhiskers: 4) as self::Cat) as dynamic){dynamic}.copyWith(numberOfLegs: 3) as self::Cat;
   self::Cat cat4 = invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:35:29: Error: The method 'copyWith' isn't defined for the class 'Object'.
  - 'Object' is from 'dart:core'.
 Try correcting the name to the name of an existing method, or defining a method named 'copyWith'.
  Cat cat4 = (cat as Object).copyWith(numberOfWhiskers: 4);
                             ^^^^^^^^" in cat{<unresolved>}.copyWith(numberOfWhiskers: 4);
-  self::Cat cat5 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith() as{ForNonNullableByDefault} self::Cat;
-  self::Cat cat6 = (cat as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(numberOfWhiskers: 4, numberOfHorns: 5) as{ForNonNullableByDefault} self::Cat;
+  self::Cat cat5 = (cat as dynamic){dynamic}.copyWith() as self::Cat;
+  self::Cat cat6 = (cat as dynamic){dynamic}.copyWith(numberOfWhiskers: 4, numberOfHorns: 5) as self::Cat;
   self::A a;
   self::A a2 = (invalid-expression "pkg/front_end/testcases/value_class/copy_with_call_sites.dart:43:10: Error: Non-nullable variable 'a' must be assigned before it can be used.
  A a2 = (a as dynamic).copyWith(x: 42, y: 42) as A;
-         ^" in a as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(x: 42, y: 42) as{ForNonNullableByDefault} self::A;
+         ^" in a as dynamic){dynamic}.copyWith(x: 42, y: 42) as self::A;
   self::Foo foo = new self::Foo::•(bar: 4, bar2: 5);
-  self::Foo foo2 = (foo as{ForNonNullableByDefault} dynamic){dynamic}.copyWith(bar: 4) as{ForNonNullableByDefault} self::Foo;
+  self::Foo foo2 = (foo as dynamic){dynamic}.copyWith(bar: 4) as self::Foo;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

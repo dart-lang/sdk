@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -48,7 +48,7 @@ class Bar<T extends asy::Stream<core::String>> extends core::Object {
     await for (core::String i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:17:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
     }
   }
 }
@@ -60,7 +60,7 @@ class Baz<T extends core::Object? = dynamic, E extends asy::Stream<self::Baz::T%
     await for (self::Baz::T% i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:25:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
       self::Baz::T% y = i;
     }
   }
@@ -75,32 +75,32 @@ static method test() → dynamic async /* futureValueType= dynamic */ {
     core::String y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:38:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
-                                            ^" in x as{TypeError,ForNonNullableByDefault} core::String;
+                                            ^" in x as{TypeError} core::String;
   }
   await for (dynamic x in myStream) {
-    core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+    core::String y = x as{TypeError,ForDynamic} core::String;
   }
   await for (final self::Foo #t1 in myStream) {
     core::String x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart:45:21: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
 Try changing the type of the variable.
   await for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ myStream) {
-                    ^" in #t1 as{TypeError,ForNonNullableByDefault} core::String;
+                    ^" in #t1 as{TypeError} core::String;
     core::String y = x;
   }
   dynamic z;
   await for (final self::Foo #t2 in myStream) {
     z = #t2;
-    core::String y = z as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+    core::String y = z as{TypeError,ForDynamic} core::String;
   }
   asy::Stream<dynamic> stream = myStream;
   await for (final dynamic #t3 in stream) {
-    self::Foo x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+    self::Foo x = #t3 as{TypeError,ForDynamic} self::Foo;
     self::Foo y = x;
   }
   dynamic stream2 = myStream;
-  await for (final dynamic #t4 in stream2 as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>) {
-    self::Foo x = #t4 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+  await for (final dynamic #t4 in stream2 as{TypeError,ForDynamic} asy::Stream<dynamic>) {
+    self::Foo x = #t4 as{TypeError,ForDynamic} self::Foo;
     self::Foo y = x;
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
@@ -109,8 +109,8 @@ Try changing the type of the variable.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop_async.dart'.
  - 'Stream' is from 'dart:async'.
   await for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
-                                                                           ^" in map as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>) {
-    core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+                                                                           ^" in map as{TypeError} asy::Stream<dynamic>) {
+    core::String y = x as{TypeError,ForDynamic} core::String;
   }
 }
 static method main() → dynamic {}

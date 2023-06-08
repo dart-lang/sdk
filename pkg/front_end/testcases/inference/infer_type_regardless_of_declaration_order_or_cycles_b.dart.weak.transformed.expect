@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 
@@ -11,7 +11,7 @@ class B extends test::A {
 }
 static method main() → dynamic {}
 
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -43,7 +43,7 @@ static method foo() → dynamic {
   core::int y = new test::C::•().{test::C::x}{core::int};
   core::String z = invalid-expression "pkg/front_end/testcases/inference/infer_type_regardless_of_declaration_order_or_cycles.dart:20:68: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   String z = /*error:INVALID_ASSIGNMENT*/ new C(). /*@target=C.x*/ x;
-                                                                   ^" in new test::C::•().{test::C::x}{core::int} as{TypeError,ForNonNullableByDefault} core::String;
+                                                                   ^" in new test::C::•().{test::C::x}{core::int} as{TypeError} core::String;
 }
 static method main() → dynamic {
   test::foo();

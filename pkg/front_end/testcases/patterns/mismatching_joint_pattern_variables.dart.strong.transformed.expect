@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,14 +29,14 @@ static method test(dynamic x) → dynamic {
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
     late final synthesized core::bool #0#4 = ##0#4#initializer(){() → core::bool};
     function ##0#6#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#6 = ##0#6#initializer(){() → dynamic};
     dynamic #t1;
     dynamic #t2;
     {
       lowered hoisted core::int y#case#0;
       lowered hoisted dynamic y#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t4 = #t1 = y#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final dynamic #t5 = y#case#1 = #0#6 in true) && y#case#1 =={core::Object::==}{(core::Object) → core::bool} 0 && (let final dynamic #t6 = #t1 = y#case#1 in true)) {
+      if(#0#0 is core::int && (let final core::int #t3 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t4 = #t1 = y#case#0 in true) || #0#0 is core::List<dynamic> && #0#4 && (let final dynamic #t5 = y#case#1 = #0#6 in true) && y#case#1 =={core::Object::==}{(core::Object) → core::bool} 0 && (let final dynamic #t6 = #t1 = y#case#1 in true)) {
         core::int y = invalid-expression "pkg/front_end/testcases/patterns/mismatching_joint_pattern_variables.dart:9:14: Error: Variable pattern 'y' doesn't have the same type or finality in all cases.
       return y;
              ^";
@@ -48,7 +48,7 @@ static method test(dynamic x) → dynamic {
     {
       lowered hoisted core::int y#case#0;
       lowered final hoisted core::int y#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t8 = #t2 = y#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = y#case#1 = #0#6{core::int} in true)) && y#case#1 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t10 = #t2 = y#case#1 in true)) {
+      if(#0#0 is core::int && (let final core::int #t7 = y#case#0 = #0#0{core::int} in true) && y#case#0 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t8 = #t2 = y#case#0 in true) || #0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final core::int #t9 = y#case#1 = #0#6{core::int} in true)) && y#case#1 =={core::num::==}{(core::Object) → core::bool} 0 && (let final core::int #t10 = #t2 = y#case#1 in true)) {
         core::int y = #t2{core::int};
         {
           return y;
@@ -57,7 +57,7 @@ static method test(dynamic x) → dynamic {
     }
     {
       hoisted invalid-type y;
-      if((#0#0 is{ForNonNullableByDefault} core::int && (let final invalid-type #t11 = y = #0#0{invalid-type} in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (let final invalid-type #t12 = y = #0#6{invalid-type} in true)) && y =={core::Object::==}{(core::Object) → core::bool} 0) {
+      if((#0#0 is core::int && (let final invalid-type #t11 = y = #0#0{invalid-type} in true) || #0#0 is core::List<dynamic> && #0#4 && (let final invalid-type #t12 = y = #0#6{invalid-type} in true)) && y =={core::Object::==}{(core::Object) → core::bool} 0) {
         {
           return y;
         }
@@ -65,7 +65,7 @@ static method test(dynamic x) → dynamic {
     }
     {
       hoisted core::int y;
-      if((#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t13 = y = #0#0{core::int} in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final core::int #t14 = y = #0#6{core::int} in true))) && y =={core::num::==}{(core::Object) → core::bool} 0) {
+      if((#0#0 is core::int && (let final core::int #t13 = y = #0#0{core::int} in true) || #0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final core::int #t14 = y = #0#6{core::int} in true))) && y =={core::num::==}{(core::Object) → core::bool} 0) {
         {
           return y;
         }

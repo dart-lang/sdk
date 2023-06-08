@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 import "dart:core" as core;
@@ -12,7 +12,7 @@ static method main() → dynamic {
   core::print(mai::MyInt|b);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;

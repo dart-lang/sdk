@@ -5,12 +5,12 @@ method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dynami
     if(!(a{dynamic}._usedData =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._usedData) || !(a{dynamic}._deletedKeys =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._deletedKeys) || !(a{dynamic}._hashMask =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._hashMask) || !(a{dynamic}._index{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._index{dynamic}.length) || !(a{dynamic}._data{dynamic}.length =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._data{dynamic}.length)) {
       return false;
     }
-    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._index{dynamic}.length as{TypeError,ForDynamic,ForNonNullableByDefault} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
+    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._index{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
       if(!(a{dynamic}._index{dynamic}.[](i) =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b{dynamic}._index{dynamic}.[](i))) {
         return false;
       }
     }
-    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._data{dynamic}.length as{TypeError,ForDynamic,ForNonNullableByDefault} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
+    for (dart.core::int i = 0; i.{dart.core::num::<}(a{dynamic}._data{dynamic}.length as{TypeError,ForDynamic} dart.core::num){(dart.core::num) → dart.core::bool}; i = i.{dart.core::num::+}(1){(dart.core::num) → dart.core::int}) {
       dynamic ad = a{dynamic}._data{dynamic}.[](i);
       dynamic bd = b{dynamic}._data{dynamic}.[](i);
       if(!dart.core::identical(ad, bd) && !(ad =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} a && bd =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} b)) {

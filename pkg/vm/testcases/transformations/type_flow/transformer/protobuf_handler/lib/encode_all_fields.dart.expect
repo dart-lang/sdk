@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
 import "dart:core" as core;
@@ -33,7 +33,7 @@ static method main() → dynamic {
   }
   core::print("];");
 }
-library foo.pb.dart /*isNonNullableByDefault*/;
+library foo.pb.dart;
 import self as self;
 import "package:protobuf/protobuf.dart" as pro;
 import "dart:core" as core;

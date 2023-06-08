@@ -1,4 +1,4 @@
-library private_module /*isNonNullableByDefault*/;
+library private_module;
 import self as self;
 import "dart:core" as core;
 

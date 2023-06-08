@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -94,7 +94,7 @@ static method foo((core::int, core::String) record) → dynamic {
 static method bar(core::Record record) → dynamic {
   self::foo(invalid-expression "pkg/front_end/testcases/records/type_record.dart:66:7: Error: The argument type 'Record' can't be assigned to the parameter type '(int, String)'.
   foo(record); // Error.
-      ^" in record as{TypeError,ForNonNullableByDefault} (core::int, core::String));
+      ^" in record as{TypeError} (core::int, core::String));
 }
 static method main() → dynamic {}
 

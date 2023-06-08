@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -17,7 +17,7 @@ class C extends self::B implements self::I {
   synthetic constructor •() → self::C
     ;
   forwarding-stub method f(covariant-by-declaration core::Object x) → core::int
-    return super.{self::B::f}(x as core::int);
+    return super.{self::B::f}(x as{ForLegacy} core::int);
 }
 static method expectTypeError(() → void callback) → void
   ;

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "mixin_from_opt_in_lib.dart" as mix;
@@ -29,7 +29,7 @@ class Class extends self::_Class&Object&Mixin {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mix;
 import "dart:core" as core;
 

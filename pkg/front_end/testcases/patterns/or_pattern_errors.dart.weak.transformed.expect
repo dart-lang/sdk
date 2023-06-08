@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -45,14 +45,14 @@ static method test(dynamic o) → dynamic {
     hoisted core::int? field2;
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field1}{core::int?};
+      return (#0#0 as{Unchecked} self::Class).{self::Class::field1}{core::int?};
     late final synthesized core::int? #0#2 = ##0#2#initializer(){() → core::int?};
     function ##0#3#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field2}{core::int?};
+      return (#0#0 as{Unchecked} self::Class).{self::Class::field2}{core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
     {
       hoisted core::int? s1;
-      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t1 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t2 = s2 = #0#2 in true)) {
+      if(#0#0 is self::Class && (let final core::int? #t1 = s1 = #0#2 in true) || #0#0 is self::Class && (let final core::int? #t2 = s2 = #0#2 in true)) {
         {
           break #L1;
         }
@@ -60,7 +60,7 @@ static method test(dynamic o) → dynamic {
     }
     {
       hoisted core::int? s1;
-      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t3 = s1 = #0#2 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t4 = #0#2 in true)) {
+      if(#0#0 is self::Class && (let final core::int? #t3 = s1 = #0#2 in true) || #0#0 is self::Class && (let final core::int? #t4 = #0#2 in true)) {
         {
           break #L1;
         }
@@ -69,7 +69,7 @@ static method test(dynamic o) → dynamic {
     {
       hoisted core::int? field1;
       hoisted core::int? f;
-      if(#0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t5 = field1 = #0#2 in true) && (let final core::int? #t6 = f = #0#3 in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final core::int? #t7 = field1 = #0#2 in true) && (let final core::int? #t8 = field2 = #0#3 in true)) {
+      if(#0#0 is self::Class && (let final core::int? #t5 = field1 = #0#2 in true) && (let final core::int? #t6 = f = #0#3 in true) || #0#0 is self::Class && (let final core::int? #t7 = field1 = #0#2 in true) && (let final core::int? #t8 = field2 = #0#3 in true)) {
         {
           break #L1;
         }

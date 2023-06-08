@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
-  return null is{ForNonNullableByDefault} dart.collection::Queue<dynamic>;
+  return null is dart.collection::Queue<dynamic>;

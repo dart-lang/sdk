@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -32,23 +32,23 @@ static method main() → dynamic {
   for (self::Base baba in list) {
     baba.{self::Base::push} = 0;
     baba.{self::Base::float} = 1;
-    if(baba is{ForNonNullableByDefault} self::You) {
+    if(baba is self::You) {
       baba{self::You}.{self::You::push} = 2.3;
       baba{self::You}.{self::You::float} = 4.5;
     }
     try {
-      (baba as{ForNonNullableByDefault} dynamic){dynamic}.push = 6.7;
-      baba is{ForNonNullableByDefault} self::You || (throw "Fail!");
+      (baba as dynamic){dynamic}.push = 6.7;
+      baba is self::You || (throw "Fail!");
     }
     on core::TypeError catch(no-exception-var) {
-      baba is{ForNonNullableByDefault} self::Me || (throw "Fail!");
+      baba is self::Me || (throw "Fail!");
     }
     try {
-      (baba as{ForNonNullableByDefault} dynamic){dynamic}.float = 8.9;
-      baba is{ForNonNullableByDefault} self::You || (throw "Fail!");
+      (baba as dynamic){dynamic}.float = 8.9;
+      baba is self::You || (throw "Fail!");
     }
     on core::TypeError catch(no-exception-var) {
-      baba is{ForNonNullableByDefault} self::Me || (throw "Fail!");
+      baba is self::Me || (throw "Fail!");
     }
   }
 }

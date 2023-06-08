@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,5 +18,5 @@ static method main() → void {
 static method test() → void {
   core::String debugName = invalid-expression "pkg/front_end/testcases/general/issue48090.dart:12:38: Error: A value of type 'String?' can't be assigned to a variable of type 'String' because 'String?' is nullable and 'String' isn't.
   String debugName = Isolate.current.debugName; // error
-                                     ^" in let core::String? #t2 = iso::Isolate::current.{iso::Isolate::debugName}{core::String?} in #t2 == null ?{core::String} #t2 as{TypeError,ForNonNullableByDefault} core::String : #t2{core::String};
+                                     ^" in let core::String? #t2 = iso::Isolate::current.{iso::Isolate::debugName}{core::String?} in #t2 == null ?{core::String} #t2 as{TypeError} core::String : #t2{core::String};
 }

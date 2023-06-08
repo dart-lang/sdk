@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -29,7 +29,7 @@ class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
   operator ==(core::Object other) → core::bool {
     if(core::identical(this, other))
       return true;
-    return other is{ForNonNullableByDefault} self::NonPrimitiveEquals && this.{self::NonPrimitiveEquals::field}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::NonPrimitiveEquals}.{self::NonPrimitiveEquals::field}{core::int};
+    return other is self::NonPrimitiveEquals && this.{self::NonPrimitiveEquals::field}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::NonPrimitiveEquals}.{self::NonPrimitiveEquals::field}{core::int};
   }
 }
 static method switchStatement(dynamic o) → dynamic {
@@ -37,16 +37,16 @@ static method switchStatement(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t1;
     {
       lowered hoisted dynamic a#case#0;
       lowered hoisted dynamic a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t2 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t4 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
+      if(#0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t2 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t4 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
         dynamic a = #t1{dynamic};
         {
           core::print(a);
@@ -56,7 +56,7 @@ static method switchStatement(dynamic o) → dynamic {
     }
     {
       hoisted dynamic a;
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t6 = a = #0#13 in true)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t6 = a = #0#13 in true)) {
         {
           core::print(a);
         }
@@ -69,16 +69,16 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t7;
     {
       lowered hoisted dynamic a#case#0;
       lowered hoisted dynamic a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t8 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t9 = #t7 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t10 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t11 = #t7 = a#case#1 in true)) {
+      if(#0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t8 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t9 = #t7 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t10 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t11 = #t7 = a#case#1 in true)) {
         dynamic a = #t7{dynamic};
         {
           core::print(a);
@@ -88,7 +88,7 @@ static method switchStatementWithLabel(dynamic o) → dynamic {
     }
     {
       hoisted dynamic a;
-      if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t12 = a = #0#13 in true)) {
+      if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t12 = a = #0#13 in true)) {
         {
           core::print(a);
           break #L2;
@@ -110,10 +110,10 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
     core::int #t13 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#13#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     dynamic #t14;
     #L4:
@@ -121,7 +121,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
       {
         lowered hoisted dynamic a#case#0;
         lowered hoisted dynamic a#case#1;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t15 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t16 = #t14 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t17 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t18 = #t14 = a#case#1 in true)) {
+        if(#0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t15 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t16 = #t14 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t17 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t18 = #t14 = a#case#1 in true)) {
           dynamic a = #t14{dynamic};
           {
             core::print(a);
@@ -131,7 +131,7 @@ static method switchStatementWithContinue(dynamic o) → dynamic {
       }
       {
         hoisted dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t19 = a = #0#13 in true)) {
+        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t19 = a = #0#13 in true)) {
           {
             core::print(a);
             #t13 = 0;
@@ -185,13 +185,13 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
     core::int #t20 = 1.{core::int::unary-}(){() → core::int};
     final synthesized dynamic #2#0 = o1;
     function ##2#9#initializer() → dynamic
-      return (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#2#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #2#9 = ##2#9#initializer(){() → dynamic};
     #L8:
     {
       {
         hoisted dynamic a;
-        if(#2#0 is{ForNonNullableByDefault} core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t21 = a = #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+        if(#2#0 is core::List<dynamic> && #2#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t21 = a = #2#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
           {
             core::print(a);
             break #L7;
@@ -200,7 +200,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
       }
       {
         hoisted dynamic a;
-        if(#2#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#2#9 == null) || null is{ForNonNullableByDefault} dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t22 = a = #2#9 in true)) {
+        if(#2#0 is core::Map<dynamic, dynamic> && (!(#2#9 == null) || null is dynamic && #2#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t22 = a = #2#9 in true)) {
           {
             core::print(a);
             #L9:
@@ -208,10 +208,10 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t23 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #0#0 = o2;
               function ##0#2#initializer() → core::int
-                return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+                return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
               function ##0#13#initializer() → dynamic
-                return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+                return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
               dynamic #t24;
               #L10:
@@ -219,7 +219,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 {
                   lowered hoisted dynamic a#case#0;
                   lowered hoisted dynamic a#case#1;
-                  if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t25 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t26 = #t24 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t27 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t28 = #t24 = a#case#1 in true)) {
+                  if(#0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t25 = a#case#0 = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t26 = #t24 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t27 = a#case#1 = #0#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t28 = #t24 = a#case#1 in true)) {
                     dynamic a = #t24{dynamic};
                     {
                       core::print(a);
@@ -229,7 +229,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   hoisted dynamic a;
-                  if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t29 = a = #0#13 in true)) {
+                  if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#13 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t29 = a = #0#13 in true)) {
                     {
                       core::print(a);
                       #t20 = 1;
@@ -323,10 +323,10 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
               core::int #t30 = 1.{core::int::unary-}(){() → core::int};
               final synthesized dynamic #1#0 = o2;
               function ##1#2#initializer() → core::int
-                return (#1#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::length}{core::int};
+                return (#1#0 as{Unchecked} core::List<dynamic>).{core::List::length}{core::int};
               late final synthesized core::int #1#2 = ##1#2#initializer(){() → core::int};
               function ##1#13#initializer() → dynamic
-                return (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+                return (#1#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
               late final synthesized dynamic #1#13 = ##1#13#initializer(){() → dynamic};
               dynamic #t31;
               #L16:
@@ -334,7 +334,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 {
                   lowered hoisted dynamic a#case#0;
                   lowered hoisted dynamic a#case#1;
-                  if(#1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t32 = a#case#0 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t33 = #t31 = a#case#0 in true) || #1#0 is{ForNonNullableByDefault} core::List<dynamic> && #1#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t34 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError,ForNonNullableByDefault} core::bool && (let final dynamic #t35 = #t31 = a#case#1 in true)) {
+                  if(#1#0 is core::List<dynamic> && #1#2 =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t32 = a#case#0 = #1#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true) && a#case#0{dynamic}.>(5) as{TypeError} core::bool && (let final dynamic #t33 = #t31 = a#case#0 in true) || #1#0 is core::List<dynamic> && #1#2 =={core::num::==}{(core::Object) → core::bool} #C7 && (let final dynamic #t34 = a#case#1 = #1#0{core::List<dynamic>}.{core::List::[]}(1){(core::int) → dynamic} in true) && a#case#1{dynamic}.<(5) as{TypeError} core::bool && (let final dynamic #t35 = #t31 = a#case#1 in true)) {
                     dynamic a = #t31{dynamic};
                     {
                       core::print(a);
@@ -344,7 +344,7 @@ static method switchStatementWithContinueNested(dynamic o1, dynamic o2) → dyna
                 }
                 {
                   hoisted dynamic a;
-                  if(#1#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#1#13 == null) || null is{ForNonNullableByDefault} dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t36 = a = #1#13 in true)) {
+                  if(#1#0 is core::Map<dynamic, dynamic> && (!(#1#13 == null) || null is dynamic && #1#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t36 = a = #1#13 in true)) {
                     {
                       core::print(a);
                       continue #L14;
@@ -531,20 +531,20 @@ static method switchExpression(dynamic o) → dynamic {
     dynamic #t37;
     final synthesized dynamic #0#0 = o;
     function ##0#9#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
+      return (#0#0 as{Unchecked} core::Map<dynamic, dynamic>).{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized dynamic #0#9 = ##0#9#initializer(){() → dynamic};
     #L36:
     {
       {
         hoisted dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t38 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
+        if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C4 && (let final dynamic #t38 = a = #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} in true)) {
           #t37 = a;
           break #L36;
         }
       }
       {
         hoisted dynamic a;
-        if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && (!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t39 = a = #0#9 in true)) {
+        if(#0#0 is core::Map<dynamic, dynamic> && (!(#0#9 == null) || null is dynamic && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool}) && (let final dynamic #t39 = a = #0#9 in true)) {
           #t37 = a;
           break #L36;
         }

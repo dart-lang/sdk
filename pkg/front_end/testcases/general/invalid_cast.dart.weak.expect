@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -122,8 +122,8 @@ Change the type of the map literal or the context in which it is used.
 Change the type of the function expression or the context in which it is used.
   int Function(Object) d = (int i) => i;
                            ^" in (core::int* i) → core::int* => i;
-  self::D* e = self::C::fact() as{TypeError} self::D*;
-  self::D* f = new self::D::•() as{TypeError} self::D*;
+  self::D* e = self::C::fact() as{TypeError,ForLegacy} self::D*;
+  self::D* f = new self::D::•() as{TypeError,ForLegacy} self::D*;
   self::D* g = invalid-expression "pkg/front_end/testcases/general/invalid_cast.dart:28:13: Error: The constructor returns type 'C' that isn't of expected type 'D'.
  - 'C' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
  - 'D' is from 'pkg/front_end/testcases/general/invalid_cast.dart'.
@@ -158,8 +158,8 @@ static method ok() → dynamic {
   core::Map<core::int*, core::String*>* b = <core::int*, core::String*>{};
   core::Map<core::int*, core::String*>* c = <core::int*, core::String*>{};
   (core::int*) →* core::int* d = (core::int* i) → core::int* => i;
-  self::D* e = self::C::fact() as{TypeError} self::D*;
-  self::D* f = new self::D::•() as{TypeError} self::D*;
+  self::D* e = self::C::fact() as{TypeError,ForLegacy} self::D*;
+  self::D* f = new self::D::•() as{TypeError,ForLegacy} self::D*;
   self::C* g = new self::C::nonFact();
   self::C* h = new self::C::nonFact2();
   (core::int*) →* void i = #C2;

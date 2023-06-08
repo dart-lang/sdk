@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -153,7 +153,7 @@ static method main() → dynamic {
     final synthesized self::A #0#0 = a;
     late final synthesized core::int #0#4 = #0#0.{self::A::[]}(0){(core::int) → core::int};
     late final synthesized core::int #0#5 = #0#0.{self::A::[]}(1){(core::int) → core::int};
-    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && (#0#4 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = #0#5 in true))) {
+    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C5 && (#0#4 is core::int && (let final dynamic #t1 = x = #0#4 in true)) && (#0#5 is core::int && (let final dynamic #t2 = y = #0#5 in true))) {
       self::expectEquals(x, 0);
       self::expectEquals(y, 0);
     }

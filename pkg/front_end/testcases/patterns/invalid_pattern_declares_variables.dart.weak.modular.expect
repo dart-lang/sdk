@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -8,8 +8,8 @@ static method method() → dynamic {
   {
     final synthesized dynamic #0#0 = <core::double>[42.0];
     late final synthesized core::bool #0#3 = #0#0{core::List<core::double>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized core::double #0#4 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<core::double>).{core::List::[]}(0){(core::int) → core::double};
-    if(!(#0#3 && (#0#4 is{ForNonNullableByDefault} core::double && (let final dynamic #t1 = v1 = #0#4 in true)) && (#0#3 && (#0#4 is{ForNonNullableByDefault} core::num && (let final dynamic #t2 = v2 = #0#4 in true)))))
+    late final synthesized core::double #0#4 = (#0#0 as{Unchecked} core::List<core::double>).{core::List::[]}(0){(core::int) → core::double};
+    if(!(#0#3 && (#0#4 is core::double && (let final dynamic #t1 = v1 = #0#4 in true)) && (#0#3 && (#0#4 is core::num && (let final dynamic #t2 = v2 = #0#4 in true)))))
       throw new core::StateError::•("Pattern matching error");
   }
   core::print(v1);

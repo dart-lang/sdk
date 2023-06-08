@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "synthesized_super_constructor_with_parameters_lib.dart" as syn;
@@ -151,7 +151,7 @@ class D9 extends self::C9 {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as syn;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -20,7 +20,7 @@ class Foo<S extends core::num*> extends core::Object {
   method test1(covariant-by-class self::Foo::S* x) → void {
     (self::Foo::S*) →* self::Foo::S* f = invalid-expression "pkg/front_end/testcases/extensions/language_issue1182.dart:13:25: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'S Function(S)'.
     S Function(S) f = x.test;
-                        ^" in self::Test|get#test<core::num*>(x) as{TypeError} Never;
+                        ^" in self::Test|get#test<core::num*>(x) as{TypeError,ForLegacy} Never;
   }
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

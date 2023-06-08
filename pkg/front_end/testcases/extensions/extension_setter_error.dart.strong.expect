@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -25,7 +25,7 @@ static method error() → dynamic {
   self::expect(null, let final self::GenericClass<core::int> #t1 = invalid-expression "pkg/front_end/testcases/extensions/extension_setter_error.dart:15:41: Error: A value of type 'GenericClass<int>' can't be assigned to a variable of type 'GenericClass<double>'.
  - 'GenericClass' is from 'pkg/front_end/testcases/extensions/extension_setter_error.dart'.
   expect(null, GenericExtension<double>(genericClass).setter = null);
-                                        ^" in genericClass as{TypeError,ForNonNullableByDefault} self::GenericClass<core::double> in let final has-declared-initializer Null #t2 = null in let final void #t3 = self::GenericExtension|set#setter<core::double>(#t1, #t2) in #t2);
+                                        ^" in genericClass as{TypeError} self::GenericClass<core::double> in let final has-declared-initializer Null #t2 = null in let final void #t3 = self::GenericExtension|set#setter<core::double>(#t1, #t2) in #t2);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {

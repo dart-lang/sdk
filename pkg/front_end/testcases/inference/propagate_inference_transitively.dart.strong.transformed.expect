@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -23,10 +23,10 @@ static method test5() → dynamic {
   self::A a1 = new self::A::•();
   a1.{self::A::x} = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:14:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   a1. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                                       ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int;
+                                                       ^" in "hi" as{TypeError} core::int;
   self::A a2 = new self::A::•();
   a2.{self::A::x} = invalid-expression "pkg/front_end/testcases/inference/propagate_inference_transitively.dart:17:56: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   a2. /*@target=A.x*/ x = /*error:INVALID_ASSIGNMENT*/ \"hi\";
-                                                       ^" in "hi" as{TypeError,ForNonNullableByDefault} core::int;
+                                                       ^" in "hi" as{TypeError} core::int;
 }
 static method main() → dynamic {}

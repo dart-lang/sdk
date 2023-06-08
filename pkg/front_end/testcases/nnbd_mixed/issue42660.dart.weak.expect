@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "issue42660_lib.dart" as iss;
 import "dart:core" as core;
@@ -28,7 +28,7 @@ static method main() → void {
   } =>#t2;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

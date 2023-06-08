@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -22,5 +22,5 @@ static method _extension#0|get#foo(lowered final self::A #this) → (self::A, se
 static method main() → void {
   dynamic a = new self::A::•();
   dynamic b = new self::B::•();
-  self::_extension#0|foo(new self::A::•(), a as{TypeError,ForDynamic,ForNonNullableByDefault} self::A, b as{TypeError,ForDynamic,ForNonNullableByDefault} self::B);
+  self::_extension#0|foo(new self::A::•(), a as{TypeError,ForDynamic} self::A, b as{TypeError,ForDynamic} self::B);
 }

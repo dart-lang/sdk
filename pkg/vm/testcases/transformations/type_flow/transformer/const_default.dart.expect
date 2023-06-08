@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/const_default.lib.dart";
@@ -6,6 +6,6 @@ import "file:pkg/vm/testcases/transformations/type_flow/transformer/const_defaul
 static method main() → dynamic {
   has-declared-initializer dynamic dyn = null;
 }
-library const_default.lib.dart /*isNonNullableByDefault*/;
+library const_default.lib.dart;
 import self as self;
 

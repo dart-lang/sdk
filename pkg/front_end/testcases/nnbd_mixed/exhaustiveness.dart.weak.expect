@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "exhaustiveness_lib.dart" as exh;
 import "dart:core" as core;
@@ -34,7 +34,7 @@ static method throws(() →* void f) → dynamic {
   throw "Missing throws";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as exh;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -99,14 +99,14 @@ static method sealedSwitchStatement(exh::A a) → core::int {
   {
     final synthesized exh::A #0#0 = a;
     {
-      if(#0#0 is{ForNonNullableByDefault} exh::A1) {
+      if(#0#0 is exh::A1) {
         {
           return 0;
         }
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} exh::A2) {
+      if(#0#0 is exh::A2) {
         {
           return 1;
         }
@@ -122,13 +122,13 @@ static method sealedSwitchExpression(exh::A a) → core::int
     #L10:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} exh::A1) {
+        if(#0#0 is exh::A1) {
           #t2 = 0;
           break #L10;
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} exh::A2) {
+        if(#0#0 is exh::A2) {
           #t2 = 1;
           break #L10;
         }

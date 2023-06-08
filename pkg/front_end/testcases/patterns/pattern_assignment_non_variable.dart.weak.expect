@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -42,8 +42,8 @@ class Class extends self::Super {
     block {
       dynamic #t1;
       dynamic #t2;
-      final synthesized dynamic #0#0 = o as{TypeError,ForDynamic,ForNonNullableByDefault} (dynamic, dynamic, dynamic, dynamic, dynamic, dynamic);
-      if(!(#0#0 is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final dynamic #t3 = #t1 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t4 = #t2 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true)))
+      final synthesized dynamic #0#0 = o as{TypeError,ForDynamic} (dynamic, dynamic, dynamic, dynamic, dynamic, dynamic);
+      if(!(#0#0 is (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final dynamic #t3 = #t1 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t4 = #t2 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true)))
         throw new core::StateError::•("Pattern matching error");
       local = #t1;
       parameter = #t2;

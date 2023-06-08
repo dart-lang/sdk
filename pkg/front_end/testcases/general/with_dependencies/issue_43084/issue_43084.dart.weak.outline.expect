@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///issue_43084_lib.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///issue_43084_lib.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

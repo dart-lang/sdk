@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "macro.dart" as mac;
 import "dart:core" as core;
@@ -18,7 +18,7 @@ class Class extends core::Object {
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mac;
 import "dart:core" as core;
 import "package:_fe_analyzer_shared/src/macros/api.dart" as api;

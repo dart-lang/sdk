@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -147,7 +147,7 @@ static method foo19() → dynamic
   return #C1;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as typ;
 import "dart:core" as core;
 

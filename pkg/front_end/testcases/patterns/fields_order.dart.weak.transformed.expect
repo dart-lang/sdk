@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,9 +16,9 @@ static method test(dynamic x) → dynamic {
     hoisted core::String y;
     final synthesized dynamic #0#0 = x;
     function ##0#5#initializer() → core::Object?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::A).{self::A::bar}{core::Object?};
+      return (#0#0 as{Unchecked} self::A).{self::A::bar}{core::Object?};
     late final synthesized core::Object? #0#5 = ##0#5#initializer(){() → core::Object?};
-    if(#0#0 is{ForNonNullableByDefault} self::A && #C1 =={core::String::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::String} && (let final core::String #t1 = #0#5 as{ForNonNullableByDefault} core::String in (#0#5 as{ForNonNullableByDefault} core::String) is{ForNonNullableByDefault} core::String && (let final core::String #t2 = y = #0#5 as{ForNonNullableByDefault} core::String in true))) {
+    if(#0#0 is self::A && #C1 =={core::String::==}{(core::Object) → core::bool} #0#0{self::A}.{self::A::foo}{core::String} && (let final core::String #t1 = #0#5 as core::String in (#0#5 as core::String) is core::String && (let final core::String #t2 = y = #0#5 as core::String in true))) {
       return y;
     }
     else {

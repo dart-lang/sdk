@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -72,7 +72,7 @@ class LegacyImplementFinalNoModifier extends core::Object implements mai::Legacy
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:collection" as col;
 import "dart:core" as core;

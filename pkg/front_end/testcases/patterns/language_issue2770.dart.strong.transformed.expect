@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,7 +12,7 @@ static method method1(core::Object object) → dynamic {
   {
     hoisted core::Object field;
     final synthesized core::Object #0#0 = object;
-    if(#0#0 is{ForNonNullableByDefault} self::Class<core::Object> && (let final core::Object #t1 = field = #0#0{self::Class<core::Object>}.{self::Class::field}{core::Object} in true)) {
+    if(#0#0 is self::Class<core::Object> && (let final core::Object #t1 = field = #0#0{self::Class<core::Object>}.{self::Class::field}{core::Object} in true)) {
       core::print(field);
     }
   }

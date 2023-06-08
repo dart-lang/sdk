@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,7 +16,7 @@ import "dart:core" as core;
 static method test1(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} core::int? || #0#0 is{ForNonNullableByDefault} core::double?) {
+    if(#0#0 is core::int? || #0#0 is core::double?) {
     }
   }
 }
@@ -25,9 +25,9 @@ static method test2(dynamic x) → dynamic {
     hoisted invalid-type y;
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t1 = y = #0#6{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t2 = y = #0#7{invalid-type} in true))) {
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final dynamic #t1 = y = #0#6{invalid-type} in true)) || #0#0 is core::List<dynamic> && #0#4 && (#0#7 is core::String && (let final dynamic #t2 = y = #0#7{invalid-type} in true))) {
       return y;
     }
     else {
@@ -51,9 +51,9 @@ static method test4(dynamic x) → dynamic {
     hoisted invalid-type y;
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C3;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-    if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = y = #0#6{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t4 = y = #0#7{invalid-type} in true)) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::bool && (let final dynamic #t5 = y = #0#7{invalid-type} in true))) {
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final dynamic #t3 = y = #0#6{invalid-type} in true)) || #0#0 is core::List<dynamic> && #0#4 && (#0#7 is core::String && (let final dynamic #t4 = y = #0#7{invalid-type} in true)) || #0#0 is core::List<dynamic> && #0#4 && (#0#7 is core::bool && (let final dynamic #t5 = y = #0#7{invalid-type} in true))) {
       return y;
     }
     else {

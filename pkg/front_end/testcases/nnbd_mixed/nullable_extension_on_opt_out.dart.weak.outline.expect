@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "nullable_extension_on_opt_out_lib.dart" as nul;
 import "dart:core" as core;
@@ -15,7 +15,7 @@ static method main() → void
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as nul;
 import "dart:core" as core;
 

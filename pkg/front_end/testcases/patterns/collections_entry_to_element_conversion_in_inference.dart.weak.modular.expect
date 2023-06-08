@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -9,17 +9,17 @@ static method test1(dynamic x, dynamic another) → core::Iterable<dynamic> {
     hoisted core::int i;
     hoisted core::int n;
     {
-      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::int>;
-      late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-      late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
-      if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = i = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t3 = n = #0#7{core::int} in true))))
+      final synthesized dynamic #0#0 = x as{TypeError,ForDynamic} core::List<core::int>;
+      late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+      if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final dynamic #t2 = i = #0#6{core::int} in true)) && (#0#7 is core::int && (let final dynamic #t3 = n = #0#7{core::int} in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t4 = i;
     final core::int #t5 = n;
     for (core::int i = #t4, core::int n = #t5; i.{core::num::<}(n){(core::num) → core::bool}; i = i.{core::num::+}(1){(core::num) → core::int})
-      for (final has-declared-initializer dynamic #t6 in another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-        final dynamic #t7 = #t6 as{TypeError,ForNonNullableByDefault} dynamic;
+      for (final has-declared-initializer dynamic #t6 in another as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+        final dynamic #t7 = #t6 as{TypeError} dynamic;
         #t1.{core::Set::add}{Invariant}(#t7){(dynamic) → core::bool};
       }
   } =>#t1;
@@ -29,9 +29,9 @@ static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
     final core::Set<dynamic> #t8 = col::LinkedHashSet::•<dynamic>();
     {
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::String)
+      if(#0#0 is core::String)
         for (final has-declared-initializer dynamic #t9 in another) {
-          final dynamic #t10 = #t9 as{TypeError,ForNonNullableByDefault} dynamic;
+          final dynamic #t10 = #t9 as{TypeError} dynamic;
           #t8.{core::Set::add}{Invariant}(#t10){(dynamic) → core::bool};
         }
     }
@@ -40,14 +40,14 @@ static method test2(dynamic x, dynamic another) → core::Iterable<dynamic> {
 static method test3(dynamic x, dynamic another) → core::Iterable<dynamic> {
   return block {
     final core::Set<dynamic> #t11 = col::LinkedHashSet::•<dynamic>();
-    for (final dynamic #t12 in x as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic #t12 in x as{TypeError,ForDynamic} core::Iterable<dynamic>) {
       {
         final synthesized dynamic #0#0 = #t12;
-        if(!(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is{ForNonNullableByDefault} core::int))
+        if(!(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2 && #0#0{core::List<dynamic>}.{core::List::[]}(0){(core::int) → dynamic} is core::int))
           throw new core::StateError::•("Pattern matching error");
       }
-      for (final has-declared-initializer dynamic #t13 in another as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-        final dynamic #t14 = #t13 as{TypeError,ForNonNullableByDefault} dynamic;
+      for (final has-declared-initializer dynamic #t13 in another as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+        final dynamic #t14 = #t13 as{TypeError} dynamic;
         #t11.{core::Set::add}{Invariant}(#t14){(dynamic) → core::bool};
       }
     }
@@ -59,7 +59,7 @@ static method main() → dynamic {
     #t15.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t15.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t15.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
-  } =>#t15) as{ForNonNullableByDefault} core::Set<dynamic>, block {
+  } =>#t15) as core::Set<dynamic>, block {
     final core::Set<dynamic> #t16 = col::LinkedHashSet::•<dynamic>();
     #t16.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t16.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};
@@ -70,7 +70,7 @@ static method main() → dynamic {
     #t17.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t17.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t17.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
-  } =>#t17) as{ForNonNullableByDefault} core::Set<dynamic>, block {
+  } =>#t17) as core::Set<dynamic>, block {
     final core::Set<dynamic> #t18 = col::LinkedHashSet::•<dynamic>();
   } =>#t18);
   self::expectThrows(() → void => self::test1(<dynamic>[], <dynamic, dynamic>{}));
@@ -79,7 +79,7 @@ static method main() → dynamic {
     #t19.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t19.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
-  } =>#t19) as{ForNonNullableByDefault} core::Set<dynamic>, block {
+  } =>#t19) as core::Set<dynamic>, block {
     final core::Set<dynamic> #t20 = col::LinkedHashSet::•<dynamic>();
     #t20.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t20.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};
@@ -90,7 +90,7 @@ static method main() → dynamic {
     #t21.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t21.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t21.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
-  } =>#t21) as{ForNonNullableByDefault} core::Set<dynamic>, block {
+  } =>#t21) as core::Set<dynamic>, block {
     final core::Set<dynamic> #t22 = col::LinkedHashSet::•<dynamic>();
   } =>#t22);
   self::expectSetEquals(self::test3(<core::List<core::int>>[<core::int>[0], <core::int>[1]], block {
@@ -98,7 +98,7 @@ static method main() → dynamic {
     #t23.{core::Set::add}{Invariant}(1){(core::int) → core::bool};
     #t23.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
     #t23.{core::Set::add}{Invariant}(3){(core::int) → core::bool};
-  } =>#t23) as{ForNonNullableByDefault} core::Set<dynamic>, block {
+  } =>#t23) as core::Set<dynamic>, block {
     final core::Set<dynamic> #t24 = col::LinkedHashSet::•<dynamic>();
     #t24.{core::Set::add}{Invariant}(1){(dynamic) → core::bool};
     #t24.{core::Set::add}{Invariant}(2){(dynamic) → core::bool};

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -67,7 +67,7 @@ static field dynamic missingBinary = let final self::ClassWithProperty #t1 = sel
  - 'EmptyClass' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '+' operator.
 var missingBinary = classWithProperty.property += 2;
-                                               ^" in #t1.{self::ClassWithProperty::property}{self::EmptyClass}{<unresolved>}.+(2) as{TypeError,ForDynamic,ForNonNullableByDefault} self::EmptyClass;
+                                               ^" in #t1.{self::ClassWithProperty::property}{self::EmptyClass}{<unresolved>}.+(2) as{TypeError,ForDynamic} self::EmptyClass;
 static field dynamic missingIndexGet = let final self::ClassWithIndexSet #t2 = self::classWithIndexSet in let final core::int #t3 = 0 in let final dynamic #t4 = invalid-expression "pkg/front_end/testcases/general/missing_toplevel.dart:28:40: Error: The operator '[]' isn't defined for the class 'ClassWithIndexSet'.
  - 'ClassWithIndexSet' is from 'pkg/front_end/testcases/general/missing_toplevel.dart'.
 Try correcting the operator to an existing operator, or defining a '[]' operator.

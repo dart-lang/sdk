@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,7 +7,7 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     {
-      if(let final dynamic #t1 = #0#0 as{ForNonNullableByDefault} core::Object in (#0#0 as{ForNonNullableByDefault} core::Object) is{ForNonNullableByDefault} core::List<core::Object?> && ((#0#0 as{ForNonNullableByDefault} core::Object) as{ForNonNullableByDefault,Unchecked} core::List<core::Object?>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C1 =={core::num::==}{(core::Object) → core::bool} ((#0#0 as{ForNonNullableByDefault} core::Object) as{ForNonNullableByDefault,Unchecked} core::List<core::Object?>).{core::List::[]}(0){(core::int) → core::Object?}) {
+      if(let final dynamic #t1 = #0#0 as core::Object in (#0#0 as core::Object) is core::List<core::Object?> && ((#0#0 as core::Object) as{Unchecked} core::List<core::Object?>).{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && #C1 =={core::num::==}{(core::Object) → core::bool} ((#0#0 as core::Object) as{Unchecked} core::List<core::Object?>).{core::List::[]}(0){(core::int) → core::Object?}) {
         {
           break #L1;
         }

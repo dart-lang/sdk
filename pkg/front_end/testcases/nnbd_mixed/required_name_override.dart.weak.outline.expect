@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -44,7 +44,7 @@ class A extends self::B implements req::C {
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as req;
 import "dart:core" as core;
 

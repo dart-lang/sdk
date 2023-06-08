@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -6,7 +6,7 @@ import "dart:async" as asy;
 import "dart:async";
 
 static method foo<X extends core::Object?>(self::foo::X% x) → asy::Future<core::int> async /* futureValueType= core::int */ {
-  if(x is{ForNonNullableByDefault} asy::Future<core::int>) {
+  if(x is asy::Future<core::int>) {
     return x{self::foo::X% & asy::Future<core::int> /* '%' & '!' = '!' */};
   }
   else {

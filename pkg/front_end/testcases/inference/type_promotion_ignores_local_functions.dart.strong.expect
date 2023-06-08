@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -13,7 +13,7 @@ typedef FunctionReturningInt = () →* core::int*;
 static method main() → dynamic {
   function f() → core::num*
     return 0;
-  if(f is () →* core::int*) {
+  if(f is{ForLegacy} () →* core::int*) {
     f;
   }
 }

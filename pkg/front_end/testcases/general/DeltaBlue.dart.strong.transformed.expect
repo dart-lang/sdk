@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -52,22 +52,22 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
     self::planner.{self::Planner::incrementalAdd}(this){(self::Constraint) → void};
   }
   method satisfy(dynamic mark) → self::Constraint? {
-    this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → void};
+    this.{self::Constraint::chooseMethod}(mark as{TypeError,ForDynamic} core::int){(core::int) → void};
     if(!this.{self::Constraint::isSatisfied}(){() → core::bool}) {
       if(this.{self::Constraint::strength}{self::Strength} =={core::Object::==}{(core::Object) → core::bool} #C22) {
         core::print("Could not satisfy a required constraint!");
       }
       return null;
     }
-    this.{self::Constraint::markInputs}(mark as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(core::int) → void};
+    this.{self::Constraint::markInputs}(mark as{TypeError,ForDynamic} core::int){(core::int) → void};
     self::Variable out = this.{self::Constraint::output}(){() → self::Variable};
     self::Constraint? overridden = out.{self::Variable::determinedBy}{self::Constraint?};
     if(!(overridden == null))
       overridden{self::Constraint}.{self::Constraint::markUnsatisfied}(){() → void};
     out.{self::Variable::determinedBy} = this;
-    if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError,ForDynamic,ForNonNullableByDefault} core::int){(self::Constraint, core::int) → core::bool})
+    if(!self::planner.{self::Planner::addPropagate}(this, mark as{TypeError,ForDynamic} core::int){(self::Constraint, core::int) → core::bool})
       core::print("Cycle encountered");
-    out.{self::Variable::mark} = mark as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+    out.{self::Variable::mark} = mark as{TypeError,ForDynamic} core::int;
     return overridden;
   }
   method destroyConstraint() → void {

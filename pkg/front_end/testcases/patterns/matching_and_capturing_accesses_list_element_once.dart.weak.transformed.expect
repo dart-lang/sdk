@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -336,7 +336,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     core::RangeError::checkNotNegative(skipCount, "skipCount");
     core::List<core::int> otherList;
     core::int otherStart;
-    if(iterable is{ForNonNullableByDefault} core::List<core::int>) {
+    if(iterable is core::List<core::int>) {
       otherList = iterable{core::List<core::int>};
       otherStart = skipCount;
     }
@@ -364,7 +364,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
       this.{col::ListBase::addAll}(newContents){(core::Iterable<core::int>) → void};
       return;
     }
-    if(!(newContents is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>)) {
+    if(!(newContents is _in::EfficientLengthIterable<dynamic>)) {
       newContents = newContents.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>};
     }
     core::int removeLength = end.{core::num::-}(start){(core::num) → core::int};
@@ -465,7 +465,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
       this.{col::ListBase::addAll}(iterable){(core::Iterable<core::int>) → void};
       return;
     }
-    if(!(iterable is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
+    if(!(iterable is _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
       iterable = iterable.{core::Iterable::toList}(){({growable: core::bool}) → core::List<core::int>};
     }
     core::int insertionLength = iterable.{core::Iterable::length}{core::int};
@@ -487,7 +487,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
     this.{col::ListBase::setAll}(index, iterable){(core::int, core::Iterable<core::int>) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(core::int index, covariant-by-class core::Iterable<core::int> iterable) → void {
-    if(iterable is{ForNonNullableByDefault} core::List<dynamic>) {
+    if(iterable is core::List<dynamic>) {
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<core::int>, [core::int]) → void};
     }
     else {
@@ -507,7 +507,7 @@ abstract class _A&Object&ListMixin extends core::Object implements col::ListBase
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as{ForNonNullableByDefault} core::Comparable<dynamic>, b as{ForNonNullableByDefault} core::Comparable<dynamic>);
+    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
     return core::Iterable::iterableToFullString(list, "[", "]");
@@ -538,7 +538,7 @@ static method main() → dynamic {
     function ##0#5#initializer() → core::int
       return #0#0.{self::A::[]}(1){(core::int) → core::int};
     late final synthesized core::int #0#5 = ##0#5#initializer(){() → core::int};
-    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = x = #0#4 in true)) && (#0#5 is{ForNonNullableByDefault} core::int && (let final core::int #t10 = y = #0#5 in true))) {
+    if(#0#0.{self::A::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C8 && (#0#4 is core::int && (let final core::int #t9 = x = #0#4 in true)) && (#0#5 is core::int && (let final core::int #t10 = y = #0#5 in true))) {
       self::expectEquals(x, 0);
       self::expectEquals(y, 0);
     }

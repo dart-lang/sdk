@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 
 static method test() → void
