@@ -1527,31 +1527,46 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType? intrinsicResult = intrinsifier.generateInstanceIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    Procedure target = node.interfaceTarget;
+    w.ValueType callWithNullCheck(
+        Procedure target, void Function(w.ValueType) onNull) {
+      late w.Label done;
+      final w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
+        done = b.block(const [], signature.outputs);
+        final w.Label nullReceiver = b.block();
+        wrap(node.receiver, translator.topInfo.nullableType);
+        b.br_on_null(nullReceiver);
+      }, (_) {
+        _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+      });
+      b.br(done);
+      b.end(); // end nullReceiver
+      onNull(resultType);
+      b.end();
+      return resultType;
+    }
+
+    final Procedure target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       switch (target.name.text) {
         case "toString":
-          late w.Label done;
-          w.ValueType resultType =
-              _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
-            done = b.block(const [], signature.outputs);
-            w.Label nullString = b.block();
-            wrap(node.receiver, translator.topInfo.nullableType);
-            b.br_on_null(nullString);
-          }, (_) {
+          return callWithNullCheck(
+              target, (resultType) => wrap(StringLiteral("null"), resultType));
+        case "noSuchMethod":
+          return callWithNullCheck(target, (resultType) {
+            // Object? receiver
+            b.ref_null(translator.topInfo.struct);
+            // Invocation invocation
             _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+            call(translator.noSuchMethodErrorThrowWithInvocation.reference);
           });
-          b.br(done);
-          b.end();
-          wrap(StringLiteral("null"), resultType);
-          b.end();
-          return resultType;
         default:
           unimplemented(node, "Nullable invocation of ${target.name.text}",
               [if (expectedType != voidMarker) expectedType]);
           return expectedType;
       }
     }
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
       w.BaseFunction targetFunction =
