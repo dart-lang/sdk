@@ -212,7 +212,6 @@ class ScoreCard {
 
     var issues = await getLinterIssues();
     var bugs = issues.where(isBug).toList();
-    var sinceInfo = await getSinceMap();
 
     var scorecard = ScoreCard();
     for (var lint in registeredLints!) {
@@ -238,7 +237,7 @@ class ScoreCard {
               lintsWithAssists.contains(lint.name),
           state: lint.state,
           ruleSets: ruleSets,
-          since: sinceInfo[lint.name],
+          since: sinceMap[lint.name],
           bugReferences: bugReferences));
     }
 

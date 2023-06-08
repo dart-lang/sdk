@@ -9,7 +9,6 @@ import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
-import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -24,7 +23,6 @@ import 'since.dart';
 void main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.')
-    ..addOption('token', abbr: 't', help: 'Specifies a GitHub auth token.')
     ..addFlag('create-dirs',
         abbr: 'd', help: 'Enables creation of necessary directories.')
     ..addFlag('markdown',
@@ -42,16 +40,11 @@ void main(List<String> args) async {
 
   var outDir = options['out'] as String?;
 
-  var token = options['token'];
-  var auth = token is String ? Authentication.withToken(token) : null;
-
   var createDirectories = options['create-dirs'] == true;
   var enableMarkdown = options['markdown'] == true;
 
   await generateDocs(outDir,
-      auth: auth,
-      createDirectories: createDirectories,
-      enableMarkdown: enableMarkdown);
+      createDirectories: createDirectories, enableMarkdown: enableMarkdown);
 }
 
 const ruleFootMatter = '''
@@ -93,12 +86,7 @@ final List<LintRule> rules =
     List<LintRule>.of(Registry.ruleRegistry, growable: false)
       ..sort((a, b) => a.name.compareTo(b.name));
 
-late Map<String, SinceInfo> sinceInfo;
-
 final Map<String, String> _fixStatusMap = <String, String>{};
-
-String describeState(LintRule r) =>
-    r.state.isStable ? '' : ' (${r.state.label})';
 
 Future<void> fetchBadgeInfo() async {
   var core = await fetchConfig(
@@ -153,14 +141,8 @@ Future<Map<String, String>> fetchFixStatusMap() async {
   return _fixStatusMap;
 }
 
-Future<void> fetchSinceInfo(Authentication? auth) async {
-  sinceInfo = await getSinceMap(auth);
-}
-
 Future<void> generateDocs(String? dir,
-    {Authentication? auth,
-    bool createDirectories = false,
-    bool enableMarkdown = true}) async {
+    {bool createDirectories = false, bool enableMarkdown = true}) async {
   var outDir = dir;
   if (outDir != null) {
     var d = Directory(outDir);
@@ -193,9 +175,6 @@ Future<void> generateDocs(String? dir,
 
   // Fetch info for lint group/style badge generation.
   await fetchBadgeInfo();
-
-  // Fetch since info.
-  await fetchSinceInfo(auth);
 
   var fixStatusMap = await fetchFixStatusMap();
 
@@ -270,12 +249,6 @@ ${parser.usage}
 ''');
 }
 
-String qualify(LintRule r) {
-  var name = r.name;
-  var label = r.state.isRemoved ? '<s>$name</s>' : name;
-  return label + describeState(r);
-}
-
 class CountBadger {
   Iterable<LintRule> rules;
 
@@ -327,7 +300,7 @@ class HtmlIndexer {
   }
 
   String toDescription(LintRule r) =>
-      '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${qualify(r)}</a></strong><br/> ${getBadges(r.name, fixStatusMap[r.name])} ${markdownToHtml(r.description)}';
+      '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${r.qualifiedName}</a></strong><br/> ${getBadges(r.name, fixStatusMap[r.name])} ${markdownToHtml(r.description)}';
 
   String _generate() => '''
 <!DOCTYPE html>
@@ -396,7 +369,7 @@ class MachineSummaryGenerator {
 
   void generate(String? filePath) {
     var generated = getMachineListing(rules,
-        fixStatusMap: fixStatusMap, sinceInfo: sinceInfo);
+        fixStatusMap: fixStatusMap, sinceInfo: sinceMap);
     if (filePath != null) {
       var outPath = '$filePath/machine/rules.json';
       printToConsole('Writing to $outPath');
@@ -643,7 +616,7 @@ class RuleHtmlGenerator extends RuleGenerator {
   }
 
   String get since {
-    var info = sinceInfo[name]!;
+    var info = sinceMap[name]!;
     var sdkVersion = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '<strong>Unreleased</strong>';
@@ -724,14 +697,14 @@ class RuleMarkdownGenerator extends RuleGenerator {
   RuleMarkdownGenerator(super.rule, super.fixStatus);
 
   String get since {
-    var info = sinceInfo[name]!;
+    var info = sinceMap[name]!;
     var sdkVersion = info.sinceDartSdk != null
         ? '>= ${info.sinceDartSdk}'
         : '**Unreleased**';
     return 'Dart SDK: $sdkVersion';
   }
 
-  String get stateString => describeState(rule);
+  String get stateString => rule.state.describe;
 
   @override
   void generate([String? filePath]) {
@@ -788,5 +761,16 @@ class RuleMarkdownGenerator extends RuleGenerator {
     } else {
       File('$filePath/$name.md').writeAsStringSync(buffer.toString());
     }
+  }
+}
+
+extension on State {
+  String get describe => isStable ? '' : ' ($label)';
+}
+
+extension on LintRule {
+  String get qualifiedName {
+    var label = state.isRemoved ? '<s>$name</s>' : name;
+    return label + state.describe;
   }
 }

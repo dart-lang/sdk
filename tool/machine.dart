@@ -28,7 +28,9 @@ void main(List<String> args) async {
   }
   var fixStatusMap = await fetchFixStatusMap();
   var json = getMachineListing(Registry.ruleRegistry,
-      fixStatusMap: fixStatusMap, pretty: options['pretty'] == true);
+      fixStatusMap: fixStatusMap,
+      sinceInfo: sinceMap,
+      pretty: options['pretty'] == true);
   printToConsole(json);
 }
 
