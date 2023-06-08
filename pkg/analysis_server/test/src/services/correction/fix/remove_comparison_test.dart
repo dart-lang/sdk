@@ -432,14 +432,18 @@ void f(String s) {
 void f(String s) {
   if (s != null)
     /// comment 1
+    /// comment 2
     print(s);
+    /// comment 1
     /// comment 2
 }
 ''');
     await assertHasFix('''
 void f(String s) {
   /// comment 1
+  /// comment 2
   print(s);
+    /// comment 1
     /// comment 2
 }
 ''');
