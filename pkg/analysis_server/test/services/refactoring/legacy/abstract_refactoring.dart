@@ -117,6 +117,14 @@ abstract class RefactoringTest extends AbstractSingleUnitTest {
     assertTestChangeResult(expectedCode);
   }
 
+  /// Checks that all conditions of [refactoring] are OK, and the computed
+  /// [SourceChange] matches the expectations.
+  Future<void> assertSuccessfulRefactoring2(String expected) async {
+    await assertRefactoringConditionsOK();
+    final change = await refactoring.createChange();
+    assertSourceChange(change, expected);
+  }
+
   /// Asserts that [refactoringChange] contains a [FileEdit] for [testFile], and
   /// it results the [expectedCode].
   void assertTestChangeResult(String expectedCode) {

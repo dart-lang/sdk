@@ -101,8 +101,14 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   // method, field, etc
   if (enclosingElement is InterfaceElement) {
     var name = member.displayName;
+
+    final superElementsToSearch = enclosingElement.allSupertypes
+        .map((superType) => superType.element)
+        .where((interface) {
+      return member.isPublic || interface.library == member.library;
+    }).toList();
     var searchClasses = [
-      ...enclosingElement.allSupertypes.map((e) => e.element),
+      ...superElementsToSearch,
       enclosingElement,
     ];
     var subClasses = <InterfaceElement>{};
@@ -118,7 +124,11 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
               superClass, subClasses, performance));
       subClasses.add(superClass);
     }
-
+    if (member.isPrivate) {
+      subClasses.removeWhere(
+        (subClass) => subClass.library != member.library,
+      );
+    }
     for (var subClass in subClasses) {
       var subClassMembers = getChildren(subClass, name);
       for (var member in subClassMembers) {

@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -19,6 +20,8 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 import 'src/utilities/mock_packages.dart';
 
@@ -93,6 +96,15 @@ class AbstractContextTest with ResourceProviderMixin {
       await analysisContext.applyPendingFileChanges();
       await analysisContext.currentSession.getResolvedUnit(path);
     }
+  }
+
+  void assertSourceChange(SourceChange sourceChange, String expected) {
+    final buffer = StringBuffer();
+    _writeSourceChangeToBuffer(
+      buffer: buffer,
+      sourceChange: sourceChange,
+    );
+    _assertTextExpectation(buffer.toString(), expected);
   }
 
   void changeFile(File file) {
@@ -297,6 +309,15 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
+  void _assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, expected);
+  }
+
   DriverBasedAnalysisContext _contextFor(File file) {
     _createAnalysisContexts();
     return _analysisContextCollection!.contextFor(file.path);
@@ -319,5 +340,31 @@ class AbstractContextTest with ResourceProviderMixin {
 
     _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
+  }
+
+  /// If the path style is `Windows`, returns the corresponding Posix path.
+  /// Otherwise the path is already a Posix path, and it is returned as is.
+  /// TODO(scheglov) This is duplicate.
+  String _posixPath(File file) {
+    final pathContext = resourceProvider.pathContext;
+    if (pathContext.style == Style.windows) {
+      final components = pathContext.split(file.path);
+      return '/${components.skip(1).join('/')}';
+    } else {
+      return file.path;
+    }
+  }
+
+  void _writeSourceChangeToBuffer({
+    required StringBuffer buffer,
+    required SourceChange sourceChange,
+  }) {
+    for (final fileEdit in sourceChange.edits) {
+      final file = getFile(fileEdit.file);
+      buffer.writeln('>>>>>>>>>> ${_posixPath(file)}');
+      final current = file.readAsStringSync();
+      final updated = SourceEdit.applySequence(current, fileEdit.edits);
+      buffer.write(updated);
+    }
   }
 }

@@ -704,6 +704,45 @@ class A {
 ''');
   }
 
+  Future<void> test_createChange_method_private() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void _test() {}
+}
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+import 'test.dart';
+
+class C extends B {
+  void _test() {}
+}
+''');
+
+    await indexTestUnit('''
+import 'a.dart';
+
+class B extends A {
+  void _test() {}
+}
+''');
+
+    createRenameRefactoringAtString('_test() {}');
+    expect(refactoring.refactoringName, 'Rename Method');
+    expect(refactoring.elementKindName, 'method');
+    expect(refactoring.oldName, '_test');
+    refactoring.newName = '_newName';
+
+    await assertSuccessfulRefactoring2(r'''
+>>>>>>>>>> /home/test/lib/test.dart
+import 'a.dart';
+
+class B extends A {
+  void _newName() {}
+}
+''');
+  }
+
   Future<void> test_createChange_MethodElement() async {
     await indexTestUnit('''
 /// [A.test]
