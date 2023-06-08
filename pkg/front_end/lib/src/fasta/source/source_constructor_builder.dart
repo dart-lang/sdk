@@ -1100,6 +1100,7 @@ class SourceInlineClassConstructorBuilder
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
           .attachMember(_constructorTearOff!);
+      _constructorTearOff!.isInlineClassMember = true;
     }
   }
 

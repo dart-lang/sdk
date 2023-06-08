@@ -35,6 +35,9 @@ final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
+  final ResolvedNodeTextConfiguration nodeTextConfiguration =
+      ResolvedNodeTextConfiguration();
+
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
@@ -246,23 +249,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertHasTestErrors();
   }
 
-  void assertMember(
-    Object? elementOrNode,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
-    Member? actual;
-    if (elementOrNode is Member) {
-      actual = elementOrNode;
-    } else {
-      actual = getNodeElement(elementOrNode as AstNode) as Member;
-    }
-
-    expect(actual.declaration, same(expectedBase));
-
-    assertSubstitution(actual.substitution, expectedSubstitution);
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -290,15 +276,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertResolvedNodeText(
-    AstNode node,
-    String expected, {
-    bool skipArgumentList = false,
-  }) {
-    var actual = _resolvedNodeText(
-      node,
-      skipArgumentList: skipArgumentList,
-    );
+  void assertResolvedNodeText(AstNode node, String expected) {
+    var actual = _resolvedNodeText(node);
     if (actual != expected) {
       print(actual);
       NodeTextExpectationsCollector.add(actual);
@@ -549,24 +528,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
         selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
-        skipArgumentList: skipArgumentList,
+        configuration: ResolvedNodeTextConfiguration()
+          ..skipArgumentList = skipArgumentList,
         withResolution: false,
       ),
     );
     return buffer.toString();
   }
 
-  String _resolvedNodeText(
-    AstNode node, {
-    bool skipArgumentList = false,
-  }) {
+  String _resolvedNodeText(AstNode node) {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
         selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
-        skipArgumentList: skipArgumentList,
+        configuration: nodeTextConfiguration,
       ),
     );
     return buffer.toString();

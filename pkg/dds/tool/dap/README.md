@@ -47,9 +47,9 @@ Arguments specific to `launchRequest` are:
 Arguments specific to `attachRequest` are:
 
 - `String vmServiceInfoFile` - the file to read the VM Service info from \*
-- `String vmServiceInfoFile` - the VM Service URI to attach to \*
+- `String vmServiceUri` - the VM Service URI to attach to \*
 
-\* Exactly one of `vmServiceInfoFile` or `vmServiceInfoFile` should be supplied.
+\* Exactly one of `vmServiceInfoFile` or `vmServiceUri` should be supplied.
 
 ## Expression Evaluation Format Specifiers
 

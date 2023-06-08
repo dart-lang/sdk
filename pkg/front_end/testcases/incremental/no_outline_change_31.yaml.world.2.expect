@@ -75,24 +75,24 @@ library from "org-dartlang-test:///main.dart" as main {
       main::_#field4#isSet = true;
       main::_#field4 = field4#param;
     }
-  static get _extension#0|field5() → dart.core::int? {
+  static extension-member get _extension#0|field5() → dart.core::int? {
     if(!main::_#_extension#0|field5#isSet) {
       main::_#_extension#0|field5 = 42;
       main::_#_extension#0|field5#isSet = true;
     }
     return main::_#_extension#0|field5;
   }
-  static set _extension#0|field5(dart.core::int? field5#param) → void {
+  static extension-member set _extension#0|field5(dart.core::int? field5#param) → void {
     main::_#_extension#0|field5#isSet = true;
     main::_#_extension#0|field5 = field5#param;
   }
-  static get _extension#0|field6() → dart.core::int?
+  static extension-member get _extension#0|field6() → dart.core::int?
     return main::_#_extension#0|field6#isSet ?{dart.core::int?} main::_#_extension#0|field6 : throw new dart._internal::LateError::fieldNI("field6");
-  static set _extension#0|field6(dart.core::int? field6#param) → void {
+  static extension-member set _extension#0|field6(dart.core::int? field6#param) → void {
     main::_#_extension#0|field6#isSet = true;
     main::_#_extension#0|field6 = field6#param;
   }
-  static get _extension#0|field7() → dart.core::int? {
+  static extension-member get _extension#0|field7() → dart.core::int? {
     if(!main::_#_extension#0|field7#isSet) {
       final dart.core::int? #t2 = 42;
       if(main::_#_extension#0|field7#isSet)
@@ -102,9 +102,9 @@ library from "org-dartlang-test:///main.dart" as main {
     }
     return main::_#_extension#0|field7;
   }
-  static get _extension#0|field8() → dart.core::int?
+  static extension-member get _extension#0|field8() → dart.core::int?
     return main::_#_extension#0|field8#isSet ?{dart.core::int?} main::_#_extension#0|field8 : throw new dart._internal::LateError::fieldNI("field8");
-  static set _extension#0|field8(dart.core::int? field8#param) → void
+  static extension-member set _extension#0|field8(dart.core::int? field8#param) → void
     if(main::_#_extension#0|field8#isSet)
       throw new dart._internal::LateError::fieldAI("field8");
     else {

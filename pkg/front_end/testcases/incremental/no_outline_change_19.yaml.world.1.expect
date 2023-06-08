@@ -19,18 +19,18 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   static field dart.core::int A2|staticField = 42;
   static final field dart.core::int A2|staticFinalField = 42;
-  static method A2|method1(lowered final main::A1 #this) → main::A1 {
+  static extension-member method A2|method1(lowered final main::A1 #this) → main::A1 {
     return #this;
   }
-  static method A2|get#method1(lowered final main::A1 #this) → () → main::A1
+  static extension-member method A2|get#method1(lowered final main::A1 #this) → () → main::A1
     return () → main::A1 => main::A2|method1(#this);
-  static method A2|get#getter1(lowered final main::A1 #this) → dart.core::String
+  static extension-member method A2|get#getter1(lowered final main::A1 #this) → dart.core::String
     return "42!";
-  static method A2|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
-  static method A2|method2() → main::A1 {
+  static extension-member method A2|set#setter1(lowered final main::A1 #this, dart.core::String s) → void {}
+  static extension-member method A2|method2() → main::A1 {
     throw "";
   }
-  static get A2|getter2() → dart.core::String
+  static extension-member get A2|getter2() → dart.core::String
     return "42!";
-  static set A2|setter2(dart.core::String s) → void {}
+  static extension-member set A2|setter2(dart.core::String s) → void {}
 }

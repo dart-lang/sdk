@@ -38,13 +38,13 @@ static method test(self::_AbstractClass c) → dynamic
   ;
 static method main() → dynamic
   ;
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateMethod(lowered final core::int #this) → void
   ;
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateMethod(lowered final core::int #this) → () → void
   return () → void => self::_Extension|_privateMethod(#this);
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|get#_privateGetter(lowered final core::int #this) → core::int
   ;
-static method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void
+static extension-member method /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|set#_privateSetter(lowered final core::int #this, core::int value) → void
   ;
 
 

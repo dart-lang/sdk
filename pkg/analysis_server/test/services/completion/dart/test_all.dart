@@ -4,7 +4,6 @@
 
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'arglist_contributor_test.dart' as arglist_test;
 import 'completion_manager_test.dart' as completion_manager;
 import 'completion_test_test.dart' as completion_test;
 import 'declaration/test_all.dart' as declaration;
@@ -15,7 +14,6 @@ import 'text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    arglist_test.main();
     completion_manager.main();
     completion_test.main();
     declaration.main();
