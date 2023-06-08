@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -21,7 +21,7 @@ static method _extension#0|[]=(lowered final self::C? #this, core::int index, co
   let final self::C? #t2 = #this in #t2 == null ?{core::String?} null : #t2{self::C}.{self::C::m} = "${index}${value}";
 }
 static method main() → dynamic {
-  self::C? c = new self::C::•() as{ForNonNullableByDefault} self::C?;
+  self::C? c = new self::C::•() as self::C?;
   self::expect("", let final self::C? #t3 = c in #t3 == null ?{core::String?} null : #t3{self::C}.{self::C::m}{core::String});
   self::_extension#0|set#setter(c, "42");
   self::expect("42", let final self::C? #t4 = c in #t4 == null ?{core::String?} null : #t4{self::C}.{self::C::m}{core::String});

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as def;
 import "dart:core" as core;
 

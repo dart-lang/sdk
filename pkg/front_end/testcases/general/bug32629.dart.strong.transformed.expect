@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,6 +22,6 @@ static method foo<S extends core::Object? = dynamic>((self::foo::S%, dynamic) �
 static method test() → void {
   self::foo<core::String>(invalid-expression "pkg/front_end/testcases/general/bug32629.dart:16:19: Error: The argument type 'dynamic Function(dynamic, dynamic)' can't be assigned to the parameter type 'String Function(String, dynamic)'.
   foo<String>(new A());
-                  ^" in (let final self::A #t1 = new self::A::•() in #t1 == null ?{(dynamic, dynamic) → dynamic} null : #t1.{self::A::call}{(dynamic, dynamic) → dynamic}) as{TypeError,ForNonNullableByDefault} (core::String, dynamic) → core::String);
+                  ^" in (let final self::A #t1 = new self::A::•() in #t1 == null ?{(dynamic, dynamic) → dynamic} null : #t1.{self::A::call}{(dynamic, dynamic) → dynamic}) as{TypeError} (core::String, dynamic) → core::String);
 }
 static method main() → dynamic {}

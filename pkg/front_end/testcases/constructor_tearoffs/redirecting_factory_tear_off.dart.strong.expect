@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -122,7 +122,7 @@ class Class8b<T extends core::Object? = dynamic> extends core::Object {
   static factory •<T extends core::Object? = dynamic>() → self::Class8b<self::Class8b::•::T%>
     return new self::Class8a::•<self::Class8b::•::T%>();
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   core::print("inSoundMode: ${self::inSoundMode}");
   self::testNoArgs();
@@ -131,17 +131,17 @@ static method main() → dynamic {
 static method testNoArgs() → dynamic {
   () → self::Class1 f1a = #C10;
   self::Class1 c1a = f1a(){() → self::Class1};
-  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1a is self::Class1);
   dynamic f1b = #C10;
   dynamic c1b = f1b{dynamic}.call();
-  self::expect(true, c1b is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1b is self::Class1);
   self::expect(true, core::identical(f1a, f1b));
   () → self::Class2 f2a = #C11;
   self::Class2 c2a = f2a(){() → self::Class2};
-  self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2a is self::Class2);
   dynamic f2b = #C11;
   dynamic c2b = f2b{dynamic}.call();
-  self::expect(true, c2b is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2b is self::Class2);
   self::expect(true, core::identical(f2a, f2b));
 }
 static method testArgs() → dynamic {
@@ -229,16 +229,16 @@ Try removing the extra positional arguments.
   self::throws(() → dynamic => f6b{dynamic}.call(field1: 87, field2: 87));
   () → self::Class7b f7a = #C16;
   self::Class7b c7a = f7a(){() → self::Class7b};
-  self::expect(true, c7a is{ForNonNullableByDefault} self::Class7a);
-  self::expect(true, c7a is{ForNonNullableByDefault} self::Class7b);
+  self::expect(true, c7a is self::Class7a);
+  self::expect(true, c7a is self::Class7b);
   <T extends core::Object? = dynamic>() → self::Class8b<T%> f8a = #C17;
   self::Class8b<dynamic> c8a = f8a<dynamic>(){() → self::Class8b<dynamic>};
-  self::expect(true, c8a is{ForNonNullableByDefault} self::Class8a<dynamic>);
-  self::expect(true, c8a is{ForNonNullableByDefault} self::Class8b<dynamic>);
+  self::expect(true, c8a is self::Class8a<dynamic>);
+  self::expect(true, c8a is self::Class8b<dynamic>);
   self::Class8b<core::int> c8b = f8a<core::int>(){() → self::Class8b<core::int>};
-  self::expect(true, c8b is{ForNonNullableByDefault} self::Class8a<core::int>);
-  self::expect(true, c8b is{ForNonNullableByDefault} self::Class8b<core::int>);
-  self::expect(false, c8b is{ForNonNullableByDefault} self::Class8b<core::String>);
+  self::expect(true, c8b is self::Class8a<core::int>);
+  self::expect(true, c8b is self::Class8b<core::int>);
+  self::expect(false, c8b is self::Class8b<core::String>);
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))

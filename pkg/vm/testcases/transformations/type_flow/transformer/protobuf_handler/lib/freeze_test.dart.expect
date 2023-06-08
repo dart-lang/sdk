@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "generated/foo.pb.dart" as pb;
 import "dart:core" as core;
@@ -29,7 +29,7 @@ static method main() → dynamic {
     exp::expect(() → void => [@vm.direct-call.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep.clearClearKeep] [@vm.inferred-type.metadata=!? (skip check)] foo.{pb::FooKeep::clearClearKeep}(){() → void}, [@vm.inferred-type.metadata=library package:matcher/src/expect/throws_matcher.dart::Throws] thr::throwsA());
   });
 }
-library foo.pb.dart /*isNonNullableByDefault*/;
+library foo.pb.dart;
 import self as self;
 import "package:protobuf/protobuf.dart" as pro;
 import "dart:core" as core;

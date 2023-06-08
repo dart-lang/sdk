@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -33,7 +33,7 @@ static method test1(dynamic x) → dynamic
     {
       {
         hoisted core::double r;
-        if(#0#0 is{ForNonNullableByDefault} self::Circle && (let final dynamic #t2 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true) && r.{core::num::>}(0){(core::num) → core::bool}) {
+        if(#0#0 is self::Circle && (let final dynamic #t2 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true) && r.{core::num::>}(0){(core::num) → core::bool}) {
           #t1 = r.{core::double::*}(r){(core::num) → core::double}.{core::double::*}(#C1){(core::num) → core::double};
           break #L1;
         }
@@ -52,16 +52,16 @@ static method test2(dynamic x) → dynamic
     dynamic #t3;
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     #L2:
     {
       {
         hoisted core::int a;
         hoisted core::int b;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t5 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
+        if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final dynamic #t4 = a = #0#6{core::int} in true)) && (#0#7 is core::int && (let final dynamic #t5 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
           return a.{core::num::+}(b){(core::num) → core::int};
-        }) is{ForNonNullableByDefault} dynamic) {
+        }) is dynamic) {
           #t3 = self::captured!(a = b){(dynamic) → dynamic};
           break #L2;
         }
@@ -69,9 +69,9 @@ static method test2(dynamic x) → dynamic
       {
         hoisted core::String a;
         hoisted core::String b;
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t6 = a = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t7 = b = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
+        if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::String && (let final dynamic #t6 = a = #0#6{core::String} in true)) && (#0#7 is core::String && (let final dynamic #t7 = b = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
           return a.{core::String::+}(b){(core::String) → core::String};
-        }) is{ForNonNullableByDefault} dynamic) {
+        }) is dynamic) {
           #t3 = self::captured!(a = b){(dynamic) → dynamic};
           break #L2;
         }
@@ -90,14 +90,14 @@ static method test3(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C2;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     {
       hoisted core::int a;
       hoisted core::int b;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t8 = a = #0#6{core::int} in true)) && (#0#7 is{ForNonNullableByDefault} core::int && (let final dynamic #t9 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
+      if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final dynamic #t8 = a = #0#6{core::int} in true)) && (#0#7 is core::int && (let final dynamic #t9 = b = #0#7{core::int} in true)) && (self::captured = (dynamic x) → core::int {
         return a.{core::num::+}(b){(core::num) → core::int};
-      }) is{ForNonNullableByDefault} dynamic) {
+      }) is dynamic) {
         {
           return self::captured!(a = b){(dynamic) → dynamic};
         }
@@ -106,9 +106,9 @@ static method test3(dynamic x) → dynamic {
     {
       hoisted core::String a;
       hoisted core::String b;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::String && (let final dynamic #t10 = a = #0#6{core::String} in true)) && (#0#7 is{ForNonNullableByDefault} core::String && (let final dynamic #t11 = b = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
+      if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::String && (let final dynamic #t10 = a = #0#6{core::String} in true)) && (#0#7 is core::String && (let final dynamic #t11 = b = #0#7{core::String} in true)) && (self::captured = (dynamic x) → core::String {
         return a.{core::String::+}(b){(core::String) → core::String};
-      }) is{ForNonNullableByDefault} dynamic) {
+      }) is dynamic) {
         {
           return self::captured!(a = b){(dynamic) → dynamic};
         }

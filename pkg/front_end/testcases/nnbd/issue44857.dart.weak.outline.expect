@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 typedef F = (<T extends Never = dynamic>(T) → void) → Never;

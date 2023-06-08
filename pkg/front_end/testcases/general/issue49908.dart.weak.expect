@@ -1,9 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method foo<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(core::bool b, self::foo::T% t, self::foo::S% s) → dynamic {
-  if(t is{ForNonNullableByDefault} core::Object) {
+  if(t is core::Object) {
     return b ?{core::Object?} t{self::foo::T% & core::Object /* '%' & '!' = '!' */} : s;
   }
   else {

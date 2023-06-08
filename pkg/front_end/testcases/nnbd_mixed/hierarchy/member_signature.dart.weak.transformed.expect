@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -155,7 +155,7 @@ abstract class ClassImplementsOptOut extends core::Object implements self::OptOu
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mem;
 import "dart:core" as core;
 

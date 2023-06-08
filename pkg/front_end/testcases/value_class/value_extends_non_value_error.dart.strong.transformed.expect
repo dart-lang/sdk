@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ class Cat extends self::Animal {
     : super self::Animal::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::Cat;
+    return other is{ForLegacy} self::Cat;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
@@ -47,7 +47,7 @@ class Cat2 extends self::Animal2 {
     : super self::Animal2::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::Cat2;
+    return other is{ForLegacy} self::Cat2;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///value_extends_non_value_error.dartCat2".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
@@ -57,7 +57,7 @@ class Cat2 extends self::Animal2 {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

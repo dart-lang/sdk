@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -98,7 +98,7 @@ static method invalidPropertyFn() → core::int {
  - 'List' is from 'dart:core'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'invalidProperty'.
   return x.invalidProperty;
-           ^^^^^^^^^^^^^^^" in #C4{<unresolved>}.invalidProperty as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+           ^^^^^^^^^^^^^^^" in #C4{<unresolved>}.invalidProperty as{TypeError,ForDynamic} core::int;
 }
 static method getWithIndexExceptionFn() → core::int {
   return #C5.{core::List::[]}(1){(core::int) → core::int};
@@ -109,7 +109,7 @@ static method getWithIndexExceptionFn2() → core::int {
 static method getWithIndexExceptionFn3() → core::int {
   return #C5.{core::List::[]}(invalid-expression "pkg/front_end/testcases/const_functions/const_functions_list_error.dart:54:12: Error: A value of type 'double' can't be assigned to a variable of type 'int'.
   return x[0.1];
-           ^" in 0.1 as{TypeError,ForNonNullableByDefault} core::int){(core::int) → core::int};
+           ^" in 0.1 as{TypeError} core::int){(core::int) → core::int};
 }
 static method constListAddExceptionFn() → core::List<core::int> {
   #C4.{core::List::add}(3){(core::int) → void};

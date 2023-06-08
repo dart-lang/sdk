@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -145,43 +145,43 @@ static method main() → void {
 }
 static method testDirect() → void {
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void positional = new self::Direct::•().{self::Direct::positional}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(positional is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(positional is{ForNonNullableByDefault} (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
+  self::isTrue(positional is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(positional is (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
   ([core::int?, core::int?, core::int?, core::int?]) → void optional = new self::Direct::•().{self::Direct::optional}{([core::int?, core::int?, core::int?, core::int?]) → void};
-  self::isTrue(optional is{ForNonNullableByDefault} ([core::int?, core::int?, core::int?, core::int?]) → void);
-  self::isTrue(optional is{ForNonNullableByDefault} ([core::Object?, core::int?, core::Object?, core::int?]) → void);
+  self::isTrue(optional is ([core::int?, core::int?, core::int?, core::int?]) → void);
+  self::isTrue(optional is ([core::Object?, core::int?, core::Object?, core::int?]) → void);
   ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void named = new self::Direct::•().{self::Direct::named}{({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void};
-  self::isTrue(named is{ForNonNullableByDefault} ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void);
-  self::isTrue(named is{ForNonNullableByDefault} ({a: core::Object?, b: core::int?, c: core::Object?, d: core::int?}) → void);
+  self::isTrue(named is ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void);
+  self::isTrue(named is ({a: core::Object?, b: core::int?, c: core::Object?, d: core::int?}) → void);
 }
 static method testInherited() → void {
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void positional = new self::Inherited::•().{self::Direct::positional}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(positional is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(positional is{ForNonNullableByDefault} (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
+  self::isTrue(positional is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(positional is (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
   ([core::int?, core::int?, core::int?, core::int?]) → void optional = new self::Inherited::•().{self::Direct::optional}{([core::int?, core::int?, core::int?, core::int?]) → void};
-  self::isTrue(optional is{ForNonNullableByDefault} ([core::int?, core::int?, core::int?, core::int?]) → void);
-  self::isTrue(optional is{ForNonNullableByDefault} ([core::Object?, core::int?, core::Object?, core::int?]) → void);
+  self::isTrue(optional is ([core::int?, core::int?, core::int?, core::int?]) → void);
+  self::isTrue(optional is ([core::Object?, core::int?, core::Object?, core::int?]) → void);
   ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void named = new self::Inherited::•().{self::Direct::named}{({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void};
-  self::isTrue(named is{ForNonNullableByDefault} ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void);
-  self::isTrue(named is{ForNonNullableByDefault} ({a: core::Object?, b: core::int?, c: core::Object?, d: core::int?}) → void);
+  self::isTrue(named is ({a: core::int?, b: core::int?, c: core::int?, d: core::int?}) → void);
+  self::isTrue(named is ({a: core::Object?, b: core::int?, c: core::Object?, d: core::int?}) → void);
 }
 static method testOverridden() → void {
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void method2 = new self::Override2::•().{self::Override2::method}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(method2 is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(method2 is{ForNonNullableByDefault} (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
+  self::isTrue(method2 is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(method2 is (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void method3 = new self::Override3::•().{self::Override3::method}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(method3 is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(method3 is{ForNonNullableByDefault} (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
+  self::isTrue(method3 is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(method3 is (core::Object?, core::int?, core::Object?, core::int?, core::int?) → void);
 }
 static method testImplemented() → void {
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void method = new self::Implement5::•().{self::Implement5::method}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(method is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(method is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) → void);
+  self::isTrue(method is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(method is (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) → void);
 }
 static method testMixed() → void {
   (core::int?, core::int?, core::int?, core::int?, core::int?) → void method = new self::Mixed::•().{self::Mixed::method}{(core::int?, core::int?, core::int?, core::int?, core::int?) → void};
-  self::isTrue(method is{ForNonNullableByDefault} (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
-  self::isTrue(method is{ForNonNullableByDefault} (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) → void);
+  self::isTrue(method is (core::int?, core::int?, core::int?, core::int?, core::int?) → void);
+  self::isTrue(method is (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) → void);
 }
 static method isTrue(core::bool value) → void {
   if(!value)

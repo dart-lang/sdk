@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -55,42 +55,42 @@ static method test() → void {
   self::f0(<core::int>[3]);
   self::f0(<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:16:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int]);
+                                                                   ^" in "hello" as{TypeError} core::int]);
   self::f0(<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:17:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   f0(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
-                                                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3]);
+                                                                   ^" in "hello" as{TypeError} core::int, 3]);
   self::f1(a: <core::int>[]);
   self::f1(a: <core::int>[3]);
   self::f1(a: <core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:21:71: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   f1(a: /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                      ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int]);
+                                                                      ^" in "hello" as{TypeError} core::int]);
   self::f1(a: <core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:23:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3]);
+                                               ^" in "hello" as{TypeError} core::int, 3]);
   self::f2(<core::int>[]);
   self::f2(<core::int>[3]);
   self::f2(<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:29:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int]);
+                                                                   ^" in "hello" as{TypeError} core::int]);
   self::f2(<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:30:68: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   f2(/*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\", 3]);
-                                                                   ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3]);
+                                                                   ^" in "hello" as{TypeError} core::int, 3]);
   self::f3(<core::Iterable<core::int>>[]);
   self::f3(<core::Iterable<core::int>>[<core::int>[3]]);
   self::f3(<core::Iterable<core::int>>[<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:37:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int]]);
+                                                                  ^" in "hello" as{TypeError} core::int]]);
   self::f3(<core::Iterable<core::int>>[<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:40:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int], <core::int>[3]]);
+                                                                  ^" in "hello" as{TypeError} core::int], <core::int>[3]]);
   self::f4(a: <core::Iterable<core::int>>[]);
   self::f4(a: <core::Iterable<core::int>>[<core::int>[3]]);
   self::f4(a: <core::Iterable<core::int>>[<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:49:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int]]);
+                                                                  ^" in "hello" as{TypeError} core::int]]);
   self::f4(a: <core::Iterable<core::int>>[<core::int>[invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_function_arguments_infer_downwards.dart:52:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int], <core::int>[3]]);
+                                                                  ^" in "hello" as{TypeError} core::int], <core::int>[3]]);
 }
 static method main() → dynamic {}
 

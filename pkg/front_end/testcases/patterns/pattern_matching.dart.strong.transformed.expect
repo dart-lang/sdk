@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -34,14 +34,14 @@ static method calculateArea(self::Shape shape) → core::double
     {
       {
         hoisted core::double l;
-        if(#0#0 is{ForNonNullableByDefault} self::Square && (let final core::double #t2 = l = #0#0{self::Square}.{self::Square::length}{core::double} in true)) {
+        if(#0#0 is self::Square && (let final core::double #t2 = l = #0#0{self::Square}.{self::Square::length}{core::double} in true)) {
           #t1 = l.{core::double::*}(l){(core::num) → core::double};
           break #L1;
         }
       }
       {
         hoisted core::double r;
-        if(#0#0 is{ForNonNullableByDefault} self::Circle && (let final core::double #t3 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true)) {
+        if(#0#0 is self::Circle && (let final core::double #t3 = r = #0#0{self::Circle}.{self::Circle::radius}{core::double} in true)) {
           #t1 = #C1.{core::double::*}(r){(core::num) → core::double}.{core::double::*}(r){(core::num) → core::double};
           break #L1;
         }

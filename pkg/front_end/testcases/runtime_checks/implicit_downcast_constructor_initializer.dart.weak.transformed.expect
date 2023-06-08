@@ -1,11 +1,11 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 class C extends core::Object {
   field core::bool* b;
   constructor •(core::Object* o) → self::C*
-    : self::C::b = o as{TypeError} core::bool*, super core::Object::•()
+    : self::C::b = o as{TypeError,ForLegacy} core::bool*, super core::Object::•()
     ;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode

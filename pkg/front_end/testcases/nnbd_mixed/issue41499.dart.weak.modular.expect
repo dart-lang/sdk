@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -50,7 +50,7 @@ LegacyFoo test() {}
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as self2;
 
 typedef LegacyFoo = () →* void;

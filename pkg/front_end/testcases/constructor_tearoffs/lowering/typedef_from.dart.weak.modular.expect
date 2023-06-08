@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -94,7 +94,7 @@ static method _#B#fact#tearOff<S extends core::Object? = dynamic>(self::_#B#fact
 static method _#B#redirect#tearOff<S extends core::Object? = dynamic>(self::_#B#redirect#tearOff::S% a) → self::Class<self::_#B#redirect#tearOff::S%, core::int>
   return self::Class::_#redirect#tearOff<self::_#B#redirect#tearOff::S%, core::int>(a);
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 import "typedef_from.dart" as self;

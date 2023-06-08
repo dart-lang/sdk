@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "required_parameter_mixed_from_opt_out_lib.dart" as req;
@@ -31,7 +31,7 @@ class SubClass extends self::Class {
 }
 static method main() → dynamic {}
 
-library;
+library /*isLegacy*/;
 import self as req;
 import "dart:core" as core;
 

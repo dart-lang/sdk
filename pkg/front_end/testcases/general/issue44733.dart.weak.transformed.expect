@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -68,7 +68,7 @@ abstract class A extends core::Object {
   get y() → invalid-type
     return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:22:20: Error: Superclass has no getter named 'y'.
   F get y => super.y as F;
-                   ^" as{ForNonNullableByDefault} invalid-type;
+                   ^" as invalid-type;
 }
 static get x() → self::B
   return invalid-expression "pkg/front_end/testcases/general/issue44733.dart:9:12: Error: Expected identifier, but got 'super'.

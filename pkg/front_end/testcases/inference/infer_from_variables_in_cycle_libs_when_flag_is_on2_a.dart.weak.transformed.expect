@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,7 +12,7 @@ class A extends core::Object {
 }
 static method main() → dynamic {}
 
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self2;
 import "dart:core" as core;
 import "infer_from_variables_in_cycle_libs_when_flag_is_on2_a.dart" as self;

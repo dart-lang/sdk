@@ -261,7 +261,7 @@ part 'test.dart';
   }
 
   Future<void> test_local_addImport_relUri() async {
-    testFile = convertPath('/home/test/bin/test.dart');
+    testFilePath = convertPath('/home/test/bin/test.dart');
     newFile('/home/test/bin/aa/bbb/lib_a.dart', r'''
 class MyClass {}
 ''');

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "error_location_01_lib1.dart" as err;
 import "error_location_01_lib2.dart" as err2;
@@ -11,7 +11,7 @@ static method main() → dynamic {
   err2::bar();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as err;
 import "dart:core" as core;
 
@@ -24,7 +24,7 @@ static method foo() → dynamic {
   new err::Foo::•(0);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

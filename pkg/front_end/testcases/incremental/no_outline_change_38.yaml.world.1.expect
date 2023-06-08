@@ -21,6 +21,6 @@ library from "org-dartlang-test:///main.dart" as main {
       ;
   }
   static method foo(main::X x) → dart.core::int? {
-    return x is{ForNonNullableByDefault} lib::Y ?{dart.core::int?} x{lib::Y}.{lib::Y::foo}{dart.core::int} : null;
+    return x is lib::Y ?{dart.core::int?} x{lib::Y}.{lib::Y::foo}{dart.core::int} : null;
   }
 }

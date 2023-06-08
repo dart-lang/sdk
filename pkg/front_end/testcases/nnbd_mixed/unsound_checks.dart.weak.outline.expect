@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -149,7 +149,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic
 static method throws(() →* void f, [(core::Object*) →* core::bool* testException]) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

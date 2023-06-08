@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -113,7 +113,7 @@ class Foo extends core::Object /*hasConstConstructor*/  {
   const constructor withInvalidCondition(core::int x) → self::Foo
     : self::Foo::x = x, assert(invalid-expression "pkg/front_end/testcases/general/constants/const_asserts2.dart:17:51: Error: A value of type 'int' can't be assigned to a variable of type 'bool'.
   const Foo.withInvalidCondition(this.x) : assert(x);
-                                                  ^" in x as{TypeError,ForNonNullableByDefault} core::bool), super core::Object::•()
+                                                  ^" in x as{TypeError} core::bool), super core::Object::•()
     ;
 }
 class Bar extends core::Object /*hasConstConstructor*/  {

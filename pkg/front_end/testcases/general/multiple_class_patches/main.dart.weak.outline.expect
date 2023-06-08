@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "dart:test";
@@ -8,7 +8,7 @@ static method main() → dynamic
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:_internal" as _in;
 import "dart:core" as core;

@@ -420,7 +420,7 @@ class B extends A {
     {
       // end position should be on "m1", not on "m2", "m3", etc.
       var endPosition = change.selection!;
-      expect(endPosition.file, testFile);
+      expect(endPosition.file, testFile.path);
       var endOffset = endPosition.offset;
       var endString = expectedCode.substring(endOffset, endOffset + 25);
       expect(endString, contains('m1'));

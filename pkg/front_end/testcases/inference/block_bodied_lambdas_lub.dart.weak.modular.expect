@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:math" as math;
@@ -15,6 +15,6 @@ static method test2(core::List<core::num*>* o) → dynamic {
     }
   }){((core::num*) →* core::num*) →* core::Iterable<core::num*>*};
   core::Iterable<core::num*>* w = y;
-  core::Iterable<core::int*>* z = y as{TypeError} core::Iterable<core::int*>*;
+  core::Iterable<core::int*>* z = y as{TypeError,ForLegacy} core::Iterable<core::int*>*;
 }
 static method main() → dynamic {}

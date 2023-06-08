@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -170,12 +170,12 @@ static method duplicateRecordPatternField(dynamic o) → dynamic {
   #L3:
   {
     final synthesized dynamic #0#0 = o;
-    late final synthesized core::int #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
+    late final synthesized core::int #0#2 = (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
     {
       if(invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:36:28: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case (field: 1, field: 2): // Error
-                           ^" || #0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final dynamic #t3 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
+                           ^" || #0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 && (let final dynamic #t3 = #0#2 in invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:37:33: Error: The field 'field' is already matched in this pattern.
 Try removing the duplicate field.
     case Class(field: 1, field: 2): // Error
                                 ^")) {
@@ -191,7 +191,7 @@ static method duplicateRestPattern(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     {
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
+      if(#0#0 is core::List<dynamic> && #0#0{core::List<dynamic>}.{core::List::length}{core::int}.{core::num::>=}(#C2){(core::num) → core::bool} && invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:44:16: Error: At most one rest element is allowed in a list or map pattern.
 Try removing the duplicate rest element.
     case [..., ...]: // Error
                ^" || invalid-expression "pkg/front_end/testcases/patterns/shared_errors.dart:45:11: Error: The '...' pattern can't appear in map patterns.
@@ -260,7 +260,7 @@ static method refutablePatternInIrrefutableContext(core::int? x) → dynamic {
 static method restPatternNotLastInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) {
+    if(#0#0 is core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) {
       core::print(0);
     }
   }
@@ -268,7 +268,7 @@ static method restPatternNotLastInMap(dynamic o) → dynamic {
 static method restPatternWithSubPatternInMap(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
-    if(#0#0 is{ForNonNullableByDefault} core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) {
+    if(#0#0 is core::Map<dynamic, dynamic> && #0#0{core::Map<dynamic, dynamic>}.{core::Map::containsKey}(#C4){(core::Object?) → core::bool} && #C5 =={core::num::==}{(core::Object) → core::bool} #0#0{core::Map<dynamic, dynamic>}.{core::Map::[]}(#C4){(core::Object?) → dynamic}) {
       core::print(0);
     }
   }

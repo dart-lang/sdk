@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "deferred_explicit_access_lib.dart" as def;
 import "dart:core" as core;
@@ -20,7 +20,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as def;
 import "dart:core" as core;
 

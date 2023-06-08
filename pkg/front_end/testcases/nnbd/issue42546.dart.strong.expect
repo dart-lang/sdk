@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -27,15 +27,15 @@ class Divergent<T extends core::Object? = dynamic> extends core::Object implemen
   method noSuchMethod(core::Invocation invocation) → dynamic
     return super.{core::Object::noSuchMethod}(invocation);
   no-such-method-forwarder method then<R extends core::Object? = dynamic>((self::Divergent<self::Divergent<self::Divergent::T%>>) → FutureOr<self::Divergent::then::R%>onValue, {core::Function? onError = #C1}) → asy::Future<self::Divergent::then::R%>
-    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, core::List::unmodifiable<core::Type*>(<core::Type*>[self::Divergent::then::R%]), core::List::unmodifiable<dynamic>(<dynamic>[onValue]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C3: onError}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent::then::R%>;
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, core::List::unmodifiable<core::Type*>(<core::Type*>[self::Divergent::then::R%]), core::List::unmodifiable<dynamic>(<dynamic>[onValue]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C3: onError}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::Divergent::then::R%>;
   no-such-method-forwarder method catchError(core::Function onError, {(core::Object) →? core::bool test = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
-    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C6: test}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[onError]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C6: test}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
   no-such-method-forwarder method whenComplete(() → FutureOr<void>action) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
-    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C8))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[action]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C8))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
   no-such-method-forwarder method asStream() → asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>
-    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C5, #C10, core::Map::unmodifiable<core::Symbol*, dynamic>(#C8))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C5, #C10, core::Map::unmodifiable<core::Symbol*, dynamic>(#C8))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Stream<self::Divergent<self::Divergent<self::Divergent::T%>>>;
   no-such-method-forwarder method timeout(core::Duration timeLimit, {covariant-by-class () →? FutureOr<self::Divergent<self::Divergent<self::Divergent::T%>>>onTimeout = #C1}) → asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>
-    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C12: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
+    return this.{self::Divergent::noSuchMethod}(new core::_InvocationMirror::_withType(#C11, 0, #C5, core::List::unmodifiable<dynamic>(<dynamic>[timeLimit]), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C12: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::Divergent<self::Divergent<self::Divergent::T%>>>;
 }
 static method test() → dynamic async /* futureValueType= dynamic */ {
   asy::Future<self::Divergent<self::Divergent<core::int>>> x = invalid-expression "pkg/front_end/testcases/nnbd/issue42546.dart:14:75: Error: A value of type 'Future<Divergent<Divergent<Divergent<int>>>>' can't be assigned to a variable of type 'Future<Divergent<Divergent<int>>>'.
@@ -46,7 +46,7 @@ static method test() → dynamic async /* futureValueType= dynamic */ {
  - 'Divergent' is from 'pkg/front_end/testcases/nnbd/issue42546.dart'.
  - 'Future' is from 'dart:async'.
   Future<Divergent<Divergent<int>>> x = (() async => new Divergent<int>())();
-                                                         ^" in new self::Divergent::•<core::int>() as{TypeError,ForNonNullableByDefault} self::Divergent<self::Divergent<self::Divergent<core::int>>>)(){() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>>} as{TypeError,ForNonNullableByDefault} asy::Future<self::Divergent<self::Divergent<core::int>>>;
+                                                         ^" in new self::Divergent::•<core::int>() as{TypeError} self::Divergent<self::Divergent<self::Divergent<core::int>>>)(){() → asy::Future<self::Divergent<self::Divergent<self::Divergent<core::int>>>>} as{TypeError} asy::Future<self::Divergent<self::Divergent<core::int>>>;
 }
 static method main() → dynamic {}
 

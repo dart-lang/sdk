@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -31,11 +31,11 @@ static method test(core::String s, core::int y) → dynamic async /* futureValue
     synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:9:17: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (int x in s) {}
-                ^" in s as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                ^" in s as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t1 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        core::int x = #t1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        core::int x = #t1 as{TypeError,ForDynamic} core::int;
       }
     }
   }
@@ -43,13 +43,13 @@ static method test(core::String s, core::int y) → dynamic async /* futureValue
     synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:10:23: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (int x in s) {}
-                      ^" in s as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>;
+                      ^" in s as{TypeError} asy::Stream<dynamic>;
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t2 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t3 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
-          core::int x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          core::int x = #t3 as{TypeError,ForDynamic} core::int;
         }
       }
     finally
@@ -60,11 +60,11 @@ static method test(core::String s, core::int y) → dynamic async /* futureValue
     synthesized core::Iterator<Never> :sync-for-iterator = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:11:13: Error: The type 'String' used in the 'for' loop must implement 'Iterable<dynamic>'.
  - 'Iterable' is from 'dart:core'.
   for (y in s) {}
-            ^" in s as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+            ^" in s as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        y = #t4 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+        y = #t4 as{TypeError,ForDynamic} core::int;
       }
     }
   }
@@ -72,13 +72,13 @@ static method test(core::String s, core::int y) → dynamic async /* futureValue
     synthesized Never :stream = invalid-expression "pkg/front_end/testcases/inference_new/for_each_invalid_iterable.dart:12:19: Error: The type 'String' used in the 'for' loop must implement 'Stream<dynamic>'.
  - 'Stream' is from 'dart:async'.
   await for (y in s) {}
-                  ^" in s as{TypeError,ForNonNullableByDefault} asy::Stream<dynamic>;
+                  ^" in s as{TypeError} asy::Stream<dynamic>;
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t5 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         final dynamic #t6 = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
-          y = #t6 as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+          y = #t6 as{TypeError,ForDynamic} core::int;
         }
       }
     finally

@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -19,8 +19,8 @@ import "dart:math" as math;
 import "dart:math";
 
 static method f(core::num x, dynamic y) → dynamic {
-  core::num a = math::max<core::num>(x, y as{TypeError,ForDynamic,ForNonNullableByDefault} core::num);
-  core::Object b = math::max<core::num>(x, y as{TypeError,ForDynamic,ForNonNullableByDefault} core::num);
+  core::num a = math::max<core::num>(x, y as{TypeError,ForDynamic} core::num);
+  core::Object b = math::max<core::num>(x, y as{TypeError,ForDynamic} core::num);
   dynamic c = math::max<dynamic>(x, y);
   dynamic d = math::max<dynamic>(x, y);
 }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -119,12 +119,12 @@ class A extends core::Object {
   constructor constructor5([core::int? i = #C6]) → self::A
     : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
-                 ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+                 ^" in i as{TypeError} core::int, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C6}) → self::A
     : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
-                 ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+                 ^" in i as{TypeError} core::int, super core::Object::•()
     ;
   constructor constructor7({required core::int i = #C6}) → self::A
     : self::A::i = i, super core::Object::•()
@@ -182,12 +182,12 @@ class C extends core::Object implements self::B {
   constructor constructor5([core::int? i = #C6]) → self::C
     : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor5([int? i]) : this.i = i; // error
-                                      ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+                                      ^" in i as{TypeError} core::int, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C6}) → self::C
     : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor6({int? i}) : this.i = i; // error
-                                      ^" in i as{TypeError,ForNonNullableByDefault} core::int, super core::Object::•()
+                                      ^" in i as{TypeError} core::int, super core::Object::•()
     ;
   constructor constructor7({required core::int i = #C6}) → self::C
     : self::C::i = i, super core::Object::•()

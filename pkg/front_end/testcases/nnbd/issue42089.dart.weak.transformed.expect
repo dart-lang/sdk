@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,7 +16,7 @@ import self as self;
 import "dart:core" as core;
 
 static method test<X extends core::Object? = dynamic>(self::test::X? x) → dynamic {
-  if(x is{ForNonNullableByDefault} core::String?) {
+  if(x is core::String?) {
     core::Object o = invalid-expression "pkg/front_end/testcases/nnbd/issue42089.dart:7:16: Error: A value of type 'X?' can't be assigned to a variable of type 'Object' because 'X?' is nullable and 'Object' isn't.
  - 'Object' is from 'dart:core'.
     Object o = x;

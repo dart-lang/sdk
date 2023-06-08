@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -45,7 +45,7 @@ abstract class _MixinOnAB&A&B extends core::Object implements mai::A, mai::B /*i
 abstract class MixinOnAB extends self::_MixinOnAB&A&B /*isMixinDeclaration*/  {
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

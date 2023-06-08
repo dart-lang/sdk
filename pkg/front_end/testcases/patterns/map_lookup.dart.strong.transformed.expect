@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -53,35 +53,35 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
 static field core::String unsoundResult = #C2;
 static field core::String soundResult = #C3;
 static get hasUnsoundNullSafety() → core::bool
-  return #C4 is{ForNonNullableByDefault} core::List<core::Object>;
+  return #C4 is core::List<core::Object>;
 static method test1(core::Object o) → core::String {
   #L1:
   {
     final synthesized core::Object #0#0 = o;
     function ##0#4#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C5){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
     function ##0#3#initializer() → core::bool
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
     late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
     function ##0#6#initializer() → core::bool
-      return #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t1 = #0#4 in #t1 == null ?{core::int} #t1 as{ForNonNullableByDefault,Unchecked} core::int : #t1{core::int});
+      return #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t1 = #0#4 in #t1 == null ?{core::int} #t1 as{Unchecked} core::int : #t1{core::int});
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#9#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     function ##0#8#initializer() → core::bool
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
     late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+      if(#0#0 is core::Map<core::String, core::int> && (!(#0#4 == null) || null is core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is core::int && #0#8) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
         {
           return "match-2";
         }
       }
     }
     {
-      if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+      if(#0#0 is core::Map<core::String, core::int> && (!(#0#4 == null) || null is core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is core::int && #0#8) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
         {
           return "match-3";
         }
@@ -101,30 +101,30 @@ static method test2(core::Object o) → core::String
     core::String #t2;
     final synthesized core::Object #0#0 = o;
     function ##0#4#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C5){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
     function ##0#3#initializer() → core::bool
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C5){(core::Object?) → core::bool};
     late final synthesized core::bool #0#3 = ##0#3#initializer(){() → core::bool};
     function ##0#6#initializer() → core::bool
-      return #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t3 = #0#4 in #t3 == null ?{core::int} #t3 as{ForNonNullableByDefault,Unchecked} core::int : #t3{core::int});
+      return #C6 =={core::num::==}{(core::Object) → core::bool} (let core::int? #t3 = #0#4 in #t3 == null ?{core::int} #t3 as{Unchecked} core::int : #t3{core::int});
     late final synthesized core::bool #0#6 = ##0#6#initializer(){() → core::bool};
     function ##0#9#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #0#9 = ##0#9#initializer(){() → core::int?};
     function ##0#8#initializer() → core::bool
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
+      return (#0#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C7){(core::Object?) → core::bool};
     late final synthesized core::bool #0#8 = ##0#8#initializer(){() → core::bool};
     #L2:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+        if(#0#0 is core::Map<core::String, core::int> && (!(#0#4 == null) || null is core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is core::int && #0#8) && #C8 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
           #t2 = "match-2";
           break #L2;
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Map<core::String, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is{ForNonNullableByDefault} core::int && #0#8) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
+        if(#0#0 is core::Map<core::String, core::int> && (!(#0#4 == null) || null is core::int && #0#3) && #0#6 && (!(#0#9 == null) || null is core::int && #0#8) && #C9 =={core::num::==}{(core::Object) → core::bool} #0#9{core::int}) {
           #t2 = "match-3";
           break #L2;
         }
@@ -150,12 +150,12 @@ static method main() → dynamic {
   {
     final synthesized dynamic #0#0 = map;
     function ##0#3#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
     function ##0#6#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C7){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #0#6 = ##0#6#initializer(){() → core::int?};
-    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final core::int #t4 = x1 = #0#3{core::int} in true) && (!(#0#6 == null) || null is{ForNonNullableByDefault} core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool}) && (let final core::int #t5 = x2 = #0#6{core::int} in true)))
+    if(!((!(#0#3 == null) || null is core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final core::int #t4 = x1 = #0#3{core::int} in true) && (!(#0#6 == null) || null is core::int && #0#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool}) && (let final core::int #t5 = x2 = #0#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});
@@ -165,12 +165,12 @@ static method main() → dynamic {
   {
     final synthesized dynamic #1#0 = map;
     function ##1#3#initializer() → core::int?
-      return (#1#0 as{ForNonNullableByDefault,Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
+      return (#1#0 as{Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C5){(core::Object?) → core::int?};
     late final synthesized core::int? #1#3 = ##1#3#initializer(){() → core::int?};
     function ##1#6#initializer() → core::int?
-      return (#1#0 as{ForNonNullableByDefault,Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C7){(core::Object?) → core::int?};
+      return (#1#0 as{Unchecked} self::MyMap<core::String, core::int>).{self::MyMap::[]}(#C7){(core::Object?) → core::int?};
     late final synthesized core::int? #1#6 = ##1#6#initializer(){() → core::int?};
-    if(!((!(#1#3 == null) || null is{ForNonNullableByDefault} core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final core::int #t6 = y1 = #1#3{core::int} in true) && (!(#1#6 == null) || null is{ForNonNullableByDefault} core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool}) && (let final core::int #t7 = y2 = #1#6{core::int} in true)))
+    if(!((!(#1#3 == null) || null is core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C5){(core::Object?) → core::bool}) && (let final core::int #t6 = y1 = #1#3{core::int} in true) && (!(#1#6 == null) || null is core::int && #1#0{self::MyMap<core::String, core::int>}.{self::MyMap::containsKey}(#C7){(core::Object?) → core::bool}) && (let final core::int #t7 = y2 = #1#6{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect(self::hasUnsoundNullSafety ?{core::String} self::unsoundResult : self::soundResult, map.{self::MyMap::log}{core::String});

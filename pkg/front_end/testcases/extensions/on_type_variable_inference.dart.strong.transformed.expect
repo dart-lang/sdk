@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -105,7 +105,7 @@ static method main() → dynamic {
   self::Extension|method<self::Struct*>(struct);
   self::Extension|set#property<self::Struct*>(struct, self::Extension|get#property<self::StructA*>(structA));
   self::Extension|method<self::StructA*>(structA);
-  self::Extension|set#property<self::StructA*>(structA, self::Extension|get#property<self::Struct*>(struct) as{TypeError} self::StructA*);
+  self::Extension|set#property<self::StructA*>(structA, self::Extension|get#property<self::Struct*>(struct) as{TypeError,ForLegacy} self::StructA*);
   self::Extension|method<self::StructB*>(structB);
   self::Extension|set#property<self::StructB*>(structB, self::Extension|get#property<self::StructB*>(structB));
   self::Extension|method<self::Struct*>(new self::Struct::•());

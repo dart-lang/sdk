@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -118,60 +118,60 @@ Try correcting the name to the name of an existing getter, or defining a getter 
 method3d<T extends (int, String), S extends T>(S t) => t.a; // Error
                                                          ^" in t{<unresolved>}.a;
 static method method1<T extends core::Object? = dynamic>(self::method1::T% t) → void {
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     t{self::method1::T% & (core::int, core::String) /* '%' & '!' = '!' */}.$1{core::int};
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     t{self::method1::T% & (core::int, core::String) /* '%' & '!' = '!' */}.$2{core::String};
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:23:30: Error: The getter '\$3' isn't defined for the class '(int, String)'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$3'.
   if (t is (int, String))  t.\$3; // Error
                              ^^" in t{self::method1::T% & (core::int, core::String) /* '%' & '!' = '!' */}{<unresolved>}.$3;
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:24:30: Error: The getter 'a' isn't defined for the class '(int, String)'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'a'.
   if (t is (int, String))  t.a; // Error
                              ^" in t{self::method1::T% & (core::int, core::String) /* '%' & '!' = '!' */}{<unresolved>}.a;
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     t{self::method1::T% & (core::int, {required a: core::String}) /* '%' & '!' = '!' */}.$1{core::int};
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     t{self::method1::T% & (core::int, {required a: core::String}) /* '%' & '!' = '!' */}.a{core::String};
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:28:33: Error: The getter '\$2' isn't defined for the class '(int, {String a})'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$2'.
   if (t is (int, {String a})) t.\$2; // Error
                                 ^^" in t{self::method1::T% & (core::int, {required a: core::String}) /* '%' & '!' = '!' */}{<unresolved>}.$2;
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:29:33: Error: The getter 'b' isn't defined for the class '(int, {String a})'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
   if (t is (int, {String a})) t.b; // Error
                                 ^" in t{self::method1::T% & (core::int, {required a: core::String}) /* '%' & '!' = '!' */}{<unresolved>}.b;
 }
 static method method2(core::Object t) → void {
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     t{(core::int, core::String)}.$1{core::int};
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     t{(core::int, core::String)}.$2{core::String};
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:35:30: Error: The getter '\$3' isn't defined for the class '(int, String)'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$3'.
   if (t is (int, String))  t.\$3; // Error
                              ^^" in t{(core::int, core::String)}{<unresolved>}.$3;
-  if(t is{ForNonNullableByDefault} (core::int, core::String))
+  if(t is (core::int, core::String))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:36:30: Error: The getter 'a' isn't defined for the class '(int, String)'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'a'.
   if (t is (int, String))  t.a; // Error
                              ^" in t{(core::int, core::String)}{<unresolved>}.a;
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     t{(core::int, {required a: core::String})}.$1{core::int};
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     t{(core::int, {required a: core::String})}.a{core::String};
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:40:33: Error: The getter '\$2' isn't defined for the class '(int, {String a})'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$2'.
   if (t is (int, {String a})) t.\$2; // Error
                                 ^^" in t{(core::int, {required a: core::String})}{<unresolved>}.$2;
-  if(t is{ForNonNullableByDefault} (core::int, {required a: core::String}))
+  if(t is (core::int, {required a: core::String}))
     invalid-expression "pkg/front_end/testcases/records/access_through_type_variable.dart:41:33: Error: The getter 'b' isn't defined for the class '(int, {String a})'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'b'.
   if (t is (int, {String a})) t.b; // Error

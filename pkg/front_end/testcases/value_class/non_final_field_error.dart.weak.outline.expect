@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "value_class_support_lib.dart" as val;
 import "dart:core" as core;
@@ -14,7 +14,7 @@ class Animal extends core::Object {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

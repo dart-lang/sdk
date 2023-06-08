@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -237,7 +237,7 @@ static method A|(core::int it) → self::A {
 static method A|_#new#tearOff(core::int it) → self::A
   return self::A|(it);
 static method A|methodA(lowered final self::A #this) → core::int
-  return (#this as{ForNonNullableByDefault,Unchecked} core::int).{core::num::+}(5){(core::num) → core::int};
+  return (#this as{Unchecked} core::int).{core::num::+}(5){(core::num) → core::int};
 static method A|get#methodA(lowered final self::A #this) → () → core::int
   return () → core::int => self::A|methodA(#this);
 static method B|<T extends core::Object? = dynamic>(self::B|::T% it) → self::B<self::B|::T%> {
@@ -247,7 +247,7 @@ static method B|<T extends core::Object? = dynamic>(self::B|::T% it) → self::B
 static method B|_#new#tearOff<T extends core::Object? = dynamic>(self::B|_#new#tearOff::T% it) → self::B<self::B|_#new#tearOff::T%>
   return self::B|<self::B|_#new#tearOff::T%>(it);
 static method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%> #this) → self::B|methodB::T%
-  return #this as{ForNonNullableByDefault,Unchecked} self::B|methodB::T%;
+  return #this as{Unchecked} self::B|methodB::T%;
 static method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
 static method C1|(core::int it) → self::C1 {
@@ -257,7 +257,7 @@ static method C1|(core::int it) → self::C1 {
 static method C1|_#new#tearOff(core::int it) → self::C1
   return self::C1|(it);
 static method C1|methodC1(lowered final self::C1 #this) → core::int
-  return (#this as{ForNonNullableByDefault,Unchecked} core::int).{core::num::+}(42){(core::num) → core::int};
+  return (#this as{Unchecked} core::int).{core::num::+}(42){(core::num) → core::int};
 static method C1|get#methodC1(lowered final self::C1 #this) → () → core::int
   return () → core::int => self::C1|methodC1(#this);
 static method C2|(core::int it) → self::C2 {
@@ -267,7 +267,7 @@ static method C2|(core::int it) → self::C2 {
 static method C2|_#new#tearOff(core::int it) → self::C2
   return self::C2|(it);
 static method C2|methodC2(lowered final self::C2 #this) → core::int
-  return (#this as{ForNonNullableByDefault,Unchecked} core::int).{core::num::+}(87){(core::num) → core::int};
+  return (#this as{Unchecked} core::int).{core::num::+}(87){(core::num) → core::int};
 static method C2|get#methodC2(lowered final self::C2 #this) → () → core::int
   return () → core::int => self::C2|methodC2(#this);
 static method D1|(core::int it) → self::D1 {
@@ -277,7 +277,7 @@ static method D1|(core::int it) → self::D1 {
 static method D1|_#new#tearOff(core::int it) → self::D1
   return self::D1|(it);
 static method D1|methodD1(lowered final self::D1 #this) → core::int
-  return (#this as{ForNonNullableByDefault,Unchecked} core::int).{core::num::+}(123){(core::num) → core::int};
+  return (#this as{Unchecked} core::int).{core::num::+}(123){(core::num) → core::int};
 static method D1|get#methodD1(lowered final self::D1 #this) → () → core::int
   return () → core::int => self::D1|methodD1(#this);
 static method errors(self::A a, self::B<core::String> b1, self::B<core::num> b2, self::C1 c1, self::C2 c2, self::D1 d1) → dynamic {
@@ -359,79 +359,79 @@ Try correcting the name to the name of an existing method, or defining a method 
      ^^^^^^^^" in d1{<unresolved>}.methodC2();
   a = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:71:7: Error: A value of type 'B<String>' can't be assigned to a variable of type 'A'.
   a = b1; // Error
-      ^" in b1 as{TypeError,ForNonNullableByDefault} self::A;
+      ^" in b1 as{TypeError} self::A;
   a = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:72:7: Error: A value of type 'B<num>' can't be assigned to a variable of type 'A'.
   a = b2; // Error
-      ^" in b2 as{TypeError,ForNonNullableByDefault} self::A;
+      ^" in b2 as{TypeError} self::A;
   b1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:74:8: Error: A value of type 'A' can't be assigned to a variable of type 'B<String>'.
   b1 = a; // Error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::B<core::String>;
+       ^" in a as{TypeError} self::B<core::String>;
   b1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:75:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'B<String>'.
   b1 = b2; // Error
-       ^" in b2 as{TypeError,ForNonNullableByDefault} self::B<core::String>;
+       ^" in b2 as{TypeError} self::B<core::String>;
   b1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:76:8: Error: A value of type 'C1' can't be assigned to a variable of type 'B<String>'.
   b1 = c1; // Error
-       ^" in c1 as{TypeError,ForNonNullableByDefault} self::B<core::String>;
+       ^" in c1 as{TypeError} self::B<core::String>;
   b1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:77:8: Error: A value of type 'C2' can't be assigned to a variable of type 'B<String>'.
   b1 = c2; // Error
-       ^" in c2 as{TypeError,ForNonNullableByDefault} self::B<core::String>;
+       ^" in c2 as{TypeError} self::B<core::String>;
   b1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:78:8: Error: A value of type 'D1' can't be assigned to a variable of type 'B<String>'.
   b1 = d1; // Error
-       ^" in d1 as{TypeError,ForNonNullableByDefault} self::B<core::String>;
+       ^" in d1 as{TypeError} self::B<core::String>;
   b2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:80:8: Error: A value of type 'A' can't be assigned to a variable of type 'B<num>'.
   b2 = a; // Error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::B<core::num>;
+       ^" in a as{TypeError} self::B<core::num>;
   b2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:81:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'B<num>'.
   b2 = b1; // Error
-       ^" in b1 as{TypeError,ForNonNullableByDefault} self::B<core::num>;
+       ^" in b1 as{TypeError} self::B<core::num>;
   b2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:82:8: Error: A value of type 'C1' can't be assigned to a variable of type 'B<num>'.
   b2 = c1; // Error
-       ^" in c1 as{TypeError,ForNonNullableByDefault} self::B<core::num>;
+       ^" in c1 as{TypeError} self::B<core::num>;
   b2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:83:8: Error: A value of type 'D1' can't be assigned to a variable of type 'B<num>'.
   b2 = d1; // Error
-       ^" in d1 as{TypeError,ForNonNullableByDefault} self::B<core::num>;
+       ^" in d1 as{TypeError} self::B<core::num>;
   c1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:85:8: Error: A value of type 'A' can't be assigned to a variable of type 'C1'.
   c1 = a; // Error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::C1;
+       ^" in a as{TypeError} self::C1;
   c1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:86:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'C1'.
   c1 = b1; // Error
-       ^" in b1 as{TypeError,ForNonNullableByDefault} self::C1;
+       ^" in b1 as{TypeError} self::C1;
   c1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:87:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'C1'.
   c1 = b2; // Error
-       ^" in b2 as{TypeError,ForNonNullableByDefault} self::C1;
+       ^" in b2 as{TypeError} self::C1;
   c1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:88:8: Error: A value of type 'C2' can't be assigned to a variable of type 'C1'.
   c1 = c2; // Error
-       ^" in c2 as{TypeError,ForNonNullableByDefault} self::C1;
+       ^" in c2 as{TypeError} self::C1;
   c2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:90:8: Error: A value of type 'A' can't be assigned to a variable of type 'C2'.
   c2 = a; // Error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::C2;
+       ^" in a as{TypeError} self::C2;
   c2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:91:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'C2'.
   c2 = b1; // Error
-       ^" in b1 as{TypeError,ForNonNullableByDefault} self::C2;
+       ^" in b1 as{TypeError} self::C2;
   c2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:92:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'C2'.
   c2 = b2; // Error
-       ^" in b2 as{TypeError,ForNonNullableByDefault} self::C2;
+       ^" in b2 as{TypeError} self::C2;
   c2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:93:8: Error: A value of type 'C1' can't be assigned to a variable of type 'C2'.
   c2 = c1; // Error
-       ^" in c1 as{TypeError,ForNonNullableByDefault} self::C2;
+       ^" in c1 as{TypeError} self::C2;
   c2 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:94:8: Error: A value of type 'D1' can't be assigned to a variable of type 'C2'.
   c2 = d1; // Error
-       ^" in d1 as{TypeError,ForNonNullableByDefault} self::C2;
+       ^" in d1 as{TypeError} self::C2;
   d1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:96:8: Error: A value of type 'A' can't be assigned to a variable of type 'D1'.
   d1 = a; // Error
-       ^" in a as{TypeError,ForNonNullableByDefault} self::D1;
+       ^" in a as{TypeError} self::D1;
   d1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:97:8: Error: A value of type 'B<String>' can't be assigned to a variable of type 'D1'.
   d1 = b1; // Error
-       ^" in b1 as{TypeError,ForNonNullableByDefault} self::D1;
+       ^" in b1 as{TypeError} self::D1;
   d1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:98:8: Error: A value of type 'B<num>' can't be assigned to a variable of type 'D1'.
   d1 = b2; // Error
-       ^" in b2 as{TypeError,ForNonNullableByDefault} self::D1;
+       ^" in b2 as{TypeError} self::D1;
   d1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:99:8: Error: A value of type 'C1' can't be assigned to a variable of type 'D1'.
   d1 = c1; // Error
-       ^" in c1 as{TypeError,ForNonNullableByDefault} self::D1;
+       ^" in c1 as{TypeError} self::D1;
   d1 = invalid-expression "pkg/front_end/testcases/inline_class/implements.dart:100:8: Error: A value of type 'C2' can't be assigned to a variable of type 'D1'.
   d1 = c2; // Error
-       ^" in c2 as{TypeError,ForNonNullableByDefault} self::D1;
+       ^" in c2 as{TypeError} self::D1;
 }
 static method method(self::A a, self::B<core::String> b1, self::B<core::num> b2, self::C1 c1, self::C2 c2, self::D1 d1) → dynamic {
   self::expect(0.{core::num::+}(5){(core::num) → core::int}, self::A|methodA(a));

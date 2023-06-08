@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///export_twice_lib1.dart";
@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///export_twice_lib2.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -24,7 +24,7 @@ static method Extension|method(lowered final self2::Class #this) → dynamic
 static method Extension|get#method(lowered final self2::Class #this) → () → dynamic
   return () → dynamic => self2::Extension|method(#this);
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "export_twice_lib1.dart" as self2;
 additionalExports = (self2::Extension)

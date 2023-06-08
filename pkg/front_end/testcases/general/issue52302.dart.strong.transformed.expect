@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue52302_lib.dart" as iss;
@@ -17,7 +17,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     return _in::CastIterable::•<core::int, self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
     core::Iterable<core::int> self = this;
-    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+    if(self is _in::EfficientLengthIterable<core::int>) {
       return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
     }
     return new _in::FollowedByIterable::•<core::int>(this, other);
@@ -130,7 +130,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
     return col::LinkedHashSet::of<core::int>(this);
   get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
-    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    assert(!(this is _in::EfficientLengthIterable<dynamic>));
     core::int count = 0;
     core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     while (it.{core::Iterator::moveNext}(){() → core::bool}) {
@@ -290,7 +290,7 @@ abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Objec
 }
 static method main() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -306,7 +306,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     return _in::CastIterable::•<core::int, iss::MixesInMixin::cast::R%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
     core::Iterable<core::int> self = this;
-    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+    if(self is _in::EfficientLengthIterable<core::int>) {
       return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
     }
     return new _in::FollowedByIterable::•<core::int>(this, other);
@@ -419,7 +419,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
     return col::LinkedHashSet::of<core::int>(this);
   get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
-    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    assert(!(this is _in::EfficientLengthIterable<dynamic>));
     core::int count = 0;
     core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     while (it.{core::Iterator::moveNext}(){() → core::bool}) {

@@ -43,7 +43,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
     expect(codeResult, expectedCode.code);
 
     // Check selection/position.
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, expectedCode.position.offset);
 
     // And linked edits.
@@ -52,7 +52,7 @@ abstract class DartSnippetProducerTest extends AbstractSingleUnitTest {
           (range) => {
             'positions': [
               {
-                'file': testFile,
+                'file': testFile.path,
                 'offset': range.sourceRange.offset,
               },
             ],
@@ -118,14 +118,14 @@ abstract class FlutterSnippetProducerTest extends DartSnippetProducerTest {
     final code = SourceEdit.applySequence('', change.edits.single.edits);
     expect(code, expected.code);
 
-    expect(change.selection!.file, testFile);
+    expect(change.selection!.file, testFile.path);
     expect(change.selection!.offset, expected.range.sourceRange.offset);
     expect(change.selectionLength, expected.range.sourceRange.length);
     expect(change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
           for (final position in expected.positions)
-            {'file': testFile, 'offset': position.offset},
+            {'file': testFile.path, 'offset': position.offset},
         ],
         'length': linkedGroupText.length,
         'suggestions': []

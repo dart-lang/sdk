@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,7 +14,7 @@ static method _extension#0|get#_foo(lowered final core::int #this) → <T extend
   return <T extends core::Object? = dynamic>((T%) → void x, {T% a = #C1}) → void => self::_extension#0|_foo<T%>(#this, x, a: a);
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

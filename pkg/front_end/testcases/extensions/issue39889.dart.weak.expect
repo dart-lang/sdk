@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -17,5 +17,5 @@ static method E|get#f(lowered final self::C #this) → (core::String) → void
 static method main() → void {
   dynamic b = "456";
   self::C c = new self::C::•();
-  self::E|f(c, b as{TypeError,ForDynamic,ForNonNullableByDefault} core::String);
+  self::E|f(c, b as{TypeError,ForDynamic} core::String);
 }

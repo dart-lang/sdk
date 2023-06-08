@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -7,7 +7,7 @@ import "return_async_promoted_lib.dart" as ret;
 import "org-dartlang-testcase:///return_async_promoted_lib.dart";
 
 static method main() → void {
-  <T extends core::Object? = dynamic>(dynamic) → asy::Future<core::int> f = <T extends core::Object? = dynamic>(dynamic o) → asy::Future<core::int> async /* futureValueType= core::int */ => o is{ForNonNullableByDefault} core::int ?{core::int} o{core::int} : throw "";
+  <T extends core::Object? = dynamic>(dynamic) → asy::Future<core::int> f = <T extends core::Object? = dynamic>(dynamic o) → asy::Future<core::int> async /* futureValueType= core::int */ => o is core::int ?{core::int} o{core::int} : throw "";
   () → asy::Future<core::int> g = () → asy::Future<core::int> async /* futureValueType= core::int* */ => ret::legacy();
 }
 static method nullable() → core::int?
@@ -15,7 +15,7 @@ static method nullable() → core::int?
 static method nonNullable() → core::int?
   return 0;
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -31,7 +31,7 @@ import "return_async_promoted.dart" as self;
 import "org-dartlang-testcase:///return_async_promoted.dart";
 
 static method legacy() → core::int* {
-  <T extends core::Object* = dynamic>(dynamic) →* asy::Future<core::int*>* f = <T extends core::Object* = dynamic>(dynamic o) → asy::Future<core::int*>* async /* futureValueType= core::int* */ => o is core::int* ?{core::int*} o{core::int*} : throw "";
+  <T extends core::Object* = dynamic>(dynamic) →* asy::Future<core::int*>* f = <T extends core::Object* = dynamic>(dynamic o) → asy::Future<core::int*>* async /* futureValueType= core::int* */ => o is{ForLegacy} core::int* ?{core::int*} o{core::int*} : throw "";
   () →* asy::Future<core::int*>* g = () → asy::Future<core::int*>* async /* futureValueType= core::int* */ => self::nullable();
   () →* asy::Future<core::int*>* h = () → asy::Future<core::int*>* async /* futureValueType= core::int* */ => self::nonNullable();
   return null;

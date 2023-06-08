@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,7 +16,7 @@ class A extends core::Object {
 }
 class B extends self::A {
   constructor •(dynamic x) → self::B
-    : super self::A::•(x as{TypeError,ForDynamic,ForNonNullableByDefault} core::int)
+    : super self::A::•(x as{TypeError,ForDynamic} core::int)
     ;
   method method() → dynamic {
     core::print("B.method x: ${this.{self::A::x}{core::int}} y: ${this.{self::A::y}{core::int}}");

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -255,22 +255,22 @@ static method Extension|set#property3<T extends core::num>(lowered final core::i
 static method Extension|get#property4a<T extends core::num>(lowered final core::int #this) → self::Extension|get#property4a::T
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:134:23: Error: A value of type 'int' can't be returned from a function with return type 'T'.
   T get property4a => 0; // ok
-                      ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                      ^" in 0 as{TypeError} Never;
 static method Extension|set#property4a<T extends core::num>(lowered final core::int #this, self::Extension|set#property4a::T i) → void {}
 static method Extension|get#property4b<T extends core::num>(lowered final core::int #this) → self::Extension|get#property4b::T?
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:137:24: Error: A value of type 'int' can't be returned from a function with return type 'T?'.
   T? get property4b => 0; // ok
-                       ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                       ^" in 0 as{TypeError} Never;
 static method Extension|set#property4b<T extends core::num>(lowered final core::int #this, self::Extension|set#property4b::T? i) → void {}
 static method Extension|get#property5<T extends core::num>(lowered final core::int #this) → self::Extension|get#property5::T
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:140:22: Error: A value of type 'int' can't be returned from a function with return type 'T'.
   T get property5 => 0; // ok
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                     ^" in 0 as{TypeError} Never;
 static method Extension|set#property5<T extends core::num>(lowered final core::int #this, self::Extension|set#property5::T? i) → void {}
 static method Extension|get#property6<T extends core::num>(lowered final core::int #this) → self::Extension|get#property6::T?
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type_nnbd.dart:143:23: Error: A value of type 'int' can't be returned from a function with return type 'T?'.
   T? get property6 => 0; // error
-                      ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                      ^" in 0 as{TypeError} Never;
 static method Extension|set#property6<T extends core::num>(lowered final core::int #this, self::Extension|set#property6::T i) → void {}
 static get Extension|property7() → core::int
   return 0;

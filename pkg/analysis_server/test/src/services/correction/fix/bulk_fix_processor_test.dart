@@ -36,7 +36,7 @@ var aa = new A();
 
     var processor = await computeFixes();
     var changeMap = processor.changeMap;
-    var errors = changeMap.libraryMap[testFile]!;
+    var errors = changeMap.libraryMap[testFile.path]!;
     expect(errors, hasLength(1));
     expect(errors[LintNames.unnecessary_new], 2);
   }
@@ -52,7 +52,7 @@ class A { }
 var a = new A();
 ''');
 
-    var analysisContext = contextFor(testFile);
+    var analysisContext = contextFor(testFile.path);
     var changeWorkspace = await workspace;
     var token = CancelableToken();
     var processor = BulkFixProcessor(
@@ -103,7 +103,7 @@ var a = new A();
     expect(await computeHasFixes(), isTrue);
     // We should only have computed one, despite the above code having two
     // fixable issues.
-    expect(processor.changeMap.libraryMap[testFile], hasLength(1));
+    expect(processor.changeMap.libraryMap[testFile.path], hasLength(1));
   }
 
   Future<void> test_noFixes() async {

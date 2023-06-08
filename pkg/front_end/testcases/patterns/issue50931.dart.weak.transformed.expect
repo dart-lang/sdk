@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -11,7 +11,7 @@ static method test1(dynamic x) → dynamic {
     {
       {
         hoisted core::int y;
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = y = #0#0{core::int} in true)) {
+        if(#0#0 is core::int && (let final core::int #t2 = y = #0#0{core::int} in true)) {
           {
             #t1 = 0;
             break #L2;
@@ -26,7 +26,7 @@ static method test1(dynamic x) → dynamic {
       }
       {
         hoisted core::double y;
-        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t3 = y = #0#0{core::double} in true)) {
+        if(#0#0 is core::double && (let final core::double #t3 = y = #0#0{core::double} in true)) {
           {
             #t1 = 0;
             break #L2;
@@ -35,7 +35,7 @@ static method test1(dynamic x) → dynamic {
       }
       {
         hoisted core::String y;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = y = #0#0{core::String} in true)) {
+        if(#0#0 is core::String && (let final core::String #t4 = y = #0#0{core::String} in true)) {
           {
             #t1 = 0;
             break #L2;
@@ -72,7 +72,7 @@ static method test2(dynamic x) → dynamic {
     {
       {
         hoisted core::String y;
-        if(#0#0 is{ForNonNullableByDefault} core::String && (let final core::String #t6 = y = #0#0{core::String} in true)) {
+        if(#0#0 is core::String && (let final core::String #t6 = y = #0#0{core::String} in true)) {
           {
             return "String";
           }
@@ -80,7 +80,7 @@ static method test2(dynamic x) → dynamic {
       }
       {
         hoisted core::int y;
-        if(#0#0 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = y = #0#0{core::int} in true)) {
+        if(#0#0 is core::int && (let final core::int #t7 = y = #0#0{core::int} in true)) {
           {
             #t5 = 0;
             break #L5;
@@ -88,14 +88,14 @@ static method test2(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::double && (let final core::double #t8 = y = #0#0{core::double} in true)) {
+        if(#0#0 is core::double && (let final core::double #t8 = y = #0#0{core::double} in true)) {
           #t5 = 0;
           break #L5;
         }
       }
       {
         hoisted core::bool y1;
-        if(#0#0 is{ForNonNullableByDefault} core::bool && (let final core::bool #t9 = y1 = #0#0{core::bool} in true)) {
+        if(#0#0 is core::bool && (let final core::bool #t9 = y1 = #0#0{core::bool} in true)) {
           {
             #t5 = 1;
             break #L5;
@@ -103,7 +103,7 @@ static method test2(dynamic x) → dynamic {
         }
       }
       {
-        if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && (let final core::List<dynamic> #t10 = y2 = #0#0{core::List<dynamic>} in true) || true) {
+        if(#0#0 is core::List<dynamic> && (let final core::List<dynamic> #t10 = y2 = #0#0{core::List<dynamic>} in true) || true) {
           #t5 = 1;
           break #L5;
         }

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -75,6 +75,6 @@ static method test() → dynamic {
   core::List<core::String*>* list5 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<core::String*>(c.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}<core::String*>){((core::String*) →* core::String*) →* core::Iterable<core::String*>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<core::String*>*};
   core::List<core::String*>* list6 = core::_GrowableList::_literal3<core::String*>("a", "b", "c").{core::Iterable::map}<dynamic>(invalid-expression "pkg/front_end/testcases/general/bug33298.dart:30:44: Error: The argument type 'T Function<T>(T)' can't be assigned to the parameter type 'dynamic Function(String)'.
   List<String> list6 = ['a', 'b', 'c'].map(c).toList();
-                                           ^" in (let final self::C* #t3 = c in #t3 == null ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t3.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}) as{TypeError} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*} as{TypeError} core::List<core::String*>*;
+                                           ^" in (let final self::C* #t3 = c in #t3 == null ?{<T extends core::Object* = dynamic>(T*) →* T*} null : #t3.{self::C::call}{<T extends core::Object* = dynamic>(T*) →* T*}) as{TypeError,ForLegacy} (core::String*) →* dynamic){((core::String*) →* dynamic) →* core::Iterable<dynamic>*}.{core::Iterable::toList}(){({growable: core::bool*}) →* core::List<dynamic>*} as{TypeError,ForLegacy} core::List<core::String*>*;
 }
 static method main() → dynamic {}

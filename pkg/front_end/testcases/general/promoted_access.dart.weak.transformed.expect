@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -7,7 +7,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method method(covariant-by-class self::Class::T* o) → dynamic {
-    if(o is self::Class<dynamic>*) {
+    if(o is{ForLegacy} self::Class<dynamic>*) {
       o{self::Class::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null){(dynamic) →* dynamic};
     }
   }
@@ -23,7 +23,7 @@ class Class<T extends core::Object* = dynamic> extends core::Object {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 static method method<T extends core::Object* = dynamic>(self::method::T* o) → dynamic {
-  if(o is self::Class<dynamic>*) {
+  if(o is{ForLegacy} self::Class<dynamic>*) {
     o{self::method::T* & self::Class<dynamic>* /* '*' & '*' = '*' */}.{self::Class::method}(null){(dynamic) →* dynamic};
   }
 }

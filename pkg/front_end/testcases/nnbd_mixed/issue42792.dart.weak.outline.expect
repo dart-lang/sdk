@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue42792_lib.dart" as iss;
@@ -19,7 +19,7 @@ class B extends self::_B&A&M {
 static method main() → void
   ;
 
-library;
+library /*isLegacy*/;
 import self as iss;
 import "dart:core" as core;
 

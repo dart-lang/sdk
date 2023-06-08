@@ -1,4 +1,4 @@
-library redirecting_factory_constructors.typeparam_test /*isNonNullableByDefault*/;
+library redirecting_factory_constructors.typeparam_test;
 import self as self;
 import "dart:core" as core;
 

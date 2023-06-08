@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "bounds_from_opt_in_lib.dart" as bou;
 import "dart:core" as core;
@@ -26,7 +26,7 @@ static method test() → dynamic
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as bou;
 import "dart:core" as core;
 

@@ -1,15 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
   field dynamic x;
   constructor foo1(dynamic a) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int ?{core::Object} <dynamic, dynamic>{} : <dynamic>[], super core::Object::•() {}
+    : self::Foo::x = a is core::int ?{core::Object} <dynamic, dynamic>{} : <dynamic>[], super core::Object::•() {}
   constructor foo2(dynamic a) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int ?{core::Object} <core::String, core::String>{"a": "b"} : <core::String>["a", "b"], super core::Object::•() {}
+    : self::Foo::x = a is core::int ?{core::Object} <core::String, core::String>{"a": "b"} : <core::String>["a", "b"], super core::Object::•() {}
   constructor foo3(dynamic a) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::bool ?{core::Object} <dynamic, dynamic>{} : <dynamic>[], super core::Object::•() {}
+    : self::Foo::x = a as core::bool ?{core::Object} <dynamic, dynamic>{} : <dynamic>[], super core::Object::•() {}
   constructor foo4(dynamic a) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::bool ?{core::Object} <core::String, core::String>{"a": "b"} : <core::String>["a", "b"], super core::Object::•() {}
+    : self::Foo::x = a as core::bool ?{core::Object} <core::String, core::String>{"a": "b"} : <core::String>["a", "b"], super core::Object::•() {}
 }

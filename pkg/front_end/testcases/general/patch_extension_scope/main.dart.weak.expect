@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -117,7 +117,7 @@ static method main() → dynamic {
   self::method(new test::Class::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -21,15 +21,15 @@ import "dart:core" as core;
 
 static field core::String x = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:11:12: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'String'.
 String x = identity; // No bound
-           ^" in #C1 as{TypeError,ForNonNullableByDefault} core::String;
+           ^" in #C1 as{TypeError} core::String;
 static field core::String y = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:12:12: Error: A value of type 'T Function<T extends Object>(T)' can't be assigned to a variable of type 'String'.
  - 'Object' is from 'dart:core'.
 String y = identityObject; // Object bound
-           ^" in #C2 as{TypeError,ForNonNullableByDefault} core::String;
+           ^" in #C2 as{TypeError} core::String;
 static field core::String z = invalid-expression "pkg/front_end/testcases/general/function_type_assignments.dart:13:12: Error: A value of type 'T Function<T extends List<T>>(T)' can't be assigned to a variable of type 'String'.
  - 'List' is from 'dart:core'.
 String z = identityList; // List<T> bound
-           ^" in #C3 as{TypeError,ForNonNullableByDefault} core::String;
+           ^" in #C3 as{TypeError} core::String;
 static method identity<T extends core::Object? = dynamic>(self::identity::T% t) → self::identity::T%
   return t;
 static method identityObject<T extends core::Object>(self::identityObject::T t) → self::identityObject::T

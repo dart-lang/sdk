@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///main_declaration_class_lib.dart" as class_lib;
@@ -21,7 +21,7 @@ import "org-dartlang-testcase:///main_declaration_typedef_lib.dart" as typedef_l
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,7 +37,7 @@ class main extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -51,7 +51,7 @@ import "dart:core" as core;
 extension main on core::Object {
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -63,7 +63,7 @@ import self as self4;
 
 static field () → void main;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -76,42 +76,42 @@ import self as self5;
 static get main() → () → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self6;
 import "dart:core" as core;
 
 static method main(core::List<core::String> args, dynamic other, [dynamic extra]) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self7;
 import "dart:core" as core;
 
 static method main({has-declared-initializer core::List<core::String> args}) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self8;
 import "dart:core" as core;
 
 static method main([core::List<core::String>? args]) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self9;
 import "dart:core" as core;
 
 static method main(core::List<core::String> args) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self10;
 import "dart:core" as core;
 
 static method main(core::List<core::String> args, [dynamic other]) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -125,7 +125,7 @@ import "dart:core" as core;
 static method main({required core::List<core::String> args}) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -139,21 +139,21 @@ import "dart:core" as core;
 static method main(core::List<core::String> args, dynamic a, dynamic b) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self13;
 import "dart:core" as core;
 
 static method main([has-declared-initializer core::List<core::String> args, dynamic other]) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self14;
 import "dart:core" as core;
 
 static method main(core::List<core::String> args, dynamic other) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -169,7 +169,7 @@ import "dart:core" as core;
 static method main(core::Set<core::String> args) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -182,7 +182,7 @@ import self as self16;
 static set main(() → void f) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

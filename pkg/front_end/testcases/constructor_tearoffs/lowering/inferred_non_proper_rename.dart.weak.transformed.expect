@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -21,7 +21,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
     return new self::A::•<self::A::_#redirect#tearOff::T%>();
 }
-static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(core::_GrowableList::•<core::int?>(0) is core::List<core::int>);
 static const field () → self::A<core::int> f1a = #C3;
 static const field () → self::A<core::int> f1b = #C3;
 static const field () → self::A<core::int> f1c = #C3;

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -59,7 +59,7 @@ static method Extension|get#method(lowered final self::Class* #this) → () →*
 static method Extension|errors(lowered final self::Class* #this) → dynamic {
   (core::int*) →* core::int* intId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:19:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'int Function(int)'.
     int Function(int) intId = getter;
-                              ^" in self::Extension|get#getter(#this) as{TypeError} (core::int*) →* core::int*;
+                              ^" in self::Extension|get#getter(#this) as{TypeError,ForLegacy} (core::int*) →* core::int*;
 }
 static method Extension|get#errors(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|errors(#this);
@@ -72,8 +72,8 @@ static method errors() → dynamic {
   self::Class* c = new self::Class::•();
   (core::num*) →* core::num* numId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:32:31: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'num Function(num)'.
   num Function(num) numId = c.getter;
-                              ^" in self::Extension|get#getter(c) as{TypeError} (core::num*) →* core::num*;
+                              ^" in self::Extension|get#getter(c) as{TypeError,ForLegacy} (core::num*) →* core::num*;
   (core::bool*) →* core::bool* boolId = invalid-expression "pkg/front_end/testcases/extensions/tear_offs.dart:33:45: Error: A value of type 'T Function<T>(T)' can't be assigned to a variable of type 'bool Function(bool)'.
   bool Function(bool) boolId = Extension(c).getter;
-                                            ^" in self::Extension|get#getter(c) as{TypeError} (core::bool*) →* core::bool*;
+                                            ^" in self::Extension|get#getter(c) as{TypeError,ForLegacy} (core::bool*) →* core::bool*;
 }

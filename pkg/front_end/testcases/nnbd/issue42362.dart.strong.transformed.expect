@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -119,12 +119,12 @@ class A extends core::Object {
   constructor constructor5([core::int? i = #C6]) → self::A
     : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:19:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
-                 ^" in let core::int? #t1 = i in #t1 == null ?{core::int} #t1 as{TypeError,ForNonNullableByDefault} core::int : #t1{core::int}, super core::Object::•()
+                 ^" in let core::int? #t1 = i in #t1 == null ?{core::int} #t1 as{TypeError} core::int : #t1{core::int}, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C6}) → self::A
     : self::A::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:22:18: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
       : this.i = i; // error
-                 ^" in let core::int? #t2 = i in #t2 == null ?{core::int} #t2 as{TypeError,ForNonNullableByDefault} core::int : #t2{core::int}, super core::Object::•()
+                 ^" in let core::int? #t2 = i in #t2 == null ?{core::int} #t2 as{TypeError} core::int : #t2{core::int}, super core::Object::•()
     ;
   constructor constructor7({required core::int i = #C6}) → self::A
     : self::A::i = i, super core::Object::•()
@@ -182,12 +182,12 @@ class C extends core::Object implements self::B {
   constructor constructor5([core::int? i = #C6]) → self::C
     : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:85:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor5([int? i]) : this.i = i; // error
-                                      ^" in let core::int? #t3 = i in #t3 == null ?{core::int} #t3 as{TypeError,ForNonNullableByDefault} core::int : #t3{core::int}, super core::Object::•()
+                                      ^" in let core::int? #t3 = i in #t3 == null ?{core::int} #t3 as{TypeError} core::int : #t3{core::int}, super core::Object::•()
     ;
   constructor constructor6({core::int? i = #C6}) → self::C
     : self::C::i = invalid-expression "pkg/front_end/testcases/nnbd/issue42362.dart:87:39: Error: A value of type 'int?' can't be assigned to a variable of type 'int' because 'int?' is nullable and 'int' isn't.
   C.constructor6({int? i}) : this.i = i; // error
-                                      ^" in let core::int? #t4 = i in #t4 == null ?{core::int} #t4 as{TypeError,ForNonNullableByDefault} core::int : #t4{core::int}, super core::Object::•()
+                                      ^" in let core::int? #t4 = i in #t4 == null ?{core::int} #t4 as{TypeError} core::int : #t4{core::int}, super core::Object::•()
     ;
   constructor constructor7({required core::int i = #C6}) → self::C
     : self::C::i = i, super core::Object::•()

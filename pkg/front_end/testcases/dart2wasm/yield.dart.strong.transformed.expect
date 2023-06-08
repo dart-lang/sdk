@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -26,21 +26,21 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
       try
         try {
           :async_temporary_0 = await #completer.{asy::Completer::future}{asy::Future<core::bool>};
-          :async_temporary_0 as dynamic;
+          :async_temporary_0 as{ForLegacy} dynamic;
           {
             {
               #controller.{asy::StreamController::add}(1){(core::Object?) → void};
               #completer = asy::Completer::•<core::bool>();
               #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
               :async_temporary_1 = await #completer.{asy::Completer::future}{asy::Future<core::bool>};
-              :async_temporary_1 as dynamic;
+              :async_temporary_1 as{ForLegacy} dynamic;
             }
             {
               #controller.{asy::StreamController::add}(2){(core::Object?) → void};
               #completer = asy::Completer::•<core::bool>();
               #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
               :async_temporary_2 = await #completer.{asy::Completer::future}{asy::Future<core::bool>};
-              :async_temporary_2 as dynamic;
+              :async_temporary_2 as{ForLegacy} dynamic;
             }
             {
               synthesized asy::_StreamIterator<core::int> #forIterator = new asy::_StreamIterator::•<core::int>(stream);
@@ -53,14 +53,14 @@ static method asyncMethod(asy::Stream<core::int> stream) → asy::Stream<core::i
                   #L1:
                   for (; ; ) {
                     :async_temporary_4 = await #forIterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>};
-                    if(#jumpSentinel = :async_temporary_4 as dynamic) {
+                    if(#jumpSentinel = :async_temporary_4 as{ForLegacy} dynamic) {
                       synthesized core::int #awaitForVar = #forIterator.{asy::_StreamIterator::current}{core::int};
                       {
                         #controller.{asy::StreamController::add}(#awaitForVar){(core::Object?) → void};
                         #completer = asy::Completer::•<core::bool>();
                         #controller.{asy::StreamController::add}(#completer){(core::Object?) → void};
                         :async_temporary_3 = await #completer.{asy::Completer::future}{asy::Future<core::bool>};
-                        :async_temporary_3 as dynamic;
+                        :async_temporary_3 as{ForLegacy} dynamic;
                       }
                     }
                     else

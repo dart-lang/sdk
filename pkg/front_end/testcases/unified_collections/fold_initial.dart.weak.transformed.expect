@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -8,7 +8,7 @@ static method foldInitialElements() → void {
   core::num* element1 = 1;
   core::int* element2 = 2;
   core::List<core::int*>* list = block {
-    final core::List<core::int*>* #t1 = core::_GrowableList::_literal3<core::int*>(element0 as{TypeError,ForDynamic} core::int*, element1 as{TypeError} core::int*, element2);
+    final core::List<core::int*>* #t1 = core::_GrowableList::_literal3<core::int*>(element0 as{TypeError,ForDynamic,ForLegacy} core::int*, element1 as{TypeError,ForLegacy} core::int*, element2);
     if(true)
       #t1.{core::List::add}{Invariant}(3){(core::int*) →* void};
     #t1.{core::List::add}{Invariant}(4){(core::int*) →* void};
@@ -18,8 +18,8 @@ static method foldInitialElements() → void {
   self::expect(core::_GrowableList::generate<core::int*>(7, (core::int* i) → core::int* => i), list);
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t2 = new col::_Set::•<core::int*>();
-    #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic} core::int*){(core::int*) →* core::bool*};
-    #t2.{core::Set::add}{Invariant}(element1 as{TypeError} core::int*){(core::int*) →* core::bool*};
+    #t2.{core::Set::add}{Invariant}(element0 as{TypeError,ForDynamic,ForLegacy} core::int*){(core::int*) →* core::bool*};
+    #t2.{core::Set::add}{Invariant}(element1 as{TypeError,ForLegacy} core::int*){(core::int*) →* core::bool*};
     #t2.{core::Set::add}{Invariant}(element2){(core::int*) →* core::bool*};
     if(true)
       #t2.{core::Set::add}{Invariant}(3){(core::int*) →* core::bool*};
@@ -34,11 +34,11 @@ static method foldInitialSpread1() → void {
   core::List<core::int*>* list = block {
     final core::List<core::int*>* #t3 = core::_GrowableList::•<core::int*>(0);
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t5 = #t4 as{TypeError} core::int*;
+          final core::int* #t5 = #t4 as{TypeError,ForLegacy} core::int*;
           #t3.{core::List::add}{Invariant}(#t5){(core::int*) →* void};
         }
       }
@@ -53,11 +53,11 @@ static method foldInitialSpread1() → void {
   core::Set<core::int*>* set = block {
     final core::Set<core::int*>* #t6 = new col::_Set::•<core::int*>();
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (initial as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t8 = #t7 as{TypeError} core::int*;
+          final core::int* #t8 = #t7 as{TypeError,ForLegacy} core::int*;
           #t6.{core::Set::add}{Invariant}(#t8){(core::int*) →* core::bool*};
         }
       }
@@ -79,7 +79,7 @@ static method foldInitialSpread2() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t11 = #t10 as{TypeError} core::int*;
+          final core::int* #t11 = #t10 as{TypeError,ForLegacy} core::int*;
           #t9.{core::List::add}{Invariant}(#t11){(core::int*) →* void};
         }
       }
@@ -98,7 +98,7 @@ static method foldInitialSpread2() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t13 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t14 = #t13 as{TypeError} core::int*;
+          final core::int* #t14 = #t13 as{TypeError,ForLegacy} core::int*;
           #t12.{core::Set::add}{Invariant}(#t14){(core::int*) →* core::bool*};
         }
       }
@@ -120,7 +120,7 @@ static method foldInitialSpread3() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t16 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t17 = #t16 as{TypeError} core::int*;
+          final core::int* #t17 = #t16 as{TypeError,ForLegacy} core::int*;
           #t15.{core::List::add}{Invariant}(#t17){(core::int*) →* void};
         }
       }
@@ -139,7 +139,7 @@ static method foldInitialSpread3() → void {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t19 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t20 = #t19 as{TypeError} core::int*;
+          final core::int* #t20 = #t19 as{TypeError,ForLegacy} core::int*;
           #t18.{core::Set::add}{Invariant}(#t20){(core::int*) →* core::bool*};
         }
       }

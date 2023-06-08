@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;
@@ -10,7 +10,7 @@ static const field core::Set<foo::Foo> foo = const <foo::Foo>{const bar::Bar::�
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as foo;
 import "dart:core" as core;
 import "bar_lib.dart" as bar;
@@ -28,7 +28,7 @@ abstract class Foo extends core::Object /*hasConstConstructor*/  {
     return new bar::Bar::•<dynamic>();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as bar;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;

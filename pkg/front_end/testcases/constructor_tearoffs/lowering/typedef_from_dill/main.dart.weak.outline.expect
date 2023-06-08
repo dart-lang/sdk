@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -27,7 +27,7 @@ static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#new#tearOff<
 static method /* from org-dartlang-testcase:///main_lib.dart */ _#H#named#tearOff<unrelated X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(self::_#H#named#tearOff::Y% a, [core::int? b]) → mai::A<self::_#H#named#tearOff::Y%>
   return new mai::A::named<self::_#H#named#tearOff::Y%>(a, b);
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

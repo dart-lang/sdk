@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -53,7 +53,7 @@ static method method1(self::I<core::num> i) → core::num
       }
       {
         hoisted core::num member;
-        if(#0#0 is{ForNonNullableByDefault} self::I<core::int> && (let final core::num #t3 = member = self::_extension#0|get#member<core::int>(#0#0{self::I<core::int>}) in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
+        if(#0#0 is self::I<core::int> && (let final core::num #t3 = member = self::_extension#0|get#member<core::int>(#0#0{self::I<core::int>}) in true) && member.{core::num::<}(0){(core::num) → core::bool}) {
           #t1 = member;
           break #L1;
         }
@@ -79,14 +79,14 @@ static method method2(self::A<core::num> i) → core::num
     {
       {
         hoisted core::int member;
-        if(#0#1 is{ForNonNullableByDefault} core::int && (let final core::int #t6 = member = #0#1{core::int} in true)) {
+        if(#0#1 is core::int && (let final core::int #t6 = member = #0#1{core::int} in true)) {
           #t5 = member;
           break #L2;
         }
       }
       {
         hoisted core::double member;
-        if(#0#1 is{ForNonNullableByDefault} core::double && (let final core::double #t7 = member = #0#1{core::double} in true)) {
+        if(#0#1 is core::double && (let final core::double #t7 = member = #0#1{core::double} in true)) {
           #t5 = member;
           break #L2;
         }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -24,7 +24,7 @@ static method method1(core::int i) → dynamic {
     #L1:
     {
       {
-        if(#0#0.{core::num::<}(#C1 as{ForNonNullableByDefault} core::num){(core::num) → core::bool}) {
+        if(#0#0.{core::num::<}(#C1 as core::num){(core::num) → core::bool}) {
           #t1 = 0;
           break #L1;
         }
@@ -52,13 +52,13 @@ static method method2(core::int i) → dynamic {
     #L2:
     {
       {
-        if(#0#0.{core::num::<}(#C1 as{ForNonNullableByDefault} core::num){(core::num) → core::bool}) {
+        if(#0#0.{core::num::<}(#C1 as core::num){(core::num) → core::bool}) {
           #t2 = 0;
           break #L2;
         }
       }
       {
-        if(#0#0.{core::num::>}(#C2 as{ForNonNullableByDefault} core::num){(core::num) → core::bool}) {
+        if(#0#0.{core::num::>}(#C2 as core::num){(core::num) → core::bool}) {
           #t2 = 1;
           break #L2;
         }

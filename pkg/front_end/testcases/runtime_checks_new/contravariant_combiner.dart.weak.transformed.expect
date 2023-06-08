@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -21,20 +21,20 @@ class C extends core::Object {
   operator []=(core::int i, self::B<core::num, (core::num) → void> v) → void {}
 }
 static method test1(self::B<core::num, (core::num) → void> b) → void {
-  b = b.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
-  self::B<core::num, (core::num) → void> x = b = b.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
+  b = b.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = b = b.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
 }
 static method test2(self::C c) → void {
-  let final self::C #t1 = c in let final core::int #t2 = 0 in #t1.{self::C::[]=}(#t2, #t1.{self::C::[]}(#t2){(core::int) → self::B<core::num, (core::num) → void>}.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>){(core::int, self::B<core::num, (core::num) → void>) → void};
-  self::B<core::num, (core::num) → void> x = let final self::C #t3 = c in let final core::int #t4 = 0 in let final self::B<core::num, (core::num) → void> #t5 = #t3.{self::C::[]}(#t4){(core::int) → self::B<core::num, (core::num) → void>}.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void> in let final void #t6 = #t3.{self::C::[]=}(#t4, #t5){(core::int, self::B<core::num, (core::num) → void>) → void} in #t5;
+  let final self::C #t1 = c in let final core::int #t2 = 0 in #t1.{self::C::[]=}(#t2, #t1.{self::C::[]}(#t2){(core::int) → self::B<core::num, (core::num) → void>}.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>){(core::int, self::B<core::num, (core::num) → void>) → void};
+  self::B<core::num, (core::num) → void> x = let final self::C #t3 = c in let final core::int #t4 = 0 in let final self::B<core::num, (core::num) → void> #t5 = #t3.{self::C::[]}(#t4){(core::int) → self::B<core::num, (core::num) → void>}.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void> in let final void #t6 = #t3.{self::C::[]=}(#t4, #t5){(core::int, self::B<core::num, (core::num) → void>) → void} in #t5;
 }
 static method test3(self::C c) → void {
-  let final self::C #t7 = c in #t7.{self::C::x} = #t7.{self::C::x}{self::B<core::num, (core::num) → void>}.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
-  self::B<core::num, (core::num) → void> x = let final self::C #t8 = c in #t8.{self::C::x} = #t8.{self::C::x}{self::B<core::num, (core::num) → void>}.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
+  let final self::C #t7 = c in #t7.{self::C::x} = #t7.{self::C::x}{self::B<core::num, (core::num) → void>}.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = let final self::C #t8 = c in #t8.{self::C::x} = #t8.{self::C::x}{self::B<core::num, (core::num) → void>}.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
 }
 static method test4(self::C c) → void {
-  self::C::y = self::C::y.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
-  self::B<core::num, (core::num) → void> x = self::C::y = self::C::y.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck,ForNonNullableByDefault} self::B<core::num, (core::num) → void>;
+  self::C::y = self::C::y.{self::B::+}(1){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
+  self::B<core::num, (core::num) → void> x = self::C::y = self::C::y.{self::B::+}(2){(dynamic) → self::B<core::num, (core::num) → void>} as{TypeError,CovarianceCheck} self::B<core::num, (core::num) → void>;
 }
 static method main() → void {}
 

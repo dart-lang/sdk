@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -25,34 +25,34 @@ import "dart:core" as core;
 [470]  return [470] [470] block {
 [-1]    [-1] core::double #t1;
 [478]    [478] final synthesized self::Shape #0#0 = [478] [478] shape;
-[-1]    [-1] late final synthesized core::double #0#2 = [506] [506] [478]([478] [478] [478] #0#0 as{ForNonNullableByDefault,Unchecked} self::Square).{self::Square::length}{core::double};
-[-1]    [-1] late final synthesized core::double #0#4 = [556] [556] [478]([478] [478] [478] #0#0 as{ForNonNullableByDefault,Unchecked} self::Circle).{self::Circle::radius}{core::double};
+[-1]    [-1] late final synthesized core::double #0#2 = [506] [506] [478]([478] [478] [478] #0#0 as{Unchecked} self::Square).{self::Square::length}{core::double};
+[-1]    [-1] late final synthesized core::double #0#4 = [556] [556] [478]([478] [478] [478] #0#0 as{Unchecked} self::Circle).{self::Circle::radius}{core::double};
 [470]    #L1:
 [470]    {
 [527]      {
 [512]        [512] hoisted core::double l;
-[527]        if([522] [522] [493] [493] [493] [493] [478] [478] #0#0 is{ForNonNullableByDefault} self::Square && [512]([512] let [512] final dynamic #t2 = [512] [512] l = [-1] [-1] #0#2 in [512] [512] true) && [522] [522] [520] [520] l.{core::num::>=}[522]([525] 0){(core::num) → core::bool}) {
+[527]        if([522] [522] [493] [493] [493] [493] [478] [478] #0#0 is self::Square && [512]([512] let [512] final dynamic #t2 = [512] [512] l = [-1] [-1] #0#2 in [512] [512] true) && [522] [522] [520] [520] l.{core::num::>=}[522]([525] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [532] [532] [530] [530] l.{core::double::*}[532]([534] l){(core::num) → core::double};
 [527]          break #L1;
         }
       }
 [577]      {
 [562]        [562] hoisted core::double r;
-[577]        if([572] [572] [543] [543] [543] [543] [478] [478] #0#0 is{ForNonNullableByDefault} self::Circle && [562]([562] let [562] final dynamic #t3 = [562] [562] r = [-1] [-1] #0#4 in [562] [562] true) && [572] [572] [570] [570] r.{core::num::>=}[572]([575] 0){(core::num) → core::bool}) {
+[577]        if([572] [572] [543] [543] [543] [543] [478] [478] #0#0 is self::Circle && [562]([562] let [562] final dynamic #t3 = [562] [562] r = [-1] [-1] #0#4 in [562] [562] true) && [572] [572] [570] [570] r.{core::num::>=}[572]([575] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [587] [587] [583] [583] [580] [580] #C1.{core::double::*}[583]([585] r){(core::num) → core::double}.{core::double::*}[587]([589] r){(core::num) → core::double};
 [577]          break #L1;
         }
       }
 [631]      {
 [617]        [617] hoisted core::double l;
-[631]        if([627] [627] [598] [598] [598] [598] [478] [478] #0#0 is{ForNonNullableByDefault} self::Square && [617]([617] let [617] final dynamic #t4 = [617] [617] l = [-1] [-1] #0#2 in [617] [617] true) && [627] [627] [625] [625] l.{core::num::<}[627]([629] 0){(core::num) → core::bool}) {
+[631]        if([627] [627] [598] [598] [598] [598] [478] [478] #0#0 is self::Square && [617]([617] let [617] final dynamic #t4 = [617] [617] l = [-1] [-1] #0#2 in [617] [617] true) && [627] [627] [625] [625] l.{core::num::<}[627]([629] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [634] [634] -1.0;
 [631]          break #L1;
         }
       }
 [677]      {
 [663]        [663] hoisted core::double r;
-[677]        if([673] [673] [644] [644] [644] [644] [478] [478] #0#0 is{ForNonNullableByDefault} self::Circle && [663]([663] let [663] final dynamic #t5 = [663] [663] r = [-1] [-1] #0#4 in [663] [663] true) && [673] [673] [671] [671] r.{core::num::<}[673]([675] 0){(core::num) → core::bool}) {
+[677]        if([673] [673] [644] [644] [644] [644] [478] [478] #0#0 is self::Circle && [663]([663] let [663] final dynamic #t5 = [663] [663] r = [-1] [-1] #0#4 in [663] [663] true) && [673] [673] [671] [671] r.{core::num::<}[673]([675] 0){(core::num) → core::bool}) {
 [-1]          [-1] [-1] #t1 = [680] [680] -1.0;
 [677]          break #L1;
         }

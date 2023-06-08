@@ -22,7 +22,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool useLineEndingsForPlatform = false;
 
   late String testCode;
-  late String testFile;
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late CompilationUnitElement testUnitElement;
@@ -33,7 +32,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   void addTestSource(String code) {
     code = normalizeSource(code);
     testCode = code;
-    newFile(testFile, code);
+    newFile(testFile.path, code);
   }
 
   int findEnd(String search) {
@@ -85,12 +84,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    await resolveFile2(testFile);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    testFile = convertPath('$testPackageLibPath/test.dart');
+    await resolveFile2(testFile.path);
   }
 }

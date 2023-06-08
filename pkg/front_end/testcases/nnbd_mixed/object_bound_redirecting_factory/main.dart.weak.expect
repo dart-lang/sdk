@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "opt_in_lib.dart" as opt;
@@ -39,7 +39,7 @@ static const field core::List<opt::P<core::Object*>*>* list = #C5;
 static const field opt::M* m = #C6;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt;
 import "dart:core" as core;
 

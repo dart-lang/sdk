@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -72,7 +72,7 @@ static final field core::List<dynamic> s1 = <dynamic>[];
 static final field core::int? s2 = let final core::List<dynamic> #t1 = self::s1 in #t1 == null ?{core::int?} null : #t1.{core::List::length}{core::int};
 static final field core::List<core::int> s3 = core::List::filled<core::int>(2, invalid-expression "pkg/front_end/testcases/nnbd/issue41102.dart:19:36: Error: The value 'null' can't be assigned to the parameter type 'int' because 'int' is not nullable.
 final s3 = new List<int>.filled(2, null);
-                                   ^" in null as{TypeError,ForNonNullableByDefault} core::int);
+                                   ^" in null as{TypeError} core::int);
 static final field dynamic s4 = (() → Null {
   core::int e = 0;
   switch(e) /* core::int */ {

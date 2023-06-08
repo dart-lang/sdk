@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 
 import "org-dartlang-testcase:///non_nullable_from_opt_out_lib.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///non_nullable_from_opt_out_lib.dart";
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "export_twice_lib1.dart" as exp;
 
@@ -9,7 +9,7 @@ static method main() → dynamic {
   exp::Extension|method(new exp::Class::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as exp;
 import "dart:core" as core;
 
@@ -26,7 +26,7 @@ static method Extension|method(lowered final exp::Class #this) → dynamic {}
 static method Extension|get#method(lowered final exp::Class #this) → () → dynamic
   return () → dynamic => exp::Extension|method(#this);
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "export_twice_lib1.dart" as exp;
 additionalExports = (exp::Extension)

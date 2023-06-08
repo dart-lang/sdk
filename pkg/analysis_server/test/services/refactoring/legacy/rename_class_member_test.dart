@@ -939,7 +939,7 @@ void f(A a, B b) {
 ''');
 
     expect(refactoringChange.edits, hasLength(1));
-    expect(refactoringChange.edits[0].file, testFile);
+    expect(refactoringChange.edits[0].file, testFile.path);
   }
 
   Future<void> test_createChange_outsideOfProject_referenceInPart() async {
@@ -952,7 +952,7 @@ void foo(A a) {
 ''');
 
     // To use file:// URI.
-    testFile = convertPath('/home/test/bin/test.dart');
+    testFilePath = convertPath('/home/test/bin/test.dart');
 
     await indexTestUnit('''
 library test;
@@ -985,7 +985,7 @@ void f(A a) {
 ''');
 
     expect(refactoringChange.edits, hasLength(1));
-    expect(refactoringChange.edits[0].file, testFile);
+    expect(refactoringChange.edits[0].file, testFile.path);
   }
 
   Future<void> test_createChange_PropertyAccessorElement_getter() async {

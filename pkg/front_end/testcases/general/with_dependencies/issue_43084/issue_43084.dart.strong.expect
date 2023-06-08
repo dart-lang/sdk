@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -18,7 +18,7 @@ static method main() → dynamic {
   core::print(x);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

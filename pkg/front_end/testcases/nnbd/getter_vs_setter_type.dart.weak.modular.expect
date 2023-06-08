@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -249,17 +249,17 @@ static method Extension|set#property3<T extends core::Object? = dynamic, S exten
 static method Extension|get#property4<T extends core::Object? = dynamic, S extends self::Extension|get#property4::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property4::S%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:130:22: Error: A value of type 'int' can't be returned from a function with return type 'S'.
   S get property4 => 0; // ok
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                     ^" in 0 as{TypeError} Never;
 static method Extension|set#property4<T extends core::Object? = dynamic, S extends self::Extension|set#property4::T% = dynamic>(lowered final core::int #this, self::Extension|set#property4::S% i) → void {}
 static method Extension|get#property5<T extends core::Object? = dynamic, S extends self::Extension|get#property5::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property5::S%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be returned from a function with return type 'S'.
   S get property5 => 0; // ok
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                     ^" in 0 as{TypeError} Never;
 static method Extension|set#property5<T extends core::Object? = dynamic, S extends self::Extension|set#property5::T% = dynamic>(lowered final core::int #this, self::Extension|set#property5::T% i) → void {}
 static method Extension|get#property6<T extends core::Object? = dynamic, S extends self::Extension|get#property6::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property6::T%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:136:22: Error: A value of type 'int' can't be returned from a function with return type 'T'.
   T get property6 => 0; // error
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
+                     ^" in 0 as{TypeError} Never;
 static method Extension|set#property6<T extends core::Object? = dynamic, S extends self::Extension|set#property6::T% = dynamic>(lowered final core::int #this, self::Extension|set#property6::S% i) → void {}
 static get Extension|property7() → core::int
   return 0;

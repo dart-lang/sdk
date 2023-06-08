@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "const_lib.dart" as con;
 import "dart:core" as core;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,7 +16,7 @@ import "org-dartlang-testcase:///part_not_part_of_same_named_library_lib2.dart";
 part part_not_part_of_same_named_library_lib1.dart;
 static method main() → dynamic {}
 
-library foo /*isNonNullableByDefault*/;
+library foo;
 import self as self2;
 
 part part_not_part_of_same_named_library_lib1.dart;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -78,7 +78,7 @@ class A extends core::Object implements self::I {
   no-such-method-forwarder set setterVsGetter(core::num value) → void
     return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C1, 2, #C2, core::List::unmodifiable<dynamic>(<dynamic>[value]), core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic};
   no-such-method-forwarder get getterVsSetter() → core::double
-    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 1, #C2, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::double;
+    return this.{self::A::noSuchMethod}(new core::_InvocationMirror::_withType(#C4, 1, #C2, #C5, core::Map::unmodifiable<core::Symbol*, dynamic>(#C3))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::double;
 }
 static method main() → dynamic {}
 

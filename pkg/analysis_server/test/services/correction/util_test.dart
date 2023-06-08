@@ -40,7 +40,7 @@ void f(bool? b4, bool? b5) {
     expect(result, expected);
     // For compactness we put multiple cases into one test method.
     // Prepare for resolving the test file one again.
-    changeFile(testFile);
+    changeFile(testFile.path);
   }
 
   Future<void> test_addLibraryImports_dart_doubleQuotes() async {
@@ -390,7 +390,7 @@ void f() {
     var change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
-    var testEdit = change.getFileEdit(testFile);
+    var testEdit = change.getFileEdit(testFile.path);
     var resultCode = SourceEdit.applySequence(testCode, testEdit!.edits);
     expect(resultCode, expectedCode);
   }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -263,7 +263,7 @@ class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
 static method main() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

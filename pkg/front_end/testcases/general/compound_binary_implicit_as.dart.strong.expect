@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -39,7 +39,7 @@ class C extends self::A {
 static method main() → dynamic {
   core::Map<core::int*, self::B*>* map = <core::int*, self::B*>{0: new self::B::•()};
   try {
-    let final core::Map<core::int*, self::B*>* #t1 = map in let final core::int* #t2 = 0 in #t1.{core::Map::[]=}(#t2, #t1.{core::Map::[]}(#t2){(core::Object*) →* self::B*}.{self::B::+}(new self::B::•()){(self::B*) →* self::A*} as{TypeError} self::B*){(core::int*, self::B*) →* void};
+    let final core::Map<core::int*, self::B*>* #t1 = map in let final core::int* #t2 = 0 in #t1.{core::Map::[]=}(#t2, #t1.{core::Map::[]}(#t2){(core::Object*) →* self::B*}.{self::B::+}(new self::B::•()){(self::B*) →* self::A*} as{TypeError,ForLegacy} self::B*){(core::int*, self::B*) →* void};
     throw "Expected type error";
   }
   on dynamic catch(final dynamic _) {

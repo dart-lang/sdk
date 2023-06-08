@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -228,7 +228,7 @@ static method objectPattern(dynamic o) → dynamic {
       lowered core::int $1#case#1;
       lowered core::String named#case#1;
       invalid-type ambiguousField;
-      if(#0#0 is{ForNonNullableByDefault} Null && (let final core::int #t1 = hashCode = #0#0{Null}.{core::Object::hashCode}{core::int} in true) || #0#0 is{ForNonNullableByDefault} Null && (let final () → core::String #t2 = toString = #0#0{Null}.{core::Object::toString}{() → core::String} in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final dynamic #t3 = field#case#0 = #0#5#isSet ?{dynamic} #0#5{dynamic} : let final core::bool* #t4 = #0#5#isSet = true in #0#5 = #0#0{self::Class}.{self::Class::field}{dynamic} in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final () → void #t5 = method#case#0 = #0#6#isSet ?{() → void} #0#6{() → void} : let final core::bool* #t6 = #0#6#isSet = true in #0#6 = #0#0{self::Class}.{self::Class::method}{() → void} in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final core::int #t7 = extensionGetter#case#0 = self::_extension#0|get#extensionGetter(#0#0{self::Class}) in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final void #t8 = extensionMethod#case#0 = self::_extension#0|extensionMethod(#0#0{self::Class}) in true) || #0#0 is{ForNonNullableByDefault} dynamic && (let final dynamic #t9 = dynamicAccess = #0#0{dynamic}.dynamicAccess in true) || #0#0 is{ForNonNullableByDefault} () → void && (let final () → void #t10 = call#case#0 = #0#12#isSet ?{() → void} #0#12{() → void} : let final core::bool* #t11 = #0#12#isSet = true in #0#12 = #0#0{() → void}.call in true) || #0#0 is{ForNonNullableByDefault} (core::int, {required named: core::String}) && (let final core::int #t12 = $1#case#0 = #0#14#isSet ?{core::int} #0#14{core::int} : let final core::bool* #t13 = #0#14#isSet = true in #0#14 = #0#0{(core::int, {required named: core::String})}.$1{core::int} in true) || #0#0 is{ForNonNullableByDefault} (core::int, {required named: core::String}) && (let final core::String #t14 = named#case#0 = #0#15#isSet ?{core::String} #0#15{core::String} : let final core::bool* #t15 = #0#15#isSet = true in #0#15 = #0#0{(core::int, {required named: core::String})}.named{core::String} in true) || #0#0 is{ForNonNullableByDefault} self::Class && (let final invalid-type #t16 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:75:16: Error: The getter 'missing' isn't defined for the class 'Class'.
+      if(#0#0 is Null && (let final core::int #t1 = hashCode = #0#0{Null}.{core::Object::hashCode}{core::int} in true) || #0#0 is Null && (let final () → core::String #t2 = toString = #0#0{Null}.{core::Object::toString}{() → core::String} in true) || #0#0 is self::Class && (let final dynamic #t3 = field#case#0 = #0#5#isSet ?{dynamic} #0#5{dynamic} : let final core::bool* #t4 = #0#5#isSet = true in #0#5 = #0#0{self::Class}.{self::Class::field}{dynamic} in true) || #0#0 is self::Class && (let final () → void #t5 = method#case#0 = #0#6#isSet ?{() → void} #0#6{() → void} : let final core::bool* #t6 = #0#6#isSet = true in #0#6 = #0#0{self::Class}.{self::Class::method}{() → void} in true) || #0#0 is self::Class && (let final core::int #t7 = extensionGetter#case#0 = self::_extension#0|get#extensionGetter(#0#0{self::Class}) in true) || #0#0 is self::Class && (let final void #t8 = extensionMethod#case#0 = self::_extension#0|extensionMethod(#0#0{self::Class}) in true) || #0#0 is dynamic && (let final dynamic #t9 = dynamicAccess = #0#0{dynamic}.dynamicAccess in true) || #0#0 is () → void && (let final () → void #t10 = call#case#0 = #0#12#isSet ?{() → void} #0#12{() → void} : let final core::bool* #t11 = #0#12#isSet = true in #0#12 = #0#0{() → void}.call in true) || #0#0 is (core::int, {required named: core::String}) && (let final core::int #t12 = $1#case#0 = #0#14#isSet ?{core::int} #0#14{core::int} : let final core::bool* #t13 = #0#14#isSet = true in #0#14 = #0#0{(core::int, {required named: core::String})}.$1{core::int} in true) || #0#0 is (core::int, {required named: core::String}) && (let final core::String #t14 = named#case#0 = #0#15#isSet ?{core::String} #0#15{core::String} : let final core::bool* #t15 = #0#15#isSet = true in #0#15 = #0#0{(core::int, {required named: core::String})}.named{core::String} in true) || #0#0 is self::Class && (let final invalid-type #t16 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:75:16: Error: The getter 'missing' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'missing'.
     case Class(: var missing): // Error: missing getter
@@ -236,7 +236,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'missing'.
     case Class(: var missing): // Error: missing getter
-               ^^^^^^^") || #0#0 is{ForNonNullableByDefault} self::Class? && (let final invalid-type #t17 = #0#5#isSet ?{invalid-type} #0#5{invalid-type} : let final core::bool* #t18 = #0#5#isSet = true in #0#5 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:76:17: Error: The getter 'field' isn't defined for the class 'Class?'.
+               ^^^^^^^") || #0#0 is self::Class? && (let final invalid-type #t17 = #0#5#isSet ?{invalid-type} #0#5{invalid-type} : let final core::bool* #t18 = #0#5#isSet = true in #0#5 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:76:17: Error: The getter 'field' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
     case Class_(: var field): // Error: nullable member get
@@ -244,7 +244,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'field'.
     case Class_(: var field): // Error: nullable member get
-                ^^^^^") || #0#0 is{ForNonNullableByDefault} self::Class? && (let final invalid-type #t19 = #0#6#isSet ?{invalid-type} #0#6{invalid-type} : let final core::bool* #t20 = #0#6#isSet = true in #0#6 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:77:17: Error: The getter 'method' isn't defined for the class 'Class?'.
+                ^^^^^") || #0#0 is self::Class? && (let final invalid-type #t19 = #0#6#isSet ?{invalid-type} #0#6{invalid-type} : let final core::bool* #t20 = #0#6#isSet = true in #0#6 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:77:17: Error: The getter 'method' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'method'.
     case Class_(: var method): // Error: nullable member tear-off
@@ -252,7 +252,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'method'.
     case Class_(: var method): // Error: nullable member tear-off
-                ^^^^^^") || #0#0 is{ForNonNullableByDefault} self::Class? && (let final invalid-type #t21 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:78:17: Error: The getter 'extensionGetter' isn't defined for the class 'Class?'.
+                ^^^^^^") || #0#0 is self::Class? && (let final invalid-type #t21 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:78:17: Error: The getter 'extensionGetter' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionGetter'.
     case Class_(: var extensionGetter): // Error: nullable extension member get
@@ -260,7 +260,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionGetter'.
     case Class_(: var extensionGetter): // Error: nullable extension member get
-                ^^^^^^^^^^^^^^^") || #0#0 is{ForNonNullableByDefault} self::Class? && (let final invalid-type #t22 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:79:17: Error: The getter 'extensionMethod' isn't defined for the class 'Class?'.
+                ^^^^^^^^^^^^^^^") || #0#0 is self::Class? && (let final invalid-type #t22 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:79:17: Error: The getter 'extensionMethod' isn't defined for the class 'Class?'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionMethod'.
     case Class_(: var extensionMethod): // Error: nullable extension tear-off
@@ -268,25 +268,25 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'extensionMethod'.
     case Class_(: var extensionMethod): // Error: nullable extension tear-off
-                ^^^^^^^^^^^^^^^") || #0#0 is{ForNonNullableByDefault} () →? void && (let final invalid-type #t23 = #0#12#isSet ?{invalid-type} #0#12{invalid-type} : let final core::bool* #t24 = #0#12#isSet = true in #0#12 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:80:21: Error: The getter 'call' isn't defined for the class 'void Function()?'.
+                ^^^^^^^^^^^^^^^") || #0#0 is () →? void && (let final invalid-type #t23 = #0#12#isSet ?{invalid-type} #0#12{invalid-type} : let final core::bool* #t24 = #0#12#isSet = true in #0#12 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:80:21: Error: The getter 'call' isn't defined for the class 'void Function()?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'call'.
     case Function1_(: var call): // Error: nullable function tear-off
                     ^^^^" in invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:80:21: Error: The getter 'call' isn't defined for the class 'void Function()?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'call'.
     case Function1_(: var call): // Error: nullable function tear-off
-                    ^^^^") || #0#0 is{ForNonNullableByDefault} (core::int, {required named: core::String})? && (let final invalid-type #t25 = #0#14#isSet ?{invalid-type} #0#14{invalid-type} : let final core::bool* #t26 = #0#14#isSet = true in #0#14 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:81:19: Error: The getter '\$1' isn't defined for the class '(int, {String named})?'.
+                    ^^^^") || #0#0 is (core::int, {required named: core::String})? && (let final invalid-type #t25 = #0#14#isSet ?{invalid-type} #0#14{invalid-type} : let final core::bool* #t26 = #0#14#isSet = true in #0#14 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:81:19: Error: The getter '\$1' isn't defined for the class '(int, {String named})?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$1'.
     case Record1_(: var \$1): // Error: nullable record index get
                   ^^" in invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:81:19: Error: The getter '\$1' isn't defined for the class '(int, {String named})?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named '\$1'.
     case Record1_(: var \$1): // Error: nullable record index get
-                  ^^") || #0#0 is{ForNonNullableByDefault} (core::int, {required named: core::String})? && (let final invalid-type #t27 = #0#15#isSet ?{invalid-type} #0#15{invalid-type} : let final core::bool* #t28 = #0#15#isSet = true in #0#15 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:82:19: Error: The getter 'named' isn't defined for the class '(int, {String named})?'.
+                  ^^") || #0#0 is (core::int, {required named: core::String})? && (let final invalid-type #t27 = #0#15#isSet ?{invalid-type} #0#15{invalid-type} : let final core::bool* #t28 = #0#15#isSet = true in #0#15 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:82:19: Error: The getter 'named' isn't defined for the class '(int, {String named})?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
     case Record1_(: var named): // Error: nullable record named get
                   ^^^^^" in invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:82:19: Error: The getter 'named' isn't defined for the class '(int, {String named})?'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'named'.
     case Record1_(: var named): // Error: nullable record named get
-                  ^^^^^") || #0#0 is{ForNonNullableByDefault} self::Class && (let final invalid-type #t29 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:83:16: Error: The getter 'ambiguousField' isn't defined for the class 'Class'.
+                  ^^^^^") || #0#0 is self::Class && (let final invalid-type #t29 = invalid-expression "pkg/front_end/testcases/patterns/pattern_types.dart:83:16: Error: The getter 'ambiguousField' isn't defined for the class 'Class'.
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'ambiguousField'.
     case Class(: var ambiguousField): // Error: ambiguous get
@@ -294,7 +294,7 @@ Try correcting the name to the name of an existing getter, or defining a getter 
  - 'Class' is from 'pkg/front_end/testcases/patterns/pattern_types.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'ambiguousField'.
     case Class(: var ambiguousField): // Error: ambiguous get
-               ^^^^^^^^^^^^^^") || #0#0 is{ForNonNullableByDefault} invalid-type) {
+               ^^^^^^^^^^^^^^") || #0#0 is invalid-type) {
       }
     }
   }
@@ -312,22 +312,22 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized dynamic #2#0 = dyn;
-    if(#2#0{dynamic}.<(#C1) as{ForNonNullableByDefault} core::bool) {
+    if(#2#0{dynamic}.<(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #3#0 = dyn;
-    if(#3#0{dynamic}.<=(#C1) as{ForNonNullableByDefault} core::bool) {
+    if(#3#0{dynamic}.<=(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #4#0 = dyn;
-    if(#4#0{dynamic}.>(#C1) as{ForNonNullableByDefault} core::bool) {
+    if(#4#0{dynamic}.>(#C1) as core::bool) {
     }
   }
   {
     final synthesized dynamic #5#0 = dyn;
-    if(#5#0{dynamic}.>=(#C1) as{ForNonNullableByDefault} core::bool) {
+    if(#5#0{dynamic}.>=(#C1) as core::bool) {
     }
   }
   {
@@ -389,7 +389,7 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized self::Class #17#0 = cls;
-    if(self::_extension#0|<=(#17#0, #C2 as{ForNonNullableByDefault} core::int)) {
+    if(self::_extension#0|<=(#17#0, #C2 as core::int)) {
     }
   }
   {
@@ -401,7 +401,7 @@ static method relationalPattern(dynamic dyn, Never never, self::Class cls, self:
   }
   {
     final synthesized self::Class #19#0 = cls;
-    if(self::_extension#0|>=(#19#0, #C1) as{ForNonNullableByDefault} core::bool) {
+    if(self::_extension#0|>=(#19#0, #C1) as core::bool) {
     }
   }
   {
@@ -525,7 +525,7 @@ Try using a constructor or factory that is 'const'.
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -540,7 +540,7 @@ class Invalid extends core::Object {
     return true;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

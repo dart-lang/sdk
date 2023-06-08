@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "never_opt_out_lib.dart" as nev;
@@ -84,7 +84,7 @@ static method main() → dynamic
 static method throws(() →* void f) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as nev;
 import "dart:core" as core;
 

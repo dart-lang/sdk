@@ -496,7 +496,7 @@ void f() { new Foo(); }
     newFile('$testPackageLibPath/a.dart', '''
 class Foo {}
 ''');
-    testFile = convertPath('$testPackageLibPath/dir/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/dir/test.dart');
     await resolveTestCode('''
 void f() { new Foo(); }
 ''');
@@ -584,7 +584,7 @@ main () {
   }
 
   Future<void> test_withClass_inParentFolder() async {
-    testFile = convertPath('/home/test/bin/aaa/test.dart');
+    testFilePath = convertPath('/home/test/bin/aaa/test.dart');
     newFile('/home/test/bin/lib.dart', '''
 library lib;
 class Test {}
@@ -606,7 +606,7 @@ void f() {
   }
 
   Future<void> test_withClass_inRelativeFolder() async {
-    testFile = convertPath('/home/test/bin/test.dart');
+    testFilePath = convertPath('/home/test/bin/test.dart');
     newFile('/home/test/tool/sub/folder/lib.dart', '''
 library lib;
 class Test {}
@@ -628,7 +628,7 @@ void f() {
   }
 
   Future<void> test_withClass_inSameFolder() async {
-    testFile = convertPath('/home/test/bin/test.dart');
+    testFilePath = convertPath('/home/test/bin/test.dart');
     newFile('/home/test/bin/lib.dart', '''
 library lib;
 class Test {}

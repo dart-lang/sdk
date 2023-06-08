@@ -1,9 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method main() → void {
   dynamic i = 10;
-  core::print("${i as{ForNonNullableByDefault} core::int?}");
-  core::print("${i{core::int?} is{ForNonNullableByDefault} core::int?}");
+  core::print("${i as core::int?}");
+  core::print("${i{core::int?} is core::int?}");
 }

@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "generated/name_mangling.pb.dart" as pb;
 import "dart:core" as core;
@@ -11,7 +11,7 @@ static method main() → dynamic {
     core::print("Has clone field");
   }
 }
-library name_mangling.pb.dart /*isNonNullableByDefault*/;
+library name_mangling.pb.dart;
 import self as self;
 import "package:protobuf/protobuf.dart" as pro;
 import "dart:core" as core;

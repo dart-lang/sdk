@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -60,14 +60,14 @@ class Test extends core::Object {
   method test() → void {
     this.{self::Test::[]=}(self::f<self::Index*>(), self::f<self::B*>()){(self::Index*, self::B*) →* void};
     let final self::Index* #t1 = self::f<self::Index*>() in this.{self::Test::[]}(#t1){(self::Index*) →* self::B*} == null ?{self::B*} this.{self::Test::[]=}(#t1, self::f<self::B*>()){(self::Index*, self::B*) →* void} : null;
-    let final self::Index* #t2 = self::f<self::Index*>() in this.{self::Test::[]=}(#t2, this.{self::Test::[]}(#t2){(self::Index*) →* self::B*}.{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError} self::B*){(self::Index*, self::B*) →* void};
+    let final self::Index* #t2 = self::f<self::Index*>() in this.{self::Test::[]=}(#t2, this.{self::Test::[]}(#t2){(self::Index*) →* self::B*}.{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError,ForLegacy} self::B*){(self::Index*, self::B*) →* void};
     let final self::Index* #t3 = self::f<self::Index*>() in this.{self::Test::[]=}(#t3, this.{self::Test::[]}(#t3){(self::Index*) →* self::B*}.{self::B::*}(self::f<self::B*>()){(self::B*) →* self::B*}){(self::Index*, self::B*) →* void};
     let final self::Index* #t4 = self::f<self::Index*>() in this.{self::Test::[]=}(#t4, this.{self::Test::[]}(#t4){(self::Index*) →* self::B*}.{self::B::&}(self::f<self::A*>()){(self::A*) →* self::C*}){(self::Index*, self::B*) →* void};
     let final self::Index* #t5 = self::f<self::Index*>() in let final self::B* #t6 = this.{self::Test::[]}(#t5){(self::Index*) →* self::B*}.{self::B::-}(1){(core::int*) →* self::B*} in let final void #t7 = this.{self::Test::[]=}(#t5, #t6){(self::Index*, self::B*) →* void} in #t6;
     let final self::Index* #t8 = self::f<self::Index*>() in this.{self::Test::[]=}(#t8, this.{self::Test::[]}(#t8){(self::Index*) →* self::B*}.{self::B::-}(1){(core::int*) →* self::B*}){(self::Index*, self::B*) →* void};
     self::B* v1 = let final self::Index* #t9 = self::f<self::Index*>() in let final self::B* #t10 = self::f<self::B*>() in let final void #t11 = this.{self::Test::[]=}(#t9, #t10){(self::Index*, self::B*) →* void} in #t10;
     self::B* v2 = let final self::Index* #t12 = self::f<self::Index*>() in let final self::B* #t13 = this.{self::Test::[]}(#t12){(self::Index*) →* self::B*} in #t13 == null ?{self::B*} let final self::B* #t14 = self::f<self::B*>() in let final void #t15 = this.{self::Test::[]=}(#t12, #t14){(self::Index*, self::B*) →* void} in #t14 : #t13;
-    self::A* v3 = let final self::Index* #t16 = self::f<self::Index*>() in let final self::A* #t17 = this.{self::Test::[]}(#t16){(self::Index*) →* self::B*}.{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError} self::B* in let final void #t18 = this.{self::Test::[]=}(#t16, #t17){(self::Index*, self::B*) →* void} in #t17;
+    self::A* v3 = let final self::Index* #t16 = self::f<self::Index*>() in let final self::A* #t17 = this.{self::Test::[]}(#t16){(self::Index*) →* self::B*}.{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError,ForLegacy} self::B* in let final void #t18 = this.{self::Test::[]=}(#t16, #t17){(self::Index*, self::B*) →* void} in #t17;
     self::B* v4 = let final self::Index* #t19 = self::f<self::Index*>() in let final self::B* #t20 = this.{self::Test::[]}(#t19){(self::Index*) →* self::B*}.{self::B::*}(self::f<self::B*>()){(self::B*) →* self::B*} in let final void #t21 = this.{self::Test::[]=}(#t19, #t20){(self::Index*, self::B*) →* void} in #t20;
     self::C* v5 = let final self::Index* #t22 = self::f<self::Index*>() in let final self::C* #t23 = this.{self::Test::[]}(#t22){(self::Index*) →* self::B*}.{self::B::&}(self::f<self::A*>()){(self::A*) →* self::C*} in let final void #t24 = this.{self::Test::[]=}(#t22, #t23){(self::Index*, self::B*) →* void} in #t23;
     self::B* v6 = let final self::Index* #t25 = self::f<self::Index*>() in let final self::B* #t26 = this.{self::Test::[]}(#t25){(self::Index*) →* self::B*}.{self::B::-}(1){(core::int*) →* self::B*} in let final void #t27 = this.{self::Test::[]=}(#t25, #t26){(self::Index*, self::B*) →* void} in #t26;

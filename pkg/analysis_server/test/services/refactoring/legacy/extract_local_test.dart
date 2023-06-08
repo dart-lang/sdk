@@ -1575,7 +1575,7 @@ void f() {
     required List<String> names,
   }) {
     var positions =
-        offsets.map((offset) => {'file': testFile, 'offset': offset});
+        offsets.map((offset) => {'file': testFile.path, 'offset': offset});
     var suggestions = names.map((name) => {'value': name, 'kind': 'VARIABLE'});
     var expected = <String, dynamic>{
       'length': length,

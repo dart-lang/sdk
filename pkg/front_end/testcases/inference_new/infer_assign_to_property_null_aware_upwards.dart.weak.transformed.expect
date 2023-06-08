@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -9,11 +9,11 @@ class Test1 extends core::Object {
     ;
   static method test(self::Test1* t) → void {
     core::int* v1 = let final self::Test1* #t1 = t in #t1 == null ?{core::int*} null : #t1.{self::Test1::prop} = self::getInt();
-    core::num* v2 = let final self::Test1* #t2 = t in #t2 == null ?{core::num*} null : #t2.{self::Test1::prop} = self::getNum() as{TypeError} core::int*;
+    core::num* v2 = let final self::Test1* #t2 = t in #t2 == null ?{core::num*} null : #t2.{self::Test1::prop} = self::getNum() as{TypeError,ForLegacy} core::int*;
     core::int* v4 = let final self::Test1* #t3 = t in #t3 == null ?{core::int*} null : let final core::int* #t4 = #t3.{self::Test1::prop}{core::int*} in #t4 == null ?{core::int*} #t3.{self::Test1::prop} = self::getInt() : #t4;
-    core::num* v5 = let final self::Test1* #t5 = t in #t5 == null ?{core::num*} null : let final core::int* #t6 = #t5.{self::Test1::prop}{core::int*} in #t6 == null ?{core::num*} #t5.{self::Test1::prop} = self::getNum() as{TypeError} core::int* : #t6;
+    core::num* v5 = let final self::Test1* #t5 = t in #t5 == null ?{core::num*} null : let final core::int* #t6 = #t5.{self::Test1::prop}{core::int*} in #t6 == null ?{core::num*} #t5.{self::Test1::prop} = self::getNum() as{TypeError,ForLegacy} core::int* : #t6;
     core::int* v7 = let final self::Test1* #t7 = t in #t7 == null ?{core::int*} null : let final core::int* #t8 = #t7.{self::Test1::prop}{core::int*}.{core::num::+}(self::getInt()){(core::num*) →* core::int*} in let final void #t9 = #t7.{self::Test1::prop} = #t8 in #t8;
-    core::num* v8 = let final self::Test1* #t10 = t in #t10 == null ?{core::num*} null : let final core::num* #t11 = #t10.{self::Test1::prop}{core::int*}.{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError} core::int* in let final void #t12 = #t10.{self::Test1::prop} = #t11 in #t11;
+    core::num* v8 = let final self::Test1* #t10 = t in #t10 == null ?{core::num*} null : let final core::num* #t11 = #t10.{self::Test1::prop}{core::int*}.{core::num::+}(self::getNum()){(core::num*) →* core::num*} as{TypeError,ForLegacy} core::int* in let final void #t12 = #t10.{self::Test1::prop} = #t11 in #t11;
     core::int* v10 = let final self::Test1* #t13 = t in #t13 == null ?{core::int*} null : let final core::int* #t14 = #t13.{self::Test1::prop}{core::int*}.{core::num::+}(1){(core::num*) →* core::int*} in let final void #t15 = #t13.{self::Test1::prop} = #t14 in #t14;
     core::int* v11 = let final self::Test1* #t16 = t in #t16 == null ?{core::int*} null : let final core::int* #t17 = #t16.{self::Test1::prop}{core::int*} in let final core::int* #t18 = #t16.{self::Test1::prop} = #t17.{core::num::+}(1){(core::num*) →* core::int*} in #t17;
   }
@@ -63,9 +63,9 @@ class Test3 extends core::Object {
     : super core::Object::•()
     ;
   static method test3(self::Test3* t) → void {
-    core::num* v2 = let final self::Test3* #t43 = t in #t43 == null ?{core::num*} null : #t43.{self::Test3::prop} = self::getNum() as{TypeError} core::double*;
+    core::num* v2 = let final self::Test3* #t43 = t in #t43 == null ?{core::num*} null : #t43.{self::Test3::prop} = self::getNum() as{TypeError,ForLegacy} core::double*;
     core::double* v3 = let final self::Test3* #t44 = t in #t44 == null ?{core::double*} null : #t44.{self::Test3::prop} = self::getDouble();
-    core::num* v5 = let final self::Test3* #t45 = t in #t45 == null ?{core::num*} null : let final core::double* #t46 = #t45.{self::Test3::prop}{core::double*} in #t46 == null ?{core::num*} #t45.{self::Test3::prop} = self::getNum() as{TypeError} core::double* : #t46;
+    core::num* v5 = let final self::Test3* #t45 = t in #t45 == null ?{core::num*} null : let final core::double* #t46 = #t45.{self::Test3::prop}{core::double*} in #t46 == null ?{core::num*} #t45.{self::Test3::prop} = self::getNum() as{TypeError,ForLegacy} core::double* : #t46;
     core::double* v6 = let final self::Test3* #t47 = t in #t47 == null ?{core::double*} null : let final core::double* #t48 = #t47.{self::Test3::prop}{core::double*} in #t48 == null ?{core::double*} #t47.{self::Test3::prop} = self::getDouble() : #t48;
     core::double* v7 = let final self::Test3* #t49 = t in #t49 == null ?{core::double*} null : let final core::double* #t50 = #t49.{self::Test3::prop}{core::double*}.{core::double::+}(self::getInt()){(core::num*) →* core::double*} in let final void #t51 = #t49.{self::Test3::prop} = #t50 in #t50;
     core::double* v8 = let final self::Test3* #t52 = t in #t52 == null ?{core::double*} null : let final core::double* #t53 = #t52.{self::Test3::prop}{core::double*}.{core::double::+}(self::getNum()){(core::num*) →* core::double*} in let final void #t54 = #t52.{self::Test3::prop} = #t53 in #t53;

@@ -1,4 +1,4 @@
-library test.qualified.main /*isNonNullableByDefault*/;
+library test.qualified.main;
 //
 // Problems in library:
 //
@@ -77,7 +77,7 @@ static method main() → dynamic {
   new self::IllegalSupertype::•();
 }
 
-library test.qualified.lib /*isNonNullableByDefault*/;
+library test.qualified.lib;
 import self as lib;
 import "dart:core" as core;
 import "qualified.dart" as self;

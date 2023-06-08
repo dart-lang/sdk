@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,7 +18,7 @@ static method main() → dynamic {
       final core::List<core::int> #t3 = <core::int>[];
       {
         final synthesized core::int #1#0 = a;
-        if(#1#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool)
+        if(#1#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool)
           #t3.{core::List::add}{Invariant}(5){(core::int) → void};
       }
     } =>#t3;
@@ -28,7 +28,7 @@ static method main() → dynamic {
   } =>#2#0;
   {
     final synthesized core::int #3#0 = a;
-    if(#3#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+    if(#3#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool) {
       a = 6;
     }
   }
@@ -39,7 +39,7 @@ static method main() → dynamic {
     {
       {
         hoisted core::int d;
-        if(#4#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = d = #4#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+        if(#4#0 is core::int && (let final dynamic #t6 = d = #4#0 in true) && self::guard() as{TypeError} core::bool) {
           #t5 = d;
           break #L1;
         }
@@ -57,7 +57,7 @@ static method main() → dynamic {
     final synthesized core::int #5#0 = b;
     {
       hoisted core::int e;
-      if(#5#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t7 = e = #5#0 in true) && self::guard() as{TypeError,ForNonNullableByDefault} core::bool) {
+      if(#5#0 is core::int && (let final dynamic #t7 = e = #5#0 in true) && self::guard() as{TypeError} core::bool) {
         {
           core::print(a);
         }
@@ -68,7 +68,7 @@ static method main() → dynamic {
     final core::Map<core::int, core::int> #t8 = <core::int, core::int>{};
     {
       final synthesized core::int #6#0 = a;
-      if(#6#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError,ForNonNullableByDefault} core::bool)
+      if(#6#0 =={core::num::==}{(core::Object) → core::bool} #C2 && self::guard() as{TypeError} core::bool)
         #t8.{core::Map::[]=}{Invariant}(5, 6){(core::int, core::int) → void};
     }
   } =>#t8;

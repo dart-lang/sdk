@@ -29,10 +29,8 @@ class PubPackageResolutionTest extends AbstractContextTest {
   late FindNode findNode;
   late FindElement findElement;
 
-  String get testFilePath => '$testPackageLibPath/test.dart';
-
   void addTestFile(String content) {
-    newFile(testFilePath, content);
+    newFile(testFile.path, content);
   }
 
   /// Resolve the file with the [path] into [result].
@@ -52,7 +50,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() {
-    return resolveFile2(testFilePath);
+    return resolveFile2(testFile.path);
   }
 }
 
@@ -368,7 +366,7 @@ import 'package:aaa/a.dart';
 int t;
 ''').path;
 
-    var coreLibResult = await driverFor(testFilePath)
+    var coreLibResult = await driverFor(testFile.path)
         .getLibraryByUri('dart:core') as LibraryElementResult;
     var intElement = coreLibResult.element.getClass('int')!;
 
@@ -541,7 +539,7 @@ class A {}
 
     // The `package:test` uses the class `A` from the `package:aaa`.
     // So it sees the declaration the element `A`.
-    newFile(testFilePath, '''
+    newFile(testFile.path, '''
 import 'package:aaa/a.dart';
 class B extends A {}
 ''');

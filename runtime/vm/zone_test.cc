@@ -3,7 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #include "vm/zone.h"
+#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
+#include "platform/memory_sanitizer.h"
 #include "vm/dart.h"
 #include "vm/isolate.h"
 #include "vm/unit_test.h"
@@ -187,10 +189,14 @@ TEST_CASE(PrintToString) {
   EXPECT_STREQ("Hello World!", result);
 }
 
-#if !defined(PRODUCT)
-// Allow for pooling in the malloc implementation.
+#if !defined(PRODUCT) && !defined(USING_ADDRESS_SANITIZER) &&                  \
+    !defined(USING_MEMORY_SANITIZER)
+// RSS hooks absent in PRODUCT mode. Scudo quarantine interferes RSS
+// measurements under the sanitizers. Slack to allow for limited pooling
+// in the malloc implementation.
 static constexpr int64_t kRssSlack = 20 * MB;
-#endif  // !defined(PRODUCT)
+#define CHECK_RSS
+#endif
 
 // clang-format off
 static const size_t kSizes[] = {
@@ -210,9 +216,9 @@ static const size_t kSizes[] = {
 // clang-format on
 
 TEST_CASE(StressMallocDirectly) {
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t start_rss = Service::CurrentRSS();
-#endif  // !defined(PRODUCT)
+#endif
 
   void* allocations[ARRAY_SIZE(kSizes)];
   for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
@@ -224,16 +230,16 @@ TEST_CASE(StressMallocDirectly) {
     }
   }
 
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t stop_rss = Service::CurrentRSS();
   EXPECT_LT(stop_rss, start_rss + kRssSlack);
-#endif  // !defined(PRODUCT)
+#endif
 }
 
 ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t start_rss = Service::CurrentRSS();
-#endif  // !defined(PRODUCT)
+#endif
 
   for (size_t i = 0; i < ((3u * GB) / (512u * KB)); i++) {
     StackZone stack_zone(Thread::Current());
@@ -243,10 +249,10 @@ ISOLATE_UNIT_TEST_CASE(StressMallocThroughZones) {
     }
   }
 
-#if !defined(PRODUCT)
+#if defined(CHECK_RSS)
   int64_t stop_rss = Service::CurrentRSS();
   EXPECT_LT(stop_rss, start_rss + kRssSlack);
-#endif  // !defined(PRODUCT)
+#endif
 }
 
 #if defined(DART_COMPRESSED_POINTERS)

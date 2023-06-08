@@ -30,6 +30,9 @@ class AbstractContextTest with ResourceProviderMixin {
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
+  /// TODO(scheglov) Stop writing into it. Convert into getter.
+  late String testFilePath = '$testPackageLibPath/test.dart';
+
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
     return _analysisContextCollection!.contexts.map((e) => e.driver).toList();
@@ -66,6 +69,8 @@ class AbstractContextTest with ResourceProviderMixin {
   /// The path for `analysis_options.yaml` in [testPackageRootPath].
   String get testAnalysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
+
+  File get testFile => getFile(testFilePath);
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 

@@ -29,6 +29,8 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
   uword start = page->object_start();
   uword end = page->object_end();
   uword current = start;
+  const bool dontneed_on_sweep = FLAG_dontneed_on_sweep;
+  const uword page_size = VirtualMemory::PageSize();
 
   while (current < end) {
     ObjectPtr raw_obj = UntaggedObject::FromAddr(current);
@@ -56,6 +58,10 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
         // Expand the free block by the size of this object.
         free_end += next_obj->untag()->HeapSize(tags);
       }
+      // Only add to the free list if not covering the whole page.
+      if ((current == start) && (free_end == end)) {
+        return false;  // Not in use.
+      }
       obj_size = free_end - current;
       if (is_executable) {
         uword cursor = current;
@@ -64,21 +70,26 @@ bool GCSweeper::SweepPage(Page* page, FreeList* freelist) {
           *reinterpret_cast<uword*>(cursor) = kBreakInstructionFiller;
           cursor += kWordSize;
         }
+      } else if (UNLIKELY(dontneed_on_sweep)) {
+        uword page_aligned_start = Utils::RoundUp(
+            current + FreeListElement::kLargeHeaderSize, page_size);
+        uword page_aligned_end = Utils::RoundDown(free_end, page_size);
+        if (UNLIKELY(page_aligned_start < page_aligned_end)) {
+          VirtualMemory::DontNeed(reinterpret_cast<void*>(page_aligned_start),
+                                  page_aligned_end - page_aligned_start);
+        }
       } else {
 #if defined(DEBUG)
         memset(reinterpret_cast<void*>(current), Heap::kZapByte, obj_size);
 #endif  // DEBUG
       }
-      if ((current != start) || (free_end != end)) {
-        // Only add to the free list if not covering the whole page.
-        freelist->FreeLocked(current, obj_size);
-      }
+      freelist->FreeLocked(current, obj_size);
     }
     current += obj_size;
   }
   ASSERT(current == end);
-
-  return used_in_bytes != 0;  // In use.
+  ASSERT(used_in_bytes != 0);
+  return true;  // In use.
 }
 
 intptr_t GCSweeper::SweepLargePage(Page* page) {

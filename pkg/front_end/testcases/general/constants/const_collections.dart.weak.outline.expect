@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -130,7 +130,7 @@ class CustomMap extends core::Object implements core::Map<core::String, core::St
     ;
 }
 static const field core::int fortyTwo = 42;
-static const field dynamic fortyTwoAsDynamic = (self::fortyTwo as{ForNonNullableByDefault} dynamic){dynamic}.*(2){dynamic}.~/(2);
+static const field dynamic fortyTwoAsDynamic = (self::fortyTwo as dynamic){dynamic}.*(2){dynamic}.~/(2);
 static const field core::List<core::String>? nullList = null;
 static const field core::List<core::String> foo = const <core::String>["hello", "world"];
 static const field core::List<core::String> bar = self::foo + const <core::String>["!"];
@@ -139,7 +139,7 @@ static const field core::List<core::String> barWithNullSpread = self::foo + let 
 static const field core::List<core::String> barWithIntSpread = self::foo + const <core::String>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:23:51: Error: Unexpected type 'int' of a spread.  Expected 'dynamic' or an Iterable.
 const List<String> barWithIntSpread = [...foo, ...fortyTwo];
                                                   ^"];
-static const field core::List<core::String> barWithIntDynamicSpread = self::foo + self::fortyTwoAsDynamic as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>;
+static const field core::List<core::String> barWithIntDynamicSpread = self::foo + self::fortyTwoAsDynamic as{TypeError,ForDynamic} core::Iterable<dynamic>;
 static const field core::List<core::String> barWithMapSpread = self::foo + const <core::String>[invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:25:51: Error: Unexpected type 'Map<String, String>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
 const List<String> barWithMapSpread = [...foo, ...quux];
@@ -164,7 +164,7 @@ static const field core::Set<core::String> quxWithCustomIterableSpread2 = self::
 static const field core::Set<core::String> quxWithCustomIterableSpread3 = self::baz + const <core::String>{invalid-expression "pkg/front_end/testcases/general/constants/const_collections.dart:48:59: Error: A value of type 'CustomIterable' can't be assigned to a variable of type 'String'.
  - 'CustomIterable' is from 'pkg/front_end/testcases/general/constants/const_collections.dart'.
 const Set<String> quxWithCustomIterableSpread3 = {...baz, customIterable};
-                                                          ^" in self::customIterable as{TypeError,ForNonNullableByDefault} core::String};
+                                                          ^" in self::customIterable as{TypeError} core::String};
 static const field core::Set<dynamic> setWithNonPrimitiveEquals = const <dynamic>{const self::WithEquals::•(42)};
 static const field core::Set<dynamic> setWithDuplicates = const <dynamic>{42, 42};
 static const field core::Map<core::String, core::String>? nullMap = null;

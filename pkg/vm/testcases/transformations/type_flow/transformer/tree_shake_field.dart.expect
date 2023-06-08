@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "tree_shake_field.lib.dart" as lib;
@@ -20,7 +20,7 @@ static method method([@vm.inferred-type.metadata=#lib::Class] lib::Interface i) 
 static method main() → dynamic {
   self::method(new self::Class::•());
 }
-library tree_shake_field.lib.dart /*isNonNullableByDefault*/;
+library tree_shake_field.lib.dart;
 import self as self;
 import "dart:core" as core;
 

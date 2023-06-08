@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue41436c_lib.dart" as iss;
 import "dart:core" as core;
@@ -20,7 +20,7 @@ class C extends iss::B {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

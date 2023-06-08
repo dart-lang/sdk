@@ -1,4 +1,4 @@
-library test.qualified.main /*isNonNullableByDefault*/;
+library test.qualified.main;
 //
 // Problems in library:
 //
@@ -64,7 +64,7 @@ class C<T extends core::Object? = dynamic> extends core::Object { // from org-da
 static method main() → dynamic
   ;
 
-library test.qualified.lib /*isNonNullableByDefault*/;
+library test.qualified.lib;
 import self as lib;
 import "dart:core" as core;
 import "qualified.dart" as self;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,9 +7,9 @@ static method test1() → dynamic {
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
     function ##0#4#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
+    if(#0#0 is core::Map<core::int, core::int> && (!(#0#4 == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
       return 1;
     }
     else {
@@ -22,9 +22,9 @@ static method test2() → dynamic {
   {
     final synthesized core::Map<dynamic, dynamic> #0#0 = x;
     function ##0#4#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#4 = ##0#4#initializer(){() → core::int?};
-    if(#0#0 is{ForNonNullableByDefault} core::Map<core::int, core::int> && (!(#0#4 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
+    if(#0#0 is core::Map<core::int, core::int> && (!(#0#4 == null) || null is core::int && #0#0{core::Map<core::int, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#4{core::int}) {
       return 0;
     }
     else {

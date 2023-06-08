@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///main_lib.dart";
@@ -7,7 +7,7 @@ static method main() → void
   ;
 
 @#C2
-library static_interop /*isNonNullableByDefault*/;
+library static_interop;
 import self as self2;
 import "dart:_js_annotations" as _js;
 import "dart:core" as core;

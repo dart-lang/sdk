@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -53,7 +53,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method baz() → asy::Future<core::int*>* async /* futureValueType= core::int* */ 
-    return this.{self::C::b}{self::B*}.{self::B::bar}(){() →* asy::Future<dynamic>*} as{TypeError} FutureOr<core::int*>*;
+    return this.{self::C::b}{self::B*}.{self::B::bar}(){() →* asy::Future<dynamic>*} as{TypeError,ForLegacy} FutureOr<core::int*>*;
   abstract member-signature method noSuchMethod(core::Invocation* invocation) → dynamic; -> core::Object::noSuchMethod
   abstract member-signature get _identityHashCode() → core::int*; -> core::Object::_identityHashCode
   abstract member-signature method _instanceOf(dynamic instantiatorTypeArguments, dynamic functionTypeArguments, dynamic type) → core::bool*; -> core::Object::_instanceOf

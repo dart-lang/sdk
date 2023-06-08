@@ -4,7 +4,7 @@
 // pkg/front_end/testcases/dart2js/native.dart: Error: Only JS interop members may be 'external'.
 // Try removing the 'external' keyword or adding a JS interop annotation.
 //
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

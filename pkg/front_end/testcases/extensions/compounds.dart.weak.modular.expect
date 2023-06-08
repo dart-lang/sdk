@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +10,7 @@ class Number extends core::Object {
   get hashCode() → core::int
     return this.{self::Number::value}{core::int}.{core::num::hashCode}{core::int};
   operator ==(core::Object other) → core::bool
-    return other is{ForNonNullableByDefault} self::Number && this.{self::Number::value}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Number}.{self::Number::value}{core::int};
+    return other is self::Number && this.{self::Number::value}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Number}.{self::Number::value}{core::int};
   method toString() → core::String
     return "Number(${this.{self::Number::value}{core::int}})";
 }
@@ -43,11 +43,11 @@ extension IntClassExtension on self::IntClass {
   set property = self::IntClassExtension|set#property;
 }
 static method NumberExtension|+(lowered final self::Number #this, core::Object other) → self::Number {
-  if(other is{ForNonNullableByDefault} core::int) {
+  if(other is core::int) {
     return new self::Number::•(#this.{self::Number::value}{core::int}.{core::num::+}(other{core::int}){(core::num) → core::int});
   }
   else
-    if(other is{ForNonNullableByDefault} self::Number) {
+    if(other is self::Number) {
       return new self::Number::•(#this.{self::Number::value}{core::int}.{core::num::+}(other{self::Number}.{self::Number::value}{core::int}){(core::num) → core::int});
     }
     else {
@@ -55,11 +55,11 @@ static method NumberExtension|+(lowered final self::Number #this, core::Object o
     }
 }
 static method NumberExtension|-(lowered final self::Number #this, core::Object other) → self::Number {
-  if(other is{ForNonNullableByDefault} core::int) {
+  if(other is core::int) {
     return new self::Number::•(#this.{self::Number::value}{core::int}.{core::num::-}(other{core::int}){(core::num) → core::int});
   }
   else
-    if(other is{ForNonNullableByDefault} self::Number) {
+    if(other is self::Number) {
       return new self::Number::•(#this.{self::Number::value}{core::int}.{core::num::-}(other{self::Number}.{self::Number::value}{core::int}){(core::num) → core::int});
     }
     else {
@@ -474,7 +474,7 @@ static method testExplicitNullAwareIntProperties(self::IntClass? v) → dynamic 
   self::expect(n0, let final self::IntClass? #t372 = v in #t372 == null ?{core::int?} null : self::IntClassExtension|get#property(#t372{self::IntClass}), v == null);
 }
 static method expect(dynamic expected, dynamic actual, [dynamic expectNull = #C1]) → dynamic {
-  if(expectNull as{TypeError,ForDynamic,ForNonNullableByDefault} core::bool) {
+  if(expectNull as{TypeError,ForDynamic} core::bool) {
     expected = null;
   }
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {

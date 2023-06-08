@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:_interceptors" as _in;
 import "dart:core" as core;

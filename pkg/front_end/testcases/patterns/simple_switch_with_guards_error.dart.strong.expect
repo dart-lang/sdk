@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,13 +14,13 @@ static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
     late final synthesized core::bool #0#4 = #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
-    late final synthesized dynamic #0#6 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
-    late final synthesized dynamic #0#7 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+    late final synthesized dynamic #0#6 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+    late final synthesized dynamic #0#7 = (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     dynamic #t1;
     {
       lowered hoisted core::int a#case#0;
       lowered hoisted core::double a#case#1;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#6 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && a#case#0.{core::int::isEven}{core::bool} && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#4 && (#0#7 is{ForNonNullableByDefault} core::double && (let final dynamic #t4 = a#case#1 = #0#7{core::double} in true)) && a#case#1.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool} && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
+      if(#0#0 is core::List<dynamic> && #0#4 && (#0#6 is core::int && (let final dynamic #t2 = a#case#0 = #0#6{core::int} in true)) && a#case#0.{core::int::isEven}{core::bool} && (let final dynamic #t3 = #t1 = a#case#0 in true) || #0#0 is core::List<dynamic> && #0#4 && (#0#7 is core::double && (let final dynamic #t4 = a#case#1 = #0#7{core::double} in true)) && a#case#1.{core::double::ceil}(){() → core::int}.{core::int::isOdd}{core::bool} && (let final dynamic #t5 = #t1 = a#case#1 in true)) {
         core::int a = invalid-expression "pkg/front_end/testcases/patterns/simple_switch_with_guards_error.dart:9:14: Error: Variable pattern 'a' doesn't have the same type or finality in all cases.
       return a;
              ^";

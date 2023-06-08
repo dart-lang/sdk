@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -95,7 +95,7 @@ static method testFor() → dynamic {
     final hoisted core::int i;
     {
       final synthesized dynamic #0#0 = 0;
-      if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t1 = i = #0#0{core::int} in true)))
+      if(!(#0#0{core::int} is core::int && (let final core::int #t1 = i = #0#0{core::int} in true)))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t2 = i;
@@ -111,12 +111,12 @@ static method testFor() → dynamic {
     {
       final synthesized dynamic #1#0 = (0, "");
       function ##1#1#initializer() → core::int
-        return (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        return (#1#0 as{Unchecked} (core::int, core::String)).$1{core::int};
       late final synthesized core::int #1#1 = ##1#1#initializer(){() → core::int};
       function ##1#2#initializer() → core::String
-        return (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+        return (#1#0 as{Unchecked} (core::int, core::String)).$2{core::String};
       late final synthesized core::String #1#2 = ##1#2#initializer(){() → core::String};
-      if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final core::int #t3 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final core::String #t4 = s = #1#2 in true))))
+      if(!(#1#1 is core::int && (let final core::int #t3 = i = #1#1 in true) && (#1#2 is core::String && (let final core::String #t4 = s = #1#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t5 = i;
@@ -131,12 +131,12 @@ static method testFor() → dynamic {
     {
       final synthesized dynamic #2#0 = (0, "");
       function ##2#1#initializer() → core::int
-        return (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        return (#2#0 as{Unchecked} (core::int, core::String)).$1{core::int};
       late final synthesized core::int #2#1 = ##2#1#initializer(){() → core::int};
       function ##2#2#initializer() → core::String
-        return (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+        return (#2#0 as{Unchecked} (core::int, core::String)).$2{core::String};
       late final synthesized core::String #2#2 = ##2#2#initializer(){() → core::String};
-      if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final core::int #t7 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final core::String #t8 = s = #2#2 in true))))
+      if(!(#2#1 is core::int && (let final core::int #t7 = i = #2#1 in true) && (#2#2 is core::String && (let final core::String #t8 = s = #2#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t9 = i;
@@ -157,7 +157,7 @@ static method testFor() → dynamic {
     final hoisted core::int i;
     {
       final synthesized dynamic #3#0 = 0;
-      if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t13 = i = #3#0{core::int} in true)))
+      if(!(#3#0{core::int} is core::int && (let final core::int #t13 = i = #3#0{core::int} in true)))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t14 = i;
@@ -173,12 +173,12 @@ static method testFor() → dynamic {
     {
       final synthesized dynamic #4#0 = (0, "");
       function ##4#1#initializer() → core::int
-        return (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        return (#4#0 as{Unchecked} (core::int, core::String)).$1{core::int};
       late final synthesized core::int #4#1 = ##4#1#initializer(){() → core::int};
       function ##4#2#initializer() → core::String
-        return (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+        return (#4#0 as{Unchecked} (core::int, core::String)).$2{core::String};
       late final synthesized core::String #4#2 = ##4#2#initializer(){() → core::String};
-      if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final core::int #t16 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final core::String #t17 = s = #4#2 in true))))
+      if(!(#4#1 is core::int && (let final core::int #t16 = i = #4#1 in true) && (#4#2 is core::String && (let final core::String #t17 = s = #4#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t18 = i;
@@ -193,12 +193,12 @@ static method testFor() → dynamic {
     {
       final synthesized dynamic #5#0 = (0, "");
       function ##5#1#initializer() → core::int
-        return (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+        return (#5#0 as{Unchecked} (core::int, core::String)).$1{core::int};
       late final synthesized core::int #5#1 = ##5#1#initializer(){() → core::int};
       function ##5#2#initializer() → core::String
-        return (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+        return (#5#0 as{Unchecked} (core::int, core::String)).$2{core::String};
       late final synthesized core::String #5#2 = ##5#2#initializer(){() → core::String};
-      if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final core::int #t21 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final core::String #t22 = s = #5#2 in true))))
+      if(!(#5#1 is core::int && (let final core::int #t21 = i = #5#1 in true) && (#5#2 is core::String && (let final core::String #t22 = s = #5#2 in true))))
         throw new core::StateError::•("Pattern matching error");
     }
     final core::int #t23 = i;
@@ -227,7 +227,7 @@ static method testForIn() → dynamic {
         final hoisted core::int i;
         {
           final synthesized dynamic #0#0 = #t25;
-          if(!(#0#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t26 = i = #0#0{core::int} in true)))
+          if(!(#0#0{core::int} is core::int && (let final core::int #t26 = i = #0#0{core::int} in true)))
             throw new core::StateError::•("Pattern matching error");
         }
         invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:37:5: Error: Can't assign to the final variable 'i'.
@@ -246,12 +246,12 @@ static method testForIn() → dynamic {
         {
           final synthesized dynamic #1#0 = #t27;
           function ##1#1#initializer() → core::int
-            return (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+            return (#1#0 as{Unchecked} (core::int, core::String)).$1{core::int};
           late final synthesized core::int #1#1 = ##1#1#initializer(){() → core::int};
           function ##1#2#initializer() → core::String
-            return (#1#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+            return (#1#0 as{Unchecked} (core::int, core::String)).$2{core::String};
           late final synthesized core::String #1#2 = ##1#2#initializer(){() → core::String};
-          if(!(#1#1 is{ForNonNullableByDefault} core::int && (let final core::int #t28 = i = #1#1 in true) && (#1#2 is{ForNonNullableByDefault} core::String && (let final core::String #t29 = s = #1#2 in true))))
+          if(!(#1#1 is core::int && (let final core::int #t28 = i = #1#1 in true) && (#1#2 is core::String && (let final core::String #t29 = s = #1#2 in true))))
             throw new core::StateError::•("Pattern matching error");
         }
         invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:40:5: Error: Can't assign to the final variable 'i'.
@@ -270,12 +270,12 @@ static method testForIn() → dynamic {
         {
           final synthesized dynamic #2#0 = #t30;
           function ##2#1#initializer() → core::int
-            return (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+            return (#2#0 as{Unchecked} (core::int, core::String)).$1{core::int};
           late final synthesized core::int #2#1 = ##2#1#initializer(){() → core::int};
           function ##2#2#initializer() → core::String
-            return (#2#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+            return (#2#0 as{Unchecked} (core::int, core::String)).$2{core::String};
           late final synthesized core::String #2#2 = ##2#2#initializer(){() → core::String};
-          if(!(#2#1 is{ForNonNullableByDefault} core::int && (let final core::int #t31 = i = #2#1 in true) && (#2#2 is{ForNonNullableByDefault} core::String && (let final core::String #t32 = s = #2#2 in true))))
+          if(!(#2#1 is core::int && (let final core::int #t31 = i = #2#1 in true) && (#2#2 is core::String && (let final core::String #t32 = s = #2#2 in true))))
             throw new core::StateError::•("Pattern matching error");
         }
         i = i.{core::num::+}(1){(core::num) → core::int};
@@ -304,7 +304,7 @@ static method testForIn() → dynamic {
           final hoisted core::int i;
           {
             final synthesized dynamic #3#0 = #t35;
-            if(!(#3#0{core::int} is{ForNonNullableByDefault} core::int && (let final core::int #t36 = i = #3#0{core::int} in true)))
+            if(!(#3#0{core::int} is core::int && (let final core::int #t36 = i = #3#0{core::int} in true)))
               throw new core::StateError::•("Pattern matching error");
           }
           #t34.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:49:38: Error: Can't assign to the final variable 'i'.
@@ -326,12 +326,12 @@ static method testForIn() → dynamic {
           {
             final synthesized dynamic #4#0 = #t38;
             function ##4#1#initializer() → core::int
-              return (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+              return (#4#0 as{Unchecked} (core::int, core::String)).$1{core::int};
             late final synthesized core::int #4#1 = ##4#1#initializer(){() → core::int};
             function ##4#2#initializer() → core::String
-              return (#4#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+              return (#4#0 as{Unchecked} (core::int, core::String)).$2{core::String};
             late final synthesized core::String #4#2 = ##4#2#initializer(){() → core::String};
-            if(!(#4#1 is{ForNonNullableByDefault} core::int && (let final core::int #t39 = i = #4#1 in true) && (#4#2 is{ForNonNullableByDefault} core::String && (let final core::String #t40 = s = #4#2 in true))))
+            if(!(#4#1 is core::int && (let final core::int #t39 = i = #4#1 in true) && (#4#2 is core::String && (let final core::String #t40 = s = #4#2 in true))))
               throw new core::StateError::•("Pattern matching error");
           }
           #t37.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/for_final_variable.dart:53:7: Error: Can't assign to the final variable 'i'.
@@ -353,12 +353,12 @@ static method testForIn() → dynamic {
           {
             final synthesized dynamic #5#0 = #t42;
             function ##5#1#initializer() → core::int
-              return (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$1{core::int};
+              return (#5#0 as{Unchecked} (core::int, core::String)).$1{core::int};
             late final synthesized core::int #5#1 = ##5#1#initializer(){() → core::int};
             function ##5#2#initializer() → core::String
-              return (#5#0 as{ForNonNullableByDefault,Unchecked} (core::int, core::String)).$2{core::String};
+              return (#5#0 as{Unchecked} (core::int, core::String)).$2{core::String};
             late final synthesized core::String #5#2 = ##5#2#initializer(){() → core::String};
-            if(!(#5#1 is{ForNonNullableByDefault} core::int && (let final core::int #t43 = i = #5#1 in true) && (#5#2 is{ForNonNullableByDefault} core::String && (let final core::String #t44 = s = #5#2 in true))))
+            if(!(#5#1 is core::int && (let final core::int #t43 = i = #5#1 in true) && (#5#2 is core::String && (let final core::String #t44 = s = #5#2 in true))))
               throw new core::StateError::•("Pattern matching error");
           }
           #t41.{core::List::add}{Invariant}(i = i.{core::num::+}(1){(core::num) → core::int}){(core::int) → void};

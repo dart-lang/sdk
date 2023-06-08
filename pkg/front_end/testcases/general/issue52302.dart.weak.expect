@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue52302_lib.dart" as iss;
@@ -78,7 +78,7 @@ abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Objec
 }
 static method main() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 

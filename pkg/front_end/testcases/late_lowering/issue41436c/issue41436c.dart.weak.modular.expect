@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue41436c_lib.dart" as iss;
 import "dart:core" as core;

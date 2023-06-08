@@ -52,7 +52,7 @@ import ':[invalidUri]';
 
   Future<void> test_nonPackage_Uri() async {
     newFile('$testPackageLibPath/foo.dart', '');
-    testFile = convertPath('$testPackageLibPath/src/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 import 'dart:core';
 ''');
@@ -74,7 +74,7 @@ import 'package:test/foo.dart';
   Future<void> test_path() async {
     newFile('$testPackageLibPath/foo/bar.dart', '');
 
-    testFile = convertPath('$testPackageLibPath/src/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
 import '../foo/bar.dart';

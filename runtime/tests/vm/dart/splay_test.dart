@@ -33,6 +33,7 @@
 // VMOptions=--profiler --no_dead_store_elimination
 // VMOptions=--profiler --no_load_cse --no_dead_store_elimination
 // VMOptions=--profiler --test_il_serialization
+// VMOptions=--profiler --dontneed_on_sweep
 
 import "splay_common.dart";
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib1.dart" as mai;
@@ -215,7 +215,7 @@ static method method3(self::Main1 main1, self::Main2 main2, mai::Lib1a lib1a, ma
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 import "main.dart" as self;

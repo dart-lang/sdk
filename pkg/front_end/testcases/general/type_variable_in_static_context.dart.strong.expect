@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -553,7 +553,7 @@ abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*i
     return invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: The value 'null' can't be returned from a function with return type 'Mixin<T>' because 'Mixin<T>' is not nullable.
  - 'Mixin' is from 'pkg/front_end/testcases/general/type_variable_in_static_context.dart'.
   factory Mixin.fact(T t) => null;
-                             ^" in null as{TypeError,ForNonNullableByDefault} Never;
+                             ^" in null as{TypeError} Never;
   @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:137:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"

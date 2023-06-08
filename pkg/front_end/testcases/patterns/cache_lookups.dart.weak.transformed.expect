@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "cache_lookups_lib.dart" as cac;
@@ -20,19 +20,19 @@ static method test(dynamic o) → dynamic {
   {
     final synthesized dynamic #0#0 = o;
     function ##0#2#initializer() → core::int
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} self::Class).{self::Class::field}{core::int};
+      return (#0#0 as{Unchecked} self::Class).{self::Class::field}{core::int};
     late final synthesized core::int #0#2 = ##0#2#initializer(){() → core::int};
     function ##0#10#initializer() → core::bool
       return #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1;
     late final synthesized core::bool #0#10 = ##0#10#initializer(){() → core::bool};
     function ##0#12#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(0){(core::int) → dynamic};
     late final synthesized dynamic #0#12 = ##0#12#initializer(){() → dynamic};
     function ##0#13#initializer() → dynamic
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
+      return (#0#0 as{Unchecked} core::List<dynamic>).{core::List::[]}(1){(core::int) → dynamic};
     late final synthesized dynamic #0#13 = ##0#13#initializer(){() → dynamic};
     {
-      if(#0#0 is{ForNonNullableByDefault} self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is{ForNonNullableByDefault} self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
+      if(#0#0 is self::Class && #C2 =={core::num::==}{(core::Object) → core::bool} #0#2 || #0#0 is self::Class && #C3 =={core::num::==}{(core::Object) → core::bool} #0#2) {
         {
           core::print("Class");
           break #L1;
@@ -41,7 +41,7 @@ static method test(dynamic o) → dynamic {
     }
     {
       hoisted core::int a;
-      if(#0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is{ForNonNullableByDefault} core::List<dynamic> && #0#10 && (#0#12 is{ForNonNullableByDefault} core::int && (let final core::int #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
+      if(#0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final core::int #t1 = a = #0#12{core::int} in true)) && #C3 =={core::num::==}{(core::Object) → core::bool} #0#13 || #0#0 is core::List<dynamic> && #0#10 && (#0#12 is core::int && (let final core::int #t2 = a = #0#12{core::int} in true)) && #C1 =={core::num::==}{(core::Object) → core::bool} #0#13) {
         {
           core::print("List");
         }
@@ -67,7 +67,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as cac;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -407,7 +407,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     core::RangeError::checkNotNegative(skipCount, "skipCount");
     core::List<cac::_CustomList&Object&ListMixin::E%> otherList;
     core::int otherStart;
-    if(iterable is{ForNonNullableByDefault} core::List<cac::_CustomList&Object&ListMixin::E%>) {
+    if(iterable is core::List<cac::_CustomList&Object&ListMixin::E%>) {
       otherList = iterable{core::List<cac::_CustomList&Object&ListMixin::E%>};
       otherStart = skipCount;
     }
@@ -435,7 +435,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
       this.{col::ListBase::addAll}(newContents){(core::Iterable<cac::_CustomList&Object&ListMixin::E%>) → void};
       return;
     }
-    if(!(newContents is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>)) {
+    if(!(newContents is _in::EfficientLengthIterable<dynamic>)) {
       newContents = newContents.{core::Iterable::toList}(){({growable: core::bool}) → core::List<cac::_CustomList&Object&ListMixin::E%>};
     }
     core::int removeLength = end.{core::num::-}(start){(core::num) → core::int};
@@ -536,7 +536,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
       this.{col::ListBase::addAll}(iterable){(core::Iterable<cac::_CustomList&Object&ListMixin::E%>) → void};
       return;
     }
-    if(!(iterable is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
+    if(!(iterable is _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
       iterable = iterable.{core::Iterable::toList}(){({growable: core::bool}) → core::List<cac::_CustomList&Object&ListMixin::E%>};
     }
     core::int insertionLength = iterable.{core::Iterable::length}{core::int};
@@ -558,7 +558,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
     this.{col::ListBase::setAll}(index, iterable){(core::int, core::Iterable<cac::_CustomList&Object&ListMixin::E%>) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(core::int index, covariant-by-class core::Iterable<cac::_CustomList&Object&ListMixin::E%> iterable) → void {
-    if(iterable is{ForNonNullableByDefault} core::List<dynamic>) {
+    if(iterable is core::List<dynamic>) {
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<cac::_CustomList&Object&ListMixin::E%>, [core::int]) → void};
     }
     else {
@@ -578,7 +578,7 @@ abstract class _CustomList&Object&ListMixin<E extends core::Object? = dynamic> e
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as{ForNonNullableByDefault} core::Comparable<dynamic>, b as{ForNonNullableByDefault} core::Comparable<dynamic>);
+    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
     return core::Iterable::iterableToFullString(list, "[", "]");

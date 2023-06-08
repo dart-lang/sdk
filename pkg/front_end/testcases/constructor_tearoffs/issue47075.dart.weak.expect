@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ class C extends core::Object {
     ;
 }
 static method test() → dynamic {
-  new self::C::•().{self::C::new}{core::int} is{ForNonNullableByDefault} core::int;
+  new self::C::•().{self::C::new}{core::int} is core::int;
   dynamic foo;
   foo{dynamic}.new;
   foo{dynamic}.new();

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -20,29 +20,29 @@ class C<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic, 
 class D<P extends core::Object? = dynamic, Q extends core::Object? = dynamic> extends self::C<core::int, self::D::Q%, self::D::P%> {
   covariant-by-class field core::Map<self::D::P%, self::D::Q%> foo;
   constructor •(dynamic tt) → self::D<self::D::P%, self::D::Q%>
-    : self::D::foo = tt as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::D::P%, self::D::Q%>, super self::C::•()
+    : self::D::foo = tt as{TypeError,ForDynamic} core::Map<self::D::P%, self::D::Q%>, super self::C::•()
     ;
   method foo2(dynamic y) → dynamic {
-    if(y is{ForNonNullableByDefault} self::A<self::D::P%>) {
+    if(y is self::A<self::D::P%>) {
       core::print("21");
     }
-    if(y is{ForNonNullableByDefault} self::C<dynamic, self::D::Q%, core::List<self::D::P%>>) {
+    if(y is self::C<dynamic, self::D::Q%, core::List<self::D::P%>>) {
       core::print("22");
     }
-    this.{self::D::foo} = y as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::D::P%, self::D::Q%>;
+    this.{self::D::foo} = y as{TypeError,ForDynamic} core::Map<self::D::P%, self::D::Q%>;
   }
   method foo3<T1 extends core::Object? = dynamic, T2 extends core::Object? = dynamic>(dynamic z) → dynamic {
-    if(z is{ForNonNullableByDefault} self::A<self::D::foo3::T1%>) {
+    if(z is self::A<self::D::foo3::T1%>) {
       core::print("31");
     }
-    if(z is{ForNonNullableByDefault} self::C<core::Map<self::D::foo3::T1%, self::D::P%>, core::List<self::D::foo3::T2%>, self::D::Q%>) {
+    if(z is self::C<core::Map<self::D::foo3::T1%, self::D::P%>, core::List<self::D::foo3::T2%>, self::D::Q%>) {
       core::print("32");
     }
-    return (z as{ForNonNullableByDefault} core::Map<self::D::foo3::T2%, self::D::Q%>).{core::Map::values}{core::Iterable<self::D::Q%>};
+    return (z as core::Map<self::D::foo3::T2%, self::D::Q%>).{core::Map::values}{core::Iterable<self::D::Q%>};
   }
   method foo4(dynamic w) → core::Map<self::D::P%, self::D::Q%> {
-    core::List<core::Map<self::D::P%, self::D::Q%>> list = core::_GrowableList::_literal1<core::Map<self::D::P%, self::D::Q%>>(w as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::D::P%, self::D::Q%>);
-    return w as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::D::P%, self::D::Q%>;
+    core::List<core::Map<self::D::P%, self::D::Q%>> list = core::_GrowableList::_literal1<core::Map<self::D::P%, self::D::Q%>>(w as{TypeError,ForDynamic} core::Map<self::D::P%, self::D::Q%>);
+    return w as{TypeError,ForDynamic} core::Map<self::D::P%, self::D::Q%>;
   }
 }
 class E<P extends core::String> extends core::Object {
@@ -69,19 +69,19 @@ class H<T extends core::Object? = dynamic> extends self::G<self::H::T%> implemen
     ;
   method foo8<covariant-by-class Q extends self::H::T%>(self::H::foo8::Q% a, covariant-by-declaration core::int b, covariant-by-class self::H::T% c) → void {}
   forwarding-stub method foo7<covariant-by-class Q extends self::H::T%>(self::H::foo7::Q% a, covariant-by-declaration core::num b, covariant-by-class self::H::T% c) → void
-    return super.{self::G::foo7}<self::H::foo7::Q%>(a, b as core::int, c);
+    return super.{self::G::foo7}<self::H::foo7::Q%>(a, b as{ForLegacy} core::int, c);
 }
 late static field core::List<core::Iterable<dynamic>> globalVar;
 static method foo1(dynamic x) → dynamic {
-  if(x is{ForNonNullableByDefault} self::B) {
+  if(x is self::B) {
     core::print("11");
   }
-  if(x is{ForNonNullableByDefault} self::C<core::int, core::Object, dynamic>) {
+  if(x is self::C<core::int, core::Object, dynamic>) {
     core::print("12");
   }
-  return x as{ForNonNullableByDefault} self::A<core::int>;
+  return x as self::A<core::int>;
 }
 static method foo5(dynamic x) → void {
-  self::globalVar = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<core::Iterable<dynamic>>;
+  self::globalVar = x as{TypeError,ForDynamic} core::List<core::Iterable<dynamic>>;
 }
 static method main() → dynamic {}

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -393,17 +393,17 @@ static method Extension|set#property3<T extends core::num*, S extends self::Exte
 static method Extension|get#property4<T extends core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
   return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:135:22: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property4 => 0; // ok
-                     ^" in 0 as{TypeError} Never;
+                     ^" in 0 as{TypeError,ForLegacy} Never;
 static method Extension|set#property4<T extends core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void {}
 static method Extension|get#property5a<T extends core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
   return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:138:23: Error: A value of type 'int' can't be assigned to a variable of type 'S'.
   S get property5a => 0; // ok
-                      ^" in 0 as{TypeError} Never;
+                      ^" in 0 as{TypeError,ForLegacy} Never;
 static method Extension|set#property5a<T extends core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void {}
 static method Extension|get#property5b<T extends core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
   return invalid-expression "pkg/front_end/testcases/general/getter_vs_setter_type.dart:141:23: Error: A value of type 'int' can't be assigned to a variable of type 'T'.
   T get property5b => 0; // ok
-                      ^" in 0 as{TypeError} Never;
+                      ^" in 0 as{TypeError,ForLegacy} Never;
 static method Extension|set#property5b<T extends core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void {}
 static method Extension|get#property6<T extends core::num*, S extends self::Extension|get#property6::T* = core::num*>(lowered final core::int* #this) → core::String*
   return "";

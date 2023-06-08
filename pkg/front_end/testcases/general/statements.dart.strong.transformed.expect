@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -13,14 +13,14 @@ static method foo() → dynamic {
 }
 static method bar(dynamic d) → dynamic async* {
   {
-    synthesized asy::Stream<dynamic> :stream = d as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
+    synthesized asy::Stream<dynamic> :stream = d as{TypeError,ForDynamic} asy::Stream<dynamic>;
     synthesized asy::_StreamIterator<dynamic>? :for-iterator = new asy::_StreamIterator::•<dynamic>(:stream);
     try
       while (let dynamic #t1 = asy::_asyncStarMoveNextHelper(:stream) in await :for-iterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>}) {
         dynamic x = :for-iterator.{asy::_StreamIterator::current}{dynamic};
         {
           yield x;
-          yield* x as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
+          yield* x as{TypeError,ForDynamic} asy::Stream<dynamic>;
         }
       }
     finally

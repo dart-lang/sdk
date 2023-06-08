@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -49,7 +49,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
         {
           core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
         }
       }
     }
@@ -67,7 +67,7 @@ class Baz<T extends core::Object? = dynamic, E extends core::Iterable<self::Baz:
         {
           core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
           self::Baz::T% y = i;
         }
       }
@@ -84,7 +84,7 @@ static method test() → dynamic {
         core::String y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
-                                            ^" in x as{TypeError,ForNonNullableByDefault} core::String;
+                                            ^" in x as{TypeError} core::String;
       }
     }
   }
@@ -93,7 +93,7 @@ static method test() → dynamic {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current}{self::Foo};
       {
-        core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+        core::String y = x as{TypeError,ForDynamic} core::String;
       }
     }
   }
@@ -106,7 +106,7 @@ static method test() → dynamic {
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
-              ^" in #t1 as{TypeError,ForNonNullableByDefault} core::String;
+              ^" in #t1 as{TypeError} core::String;
         core::String y = x;
       }
     }
@@ -118,7 +118,7 @@ Try changing the type of the variable.
       final self::Foo #t2 = :sync-for-iterator.{core::Iterator::current}{self::Foo};
       {
         z = #t2;
-        core::String y = z as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+        core::String y = z as{TypeError,ForDynamic} core::String;
       }
     }
   }
@@ -128,18 +128,18 @@ Try changing the type of the variable.
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        self::Foo x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+        self::Foo x = #t3 as{TypeError,ForDynamic} self::Foo;
         self::Foo y = x;
       }
     }
   }
   dynamic iter2 = list;
   {
-    synthesized core::Iterator<dynamic> :sync-for-iterator = (iter2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
+    synthesized core::Iterator<dynamic> :sync-for-iterator = (iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>).{core::Iterable::iterator}{core::Iterator<dynamic>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
       {
-        self::Foo x = #t4 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+        self::Foo x = #t4 as{TypeError,ForDynamic} self::Foo;
         self::Foo y = x;
       }
     }
@@ -151,11 +151,11 @@ Try changing the type of the variable.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
   for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
-                                                                     ^" in map as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
+                                                                     ^" in map as{TypeError} core::Iterable<dynamic>.{core::Iterable::iterator}{core::Iterator<Never>};
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       dynamic x = :sync-for-iterator.{core::Iterator::current}{Never};
       {
-        core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+        core::String y = x as{TypeError,ForDynamic} core::String;
       }
     }
   }

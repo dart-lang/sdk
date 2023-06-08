@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "object_lib.dart" as obj;
 import "main_lib1.dart" as mai;
@@ -12,7 +12,7 @@ class AdaptorElement extends obj::RenderObject {
     : super obj::RenderObject::•()
     ;
   get renderObject() → mai::Adaptor*
-    return super.{obj::RenderObject::renderObject} as{TypeError} mai::Adaptor*;
+    return super.{obj::RenderObject::renderObject} as{TypeError,ForLegacy} mai::Adaptor*;
   method foo() → void {
     core::print(this.{self::AdaptorElement::renderObject}{mai::Adaptor*}.{mai::_Adaptor&RenderFoo&LibMixin::constraints}{obj::FooConstraints*}.{obj::FooConstraints::axis}{core::String*});
   }
@@ -30,7 +30,7 @@ class AdaptorElement extends obj::RenderObject {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as obj;
 import "dart:core" as core;
 
@@ -39,7 +39,7 @@ class RenderFoo extends obj::RenderObject {
     : super obj::RenderObject::•()
     ;
   get constraints() → obj::FooConstraints
-    return super.{obj::RenderObject::constraints} as{ForNonNullableByDefault} obj::FooConstraints;
+    return super.{obj::RenderObject::constraints} as obj::FooConstraints;
 }
 class FooConstraints extends obj::Constraints {
   synthetic constructor •() → obj::FooConstraints
@@ -63,7 +63,7 @@ class RenderObject extends core::Object {
     return this;
 }
 
-library;
+library /*isLegacy*/;
 import self as mai;
 import "object_lib.dart" as obj;
 import "main_lib2.dart" as mai2;
@@ -95,7 +95,7 @@ abstract class Adaptor extends mai::_Adaptor&RenderFoo&LibMixin {
     ;
 }
 
-library;
+library /*isLegacy*/;
 import self as mai2;
 import "object_lib.dart" as obj;
 import "dart:core" as core;

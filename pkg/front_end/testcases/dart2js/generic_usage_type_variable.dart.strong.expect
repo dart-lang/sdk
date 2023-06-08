@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -39,23 +39,23 @@ class C1 extends core::Object implements self::C {
   method noSuchMethod(core::Invocation invocation) → dynamic
     return throw 0;
   no-such-method-forwarder get v5() → self::D?
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::D?;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} self::D?;
   no-such-method-forwarder set v5(self::D? value) → void
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v5=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
   no-such-method-forwarder get v6() → core::List<dynamic>
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<dynamic>;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::List<dynamic>;
   no-such-method-forwarder set v6(core::List<dynamic> value) → void
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v6=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
   no-such-method-forwarder get g() → FutureOr<FutureOr<void>>?
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<FutureOr<void>>?;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} FutureOr<FutureOr<void>>?;
   no-such-method-forwarder set g(FutureOr<FutureOr<void>>? value) → void
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("g=", <dynamic>[], <dynamic>[value], #C4, 2)){(core::Invocation) → dynamic};
   no-such-method-forwarder get v7() → Null
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v7", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} Null;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("v7", <dynamic>[], <dynamic>[], #C4, 1)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} Null;
   no-such-method-forwarder operator +(core::double other) → core::double
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("+", <dynamic>[], <dynamic>[other], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::double;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("+", <dynamic>[], <dynamic>[other], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::double;
   no-such-method-forwarder method m1(covariant-by-declaration self::C arg1, [core::Set<core::Set<self::C>> arg2 = #C3]) → core::Map<self::C, self::C>
-    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m1", <dynamic>[], <dynamic>[arg1, arg2], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<self::C, self::C>;
+    return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m1", <dynamic>[], <dynamic>[arg1, arg2], #C4, 0)){(core::Invocation) → dynamic} as{TypeError,ForDynamic} core::Map<self::C, self::C>;
   no-such-method-forwarder method m2({dynamic arg1 = #C3, ((dynamic) → dynamic, dynamic) → core::Map<dynamic, dynamic> arg2 = #C3}) → void
     return this.{self::C1::noSuchMethod}(core::_createInvocationMirror("m2", <dynamic>[], <dynamic>[], <core::String, dynamic>{"arg1": arg1, "arg2": arg2}, 0)){(core::Invocation) → dynamic};
 }

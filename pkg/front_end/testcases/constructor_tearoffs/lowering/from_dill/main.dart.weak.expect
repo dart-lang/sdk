@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -42,28 +42,28 @@ import "dart:core" as core;
 
 import "org-dartlang-testcase:///main_lib.dart";
 
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   () → mai::Class1 f1a = #C1;
   mai::Class1 c1a = f1a(){() → mai::Class1};
-  self::expect(true, c1a is{ForNonNullableByDefault} mai::Class1);
+  self::expect(true, c1a is mai::Class1);
   dynamic f1b = #C1;
   dynamic c1b = f1b{dynamic}.call();
-  self::expect(true, c1b is{ForNonNullableByDefault} mai::Class1);
+  self::expect(true, c1b is mai::Class1);
   self::expect(true, core::identical(f1a, f1b));
   () → mai::Class2 f2a = #C2;
   mai::Class2 c2a = f2a(){() → mai::Class2};
-  self::expect(true, c2a is{ForNonNullableByDefault} mai::Class2);
+  self::expect(true, c2a is mai::Class2);
   dynamic f2b = #C2;
   dynamic c2b = f2b{dynamic}.call();
-  self::expect(true, c2b is{ForNonNullableByDefault} mai::Class2);
+  self::expect(true, c2b is mai::Class2);
   self::expect(true, core::identical(f2a, f2b));
   () → mai::Class2 f2c = #C3;
   mai::Class2 c2c = f2c(){() → mai::Class2};
-  self::expect(true, c2c is{ForNonNullableByDefault} mai::Class2);
+  self::expect(true, c2c is mai::Class2);
   dynamic f2d = #C3;
   dynamic c2d = f2d{dynamic}.call();
-  self::expect(true, c2d is{ForNonNullableByDefault} mai::Class2);
+  self::expect(true, c2d is mai::Class2);
   self::expect(true, core::identical(f2c, f2d));
   (core::int) → mai::Class3 f3a = #C4;
   mai::Class3 c3a = f3a(42){(core::int) → mai::Class3};
@@ -84,11 +84,11 @@ Try removing the extra positional arguments.
   self::throws(() → dynamic => f3b{dynamic}.call(42, 87));
   <T extends core::Object? = dynamic>() → mai::Class4<T%> f4a = #C5;
   mai::Class4<dynamic> c4a = f4a<dynamic>(){() → mai::Class4<dynamic>};
-  self::expect(true, c4a is{ForNonNullableByDefault} mai::Class4<dynamic>);
-  self::expect(false, c4a is{ForNonNullableByDefault} mai::Class4<core::int>);
+  self::expect(true, c4a is mai::Class4<dynamic>);
+  self::expect(false, c4a is mai::Class4<core::int>);
   mai::Class4<core::int> c4b = f4a<core::int>(){() → mai::Class4<core::int>};
-  self::expect(true, c4b is{ForNonNullableByDefault} mai::Class4<core::int>);
-  self::expect(false, c4b is{ForNonNullableByDefault} mai::Class4<core::String>);
+  self::expect(true, c4b is mai::Class4<core::int>);
+  self::expect(false, c4b is mai::Class4<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:62:8: Error: Expected 1 type arguments.
     f4a<int, String>(); // error
@@ -96,8 +96,8 @@ Try removing the extra positional arguments.
   };
   () → mai::Class4<core::int> f4b = f4a<core::int>;
   mai::Class4<core::int> c4c = f4b(){() → mai::Class4<core::int>};
-  self::expect(true, c4c is{ForNonNullableByDefault} mai::Class4<core::int>);
-  self::expect(false, c4c is{ForNonNullableByDefault} mai::Class4<core::String>);
+  self::expect(true, c4c is mai::Class4<core::int>);
+  self::expect(false, c4c is mai::Class4<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:70:8: Error: Expected 0 type arguments.
     f4b<int>(); // error
@@ -105,16 +105,16 @@ Try removing the extra positional arguments.
   };
   dynamic f4c = #C5;
   dynamic c4d = f4c{dynamic}.call();
-  self::expect(true, c4d is{ForNonNullableByDefault} mai::Class4<dynamic>);
-  self::expect(false, c4d is{ForNonNullableByDefault} mai::Class4<core::int>);
+  self::expect(true, c4d is mai::Class4<dynamic>);
+  self::expect(false, c4d is mai::Class4<core::int>);
   self::throws(() → dynamic => f4c{dynamic}.call<core::int, core::String>());
   <T extends core::Object? = dynamic>() → mai::Class4<T%> f4d = #C6;
   mai::Class4<dynamic> c4e = f4d<dynamic>(){() → mai::Class4<dynamic>};
-  self::expect(true, c4e is{ForNonNullableByDefault} mai::Class4<dynamic>);
-  self::expect(false, c4e is{ForNonNullableByDefault} mai::Class4<core::int>);
+  self::expect(true, c4e is mai::Class4<dynamic>);
+  self::expect(false, c4e is mai::Class4<core::int>);
   mai::Class4<core::int> c4f = f4d<core::int>(){() → mai::Class4<core::int>};
-  self::expect(true, c4f is{ForNonNullableByDefault} mai::Class4<core::int>);
-  self::expect(false, c4f is{ForNonNullableByDefault} mai::Class4<core::String>);
+  self::expect(true, c4f is mai::Class4<core::int>);
+  self::expect(false, c4f is mai::Class4<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:87:8: Error: Expected 1 type arguments.
     f4d<int, String>(); // error
@@ -122,8 +122,8 @@ Try removing the extra positional arguments.
   };
   () → mai::Class4<core::int> f4e = f4d<core::int>;
   mai::Class4<core::int> c4g = f4e(){() → mai::Class4<core::int>};
-  self::expect(true, c4g is{ForNonNullableByDefault} mai::Class4<core::int>);
-  self::expect(false, c4g is{ForNonNullableByDefault} mai::Class4<core::String>);
+  self::expect(true, c4g is mai::Class4<core::int>);
+  self::expect(false, c4g is mai::Class4<core::String>);
   () → Null {
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:95:8: Error: Expected 0 type arguments.
     f4e<int>(); // error
@@ -131,16 +131,16 @@ Try removing the extra positional arguments.
   };
   dynamic f4f = #C6;
   dynamic c4h = f4f{dynamic}.call();
-  self::expect(true, c4h is{ForNonNullableByDefault} mai::Class4<dynamic>);
-  self::expect(false, c4h is{ForNonNullableByDefault} mai::Class4<core::int>);
+  self::expect(true, c4h is mai::Class4<dynamic>);
+  self::expect(false, c4h is mai::Class4<core::int>);
   self::throws(() → dynamic => f4f{dynamic}.call<core::int, core::String>());
   <T extends core::num>() → mai::Class5<T> f5a = #C7;
   mai::Class5<core::num> c5a = f5a<core::num>(){() → mai::Class5<core::num>};
-  self::expect(true, c5a is{ForNonNullableByDefault} mai::Class5<core::num>);
-  self::expect(false, c5a is{ForNonNullableByDefault} mai::Class5<core::int>);
+  self::expect(true, c5a is mai::Class5<core::num>);
+  self::expect(false, c5a is mai::Class5<core::int>);
   mai::Class5<core::int> c5b = f5a<core::int>(){() → mai::Class5<core::int>};
-  self::expect(true, c5b is{ForNonNullableByDefault} mai::Class5<core::int>);
-  self::expect(false, c5b is{ForNonNullableByDefault} mai::Class5<core::double>);
+  self::expect(true, c5b is mai::Class5<core::int>);
+  self::expect(false, c5b is mai::Class5<core::double>);
   () → Null {
     f5a<core::String>(){() → mai::Class5<core::String>};
     invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/from_dill/main.dart:113:8: Error: Expected 1 type arguments.
@@ -149,11 +149,11 @@ Try removing the extra positional arguments.
   };
   dynamic f5b = #C7;
   dynamic c5c = f5b{dynamic}.call();
-  self::expect(true, c5c is{ForNonNullableByDefault} mai::Class5<core::num>);
-  self::expect(false, c5c is{ForNonNullableByDefault} mai::Class5<core::int>);
+  self::expect(true, c5c is mai::Class5<core::num>);
+  self::expect(false, c5c is mai::Class5<core::int>);
   dynamic c5d = f5b{dynamic}.call<core::int>();
-  self::expect(true, c5d is{ForNonNullableByDefault} mai::Class5<core::int>);
-  self::expect(false, c5d is{ForNonNullableByDefault} mai::Class5<core::double>);
+  self::expect(true, c5d is mai::Class5<core::int>);
+  self::expect(false, c5d is mai::Class5<core::double>);
   self::throws(() → dynamic => f5b{dynamic}.call<core::String>());
   self::throws(() → dynamic => f5b{dynamic}.call<core::int, core::String>());
 }
@@ -175,7 +175,7 @@ static method throws(() → dynamic f, {core::bool inSoundModeOnly = #C8}) → d
   throw "Expected exception";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

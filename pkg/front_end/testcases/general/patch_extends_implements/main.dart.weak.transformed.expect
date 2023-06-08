@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,22 +37,22 @@ static method test() → dynamic {
  - 'Class2b' is from 'dart:test'.
  - 'SuperClass' is from 'dart:test'.
   SuperClass c2b = new Class2b();
-                       ^" in new test::Class2b::•() as{TypeError,ForNonNullableByDefault} test::SuperClass;
+                       ^" in new test::Class2b::•() as{TypeError} test::SuperClass;
   test::Interface c3a = new test::Class3a::•();
   test::Interface c3b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:13:23: Error: A value of type 'Class3b' can't be assigned to a variable of type 'Interface'.
  - 'Class3b' is from 'dart:test'.
  - 'Interface' is from 'dart:test'.
   Interface c3b = new Class3b();
-                      ^" in new test::Class3b::•() as{TypeError,ForNonNullableByDefault} test::Interface;
+                      ^" in new test::Class3b::•() as{TypeError} test::Interface;
   test::Mixin c4a = new test::Class4a::•();
   test::Mixin c4b = invalid-expression "pkg/front_end/testcases/general/patch_extends_implements/main.dart:15:19: Error: A value of type 'Class4b' can't be assigned to a variable of type 'Mixin'.
  - 'Class4b' is from 'dart:test'.
  - 'Mixin' is from 'dart:test'.
   Mixin c4b = new Class4b();
-                  ^" in new test::Class4b::•() as{TypeError,ForNonNullableByDefault} test::Mixin;
+                  ^" in new test::Class4b::•() as{TypeError} test::Mixin;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

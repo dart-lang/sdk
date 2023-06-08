@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -336,7 +336,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     core::RangeError::checkNotNegative(skipCount, "skipCount");
     core::List<self::_NegativeLengthList&Object&ListMixin::E%> otherList;
     core::int otherStart;
-    if(iterable is{ForNonNullableByDefault} core::List<self::_NegativeLengthList&Object&ListMixin::E%>) {
+    if(iterable is core::List<self::_NegativeLengthList&Object&ListMixin::E%>) {
       otherList = iterable{core::List<self::_NegativeLengthList&Object&ListMixin::E%>};
       otherStart = skipCount;
     }
@@ -364,7 +364,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
       this.{col::ListBase::addAll}(newContents){(core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>) → void};
       return;
     }
-    if(!(newContents is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>)) {
+    if(!(newContents is _in::EfficientLengthIterable<dynamic>)) {
       newContents = newContents.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::_NegativeLengthList&Object&ListMixin::E%>};
     }
     core::int removeLength = end.{core::num::-}(start){(core::num) → core::int};
@@ -465,7 +465,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
       this.{col::ListBase::addAll}(iterable){(core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>) → void};
       return;
     }
-    if(!(iterable is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
+    if(!(iterable is _in::EfficientLengthIterable<dynamic>) || core::identical(iterable, this)) {
       iterable = iterable.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::_NegativeLengthList&Object&ListMixin::E%>};
     }
     core::int insertionLength = iterable.{core::Iterable::length}{core::int};
@@ -487,7 +487,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
     this.{col::ListBase::setAll}(index, iterable){(core::int, core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>) → void};
   }
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ setAll(core::int index, covariant-by-class core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%> iterable) → void {
-    if(iterable is{ForNonNullableByDefault} core::List<dynamic>) {
+    if(iterable is core::List<dynamic>) {
       this.{col::ListBase::setRange}(index, index.{core::num::+}(iterable.{core::Iterable::length}{core::int}){(core::num) → core::int}, iterable){(core::int, core::int, core::Iterable<self::_NegativeLengthList&Object&ListMixin::E%>, [core::int]) → void};
     }
     else {
@@ -507,7 +507,7 @@ abstract class _NegativeLengthList&Object&ListMixin<E extends core::Object? = dy
   method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ toString() → core::String
     return col::ListBase::listToString(this);
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ _compareAny(dynamic a, dynamic b) → core::int {
-    return core::Comparable::compare(a as{ForNonNullableByDefault} core::Comparable<dynamic>, b as{ForNonNullableByDefault} core::Comparable<dynamic>);
+    return core::Comparable::compare(a as core::Comparable<dynamic>, b as core::Comparable<dynamic>);
   }
   static method /* from org-dartlang-sdk:///sdk/lib/collection/list.dart */ listToString(core::List<core::Object?> list) → core::String
     return core::Iterable::iterableToFullString(list, "[", "]");

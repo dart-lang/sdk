@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -217,13 +217,13 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
     #L1:
     {
       {
-        if((!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
+        if((!(#0#3 == null) || null is dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
           #t1 = "";
           break #L1;
         }
       }
       {
-        if((!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#8) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && (!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#8) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
+        if((!(#0#9 == null) || null is dynamic && #0#8) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && (!(#0#9 == null) || null is dynamic && #0#8) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
           #t1 = "";
           break #L1;
         }
@@ -231,7 +231,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a1;
         final hoisted dynamic b1;
-        if((!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && (let final dynamic #t2 = a1 = #0#3 in true) && (!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && (let final dynamic #t3 = b1 = #0#3 in true)) {
+        if((!(#0#3 == null) || null is dynamic && #0#2) && (let final dynamic #t2 = a1 = #0#3 in true) && (!(#0#3 == null) || null is dynamic && #0#2) && (let final dynamic #t3 = b1 = #0#3 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -239,7 +239,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a2;
         final hoisted dynamic b2;
-        if((!(#0#14 == null) || null is{ForNonNullableByDefault} dynamic && #0#13) && (let final dynamic #t4 = a2 = #0#14 in true) && (!(#0#14 == null) || null is{ForNonNullableByDefault} dynamic && #0#13) && (let final dynamic #t5 = b2 = #0#14 in true)) {
+        if((!(#0#14 == null) || null is dynamic && #0#13) && (let final dynamic #t4 = a2 = #0#14 in true) && (!(#0#14 == null) || null is dynamic && #0#13) && (let final dynamic #t5 = b2 = #0#14 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -247,7 +247,7 @@ static method test1(core::Map<dynamic, dynamic> map) → core::String {
       {
         hoisted dynamic a3;
         final hoisted dynamic b3;
-        if((!(#0#17 == null) || null is{ForNonNullableByDefault} dynamic && #0#16) && (let final dynamic #t6 = a3 = #0#17 in true) && (!(#0#17 == null) || null is{ForNonNullableByDefault} dynamic && #0#16) && (let final dynamic #t7 = b3 = #0#17 in true)) {
+        if((!(#0#17 == null) || null is dynamic && #0#16) && (let final dynamic #t6 = a3 = #0#17 in true) && (!(#0#17 == null) || null is dynamic && #0#16) && (let final dynamic #t7 = b3 = #0#17 in true)) {
           #t1 = "";
           break #L1;
         }
@@ -274,14 +274,14 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
     late final synthesized dynamic #0#17 = #0#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized core::bool #0#16 = #0#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
     {
-      if((!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
+      if((!(#0#3 == null) || null is dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
         {
           break #L2;
         }
       }
     }
     {
-      if((!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#8) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && (!(#0#9 == null) || null is{ForNonNullableByDefault} dynamic && #0#8) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
+      if((!(#0#9 == null) || null is dynamic && #0#8) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#9 && (!(#0#9 == null) || null is dynamic && #0#8) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#9) {
         {
           break #L2;
         }
@@ -292,7 +292,7 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
       final hoisted dynamic b1;
       hoisted dynamic a2;
       final hoisted dynamic b2;
-      if((!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && (let final dynamic #t8 = a1 = #0#3 in true) && (!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && (let final dynamic #t9 = b1 = #0#3 in true) || (!(#0#14 == null) || null is{ForNonNullableByDefault} dynamic && #0#13) && (let final dynamic #t10 = a2 = #0#14 in true) && (!(#0#14 == null) || null is{ForNonNullableByDefault} dynamic && #0#13) && (let final dynamic #t11 = b2 = #0#14 in true)) {
+      if((!(#0#3 == null) || null is dynamic && #0#2) && (let final dynamic #t8 = a1 = #0#3 in true) && (!(#0#3 == null) || null is dynamic && #0#2) && (let final dynamic #t9 = b1 = #0#3 in true) || (!(#0#14 == null) || null is dynamic && #0#13) && (let final dynamic #t10 = a2 = #0#14 in true) && (!(#0#14 == null) || null is dynamic && #0#13) && (let final dynamic #t11 = b2 = #0#14 in true)) {
         {
           break #L2;
         }
@@ -301,7 +301,7 @@ static method test2(core::Map<dynamic, dynamic> map) → void {
     {
       hoisted dynamic a3;
       final hoisted dynamic b3;
-      if((!(#0#17 == null) || null is{ForNonNullableByDefault} dynamic && #0#16) && (let final dynamic #t12 = a3 = #0#17 in true) && (!(#0#17 == null) || null is{ForNonNullableByDefault} dynamic && #0#16) && (let final dynamic #t13 = b3 = #0#17 in true)) {
+      if((!(#0#17 == null) || null is dynamic && #0#16) && (let final dynamic #t12 = a3 = #0#17 in true) && (!(#0#17 == null) || null is dynamic && #0#16) && (let final dynamic #t13 = b3 = #0#17 in true)) {
         {
           break #L2;
         }
@@ -314,14 +314,14 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #0#0 = map;
     late final synthesized dynamic #0#3 = #0#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized core::bool #0#2 = #0#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    if((!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is{ForNonNullableByDefault} dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
+    if((!(#0#3 == null) || null is dynamic && #0#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #0#3 && (!(#0#3 == null) || null is dynamic && #0#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #0#3) {
     }
   }
   {
     final synthesized core::Map<dynamic, dynamic> #1#0 = map;
     late final synthesized dynamic #1#3 = #1#0.{core::Map::[]}(#C2){(core::Object?) → dynamic};
     late final synthesized core::bool #1#2 = #1#0.{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
-    if((!(#1#3 == null) || null is{ForNonNullableByDefault} dynamic && #1#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #1#3 && (!(#1#3 == null) || null is{ForNonNullableByDefault} dynamic && #1#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #1#3) {
+    if((!(#1#3 == null) || null is dynamic && #1#2) && #C2 =={core::num::==}{(core::Object) → core::bool} #1#3 && (!(#1#3 == null) || null is dynamic && #1#2) && #C5 =={core::num::==}{(core::Object) → core::bool} #1#3) {
     }
   }
   {
@@ -330,7 +330,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #2#0 = map;
     late final synthesized dynamic #2#3 = #2#0.{core::Map::[]}(#C1){(core::Object?) → dynamic};
     late final synthesized core::bool #2#2 = #2#0.{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    if((!(#2#3 == null) || null is{ForNonNullableByDefault} dynamic && #2#2) && (let final dynamic #t14 = a1 = #2#3 in true) && (!(#2#3 == null) || null is{ForNonNullableByDefault} dynamic && #2#2) && (let final dynamic #t15 = b1 = #2#3 in true)) {
+    if((!(#2#3 == null) || null is dynamic && #2#2) && (let final dynamic #t14 = a1 = #2#3 in true) && (!(#2#3 == null) || null is dynamic && #2#2) && (let final dynamic #t15 = b1 = #2#3 in true)) {
     }
   }
   {
@@ -339,7 +339,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #3#0 = map;
     late final synthesized dynamic #3#3 = #3#0.{core::Map::[]}(#C3){(core::Object?) → dynamic};
     late final synthesized core::bool #3#2 = #3#0.{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    if((!(#3#3 == null) || null is{ForNonNullableByDefault} dynamic && #3#2) && (let final dynamic #t16 = a2 = #3#3 in true) && (!(#3#3 == null) || null is{ForNonNullableByDefault} dynamic && #3#2) && (let final dynamic #t17 = b2 = #3#3 in true)) {
+    if((!(#3#3 == null) || null is dynamic && #3#2) && (let final dynamic #t16 = a2 = #3#3 in true) && (!(#3#3 == null) || null is dynamic && #3#2) && (let final dynamic #t17 = b2 = #3#3 in true)) {
     }
   }
   {
@@ -348,7 +348,7 @@ static method test3(core::Map<dynamic, dynamic> map) → void {
     final synthesized core::Map<dynamic, dynamic> #4#0 = map;
     late final synthesized dynamic #4#3 = #4#0.{core::Map::[]}(#C4){(core::Object?) → dynamic};
     late final synthesized core::bool #4#2 = #4#0.{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    if((!(#4#3 == null) || null is{ForNonNullableByDefault} dynamic && #4#2) && (let final dynamic #t18 = a3 = #4#3 in true) && (!(#4#3 == null) || null is{ForNonNullableByDefault} dynamic && #4#2) && (let final dynamic #t19 = b3 = #4#3 in true)) {
+    if((!(#4#3 == null) || null is dynamic && #4#2) && (let final dynamic #t18 = a3 = #4#3 in true) && (!(#4#3 == null) || null is dynamic && #4#2) && (let final dynamic #t19 = b3 = #4#3 in true)) {
     }
   }
 }
@@ -357,45 +357,45 @@ static method test() → dynamic {
   hoisted has-declared-initializer core::int b;
   {
     final synthesized dynamic #0#0 = <self::C, core::int>{#C1: 1};
-    late final synthesized core::int? #0#3 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
-    late final synthesized core::bool #0#2 = (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#2) && (let final dynamic #t20 = a = #0#3{core::int} in true) && (!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#2) && (let final dynamic #t21 = b = #0#3{core::int} in true)))
+    late final synthesized core::int? #0#3 = (#0#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::bool #0#2 = (#0#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    if(!((!(#0#3 == null) || null is core::int && #0#2) && (let final dynamic #t20 = a = #0#3{core::int} in true) && (!(#0#3 == null) || null is core::int && #0#2) && (let final dynamic #t21 = b = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   hoisted has-declared-initializer core::int c;
   hoisted has-declared-initializer core::int d;
   {
     final synthesized dynamic #1#0 = <core::int, core::int>{1: 2};
-    late final synthesized core::int? #1#3 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C2){(core::Object?) → core::int?};
-    late final synthesized core::bool #1#2 = (#1#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::int, core::int>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
-    if(!((!(#1#3 == null) || null is{ForNonNullableByDefault} core::int && #1#2) && (let final dynamic #t22 = c = #1#3{core::int} in true) && (!(#1#3 == null) || null is{ForNonNullableByDefault} core::int && #1#2) && (let final dynamic #t23 = d = #1#3{core::int} in true)))
+    late final synthesized core::int? #1#3 = (#1#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::[]}(#C2){(core::Object?) → core::int?};
+    late final synthesized core::bool #1#2 = (#1#0 as{Unchecked} core::Map<core::int, core::int>).{core::Map::containsKey}(#C2){(core::Object?) → core::bool};
+    if(!((!(#1#3 == null) || null is core::int && #1#2) && (let final dynamic #t22 = c = #1#3{core::int} in true) && (!(#1#3 == null) || null is core::int && #1#2) && (let final dynamic #t23 = d = #1#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a1;
   final hoisted has-declared-initializer core::int b1;
   {
     final synthesized dynamic #2#0 = <self::C, core::int>{#C1: 2};
-    late final synthesized core::int? #2#3 = (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
-    late final synthesized core::bool #2#2 = (#2#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
-    if(!((!(#2#3 == null) || null is{ForNonNullableByDefault} core::int && #2#2) && (let final dynamic #t24 = a1 = #2#3{core::int} in true) && (!(#2#3 == null) || null is{ForNonNullableByDefault} core::int && #2#2) && (let final dynamic #t25 = b1 = #2#3{core::int} in true)))
+    late final synthesized core::int? #2#3 = (#2#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+    late final synthesized core::bool #2#2 = (#2#0 as{Unchecked} core::Map<self::C, core::int>).{core::Map::containsKey}(#C1){(core::Object?) → core::bool};
+    if(!((!(#2#3 == null) || null is core::int && #2#2) && (let final dynamic #t24 = a1 = #2#3{core::int} in true) && (!(#2#3 == null) || null is core::int && #2#2) && (let final dynamic #t25 = b1 = #2#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a2;
   final hoisted has-declared-initializer core::int b2;
   {
     final synthesized dynamic #3#0 = <core::double, core::int>{3.14: 1};
-    late final synthesized core::int? #3#3 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
-    late final synthesized core::bool #3#2 = (#3#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::double, core::int>).{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
-    if(!((!(#3#3 == null) || null is{ForNonNullableByDefault} core::int && #3#2) && (let final dynamic #t26 = a2 = #3#3{core::int} in true) && (!(#3#3 == null) || null is{ForNonNullableByDefault} core::int && #3#2) && (let final dynamic #t27 = b2 = #3#3{core::int} in true)))
+    late final synthesized core::int? #3#3 = (#3#0 as{Unchecked} core::Map<core::double, core::int>).{core::Map::[]}(#C3){(core::Object?) → core::int?};
+    late final synthesized core::bool #3#2 = (#3#0 as{Unchecked} core::Map<core::double, core::int>).{core::Map::containsKey}(#C3){(core::Object?) → core::bool};
+    if(!((!(#3#3 == null) || null is core::int && #3#2) && (let final dynamic #t26 = a2 = #3#3{core::int} in true) && (!(#3#3 == null) || null is core::int && #3#2) && (let final dynamic #t27 = b2 = #3#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
   final hoisted has-declared-initializer core::int a3;
   final hoisted has-declared-initializer core::int b3;
   {
     final synthesized dynamic #4#0 = <core::String, core::int>{"x": 1};
-    late final synthesized core::int? #4#3 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C4){(core::Object?) → core::int?};
-    late final synthesized core::bool #4#2 = (#4#0 as{ForNonNullableByDefault,Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
-    if(!((!(#4#3 == null) || null is{ForNonNullableByDefault} core::int && #4#2) && (let final dynamic #t28 = a3 = #4#3{core::int} in true) && (!(#4#3 == null) || null is{ForNonNullableByDefault} core::int && #4#2) && (let final dynamic #t29 = b3 = #4#3{core::int} in true)))
+    late final synthesized core::int? #4#3 = (#4#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::[]}(#C4){(core::Object?) → core::int?};
+    late final synthesized core::bool #4#2 = (#4#0 as{Unchecked} core::Map<core::String, core::int>).{core::Map::containsKey}(#C4){(core::Object?) → core::bool};
+    if(!((!(#4#3 == null) || null is core::int && #4#2) && (let final dynamic #t28 = a3 = #4#3{core::int} in true) && (!(#4#3 == null) || null is core::int && #4#2) && (let final dynamic #t29 = b3 = #4#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

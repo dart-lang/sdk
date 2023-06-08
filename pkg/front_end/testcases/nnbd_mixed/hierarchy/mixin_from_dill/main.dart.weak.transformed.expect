@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "opt_in_lib1.dart" as opt;
@@ -66,7 +66,7 @@ static method main() → dynamic {
   opt::testInterface2(new opt3::Mixin2::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -159,7 +159,7 @@ static method testInterface2(opt::Interface2 c) → dynamic {
   };
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt3;
 import "dart:core" as core;
 import "opt_in_lib1.dart" as opt;
@@ -176,7 +176,7 @@ mixin class Mixin2 extends core::Object implements opt::Interface2 {
     return throw core::NoSuchMethodError::withInvocation(this, new core::_InvocationMirror::_withType(#C5, 2, #C2, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(c)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C4)));
 }
 
-library;
+library /*isLegacy*/;
 import self as opt2;
 import "dart:core" as core;
 import "opt_in_lib1.dart" as opt;

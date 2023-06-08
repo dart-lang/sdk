@@ -1,8 +1,8 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method foo(dynamic y) → dynamic async /* futureValueType= dynamic */ {
-  dynamic a = await(<X extends core::Object? = dynamic>(() → core::List<X%> x, X% x2) → X% => x2)<FutureOr<dynamic>>(() → core::List<FutureOr<dynamic>> => y as{TypeError,ForDynamic,ForNonNullableByDefault} core::List<FutureOr<dynamic>>, throw 0){(() → core::List<FutureOr<dynamic>?>, FutureOr<dynamic>?) → FutureOr<dynamic>?} /* runtimeCheckType= dart.async::Future<dynamic> */ ;
+  dynamic a = await(<X extends core::Object? = dynamic>(() → core::List<X%> x, X% x2) → X% => x2)<FutureOr<dynamic>>(() → core::List<FutureOr<dynamic>> => y as{TypeError,ForDynamic} core::List<FutureOr<dynamic>>, throw 0){(() → core::List<FutureOr<dynamic>?>, FutureOr<dynamic>?) → FutureOr<dynamic>?} /* runtimeCheckType= dart.async::Future<dynamic> */ ;
 }
 static method main() → dynamic {}

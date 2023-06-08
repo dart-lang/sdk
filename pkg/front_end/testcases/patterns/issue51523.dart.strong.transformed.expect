@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,9 +12,9 @@ static method main() → void {
   {
     final synthesized dynamic #0#0 = <self::C<core::String>, core::int>{#C1: 1};
     function ##0#3#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C<core::String>, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
+      return (#0#0 as{Unchecked} core::Map<self::C<core::String>, core::int>).{core::Map::[]}(#C1){(core::Object?) → core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
-    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::int #t1 = a1 = #0#3{core::int} in true)))
+    if(!((!(#0#3 == null) || null is core::int && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(#C1){(core::Object?) → core::bool}) && (let final core::int #t1 = a1 = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");
   }
 }

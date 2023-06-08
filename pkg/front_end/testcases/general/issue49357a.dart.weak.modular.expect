@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method method(dynamic list) → void {
-    for (final dynamic element in list as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
+    for (final dynamic element in list as{TypeError,ForDynamic} core::Iterable<dynamic>) {
     }
   }
 }

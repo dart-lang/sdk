@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "late_statics_lib.dart" as lat;
@@ -42,7 +42,7 @@ static method testInitializedNonFinalTopLevelField() → void
 static method testInitializedFinalTopLevelField() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as lat;
 import "dart:core" as core;
 

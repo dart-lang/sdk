@@ -107,41 +107,25 @@ template("protozero_library") {
   }
 }
 
-_perfetto_proto_definition_sources = [
-  "protos/perfetto/common/builtin_clock.proto",
-  "protos/perfetto/trace/clock_snapshot.proto",
-  "protos/perfetto/trace/interned_data/interned_data.proto",
-  "protos/perfetto/trace/profiling/profile_common.proto",
-  "protos/perfetto/trace/profiling/profile_packet.proto",
-  "protos/perfetto/trace/trace.proto",
-  "protos/perfetto/trace/trace_packet.proto",
-  "protos/perfetto/trace/track_event/debug_annotation.proto",
-  "protos/perfetto/trace/track_event/process_descriptor.proto",
-  "protos/perfetto/trace/track_event/thread_descriptor.proto",
-  "protos/perfetto/trace/track_event/track_descriptor.proto",
-  "protos/perfetto/trace/track_event/track_event.proto",
-]
-
 # This target is not a dependency of any other GN target. It is required to make
 # ./protos/tools/compile_perfetto_protos.dart work though.
-protozero_library("perfetto_protos_protozero") {
+protozero_library("perfetto_protos") {
   proto_in_dir = "."
   proto_out_dir = "//runtime/vm"
   generator_plugin_options = "wrapper_namespace=pbzero"
-  sources = _perfetto_proto_definition_sources
-}
-
-proto_library("perfetto_protos_dart") {
-  generate_cc = false
-  generate_python = false
-  generator_plugin_script =
-      "//third_party/pkg/protobuf/protoc_plugin/bin/protoc-gen-dart"
-  generator_plugin_suffixes = [ ".pb.dart" ]
-
-  proto_in_dir = "."
-  proto_out_dir = "//pkg/vm_service/lib/src"
-
-  sources = _perfetto_proto_definition_sources
+  sources = [
+    "protos/perfetto/common/builtin_clock.proto",
+    "protos/perfetto/trace/clock_snapshot.proto",
+    "protos/perfetto/trace/interned_data/interned_data.proto",
+    "protos/perfetto/trace/profiling/profile_common.proto",
+    "protos/perfetto/trace/profiling/profile_packet.proto",
+    "protos/perfetto/trace/trace_packet.proto",
+    "protos/perfetto/trace/track_event/debug_annotation.proto",
+    "protos/perfetto/trace/track_event/process_descriptor.proto",
+    "protos/perfetto/trace/track_event/thread_descriptor.proto",
+    "protos/perfetto/trace/track_event/track_descriptor.proto",
+    "protos/perfetto/trace/track_event/track_event.proto",
+  ]
 }
 
 # This config needs to be propagated to all targets that depend on

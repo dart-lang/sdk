@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,7 +19,7 @@ mixin class B extends core::Object implements self::I {
   method noSuchMethod(core::Invocation _) → dynamic
     ;
   no-such-method-forwarder method foo() → dynamic
-    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} dynamic;
+    return this.{self::B::noSuchMethod}(new core::_InvocationMirror::_withType(#foo, 0, const <core::Type*>[], const <dynamic>[], core::Map::unmodifiable<core::Symbol*, dynamic>(const <core::Symbol*, dynamic>{}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} dynamic;
 }
 abstract class _C&A&B = self::A with self::B /*isAnonymousMixin*/  {
   synthetic constructor •() → self::_C&A&B

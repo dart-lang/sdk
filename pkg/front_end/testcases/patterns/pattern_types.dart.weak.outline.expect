@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -79,7 +79,7 @@ static method objectPattern(dynamic o) → dynamic
 static method relationalPattern(dynamic dyn, Never never, self::Class cls, self::Class? cls_, invalid-type invalid, core::String string, self::Class2 cls2, self::Class2? cls2_) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -93,7 +93,7 @@ class Invalid extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "dart:core" as core;
 

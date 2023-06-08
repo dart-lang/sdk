@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -35,11 +35,11 @@ static method test() → dynamic {
   var {const C(:var t): a1} = foo();
              ^";
     function ##0#3#initializer() → core::int?
-      return (#0#0 as{ForNonNullableByDefault,Unchecked} core::Map<self::C<core::String>, core::int>).{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+      return (#0#0 as{Unchecked} core::Map<self::C<core::String>, core::int>).{core::Map::[]}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^"){(core::Object?) → core::int?};
     late final synthesized core::int? #0#3 = ##0#3#initializer(){() → core::int?};
-    if(!((!(#0#3 == null) || null is{ForNonNullableByDefault} core::int && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
+    if(!((!(#0#3 == null) || null is core::int && #0#0{core::Map<self::C<core::String>, core::int>}.{core::Map::containsKey}(invalid-expression "pkg/front_end/testcases/patterns/parser_recovery_in_pattern_arguments.dart:13:14: Error: This couldn't be parsed.
   var {const C(:var t): a1} = foo();
              ^"){(core::Object?) → core::bool}) && (let final core::int #t1 = a1 = #0#3{core::int} in true)))
       throw new core::StateError::•("Pattern matching error");

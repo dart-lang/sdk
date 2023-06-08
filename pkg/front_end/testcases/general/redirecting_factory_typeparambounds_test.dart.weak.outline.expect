@@ -1,4 +1,4 @@
-library redirecting_factory_constructors.typeparambounds_test /*isNonNullableByDefault*/;
+library redirecting_factory_constructors.typeparambounds_test;
 import self as self;
 import "dart:core" as core;
 

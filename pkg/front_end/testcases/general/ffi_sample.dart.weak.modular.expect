@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:ffi" as ffi;
 import "dart:core" as core;

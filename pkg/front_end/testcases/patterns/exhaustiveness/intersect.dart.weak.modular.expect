@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -170,7 +170,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
   {
     final synthesized self::nonExhaustiveBoundedTypeVariableByOtherType::T #0#0 = x1;
     {
-      if(#0#0 is{ForNonNullableByDefault} self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+      if(#0#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
         {
           break #L18;
         }
@@ -184,7 +184,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
     #L19:
     {
       {
-        if(#1#0 is{ForNonNullableByDefault} self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
+        if(#1#0 is self::nonExhaustiveBoundedTypeVariableByOtherType::S) {
           #t5 = 0;
           break #L19;
         }
@@ -194,7 +194,7 @@ static method nonExhaustiveBoundedTypeVariableByOtherType<T extends core::bool, 
   } =>#t5;
 }
 static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByValue::T% x1, self::exhaustivePromotedTypeVariableByValue::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L20:
     switch(x1{self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::exhaustivePromotedTypeVariableByValue::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L21:
@@ -208,7 +208,7 @@ static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dy
         throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t6;
       #L23:
@@ -233,7 +233,7 @@ static method exhaustivePromotedTypeVariableByValue<T extends core::Object? = dy
   }
 }
 static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByType::T% x1, self::exhaustivePromotedTypeVariableByType::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L27:
     {
       final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
@@ -247,7 +247,7 @@ static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dyn
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t7;
       final synthesized self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByType::T% & core::bool /* '%' & '!' = '!' */};
@@ -265,7 +265,7 @@ static method exhaustivePromotedTypeVariableByType<T extends core::Object? = dyn
   }
 }
 static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynamic>(self::nonExhaustivePromotedTypeVariable::T% x1, self::nonExhaustivePromotedTypeVariable::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L29:
     switch(x1{self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */}) /* isExplicitlyExhaustive, self::nonExhaustivePromotedTypeVariable::T% & core::bool /* '%' & '!' = '!' */ */ {
       #L30:
@@ -278,7 +278,7 @@ static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynami
         throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t8;
       #L32:
@@ -297,7 +297,7 @@ static method nonExhaustivePromotedTypeVariable<T extends core::Object? = dynami
   }
 }
 static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = dynamic>(self::exhaustivePromotedTypeVariableByBound1::T% x1, self::exhaustivePromotedTypeVariableByBound1::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L35:
     {
       final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
@@ -311,7 +311,7 @@ static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = d
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t9;
       final synthesized self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::exhaustivePromotedTypeVariableByBound1::T% & core::bool /* '%' & '!' = '!' */};
@@ -329,12 +329,12 @@ static method exhaustivePromotedTypeVariableByBound1<T extends core::Object? = d
   }
 }
 static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Object? = dynamic, S extends core::bool>(self::nonExhaustivePromotedTypeVariableByOtherType::T% x1, self::nonExhaustivePromotedTypeVariableByOtherType::T% x2) → dynamic {
-  if(x1 is{ForNonNullableByDefault} core::bool) {
+  if(x1 is core::bool) {
     #L37:
     {
       final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #0#0 = x1{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
       {
-        if(#0#0 is{ForNonNullableByDefault} self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+        if(#0#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
           {
             break #L37;
           }
@@ -343,14 +343,14 @@ static method nonExhaustivePromotedTypeVariableByOtherType<T extends core::Objec
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch statement with a non-nullable type.");
     }
   }
-  if(x2 is{ForNonNullableByDefault} core::bool) {
+  if(x2 is core::bool) {
     core::int a = block {
       core::int #t10;
       final synthesized self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */ #1#0 = x2{self::nonExhaustivePromotedTypeVariableByOtherType::T% & core::bool /* '%' & '!' = '!' */};
       #L38:
       {
         {
-          if(#1#0 is{ForNonNullableByDefault} self::nonExhaustivePromotedTypeVariableByOtherType::S) {
+          if(#1#0 is self::nonExhaustivePromotedTypeVariableByOtherType::S) {
             #t10 = 0;
             break #L38;
           }

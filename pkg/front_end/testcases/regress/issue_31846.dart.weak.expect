@@ -1,9 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  core::print(#C1 is{ForNonNullableByDefault} () → dynamic);
+  core::print(#C1 is () → dynamic);
   core::print((<T extends core::Object? = dynamic>(T% x) → T% => x).{core::Object::runtimeType}{core::Type});
   core::print((<T extends core::num>(T x) → T => x).{core::Object::runtimeType}{core::Type});
   core::print((<T extends core::Comparable<T> = core::Comparable<dynamic>>(T x) → T => x).{core::Object::runtimeType}{core::Type});

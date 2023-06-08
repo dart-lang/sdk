@@ -1,10 +1,10 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///issue_36647_lib1.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "issue_36647_lib2.dart" as iss;
 additionalExports = (iss::xxx,
@@ -16,7 +16,7 @@ additionalExports = (iss::xxx,
 export "org-dartlang-testcase:///issue_36647_lib2.dart";
 
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "foundation_binding_lib.dart" as fou;
 import "scheduler_binding_lib.dart" as sch;

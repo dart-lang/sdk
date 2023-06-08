@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -82,14 +82,14 @@ class Test extends self::Base {
   method test() → void {
     super.{self::Base::[]=}(self::f<self::Index*>(), self::f<self::B*>());
     let final self::Index* #t1 = self::f<self::Index*>() in super.{self::Base::[]}(#t1) == null ?{self::B*} super.{self::Base::[]=}(#t1, self::f<self::B*>()) : null;
-    let final self::Index* #t2 = self::f<self::Index*>() in super.{self::Base::[]=}(#t2, super.{self::Base::[]}(#t2).{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError} self::B*);
+    let final self::Index* #t2 = self::f<self::Index*>() in super.{self::Base::[]=}(#t2, super.{self::Base::[]}(#t2).{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError,ForLegacy} self::B*);
     let final self::Index* #t3 = self::f<self::Index*>() in super.{self::Base::[]=}(#t3, super.{self::Base::[]}(#t3).{self::B::*}(self::f<self::B*>()){(self::B*) →* self::B*});
     let final self::Index* #t4 = self::f<self::Index*>() in super.{self::Base::[]=}(#t4, super.{self::Base::[]}(#t4).{self::B::&}(self::f<self::A*>()){(self::A*) →* self::C*});
     let final self::Index* #t5 = self::f<self::Index*>() in let final self::B* #t6 = super.{self::Base::[]}(#t5).{self::B::-}(1){(core::int*) →* self::B*} in let final void #t7 = super.{self::Base::[]=}(#t5, #t6) in #t6;
     let final self::Index* #t8 = self::f<self::Index*>() in super.{self::Base::[]=}(#t8, super.{self::Base::[]}(#t8).{self::B::-}(1){(core::int*) →* self::B*});
     self::B* v1 = let final self::Index* #t9 = self::f<self::Index*>() in let final self::B* #t10 = self::f<self::B*>() in let final void #t11 = super.{self::Base::[]=}(#t9, #t10) in #t10;
     self::B* v2 = let final self::Index* #t12 = self::f<self::Index*>() in let final self::B* #t13 = super.{self::Base::[]}(#t12) in #t13 == null ?{self::B*} let final self::B* #t14 = self::f<self::B*>() in let final void #t15 = super.{self::Base::[]=}(#t12, #t14) in #t14 : #t13;
-    self::A* v3 = let final self::Index* #t16 = self::f<self::Index*>() in let final self::A* #t17 = super.{self::Base::[]}(#t16).{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError} self::B* in let final void #t18 = super.{self::Base::[]=}(#t16, #t17) in #t17;
+    self::A* v3 = let final self::Index* #t16 = self::f<self::Index*>() in let final self::A* #t17 = super.{self::Base::[]}(#t16).{self::B::+}(self::f<self::C*>()){(self::C*) →* self::A*} as{TypeError,ForLegacy} self::B* in let final void #t18 = super.{self::Base::[]=}(#t16, #t17) in #t17;
     self::B* v4 = let final self::Index* #t19 = self::f<self::Index*>() in let final self::B* #t20 = super.{self::Base::[]}(#t19).{self::B::*}(self::f<self::B*>()){(self::B*) →* self::B*} in let final void #t21 = super.{self::Base::[]=}(#t19, #t20) in #t20;
     self::C* v5 = let final self::Index* #t22 = self::f<self::Index*>() in let final self::C* #t23 = super.{self::Base::[]}(#t22).{self::B::&}(self::f<self::A*>()){(self::A*) →* self::C*} in let final void #t24 = super.{self::Base::[]=}(#t22, #t23) in #t23;
     self::B* v6 = let final self::Index* #t25 = self::f<self::Index*>() in let final self::B* #t26 = super.{self::Base::[]}(#t25).{self::B::-}(1){(core::int*) →* self::B*} in let final void #t27 = super.{self::Base::[]=}(#t25, #t26) in #t26;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "deferred_lib.dart" as def;
 import "dart:core" as core;
@@ -7,13 +7,13 @@ import "org-dartlang-testcase:///deferred_lib.dart" deferred as lib;
 
 static method main() → dynamic {}
 static method test() → dynamic {
-  let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::x = self::m2() as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  let final dynamic #t1 = CheckLibraryIsLoaded(lib) in def::x = self::m2() as{TypeError,ForDynamic} core::int;
   let final dynamic #t2 = CheckLibraryIsLoaded(lib) in def::m(self::m2());
 }
 static method m2() → dynamic
   return 1;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as def;
 import "dart:core" as core;
 

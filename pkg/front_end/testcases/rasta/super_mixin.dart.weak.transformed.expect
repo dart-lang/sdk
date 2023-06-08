@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "mixin_library.dart" as mix;
@@ -121,7 +121,7 @@ static method main() → dynamic {
   core::print(new self::C2::•<dynamic>().{self::C2::foo}(){() → dynamic});
 }
 
-library test.mixin_library /*isNonNullableByDefault*/;
+library test.mixin_library;
 //
 // Problems in library:
 //

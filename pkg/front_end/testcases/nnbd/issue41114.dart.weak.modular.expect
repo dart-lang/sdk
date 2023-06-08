@@ -1,9 +1,9 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic async /* futureValueType= dynamic */ {
-  core::List<core::String>? a = <core::String>[] as{ForNonNullableByDefault} core::List<core::String>?;
+  core::List<core::String>? a = <core::String>[] as core::List<core::String>?;
   core::Iterable<core::String>? b = let final core::List<core::String>? #t1 = a in #t1 == null ?{core::Iterable<core::String>?} null : #t1{core::List<core::String>}.{core::Iterable::map}<core::String>((core::String e) → core::String => e){((core::String) → core::String) → core::Iterable<core::String>};
   core::Iterable<core::String>? i = let final core::Iterable<core::String>? #t2 = b in #t2 == null ?{core::Iterable<core::String>?} a : #t2{core::Iterable<core::String>};
   core::print(i);

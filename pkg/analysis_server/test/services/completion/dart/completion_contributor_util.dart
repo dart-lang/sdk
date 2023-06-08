@@ -63,7 +63,6 @@ abstract class DartCompletionContributorTest
 
 abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
   static const String _UNCHECKED = '__UNCHECKED__';
-  late String testFile;
   int _completionOffset = -1;
   late int replacementOffset;
   late int replacementLength;
@@ -105,7 +104,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
-    newFile(testFile, content);
+    newFile(testFile.path, content);
   }
 
   /// A variant of [addTestSource] that can be invoked more than once,
@@ -117,8 +116,8 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
     expect(nextOffset, equals(-1), reason: 'too many ^');
     content = content.substring(0, _completionOffset) +
         content.substring(_completionOffset + 1);
-    newFile(testFile, content);
-    driverFor(testFile).changeFile(testFile);
+    newFile(testFile.path, content);
+    driverFor(testFile.path).changeFile(testFile.path);
   }
 
   void assertCoreTypeSuggestions() {
@@ -561,7 +560,7 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
       DartCompletionRequest request);
 
   Future<void> computeSuggestions({int times = 200}) async {
-    result = await getResolvedUnit(testFile);
+    result = await getResolvedUnit(testFile.path);
 
     // Build the request
     var request = DartCompletionRequest.forResolvedUnit(
@@ -648,12 +647,6 @@ abstract class _BaseDartCompletionContributorTest extends AbstractContextTest {
 
   void resolveSource(String path, String content) {
     newFile(path, content);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    testFile = convertPath('$testPackageLibPath/test.dart');
   }
 
   CompletionSuggestion suggestionWith(

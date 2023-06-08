@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,5 +13,5 @@ static field core::int i = 0;
 static field core::String s = "";
 static field core::String x = self::i = invalid-expression "pkg/front_end/testcases/inference_new/invalid_assignment_during_toplevel_inference.dart:9:13: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
 var x = i = s;
-            ^" in self::s as{TypeError,ForNonNullableByDefault} core::int;
+            ^" in self::s as{TypeError} core::int;
 static method main() → dynamic {}

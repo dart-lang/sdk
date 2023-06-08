@@ -32,7 +32,8 @@ Library parseLibrary(Uri uri, String text,
   fileUri ??= uri;
   environment ??= new TypeParserEnvironment(uri, fileUri);
   Library library =
-      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."));
+      new Library(uri, fileUri: fileUri, name: uri.path.replaceAll("/", "."))
+        ..isNonNullableByDefault = true;
   List<ParsedType> types = type_parser.parse(text);
   for (ParsedType type in types) {
     if (type is ParsedClass) {

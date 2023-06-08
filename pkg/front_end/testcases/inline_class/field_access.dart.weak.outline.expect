@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -96,7 +96,7 @@ static method ErroneousInlineClass|get#test(lowered final self::ErroneousInlineC
 static method test(self::InlineClass inlineClass, self::GenericInlineClass<core::String> genericInlineClass, self::FunctionInlineClass<core::String> functionInlineClass, self::GenericFunctionInlineClass genericFunctionInlineClass, self::DynamicInlineClass dynamicInlineClass, self::ErroneousInlineClass erroneousInlineClass, #lib1::PrivateInlineClass privateInlineClass) → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -61,11 +61,11 @@ static method Extension|toString() → core::String
   return "Foo";
 static method main() → dynamic {
   core::int value;
-  self::expect(true, "".{core::Object::noSuchMethod}{(core::Invocation) → dynamic} is{ForNonNullableByDefault} core::Function);
+  self::expect(true, "".{core::Object::noSuchMethod}{(core::Invocation) → dynamic} is core::Function);
   value = self::Extension|get#noSuchMethod("");
   self::Extension|set#hashCode("", 42);
-  self::expect(true, "".{core::Object::runtimeType}{core::Type} is{ForNonNullableByDefault} core::Type);
-  self::expect(true, self::Extension|get#runtimeType("") is{ForNonNullableByDefault} core::Function);
+  self::expect(true, "".{core::Object::runtimeType}{core::Type} is core::Type);
+  self::expect(true, self::Extension|get#runtimeType("") is core::Function);
   value = self::Extension|runtimeType("");
   self::expect(true, "" =={core::String::==}{(core::Object) → core::bool} "");
   self::expect("Foo", self::Extension|toString());
@@ -75,7 +75,7 @@ static method errors() → dynamic {
   value = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:27:14: Error: A value of type 'dynamic Function(Invocation)' can't be assigned to a variable of type 'int'.
  - 'Invocation' is from 'dart:core'.
   value = \"\".noSuchMethod;
-             ^" in "".{core::Object::noSuchMethod}{(core::Invocation) → dynamic} as{TypeError,ForNonNullableByDefault} core::int;
+             ^" in "".{core::Object::noSuchMethod}{(core::Invocation) → dynamic} as{TypeError} core::int;
   invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:28:6: Error: The setter 'hashCode' isn't defined for the class 'String'.
 Try correcting the name to the name of an existing setter, or defining a setter or field named 'hashCode'.
   \"\".hashCode = 42;
@@ -83,7 +83,7 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   value = invalid-expression "pkg/front_end/testcases/extensions/conflict_with_object.dart:29:14: Error: A value of type 'Type' can't be assigned to a variable of type 'int'.
  - 'Type' is from 'dart:core'.
   value = \"\".runtimeType;
-             ^" in "".{core::Object::runtimeType}{core::Type} as{TypeError,ForNonNullableByDefault} core::int;
+             ^" in "".{core::Object::runtimeType}{core::Type} as{TypeError} core::int;
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {
   if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual)) {

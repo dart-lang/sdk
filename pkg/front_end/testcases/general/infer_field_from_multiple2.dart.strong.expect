@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -319,7 +319,7 @@ class D<T extends core::Object? = dynamic> extends core::Object implements self:
   covariant-by-class field self::D::T% field12;
   covariant-by-class field self::D::T% field13 = invalid-expression "pkg/front_end/testcases/general/infer_field_from_multiple2.dart:105:17: Error: The value 'null' can't be assigned to a variable of type 'T' because 'T' is not nullable.
   var field13 = null; // error
-                ^" in null as{TypeError,ForNonNullableByDefault} Never;
+                ^" in null as{TypeError} Never;
   covariant-by-class field self::D::T% field14;
   field invalid-type field15;
   field invalid-type field16;

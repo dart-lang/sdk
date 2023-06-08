@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "mixin_from_opt_in_out_in_lib1.dart" as mix;
 import "mixin_from_opt_in_out_in_lib2.dart" as mix2;
@@ -170,7 +170,7 @@ class DwBq3 extends self::_DwBq3&C3&Bq {
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as mix;
 import "mixin_from_opt_in_out_in_lib2.dart" as mix2;
 import "dart:core" as core;
@@ -212,7 +212,7 @@ class C3 extends mix2::Bq {
   abstract member-signature get runtimeType() → core::Type*; -> core::Object::runtimeType
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mix2;
 import "dart:core" as core;
 

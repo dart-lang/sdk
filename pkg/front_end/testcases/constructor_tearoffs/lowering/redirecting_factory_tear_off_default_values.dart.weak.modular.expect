@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -41,7 +41,7 @@ class Class2 extends core::Object {
   static method _#new#tearOff({core::int field = #C2}) → self::Class2
     return new self::Class2::_(field: field);
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   core::print("inSoundMode: ${self::inSoundMode}");
   self::testDefaultValues();

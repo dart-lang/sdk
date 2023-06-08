@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "mixin_from_dill_lib1.dart" as mix;
 import "dart:core" as core;
@@ -22,7 +22,7 @@ static method main() → dynamic {
   foo2.{mix2::_Foo&B&D::x}(){() → void};
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mix2;
 import "dart:core" as core;
 

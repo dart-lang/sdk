@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -24,19 +24,19 @@ static method test() → dynamic {
   FutureOr<() → opt::A*>foLegacyNonNullable = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:13:42: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A Function()>' because 'FutureOr<A Function()>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAlias> foLegacyNonNullable = null; // error
-                                         ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<() → opt::A*>;
+                                         ^" in null as{TypeError} FutureOr<() → opt::A*>;
   has-declared-initializer FutureOr<() →? opt::A*>foLegacyNullable = null;
   FutureOr<opt::A>foNonNullable = invalid-expression "pkg/front_end/testcases/nonfunction_type_aliases/issue41501.dart:15:47: Error: The value 'null' can't be assigned to a variable of type 'FutureOr<A>' because 'FutureOr<A>' is not nullable.
  - 'A' is from 'pkg/front_end/testcases/nonfunction_type_aliases/issue41501_lib.dart'.
   FutureOr<AAliasNonNullable> foNonNullable = null; // error
-                                              ^" in null as{TypeError,ForNonNullableByDefault} FutureOr<opt::A>;
+                                              ^" in null as{TypeError} FutureOr<opt::A>;
   has-declared-initializer FutureOr<opt::A?>foNullable = null;
   has-declared-initializer FutureOr<opt::A?>foNonNullableNullable = null;
   has-declared-initializer FutureOr<opt::A?>foNullableNullable = null;
 }
 static method main() → dynamic {}
 
-library opted_out_lib;
+library opted_out_lib /*isLegacy*/;
 //
 // Problems in library:
 //

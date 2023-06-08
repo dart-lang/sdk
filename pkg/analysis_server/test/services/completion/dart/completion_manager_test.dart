@@ -49,7 +49,7 @@ part 'test.dart';
     await resolveFile('$testPackageLibPath/b.dart');
 
     // Build the request
-    var resolvedUnit = await getResolvedUnit(testFile);
+    var resolvedUnit = await getResolvedUnit(testFile.path);
     request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: resolvedUnit,
       offset: completionOffset,

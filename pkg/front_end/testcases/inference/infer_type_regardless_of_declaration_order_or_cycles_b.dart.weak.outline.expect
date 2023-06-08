@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "infer_type_regardless_of_declaration_order_or_cycles.dart" as test;
 
@@ -11,7 +11,7 @@ class B extends test::A {
 static method main() → dynamic
   ;
 
-library test /*isNonNullableByDefault*/;
+library test;
 import self as test;
 import "infer_type_regardless_of_declaration_order_or_cycles_b.dart" as self;
 import "dart:core" as core;
