@@ -22,11 +22,7 @@ class NameScheme {
       required this.containerName,
       required this.containerType,
       required this.libraryName})
-      // ignore: unnecessary_null_comparison
-      : assert(isInstanceMember != null),
-        // ignore: unnecessary_null_comparison
-        assert(libraryName != null),
-        assert((containerName == null) ==
+      : assert((containerName == null) ==
             (containerType == ContainerType.Library));
 
   bool get isStatic => !isInstanceMember;

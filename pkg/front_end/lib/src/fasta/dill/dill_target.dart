@@ -45,13 +45,7 @@ class DillTarget extends TargetImplementation {
   final Benchmarker? benchmarker;
 
   DillTarget(this.ticker, this.uriTranslator, this.backendTarget,
-      {this.benchmarker})
-      // ignore: unnecessary_null_comparison
-      : assert(ticker != null),
-        // ignore: unnecessary_null_comparison
-        assert(uriTranslator != null),
-        // ignore: unnecessary_null_comparison
-        assert(backendTarget != null) {
+      {this.benchmarker}) {
     loader = new DillLoader(this);
   }
 

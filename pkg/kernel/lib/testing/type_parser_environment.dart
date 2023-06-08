@@ -79,8 +79,6 @@ class Env {
   final bool isNonNullableByDefault;
 
   Env(String source, {required this.isNonNullableByDefault}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNonNullableByDefault != null);
     Uri libraryUri = Uri.parse('memory:main.dart');
     Uri coreUri = Uri.parse("dart:core");
     TypeParserEnvironment coreEnvironment =
@@ -211,8 +209,7 @@ class TypeParserEnvironment {
   }
 
   ParameterEnvironment extendToParameterEnvironment(String typeParameters) {
-    // ignore: unnecessary_null_comparison
-    assert(typeParameters != null && typeParameters.isNotEmpty);
+    assert(typeParameters.isNotEmpty);
     return const _KernelFromParsedType().computeTypeParameterEnvironment(
         parseTypeVariables("<${typeParameters}>"), this);
   }

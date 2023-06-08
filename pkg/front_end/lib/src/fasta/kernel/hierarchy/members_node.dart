@@ -252,8 +252,6 @@ class ClassMembersNodeBuilder {
       }
 
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
-        // ignore: unnecessary_null_comparison
-        assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
@@ -317,8 +315,6 @@ class ClassMembersNodeBuilder {
       }
 
       void inferFrom(List<ClassMember> members, {required bool forSetter}) {
-        // ignore: unnecessary_null_comparison
-        assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
@@ -418,8 +414,6 @@ class ClassMembersNodeBuilder {
 
       DartType? inferFrom(List<ClassMember> members,
           {required bool forSetter}) {
-        // ignore: unnecessary_null_comparison
-        assert(forSetter != null);
         CombinedClassMemberSignature combinedMemberSignature =
             new CombinedClassMemberSignature(
                 membersBuilder, classBuilder, members,
@@ -917,8 +911,7 @@ class ClassMembersNodeBuilder {
             "Only inherited members can implement by inheritance: "
             "${inheritedMember}");
         inheritedImplementsMap[inheritedMember] = overrides;
-        // ignore: unnecessary_null_comparison
-        if (dataForTesting != null && aliasForTesting != null) {
+        if (dataForTesting != null) {
           dataForTesting.aliasMap[aliasForTesting] = inheritedMember;
         }
       }

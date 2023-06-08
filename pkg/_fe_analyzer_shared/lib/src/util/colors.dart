@@ -87,8 +87,6 @@ bool get enableColors => _enableColors ??= _computeEnableColors();
 /// Allows the client to override the decision of whether to disable ANSI
 /// colors.
 void set enableColors(bool value) {
-  // ignore: unnecessary_null_comparison
-  assert(value != null);
   _enableColors = value;
 }
 

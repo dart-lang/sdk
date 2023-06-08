@@ -177,8 +177,6 @@ Statement forEachWithNonVariable(Expression iterable, List<Statement> body) {
 ///     }
 Statement forEachWithVariableDecl(
     Var variable, Expression iterable, List<Statement> body) {
-  // ignore: unnecessary_null_comparison
-  assert(variable != null);
   return new ForEach._(variable, iterable, block(body), true,
       location: computeLocation());
 }
@@ -193,8 +191,6 @@ Statement forEachWithVariableDecl(
 ///     }
 Statement forEachWithVariableSet(
     Var variable, Expression iterable, List<Statement> body) {
-  // ignore: unnecessary_null_comparison
-  assert(variable != null);
   var location = computeLocation();
   return new ForEach._(
       variable, iterable, Block._(body, location: location), false,

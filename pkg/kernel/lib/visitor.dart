@@ -1798,47 +1798,24 @@ class Transformer extends TreeVisitor<TreeNode> {
   const Transformer();
 
   T transform<T extends TreeNode>(T node) {
-    T result = node.accept<TreeNode>(this) as T;
-    assert(
-        // ignore: unnecessary_null_comparison
-        result != null,
-        'Attempting to remove ${node} (${node.runtimeType}) '
-        'in transformer.');
-    return result;
+    return node.accept<TreeNode>(this) as T;
   }
 
   void transformDartTypeList(List<DartType> nodes) {
     for (int i = 0; i < nodes.length; ++i) {
-      DartType result = visitDartType(nodes[i]);
-      assert(
-          // ignore: unnecessary_null_comparison
-          result != null,
-          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
-          'in transformer.');
-      nodes[i] = result;
+      nodes[i] = visitDartType(nodes[i]);
     }
   }
 
   void transformSupertypeList(List<Supertype> nodes) {
     for (int i = 0; i < nodes.length; ++i) {
-      Supertype result = visitSupertype(nodes[i]);
-      assert(
-          // ignore: unnecessary_null_comparison
-          result != null,
-          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
-          'in transformer.');
-      nodes[i] = result;
+      nodes[i] = visitSupertype(nodes[i]);
     }
   }
 
   void transformList<T extends TreeNode>(List<T> nodes, TreeNode parent) {
     for (int i = 0; i < nodes.length; ++i) {
       T result = transform(nodes[i]);
-      assert(
-          // ignore: unnecessary_null_comparison
-          result != null,
-          'Attempting to remove ${nodes[i]} (${nodes[i].runtimeType}) '
-          'in transformer.');
       result.parent = parent;
       nodes[i] = result;
     }

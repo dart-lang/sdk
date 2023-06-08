@@ -40,8 +40,6 @@ class UriTranslator {
 
   /// For a package uri, get the corresponding [Package].
   Package? getPackage(Uri uri) {
-    // ignore: unnecessary_null_comparison
-    if (packages == null) return null;
     if (!uri.isScheme("package")) return null;
     int firstSlash = uri.path.indexOf('/');
     if (firstSlash == -1) return null;

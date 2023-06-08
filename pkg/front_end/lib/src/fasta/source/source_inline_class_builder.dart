@@ -195,8 +195,6 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
         kind = InlineClassMemberKind.TearOff;
         break;
     }
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
     inlineClass.members.add(new InlineClassMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,

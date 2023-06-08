@@ -31,8 +31,6 @@ export '../fasta/kernel/constructor_tearoff_lowering.dart'
 /// The default value of this field is `null`.
 bool isLateLoweredField(Field node) {
   return node.isInternalImplementation &&
-      // ignore: unnecessary_null_comparison
-      node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       !node.name.text.endsWith(lateIsSetSuffix);
 }
@@ -87,8 +85,6 @@ Name extractFieldNameFromLateLoweredField(Field node) {
 /// The default value of this field is `false`.
 bool isLateLoweredIsSetField(Field node) {
   return node.isInternalImplementation &&
-      // ignore: unnecessary_null_comparison
-      node.name != null &&
       node.name.text.startsWith(lateFieldPrefix) &&
       node.name.text.endsWith(lateIsSetSuffix);
 }

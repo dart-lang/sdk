@@ -151,8 +151,6 @@ abstract class TypeConstraintGatherer {
   /// type schema.
   bool _tryNullabilityAwareSubtypeMatch(DartType subtype, DartType supertype,
       {required bool constrainSupertype}) {
-    // ignore: unnecessary_null_comparison
-    assert(constrainSupertype != null);
     int baseConstraintCount = _protoConstraints.length;
     bool isMatch = _isNullabilityAwareSubtypeMatch(subtype, supertype,
         constrainSupertype: constrainSupertype);
@@ -327,13 +325,6 @@ abstract class TypeConstraintGatherer {
   /// [UnknownType], that is, to be a type schema.
   bool _isNullabilityAwareSubtypeMatch(DartType p, DartType q,
       {required bool constrainSupertype}) {
-    // ignore: unnecessary_null_comparison
-    assert(p != null);
-    // ignore: unnecessary_null_comparison
-    assert(q != null);
-    // ignore: unnecessary_null_comparison
-    assert(constrainSupertype != null);
-
     // If the type parameters being constrained occur in the supertype (that is,
     // [q]), the subtype (that is, [p]) is not allowed to contain them.  To
     // check that, the assert below uses the equivalence of the following: X ->
@@ -1066,18 +1057,15 @@ abstract class TypeConstraintGatherer {
       Member? callMember = getInterfaceMember(subtype.classNode, callName);
       if (callMember is Procedure && !callMember.isGetter) {
         DartType callType = callMember.getterType;
-        // ignore: unnecessary_null_comparison
-        if (callType != null) {
-          callType =
-              Substitution.fromInterfaceType(subtype).substituteType(callType);
-          // TODO(kmillikin): The subtype check will fail if the type of a
-          // generic call method is a subtype of a non-generic function type.
-          // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
-          // S.  However, explicitly tearing off that call method will work and
-          // insert an explicit instantiation, so the implicit tear off should
-          // work as well.  Figure out how to support this case.
-          return _isNullabilityObliviousSubtypeMatch(callType, supertype);
-        }
+        callType =
+            Substitution.fromInterfaceType(subtype).substituteType(callType);
+        // TODO(kmillikin): The subtype check will fail if the type of a
+        // generic call method is a subtype of a non-generic function type.
+        // For example, if `T call<T>(T arg)` is a subtype of `S->S` for some
+        // S.  However, explicitly tearing off that call method will work and
+        // insert an explicit instantiation, so the implicit tear off should
+        // work as well.  Figure out how to support this case.
+        return _isNullabilityObliviousSubtypeMatch(callType, supertype);
       }
     }
     return false;

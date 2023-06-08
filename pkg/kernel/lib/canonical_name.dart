@@ -94,10 +94,6 @@ class CanonicalName {
   int index = -1;
 
   CanonicalName._(CanonicalName parent, this.name) : _parent = parent {
-    // ignore: unnecessary_null_comparison
-    assert(name != null);
-    // ignore: unnecessary_null_comparison
-    assert(parent != null);
     _nonRootTop = parent.isRoot ? this : parent._nonRootTop;
   }
 
@@ -215,10 +211,6 @@ class CanonicalName {
   }
 
   void bindTo(Reference target) {
-    // ignore: unnecessary_null_comparison
-    if (target == null) {
-      throw '$this cannot be bound to null';
-    }
     if (_reference == target) return;
     if (_reference != null) {
       StringBuffer sb = new StringBuffer();

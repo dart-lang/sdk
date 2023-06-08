@@ -792,8 +792,7 @@ class JsInteropChecks extends RecursiveVisitor {
 
   /// Reports an error if [functionNode] has named parameters.
   void _checkNoNamedParameters(FunctionNode functionNode) {
-    // ignore: unnecessary_null_comparison
-    if (functionNode != null && functionNode.namedParameters.isNotEmpty) {
+    if (functionNode.namedParameters.isNotEmpty) {
       final firstNamedParam = functionNode.namedParameters[0];
       _reporter.report(
           messageJsInteropNamedParameters,

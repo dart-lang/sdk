@@ -125,14 +125,11 @@ Uri translateSdk(Uri uri) {
           if (sdkRoot == null) {
             sdkRoot = (options.sdkSummary ?? computePlatformBinariesLocation())
                 .resolve("../../");
-            // ignore: unnecessary_null_comparison
-            if (sdkRoot != null) {
-              if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
-                if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
-                  sdkRoot = sdkRoot.resolve("sdk/");
-                } else {
-                  sdkRoot = null;
-                }
+            if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
+              if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
+                sdkRoot = sdkRoot.resolve("sdk/");
+              } else {
+                sdkRoot = null;
               }
             }
           }

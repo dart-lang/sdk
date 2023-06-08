@@ -32,7 +32,7 @@ import '../messages.dart'
         messagePlatformPrivateLibraryAccess,
         templateInternalProblemContextSeverity;
 
-import '../problems.dart' show internalProblem, unhandled;
+import '../problems.dart' show internalProblem;
 
 import '../source/source_loader.dart' show SourceLoader;
 
@@ -118,7 +118,6 @@ class DillLoader extends Loader {
     DillLibraryBuilder? libraryBuilder = _builders[uri];
     if (libraryBuilder == null) {
       libraryBuilder = _knownLibraryBuilders.remove(uri);
-      // ignore: unnecessary_null_comparison
       assert(libraryBuilder != null, "No library found for $uri.");
       _builders[uri] = libraryBuilder!;
       assert(libraryBuilder.loader == this);
@@ -311,10 +310,6 @@ severity: $severity
   }
 
   void buildOutline(DillLibraryBuilder builder) {
-    // ignore: unnecessary_null_comparison
-    if (builder.library == null) {
-      unhandled("null", "builder.library", 0, builder.fileUri);
-    }
     builder.markAsReadyToBuild();
   }
 

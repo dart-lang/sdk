@@ -5,7 +5,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/redirecting_factory_body.dart'
-    show getRedirectingFactoryBody, RedirectingFactoryBody;
+    show RedirectingFactoryBody, getRedirectingFactoryTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -238,8 +238,11 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     if (bodyInternal != null) {
       unexpected("null", "${bodyInternal.runtimeType}", charOffset, fileUri);
     }
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
-    function.body = bodyInternal;
+    bodyInternal = RedirectingFactoryBody.createRedirectingFactoryBody(
+        target, typeArguments, function);
+    _procedureInternal.function.body = bodyInternal;
+    _procedureInternal.function.redirectingFactoryTarget =
+        new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
     if (isPatch) {
       actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
@@ -365,8 +368,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           charOffset, noLength, fileUri);
     }
 
-    bodyInternal = new RedirectingFactoryBody(target, typeArguments, function);
-    function.body = bodyInternal;
+    bodyInternal = RedirectingFactoryBody.createRedirectingFactoryBody(
+        target, typeArguments, function);
+    _procedureInternal.function.body = bodyInternal;
+    _procedureInternal.function.redirectingFactoryTarget =
+        new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
     _procedure.isRedirectingFactory = true;
     if (isPatch) {
@@ -384,6 +390,12 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
       actualOrigin!.setRedirectingFactoryBody(target, typeArguments);
     }
+  }
+
+  void setRedirectingFactoryError(String message) {
+    body = RedirectingFactoryBody.createRedirectingFactoryErrorBody(message);
+    _procedure.function.redirectingFactoryTarget =
+        new RedirectingFactoryTarget.error(message);
   }
 
   @override
@@ -437,10 +449,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     }
     super.buildOutlineExpressions(
         classHierarchy, delayedActionPerformers, delayedDefaultValueCloners);
-    RedirectingFactoryBody redirectingFactoryBody =
-        _procedureInternal.function.body as RedirectingFactoryBody;
-    List<DartType>? typeArguments = redirectingFactoryBody.typeArguments;
-    Member? target = redirectingFactoryBody.target;
+
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        _procedureInternal.function.redirectingFactoryTarget!;
+    List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
+    Member? target = redirectingFactoryTarget.target;
     if (typeArguments != null && typeArguments.any((t) => t is UnknownType)) {
       TypeInferrer inferrer = libraryBuilder.loader.typeInferenceEngine
           .createLocalTypeInferrer(
@@ -464,7 +477,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
       typeArguments = inferrer.inferRedirectingFactoryTypeArguments(
           helper,
-          function.returnType,
+          _procedureInternal.function.returnType,
           _procedure.function,
           charOffset,
           target,
@@ -477,9 +490,13 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
             growable: true);
       }
 
-      function.body =
-          new RedirectingFactoryBody(target, typeArguments, function);
-      function.body!.parent = function;
+      _procedureInternal.function.body =
+          RedirectingFactoryBody.createRedirectingFactoryBody(
+              target, typeArguments, function);
+      assert(function == _procedureInternal.function);
+      _procedureInternal.function.body!.parent = function;
+      _procedureInternal.function.redirectingFactoryTarget =
+          new RedirectingFactoryTarget(target, typeArguments);
     }
 
     Set<Procedure> seenTargets = {};
@@ -489,17 +506,18 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         target = null;
         break;
       }
-      RedirectingFactoryBody body =
-          target.function.body as RedirectingFactoryBody;
+      RedirectingFactoryTarget redirectingFactoryTarget =
+          target.function.redirectingFactoryTarget!;
       if (typeArguments != null) {
         Substitution substitution = Substitution.fromPairs(
             target.function.typeParameters, typeArguments);
-        typeArguments =
-            body.typeArguments?.map(substitution.substituteType).toList();
+        typeArguments = redirectingFactoryTarget.typeArguments
+            ?.map(substitution.substituteType)
+            .toList();
       } else {
-        typeArguments = body.typeArguments;
+        typeArguments = redirectingFactoryTarget.typeArguments;
       }
-      target = body.target;
+      target = redirectingFactoryTarget.target;
     }
 
     if (target is Constructor || target is Procedure && target.isFactory) {
@@ -544,7 +562,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   List<DartType>? getTypeArguments() {
-    return getRedirectingFactoryBody(_procedure)!.typeArguments;
+    return getRedirectingFactoryTarget(_procedure)!.typeArguments;
   }
 
   @override

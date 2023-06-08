@@ -43,9 +43,8 @@ import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
 import 'package:kernel/src/redirecting_factory_body.dart'
     show
         EnsureLoaded,
-        RedirectingFactoryBody,
         RedirectionTarget,
-        getRedirectingFactoryBody,
+        getRedirectingFactoryTarget,
         getRedirectionTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
@@ -425,8 +424,6 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     scope = pop() as Scope;
-    // ignore: unnecessary_null_comparison
-    assert(scope != null);
   }
 
   void enterBreakTarget(int charOffset, [JumpTarget? target]) {
@@ -1440,13 +1437,13 @@ class BodyBuilder extends StackListenerImpl
       return null;
     }
 
-    RedirectingFactoryBody? redirectingFactoryBody =
-        getRedirectingFactoryBody(resolvedTarget);
-    if (redirectingFactoryBody != null) {
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        getRedirectingFactoryTarget(resolvedTarget);
+    if (redirectingFactoryTarget != null) {
       // If the redirection target is itself a redirecting factory, it means
       // that it is unresolved.
-      assert(redirectingFactoryBody.isError);
-      String errorMessage = redirectingFactoryBody.errorMessage!;
+      assert(redirectingFactoryTarget.isError);
+      String errorMessage = redirectingFactoryTarget.errorMessage!;
       replacementNode = new InvalidExpression(errorMessage)
         ..fileOffset = fileOffset;
     } else {
@@ -1498,20 +1495,11 @@ class BodyBuilder extends StackListenerImpl
       // set its inferredType field.  If type inference is disabled, reach to
       // the outermost parent to check if the node is a dead code.
       if (invocation.parent == null) continue;
-      // ignore: unnecessary_null_comparison
-      if (typeInferrer != null) {
-        if (!invocation.hasBeenInferred) {
-          if (allowFurtherDelays) {
-            delayedRedirectingFactoryInvocations.add(invocation);
-          }
-          continue;
+      if (!invocation.hasBeenInferred) {
+        if (allowFurtherDelays) {
+          delayedRedirectingFactoryInvocations.add(invocation);
         }
-      } else {
-        TreeNode? parent = invocation.parent;
-        while (parent is! Component && parent != null) {
-          parent = parent.parent;
-        }
-        if (parent == null) continue;
+        continue;
       }
       Expression? replacement = _resolveRedirectingFactoryTarget(
           invocation.target,
@@ -6401,8 +6389,7 @@ class BodyBuilder extends StackListenerImpl
       }
 
       List<DartType> typeArgumentsToCheck = const <DartType>[];
-      // ignore: unnecessary_null_comparison
-      if (typeArgumentBuilders != null && typeArgumentBuilders.isNotEmpty) {
+      if (typeArgumentBuilders.isNotEmpty) {
         typeArgumentsToCheck = new List.filled(
             typeArgumentBuilders.length, const DynamicType(),
             growable: false);
@@ -8926,8 +8913,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType}) {
-    // ignore: unnecessary_null_comparison
-    assert(allowPotentiallyConstantType != null);
     _validateTypeVariableUseInternal(typeBuilder,
         allowPotentiallyConstantType: allowPotentiallyConstantType);
     return typeBuilder;
@@ -8935,8 +8920,6 @@ class BodyBuilder extends StackListenerImpl
 
   void _validateTypeVariableUseInternal(TypeBuilder? builder,
       {required bool allowPotentiallyConstantType}) {
-    // ignore: unnecessary_null_comparison
-    assert(allowPotentiallyConstantType != null);
     if (builder is NamedTypeBuilder) {
       if (builder.declaration!.isTypeVariable) {
         TypeVariableBuilder typeParameterBuilder =

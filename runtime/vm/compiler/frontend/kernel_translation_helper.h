@@ -299,6 +299,7 @@ class FunctionNodeHelper {
     kNamedParameters,
     kReturnType,
     kFutureValueType,
+    kRedirectingFactoryTarget,
     kBody,
     kEnd,
   };

@@ -1754,9 +1754,6 @@ class _ClassInfo {
       } else {
         canonical = type;
       }
-      // ignore: unnecessary_null_comparison
-      assert(canonical != null,
-          "No canonical instantiation computed for $cls in $classNode.");
       genericSuperType![cls] = canonical;
       genericSuperTypes![cls] = <Supertype>[type];
     } else {

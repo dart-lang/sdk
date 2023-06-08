@@ -193,8 +193,6 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   }
 
   FormalParameterBuilder forFormalParameterInitializerScope() {
-    // ignore: unnecessary_null_comparison
-    assert(variable != null);
     if (isInitializingFormal) {
       return new FormalParameterBuilder(
           metadata,

@@ -477,17 +477,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     fileUri = checkLocation(node, node.name.text, node.fileUri);
 
-    // TODO(cstefantsova): Investigate why some redirecting factory bodies
-    // retain the shape, but aren't of the RedirectingFactoryBody type.
-    bool hasBody = isRedirectingFactory(node) ||
-        RedirectingFactoryBody.hasRedirectingFactoryBodyShape(node);
-    bool hasFlag = node.isRedirectingFactory;
-    if (hasFlag && !hasBody) {
+    if (node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget == null) {
       problem(
           node,
-          "Procedure '${node.name}' doesn't have a body "
-          "of a redirecting factory, but has the "
-          "'isRedirectingFactory' bit set.");
+          "Procedure '${node.name}' doesn't have a redirecting "
+          "factory target, but has the 'isRedirectingFactory' bit set.");
+    } else if (!node.isRedirectingFactory &&
+        node.function.redirectingFactoryTarget != null) {
+      problem(
+          node,
+          "Procedure '${node.name}' has redirecting factory target, but "
+          "doesn't have the 'isRedirectingFactory' bit set.");
     }
 
     currentMember = node;
@@ -821,10 +822,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitStaticGet(StaticGet node) {
     enterTreeNode(node);
     visitChildren(node);
-    // ignore: unnecessary_null_comparison
-    if (node.target == null) {
-      problem(node, "StaticGet without target.");
-    }
     // Currently Constructor.hasGetter returns `false` even though fasta uses it
     // as a getter for internal purposes:
     //
@@ -852,10 +849,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitStaticSet(StaticSet node) {
     enterTreeNode(node);
     visitChildren(node);
-    // ignore: unnecessary_null_comparison
-    if (node.target == null) {
-      problem(node, "StaticSet without target.");
-    }
     if (!node.target.hasSetter) {
       problem(node, "StaticSet to '${node.target}' without setter.");
     }
@@ -898,10 +891,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   void checkTargetedInvocation(Member target, InvocationExpression node) {
     visitChildren(node);
-    // ignore: unnecessary_null_comparison
-    if (target == null) {
-      problem(node, "${node.runtimeType} without target.");
-    }
     if (target.function == null) {
       problem(node, "${node.runtimeType} without function.");
     }
@@ -1000,10 +989,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
     enterTreeNode(node);
-    // ignore: unnecessary_null_comparison
-    if (node.target == null) {
-      problem(node, "No target.");
-    } else if (node.target.parent == null) {
+    if (node.target.parent == null) {
       problem(node, "Target has no parent.");
     } else {
       SwitchStatement statement = node.target.parent as SwitchStatement;
@@ -1258,8 +1244,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   TreeNode? getSameLibraryLastSeenTreeNode({bool withLocation = false}) {
     if (treeNodeStack.isEmpty) return null;
-    // ignore: unnecessary_null_comparison
-    if (currentLibrary == null || currentLibrary!.fileUri == null) return null;
+    if (currentLibrary == null) return null;
 
     for (int i = treeNodeStack.length - 1; i >= 0; --i) {
       TreeNode node = treeNodeStack[i];
@@ -1333,11 +1318,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       // }
       return fileUri;
     } else {
-      // ignore: unnecessary_null_comparison
-      if (fileUri == null) {
-        problem(node, "'$name' has no fileUri", context: node);
-        return fileUri;
-      }
       if (node.fileOffset == TreeNode.noOffset &&
           !target.verification.allowNoFileOffset(stage, node)) {
         problem(node, "'$name' has no fileOffset", context: node);

@@ -10,7 +10,6 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -319,16 +318,16 @@ abstract class TypeInferenceEngine {
 
   static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 
   static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 }
 

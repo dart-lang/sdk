@@ -5,7 +5,7 @@
 library fasta.tool.entry_points;
 
 import 'dart:convert' show JsonEncoder, LineSplitter, jsonDecode, utf8;
-import 'dart:io' show File, Platform, exitCode, stderr, stdin, stdout;
+import 'dart:io' show File, Platform, stderr, stdin, stdout;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/util/relativize.dart'
@@ -508,13 +508,6 @@ Future<void> compilePlatformInternal(CompilerContext c, Uri fullOutput,
 
   CompilerResult result =
       await generateKernelInternal(buildSummary: true, buildComponent: true);
-  // ignore: unnecessary_null_comparison
-  if (result == null) {
-    exitCode = 1;
-    // Note: an error should have been reported by now.
-    print('The platform .dill files were not created.');
-    return;
-  }
   new File.fromUri(outlineOutput).writeAsBytesSync(result.summary!);
   c.options.ticker.logMs("Wrote outline to ${outlineOutput.toFilePath()}");
 

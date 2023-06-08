@@ -402,12 +402,6 @@ abstract class Target {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isStatic}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isStatic != null);
     int mask = LateLowering.getFieldLowering(
         hasInitializer: hasInitializer, isFinal: isFinal, isStatic: isStatic);
     return enabledLateLowerings & mask != 0;
@@ -461,12 +455,6 @@ abstract class Target {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isPotentiallyNullable}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isPotentiallyNullable != null);
     int mask = LateLowering.getLocalLowering(
         hasInitializer: hasInitializer,
         isFinal: isFinal,
@@ -656,12 +644,6 @@ class LateLowering {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isPotentiallyNullable}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isPotentiallyNullable != null);
     if (hasInitializer) {
       if (isFinal) {
         if (isPotentiallyNullable) {
@@ -697,12 +679,6 @@ class LateLowering {
       {required bool hasInitializer,
       required bool isFinal,
       required bool isStatic}) {
-    // ignore: unnecessary_null_comparison
-    assert(hasInitializer != null);
-    // ignore: unnecessary_null_comparison
-    assert(isFinal != null);
-    // ignore: unnecessary_null_comparison
-    assert(isStatic != null);
     if (hasInitializer) {
       if (isFinal) {
         if (isStatic) {

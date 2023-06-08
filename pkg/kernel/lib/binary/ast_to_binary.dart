@@ -955,15 +955,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeNonNullReference(Reference reference) {
-    // ignore: unnecessary_null_comparison
-    if (reference == null) {
-      throw new ArgumentError('Got null reference');
-    } else {
-      assert(reference.isConsistent, reference.getInconsistency());
-      CanonicalName name = _ensureCanonicalName(reference);
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    assert(reference.isConsistent, reference.getInconsistency());
+    CanonicalName name = _ensureCanonicalName(reference);
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   /// Returns the canonical name for [reference].
@@ -1046,14 +1041,8 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   void writeNonNullCanonicalNameReference(Reference reference) {
     CanonicalName name = _ensureCanonicalName(reference);
-    // ignore: unnecessary_null_comparison
-    if (name == null) {
-      throw new ArgumentError(
-          'Expected a canonical name to be valid but was `null`.');
-    } else {
-      checkCanonicalName(name);
-      writeUInt30(name.index + 1);
-    }
+    checkCanonicalName(name);
+    writeUInt30(name.index + 1);
   }
 
   void writeOffset(int offset) {
@@ -1068,11 +1057,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeClassReference(Class class_) {
-    // ignore: unnecessary_null_comparison
-    if (class_ == null) {
-      throw new ArgumentError(
-          'Expected a class reference to be valid but was `null`.');
-    }
     writeNonNullCanonicalNameReference(class_.reference);
   }
 
@@ -1389,7 +1373,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeOptionalNode(node.signatureType);
     writeFunctionNode(node.function);
     leaveScope(memberScope: true);
-
     _currentlyInNonimplementation = currentlyInNonimplementationSaved;
     assert(
         (node.concreteForwardingStubTarget != null) ||
@@ -1558,6 +1541,28 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeVariableDeclarationList(node.namedParameters);
     writeNode(node.returnType);
     writeOptionalNode(node.futureValueType);
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        node.redirectingFactoryTarget;
+    if (redirectingFactoryTarget == null) {
+      writeByte(Tag.Nothing);
+    } else {
+      writeByte(Tag.Something);
+      writeNullAllowedReference(redirectingFactoryTarget.targetReference);
+      List<DartType>? typeArguments = redirectingFactoryTarget.typeArguments;
+      if (typeArguments == null) {
+        writeByte(Tag.Nothing);
+      } else {
+        writeByte(Tag.Something);
+        writeNodeList(typeArguments);
+      }
+      String? errorMessage = redirectingFactoryTarget.errorMessage;
+      if (errorMessage == null) {
+        writeByte(Tag.Nothing);
+      } else {
+        writeByte(Tag.Something);
+        writeStringReference(errorMessage);
+      }
+    }
     writeOptionalNode(node.body);
     _labelIndexer = oldLabels;
     _switchCaseIndexer = oldCases;

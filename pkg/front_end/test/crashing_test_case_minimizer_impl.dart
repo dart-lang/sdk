@@ -1106,12 +1106,6 @@ worlds:
         _isUriNnbd(uri) ? _scannerConfiguration : _scannerConfigurationNonNNBD,
         lineStarts);
 
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      print("Got null token from scanner for $uri");
-      return;
-    }
-
     int compileTry = 0;
     Token? token = firstToken;
     while (token is ErrorToken) {
@@ -1897,8 +1891,6 @@ worlds:
         }
       }
 
-      // ignore: unnecessary_null_comparison
-      if (foundLine == null) throw "Unexpected crash without stacktrace: $e";
       if (_expectedCrashLine == null) {
         print("Got '$foundLine'");
         _expectedCrashLine = foundLine;
@@ -2016,11 +2008,6 @@ worlds:
         nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD,
         lineStarts);
 
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      throw "Got null token from scanner";
-    }
-
     ParserTestListener parserTestListener = new ParserTestListener(false);
     Parser parser = new Parser(parserTestListener,
         useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
@@ -2033,11 +2020,6 @@ worlds:
   bool _parsesWithoutError(Uint8List rawBytes, bool nnbd) {
     Token firstToken = parser_suite.scanRawBytes(rawBytes,
         nnbd ? _scannerConfiguration : _scannerConfigurationNonNNBD, null);
-
-    // ignore: unnecessary_null_comparison
-    if (firstToken == null) {
-      return false;
-    }
 
     ParserErrorListener parserErrorListener = new ParserErrorListener();
     Parser parser = new Parser(parserErrorListener,

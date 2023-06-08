@@ -412,10 +412,7 @@ class SourceLoader extends Loader {
     Message? packageLanguageVersionProblem;
     if (packageForLanguageVersion != null) {
       Uri importUri = origin?.importUri ?? uri;
-      if (!importUri.isScheme('dart') &&
-          !importUri.isScheme('package') &&
-          // ignore: unnecessary_null_comparison
-          packageForLanguageVersion.name != null) {
+      if (!importUri.isScheme('dart') && !importUri.isScheme('package')) {
         packageUri =
             new Uri(scheme: 'package', path: packageForLanguageVersion.name);
       }
@@ -1205,8 +1202,6 @@ severity: $severity
 
   Future<Null> buildOutline(SourceLibraryBuilder library) async {
     Token tokens = await tokenize(library);
-    // ignore: unnecessary_null_comparison
-    if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
     new ClassMemberParser(listener,
             allowPatterns: library.libraryFeatures.patterns.isEnabled)
@@ -1229,10 +1224,6 @@ severity: $severity
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
     Token tokens = await tokenize(library, suppressLexicalErrors: true);
-    // ignore: unnecessary_null_comparison
-    if (tokens == null) {
-      return;
-    }
 
     if (target.benchmarker != null) {
       // When benchmarking we do extra parsing on it's own to get a timing of
@@ -1271,11 +1262,8 @@ severity: $severity
       }
       Token tokens = await tokenize(part as SourceLibraryBuilder,
           suppressLexicalErrors: true);
-      // ignore: unnecessary_null_comparison
-      if (tokens != null) {
-        listener.uri = part.fileUri;
-        parser.parseUnit(tokens);
-      }
+      listener.uri = part.fileUri;
+      parser.parseUnit(tokens);
     }
   }
 
@@ -3137,7 +3125,10 @@ abstract class Enum {
 }
 
 abstract class _Enum {
+  final int index;
   final String _name;
+
+  const _Enum(this.index, this._name);
 }
 
 class String {}

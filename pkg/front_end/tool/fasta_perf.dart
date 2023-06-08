@@ -155,8 +155,6 @@ Map<Uri, List<int>> scanReachableFiles(Uri entryUri) {
 void collectSources(Uri start, Map<Uri, List<int>> files) {
   void helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
-    // ignore: unnecessary_null_comparison
-    if (uri == null) return;
     if (files.containsKey(uri)) return;
     var contents = readBytesFromFileSync(uri);
     files[uri] = contents;

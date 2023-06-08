@@ -1501,8 +1501,7 @@ const Code<Message Function(String nameOKEmpty)> codeConstEvalDeferredLibrary =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalDeferredLibrary(String nameOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalDeferredLibrary,
       problemMessage:
           """'${nameOKEmpty}' can't be used in a constant expression because it's marked as 'deferred' which means it isn't available until loaded.""",
@@ -1588,8 +1587,7 @@ const Code<Message Function(String stringOKEmpty)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalFailedAssertionWithMessage(
     String stringOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   return new Message(codeConstEvalFailedAssertionWithMessage,
       problemMessage:
           """This assertion failed with message: ${stringOKEmpty}""",
@@ -1622,8 +1620,7 @@ const Code<Message Function(String nameOKEmpty)> codeConstEvalGetterNotFound =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalGetterNotFound(String nameOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalGetterNotFound,
       problemMessage: """Variable get not found: '${nameOKEmpty}'""",
       arguments: {'nameOKEmpty': nameOKEmpty});
@@ -1646,8 +1643,7 @@ const Code<Message Function(String nameOKEmpty)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalInvalidStaticInvocation(String nameOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalInvalidStaticInvocation,
       problemMessage:
           """The invocation of '${nameOKEmpty}' is not allowed in a constant expression.""",
@@ -1704,8 +1700,7 @@ const Code<Message Function(String nameOKEmpty)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalNonConstantVariableGet(String nameOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (nameOKEmpty == null || nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
+  if (nameOKEmpty.isEmpty) nameOKEmpty = '(unnamed)';
   return new Message(codeConstEvalNonConstantVariableGet,
       problemMessage:
           """The variable '${nameOKEmpty}' is not a constant, only constant expressions are allowed.""",
@@ -1809,8 +1804,7 @@ const Code<Message Function(String stringOKEmpty)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsConstEvalUnhandledCoreException(String stringOKEmpty) {
-  // ignore: unnecessary_null_comparison
-  if (stringOKEmpty == null || stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
+  if (stringOKEmpty.isEmpty) stringOKEmpty = '(empty)';
   return new Message(codeConstEvalUnhandledCoreException,
       problemMessage: """Unhandled core exception: ${stringOKEmpty}""",
       arguments: {'stringOKEmpty': stringOKEmpty});
@@ -2464,18 +2458,8 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsDillOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
-  // ignore: unnecessary_null_comparison
-  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
-  // ignore: unnecessary_null_comparison
-  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeDillOutlineSummary,
       problemMessage:
@@ -4070,8 +4054,6 @@ Message _withArgumentsExplicitExtensionTypeArgumentMismatch(
     String name, int count) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
   return new Message(codeExplicitExtensionTypeArgumentMismatch,
       problemMessage:
           """Explicit extension application of extension '${name}' takes '${count}' type argument(s).""",
@@ -4917,10 +4899,6 @@ const Code<Message Function(int count, int count2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeUnexpectedNumberOfParameters(
     int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeFfiNativeUnexpectedNumberOfParameters,
       problemMessage:
           """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}.""",
@@ -4946,10 +4924,6 @@ const Code<Message Function(int count, int count2)>
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsFfiNativeUnexpectedNumberOfParametersWithReceiver(
     int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeFfiNativeUnexpectedNumberOfParametersWithReceiver,
       problemMessage:
           """Unexpected number of FfiNative annotation parameters. Expected ${count} but has ${count2}. FfiNative instance method annotation must have receiver as first argument.""",
@@ -5871,8 +5845,6 @@ const Code<Message Function(String name, int count)> codeImplementsRepeated =
 Message _withArgumentsImplementsRepeated(String name, int count) {
   if (name.isEmpty) throw 'No name provided';
   name = demangleMixinApplicationName(name);
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
   return new Message(codeImplementsRepeated,
       problemMessage: """'${name}' can only be implemented once.""",
       correctionMessage: """Try removing ${count} of the occurrences.""",
@@ -6430,10 +6402,6 @@ const Code<Message Function(int count, int count2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationTooFewArguments(int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeInstantiationTooFewArguments,
       problemMessage:
           """Too few type arguments: ${count} required, ${count2} given.""",
@@ -6460,10 +6428,6 @@ const Code<Message Function(int count, int count2)>
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsInstantiationTooManyArguments(int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeInstantiationTooManyArguments,
       problemMessage:
           """Too many type arguments: ${count} allowed, but ${count2} found.""",
@@ -8621,10 +8585,6 @@ const Code<Message Function(int count, int count2)> codeLanguageVersionTooHigh =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsLanguageVersionTooHigh(int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeLanguageVersionTooHigh,
       problemMessage:
           """The specified language version is too high. The highest supported language version is ${count}.${count2}.""",
@@ -11849,18 +11809,8 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceBodySummary(
     int count, int count2, num _num1, num _num2, num _num3) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
-  // ignore: unnecessary_null_comparison
-  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
-  // ignore: unnecessary_null_comparison
-  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceBodySummary,
       problemMessage:
@@ -11904,18 +11854,8 @@ const Code<
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsSourceOutlineSummary(
     int count, int count2, num _num1, num _num2, num _num3) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (_num1 == null) throw 'No number provided';
   String num1 = _num1.toStringAsFixed(3);
-  // ignore: unnecessary_null_comparison
-  if (_num2 == null) throw 'No number provided';
   String num2 = _num2.toStringAsFixed(3).padLeft(12);
-  // ignore: unnecessary_null_comparison
-  if (_num3 == null) throw 'No number provided';
   String num3 = _num3.toStringAsFixed(3).padLeft(12);
   return new Message(codeSourceOutlineSummary,
       problemMessage:
@@ -12553,10 +12493,6 @@ const Code<Message Function(int count, int count2)> codeTooFewArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooFewArguments(int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeTooFewArguments,
       problemMessage:
           """Too few positional arguments: ${count} required, ${count2} given.""",
@@ -12583,10 +12519,6 @@ const Code<Message Function(int count, int count2)> codeTooManyArguments =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTooManyArguments(int count, int count2) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
-  // ignore: unnecessary_null_comparison
-  if (count2 == null) throw 'No count provided';
   return new Message(codeTooManyArguments,
       problemMessage:
           """Too many positional arguments: ${count} allowed, but ${count2} found.""",
@@ -12628,8 +12560,6 @@ const Code<Message Function(int count)> codeTypeArgumentMismatch =
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 Message _withArgumentsTypeArgumentMismatch(int count) {
-  // ignore: unnecessary_null_comparison
-  if (count == null) throw 'No count provided';
   return new Message(codeTypeArgumentMismatch,
       problemMessage: """Expected ${count} type arguments.""",
       arguments: {'count': count});

@@ -32,8 +32,7 @@ class LibraryGraph implements Graph<Uri> {
       Uri uri2 = dependency.targetLibrary.fileUri;
       if (libraries.containsKey(uri1)) {
         yield uri1;
-        // ignore: unnecessary_null_comparison
-      } else if (uri2 != null) {
+      } else {
         if (libraries.containsKey(uri2)) {
           yield uri2;
         }

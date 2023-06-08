@@ -120,6 +120,11 @@ abstract class StringInterner {
   String internString(String string);
 }
 
+/// Helper used to trigger the read of a late variable in asserts.
+bool _lateIsInitialized(dynamic value) {
+  return true;
+}
+
 class BinaryBuilder {
   final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final List<LabeledStatement> labelStack = <LabeledStatement>[];
@@ -945,8 +950,7 @@ class BinaryBuilder {
   /// if [readCoverage] is true, references are read and that the link table
   /// thus has to be read first.
   Map<Uri, Source> readUriToSource({required bool readCoverage}) {
-    // ignore: unnecessary_null_comparison
-    assert(!readCoverage || (readCoverage && _linkTable != null));
+    assert(!readCoverage || (readCoverage && _lateIsInitialized(_linkTable)));
 
     int length = readUint32();
 
@@ -1508,8 +1512,10 @@ class BinaryBuilder {
     }
 
     typeParameterStack.length = 0;
-    // ignore: unnecessary_null_comparison
-    assert(debugPath.removeLast() != null);
+    assert(() {
+      debugPath.removeLast();
+      return true;
+    }());
     node.name = name;
     node.fileUri = fileUri;
     node.annotations = annotations;
@@ -1876,6 +1882,7 @@ class BinaryBuilder {
       debugPath.add(name.text);
       return true;
     }());
+
     int functionNodeSize = endOffset - _byteOffset;
     // Read small factories up front. Postpone everything else.
     bool readFunctionNodeNow =
@@ -2053,6 +2060,25 @@ class BinaryBuilder {
     List<VariableDeclaration> named = readAndPushVariableDeclarationList();
     DartType returnType = readDartType();
     DartType? futureValueType = readDartTypeOption();
+    RedirectingFactoryTarget? redirectingFactoryTarget;
+    if (readAndCheckOptionTag()) {
+      Reference? targetReference = readNullableMemberReference();
+      List<DartType>? typeArguments;
+      if (readAndCheckOptionTag()) {
+        typeArguments = readDartTypeList();
+      }
+      if (readAndCheckOptionTag()) {
+        assert(targetReference == null && typeArguments == null);
+        String errorMessage = readStringReference();
+        redirectingFactoryTarget =
+            new RedirectingFactoryTarget.error(errorMessage);
+      } else {
+        assert(targetReference != null && typeArguments != null);
+        redirectingFactoryTarget = new RedirectingFactoryTarget.byReference(
+            targetReference!, typeArguments!);
+      }
+    }
+
     int oldLabelStackBase = labelStackBase;
     int oldSwitchCaseStackBase = switchCaseStackBase;
 
@@ -2078,7 +2104,8 @@ class BinaryBuilder {
         dartAsyncMarker: dartAsyncMarker,
         futureValueType: futureValueType)
       ..fileOffset = offset
-      ..fileEndOffset = endOffset;
+      ..fileEndOffset = endOffset
+      ..redirectingFactoryTarget = redirectingFactoryTarget;
 
     if (lazyLoadBody) {
       _setLazyLoadFunction(result, oldLabelStackBase, oldSwitchCaseStackBase,
