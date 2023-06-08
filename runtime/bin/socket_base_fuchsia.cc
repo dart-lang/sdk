@@ -144,26 +144,21 @@ bool SocketBase::AvailableDatagram(intptr_t fd,
   return false;
 }
 
-intptr_t SocketBase::Write(intptr_t fd,
-                           const void* buffer,
-                           intptr_t num_bytes,
-                           SocketOpKind sync) {
+intptr_t SocketBase::WriteImpl(intptr_t fd,
+                               const void* buffer,
+                               intptr_t num_bytes,
+                               SocketOpKind sync) {
   IOHandle* handle = reinterpret_cast<IOHandle*>(fd);
   ASSERT(handle->fd() >= 0);
-  LOG_INFO("SocketBase::Write: calling write(%ld, %p, %ld)\n", handle->fd(),
+  LOG_INFO("SocketBase::WriteImpl: calling write(%ld, %p, %ld)\n", handle->fd(),
            buffer, num_bytes);
   intptr_t written_bytes = handle->Write(buffer, num_bytes);
-  ASSERT(EAGAIN == EWOULDBLOCK);
-  if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
-    // If the would block we need to retry and therefore return 0 as
-    // the number of bytes written.
-    written_bytes = 0;
-  } else if (written_bytes == -1) {
-    LOG_ERR("SocketBase::Write: write(%ld, %p, %ld) failed\n", handle->fd(),
+  if (written_bytes == -1 && !(sync == kAsync && errno == EWOULDBLOCK)) {
+    LOG_ERR("SocketBase::WriteImpl: write(%ld, %p, %ld) failed\n", handle->fd(),
             buffer, num_bytes);
   } else {
-    LOG_INFO("SocketBase::Write: write(%ld, %p, %ld) succeeded\n", handle->fd(),
-             buffer, num_bytes);
+    LOG_INFO("SocketBase::WriteImpl: write(%ld, %p, %ld) succeeded\n",
+             handle->fd(), buffer, num_bytes);
   }
   return written_bytes;
 }
