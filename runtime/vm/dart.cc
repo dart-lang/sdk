@@ -689,26 +689,6 @@ char* Dart::Cleanup() {
   // before shutting down the thread pool.
   WaitForIsolateShutdown();
 
-#if !defined(PRODUCT)
-  {
-    // IMPORTANT: the code below enters VM isolate so that Metric::Cleanup could
-    // create a StackZone. We *must* wait for all other isolate to shutdown
-    // before entering VM isolate because code in the isolate initialization
-    // calls VerifyBootstrapClasses, which calls Heap::Verify which calls
-    // Scavenger::VisitObjects on the VM isolate's new space without taking
-    // any sort of locks: assuming that vm isolate is immutable and never
-    // entered by a mutator thread - which is in general true, but is violated
-    // by the code below.
-    if (FLAG_trace_shutdown) {
-      OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Entering vm isolate\n",
-                   UptimeMillis());
-    }
-    bool result = Thread::EnterIsolate(vm_isolate_);
-    ASSERT(result);
-    Thread::ExitIsolate();
-  }
-#endif
-
   // Shutdown the thread pool. On return, all thread pool threads have exited.
   if (FLAG_trace_shutdown) {
     OS::PrintErr("[+%" Pd64 "ms] SHUTDOWN: Deleting thread pool\n",
@@ -740,8 +720,7 @@ char* Dart::Cleanup() {
   // If we run in PRODUCT mode this lazy creation of OSThread can happen here,
   // which is why disabling the OSThread creation has to come after entering the
   // "vm-isolate".
-  const bool result = Thread::EnterIsolate(vm_isolate_);
-  ASSERT(result);
+  Thread::EnterIsolate(vm_isolate_);
 
   // Disable creation of any new OSThread structures which means no more new
   // threads can do an EnterIsolate. This must come after isolate shutdown
@@ -1211,8 +1190,7 @@ void Dart::RunShutdownCallback() {
 void Dart::ShutdownIsolate(Isolate* isolate) {
   ASSERT(Isolate::Current() == nullptr);
   // We need to enter the isolate in order to shut it down.
-  bool result = Thread::EnterIsolate(isolate);
-  ASSERT(result);
+  Thread::EnterIsolate(isolate);
   ShutdownIsolate();
   // Since the isolate is shutdown and deleted, there is no need to
   // exit the isolate here.

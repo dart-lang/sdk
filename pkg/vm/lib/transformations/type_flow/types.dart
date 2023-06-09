@@ -25,6 +25,7 @@ class TFClass {
   final int id;
   final Class classNode;
   final RecordShape? recordShape;
+  final Map<Constant, ConcreteType> _constantConcreteTypes = {};
 
   /// TFClass should not be instantiated directly.
   /// Instead, [TypeHierarchy.getTFClass] should be used to obtain [TFClass]
@@ -33,7 +34,15 @@ class TFClass {
 
   /// Returns ConcreteType corresponding to this class without
   /// any extra attributes.
-  ConcreteType get concreteType => ConcreteType(this);
+  late final ConcreteType concreteType = ConcreteType._(this, null, null);
+
+  /// Returns ConcreteType corresponding to this class and
+  /// [constant] value.
+  ConcreteType constantConcreteType(Constant constant) =>
+      _constantConcreteTypes[constant] ??= ConcreteType._(this, null, constant);
+
+  /// Returns ConeType corresponding to this class.
+  late final ConeType coneType = ConeType._(this);
 
   bool get isRecord => recordShape != null;
 
@@ -140,18 +149,18 @@ abstract class TypesBuilder {
   /// [allocated] flag indicates that an instance of
   /// this record shape is allocated.
   Type getRecordType(RecordShape shape, bool allocated) =>
-      ConeType(getTFClass(coreTypes.recordClass));
+      getTFClass(coreTypes.recordClass).coneType;
 
-  late final Type functionType = ConeType(getTFClass(coreTypes.functionClass));
+  late final Type functionType = getTFClass(coreTypes.functionClass).coneType;
 
   late final ConcreteType boolType =
       getTFClass(coreTypes.boolClass).concreteType;
 
   late final ConcreteType constantTrue =
-      ConcreteType(boolType.cls, null, BoolConstant(true));
+      boolType.cls.constantConcreteType(BoolConstant(true));
 
   late final ConcreteType constantFalse =
-      ConcreteType(boolType.cls, null, BoolConstant(false));
+      boolType.cls.constantConcreteType(BoolConstant(false));
 
   /// Create a Type which corresponds to a set of instances constrained by
   /// Dart type annotation [dartType].
@@ -161,11 +170,11 @@ abstract class TypesBuilder {
     Type result;
     if (type is InterfaceType) {
       final cls = type.classNode;
-      result = ConeType(getTFClass(cls));
+      result = getTFClass(cls).coneType;
     } else if (type == const DynamicType() || type == const VoidType()) {
-      result = const AnyType();
+      result = anyInstanceType;
     } else if (type is NeverType || type is NullType) {
-      result = const EmptyType();
+      result = emptyType;
     } else if (type is FunctionType) {
       // TODO(alexmarkov): support inference of function types
       result = functionType;
@@ -173,21 +182,21 @@ abstract class TypesBuilder {
       result = getRecordType(RecordShape(type), false);
     } else if (type is FutureOrType) {
       // TODO(alexmarkov): support FutureOr types
-      result = const AnyType();
+      result = anyInstanceType;
     } else if (type is TypeParameterType) {
       final bound = type.bound;
       // Protect against infinite recursion in case of cyclic type parameters
       // like 'T extends T'. As of today, front-end doesn't report errors in such
       // cases yet.
       if (bound is TypeParameterType) {
-        result = const AnyType();
+        result = anyInstanceType;
       } else {
         result = fromStaticType(bound, canBeNull);
       }
     } else if (type is IntersectionType) {
       final bound = type.right;
       if (bound is TypeParameterType) {
-        result = const AnyType();
+        result = anyInstanceType;
       } else {
         result = fromStaticType(bound, canBeNull);
       }
@@ -199,8 +208,8 @@ abstract class TypesBuilder {
     if (nullSafety && type.nullability == Nullability.nonNullable) {
       canBeNull = false;
     }
-    if (canBeNull && result is! NullableType) {
-      result = new Type.nullable(result);
+    if (canBeNull) {
+      result = result.nullable();
     }
     return result;
   }
@@ -220,7 +229,7 @@ abstract class TypeHierarchy extends TypesBuilder
   bool isSubtype(Class sub, Class sup);
 
   /// Return a more specific type for the type cone with [base] root.
-  /// May return EmptyType, AnyType, WideConeType, ConcreteType or a SetType.
+  /// May return EmptyType, AnyInstanceType, WideConeType, ConcreteType or a SetType.
   /// WideConeType can be returned only if [allowWideCone].
   ///
   /// This method is used when calculating type flow throughout the program.
@@ -254,13 +263,10 @@ enum SubtypeTestKind {
 /// directly correspond to a Dart type.
 /// TODO(alexmarkov): consider detaching Type hierarchy from TypeExpr/Statement.
 abstract class Type extends TypeExpr {
-  const Type();
+  const Type._();
 
-  /// Create a nullable type - union of [t] and the `null` object.
-  factory Type.nullable(Type t) => new NullableType(t);
-
-  /// Create a type representing arbitrary nullable object (`dynamic`).
-  factory Type.nullableAny() => const NullableType(const AnyType());
+  /// Returns a nullable type, union of [this] and the `null` object.
+  NullableType nullable();
 
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
 
@@ -314,9 +320,15 @@ enum TypeOrder {
   Concrete,
 }
 
+const emptyType = const EmptyType._();
+const nullableEmptyType = const NullableType._(emptyType);
+
 /// Type representing the empty set of instances.
 class EmptyType extends Type {
-  const EmptyType();
+  const EmptyType._() : super._();
+
+  @override
+  NullableType nullable() => nullableEmptyType;
 
   @override
   int get hashCode => 997;
@@ -343,11 +355,16 @@ class EmptyType extends Type {
 }
 
 /// Nullable type represents a union of a (non-nullable) type and the `null`
-/// object. Other kinds of types do not contain `null` object (even AnyType).
+/// object. Other kinds of types do not contain `null` object (even AnyInstanceType).
 class NullableType extends Type {
   final Type baseType;
 
-  const NullableType(this.baseType) : assert(baseType is! NullableType);
+  const NullableType._(this.baseType)
+      : assert(baseType is! NullableType),
+        super._();
+
+  @override
+  NullableType nullable() => this;
 
   @override
   int get hashCode => (baseType.hashCode + 31) & kHashMask;
@@ -396,7 +413,7 @@ class NullableType extends Type {
   @override
   Type specialize(TypeHierarchy typeHierarchy) => baseType.isSpecialized
       ? this
-      : new NullableType(baseType.specialize(typeHierarchy));
+      : baseType.specialize(typeHierarchy).nullable();
 
   @override
   Type union(Type other, TypeHierarchy typeHierarchy) {
@@ -404,9 +421,9 @@ class NullableType extends Type {
       return other.union(this, typeHierarchy);
     }
     if (other is NullableType) {
-      return new NullableType(baseType.union(other.baseType, typeHierarchy));
+      return baseType.union(other.baseType, typeHierarchy).nullable();
     } else {
-      return new NullableType(baseType.union(other, typeHierarchy));
+      return baseType.union(other, typeHierarchy).nullable();
     }
   }
 
@@ -416,24 +433,29 @@ class NullableType extends Type {
       return other.intersection(this, typeHierarchy);
     }
     if (other is NullableType) {
-      return new NullableType(
-          baseType.intersection(other.baseType, typeHierarchy));
+      return baseType.intersection(other.baseType, typeHierarchy).nullable();
     } else {
       return baseType.intersection(other, typeHierarchy);
     }
   }
 }
 
+const anyInstanceType = const AnyInstanceType._();
+const nullableAnyType = const NullableType._(anyInstanceType);
+
 /// Type representing any instance except `null`.
 /// Semantically equivalent to ConeType of Object, but more efficient.
-class AnyType extends Type {
-  const AnyType();
+class AnyInstanceType extends Type {
+  const AnyInstanceType._() : super._();
+
+  @override
+  NullableType nullable() => nullableAnyType;
 
   @override
   int get hashCode => 991;
 
   @override
-  bool operator ==(other) => (other is AnyType);
+  bool operator ==(other) => (other is AnyInstanceType);
 
   @override
   String toString() => "_T ANY";
@@ -473,11 +495,16 @@ class SetType extends Type {
   /// List of concrete types, sorted by classId.
   final List<ConcreteType> types;
 
+  late final NullableType _nullableType = NullableType._(this);
+
+  @override
+  NullableType nullable() => _nullableType;
+
   @override
   late final int hashCode = _computeHashCode();
 
   /// Creates a new SetType using list of concrete types sorted by classId.
-  SetType(this.types) {
+  SetType(this.types) : super._() {
     assert(types.length >= 2);
     assert(isSorted(types));
   }
@@ -620,11 +647,11 @@ class SetType extends Type {
           return other;
         }
       }
-      return new SetType(_unionLists(types, other.types));
+      return SetType(_unionLists(types, other.types));
     } else if (other is ConcreteType) {
       return types.contains(other)
           ? this
-          : new SetType(_unionLists(types, <ConcreteType>[other]));
+          : SetType(_unionLists(types, <ConcreteType>[other]));
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.cls, allowWideCone: true)
@@ -645,11 +672,11 @@ class SetType extends Type {
           _intersectLists(types, other.types, typeHierarchy);
       final size = list.length;
       if (size == 0) {
-        return const EmptyType();
+        return emptyType;
       } else if (size == 1) {
         return list.single;
       } else {
-        return new SetType(list);
+        return SetType(list);
       }
     } else if (other is ConcreteType) {
       for (var type in types) {
@@ -658,7 +685,7 @@ class SetType extends Type {
           return type.intersection(other, typeHierarchy);
         }
       }
-      return const EmptyType();
+      return emptyType;
     } else if (other is ConeType) {
       return typeHierarchy
           .specializeTypeCone(other.cls, allowWideCone: true)
@@ -675,7 +702,12 @@ class SetType extends Type {
 class ConeType extends Type {
   final TFClass cls;
 
-  ConeType(this.cls);
+  ConeType._(this.cls) : super._();
+
+  late final NullableType _nullableType = NullableType._(this);
+
+  @override
+  NullableType nullable() => _nullableType;
 
   @override
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => typeHierarchy
@@ -701,9 +733,7 @@ class ConeType extends Type {
   int get hashCode => (cls.id + 37) & kHashMask;
 
   @override
-  bool operator ==(other) =>
-      identical(this, other) ||
-      (other is ConeType) && identical(this.cls, other.cls);
+  bool operator ==(other) => identical(this, other);
 
   @override
   String toString() => "_T (${cls})+";
@@ -764,7 +794,7 @@ class ConeType extends Type {
       if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return other;
       } else {
-        return const EmptyType();
+        return emptyType;
       }
     }
     return typeHierarchy
@@ -777,7 +807,7 @@ class ConeType extends Type {
 /// It contains instances of all Dart types which extend, mix-in or implement
 /// certain class.
 class WideConeType extends ConeType {
-  WideConeType(TFClass cls) : super(cls);
+  WideConeType(TFClass cls) : super._(cls);
 
   @override
   Class? getConcreteClass(TypeHierarchy typeHierarchy) => null;
@@ -817,7 +847,7 @@ class WideConeType extends ConeType {
         return this;
       }
       if (typeHierarchy.isSubtype(this.cls.classNode, other.cls.classNode)) {
-        return ConeType(other.cls);
+        return other.cls.coneType;
       }
     } else if (other is SetType) {
       bool subtypes = true;
@@ -834,7 +864,7 @@ class WideConeType extends ConeType {
       throw 'Unexpected type $other';
     }
     // Wider approximation.
-    return const AnyType();
+    return anyInstanceType;
   }
 
   @override
@@ -851,7 +881,7 @@ class WideConeType extends ConeType {
       if (typeHierarchy.isSubtype(other.cls.classNode, this.cls.classNode)) {
         return other;
       } else {
-        return const EmptyType();
+        return emptyType;
       }
     } else if (other is SetType) {
       return other;
@@ -867,6 +897,11 @@ class WideConeType extends ConeType {
 /// or `null` object).
 class ConcreteType extends Type implements Comparable<ConcreteType> {
   final TFClass cls;
+
+  late final NullableType _nullableType = NullableType._(this);
+
+  @override
+  NullableType nullable() => _nullableType;
 
   @override
   late final int hashCode = _computeHashCode();
@@ -887,15 +922,18 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
   // May be null if constant value is not inferred.
   final Constant? constant;
 
-  ConcreteType(this.cls, [List<Type>? typeArgs_, this.constant])
+  ConcreteType._(this.cls, List<Type>? typeArgs_, this.constant)
       : typeArgs = typeArgs_,
         numImmediateTypeArgs =
-            typeArgs_ != null ? cls.classNode.typeParameters.length : 0 {
+            typeArgs_ != null ? cls.classNode.typeParameters.length : 0,
+        super._() {
     // TODO(alexmarkov): support closures
     assert(!cls.classNode.isAbstract);
     assert(typeArgs == null || cls.classNode.typeParameters.isNotEmpty);
     assert(typeArgs == null || typeArgs!.any((t) => t is RuntimeType));
   }
+
+  ConcreteType(TFClass cls, List<Type> typeArgs) : this._(cls, typeArgs, null);
 
   ConcreteType get raw => cls.concreteType;
   bool get isRaw => typeArgs == null && constant == null;
@@ -960,7 +998,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
           cls.classNode, typeHierarchy.coreTypes.futureClass)) {
         Type typeArg;
         if (typeArgs == null) {
-          typeArg = const UnknownType();
+          typeArg = unknownType;
         } else {
           final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
               cls.classNode, typeHierarchy.coreTypes.futureClass);
@@ -994,7 +1032,8 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
     if (identical(this, other)) return true;
     if (other is ConcreteType) {
       if (!identical(this.cls, other.cls) ||
-          this.numImmediateTypeArgs != other.numImmediateTypeArgs) {
+          this.numImmediateTypeArgs != other.numImmediateTypeArgs ||
+          !identical(this.constant, other.constant)) {
         return false;
       }
       if (this.typeArgs != null) {
@@ -1003,9 +1042,6 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
             return false;
           }
         }
-      }
-      if (this.constant != other.constant) {
-        return false;
       }
       return true;
     } else {
@@ -1050,7 +1086,7 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         final types = (this.cls.id < other.cls.id)
             ? <ConcreteType>[this, other]
             : <ConcreteType>[other, this];
-        return new SetType(types);
+        return SetType(types);
       } else {
         assert(typeArgs != null ||
             constant != null ||
@@ -1073,50 +1109,44 @@ class ConcreteType extends Type implements Comparable<ConcreteType> {
         return this;
       }
       if (!identical(this.cls, other.cls)) {
-        return const EmptyType();
+        return emptyType;
       }
-      if (typeArgs == null && constant == null) {
+      if (constant != null) {
+        if (other.constant == null) {
+          return this;
+        }
+        assert(constant != other.constant);
+        return emptyType;
+      } else if (other.constant != null) {
         return other;
-      } else if (other.typeArgs == null && other.constant == null) {
-        return this;
       }
 
-      List<Type>? mergedTypeArgs;
       final thisTypeArgs = this.typeArgs;
       final otherTypeArgs = other.typeArgs;
       if (thisTypeArgs == null) {
-        mergedTypeArgs = otherTypeArgs;
+        return other;
       } else if (otherTypeArgs == null) {
-        mergedTypeArgs = thisTypeArgs;
+        return this;
       } else {
         assert(thisTypeArgs.length == otherTypeArgs.length);
-        mergedTypeArgs =
-            new List<Type>.filled(thisTypeArgs.length, const EmptyType());
+        final mergedTypeArgs =
+            List<Type>.filled(thisTypeArgs.length, emptyType);
         bool hasRuntimeType = false;
         for (int i = 0; i < thisTypeArgs.length; ++i) {
           final merged =
               thisTypeArgs[i].intersection(otherTypeArgs[i], typeHierarchy);
           if (merged is EmptyType) {
-            return const EmptyType();
+            return emptyType;
           } else if (merged is RuntimeType) {
             hasRuntimeType = true;
           }
           mergedTypeArgs[i] = merged;
         }
         if (!hasRuntimeType) {
-          mergedTypeArgs = null;
+          return cls.concreteType;
         }
+        return ConcreteType(cls, mergedTypeArgs);
       }
-
-      Constant? mergedConstant;
-      if (constant == null) {
-        mergedConstant = other.constant;
-      } else if (other.constant == null || constant == other.constant) {
-        mergedConstant = constant;
-      } else {
-        return const EmptyType();
-      }
-      return new ConcreteType(cls, mergedTypeArgs, mergedConstant);
     } else {
       throw 'Unexpected type $other';
     }
@@ -1156,7 +1186,8 @@ class RuntimeType extends Type {
       : _type = type,
         numImmediateTypeArgs = type is InterfaceType
             ? type.classNode.typeParameters.length
-            : (type is FutureOrType ? 1 : 0) {
+            : (type is FutureOrType ? 1 : 0),
+        super._() {
     if (_type is InterfaceType && numImmediateTypeArgs > 0) {
       assert(typeArgs!.length >= numImmediateTypeArgs);
       assert((_type as InterfaceType)
@@ -1253,6 +1284,10 @@ class RuntimeType extends Type {
   }
 
   @override
+  NullableType nullable() =>
+      throw "ERROR: RuntimeType does not support nullable().";
+
+  @override
   bool get isSpecialized =>
       throw "ERROR: RuntimeType does not support isSpecialized.";
 
@@ -1271,7 +1306,7 @@ class RuntimeType extends Type {
     if (other is UnknownType) {
       return this;
     } else if (other is RuntimeType) {
-      return this == other ? this : const EmptyType();
+      return this == other ? this : emptyType;
     }
     throw "ERROR: RuntimeType cannot intersect with ${other.runtimeType}";
   }
@@ -1364,10 +1399,12 @@ class RuntimeType extends Type {
   }
 }
 
+const unknownType = const UnknownType._();
+
 /// Type which is not known at compile time.
 /// It is used as the right-hand-side of type tests.
 class UnknownType extends Type {
-  const UnknownType();
+  const UnknownType._() : super._();
 
   @override
   int get hashCode => 1019;
@@ -1380,6 +1417,10 @@ class UnknownType extends Type {
 
   @override
   int get order => TypeOrder.Unknown.index;
+
+  @override
+  NullableType nullable() =>
+      throw "ERROR: UnknownType does not support nullable().";
 
   @override
   bool isSubtypeOf(TypeHierarchy typeHierarchy, Class cls) =>

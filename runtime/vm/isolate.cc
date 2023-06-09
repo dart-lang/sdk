@@ -1687,10 +1687,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   //
   // Though the [result] isolate is still in a state where no memory has been
   // allocated, which means it's safe to GC the isolate group until here.
-  if (!Thread::EnterIsolate(result)) {
-    delete result;
-    return nullptr;
-  }
+  Thread::EnterIsolate(result);
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);

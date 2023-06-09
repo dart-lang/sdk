@@ -348,7 +348,7 @@ class AnnotateKernel extends RecursiveVisitor {
       type = type.baseType;
     }
 
-    if (nullable && type == const EmptyType()) {
+    if (nullable && type == emptyType) {
       concreteClass =
           _typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
       constantValue = _nullConstant;
@@ -440,12 +440,11 @@ class AnnotateKernel extends RecursiveVisitor {
     // not be observed (i.e., it will always be EmptyType). This is the
     // case even if the result actually might be used but is not used by
     // the summary, e.g. if the result is an argument to a closure call.
-    // Therefore, we need to pass in 'NullableType(AnyType)' as the
+    // Therefore, we need to pass in nullableAnyType as the
     // inferred result type here (since we don't know what it actually
     // is).
-    final Type resultType = callSite.isResultUsed
-        ? callSite.resultType
-        : NullableType(const AnyType());
+    final Type resultType =
+        callSite.isResultUsed ? callSite.resultType : nullableAnyType;
 
     if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
       _setInferredType(node, resultType,

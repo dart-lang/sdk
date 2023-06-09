@@ -1571,18 +1571,14 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (!Thread::EnterIsolate(iso)) {
-    if (iso->IsScheduled()) {
-      FATAL(
-          "Isolate %s is already scheduled on mutator thread %p, "
-          "failed to schedule from os thread 0x%" Px "\n",
-          iso->name(), iso->scheduled_mutator_thread(),
-          OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
-    } else {
-      FATAL("Unable to enter isolate %s as Dart VM is shutting down",
-            iso->name());
-    }
+  if (iso->IsScheduled()) {
+    FATAL(
+        "Isolate %s is already scheduled on mutator thread %p, "
+        "failed to schedule from os thread 0x%" Px "\n",
+        iso->name(), iso->scheduled_mutator_thread(),
+        OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
   }
+  Thread::EnterIsolate(iso);
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicitly here instead of using the
   // TransitionXXX scope objects as the reverse transition happens
