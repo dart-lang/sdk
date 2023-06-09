@@ -85,6 +85,10 @@ luci.bucket(
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = [accounts.ci_builder]),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.ci"],
+        service_accounts = [accounts.ci_builder],
+    ),
 )
 luci.bucket(
     name = "ci.shadow",
@@ -92,12 +96,20 @@ luci.bucket(
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = [accounts.ci_builder]),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.ci"],
+        service_accounts = [accounts.ci_builder],
+    ),
 )
 luci.bucket(
     name = "ci.sandbox",
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_SANDBOX_TRIGGERERS),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try", "dart.tests"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 luci.bucket(
     name = "ci.sandbox.shadow",
@@ -105,6 +117,10 @@ luci.bucket(
     acls = [
         acl.entry(acl.BUILDBUCKET_TRIGGERER, users = CI_SANDBOX_TRIGGERERS),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try", "dart.tests"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 TRY_ACLS = [
     acl.entry(
@@ -126,6 +142,10 @@ luci.bucket(
             ],
         ),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 
 # Shadow bucket for try.
@@ -133,6 +153,10 @@ luci.bucket(
     name = "try.shadow",
     shadows = "try",
     acls = TRY_ACLS,
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 
 # Tryjobs specific to the monorepo repo.
@@ -149,6 +173,10 @@ luci.bucket(
             ],
         ),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["dart.tests"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 
 # Shadow bucket for try.monorepo.
@@ -165,11 +193,30 @@ luci.bucket(
             ],
         ),
     ],
+    constraints = luci.bucket_constraints(
+        pools = ["dart.tests"],
+        service_accounts = [accounts.try_builder],
+    ),
 )
 
 # Tryjobs for all repos.
-luci.bucket(name = "try.shared", acls = TRY_ACLS)
-luci.bucket(name = "try.shared.shadow", shadows = "try.shared", acls = TRY_ACLS)
+luci.bucket(
+    name = "try.shared",
+    acls = TRY_ACLS,
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try"],
+        service_accounts = [accounts.try_builder],
+    ),
+)
+luci.bucket(
+    name = "try.shared.shadow",
+    shadows = "try.shared",
+    acls = TRY_ACLS,
+    constraints = luci.bucket_constraints(
+        pools = ["luci.dart.try"],
+        service_accounts = [accounts.try_builder],
+    ),
+)
 
 # Swarming permissions in realms.cfg.
 
