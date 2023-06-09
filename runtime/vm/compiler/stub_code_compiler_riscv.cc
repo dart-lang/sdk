@@ -3381,9 +3381,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   __ jr(A1);
 
   __ Bind(&miss);
-  __ LoadIsolate(A1);
-  __ lx(CODE_REG, Address(A1, target::Isolate::ic_miss_code_offset()));
-  __ lx(A1, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ lx(A1, Address(THR, target::Thread::switchable_call_miss_entry_offset()));
   __ jr(A1);
 }
 

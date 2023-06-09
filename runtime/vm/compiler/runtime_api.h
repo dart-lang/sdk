@@ -1336,7 +1336,6 @@ class Isolate : public AllStatic {
   static word default_tag_offset();
   static word current_tag_offset();
   static word user_tag_offset();
-  static word ic_miss_code_offset();
   static word finalizers_offset();
 #if !defined(PRODUCT)
   static word single_step_offset();
