@@ -369,7 +369,7 @@ class Thread : public ThreadState {
   void AssertEmptyThreadInvariants();
 
   // Makes the current thread enter 'isolate'.
-  static bool EnterIsolate(Isolate* isolate);
+  static void EnterIsolate(Isolate* isolate);
   // Makes the current thread exit its isolate.
   static void ExitIsolate(bool isolate_shutdown = false);
 

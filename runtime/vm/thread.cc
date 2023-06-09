@@ -363,7 +363,7 @@ bool Thread::HasActiveState() {
   return false;
 }
 
-bool Thread::EnterIsolate(Isolate* isolate) {
+void Thread::EnterIsolate(Isolate* isolate) {
   const bool is_resumable = isolate->mutator_thread() != nullptr;
 
   // To let VM's thread pool (if we run on it) know that this thread is
@@ -402,8 +402,6 @@ bool Thread::EnterIsolate(Isolate* isolate) {
 
   isolate->scheduled_mutator_thread_ = thread;
   ResumeThreadInternal(thread);
-
-  return true;
 }
 
 static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
