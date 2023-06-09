@@ -3274,9 +3274,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   }
 
   __ Bind(&miss);
-  __ LoadIsolate(R2);
-  __ ldr(CODE_REG, Address(R2, target::Isolate::ic_miss_code_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 }
 
 // Implement the monomorphic entry check for call-sites where the receiver

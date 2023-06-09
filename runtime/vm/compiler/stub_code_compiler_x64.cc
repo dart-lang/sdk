@@ -3525,10 +3525,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   }
 
   __ Bind(&miss);
-  __ LoadIsolate(RAX);
-  __ movq(CODE_REG, Address(RAX, target::Isolate::ic_miss_code_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ jmp(RCX);
+  __ jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 }
 
 void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub() {

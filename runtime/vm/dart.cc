@@ -1016,8 +1016,6 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
 #endif  // !defined(TARGET_ARCH_IA32)
   }
 
-  I->set_ic_miss_code(StubCode::SwitchableCallMiss());
-
   Error& error = Error::Handle();
   if (snapshot_data == nullptr || kernel_buffer != nullptr) {
     error ^= IG->object_store()->PreallocateObjects();

@@ -988,10 +988,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     return isolate_object_store_.get();
   }
 
-  static intptr_t ic_miss_code_offset() {
-    return OFFSET_OF(Isolate, ic_miss_code_);
-  }
-
   Dart_MessageNotifyCallback message_notify_callback() const {
     return message_notify_callback_.load(std::memory_order_relaxed);
   }
@@ -1321,8 +1317,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   UserTagPtr default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
 
-  void set_ic_miss_code(const Code& code);
-
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
 
@@ -1531,7 +1525,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uword user_tag_ = 0;
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
-  CodePtr ic_miss_code_;
   FieldTable* field_table_ = nullptr;
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
