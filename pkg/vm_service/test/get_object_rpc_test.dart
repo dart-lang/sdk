@@ -766,7 +766,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got library with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },
@@ -802,7 +802,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got script with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },
@@ -1220,7 +1220,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got class with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },
@@ -1253,7 +1253,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got type with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },
@@ -1394,7 +1394,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got function with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },
@@ -1494,7 +1494,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got field initializer with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
     }
   },
 
@@ -1538,7 +1538,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got field with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
     }
   },
 
@@ -1587,7 +1587,7 @@ var tests = <IsolateTest>[
       await service.getObject(isolateId, objectId);
       fail('successfully got code with bad ID');
     } on RPCError catch (e) {
-      expect(e.code, equals(RPCError.kInvalidParams));
+      expect(e.code, equals(RPCErrorKind.kInvalidParams.code));
       expect(e.message, "Invalid params");
     }
   },

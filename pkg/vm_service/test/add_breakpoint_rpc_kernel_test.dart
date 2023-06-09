@@ -150,7 +150,7 @@ var tests = <IsolateTest>[
       expect(false, isTrue, reason: 'Unreachable');
     } on RPCError catch (e) {
       caughtException = true;
-      expect(e.code, RPCError.kInvalidParams);
+      expect(e.code, RPCErrorKind.kInvalidParams.code);
       expect(e.details, "addBreakpoint: invalid 'column' parameter: 0");
     }
     expect(caughtException, isTrue);
