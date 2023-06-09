@@ -18,7 +18,7 @@ const _desc =
     'declared.';
 
 const _details = r'''
-Elements which are annotated with `@deprecated` should not be referenced from
+Elements that are annotated with `@Deprecated` should not be referenced from
 within the package in which they are declared.
 
 **AVOID** using deprecated elements.
