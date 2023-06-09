@@ -4,6 +4,8 @@
 
 import 'dart:collection';
 
+import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart'
+    show eraseStaticInteropTypesForJSCompilers;
 import 'package:js_shared/synced/recipe_syntax.dart' show Recipe;
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -244,6 +246,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   @override
   String visitInterfaceType(InterfaceType node) {
     var cls = node.classNode;
+    if (isStaticInteropType(cls)) {
+      return eraseStaticInteropTypesForJSCompilers(_coreTypes, node)
+          .accept(this);
+    }
     addLiveType(node);
     // Generate the interface type recipe.
     var recipeBuffer = StringBuffer(interfaceTypeRecipe(cls));
@@ -337,6 +343,10 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
     recipeBuffer.write(_nullabilityRecipe(node));
     return recipeBuffer.toString();
   }
+
+  @override
+  String visitInlineType(InlineType node) =>
+      node.instantiatedRepresentationType.accept(this);
 
   @override
   String visitRecordType(RecordType node) {
