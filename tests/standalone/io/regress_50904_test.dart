@@ -19,8 +19,11 @@ Future<void> runTest(int length) async {
 
   final Process proc = await Process.start(
     Platform.executable,
-    <String>[Platform.script.toFilePath(), 'receiver'],
-    runInShell: true,
+    <String>[
+      ...Platform.executableArguments,
+      Platform.script.toFilePath(),
+      'receiver',
+    ],
   );
 
   proc.stdin.add(bytes);
