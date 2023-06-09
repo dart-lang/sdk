@@ -47,15 +47,11 @@ luci.project(
                 acl.PROJECT_CONFIGS_READER,
                 acl.SCHEDULER_READER,
             ],
-            groups = ["all"],
+            groups = "all",
         ),
-        acl.entry(acl.LOGDOG_WRITER, groups = ["luci-logdog-chromium-writers"]),
-        acl.entry(
-            [acl.SCHEDULER_OWNER, acl.BUILDBUCKET_TRIGGERER],
-            groups = ["project-dart-admins"],
-        ),
-        acl.entry(acl.CQ_COMMITTER, groups = ["project-dart-committers"]),
-        acl.entry(acl.CQ_DRY_RUNNER, groups = ["project-dart-tryjob-access"]),
+        acl.entry(acl.LOGDOG_WRITER, groups = "luci-logdog-chromium-writers"),
+        acl.entry(acl.CQ_COMMITTER, groups = "project-dart-committers"),
+        acl.entry(acl.CQ_DRY_RUNNER, groups = "project-dart-tryjob-access"),
     ],
     bindings = [
         luci.binding(
@@ -63,7 +59,12 @@ luci.project(
             users = accounts.try_builder,
         ),
         luci.binding(
-            roles = "role/swarming.poolOwner",
+            roles = [
+                "role/buildbucket.creator",
+                "role/buildbucket.triggerer",
+                "role/scheduler.owner",
+                "role/swarming.poolOwner",
+            ],
             groups = "project-dart-admins",
         ),
         luci.binding(
