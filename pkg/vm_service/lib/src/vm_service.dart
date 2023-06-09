@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.8.0';
+const String vmServiceVersion = '4.9.0';
 
 /// @optional
 const String optional = 'optional';
@@ -4319,10 +4319,19 @@ class Event extends Response {
   /// What kind of event is this?
   /*EventKind*/ String? kind;
 
+  /// The isolate group with which this event is associated.
+  ///
+  /// This is provided for all event kinds except for:
+  /// - VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  /// TimelineEvents
+  @optional
+  IsolateGroupRef? isolateGroup;
+
   /// The isolate with which this event is associated.
   ///
   /// This is provided for all event kinds except for:
-  ///  - VMUpdate, VMFlagUpdate
+  ///  - VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  ///  - TimelineEvents, IsolateReload
   @optional
   IsolateRef? isolate;
 
@@ -4520,6 +4529,7 @@ class Event extends Response {
   Event({
     this.kind,
     this.timestamp,
+    this.isolateGroup,
     this.isolate,
     this.vm,
     this.breakpoint,
@@ -4551,6 +4561,9 @@ class Event extends Response {
 
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    isolateGroup =
+        createServiceObject(json['isolateGroup'], const ['IsolateGroupRef'])
+            as IsolateGroupRef?;
     isolate = createServiceObject(json['isolate'], const ['IsolateRef'])
         as IsolateRef?;
     vm = createServiceObject(json['vm'], const ['VMRef']) as VMRef?;
@@ -4608,6 +4621,7 @@ class Event extends Response {
       'kind': kind ?? '',
       'timestamp': timestamp ?? -1,
     });
+    _setIfNotNull(json, 'isolateGroup', isolateGroup?.toJson());
     _setIfNotNull(json, 'isolate', isolate?.toJson());
     _setIfNotNull(json, 'vm', vm?.toJson());
     _setIfNotNull(json, 'breakpoint', breakpoint?.toJson());

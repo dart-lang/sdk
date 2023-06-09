@@ -4,6 +4,7 @@
 
 import 'dart:async';
 
+import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'common/test_helper.dart';
@@ -20,6 +21,7 @@ final tests = <IsolateTest>[
     late final StreamSubscription subscription;
     subscription = service.onIsolateEvent.listen((event) {
       if (event.kind == EventKind.kIsolateReload) {
+        expect(event.isolateGroup!.id, isolateRef.isolateGroupId);
         subscription.cancel();
         service.streamCancel(EventStreams.kIsolate);
         completer.complete();

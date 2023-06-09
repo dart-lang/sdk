@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.8
+# Dart VM Service Protocol 4.9
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.8_ of the Dart VM Service Protocol. This
+This document describes of _version 4.9_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2322,10 +2322,17 @@ class Event extends Response {
   // What kind of event is this?
   EventKind kind;
 
+  // The isolate group with which this event is associated.
+  //
+  // This is provided for all event kinds except for:
+  //   VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate, TimelineEvents
+  @IsolateGroup isolateGroup [optional];
+
   // The isolate with which this event is associated.
   //
   // This is provided for all event kinds except for:
-  //   VMUpdate, VMFlagUpdate
+  //   VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  //   TimelineEvents, IsolateReload
   @Isolate isolate [optional];
 
   // The vm with which this event is associated.
@@ -4692,5 +4699,6 @@ version | comments
 4.6 | Added `getPerfettoCpuSamples` RPC. Added a deprecation notice to `InstanceKind.TypeRef`.
 4.7 | Added a deprecation notice to `Stack.awaiterFrames` field. Added a deprecation notice to `FrameKind.AsyncActivation`.
 4.8 | Added `getIsolatePauseEvent` RPC.
+4.9 | Added `isolateGroup` property to `Event`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

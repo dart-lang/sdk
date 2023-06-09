@@ -324,10 +324,15 @@ void ServiceEvent::PrintJSONHeader(JSONObject* jsobj) const {
     jsobj->AddProperty("extensionKind",
                        extension_event_.event_kind->ToCString());
   }
-  if (isolate() == nullptr) {
-    jsobj->AddPropertyVM("vm");
-  } else {
+  if (isolate_group() != nullptr) {
+    jsobj->AddProperty("isolateGroup", isolate_group());
+  }
+  if (isolate() != nullptr) {
+    ASSERT(isolate_group() != nullptr);
     jsobj->AddProperty("isolate", isolate());
+  }
+  if (isolate_group() == nullptr && isolate() == nullptr) {
+    jsobj->AddPropertyVM("vm");
   }
   ASSERT(timestamp_ != -1);
   jsobj->AddPropertyTimeMillis("timestamp", timestamp_);

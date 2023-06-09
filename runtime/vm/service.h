@@ -17,7 +17,7 @@
 namespace dart {
 
 #define SERVICE_PROTOCOL_MAJOR_VERSION 4
-#define SERVICE_PROTOCOL_MINOR_VERSION 8
+#define SERVICE_PROTOCOL_MINOR_VERSION 9
 
 class Array;
 class EmbedderServiceHandler;
@@ -241,13 +241,15 @@ class Service : public AllStatic {
                         uint8_t* bytes,
                         intptr_t bytes_length);
 
-  static void PostEvent(Isolate* isolate,
+  static void PostEvent(IsolateGroup* isolate_group,
+                        Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event,
                         bool enter_safepoint);
 
-  static void PostEventImpl(Isolate* isolate,
+  static void PostEventImpl(IsolateGroup* isolate_group,
+                            Isolate* isolate,
                             const char* stream_id,
                             const char* kind,
                             JSONStream* event);
