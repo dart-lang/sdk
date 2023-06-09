@@ -4,6 +4,8 @@
 
 #include "bin/socket_base.h"
 
+#include <errno.h>  // NOLINT
+
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
