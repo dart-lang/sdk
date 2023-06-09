@@ -2,10 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:collection';
 import 'dart:io';
 
 import 'package:yaml/yaml.dart';
 
+import 'changelog.dart';
 import 'crawl.dart';
 
 final Map<String, SinceInfo> sinceMap = _readSinceMap();
@@ -21,6 +23,24 @@ Map<String, SinceInfo> _readSinceMap() {
   }
 
   return sinceMap;
+}
+
+class SdkVersionFile {
+  static final filePath = 'tool/since/sdk.yaml';
+
+  void addRule(String rule) {
+    var sinceFile = File(filePath);
+    var versionMap = loadYamlNode(sinceFile.readAsStringSync()) as Map;
+    var sortedMap = SplayTreeMap()..addAll(versionMap);
+    sortedMap[rule] = Changelog().readCurrentRelease();
+
+    var output = StringBuffer();
+    for (var entry in sortedMap.entries) {
+      output.writeln('${entry.key}: ${entry.value}');
+    }
+
+    sinceFile.writeAsStringSync(output.toString());
+  }
 }
 
 class SinceInfo {
