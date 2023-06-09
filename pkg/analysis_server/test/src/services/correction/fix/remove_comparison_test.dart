@@ -361,6 +361,23 @@ void f(String s) {
 ''');
   }
 
+  Future<void> test_ifStatement_thenBlock_empty_justComment() async {
+    await resolveTestCode('''
+void f(String s) {
+  if (s != null) {
+    // comment 1
+    // comment 2
+  }
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  // comment 1
+  // comment 2
+}
+''');
+  }
+
   Future<void> test_ifStatement_thenBlock_empty_sameLine() async {
     await resolveTestCode('''
 void f(String s) {
@@ -369,20 +386,6 @@ void f(String s) {
 ''');
     await assertHasFix('''
 void f(String s) {
-}
-''');
-  }
-
-  Future<void> test_ifStatement_thenStatement() async {
-    await resolveTestCode('''
-void f(String s) {
-  if (s != null)
-    print(s);
-}
-''');
-    await assertHasFix('''
-void f(String s) {
-  print(s);
 }
 ''');
   }
@@ -410,19 +413,16 @@ void f(String s) {
 ''');
   }
 
-  Future<void> test_ifStatement_thenBlock_justComment() async {
+  Future<void> test_ifStatement_thenStatement() async {
     await resolveTestCode('''
 void f(String s) {
-  if (s != null) {
-    // comment 1
-    // comment 2
-  }
+  if (s != null)
+    print(s);
 }
 ''');
     await assertHasFix('''
 void f(String s) {
-  // comment 1
-  // comment 2
+  print(s);
 }
 ''');
   }
