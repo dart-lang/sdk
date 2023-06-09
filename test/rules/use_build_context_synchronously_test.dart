@@ -582,6 +582,27 @@ Future<void> f() async {}
 ''');
   }
 
+  test_awaitBeforeWhileBody_referenceToContext_thenMountedGuard() async {
+    // Await, then While-true statement, and inside the while-body: use of
+    // BuildContext, then mounted guard, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  while (true) {
+    Navigator.of(context);
+    if (context.mounted) return;
+  }
+}
+
+bool mounted = false;
+Future<void> f() async {}
+''', [
+      lint(113, 21),
+    ]);
+  }
+
   test_awaitInAdjacentStrings_beforeReferenceToContext() async {
     // Await in an adjacent strings, then use of BuildContext, is REPORTED.
     await assertDiagnostics(r'''
@@ -1351,6 +1372,24 @@ Future<bool> c() async => true;
     ]);
   }
 
+  test_awaitInSwitchStatementCaseGuard_beforeReferenceToContext2() async {
+    // Await in a switch statement case guard, then use of BuildContext in the
+    // case statements, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when await c():
+      Navigator.of(context);
+  }
+}
+Future<bool> c() async => true;
+''', [
+      lint(127, 21),
+    ]);
+  }
+
   test_awaitInSwitchStatementDefault_beforeReferenceToContext() async {
     // Await in a switch statement default case, then use of BuildContext, is
     // REPORTED.
@@ -1427,10 +1466,9 @@ Future<void> c() async {}
     ]);
   }
 
-  @FailingTest(reason: 'Logic not implemented yet.')
   test_awaitInWhileBody_afterReferenceToContext() async {
-    // While-true statement, and inside the while-body: use of
-    // BuildContext, then await, is OK.
+    // While-true statement, and inside the while-body: use of BuildContext,
+    // then await, is REPORTED.
     await assertDiagnostics(r'''
 import 'package:flutter/widgets.dart';
 
@@ -1442,11 +1480,28 @@ void foo(BuildContext context) async {
   }
 }
 
-bool mounted = false;
 Future<void> f() async {}
 ''', [
-      lint(149, 21),
+      lint(131, 21),
     ]);
+  }
+
+  test_awaitInWhileBody_afterReferenceToContext2() async {
+    // While-true statement, and inside the while-body: use of BuildContext,
+    // then await, then mounted guard, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  while (true) {
+    Navigator.of(context);
+    await f();
+    if (!context.mounted) return;
+  }
+}
+
+Future<void> f() async {}
+''');
   }
 
   test_awaitInWhileBody_afterReferenceToContextOutsideWait() async {

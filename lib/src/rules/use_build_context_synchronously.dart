@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:collection/collection.dart';
 
 import '../analyzer.dart';
 import '../util/flutter_utils.dart';
@@ -243,17 +244,28 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
 
   @override
   _AsyncState? visitBlock(Block node) {
-    for (var i = node.statements.length - 1; i >= 0; i--) {
-      var statement = node.statements[i];
-      var asyncState = statement.accept(this);
-      if (asyncState != null) {
-        // Walking from the last statement to the first, as soon as we encounter
-        // asynchronous code or a mounted check (positive or negative), that's
-        // the state of the block.
-        return asyncState;
+    if (reference is Statement) {
+      var index = node.statements.indexOf(reference as Statement);
+      if (index >= 0) {
+        var precedingAsyncState = _inOrderAsyncStateGuardable(node.statements);
+        if (precedingAsyncState != null) return precedingAsyncState;
+        // TODO(srawlins): Also DoStatement and ForStatement.
+        if (node.parent is WhileStatement) {
+          // Check for asynchrony in the statements that _follow_ [reference],
+          // as they may lead to an async gap before we loop back to
+          // [reference].
+          return _inOrderAsyncStateGuardable(node.statements.skip(index + 1))
+              ?.asynchronousOrNull;
+        }
+        return null;
       }
     }
-    return null;
+
+    // When [reference] is not one of [node.statements], walk through all of
+    // them.
+    return node.statements.reversed
+        .map((s) => s.accept(this))
+        .firstWhereOrNull((state) => state != null);
   }
 
   @override
@@ -568,11 +580,11 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
 
   @override
   _AsyncState? visitSwitchCase(SwitchCase node) =>
-      _asynchronousIfAnyIsAsync([node.expression, ...node.statements]);
+      _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
   _AsyncState? visitSwitchPatternCase(SwitchPatternCase node) =>
-      _asynchronousIfAnyIsAsync(
+      _inOrderAsyncStateGuardable(
           [node.guardedPattern.whenClause, ...node.statements]);
 
   @override
@@ -690,7 +702,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
       var (:node, :mountedCanGuard) = nodes[i];
       if (node == null) continue;
       var asyncState = node.accept(this);
-      if (!mountedCanGuard && asyncState == _AsyncState.asynchronous) {
+      if (asyncState == _AsyncState.asynchronous) {
         return _AsyncState.asynchronous;
       }
       if (mountedCanGuard && asyncState != null) {
@@ -702,6 +714,13 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
     }
     return null;
   }
+
+  /// A simple wrapper for [_inOrderAsyncState] for [nodes] which can all guard
+  /// [reference] with a mounted check.
+  _AsyncState? _inOrderAsyncStateGuardable(Iterable<AstNode?> nodes) =>
+      _inOrderAsyncState([
+        for (var node in nodes) (node: node, mountedCanGuard: true),
+      ]);
 }
 
 class _Visitor extends SimpleAstVisitor {
@@ -718,71 +737,34 @@ class _Visitor extends SimpleAstVisitor {
     /// Checks each of the [statements] before [child] for a `mounted` check,
     /// and returns whether it did not find one (and the caller should keep
     /// looking).
-    bool checkStatements(AstNode child, NodeList<Statement> statements) {
-      if (child is! Statement) {
-        assert(false, 'child must be a Statement, but is ${child.runtimeType}');
-        return true;
-      }
-      var index = statements.indexOf(child);
-      for (var i = index - 1; i >= 0; i--) {
-        var s = statements[i];
-        var asyncState = s.asyncStateFor(child);
-        if (asyncState == _AsyncState.asynchronous) {
-          rule.reportLint(node);
-          return true;
-        } else if (asyncState.isGuarded) {
-          return false;
-        }
-      }
-      return true;
-    }
 
     // Walk back and look for an async gap that is not guarded by a mounted
     // property check.
     AstNode? child = node;
     while (child != null && child is! FunctionBody) {
       var parent = child.parent;
-      if (parent is Block) {
-        var keepChecking = checkStatements(child, parent.statements);
-        if (!keepChecking) {
-          return;
-        }
-      } else if (parent is SwitchCase) {
-        // Necessary for Dart 2.19 code.
-        var keepChecking = checkStatements(child, parent.statements);
-        if (!keepChecking) {
-          return;
-        }
-      } else if (parent is SwitchPatternCase) {
-        // Necessary for Dart 3.0 code.
-        var keepChecking = checkStatements(child, parent.statements);
-        if (!keepChecking) {
-          return;
-        }
-      } else if (parent is CollectionElement) {
-        // mounted ? ... : ...
-        var asyncState = parent.asyncStateFor(child);
-        if (asyncState == _AsyncState.asynchronous) {
-          rule.reportLint(node);
-          return;
-        } else if (asyncState.isGuarded) {
-          return;
-        }
-      } else if (parent is TryStatement) {
-        var asyncState = parent.asyncStateFor(child);
-        if (asyncState == _AsyncState.asynchronous) {
-          rule.reportLint(node);
-          return;
-        }
-      } else if (parent is IfStatement) {
-        // if (mounted) { ... }
-        var asyncState = parent.asyncStateFor(child);
-        if (asyncState == _AsyncState.asynchronous) {
-          rule.reportLint(node);
-          return;
-        } else if (asyncState.isGuarded) {
-          return;
-        }
+      switch (parent) {
+        case Block():
+        case CollectionElement():
+        case IfStatement():
+        // Dart 2.19 code.
+        case SwitchCase():
+        // Dart 3.0 code.
+        case SwitchPatternCase():
+          var asyncState = parent!.asyncStateFor(child);
+          if (asyncState == _AsyncState.asynchronous) {
+            rule.reportLint(node);
+            return;
+          } else if (asyncState.isGuarded) {
+            return;
+          }
+
+        case TryStatement():
+          var asyncState = parent.asyncStateFor(child);
+          if (asyncState == _AsyncState.asynchronous) {
+            rule.reportLint(node);
+            return;
+          }
       }
 
       child = parent;
