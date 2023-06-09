@@ -47,8 +47,7 @@ bool Intrinsifier::CanIntrinsify(const ParsedFunction& parsed_function) {
     }
     return false;
   }
-  if (!function.is_intrinsic() &&
-      !CanIntrinsifyFieldAccessor(parsed_function)) {
+  if (!function.is_intrinsic()) {
     if (FLAG_trace_intrinsifier) {
       THR_Print("No, not intrinsic function.\n");
     }
@@ -73,88 +72,6 @@ bool Intrinsifier::CanIntrinsify(const ParsedFunction& parsed_function) {
   if (FLAG_trace_intrinsifier) {
     THR_Print("Yes.\n");
   }
-  return true;
-}
-
-bool Intrinsifier::CanIntrinsifyFieldAccessor(
-    const ParsedFunction& parsed_function) {
-  const Function& function = parsed_function.function();
-
-  const bool is_getter = function.IsImplicitGetterFunction();
-  const bool is_setter = function.IsImplicitSetterFunction();
-  if (!is_getter && !is_setter) return false;
-
-  Field& field = Field::Handle(function.accessor_field());
-  ASSERT(!field.IsNull());
-
-  // The checks further down examine the field and its guard.
-  //
-  // In JIT mode we only intrinsify the field accessor if there is no active
-  // guard, meaning the state transition has reached its final `kDynamicCid`
-  // state (where it stays).
-  //
-  // If we intrinsify, the intrinsified code therefore does not depend on the
-  // field guard and we do not add it to the guarded fields via
-  // [ParsedFunction::AddToGuardedFields].
-  if (CompilerState::Current().should_clone_fields()) {
-    field = field.CloneFromOriginal();
-  }
-
-  // We only graph intrinsify implicit instance getters/setter for now.
-  if (!field.is_instance()) return false;
-
-  const auto& slot = Slot::Get(field, &parsed_function);
-
-  if (is_getter) {
-    // We don't support complex getter cases.
-    if (field.is_late() || field.needs_load_guard()) return false;
-
-    if (slot.is_unboxed()) {
-      if (function.HasUnboxedReturnValue()) {
-        // In AOT mode: Unboxed fields contain the unboxed value and can be
-        // returned in unboxed form.
-        ASSERT(FLAG_precompiled_mode);
-      } else {
-        // In JIT mode: Can't return unboxed value directly.
-        return false;
-      }
-    } else {
-      // If the field is boxed, then we can either return the box directly or
-      // unbox it and return unboxed representation (unless it is a record
-      // which requires a more sophisticated unboxing).
-      return !function.has_unboxed_record_return();
-    }
-  } else {
-    ASSERT(is_setter);
-
-    // We don't support complex setter cases.
-    if (field.is_final()) {
-      RELEASE_ASSERT(field.is_late());
-      return false;
-    }
-
-    // We only support cases where there is no need to check for argument types.
-    //
-    // Normally we have to check the parameter type.
-    ASSERT(function.NeedsArgumentTypeChecks());
-    // Covariant parameter types have to be checked, which we don't support.
-    if (field.is_covariant() || field.is_generic_covariant_impl()) return false;
-
-    // If the incoming value is unboxed we only support real unboxed fields to
-    // avoid the need for boxing (which we cannot do in the intrinsic).
-    if (function.HasUnboxedParameters()) {
-      ASSERT(FLAG_precompiled_mode);
-      if (!slot.is_unboxed()) {
-        return false;
-      }
-    }
-
-    // We don't support field guards in graph intrinsic stores.
-    if (!FLAG_precompiled_mode && field.guarded_cid() != kDynamicCid) {
-      return false;
-    }
-  }
-
   return true;
 }
 
