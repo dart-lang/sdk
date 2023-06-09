@@ -104,7 +104,7 @@ class _SummaryNormalizer implements StatementVisitor {
           if (condition is Type) {
             if (condition is EmptyType ||
                 identical(condition, _typesBuilder.constantFalse)) {
-              return const EmptyType();
+              return emptyType;
             }
             st.condition = null;
           }
@@ -774,13 +774,13 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
     final numTypeParameters = numTypeParams(member);
     for (int i = 0; i < numTypeParameters; ++i) {
-      args.add(const UnknownType());
+      args.add(unknownType);
     }
 
     if (hasReceiverArg(member)) {
       assert(member.enclosingClass != null);
       final receiver =
-          new ConeType(_typesBuilder.getTFClass(member.enclosingClass!));
+          _typesBuilder.getTFClass(member.enclosingClass!).coneType;
       args.add(receiver);
     }
 
@@ -792,7 +792,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           final int paramCount = function.positionalParameters.length +
               function.namedParameters.length;
           for (int i = 0; i < paramCount; i++) {
-            args.add(new Type.nullableAny());
+            args.add(nullableAnyType);
           }
 
           if (function.namedParameters.isNotEmpty) {
@@ -811,7 +811,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
       case CallKind.PropertySet:
       case CallKind.SetFieldInConstructor:
-        args.add(new Type.nullableAny());
+        args.add(nullableAnyType);
         break;
 
       case CallKind.FieldInitializer:
@@ -923,7 +923,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (_variableCells[i] != null) {
         values[i] = _variableValues[i];
       } else if (_variableValues[i] != null) {
-        values[i] = const EmptyType();
+        values[i] = emptyType;
       }
     }
     return values;
@@ -1112,20 +1112,22 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       if (arg.type == type) {
         return arg;
       }
-      if (type == const AnyType() && arg.type is! NullableType) {
+      if (type == anyInstanceType && arg.type is! NullableType) {
         return arg;
       }
     } else if (arg is Type) {
-      if ((arg is NullableType) && (arg.baseType == const AnyType())) {
+      if ((arg is NullableType) && (arg.baseType == anyInstanceType)) {
         return type;
       }
-      if (type == const AnyType()) {
+      if (type == anyInstanceType) {
         return (arg is NullableType) ? arg.baseType : arg;
       }
-    } else if (arg is Call && arg.isInstanceCreation && type is AnyType) {
+    } else if (arg is Call &&
+        arg.isInstanceCreation &&
+        type is AnyInstanceType) {
       return arg;
     }
-    if (type is NullableType && type.baseType == const AnyType()) {
+    if (type is NullableType && type.baseType == anyInstanceType) {
       return arg;
     }
     Narrow narrow = new Narrow(arg, type);
@@ -1227,21 +1229,21 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   late final ConcreteType _boolFalse = _typesBuilder.constantFalse;
 
   late final Type _doubleType =
-      ConeType(_typesBuilder.getTFClass(_environment.coreTypes.doubleClass));
+      _typesBuilder.getTFClass(_environment.coreTypes.doubleClass).coneType;
 
   late final Type _intType =
-      ConeType(_typesBuilder.getTFClass(_environment.coreTypes.intClass));
+      _typesBuilder.getTFClass(_environment.coreTypes.intClass).coneType;
 
   late final Type _stringType =
-      ConeType(_typesBuilder.getTFClass(_environment.coreTypes.stringClass));
+      _typesBuilder.getTFClass(_environment.coreTypes.stringClass).coneType;
 
   late final Type _symbolType =
-      ConeType(_typesBuilder.getTFClass(_environment.coreTypes.symbolClass));
+      _typesBuilder.getTFClass(_environment.coreTypes.symbolClass).coneType;
 
   late final Type _typeType =
-      ConeType(_typesBuilder.getTFClass(_environment.coreTypes.typeClass));
+      _typesBuilder.getTFClass(_environment.coreTypes.typeClass).coneType;
 
-  late final Type _nullType = Type.nullable(const EmptyType());
+  late final Type _nullType = nullableEmptyType;
 
   Class get _superclass => _staticTypeContext!.thisType!.classNode.superclass!;
 
@@ -1252,10 +1254,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         target.concreteIntLiteralClass(_environment.coreTypes, value);
     if (concreteClass != null) {
       constant ??= IntConstant(value);
-      return new ConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass).cls,
-          null,
-          constant);
+      return _entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _intType;
   }
@@ -1265,10 +1267,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         target.concreteDoubleLiteralClass(_environment.coreTypes, value);
     if (concreteClass != null) {
       constant ??= DoubleConstant(value);
-      return new ConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass).cls,
-          null,
-          constant);
+      return _entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _doubleType;
   }
@@ -1278,10 +1280,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         target.concreteStringLiteralClass(_environment.coreTypes, value);
     if (concreteClass != null) {
       constant ??= StringConstant(value);
-      return new ConcreteType(
-          _entryPointsListener.addAllocatedClass(concreteClass).cls,
-          null,
-          constant);
+      return _entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _stringType;
   }
@@ -1460,7 +1462,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         final int varIndex = _variablesInfo.varIndex[receiverNode.variable]!;
         if (_variableCells[varIndex] == null) {
           _variableValues[varIndex] =
-              _makeNarrow(receiverValue, const AnyType());
+              _makeNarrow(receiverValue, anyInstanceType);
         }
       }
     }
@@ -1575,7 +1577,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitInvalidExpression(InvalidExpression node) {
-    return const EmptyType();
+    return emptyType;
   }
 
   @override
@@ -1729,7 +1731,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
     switch (elementTypes.length) {
       case 0:
-        return const EmptyType();
+        return emptyType;
       case 1:
         return elementTypes.single;
       default:
@@ -1881,7 +1883,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
-      return const EmptyType();
+      return emptyType;
     } else {
       assert(target is Procedure && !target.isGetter);
       _entryPointsListener.recordMemberCalledViaThis(target);
@@ -1896,7 +1898,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     // Re-resolve target due to partial mixin resolution.
     final target = _hierarchy.getDispatchTarget(_superclass, node.name);
     if (target == null) {
-      return const EmptyType();
+      return emptyType;
     } else {
       return _makeCall(node,
           new DirectSelector(target, callKind: CallKind.PropertyGet), args);
@@ -1934,9 +1936,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitRethrow(Rethrow node) {
-    _currentCondition = const EmptyType();
+    _currentCondition = emptyType;
     _variableValues = _makeEmptyVariableValues();
-    return const EmptyType();
+    return emptyType;
   }
 
   @override
@@ -1967,7 +1969,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       // In order to speed up the analysis, invocations of 'identical'
       // are approximated eagerly during summary construction.
       _makeCall(node, new DirectSelector(target),
-          Args<TypeExpr>([Type.nullableAny(), Type.nullableAny()]));
+          Args<TypeExpr>([nullableAnyType, nullableAnyType]));
       return _boolType;
     }
     TypeExpr result = _makeCall(node, new DirectSelector(target), args);
@@ -2018,9 +2020,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr visitThrow(Throw node) {
     _visit(node.expression);
-    _currentCondition = const EmptyType();
+    _currentCondition = emptyType;
     _variableValues = _makeEmptyVariableValues();
-    return const EmptyType();
+    return emptyType;
   }
 
   @override
@@ -2090,7 +2092,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitBreakStatement(BreakStatement node) {
     _jumpHandlers![node.target]!.call(_variableValues);
-    _currentCondition = const EmptyType();
+    _currentCondition = emptyType;
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2098,7 +2100,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   @override
   TypeExpr? visitContinueSwitchStatement(ContinueSwitchStatement node) {
     _jumpHandlers![node.target]!.call(_variableValues);
-    _currentCondition = const EmptyType();
+    _currentCondition = emptyType;
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2233,7 +2235,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     if (returnValueJoin != null) {
       _addValueToJoin(returnValueJoin, ret);
     }
-    _currentCondition = const EmptyType();
+    _currentCondition = emptyType;
     _variableValues = _makeEmptyVariableValues();
     return null;
   }
@@ -2330,7 +2332,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     }
 
     if (conditionAfterTry is EmptyType) {
-      _currentCondition = const EmptyType();
+      _currentCondition = emptyType;
       _variableValues = _makeEmptyVariableValues();
     }
     return null;
@@ -2342,7 +2344,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final initializer = node.initializer;
     final TypeExpr initialValue = initializer == null
         ? ((node.type.nullability == Nullability.nonNullable || node.isLate)
-            ? const EmptyType()
+            ? emptyType
             : _nullType)
         : _visit(initializer);
     _declareVariable(node, initialValue);
@@ -2488,8 +2490,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     if (allUnknown) return type;
 
     if (createConcreteType) {
-      return new ConcreteType(
-          type.cls, new List<Type>.from(flattenedTypeExprs));
+      return ConcreteType(type.cls, List<Type>.from(flattenedTypeExprs));
     } else {
       final instantiate = new CreateConcreteType(type.cls, flattenedTypeExprs);
       summary!.add(instantiate);
@@ -2513,7 +2514,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     // We break such loops by inserting an 'UnknownType' in place of the currently
     // processed type, ensuring we try to build 'A<T>' in the process of
     // building 'A<T>'.
-    typesCache[type] = const UnknownType();
+    typesCache[type] = unknownType;
     final result = type.accept(this);
     assert(
         result is UnknownType || result is RuntimeType || result is Statement);
@@ -2522,21 +2523,21 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   }
 
   @override
-  TypeExpr defaultDartType(DartType node) => const UnknownType();
+  TypeExpr defaultDartType(DartType node) => unknownType;
 
   @override
-  TypeExpr visitDynamicType(DynamicType type) => new RuntimeType(type, null);
+  TypeExpr visitDynamicType(DynamicType type) => RuntimeType(type, null);
   @override
-  TypeExpr visitVoidType(VoidType type) => new RuntimeType(type, null);
+  TypeExpr visitVoidType(VoidType type) => RuntimeType(type, null);
   @override
-  TypeExpr visitNeverType(NeverType type) => new RuntimeType(type, null);
+  TypeExpr visitNeverType(NeverType type) => RuntimeType(type, null);
 
   @override
   visitTypedefType(TypedefType node) => translate(node.unalias);
 
   @override
   visitInterfaceType(InterfaceType type) {
-    if (type.typeArguments.isEmpty) return new RuntimeType(type, null);
+    if (type.typeArguments.isEmpty) return RuntimeType(type, null);
 
     final substitution = Substitution.fromPairs(
         type.classNode.typeParameters, type.typeArguments);
@@ -2548,14 +2549,13 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
     for (var i = 0; i < flattenedTypeArgs.length; ++i) {
       final typeExpr =
           translate(substitution.substituteType(flattenedTypeArgs[i]));
-      if (typeExpr == const UnknownType()) return const UnknownType();
+      if (typeExpr == unknownType) return unknownType;
       if (typeExpr is! RuntimeType) createRuntimeType = false;
       flattenedTypeExprs.add(typeExpr);
     }
 
     if (createRuntimeType) {
-      return new RuntimeType(
-          new InterfaceType(type.classNode, type.nullability),
+      return RuntimeType(new InterfaceType(type.classNode, type.nullability),
           new List<RuntimeType>.from(flattenedTypeExprs));
     } else {
       final instantiate = new CreateRuntimeType(
@@ -2568,9 +2568,9 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
   @override
   visitFutureOrType(FutureOrType type) {
     final typeArg = translate(type.typeArgument);
-    if (typeArg == const UnknownType()) return const UnknownType();
+    if (typeArg == unknownType) return unknownType;
     if (typeArg is RuntimeType) {
-      return new RuntimeType(
+      return RuntimeType(
           new FutureOrType(const DynamicType(), type.nullability),
           <RuntimeType>[typeArg]);
     } else {
@@ -2599,7 +2599,7 @@ class RuntimeTypeTranslatorImpl extends DartTypeVisitor<TypeExpr>
         return result;
       }
     }
-    if (type.parameter.parent is! Class) return const UnknownType();
+    if (type.parameter.parent is! Class) return unknownType;
     final interfaceClass = type.parameter.parent as Class;
     // Undetermined nullability is equivalent to nonNullable when
     // instantiating type parameter, so convert it right away.
@@ -2674,12 +2674,10 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstListLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return new ConcreteType(
-          summaryCollector._entryPointsListener
-              .addAllocatedClass(concreteClass)
-              .cls,
-          null,
-          constant);
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _getStaticType(constant);
   }
@@ -2693,12 +2691,10 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstMapLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return new ConcreteType(
-          summaryCollector._entryPointsListener
-              .addAllocatedClass(concreteClass)
-              .cls,
-          null,
-          constant);
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _getStaticType(constant);
   }
@@ -2711,12 +2707,10 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
     final Class? concreteClass = summaryCollector.target
         .concreteConstSetLiteralClass(summaryCollector._environment.coreTypes);
     if (concreteClass != null) {
-      return new ConcreteType(
-          summaryCollector._entryPointsListener
-              .addAllocatedClass(concreteClass)
-              .cls,
-          null,
-          constant);
+      return summaryCollector._entryPointsListener
+          .addAllocatedClass(concreteClass)
+          .cls
+          .constantConcreteType(constant);
     }
     return _getStaticType(constant);
   }
@@ -2748,7 +2742,7 @@ class ConstantAllocationCollector extends ConstantVisitor<Type> {
       summaryCollector._entryPointsListener.addFieldUsedInConstant(
           fieldReference.asField, resultClass, typeFor(value));
     });
-    return new ConcreteType(resultClass.cls, null, constant);
+    return resultClass.cls.constantConcreteType(constant);
   }
 
   Type _visitTearOffConstant(TearOffConstant constant) {

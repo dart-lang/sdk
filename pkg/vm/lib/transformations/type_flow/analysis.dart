@@ -250,7 +250,7 @@ class _DirectInvocation extends _Invocation {
         final Type setterArg = args.values[firstParamIndex];
         fieldValue.setValue(
             setterArg, typeFlowAnalysis, field.isStatic ? null : args.receiver);
-        return const EmptyType();
+        return emptyType;
 
       case CallKind.Method:
         // Call via field.
@@ -259,12 +259,12 @@ class _DirectInvocation extends _Invocation {
         fieldValue.isGetterUsed = true;
         final receiver = fieldValue.getValue(
             typeFlowAnalysis, field.isStatic ? null : args.values[0]);
-        if (receiver != const EmptyType()) {
+        if (receiver != emptyType) {
           typeFlowAnalysis.applyCall(/* callSite = */ null,
               DynamicSelector.kCall, new Args.withReceiver(args, receiver),
               isResultUsed: false, processImmediately: false);
         }
-        return new Type.nullableAny();
+        return nullableAnyType;
 
       case CallKind.FieldInitializer:
         assert(args.values.length == firstParamIndex);
@@ -279,7 +279,7 @@ class _DirectInvocation extends _Invocation {
           // then field is initialized with null value.
           // TODO(alexmarkov): Try to prove that static field initializer
           // does not throw exception.
-          initializerResult = new Type.nullable(initializerResult);
+          initializerResult = initializerResult.nullable();
         }
         if (kPrintTrace) {
           tracePrint("Result of ${field} initializer: $initializerResult");
@@ -287,7 +287,7 @@ class _DirectInvocation extends _Invocation {
         fieldValue.setValue(initializerResult, typeFlowAnalysis,
             field.isStatic ? null : args.receiver);
         fieldValue.isInitialized = true;
-        return const EmptyType();
+        return emptyType;
     }
   }
 
@@ -317,7 +317,7 @@ class _DirectInvocation extends _Invocation {
         assert((member is Procedure) && !member.isGetter && !member.isSetter);
         typeFlowAnalysis.addRawCall(new DirectSelector(member));
         typeFlowAnalysis._tearOffTaken.add(member);
-        return new Type.nullableAny();
+        return nullableAnyType;
       } else {
         // Call via getter.
         // TODO(alexmarkov): capture receiver type
@@ -327,9 +327,9 @@ class _DirectInvocation extends _Invocation {
         typeFlowAnalysis.addRawCall(
             new DirectSelector(member, callKind: CallKind.PropertyGet));
         typeFlowAnalysis.applyCall(/* callSite = */ null, DynamicSelector.kCall,
-            new Args.withReceiver(args, new Type.nullableAny()),
+            new Args.withReceiver(args, nullableAnyType),
             isResultUsed: false, processImmediately: false);
-        return new Type.nullableAny();
+        return nullableAnyType;
       }
     }
   }
@@ -403,7 +403,7 @@ class _DispatchableInvocation extends _Invocation {
 
     // Calculate result as a union of results of direct invocations
     // corresponding to each target.
-    Type result = const EmptyType();
+    Type result = emptyType;
 
     if (targets.isEmpty) {
       tracePrint("No targets...");
@@ -481,7 +481,7 @@ class _DispatchableInvocation extends _Invocation {
     // TODO(alexmarkov): handle closures more precisely
     if ((selector is DynamicSelector) && (selector.name.text == "call")) {
       tracePrint("Possible closure call, result is dynamic");
-      result = new Type.nullableAny();
+      result = nullableAnyType;
     }
 
     return result;
@@ -491,7 +491,7 @@ class _DispatchableInvocation extends _Invocation {
       Type receiver,
       Map<Member, _ReceiverTypeBuilder> targets,
       TypeFlowAnalysis typeFlowAnalysis) {
-    assert(receiver != const EmptyType()); // should be filtered earlier
+    assert(receiver != emptyType); // should be filtered earlier
 
     final bool isNullableReceiver = receiver is NullableType;
     if (isNullableReceiver) {
@@ -500,8 +500,9 @@ class _DispatchableInvocation extends _Invocation {
     }
 
     if (selector is InterfaceSelector) {
-      final staticReceiverType = new ConeType(typeFlowAnalysis.hierarchyCache
-          .getTFClass(selector.member!.enclosingClass!));
+      final staticReceiverType = typeFlowAnalysis.hierarchyCache
+          .getTFClass(selector.member!.enclosingClass!)
+          .coneType;
       receiver = receiver.intersection(
           staticReceiverType, typeFlowAnalysis.hierarchyCache);
       assert(receiver is! NullableType);
@@ -527,7 +528,7 @@ class _DispatchableInvocation extends _Invocation {
       for (var type in receiver.types) {
         _collectTargetsForConcreteType(type, targets, typeFlowAnalysis);
       }
-    } else if (receiver is AnyType) {
+    } else if (receiver is AnyInstanceType) {
       _collectTargetsForSelector(targets, typeFlowAnalysis);
     } else {
       assert(receiver is EmptyType);
@@ -733,7 +734,7 @@ class _ReceiverTypeBuilder {
     if (t == null) {
       final list = _list;
       if (list == null) {
-        t = const EmptyType();
+        t = emptyType;
       } else {
         t = SetType(list);
       }
@@ -742,9 +743,7 @@ class _ReceiverTypeBuilder {
     }
 
     if (_nullable) {
-      if (t is! NullableType) {
-        t = new NullableType(t);
-      }
+      t = t.nullable();
     }
 
     return t;
@@ -864,7 +863,7 @@ class _FieldValue extends _DependencyTracker {
   final Field field;
   final Type staticType;
   final Summary? typeGuardSummary;
-  Type value = const EmptyType();
+  Type value = emptyType;
 
   /// Flag indicating if field initializer was executed.
   bool isInitialized = false;
@@ -878,7 +877,7 @@ class _FieldValue extends _DependencyTracker {
   _FieldValue(this.field, this.typeGuardSummary, TypesBuilder typesBuilder)
       : staticType = typesBuilder.fromStaticType(field.type, true) {
     if (field.initializer == null && _isDefaultValueOfFieldObservable()) {
-      value = new Type.nullable(const EmptyType());
+      value = nullableEmptyType;
     }
   }
 
@@ -1018,8 +1017,6 @@ class _TFClassImpl extends TFClass {
     supertypes.add(this);
   }
 
-  late final ConcreteType concreteType = ConcreteType(this, null);
-
   Type? _specializedConeType;
   Type get specializedConeType =>
       _specializedConeType ??= _calculateConeTypeSpecialization();
@@ -1036,7 +1033,7 @@ class _TFClassImpl extends TFClass {
   Type _calculateConeTypeSpecialization() {
     final int numSubTypes = _allocatedSubtypes.length;
     if (numSubTypes == 0) {
-      return const EmptyType();
+      return emptyType;
     } else if (numSubTypes == 1) {
       return _allocatedSubtypes.single.concreteType;
     } else {
@@ -1047,7 +1044,7 @@ class _TFClassImpl extends TFClass {
       // SetType constructor expects a list of ConcreteTypes sorted by classId
       // (for faster intersections and unions).
       types.sort();
-      return new SetType(types);
+      return SetType(types);
     }
   }
 
@@ -1257,7 +1254,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
   @override
   Type getRecordType(RecordShape shape, bool allocated) {
     final cls = getRecordClass(shape);
-    return allocated ? addAllocatedClass(cls) : ConeType(cls);
+    return allocated ? addAllocatedClass(cls) : cls.coneType;
   }
 
   _TFClassImpl getRecordClass(RecordShape shape) =>
@@ -1304,7 +1301,7 @@ class _ClassHierarchyCache extends TypeHierarchy {
     Statistics.typeConeSpecializations++;
 
     if (baseClass.classNode == coreTypes.objectClass) {
-      return const AnyType();
+      return anyInstanceType;
     }
 
     final _TFClassImpl cls = baseClass as _TFClassImpl;
@@ -1482,7 +1479,7 @@ class _WorkList {
         // as a result but immediately invalidate it in order to recompute.
         // Static type would be too inaccurate.
         if (invocation.invalidatedResult == null) {
-          invocation.result = const EmptyType();
+          invocation.result = emptyType;
         }
         // Conservatively assume that this invocation may trigger
         // parameter type checks. This is needed because caller may not be
@@ -1766,7 +1763,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
         workList.enqueueInvocation(invocation);
       }
 
-      return const EmptyType();
+      return emptyType;
     }
   }
 

@@ -80,7 +80,7 @@ class Parameter extends Statement {
   final Type? staticTypeForNarrowing;
 
   Type? defaultValue;
-  Type _argumentType = const EmptyType();
+  Type _argumentType = emptyType;
 
   Parameter(this.name, this.staticTypeForNarrowing);
 
@@ -139,7 +139,7 @@ class Narrow extends Statement {
     // normalization (so it's not enough to handle it in
     // SummaryCollector._makeNarrow).
     final arg = this.arg;
-    if (type is AnyType) {
+    if (type is AnyInstanceType) {
       if (arg is Type) {
         return (arg is NullableType) ? arg.baseType : arg;
       }
@@ -164,15 +164,15 @@ class NarrowNotNull extends Narrow {
   static const int canBeNotNullFlag = 1 << 1;
   int _flags = 0;
 
-  NarrowNotNull(TypeExpr arg) : super(arg, const AnyType());
+  NarrowNotNull(TypeExpr arg) : super(arg, anyInstanceType);
 
   // Shared NarrowNotNull instances which are used when the outcome is
   // known at summary creation time.
-  static final NarrowNotNull alwaysNotNull = NarrowNotNull(const EmptyType())
+  static final NarrowNotNull alwaysNotNull = NarrowNotNull(emptyType)
     .._flags = canBeNotNullFlag;
-  static final NarrowNotNull alwaysNull = NarrowNotNull(const EmptyType())
+  static final NarrowNotNull alwaysNull = NarrowNotNull(emptyType)
     .._flags = canBeNullFlag;
-  static final NarrowNotNull unknown = NarrowNotNull(const EmptyType())
+  static final NarrowNotNull unknown = NarrowNotNull(emptyType)
     .._flags = canBeNullFlag | canBeNotNullFlag;
 
   bool get isAlwaysNull => (_flags & canBeNotNullFlag) == 0;
@@ -269,7 +269,7 @@ class Join extends Statement {
     }
     n = j;
     if (n == 0) {
-      return const EmptyType();
+      return emptyType;
     } else if (n == 1) {
       return values[0];
     }
@@ -336,12 +336,12 @@ class Call extends Statement {
   Type apply(List<Type?> computedTypes, TypeHierarchy typeHierarchy,
       CallHandler callHandler) {
     final List<Type> argTypes =
-        new List<Type>.filled(args.values.length, const EmptyType());
+        new List<Type>.filled(args.values.length, emptyType);
     for (int i = 0; i < args.values.length; i++) {
       final Type type = args.values[i].getComputedType(computedTypes);
-      if (type == const EmptyType()) {
+      if (type == emptyType) {
         debugPrint("Optimized call with empty arg");
-        return const EmptyType();
+        return emptyType;
       }
       argTypes[i] = type;
     }
@@ -374,7 +374,7 @@ class Call extends Statement {
   // --- Inferred call site information. ---
 
   int _flags = 0;
-  Type _resultType = const EmptyType();
+  Type _resultType = emptyType;
 
   static const int kMonomorphic = (1 << 0);
   static const int kPolymorphic = (1 << 1);
@@ -447,8 +447,8 @@ class Call extends Statement {
     }
     final receiverIntIntersect =
         receiver.intersection(typeHierarchy.intType, typeHierarchy);
-    if (receiverIntIntersect != EmptyType() &&
-        receiverIntIntersect != NullableType(EmptyType())) {
+    if (receiverIntIntersect != emptyType &&
+        receiverIntIntersect != nullableEmptyType) {
       _flags |= kReceiverMayBeInt;
     }
   }
@@ -487,7 +487,7 @@ class Extract extends Statement {
     void extractType(ConcreteType c) {
       final typeArgs = c.typeArgs;
       if (typeArgs == null) {
-        extractedType = const UnknownType();
+        extractedType = unknownType;
       } else {
         final interfaceOffset = typeHierarchy.genericInterfaceOffsetFor(
             c.cls.classNode, referenceClass);
@@ -501,7 +501,7 @@ class Extract extends Statement {
         if (extractedType == null || extracted == extractedType) {
           extractedType = extracted;
         } else {
-          extractedType = const UnknownType();
+          extractedType = unknownType;
         }
       }
     }
@@ -513,7 +513,7 @@ class Extract extends Statement {
       argType.types.forEach(extractType);
     }
 
-    return extractedType ?? const UnknownType();
+    return extractedType ?? unknownType;
   }
 }
 
@@ -577,7 +577,7 @@ class CreateConcreteType extends Statement {
       if (computed is RuntimeType) hasRuntimeType = true;
       return computed;
     });
-    return new ConcreteType(cls, hasRuntimeType ? types : null);
+    return hasRuntimeType ? ConcreteType(cls, types) : cls.concreteType;
   }
 }
 
@@ -605,8 +605,8 @@ class CreateRuntimeType extends Statement {
     final types = <RuntimeType>[];
     for (TypeExpr arg in flattenedTypeArgs) {
       final computed = arg.getComputedType(computedTypes);
-      if (computed is UnknownType) return const UnknownType();
-      if (computed is EmptyType) return const EmptyType();
+      if (computed is UnknownType) return unknownType;
+      if (computed is EmptyType) return emptyType;
       types.add(computed as RuntimeType);
     }
     DartType dartType;
@@ -615,7 +615,7 @@ class CreateRuntimeType extends Statement {
     } else {
       dartType = new InterfaceType(klass, nullability);
     }
-    return new RuntimeType(dartType, types);
+    return RuntimeType(dartType, types);
   }
 }
 
@@ -667,7 +667,7 @@ class TypeCheck extends Statement {
     Type argType = arg.getComputedType(computedTypes);
     Type checkType = type.getComputedType(computedTypes);
     if (argType is EmptyType || checkType is EmptyType) {
-      return const EmptyType();
+      return emptyType;
     }
     // TODO(sjindel/tfa): Narrow the result if possible.
     assert(checkType is UnknownType || checkType is RuntimeType);
@@ -761,7 +761,7 @@ class UnaryOperation extends Statement {
         return arg;
       case UnaryOp.IsNull:
         if (arg is EmptyType) {
-          return const EmptyType();
+          return emptyType;
         }
         if (arg is NullableType) {
           if (arg.baseType.specialize(typeHierarchy) is EmptyType) {
@@ -777,7 +777,7 @@ class UnaryOperation extends Statement {
             : typeHierarchy.boolType;
       case UnaryOp.Not:
         if (arg is EmptyType) {
-          return const EmptyType();
+          return emptyType;
         }
         if (identical(arg, typeHierarchy.constantTrue)) {
           return typeHierarchy.constantFalse;
@@ -852,7 +852,7 @@ class BinaryOperation extends Statement {
       CallHandler callHandler) {
     final Type left = arg1.getComputedType(computedTypes);
     if (left is EmptyType) {
-      return const EmptyType();
+      return emptyType;
     }
     switch (op) {
       case BinaryOp.Or:
@@ -862,7 +862,7 @@ class BinaryOperation extends Statement {
         if (identical(left, typeHierarchy.constantFalse)) {
           final Type right = arg2.getComputedType(computedTypes);
           if (right is EmptyType) {
-            return const EmptyType();
+            return emptyType;
           } else if (identical(right, typeHierarchy.constantTrue)) {
             return typeHierarchy.constantTrue;
           } else if (identical(right, typeHierarchy.constantFalse)) {
@@ -877,7 +877,7 @@ class BinaryOperation extends Statement {
         if (identical(left, typeHierarchy.constantTrue)) {
           final Type right = arg2.getComputedType(computedTypes);
           if (right is EmptyType) {
-            return const EmptyType();
+            return emptyType;
           } else if (identical(right, typeHierarchy.constantTrue)) {
             return typeHierarchy.constantTrue;
           } else if (identical(right, typeHierarchy.constantFalse)) {
@@ -898,8 +898,8 @@ class Summary {
   int requiredParameterCount;
 
   List<Statement> _statements = <Statement>[];
-  TypeExpr result = const EmptyType();
-  Type resultType = const EmptyType();
+  TypeExpr result = emptyType;
+  Type resultType = emptyType;
 
   // Analysis time of callees. Populated only if kPrintTimings.
   int calleeTime = 0;
@@ -1009,7 +1009,7 @@ class Summary {
       if (condition != null) {
         final cval = condition.getComputedType(types);
         if (cval is EmptyType || identical(cval, typeHierarchy.constantFalse)) {
-          types[i] = const EmptyType();
+          types[i] = emptyType;
           if (kPrintTrace) {
             tracePrint("Skipped statement");
           }
@@ -1040,7 +1040,7 @@ class Summary {
   }
 
   Args<Type> get argumentTypes {
-    final argTypes = new List<Type>.filled(parameterCount, const EmptyType());
+    final argTypes = new List<Type>.filled(parameterCount, emptyType);
     final argNames =
         new List<String>.filled(parameterCount - positionalParameterCount, '');
     for (int i = 0; i < parameterCount; i++) {

@@ -50,7 +50,7 @@ class FakeEntryPointsListener implements EntryPointsListener {
 
   @override
   ConcreteType addAllocatedClass(Class c) {
-    return new ConcreteType(_typesBuilder.getTFClass(c), null);
+    return _typesBuilder.getTFClass(c).concreteType;
   }
 
   @override
