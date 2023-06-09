@@ -21,6 +21,7 @@ import 'dart:_foreign_helper'
         spread;
 import 'dart:_interceptors'
     show
+        JavaScriptFunction,
         JSArray,
         JSInt,
         jsNull,

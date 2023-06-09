@@ -121,7 +121,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// Computes fixes for the specified [testUnit].
   Future<BulkFixProcessor> computeFixes() async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    var analysisContext = contextFor(testFile.path);
+    var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
     var processor = BulkFixProcessor(
         TestInstrumentationService(), await workspace,
@@ -134,7 +134,7 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   /// [testFile].
   Future<bool> computeHasFixes() async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
-    var analysisContext = contextFor(testFile.path);
+    var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
     processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
         useConfigFiles: useConfigFiles);

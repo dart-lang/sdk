@@ -598,11 +598,14 @@ class TimelineEvent {
   // ID.
   int64_t timestamp1_or_id_;
   intptr_t flow_id_count_;
-  // This field is only used by the Perfetto recorders, because Perfetto's trace
-  // format handles flow events by processing flow IDs attached to
-  // |TimelineEvent::kBegin| events. Other recorders handle flow events by
-  // processing events of type TimelineEvent::kFlowBegin|,
-  // |TimelineEvent::kFlowStep|, and |TimelineEvent::kFlowEnd|.
+  // This field is needed to support trace serialization in Perfetto's proto
+  // format. Flow IDs must be associated with |TimelineEvent::kBegin|,
+  // |TimelineEvent::kDuration|, |TimelineEvent::kInstant|,
+  // |TimelineEvent::kAsyncBegin|, and |TimelineEvent::kAsyncInstant| events to
+  // serialize traces in Perfetto's format. Flow event information is serialized
+  // in Chrome's JSON trace format through events of type
+  // |TimelineEvent::kFlowBegin|, |TimelineEvent::kFlowStep|, and
+  // |TimelineEvent::kFlowEnd|.
   std::unique_ptr<const int64_t[]> flow_ids_;
   TimelineEventArguments arguments_;
   uword state_;

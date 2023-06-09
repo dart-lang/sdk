@@ -63,6 +63,9 @@ class AnnotationVerifier {
         element.isVisibleForTesting ||
         element.isVisibleForOverriding) {
       _checkVisibility(node, element);
+    } else if (element.isVisibleOutsideTemplate) {
+      _checkVisibility(node, element);
+      _checkVisibleOutsideTemplate(node);
     }
 
     _checkKinds(node, parent, element);
@@ -343,8 +346,8 @@ class AnnotationVerifier {
   }
 
   /// Reports a warning at [node] if it is not a valid target for a
-  /// visibility (`visibleForTemplate`, `visibileForTesting`,
-  /// `visibleForOverride`) annotation.
+  /// visibility (`visibleForTemplate`, `visibleOutsideTemplate`,
+  /// `visibileForTesting`, `visibleForOverride`) annotation.
   void _checkVisibility(Annotation node, ElementAnnotation element) {
     var parent = node.parent;
     if (parent is Declaration) {
@@ -407,6 +410,23 @@ class AnnotationVerifier {
       // `visibleForTemplate` or `visibleForTesting`, so leave it alone for
       // now.
     }
+  }
+
+  /// Reports a warning at [node] if it's parent is not a valid target for an
+  /// `@visibleOutsideTemplate` annotation.
+  void _checkVisibleOutsideTemplate(Annotation node) {
+    var grandparent = node.parent.parent;
+    switch (grandparent) {
+      case ClassDeclaration(declaredElement: InterfaceElement(:var metadata)):
+      case EnumDeclaration(declaredElement: InterfaceElement(:var metadata)):
+      case MixinDeclaration(declaredElement: InterfaceElement(:var metadata)):
+        for (final annotation in metadata) {
+          if (annotation.isVisibleForTemplate) return;
+        }
+    }
+
+    _errorReporter.reportErrorForNode(
+        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, node);
   }
 
   /// Returns an expression (for error-reporting purposes) associated with a

@@ -19,7 +19,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 bool hasFix(ErrorCode errorCode) {
   if (errorCode is LintCode) {
     var lintName = errorCode.name;
-    return FixProcessor.lintProducerMap.containsKey(lintName);
+    return FixProcessor.lintProducerMap.containsKey(lintName) ||
+        FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
   // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
   //  this function, or handle error codes associated with non-dart files.

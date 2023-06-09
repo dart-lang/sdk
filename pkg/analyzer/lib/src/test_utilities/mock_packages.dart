@@ -6,6 +6,26 @@ import 'package:analyzer/file_system/file_system.dart';
 
 /// Helper for creating mock packages.
 class MockPackages {
+  /// Create a fake 'angular' package that can be used by tests.
+  static void addAngularMetaPackageFiles(Folder rootFolder) {
+    var libFolder = rootFolder.getChildAssumingFolder('lib');
+    libFolder.getChildAssumingFile('angular_meta.dart').writeAsStringSync(r'''
+library angular.meta;
+
+const _VisibleForTemplate visibleForTemplate = const _VisibleForTemplate();
+
+const _VisibleOutsideTemplate visibleOutsideTemplate = const _VisibleOutsideTemplate();
+
+class _VisibleForTemplate {
+  const _VisibleForTemplate();
+}
+
+class _VisibleOutsideTemplate {
+  const _VisibleOutsideTemplate();
+}
+''');
+  }
+
   /// Create a fake 'ffi' package that can be used by tests.
   static void addFfiPackageFiles(Folder rootFolder) {
     var libFolder = rootFolder.getChildAssumingFolder('lib');

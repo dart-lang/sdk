@@ -184,13 +184,20 @@ class DynamicType extends DartType {
 }
 
 @notNull
-bool _isJsObject(obj) =>
-    JS('!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
+bool _isJsObject(obj) => JS_GET_FLAG("NEW_RUNTIME_TYPES")
+    ? obj is LegacyJavaScriptObject
+    : JS(
+        '!', '# === #', getReifiedType(obj), typeRep<LegacyJavaScriptObject>());
 
-/// Asserts that [f] is a native JS functions and returns it if so.
+/// Asserts that [f] is a native JS function and returns it if so.
 ///
 /// This function should be used to ensure that a function is a native JS
 /// function before it is passed to native JS code.
+///
+/// NOTE: The generic type argument bound is not enforced due to the
+/// `@NoReifyGeneric` annotation. In practice values of other types are passed
+/// as [f]. All non-function values are allowed to pass through as well and
+/// are returned without error.
 @NoReifyGeneric()
 F assertInterop<F extends Function?>(F f) {
   assert(
@@ -202,7 +209,13 @@ F assertInterop<F extends Function?>(F f) {
 
 bool isDartFunction(obj) =>
     JS<bool>('!', '# instanceof Function', obj) &&
-    JS<bool>('!', '#[#] != null', obj, _runtimeType);
+    JS<bool>(
+        '!',
+        '#[#] != null',
+        obj,
+        JS_GET_FLAG("NEW_RUNTIME_TYPES")
+            ? JS_GET_NAME(JsGetName.SIGNATURE_NAME)
+            : _runtimeType);
 
 Expando<Function> _assertInteropExpando = Expando<Function>();
 

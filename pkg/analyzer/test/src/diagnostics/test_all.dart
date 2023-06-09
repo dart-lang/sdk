@@ -442,6 +442,8 @@ import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
 import 'invalid_visible_for_overriding_annotation_test.dart'
     as invalid_visible_for_overriding_annotation;
+import 'invalid_visible_outside_template_annotation_test.dart'
+    as invalid_visible_outside_template_annotation;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -1164,6 +1166,7 @@ main() {
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
     invalid_visible_for_overriding_annotation.main();
+    invalid_visible_outside_template_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();

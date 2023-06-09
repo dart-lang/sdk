@@ -254,8 +254,9 @@ void DFE::ReadScript(const char* script_uri,
     *kernel_buffer_size = -1;
   }
   int64_t end = Dart_TimelineGetMicros();
-  Dart_TimelineEvent("DFE::ReadScript", start, end,
-                     Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("DFE::ReadScript", start, end, /*flow_id_count=*/0,
+                           nullptr, Dart_Timeline_Event_Duration,
+                           /*argument_count=*/0, nullptr, nullptr);
 }
 
 // Attempts to treat [buffer] as a in-memory kernel byte representation.

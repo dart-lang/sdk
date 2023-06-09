@@ -56,8 +56,9 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String normalizeSource(String code) =>
       useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
-  Future<void> resolveFile2(String path) async {
-    var result = await getResolvedUnit(path);
+  @override
+  Future<ResolvedUnitResult> resolveFile(File file) async {
+    var result = await super.resolveFile(file);
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;
@@ -76,6 +77,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+    return result;
   }
 
   Future<void> resolveTestCode(String code) async {
@@ -84,6 +86,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    await resolveFile2(testFile.path);
+    await resolveFile(testFile);
   }
 }

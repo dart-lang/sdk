@@ -23012,6 +23012,69 @@ WarningCode:
       ```dart
       class C {}
       ```
+  INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+    problemMessage: "The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@visibleOutsideTemplate`
+      annotation is used incorrectly. This annotation is only meant to annotate
+      members of a class, enum, or mixin that has the `@visibleForTemplate`
+      annotation, to opt those members out of the visibility restrictions that
+      `@visibleForTemplate` imposes.
+
+      #### Examples
+
+      The following code produces this diagnostic because there is no
+      `@visibleForTemplate` annotation at the class level:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      class C {
+        [!@visibleOutsideTemplate!]
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the annotation is on
+      a class declaration, not a member of a class, enum, or mixin:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      [!@visibleOutsideTemplate!]
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If the class is only visible so that templates can reference it, then add
+      the `@visibleForTemplate` annotation to the class:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      @visibleForTemplate
+      class C {
+        @visibleOutsideTemplate
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      If the `@visibleOutsideTemplate` annotation is on anything other than a
+      member of a class, enum, or mixin with the `@visibleForTemplate`
+      annotation, remove the annotation:
+
+      ```dart
+      class C {}
+      ```
   RETURN_TYPE_INVALID_FOR_CATCH_ERROR:
     sharedName: INVALID_RETURN_TYPE_FOR_CATCH_ERROR
     problemMessage: "The return type '{0}' isn't assignable to '{1}', as required by 'Future.catchError'."

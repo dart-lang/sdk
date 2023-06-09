@@ -353,9 +353,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
       result = Loader::InitForSnapshot(resolved_script_uri, isolate_data);
       CHECK_RESULT(result);
     }
-    Dart_TimelineEvent("LoadScript", Dart_TimelineGetMicros(),
-                       Dart_GetMainPortId(), Dart_Timeline_Event_Async_End, 0,
-                       nullptr, nullptr);
+    Dart_RecordTimelineEvent("LoadScript", Dart_TimelineGetMicros(),
+                             Dart_GetMainPortId(), /*flow_id_count=*/0, nullptr,
+                             Dart_Timeline_Event_Async_End,
+                             /*argument_count=*/0, nullptr, nullptr);
 #else
     UNREACHABLE();
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
@@ -658,8 +659,10 @@ static Dart_Isolate CreateAndSetupDartDevIsolate(const char* script_uri,
                          isolate_run_app_snapshot, flags, error, exit_code);
 
   int64_t end = Dart_TimelineGetMicros();
-  Dart_TimelineEvent("CreateAndSetupDartDevIsolate", start, end,
-                     Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("CreateAndSetupDartDevIsolate", start, end,
+                           /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Duration,
+                           /*argument_count=*/0, nullptr, nullptr);
   return created_isolate;
 }
 
@@ -825,8 +828,10 @@ static Dart_Isolate CreateIsolateGroupAndSetupHelper(
         isolate_run_app_snapshot, flags, error, exit_code);
   }
   int64_t end = Dart_TimelineGetMicros();
-  Dart_TimelineEvent("CreateIsolateGroupAndSetupHelper", start, end,
-                     Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("CreateIsolateGroupAndSetupHelper", start, end,
+                           /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Duration,
+                           /*argument_count=*/0, nullptr, nullptr);
   return created_isolate;
 }
 

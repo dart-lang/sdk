@@ -9769,8 +9769,8 @@ TEST_CASE(DartAPI_TimelineDuration) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a duration event.
-  Dart_TimelineEvent("testDurationEvent", 500, 1500,
-                     Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("testDurationEvent", 500, 1500, 0, nullptr,
+                           Dart_Timeline_Event_Duration, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -9790,8 +9790,8 @@ TEST_CASE(DartAPI_TimelineBegin) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a begin event.
-  Dart_TimelineEvent("testBeginEvent", 1000, 1, Dart_Timeline_Event_Begin, 0,
-                     nullptr, nullptr);
+  Dart_RecordTimelineEvent("testBeginEvent", 1000, 1, 0, nullptr,
+                           Dart_Timeline_Event_Begin, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -9810,8 +9810,8 @@ TEST_CASE(DartAPI_TimelineEnd) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   // Add a begin event.
-  Dart_TimelineEvent("testEndEvent", 1000, 1, Dart_Timeline_Event_End, 0,
-                     nullptr, nullptr);
+  Dart_RecordTimelineEvent("testEndEvent", 1000, 1, 0, nullptr,
+                           Dart_Timeline_Event_End, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -9829,8 +9829,8 @@ TEST_CASE(DartAPI_TimelineInstant) {
   TimelineStream* stream = Timeline::GetEmbedderStream();
   // Make sure it is enabled.
   stream->set_enabled(true);
-  Dart_TimelineEvent("testInstantEvent", 1000, 1, Dart_Timeline_Event_Instant,
-                     0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("testInstantEvent", 1000, 1, 0, nullptr,
+                           Dart_Timeline_Event_Instant, 0, nullptr, nullptr);
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -9848,8 +9848,9 @@ TEST_CASE(DartAPI_TimelineAsyncDisabled) {
   // Make sure it is disabled.
   stream->set_enabled(false);
   int64_t async_id = 99;
-  Dart_TimelineEvent("testAsyncEvent", 0, async_id,
-                     Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("testAsyncEvent", 0, async_id, 0, nullptr,
+                           Dart_Timeline_Event_Async_Begin, 0, nullptr,
+                           nullptr);
   // Check that testAsync is not in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
   JSONStream js;
@@ -9865,8 +9866,9 @@ TEST_CASE(DartAPI_TimelineAsync) {
   // Make sure it is enabled.
   stream->set_enabled(true);
   int64_t async_id = 99;
-  Dart_TimelineEvent("testAsyncEvent", 1000, async_id,
-                     Dart_Timeline_Event_Async_Begin, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("testAsyncEvent", 1000, async_id, 0, nullptr,
+                           Dart_Timeline_Event_Async_Begin, 0, nullptr,
+                           nullptr);
 
   // Check that it is in the output.
   TimelineEventRecorder* recorder = Timeline::recorder();
@@ -9909,9 +9911,9 @@ TEST_CASE(DartAPI_TimelineAsyncInstantRace) {
       [](uword arguments_ptr) {
         ReportAsyncEventArguments& arguments =
             *reinterpret_cast<ReportAsyncEventArguments*>(arguments_ptr);
-        Dart_TimelineEvent("async1", /*timestamp0=*/0, /*async_id=*/1,
-                           Dart_Timeline_Event_Async_Instant,
-                           /*argument_count=*/0, nullptr, nullptr);
+        Dart_RecordTimelineEvent("async1", /*timestamp0=*/0, /*async_id=*/1, 0,
+                                 nullptr, Dart_Timeline_Event_Async_Instant,
+                                 /*argument_count=*/0, nullptr, nullptr);
         MonitorLocker ml(&arguments.synchronization_monitor);
         arguments.join_id =
             OSThread::GetCurrentThreadJoinId(OSThread::Current());
@@ -9923,9 +9925,9 @@ TEST_CASE(DartAPI_TimelineAsyncInstantRace) {
       [](uword arguments_ptr) {
         ReportAsyncEventArguments& arguments =
             *reinterpret_cast<ReportAsyncEventArguments*>(arguments_ptr);
-        Dart_TimelineEvent("async2", /*timestamp0=*/0, /*async_id=*/2,
-                           Dart_Timeline_Event_Async_Instant,
-                           /*argument_count=*/0, nullptr, nullptr);
+        Dart_RecordTimelineEvent("async2", /*timestamp0=*/0, /*async_id=*/2, 0,
+                                 nullptr, Dart_Timeline_Event_Async_Instant,
+                                 /*argument_count=*/0, nullptr, nullptr);
         MonitorLocker ml(&arguments.synchronization_monitor);
         arguments.join_id =
             OSThread::GetCurrentThreadJoinId(OSThread::Current());
@@ -10379,47 +10381,66 @@ TEST_CASE(DartAPI_NativePort_Loop) {
 
 #if !defined(PRODUCT)
 static void ReportTimelineEvents() {
-  Dart_TimelineEvent("T1", 0, 1, Dart_Timeline_Event_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("T1", 10, 1, Dart_Timeline_Event_End, 0, nullptr, nullptr);
+  intptr_t flow_id_count = 1;
+  const int64_t flow_ids[1] = {123};
 
-  Dart_TimelineEvent("T2", 20, 2, Dart_Timeline_Event_Instant, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T1", 0, 1, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Begin, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T1", 10, 1, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_End, /*argument_count=*/0,
+                           nullptr, nullptr);
 
-  Dart_TimelineEvent("T3", 30, /*timestamp1=*/40, Dart_Timeline_Event_Duration,
-                     0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T2", 20, 2, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Instant, /*argument_count=*/0,
+                           nullptr, nullptr);
 
-  Dart_TimelineEvent("T4", 50, 4, Dart_Timeline_Event_Async_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("T4", 60, 4, Dart_Timeline_Event_Async_End, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T3", 30, /*timestamp1=*/40, /*flow_id_count=*/0,
+                           nullptr, Dart_Timeline_Event_Duration,
+                           /*argument_count=*/0, nullptr, nullptr);
 
-  Dart_TimelineEvent("T5", 70, 5, Dart_Timeline_Event_Async_Instant, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T4", 50, 4, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Async_Begin,
+                           /*argument_count=*/0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T4", 60, 4, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Async_End, /*argument_count=*/0,
+                           nullptr, nullptr);
 
-  Dart_TimelineEvent("T6", 80, /*timestamp1_or_id=*/-1,
-                     Dart_Timeline_Event_Counter, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T5", 70, 5, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Async_Instant,
+                           /*argument_count=*/0, nullptr, nullptr);
 
-  Dart_TimelineEvent("T7", 90, 7, Dart_Timeline_Event_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("F", 90, 10, Dart_Timeline_Event_Flow_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("T7", 100, 7, Dart_Timeline_Event_End, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T6", 80, -1, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Counter, /*argument_count=*/0,
+                           nullptr, nullptr);
 
-  Dart_TimelineEvent("T8", 110, 8, Dart_Timeline_Event_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("F", 110, 10, Dart_Timeline_Event_Flow_Step, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("T8", 120, 8, Dart_Timeline_Event_End, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T7", 90, 7, flow_id_count, flow_ids,
+                           Dart_Timeline_Event_Begin, /*argument_count=*/0,
+                           nullptr, nullptr);
+  Dart_RecordTimelineEvent("F", 90, 10, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Flow_Begin,
+                           /*argument_count=*/0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T7", 100, 7, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_End, /*argument_count=*/0,
+                           nullptr, nullptr);
 
-  Dart_TimelineEvent("T9", 130, 9, Dart_Timeline_Event_Begin, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("F", 130, 10, Dart_Timeline_Event_Flow_End, 0, nullptr,
-                     nullptr);
-  Dart_TimelineEvent("T9", 140, 9, Dart_Timeline_Event_End, 0, nullptr,
-                     nullptr);
+  Dart_RecordTimelineEvent("T8", 110, 8, flow_id_count, flow_ids,
+                           Dart_Timeline_Event_Begin, 0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("F", 110, 10, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Flow_Step,
+                           /*argument_count=*/0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T8", 120, 8, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_End, /*argument_count=*/0,
+                           nullptr, nullptr);
+
+  Dart_RecordTimelineEvent("T9", 130, 9, flow_id_count, flow_ids,
+                           Dart_Timeline_Event_Begin, /*argument_count=*/0,
+                           nullptr, nullptr);
+  Dart_RecordTimelineEvent("F", 130, 10, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_Flow_End,
+                           /*argument_count=*/0, nullptr, nullptr);
+  Dart_RecordTimelineEvent("T9", 140, 9, /*flow_id_count=*/0, nullptr,
+                           Dart_Timeline_Event_End, /*argument_count=*/0,
+                           nullptr, nullptr);
 }
 
 TEST_CASE(DartAPI_TimelineEvents_Serialization) {
@@ -10491,6 +10512,12 @@ UNIT_TEST_CASE(DartAPI_TimelineEvents_Loop) {
     result = Dart_Cleanup();
     EXPECT(result == nullptr);
   }
+}
+
+UNIT_TEST_CASE(DartAPI_TimelineEvents_NullFlowIdsHandledGracefully) {
+  Dart_RecordTimelineEvent("T1", 0, 10, /*flow_id_count=*/1, nullptr,
+                           Dart_Timeline_Event_Duration, /*argument_count=*/0,
+                           nullptr, nullptr);
 }
 #endif  // !defined(PRODUCT)
 

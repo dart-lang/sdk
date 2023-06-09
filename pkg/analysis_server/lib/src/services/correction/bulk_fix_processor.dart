@@ -533,7 +533,19 @@ class BulkFixProcessor {
   }
 
   /// Returns whether [error] is something that might be fixable.
-  bool _isFixableError(AnalysisError error) => hasFix(error.errorCode);
+  bool _isFixableError(AnalysisError error) {
+    final errorCode = error.errorCode;
+
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+        errorCode == HintCode.UNNECESSARY_IMPORT ||
+        errorCode == WarningCode.UNUSED_IMPORT) {
+      return true;
+    }
+
+    return FixProcessor.canBulkFix(errorCode);
+  }
 
   /// Return the override set corresponding to the given [result], or `null` if
   /// there is no corresponding configuration file or the file content isn't a

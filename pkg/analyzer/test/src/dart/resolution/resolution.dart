@@ -357,20 +357,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(node.staticType, isNull);
   }
 
-  /// TODO(scheglov) Remove `?` from [declaration].
-  Matcher elementMatcher(
-    Element? declaration, {
-    bool isLegacy = false,
-    Map<String, String> substitution = const {},
-  }) {
-    return _ElementMatcher(
-      this,
-      declaration: declaration!,
-      isLegacy: isLegacy,
-      substitution: substitution,
-    );
-  }
-
   ExpectedError error(ErrorCode code, int offset, int length,
           {Pattern? correctionContains,
           String? text,
@@ -553,22 +539,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
 class _ElementMatcher extends Matcher {
   final ResolutionTest test;
   final Element declaration;
-  final bool isLegacy;
-  final Map<String, String> substitution;
 
   _ElementMatcher(
     this.test, {
     required this.declaration,
-    this.isLegacy = false,
-    this.substitution = const {},
   });
 
   @override
   Description describe(Description description) {
-    return description
-        .add('declaration: $declaration\n')
-        .add('isLegacy: $isLegacy\n')
-        .add('substitution: $substitution\n');
+    return description.add('declaration: $declaration\n');
   }
 
   @override
@@ -579,14 +558,14 @@ class _ElementMatcher extends Matcher {
       }
 
       if (element is Member) {
-        if (element.isLegacy != isLegacy) {
+        if (element.isLegacy != false) {
           return false;
         }
 
-        test.assertSubstitution(element.substitution, substitution);
+        test.assertSubstitution(element.substitution, const {});
         return true;
       } else {
-        return !isLegacy && substitution.isEmpty;
+        return true;
       }
     }
     return false;

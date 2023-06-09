@@ -29,14 +29,11 @@ Future<RunProcessResult> runProcess({
     const winEnvKeys = [
       'SYSTEMROOT',
     ];
-    final newEnvironment = {
-      ...{
-        for (final winEnvKey in winEnvKeys)
-          winEnvKey: Platform.environment[winEnvKey]!,
-      },
-      if (environment != null) ...environment,
+    environment = {
+      for (final winEnvKey in winEnvKeys)
+        winEnvKey: Platform.environment[winEnvKey]!,
+      ...?environment,
     };
-    environment = newEnvironment;
   }
 
   final printWorkingDir =
@@ -52,8 +49,6 @@ Future<RunProcessResult> runProcess({
 
   final stdoutBuffer = StringBuffer();
   final stderrBuffer = StringBuffer();
-  final stdoutCompleter = Completer<Object?>();
-  final stderrCompleter = Completer<Object?>();
   final process = await Process.start(
     executable.toFilePath(),
     arguments,
@@ -64,24 +59,31 @@ Future<RunProcessResult> runProcess({
         (!includeParentEnvironment || workingDirectory != null),
   );
 
-  process.stdout.transform(utf8.decoder).transform(const LineSplitter()).listen(
-    (s) {
-      logger?.fine(s);
-      if (captureOutput) stdoutBuffer.writeln(s);
-    },
-    onDone: stdoutCompleter.complete,
-  );
-  process.stderr.transform(utf8.decoder).transform(const LineSplitter()).listen(
-    (s) {
-      logger?.severe(s);
-      if (captureOutput) stderrBuffer.writeln(s);
-    },
-    onDone: stderrCompleter.complete,
-  );
+  final stdoutSub = process.stdout
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(captureOutput
+          ? (s) {
+              logger?.fine(s);
+              stdoutBuffer.writeln(s);
+            }
+          : logger?.fine);
+  final stderrSub = process.stderr
+      .transform(utf8.decoder)
+      .transform(const LineSplitter())
+      .listen(captureOutput
+          ? (s) {
+              logger?.severe(s);
+              stderrBuffer.writeln(s);
+            }
+          : logger?.severe);
 
-  final exitCode = await process.exitCode;
-  await stdoutCompleter.future;
-  await stderrCompleter.future;
+  final (exitCode, _, _) = await (
+    process.exitCode,
+    stdoutSub.asFuture<void>(),
+    stderrSub.asFuture<void>()
+  )
+      .wait;
   final result = RunProcessResult(
     pid: process.pid,
     command: commandString,

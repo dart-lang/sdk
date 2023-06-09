@@ -669,6 +669,10 @@ abstract class Element implements AnalysisTarget {
   /// `@visibleForTesting`.
   bool get hasVisibleForTesting;
 
+  /// Return `true` if this element has an annotation of the form
+  /// `@visibleOutsideTemplate`.
+  bool get hasVisibleOutsideTemplate;
+
   /// The unique integer identifier of this element.
   int get id;
 
@@ -934,6 +938,10 @@ abstract class ElementAnnotation implements ConstantEvaluationTarget {
   /// Return `true` if this annotation marks the associated member as being
   /// visible for testing.
   bool get isVisibleForTesting;
+
+  /// Return `true` if this annotation marks the associated member as being
+  /// visible outside of template files.
+  bool get isVisibleOutsideTemplate;
 
   /// Return a representation of the value of this annotation, forcing the value
   /// to be computed if it had not previously been computed, or `null` if the
