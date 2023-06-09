@@ -70,12 +70,16 @@ class UnreachableFromMain extends LintRule {
   }
 }
 
-/// This gathers all of the top-level and static declarations which we may wish
-/// to report on.
+/// This gathers all declarations which we may wish to report on.
 class _DeclarationGatherer {
-  // A complete set of the declaration of each public static class member, and
-  // each public top-level declaration.
-  final declarations = <Declaration>{};
+  final LinterContext linterContext;
+
+  /// All declarations which we may wish to report on.
+  final Set<Declaration> declarations = {};
+
+  _DeclarationGatherer({
+    required this.linterContext,
+  });
 
   void addDeclarations(CompilationUnit node) {
     for (var declaration in node.declarations) {
@@ -87,36 +91,73 @@ class _DeclarationGatherer {
         if (declaredElement == null || declaredElement.isPrivate) {
           continue;
         }
-        if (declaration is MixinDeclaration) {
-          declaration.members.forEach(_addStaticMember);
-        } else if (declaration is ClassDeclaration) {
-          declaration.members.forEach(_addStaticMember);
+        if (declaration is ClassDeclaration) {
+          _addMembers(
+            containerElement: declaration.declaredElement,
+            members: declaration.members,
+          );
         } else if (declaration is EnumDeclaration) {
-          declaration.members.forEach(_addStaticMember);
+          _addMembers(
+            containerElement: declaration.declaredElement,
+            members: declaration.members,
+          );
         } else if (declaration is ExtensionDeclaration) {
-          declaration.members.forEach(_addStaticMember);
+          _addMembers(
+            containerElement: null,
+            members: declaration.members,
+          );
+        } else if (declaration is MixinDeclaration) {
+          _addMembers(
+            containerElement: declaration.declaredElement,
+            members: declaration.members,
+          );
         }
       }
     }
   }
 
-  void _addStaticMember(ClassMember member) {
-    if (member is ConstructorDeclaration) {
-      var e = member.declaredElement;
-      if (e != null && e.isPublic && member.parent is! EnumDeclaration) {
-        declarations.add(member);
+  void _addMembers({
+    required Element? containerElement,
+    required List<ClassMember> members,
+  }) {
+    bool isOverride(String rawName) {
+      if (containerElement is! InterfaceElement) {
+        return false;
       }
-    } else if (member is FieldDeclaration && member.isStatic) {
-      for (var field in member.fields.variables) {
-        var e = field.declaredElement;
-        if (e != null && e.isPublic) {
-          declarations.add(field);
-        }
-      }
-    } else if (member is MethodDeclaration && member.isStatic) {
-      var e = member.declaredElement;
-      if (e != null && e.isPublic) {
-        declarations.add(member);
+      var libraryUri = containerElement.library.source.uri;
+      var name = Name(libraryUri, rawName);
+      var inheritance = linterContext.inheritanceManager;
+      return inheritance.getOverridden2(containerElement, name) != null;
+    }
+
+    for (var member in members) {
+      switch (member) {
+        case ConstructorDeclaration():
+          var e = member.declaredElement;
+          if (e != null && e.isPublic && member.parent is! EnumDeclaration) {
+            declarations.add(member);
+          }
+        case FieldDeclaration():
+          for (var field in member.fields.variables) {
+            var element = field.declaredElement;
+            if (element != null && element.isPublic) {
+              if (!isOverride(element.name)) {
+                declarations.add(field);
+              }
+            }
+          }
+        case MethodDeclaration():
+          var element = member.declaredElement;
+          if (element != null && element.isPublic) {
+            var rawName = member.name.lexeme;
+            var isTestMethod = rawName.startsWith('test_') ||
+                rawName.startsWith('solo_test_') ||
+                rawName == 'setUp' ||
+                rawName == 'tearDown';
+            if (!isOverride(element.name) && !isTestMethod) {
+              declarations.add(member);
+            }
+          }
       }
     }
   }
@@ -130,6 +171,9 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   Map<Element, Declaration> declarationMap;
 
   Set<Declaration> declarations = {};
+
+  /// References from patterns should not be counted.
+  int _patternLevel = 0;
 
   _ReferenceVisitor(this.declarationMap);
 
@@ -150,6 +194,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    _addNamedType(node.extendsClause?.superclass);
+    _addNamedTypes(node.withClause?.mixinTypes);
+    _addNamedTypes(node.implementsClause?.interfaces);
+
     var element = node.declaredElement;
     if (element != null) {
       var hasConstructors =
@@ -182,6 +230,16 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   }
 
   @override
+  visitConstantPattern(ConstantPattern node) {
+    _patternLevel++;
+    try {
+      return super.visitConstantPattern(node);
+    } finally {
+      _patternLevel--;
+    }
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     // If a constructor does not have an explicit super-initializer (or
     // redirection?) then it has an implicit super-initializer to the
@@ -200,7 +258,7 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
   @override
   void visitConstructorName(ConstructorName node) {
     var e = node.staticElement;
-    if (e != null) {
+    if (e != null && _patternLevel == 0) {
       _addDeclaration(e);
     }
     super.visitConstructorName(node);
@@ -208,14 +266,19 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
 
   @override
   void visitNamedType(NamedType node) {
+    var element = node.element;
+    if (element == null) {
+      return;
+    }
+
     if (node.type?.alias != null) {
       // Any reference to a typedef counts as "reachable", since structural
       // typing is used to match against objects.
-      _addDeclaration(node.element!);
+      _addDeclaration(element);
     }
 
     // Intentionally do not add the declaration of non-alias named types, as a
-    // reference to such a type in a [TypeAnnnotation] is not good enough to
+    // reference to such a type in a [TypeAnnotation] is not good enough to
     // count as "reachable". Marking a type as reachable only because it was
     // seen in a type annotation would be a miscategorization if the type is
     // never instantiated or subtyped.
@@ -308,21 +371,10 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
     }
     if (enclosingElement is InterfaceElement ||
         enclosingElement is ExtensionElement) {
-      if (element is ConstructorElement) {
-        var declaration = declarationMap[element];
-        if (declaration != null) {
-          declarations.add(declaration);
-        }
-      } else if (element is MethodElement && element.isStatic) {
-        var declaration = declarationMap[element];
-        if (declaration != null) {
-          declarations.add(declaration);
-        }
-      } else if (element is PropertyAccessorElement && element.isStatic) {
-        var declaration = declarationMap[element];
-        if (declaration != null) {
-          declarations.add(declaration);
-        }
+      var declarationElement = element.declaration;
+      var declaration = declarationMap[declarationElement];
+      if (declaration != null) {
+        declarations.add(declaration);
       }
     }
   }
@@ -337,6 +389,28 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
         _addDeclaration(unnamedConstructor);
       }
     }
+  }
+
+  void _addNamedType(NamedType? node) {
+    if (node == null) {
+      return;
+    }
+
+    var element = node.element;
+    if (element == null) {
+      return;
+    }
+
+    var declaration = declarationMap[element];
+    if (declaration == null) {
+      return;
+    }
+
+    declarations.add(declaration);
+  }
+
+  void _addNamedTypes(List<NamedType>? nodes) {
+    nodes?.forEach(_addNamedType);
   }
 
   void _visitCompoundAssignmentExpression(CompoundAssignmentExpression node) {
@@ -360,7 +434,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    var declarationGatherer = _DeclarationGatherer();
+    var declarationGatherer = _DeclarationGatherer(
+      linterContext: context,
+    );
     for (var unit in context.allUnits) {
       declarationGatherer.addDeclarations(unit.unit);
     }
@@ -416,12 +492,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       }
     }
 
-    var unusedMembers = declarations.difference(usedMembers).where((e) {
-      var element = e.declaredElement;
+    var unusedDeclarations = declarations.difference(usedMembers);
+    var unusedMembers = unusedDeclarations.where((declaration) {
+      var element = declaration.declaredElement;
       return element != null &&
           element.isPublic &&
           !element.hasVisibleForTesting;
-    });
+    }).toList();
 
     for (var member in unusedMembers) {
       if (member is ConstructorDeclaration) {

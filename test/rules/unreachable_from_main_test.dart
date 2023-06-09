@@ -20,6 +20,226 @@ class UnreachableFromMainTest extends LintRuleTest {
   @override
   String get lintRule => 'unreachable_from_main';
 
+  test_class_instanceField_reachable_overrides_local() async {
+    await assertDiagnostics(r'''
+void main() {
+  B();
+}
+
+class A {
+  int? f;
+}
+
+class B extends A {
+  int? f;
+}
+''', [
+      lint(41, 1),
+    ]);
+  }
+
+  test_class_instanceField_reachable_read() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C().f;
+}
+
+class C {
+  int? f;
+}
+''');
+  }
+
+  test_class_instanceField_reachable_write() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C().f = 0;
+}
+
+class C {
+  int? f;
+}
+''');
+  }
+
+  test_class_instanceField_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C();
+}
+
+class C {
+  int? f;
+}
+''', [
+      lint(41, 1),
+    ]);
+  }
+
+  test_class_instanceGetter_reachable_invoked() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C().foo;
+}
+
+class C {
+  int get foo => 0;
+}
+''');
+  }
+
+  test_class_instanceGetter_reachable_overrides() async {
+    await assertDiagnostics(r'''
+void main() {
+  B();
+}
+
+class A {
+  int get foo => 0;
+}
+
+class B extends A {
+  int get foo => 0;
+}
+''', [
+      lint(44, 3),
+    ]);
+  }
+
+  test_class_instanceGetter_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C();
+}
+
+class C {
+  int get foo => 0;
+}
+''', [
+      lint(44, 3),
+    ]);
+  }
+
+  test_class_instanceMethod_reachable_invoked() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C().foo();
+}
+
+class C {
+  void foo() {}
+}
+''');
+  }
+
+  test_class_instanceMethod_reachable_invoked_generic() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C<int>().foo(null);
+}
+
+class C<T> {
+  void foo(T? _) {}
+}
+''');
+  }
+
+  test_class_instanceMethod_reachable_overrides_imported() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class A {
+  void foo() {}
+}
+''');
+
+    await assertNoDiagnostics(r'''
+import 'a.dart';
+
+void main() {
+  B();
+}
+
+class B extends A {
+  void foo() {}
+}
+''');
+  }
+
+  test_class_instanceMethod_reachable_overrides_local() async {
+    await assertDiagnostics(r'''
+void main() {
+  B();
+}
+
+class A {
+  void foo() {}
+}
+
+class B extends A {
+  void foo() {}
+}
+''', [
+      lint(41, 3),
+    ]);
+  }
+
+  test_class_instanceMethod_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C();
+}
+
+class C {
+  void foo() {}
+}
+''', [
+      lint(41, 3),
+    ]);
+  }
+
+  test_class_instanceSetter_reachable_invoked() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C().foo = 0;
+}
+
+class C {
+  set foo(int _) {}
+}
+''');
+  }
+
+  test_class_instanceSetter_reachable_overrides() async {
+    await assertDiagnostics(r'''
+void main() {
+  B();
+}
+
+class A {
+  set foo(int _) {}
+}
+
+class B extends A {
+  set foo(int _) {}
+}
+''', [
+      lint(40, 3),
+    ]);
+  }
+
+  test_class_instanceSetter_unreachable() async {
+    await assertDiagnostics(r'''
+void main() {
+  C();
+}
+
+class C {
+  set foo(int _) {}
+}
+''', [
+      lint(40, 3),
+    ]);
+  }
+
   test_class_reachable_mainInPart() async {
     newFile('$testPackageLibPath/part.dart', r'''
 part of 'test.dart';
@@ -180,7 +400,7 @@ class A {}
   test_class_unreachable_referencedInTypeAnnotation_fieldDeclaration() async {
     await assertDiagnostics(r'''
 void main() {
-  D();
+  D().c;
 }
 
 class C {}
@@ -189,7 +409,7 @@ class D {
   C? c;
 }
 ''', [
-      lint(30, 1),
+      lint(32, 1),
     ]);
   }
 
@@ -585,6 +805,25 @@ class C {
 ''');
   }
 
+  test_constructor_unnamed_referencedInConstantPattern() async {
+    await assertDiagnostics(r'''
+class C {
+  const C();
+}
+
+void main() {
+  f();
+}
+
+void f([C? c]) {
+  if (c case const C()) {}
+}
+''', [
+      lint(6, 1),
+      lint(18, 1),
+    ]);
+  }
+
   test_constructor_unnamed_referencedInConstantPattern_generic() async {
     await assertDiagnostics(r'''
 class C<T> {
@@ -599,6 +838,7 @@ void f([C? c]) {
   if (c case const C<int>()) {}
 }
 ''', [
+      lint(6, 1),
       lint(21, 1),
     ]);
   }
@@ -663,27 +903,27 @@ extension IntExtension on int {}
     ]);
   }
 
-  test_instanceFieldOnClass_unreachable() async {
+  test_mixin_reachable_implemented() async {
     await assertNoDiagnostics(r'''
 void main() {
-  C();
+  A();
 }
 
-class C {
-  int f = 1;
-}
+mixin M {}
+
+class A implements M {} 
 ''');
   }
 
-  test_instanceMethodOnClass_unreachable() async {
+  test_mixin_reachable_mixed() async {
     await assertNoDiagnostics(r'''
 void main() {
-  C();
+  A();
 }
 
-class C {
-  void f() {}
-}
+mixin M {}
+
+class A with M {} 
 ''');
   }
 
