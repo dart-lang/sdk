@@ -3796,14 +3796,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// [declare] so far.  This is used to detect unnecessary calls to [declare].
   final Set<Variable> _debugDeclaredVariables = {};
 
-  /// SSA node representing the implicit variable `this`.
-  late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);
-
   /// SSA node representing the implicit pseudo-variable `super`. Although
   /// `super` and `this` represent the same object, flow analysis considers them
   /// distinct so that if the class being compiled both inherits *and* overrides
   /// a field `_f`, type promotions for `this._f` and `super._f` will be tracked
   /// separately.
+  late final SsaNode<Type> _superSsaNode = new SsaNode<Type>(null);
+
+  /// SSA node representing the implicit variable `this`.
   late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>(null);
 
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
@@ -6375,9 +6375,7 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
   /// pseudo-expression `super`).
   final bool isThisOrSuper;
 
-  /// The SSA node representing the value of this expression, if it is being
-  /// tracked by flow analysis for type promotion, or `null` if the value is not
-  /// being tracked by flow analysis.
+  /// The SSA node representing the value of this expression.
   final SsaNode<Type> ssaNode;
 
   _Reference(
