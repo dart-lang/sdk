@@ -12,6 +12,7 @@ import 'package:js_runtime/synced/embedded_names.dart'
         DEFERRED_LIBRARY_PARTS,
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
+        INITIALIZATION_EVENT_LOG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_INITIALIZED,
@@ -342,8 +343,7 @@ class ModelEmitter {
 
     _task.measureSubtask('write fragments', () {
       writeMainFragment(mainFragment, mainCode,
-          isSplit: program.deferredFragments.isNotEmpty ||
-              _options.experimentalTrackAllocations);
+          isSplit: program.isSplit || _options.experimentalTrackAllocations);
     });
 
     if (_closedWorld.backendUsage.requiresPreamble &&
@@ -377,11 +377,20 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  js.Statement buildDeferredInitializerGlobal() {
-    return js.js.statement(
-        'self.#deferredInitializers = '
-        'self.#deferredInitializers || Object.create(null);',
-        {'deferredInitializers': deferredInitializersGlobal});
+  List<js.Statement> buildDeferredInitializerGlobal() {
+    return [
+      js.js.statement(
+          'self.#deferredInitializers = '
+          'self.#deferredInitializers || Object.create(null);',
+          {'deferredInitializers': deferredInitializersGlobal}),
+      js.js.statement(
+          'self.#deferredInitializers.#eventLog = '
+          'self.#deferredInitializers.#eventLog || [];',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'eventLog': INITIALIZATION_EVENT_LOG
+          })
+    ];
   }
 
   js.Statement buildStartupMetrics() {
@@ -432,7 +441,7 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
-      if (isSplit) buildDeferredInitializerGlobal(),
+      if (isSplit) ...buildDeferredInitializerGlobal(),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
       code
@@ -571,10 +580,20 @@ var ${startupMetricsGlobal} =
     //   deferredInitializer.current = <pretty-printed code>;
     //   deferredInitializer[<hash>] = deferredInitializer.current;
 
+    final outputFileJsString = js.string(outputFileName);
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
-      if (isFirst) buildDeferredInitializerGlobal(),
-      js.js.statement('$deferredInitializersGlobal.current = #', code)
+      if (isFirst) ...buildDeferredInitializerGlobal(),
+      js.js.statement(
+          '#deferredInitializers.#eventLog.push({"part": '
+          '#outputFileName, "event": "beginLoadPart"});',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'eventLog': INITIALIZATION_EVENT_LOG,
+            'outputFileName': outputFileJsString
+          }),
+      js.js.statement('#deferredInitializers.current = #code',
+          {'deferredInitializers': deferredInitializersGlobal, 'code': code})
     ]);
 
     Hasher hasher = Hasher();
@@ -591,10 +610,30 @@ var ${startupMetricsGlobal} =
     // This will be used to retrieve the initializing function from the global
     // variable.
     String hash = hasher.getHash();
+    final jsStringHash = js.string(hash);
 
     // Now we copy the deferredInitializer.current into its correct hash.
-    output.add('\n${deferredInitializersGlobal}["$hash"] = '
-        '${deferredInitializersGlobal}.current\n');
+    final epilogue = js.Program([
+      js.js.statement(
+          '#deferredInitializers[#hash] = #deferredInitializers.current', {
+        'deferredInitializers': deferredInitializersGlobal,
+        'hash': jsStringHash
+      }),
+      js.js.statement(
+          '#deferredInitializers.#eventLog.push({"part": #outputFileName, '
+          '"hash": #hash, "event": "endPartLoad"})',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'hash': jsStringHash,
+            'eventLog': INITIALIZATION_EVENT_LOG,
+            'outputFileName': outputFileJsString,
+          })
+    ]);
+    output.add('\n');
+    output.add(js
+        .createCodeBuffer(epilogue, _options,
+            _sourceInformationStrategy as JavaScriptSourceInformationStrategy)
+        .getText());
     return hash;
   }
 
