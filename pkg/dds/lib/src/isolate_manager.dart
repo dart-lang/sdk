@@ -155,9 +155,10 @@ class IsolateManager {
   /// Handles state changes for isolates.
   void handleIsolateEvent(Event event) {
     // There's no interesting information about isolate state associated with
-    // and IsolateSpawn event.
+    // IsolateSpawn or IsolateReload events.
     // TODO(bkonyi): why isn't IsolateSpawn in package:vm_service
-    if (event.kind! == ServiceEvents.isolateSpawn) {
+    if (event.kind! == ServiceEvents.isolateSpawn ||
+        event.kind == EventKind.kIsolateReload) {
       return;
     }
 
