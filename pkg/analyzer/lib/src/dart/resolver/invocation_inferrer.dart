@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
