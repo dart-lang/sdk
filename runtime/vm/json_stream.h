@@ -330,6 +330,7 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Metric* metric);
   void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
+  void PrintProperty(const char* name, IsolateGroup* isolate_group);
   void PrintProperty(const char* name, Zone* zone);
   void PrintProperty(const char* name, const TimelineEvent* timeline_event);
   void PrintProperty(const char* name,
@@ -446,6 +447,9 @@ class JSONObject : public ValueObject {
   }
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
+  }
+  void AddProperty(const char* name, IsolateGroup* isolate_group) const {
+    stream_->PrintProperty(name, isolate_group);
   }
   void AddProperty(const char* name, Zone* zone) const {
     stream_->PrintProperty(name, zone);

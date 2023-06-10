@@ -3905,13 +3905,6 @@ class FlutterSnippetCompletionTest extends SnippetCompletionTest {
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
 
-  /// Nullability suffix expected in this test class.
-  ///
-  /// Used to allow all tests to be run in both modes without having to
-  /// duplicate all tests ([FlutterSnippetCompletionWithoutNullSafetyTest]
-  /// overrides this).
-  String get expectedNullableSuffix => '?';
-
   /// Constructor params expected on Widget classes.
   String get expectedWidgetConstructorParams => '({super.key})';
 
@@ -4179,9 +4172,6 @@ class FlutterSnippetCompletionWithoutNullSafetyTest
   @override
   String get expectedImports => '''
 import 'package:flutter/widgets.dart';''';
-
-  @override
-  String get expectedNullableSuffix => '';
 
   @override
   String get expectedWidgetConstructorParams => '({Key key}) : super(key: key)';

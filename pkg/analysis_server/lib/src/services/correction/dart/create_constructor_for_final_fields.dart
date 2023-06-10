@@ -8,11 +8,11 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 
 class CreateConstructorForFinalFields extends CorrectionProducer {
   @override
@@ -24,6 +24,10 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       return fieldDeclaration?.ifTypeOrNull();
     }
     return null;
+  }
+
+  bool get _hasNonNullableFeature {
+    return unit.featureSet.isEnabled(Feature.non_nullable);
   }
 
   @override
@@ -110,55 +114,46 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     );
   }
 
+  List<_Field> _fieldsToWrite(
+    List<VariableDeclarationList> variableLists,
+  ) {
+    final result = <_Field>[];
+    for (var variableList in variableLists) {
+      final type = variableList.type?.type;
+      final hasNonNullableType =
+          type != null && typeSystem.isPotentiallyNonNullable(type);
+
+      for (final field in variableList.variables) {
+        if (field.initializer == null) {
+          result.add(
+            _Field(
+              name: field.name.lexeme,
+              hasNonNullableType: hasNonNullableType,
+            ),
+          );
+        }
+      }
+    }
+    return result;
+  }
+
   Future<void> _forFlutterClass(_FixContext fixContext) async {
-    // Specialize for Flutter widgets.
-    var keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
+    if (unit.featureSet.isEnabled(Feature.super_parameters)) {
+      await _forFlutterWithSuperParameters(fixContext);
+    } else {
+      await _forFlutterWithoutSuperParameters(fixContext);
+    }
+  }
+
+  Future<void> _forFlutterWithoutSuperParameters(
+    _FixContext fixContext,
+  ) async {
+    final keyClass = await sessionHelper.getClass(flutter.widgetsUri, 'Key');
     if (keyClass == null) {
       return;
     }
 
-    if (unit.featureSet.isEnabled(Feature.super_parameters)) {
-      await _withSuperParameters(fixContext);
-    } else {
-      await _withoutSuperParameters(
-        fixContext: fixContext,
-        keyClass: keyClass,
-      );
-    }
-  }
-
-  Future<void> _notFlutter({
-    required _FixContext fixContext,
-    required bool isConst,
-  }) async {
-    final fieldNames = fixContext.variableLists
-        .expand((variableList) => variableList.variables)
-        .where((variable) => variable.initializer == null)
-        .map((variable) => variable.name.lexeme)
-        .toList();
-
     final location = fixContext.location;
-    await fixContext.builder.addDartFileEdit(file, (builder) {
-      builder.addInsertion(location.offset, (builder) {
-        builder.write(location.prefix);
-        if (isConst) {
-          builder.write('const ');
-        }
-        builder.writeConstructorDeclaration(
-          fixContext.containerName,
-          fieldNames: fieldNames,
-        );
-        builder.write(location.suffix);
-      });
-    });
-  }
-
-  Future<void> _withoutSuperParameters({
-    required _FixContext fixContext,
-    required ClassElement keyClass,
-  }) async {
-    final location = fixContext.location;
-    var isNonNullable = unit.featureSet.isEnabled(Feature.non_nullable);
     await fixContext.builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(location.offset, (builder) {
         builder.write(location.prefix);
@@ -168,17 +163,16 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         builder.writeType(
           keyClass.instantiate(
             typeArguments: const [],
-            nullabilitySuffix: isNonNullable
+            nullabilitySuffix: _hasNonNullableFeature
                 ? NullabilitySuffix.question
                 : NullabilitySuffix.star,
           ),
         );
         builder.write(' key');
 
-        _writeParameters(
+        _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
-          isNonNullable: isNonNullable,
         );
 
         builder.write('}) : super(key: key);');
@@ -187,7 +181,9 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     });
   }
 
-  Future<void> _withSuperParameters(_FixContext fixContext) async {
+  Future<void> _forFlutterWithSuperParameters(
+    _FixContext fixContext,
+  ) async {
     await fixContext.builder.addDartFileEdit(file, (builder) {
       final location = fixContext.location;
       builder.addInsertion(location.offset, (builder) {
@@ -197,10 +193,9 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         builder.write('({');
         builder.write('super.key');
 
-        _writeParameters(
+        _writeFlutterParameters(
           builder: builder,
           variableLists: fixContext.variableLists,
-          isNonNullable: true,
         );
 
         builder.write('});');
@@ -209,44 +204,51 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     });
   }
 
-  void _writeParameters({
+  Future<void> _notFlutter({
+    required _FixContext fixContext,
+    required bool isConst,
+  }) async {
+    final fields = _fieldsToWrite(fixContext.variableLists);
+
+    final location = fixContext.location;
+    await fixContext.builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(location.offset, (builder) {
+        builder.write(location.prefix);
+        if (isConst) {
+          builder.write('const ');
+        }
+        builder.write(fixContext.containerName);
+        builder.write('(');
+        fields.forEachIndexed((index, field) {
+          if (index > 0) {
+            builder.write(', ');
+          }
+          builder.write('this.');
+          builder.write(field.name);
+        });
+        builder.write(');');
+        builder.write(location.suffix);
+      });
+    });
+  }
+
+  void _writeFlutterParameters({
     required DartEditBuilder builder,
     required List<VariableDeclarationList> variableLists,
-    required bool isNonNullable,
   }) {
-    var childrenFields = <String>[];
-    var childrenNullables = <bool>[];
-    for (var variableList in variableLists) {
-      var fieldNames = variableList.variables
-          .where((v) => v.initializer == null)
-          .map((v) => v.name.lexeme);
+    final fields = _fieldsToWrite(variableLists);
+    final childrenLast = [
+      ...fields.whereNot((field) => field.isChild),
+      ...fields.where((field) => field.isChild),
+    ];
 
-      final hasNullableType = variableList.type?.type?.nullabilitySuffix ==
-          NullabilitySuffix.question;
-
-      for (var fieldName in fieldNames) {
-        if (fieldName == 'child' || fieldName == 'children') {
-          childrenFields.add(fieldName);
-          childrenNullables.add(hasNullableType);
-          continue;
-        }
-        builder.write(', ');
-        if (isNonNullable && !hasNullableType) {
-          builder.write('required ');
-        }
-        builder.write('this.');
-        builder.write(fieldName);
-      }
-    }
-    for (var i = 0; i < childrenFields.length; i++) {
-      var fieldName = childrenFields[i];
-      var nullableField = childrenNullables[i];
+    for (final field in childrenLast) {
       builder.write(', ');
-      if (isNonNullable && !nullableField) {
+      if (_hasNonNullableFeature && field.hasNonNullableType) {
         builder.write('required ');
       }
       builder.write('this.');
-      builder.write(fieldName);
+      builder.write(field.name);
     }
   }
 
@@ -258,6 +260,20 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         .map((e) => e.fields)
         .where((e) => e.isFinal && !e.isLate)
         .toList();
+  }
+}
+
+class _Field {
+  final String name;
+  final bool hasNonNullableType;
+
+  _Field({
+    required this.name,
+    required this.hasNonNullableType,
+  });
+
+  bool get isChild {
+    return const {'child', 'children'}.contains(name);
   }
 }
 

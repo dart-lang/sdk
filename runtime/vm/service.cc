@@ -1243,11 +1243,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js,
-            enter_safepoint);
+  PostEvent(event->isolate_group(), event->isolate(), stream_id,
+            event->KindAsCString(), &js, enter_safepoint);
 }
 
-void Service::PostEvent(Isolate* isolate,
+void Service::PostEvent(IsolateGroup* isolate_group,
+                        Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event,
@@ -1256,13 +1257,14 @@ void Service::PostEvent(Isolate* isolate,
     // Enter a safepoint so we don't block the mutator while processing
     // large events.
     TransitionToNative transition(Thread::Current());
-    PostEventImpl(isolate, stream_id, kind, event);
+    PostEventImpl(isolate_group, isolate, stream_id, kind, event);
     return;
   }
-  PostEventImpl(isolate, stream_id, kind, event);
+  PostEventImpl(isolate_group, isolate, stream_id, kind, event);
 }
 
-void Service::PostEventImpl(Isolate* isolate,
+void Service::PostEventImpl(IsolateGroup* isolate_group,
+                            Isolate* isolate,
                             const char* stream_id,
                             const char* kind,
                             JSONStream* event) {
@@ -1272,12 +1274,20 @@ void Service::PostEventImpl(Isolate* isolate,
 
   if (FLAG_trace_service) {
     if (isolate != nullptr) {
+      ASSERT(isolate_group != nullptr);
       OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='%s', "
-          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "vm-service: Pushing "
+          "ServiceEvent(isolateGroupId='" ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING
+          "', isolate='%s', isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
           "', kind='%s') to stream %s\n",
-          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
-          stream_id);
+          isolate_group->id(), isolate->name(),
+          static_cast<int64_t>(isolate->main_port()), kind, stream_id);
+    } else if (isolate_group != nullptr) {
+      OS::PrintErr(
+          "vm-service: Pushing "
+          "ServiceEvent(isolateGroupId='" ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate_group->id(), kind, stream_id);
     } else {
       OS::PrintErr(
           "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "

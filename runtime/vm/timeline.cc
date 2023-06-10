@@ -519,15 +519,19 @@ TimelineEvent::~TimelineEvent() {
 }
 
 void TimelineEvent::Reset() {
+  timestamp0_ = 0;
+  timestamp1_or_id_ = 0;
+  flow_id_count_ = 0;
+  flow_ids_.reset();
+  state_ = 0;
   if (owns_label() && label_ != nullptr) {
     free(const_cast<char*>(label_));
   }
-  state_ = 0;
-  thread_ = OSThread::kInvalidThreadId;
-  isolate_id_ = ILLEGAL_PORT;
-  isolate_group_id_ = 0;
-  stream_ = nullptr;
   label_ = nullptr;
+  stream_ = nullptr;
+  thread_ = OSThread::kInvalidThreadId;
+  isolate_id_ = ILLEGAL_ISOLATE_ID;
+  isolate_group_id_ = ILLEGAL_ISOLATE_GROUP_ID;
   arguments_.Free();
   set_event_type(kNone);
   set_pre_serialized_args(false);

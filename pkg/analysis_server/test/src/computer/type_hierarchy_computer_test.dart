@@ -21,7 +21,6 @@ void main() {
 }
 
 abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
-  final startOfFile = SourceRange(0, 0);
   late TestCode code;
 
   /// Matches a [TypeHierarchyItem] for [Enum].

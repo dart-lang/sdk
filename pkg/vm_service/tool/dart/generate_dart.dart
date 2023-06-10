@@ -104,7 +104,10 @@ final String _implCode = r'''
     await _streamSub.cancel();
     _outstandingRequests.forEach((id, request) {
       request._completer.completeError(RPCError(
-          request.method, RPCError.kServerError, 'Service connection disposed',));
+        request.method,
+        RPCErrorKind.kServerError.code,
+        'Service connection disposed',
+      ));
     });
     _outstandingRequests.clear();
     if (_disposeHandler != null) {
@@ -237,8 +240,8 @@ final String _implCode = r'''
   Future<Map> _routeRequest(String method, Map<String, dynamic> params) async{
     final service = _services[method];
     if (service == null) {
-      RPCError error = RPCError(
-          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      RPCError error = RPCError(method, RPCErrorKind.kMethodNotFound.code,
+          'method not found \'$method\'');
       return {'error': error.toMap()};
     }
 
@@ -246,7 +249,11 @@ final String _implCode = r'''
       return await service(params);
     } catch (e, st) {
       RPCError error = RPCError.withDetails(
-        method, RPCError.kServerError, '$e', details: '$st',);
+        method,
+        RPCErrorKind.kServerError.code,
+        '$e',
+        details: '$st',
+      );
       return {'error': error.toMap()};
     }
   }
@@ -257,21 +264,143 @@ final String _rpcError = r'''
 
 typedef DisposeHandler = Future Function();
 
-class RPCError implements Exception {
-  /// Application specific error codes.
-  static const int kServerError = -32000;
+// These error codes must be kept in sync with those in vm/json_stream.h and
+// vmservice.dart.
+enum RPCErrorKind {
+  /// Application specific error code.
+  kServerError,
 
   /// The JSON sent is not a valid Request object.
-  static const int kInvalidRequest = -32600;
+  kInvalidRequest,
 
   /// The method does not exist or is not available.
-  static const int kMethodNotFound = -32601;
+  kMethodNotFound,
 
   /// Invalid method parameter(s), such as a mismatched type.
-  static const int kInvalidParams = -32602;
+  kInvalidParams,
 
   /// Internal JSON-RPC error.
-  static const int kInternalError = -32603;
+  kInternalError,
+
+  /// The requested feature is disabled.
+  kFeatureDisabled,
+
+  /// The stream has already been subscribed to.
+  kStreamAlreadySubscribed,
+
+  /// The stream has not been subscribed to.
+  kStreamNotSubscribed,
+
+  /// Isolate must first be paused.
+  kIsolateMustBePaused,
+
+  /// The service has already been registered.
+  kServiceAlreadyRegistered,
+
+  /// The service no longer exists.
+  kServiceDisappeared,
+
+  /// There was an error in the expression compiler.
+  kExpressionCompilationError,
+
+  /// The custom stream does not exist.
+  kCustomStreamDoesNotExist,
+
+  /// The core stream is not allowed.
+  kCoreStreamNotAllowed;
+
+  static final _codeToErrorMap =
+      RPCErrorKind.values.fold(<int, RPCErrorKind>{}, (map, error) {
+    map[error.code] = error;
+    return map;
+  });
+
+  static RPCErrorKind? fromCode(int code) {
+    return _codeToErrorMap[code];
+  }
+
+  String get message {
+    switch (this) {
+      case kServerError:
+        return 'Application error';
+      case kInvalidRequest:
+        return 'Invalid request object';
+      case kMethodNotFound:
+        return 'Method not found';
+      case kInvalidParams:
+        return 'Invalid method parameters';
+      case kInternalError:
+        return 'Internal JSON-RPC error';
+      case kFeatureDisabled:
+        return 'Feature is disabled';
+      case kStreamAlreadySubscribed:
+        return 'Stream already subscribed';
+      case kStreamNotSubscribed:
+        return 'Stream not subscribed';
+      case kIsolateMustBePaused:
+        return 'Isolate must be paused';
+      case kServiceAlreadyRegistered:
+        return 'Service already registered';
+      case kServiceDisappeared:
+        return 'Service has disappeared';
+      case kExpressionCompilationError:
+        return 'Expression compilation error';
+      case kCustomStreamDoesNotExist:
+        return 'Custom stream does not exist';
+      case kCoreStreamNotAllowed:
+        return 'Core streams are not allowed';
+    }
+  }
+
+  int get code {
+    switch (this) {
+      case kServerError:
+        return -32000;
+      case kInvalidRequest:
+        return -32600;
+      case kMethodNotFound:
+        return -32601;
+      case kInvalidParams:
+        return -32602;
+      case kInternalError:
+        return -32603;
+      case kFeatureDisabled:
+        return 100;
+      case kStreamAlreadySubscribed:
+        return 103;
+      case kStreamNotSubscribed:
+        return 104;
+      case kIsolateMustBePaused:
+        return 106;
+      case kServiceAlreadyRegistered:
+        return 111;
+      case kServiceDisappeared:
+        return 112;
+      case kExpressionCompilationError:
+        return 113;
+      case kCustomStreamDoesNotExist:
+        return 130;
+      case kCoreStreamNotAllowed:
+        return 131;
+    }
+  }
+}
+
+class RPCError implements Exception {
+  @Deprecated('Use RPCErrorKind.kServerError.code instead.')
+  static int get kServerError => RPCErrorKind.kServerError.code;
+
+  @Deprecated('Use RPCErrorKind.kInvalidRequest.code instead.')
+  static int get kInvalidRequest => RPCErrorKind.kInvalidRequest.code;
+
+  @Deprecated('Use RPCErrorKind.kMethodNotFound.code instead.')
+  static int get kMethodNotFound => RPCErrorKind.kMethodNotFound.code;
+
+  @Deprecated('Use RPCErrorKind.kInvalidParams.code instead.')
+  static int get kInvalidParams => RPCErrorKind.kInvalidParams.code;
+
+  @Deprecated('Use RPCErrorKind.kInternalError.code instead.')
+  static int get kInternalError => RPCErrorKind.kInternalError.code;
 
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
@@ -282,7 +411,9 @@ class RPCError implements Exception {
   final String message;
   final Map? data;
 
-  RPCError(this.callingMethod, this.code, this.message, [this.data]);
+  RPCError(this.callingMethod, this.code, [message, this.data])
+      : message =
+            message ?? RPCErrorKind.fromCode(code)?.message ?? 'Unknown error';
 
   RPCError.withDetails(this.callingMethod, this.code, this.message,
       {Object? details})
@@ -710,8 +841,8 @@ class VmServerConnection {
       }
       final method = request['method'] as String?;
       if (method == null) {
-        throw RPCError(
-          null, RPCError.kInvalidRequest, 'Invalid Request', request);
+        throw RPCError(null, RPCErrorKind.kInvalidRequest.code,
+            'Invalid Request', request);
       }
       final params = request['params'] as Map<String, dynamic>?;
       late Response response;
@@ -789,7 +920,8 @@ class VmServerConnection {
           response = await _serviceImplementation.callServiceExtension(method,
               isolateId: isolateId, args: args);
         } else {
-          throw RPCError(method, RPCError.kMethodNotFound, 'Method not found', request);
+          throw RPCError(method, RPCErrorKind.kMethodNotFound.code,
+              'Method not found', request);
         }
 ''');
     // Terminate the switch
@@ -815,7 +947,7 @@ class VmServerConnection {
         final error = e is RPCError
             ? e.toMap()
             : {
-                'code': RPCError.kInternalError,
+                'code': RPCErrorKind.kInternalError.code,
                 'message': '${request['method']}: $e',
                 'data': {'details': '$st'},
               };
