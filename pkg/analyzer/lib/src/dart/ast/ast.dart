@@ -51,7 +51,8 @@ abstract class AdjacentStrings implements StringLiteral {
 ///
 ///    adjacentStrings ::=
 ///        [StringLiteral] [StringLiteral]+
-class AdjacentStringsImpl extends StringLiteralImpl implements AdjacentStrings {
+final class AdjacentStringsImpl extends StringLiteralImpl
+    implements AdjacentStrings {
   /// The strings that are implicitly concatenated.
   final NodeListImpl<StringLiteralImpl> _strings = NodeListImpl._();
 
@@ -121,7 +122,7 @@ abstract class AnnotatedNode implements AstNode {
 
 /// An AST node that can be annotated with both a documentation comment and a
 /// list of annotations.
-abstract class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
+sealed class AnnotatedNodeImpl extends AstNodeImpl implements AnnotatedNode {
   /// The documentation comment associated with this node, or `null` if this
   /// node does not have a documentation comment associated with it.
   CommentImpl? _comment;
@@ -272,7 +273,7 @@ abstract class Annotation implements AstNode {
 ///
 ///    annotation ::=
 ///        '@' [Identifier] ('.' [SimpleIdentifier])? [ArgumentList]?
-class AnnotationImpl extends AstNodeImpl implements Annotation {
+final class AnnotationImpl extends AstNodeImpl implements Annotation {
   /// The at sign that introduced the annotation.
   @override
   final Token atSign;
@@ -452,7 +453,7 @@ abstract class ArgumentList implements AstNode {
 ///    arguments ::=
 ///        [NamedExpression] (',' [NamedExpression])*
 ///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
-class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
+final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   /// The left parenthesis.
   @override
   final Token leftParenthesis;
@@ -564,7 +565,7 @@ abstract class AsExpression implements Expression {
 ///
 ///    asExpression ::=
 ///        [Expression] 'as' [TypeName]
-class AsExpressionImpl extends ExpressionImpl implements AsExpression {
+final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   /// The expression used to compute the value being cast.
   ExpressionImpl _expression;
 
@@ -642,7 +643,7 @@ abstract class AssertInitializer implements Assertion, ConstructorInitializer {}
 ///
 ///    assertInitializer ::=
 ///        'assert' '(' [Expression] (',' [Expression])? ')'
-class AssertInitializerImpl extends ConstructorInitializerImpl
+final class AssertInitializerImpl extends ConstructorInitializerImpl
     implements AssertInitializer {
   @override
   final Token assertKeyword;
@@ -756,7 +757,8 @@ abstract class AssertStatement implements Assertion, Statement {
 ///
 ///    assertStatement ::=
 ///        'assert' '(' [Expression] ')' ';'
-class AssertStatementImpl extends StatementImpl implements AssertStatement {
+final class AssertStatementImpl extends StatementImpl
+    implements AssertStatement {
   @override
   final Token assertKeyword;
 
@@ -850,7 +852,7 @@ abstract class AssignedVariablePattern implements VariablePattern {
 /// A variable pattern in [PatternAssignment].
 ///
 ///    variablePattern ::= identifier
-class AssignedVariablePatternImpl extends VariablePatternImpl
+final class AssignedVariablePatternImpl extends VariablePatternImpl
     implements AssignedVariablePattern {
   @override
   Element? element;
@@ -925,7 +927,7 @@ abstract class AssignmentExpression
 ///
 ///    assignmentExpression ::=
 ///        [Expression] operator [Expression]
-class AssignmentExpressionImpl extends ExpressionImpl
+final class AssignmentExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements AssignmentExpression {
   /// The expression used to compute the left hand side.
@@ -1135,7 +1137,7 @@ abstract class AstNode implements SyntacticEntity {
 }
 
 /// A node in the AST structure for a Dart program.
-abstract class AstNodeImpl implements AstNode {
+sealed class AstNodeImpl implements AstNode {
   /// The parent of the node, or `null` if the node is the root of an AST
   /// structure.
   AstNode? _parent;
@@ -1633,7 +1635,7 @@ abstract class AugmentationImportDirective implements UriBasedDirective {
 ///
 ///    importDirective ::=
 ///        [Annotation] 'import' 'augment' [StringLiteral] ';'
-class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
+final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
     implements AugmentationImportDirective {
   @override
   final Token importKeyword;
@@ -1701,7 +1703,8 @@ abstract class AwaitExpression implements Expression {
 ///
 ///    awaitExpression ::=
 ///        'await' [Expression]
-class AwaitExpressionImpl extends ExpressionImpl implements AwaitExpression {
+final class AwaitExpressionImpl extends ExpressionImpl
+    implements AwaitExpression {
   /// The 'await' keyword.
   @override
   final Token awaitKeyword;
@@ -1780,7 +1783,8 @@ abstract class BinaryExpression
 ///
 ///    binaryExpression ::=
 ///        [Expression] [Token] [Expression]
-class BinaryExpressionImpl extends ExpressionImpl implements BinaryExpression {
+final class BinaryExpressionImpl extends ExpressionImpl
+    implements BinaryExpression {
   /// The expression used to compute the left operand.
   ExpressionImpl _leftOperand;
 
@@ -1887,7 +1891,7 @@ abstract class BlockFunctionBody implements FunctionBody {
 ///
 ///    blockFunctionBody ::=
 ///        ('async' | 'async' '*' | 'sync' '*')? [Block]
-class BlockFunctionBodyImpl extends FunctionBodyImpl
+final class BlockFunctionBodyImpl extends FunctionBodyImpl
     implements BlockFunctionBody {
   /// The token representing the 'async' or 'sync' keyword, or `null` if there
   /// is no such keyword.
@@ -1964,7 +1968,7 @@ class BlockFunctionBodyImpl extends FunctionBodyImpl
 ///
 ///    block ::=
 ///        '{' statement* '}'
-class BlockImpl extends StatementImpl implements Block {
+final class BlockImpl extends StatementImpl implements Block {
   /// The left curly bracket.
   @override
   final Token leftBracket;
@@ -2027,7 +2031,7 @@ abstract class BooleanLiteral implements Literal {
 ///
 ///    booleanLiteral ::=
 ///        'false' | 'true'
-class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
+final class BooleanLiteralImpl extends LiteralImpl implements BooleanLiteral {
   /// The token representing the literal.
   @override
   final Token literal;
@@ -2101,7 +2105,7 @@ abstract class BreakStatement implements Statement {
 ///
 ///    breakStatement ::=
 ///        'break' [SimpleIdentifier]? ';'
-class BreakStatementImpl extends StatementImpl implements BreakStatement {
+final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   /// The token representing the 'break' keyword.
   @override
   final Token breakKeyword;
@@ -2205,7 +2209,7 @@ abstract class CascadeExpression
 ///    cascadeSelector ::=
 ///        '[ ' expression '] '
 ///      | identifier
-class CascadeExpressionImpl extends ExpressionImpl
+final class CascadeExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl
     implements CascadeExpression {
   /// The target of the cascade sections.
@@ -2296,7 +2300,7 @@ abstract class CaseClause implements AstNode {
 ///        'case' [DartPattern] [WhenClause]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-class CaseClauseImpl extends AstNodeImpl implements CaseClause {
+final class CaseClauseImpl extends AstNodeImpl implements CaseClause {
   @override
   final Token caseKeyword;
 
@@ -2351,7 +2355,7 @@ abstract class CastPattern implements DartPattern {
 ///
 ///    castPattern ::=
 ///        [DartPattern] 'as' [TypeAnnotation]
-class CastPatternImpl extends DartPatternImpl implements CastPattern {
+final class CastPatternImpl extends DartPatternImpl implements CastPattern {
   @override
   final Token asToken;
 
@@ -2488,7 +2492,7 @@ abstract class CatchClause implements AstNode {
 ///
 ///    catchPart ::=
 ///        'catch' '(' [SimpleIdentifier] (',' [SimpleIdentifier])? ')'
-class CatchClauseImpl extends AstNodeImpl implements CatchClause {
+final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   /// The token representing the 'on' keyword, or `null` if there is no 'on'
   /// keyword.
   @override
@@ -2644,7 +2648,7 @@ abstract class CatchClauseParameter extends AstNode {
   Token get name;
 }
 
-class CatchClauseParameterImpl extends AstNodeImpl
+final class CatchClauseParameterImpl extends AstNodeImpl
     implements CatchClauseParameter {
   @override
   final Token name;
@@ -2838,7 +2842,7 @@ abstract class ClassDeclaration implements ClassOrAugmentationDeclaration {
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
 ///
-class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements ClassDeclaration {
   /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
@@ -3060,7 +3064,7 @@ class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
 abstract class ClassMember implements Declaration {}
 
 /// A node that declares a name within the scope of a class.
-abstract class ClassMemberImpl extends DeclarationImpl implements ClassMember {
+sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
   /// Initialize a newly created member of a class. Either or both of the
   /// [comment] and [metadata] can be `null` if the member does not have the
   /// corresponding attribute.
@@ -3205,7 +3209,7 @@ abstract class ClassTypeAlias implements TypeAlias {
 ///
 ///    mixinApplication ::=
 ///        [TypeName] [WithClause] [ImplementsClause]? ';'
-class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
+final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// The type parameters for the class, or `null` if the class does not have
   /// any type parameters.
   TypeParameterListImpl? _typeParameters;
@@ -3396,7 +3400,7 @@ class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 /// Clients may not extend, implement or mix-in this class.
 abstract class CollectionElement implements AstNode {}
 
-abstract class CollectionElementImpl extends AstNodeImpl
+sealed class CollectionElementImpl extends AstNodeImpl
     implements CollectionElement {
   /// Dispatches this collection element to the [resolver], with the given
   /// [context] information.
@@ -3422,7 +3426,7 @@ abstract class Combinator implements AstNode {
 ///    combinator ::=
 ///        [HideCombinator]
 ///      | [ShowCombinator]
-abstract class CombinatorImpl extends AstNodeImpl implements Combinator {
+sealed class CombinatorImpl extends AstNodeImpl implements Combinator {
   /// The 'hide' or 'show' keyword specifying what kind of processing is to be
   /// done on the names.
   @override
@@ -3488,7 +3492,7 @@ abstract class Comment implements AstNode {
 ///    documentationComment ::=
 ///        '/ **' (CHARACTER | [CommentReference])* '&#42;/'
 ///      | ('///' (CHARACTER - EOL)* EOL)+
-class CommentImpl extends AstNodeImpl implements Comment {
+final class CommentImpl extends AstNodeImpl implements Comment {
   /// The tokens representing the comment.
   @override
   final List<Token> tokens;
@@ -3560,7 +3564,7 @@ class CommentImpl extends AstNodeImpl implements Comment {
 /// https://github.com/dart-lang/dartdoc/blob/master/lib/src/comment_references/parser.dart
 abstract class CommentReferableExpression implements Expression {}
 
-abstract class CommentReferableExpressionImpl extends ExpressionImpl
+sealed class CommentReferableExpressionImpl extends ExpressionImpl
     implements CommentReferableExpression {}
 
 /// A reference to a Dart element that is found within a documentation comment.
@@ -3582,7 +3586,8 @@ abstract class CommentReference implements AstNode {
 ///
 ///    commentReference ::=
 ///        '[' 'new'? [Identifier] ']'
-class CommentReferenceImpl extends AstNodeImpl implements CommentReference {
+final class CommentReferenceImpl extends AstNodeImpl
+    implements CommentReference {
   /// The token representing the 'new' keyword, or `null` if there was no 'new'
   /// keyword.
   @override
@@ -3726,7 +3731,7 @@ abstract class CompilationUnit implements AstNode {
 ///
 ///    declarations ::=
 ///        [CompilationUnitMember]*
-class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
+final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// The first token in the token stream that was parsed to form this
   /// compilation unit.
   @override
@@ -3898,7 +3903,7 @@ abstract class CompilationUnitMember implements Declaration {}
 ///      | [TypeAlias]
 ///      | [FunctionDeclaration]
 ///      | [TopLevelVariableDeclaration]
-abstract class CompilationUnitMemberImpl extends DeclarationImpl
+sealed class CompilationUnitMemberImpl extends DeclarationImpl
     implements CompilationUnitMember {
   /// Initialize a newly created generic compilation unit member. Either or both
   /// of the [comment] and [metadata] can be `null` if the member does not have
@@ -4013,7 +4018,7 @@ abstract class ConditionalExpression implements Expression {
 ///
 ///    conditionalExpression ::=
 ///        [Expression] '?' [Expression] ':' [Expression]
-class ConditionalExpressionImpl extends ExpressionImpl
+final class ConditionalExpressionImpl extends ExpressionImpl
     implements ConditionalExpression {
   /// The condition used to determine which of the expressions is executed next.
   ExpressionImpl _condition;
@@ -4154,7 +4159,7 @@ abstract class Configuration implements AstNode {
 ///
 ///     dottedName ::=
 ///         identifier ('.' identifier)*
-class ConfigurationImpl extends AstNodeImpl implements Configuration {
+final class ConfigurationImpl extends AstNodeImpl implements Configuration {
   @override
   final Token ifKeyword;
 
@@ -4242,7 +4247,7 @@ class ConfigurationImpl extends AstNodeImpl implements Configuration {
 
 /// This class is used as a marker of constant context for initializers
 /// of constant fields and top-level variables read from summaries.
-class ConstantContextForExpressionImpl extends AstNodeImpl {
+final class ConstantContextForExpressionImpl extends AstNodeImpl {
   final Element variable;
   final ExpressionImpl expression;
 
@@ -4298,7 +4303,8 @@ abstract class ConstantPattern implements DartPattern {
 ///
 ///    constantPattern ::=
 ///        'const'? [Expression]
-class ConstantPatternImpl extends DartPatternImpl implements ConstantPattern {
+final class ConstantPatternImpl extends DartPatternImpl
+    implements ConstantPattern {
   @override
   final Token? constKeyword;
 
@@ -4455,7 +4461,7 @@ abstract class ConstructorDeclaration implements ClassMember {
 ///
 ///    initializerList ::=
 ///        ':' [ConstructorInitializer] (',' [ConstructorInitializer])*
-class ConstructorDeclarationImpl extends ClassMemberImpl
+final class ConstructorDeclarationImpl extends ClassMemberImpl
     implements ConstructorDeclaration {
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
@@ -4672,7 +4678,7 @@ abstract class ConstructorFieldInitializer implements ConstructorInitializer {
 ///
 ///    fieldInitializer ::=
 ///        ('this' '.')? [SimpleIdentifier] '=' [Expression]
-class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
+final class ConstructorFieldInitializerImpl extends ConstructorInitializerImpl
     implements ConstructorFieldInitializer {
   /// The token for the 'this' keyword, or `null` if there is no 'this' keyword.
   @override
@@ -4768,7 +4774,7 @@ abstract class ConstructorInitializer implements AstNode {}
 ///        [SuperConstructorInvocation]
 ///      | [ConstructorFieldInitializer]
 ///      | [RedirectingConstructorInvocation]
-abstract class ConstructorInitializerImpl extends AstNodeImpl
+sealed class ConstructorInitializerImpl extends AstNodeImpl
     implements ConstructorInitializer {}
 
 /// The name of a constructor.
@@ -4794,7 +4800,7 @@ abstract class ConstructorName implements AstNode, ConstructorReferenceNode {
 ///
 ///    constructorName ::=
 ///        type ('.' identifier)?
-class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
+final class ConstructorNameImpl extends AstNodeImpl implements ConstructorName {
   /// The name of the type defining the constructor.
   NamedTypeImpl _type;
 
@@ -4886,7 +4892,7 @@ abstract class ConstructorReference
 /// Objects of this type are not produced directly by the parser (because the
 /// parser cannot tell whether an identifier refers to a type); they are
 /// produced at resolution time.
-class ConstructorReferenceImpl extends CommentReferableExpressionImpl
+final class ConstructorReferenceImpl extends CommentReferableExpressionImpl
     implements ConstructorReference {
   ConstructorNameImpl _constructorName;
 
@@ -4955,7 +4961,7 @@ abstract class ConstructorSelector implements AstNode {
   Token get period;
 }
 
-class ConstructorSelectorImpl extends AstNodeImpl
+final class ConstructorSelectorImpl extends AstNodeImpl
     implements ConstructorSelector {
   @override
   final Token period;
@@ -5022,7 +5028,8 @@ abstract class ContinueStatement implements Statement {
 ///
 ///    continueStatement ::=
 ///        'continue' [SimpleIdentifier]? ';'
-class ContinueStatementImpl extends StatementImpl implements ContinueStatement {
+final class ContinueStatementImpl extends StatementImpl
+    implements ContinueStatement {
   /// The token representing the 'continue' keyword.
   @override
   final Token continueKeyword;
@@ -5134,7 +5141,7 @@ abstract class DartPattern implements AstNode, ListPatternElement {
 ///      | [ParenthesizedPattern]
 ///      | [RecordPattern]
 ///      | [RelationalPattern]
-abstract class DartPatternImpl extends AstNodeImpl
+sealed class DartPatternImpl extends AstNodeImpl
     implements DartPattern, ListPatternElementImpl {
   @override
   DartType? matchedValueType;
@@ -5205,8 +5212,7 @@ abstract class Declaration implements AnnotatedNode {
 
 /// A node that represents the declaration of one or more names. Each declared
 /// name is visible within a name scope.
-abstract class DeclarationImpl extends AnnotatedNodeImpl
-    implements Declaration {
+sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
   /// Initialize a newly created declaration. Either or both of the [comment]
   /// and [metadata] can be `null` if the declaration does not have the
   /// corresponding attribute.
@@ -5254,7 +5260,7 @@ abstract class DeclaredIdentifier implements Declaration {
 ///
 ///    declaredIdentifier ::=
 ///        [Annotation] finalConstVarOrType [SimpleIdentifier]
-class DeclaredIdentifierImpl extends DeclarationImpl
+final class DeclaredIdentifierImpl extends DeclarationImpl
     implements DeclaredIdentifier {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
@@ -5335,7 +5341,7 @@ class DeclaredIdentifierImpl extends DeclarationImpl
 // code and instead visit this separately. A declaration is semantically pretty
 // different from a use, so using the same node type doesn't seem to buy us
 // much.
-class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
+final class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
   DeclaredSimpleIdentifier(super.token);
 
   @override
@@ -5365,7 +5371,7 @@ abstract class DeclaredVariablePattern implements VariablePattern {
 ///
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? [Identifier]
-class DeclaredVariablePatternImpl extends VariablePatternImpl
+final class DeclaredVariablePatternImpl extends VariablePatternImpl
     implements DeclaredVariablePattern {
   @override
   BindPatternVariableElementImpl? declaredElement;
@@ -5474,7 +5480,7 @@ abstract class DefaultFormalParameter implements FormalParameter {
 ///
 ///    defaultNamedParameter ::=
 ///        [NormalFormalParameter] (':' [Expression])?
-class DefaultFormalParameterImpl extends FormalParameterImpl
+final class DefaultFormalParameterImpl extends FormalParameterImpl
     implements DefaultFormalParameter {
   /// The formal parameter with which the default value is associated.
   NormalFormalParameterImpl _parameter;
@@ -5601,7 +5607,7 @@ abstract class Directive implements AnnotatedNode {
 ///      | [LibraryDirective]
 ///      | [PartDirective]
 ///      | [PartOfDirective]
-abstract class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
+sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   /// The element associated with this directive, or `null` if the AST structure
   /// has not been resolved or if this directive could not be resolved.
   Element? _element;
@@ -5660,7 +5666,7 @@ abstract class DoStatement implements Statement {
 ///
 ///    doStatement ::=
 ///        'do' [Statement] 'while' '(' [Expression] ')' ';'
-class DoStatementImpl extends StatementImpl implements DoStatement {
+final class DoStatementImpl extends StatementImpl implements DoStatement {
   /// The token representing the 'do' keyword.
   @override
   final Token doKeyword;
@@ -5757,7 +5763,7 @@ abstract class DottedName implements AstNode {
 ///
 ///    dottedName ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
-class DottedNameImpl extends AstNodeImpl implements DottedName {
+final class DottedNameImpl extends AstNodeImpl implements DottedName {
   /// The components of the identifier.
   final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
 
@@ -5817,7 +5823,7 @@ abstract class DoubleLiteral implements Literal {
 ///
 ///    exponent ::=
 ///        ('e' | 'E') ('+' | '-')? decimalDigit+
-class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
+final class DoubleLiteralImpl extends LiteralImpl implements DoubleLiteral {
   /// The token representing the literal.
   @override
   final Token literal;
@@ -5874,7 +5880,7 @@ abstract class EmptyFunctionBody implements FunctionBody {
 ///
 ///    emptyFunctionBody ::=
 ///        ';'
-class EmptyFunctionBodyImpl extends FunctionBodyImpl
+final class EmptyFunctionBodyImpl extends FunctionBodyImpl
     implements EmptyFunctionBody {
   /// The token representing the semicolon that marks the end of the function
   /// body.
@@ -5924,7 +5930,7 @@ abstract class EmptyStatement implements Statement {
 ///
 ///    emptyStatement ::=
 ///        ';'
-class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
+final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   /// The semicolon terminating the statement.
   @override
   final Token semicolon;
@@ -5977,7 +5983,7 @@ abstract class EnumConstantArguments implements AstNode {
   TypeArgumentList? get typeArguments;
 }
 
-class EnumConstantArgumentsImpl extends AstNodeImpl
+final class EnumConstantArgumentsImpl extends AstNodeImpl
     implements EnumConstantArguments {
   @override
   final TypeArgumentListImpl? typeArguments;
@@ -6050,7 +6056,7 @@ abstract class EnumConstantDeclaration implements Declaration {
 }
 
 /// The declaration of an enum constant.
-class EnumConstantDeclarationImpl extends DeclarationImpl
+final class EnumConstantDeclarationImpl extends DeclarationImpl
     implements EnumConstantDeclaration {
   @override
   final Token name;
@@ -6159,7 +6165,7 @@ abstract class EnumDeclaration implements NamedCompilationUnitMember {
 ///        metadata 'enum' [SimpleIdentifier] [TypeParameterList]?
 ///        [WithClause]? [ImplementsClause]? '{' [SimpleIdentifier]
 ///        (',' [SimpleIdentifier])* (';' [ClassMember]+)? '}'
-class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements EnumDeclaration {
   /// The 'enum' keyword.
   @override
@@ -6315,7 +6321,7 @@ abstract class ExportDirective implements NamespaceDirective {
 ///
 ///    exportDirective ::=
 ///        [Annotation] 'export' [StringLiteral] [Combinator]* ';'
-class ExportDirectiveImpl extends NamespaceDirectiveImpl
+final class ExportDirectiveImpl extends NamespaceDirectiveImpl
     implements ExportDirective {
   @override
   final Token exportKeyword;
@@ -6448,7 +6454,7 @@ abstract class ExpressionFunctionBody implements FunctionBody {
 ///
 ///    expressionFunctionBody ::=
 ///        'async'? '=>' [Expression] ';'
-class ExpressionFunctionBodyImpl extends FunctionBodyImpl
+final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
     implements ExpressionFunctionBody {
   /// The token representing the 'async' keyword, or `null` if there is no such
   /// keyword.
@@ -6548,7 +6554,7 @@ class ExpressionFunctionBodyImpl extends FunctionBodyImpl
 ///        [AssignmentExpression]
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
-abstract class ExpressionImpl extends AstNodeImpl
+sealed class ExpressionImpl extends AstNodeImpl
     implements CollectionElementImpl, Expression {
   /// The static type of this expression, or `null` if the AST structure has not
   /// been resolved.
@@ -6674,7 +6680,7 @@ abstract class ExpressionStatement implements Statement {
 ///
 ///    expressionStatement ::=
 ///        [Expression]? ';'
-class ExpressionStatementImpl extends StatementImpl
+final class ExpressionStatementImpl extends StatementImpl
     implements ExpressionStatement {
   /// The expression that comprises the statement.
   ExpressionImpl _expression;
@@ -6746,7 +6752,7 @@ abstract class ExtendsClause implements AstNode {
 ///
 ///    extendsClause ::=
 ///        'extends' [TypeName]
-class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
+final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /// The token representing the 'extends' keyword.
   @override
   final Token extendsKeyword;
@@ -6847,7 +6853,7 @@ abstract class ExtensionDeclaration implements CompilationUnitMember {
 ///        'on' [TypeAnnotation] '{' [ClassMember]* '}'
 ///
 /// Clients may not extend, implement or mix-in this class.
-class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
+final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     implements ExtensionDeclaration {
   @override
   final Token extensionKeyword;
@@ -7013,7 +7019,7 @@ abstract class ExtensionOverride implements Expression {
 ///
 ///    extensionOverride ::=
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
-class ExtensionOverrideImpl extends ExpressionImpl
+final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
   /// Cache results of `name` invocation. There is existing code that uses it,
   /// and relies on the fact that the same result is returned every time.
@@ -7195,7 +7201,8 @@ abstract class FieldDeclaration implements ClassMember {
 ///
 ///    fieldDeclaration ::=
 ///        'static'? [VariableDeclarationList] ';'
-class FieldDeclarationImpl extends ClassMemberImpl implements FieldDeclaration {
+final class FieldDeclarationImpl extends ClassMemberImpl
+    implements FieldDeclaration {
   @override
   final Token? abstractKeyword;
 
@@ -7330,7 +7337,7 @@ abstract class FieldFormalParameter implements NormalFormalParameter {
 ///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
 ///        'this' '.' [SimpleIdentifier]
 ///        ([TypeParameterList]? [FormalParameterList])?
-class FieldFormalParameterImpl extends NormalFormalParameterImpl
+final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     implements FieldFormalParameter {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
@@ -7477,8 +7484,7 @@ abstract class ForEachParts implements ForLoopParts {
   Expression get iterable;
 }
 
-abstract class ForEachPartsImpl extends ForLoopPartsImpl
-    implements ForEachParts {
+sealed class ForEachPartsImpl extends ForLoopPartsImpl implements ForEachParts {
   @override
   final Token inKeyword;
 
@@ -7531,7 +7537,7 @@ abstract class ForEachPartsWithDeclaration implements ForEachParts {
   DeclaredIdentifier get loopVariable;
 }
 
-class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
+final class ForEachPartsWithDeclarationImpl extends ForEachPartsImpl
     implements ForEachPartsWithDeclaration {
   /// The declaration of the loop variable.
   DeclaredIdentifierImpl _loopVariable;
@@ -7584,7 +7590,7 @@ abstract class ForEachPartsWithIdentifier implements ForEachParts {
   SimpleIdentifier get identifier;
 }
 
-class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
+final class ForEachPartsWithIdentifierImpl extends ForEachPartsImpl
     implements ForEachPartsWithIdentifier {
   /// The loop variable.
   SimpleIdentifierImpl _identifier;
@@ -7646,7 +7652,7 @@ abstract class ForEachPartsWithPattern implements ForEachParts {
 ///
 ///    forEachPartsWithPattern ::=
 ///        ( 'final' | 'var' ) [DartPattern] 'in' [Expression]
-class ForEachPartsWithPatternImpl extends ForEachPartsImpl
+final class ForEachPartsWithPatternImpl extends ForEachPartsImpl
     implements ForEachPartsWithPattern {
   /// The annotations associated with this node.
   final NodeListImpl<AnnotationImpl> _metadata = NodeListImpl._();
@@ -7734,7 +7740,7 @@ abstract class ForElement implements CollectionElement {
   Token get rightParenthesis;
 }
 
-class ForElementImpl extends CollectionElementImpl implements ForElement {
+final class ForElementImpl extends CollectionElementImpl implements ForElement {
   @override
   final Token? awaitKeyword;
 
@@ -7826,7 +7832,7 @@ class ForElementImpl extends CollectionElementImpl implements ForElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ForLoopParts implements AstNode {}
 
-abstract class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
+sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {}
 
 /// A node representing a parameter to a function.
 ///
@@ -7912,7 +7918,7 @@ abstract class FormalParameter implements AstNode {
 ///    formalParameter ::=
 ///        [NormalFormalParameter]
 ///      | [DefaultFormalParameter]
-abstract class FormalParameterImpl extends AstNodeImpl
+sealed class FormalParameterImpl extends AstNodeImpl
     implements FormalParameter {
   @override
   ParameterElementImpl? declaredElement;
@@ -8038,7 +8044,7 @@ abstract class FormalParameterList implements AstNode {
 ///
 ///    namedFormalParameters ::=
 ///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
-class FormalParameterListImpl extends AstNodeImpl
+final class FormalParameterListImpl extends AstNodeImpl
     implements FormalParameterList {
   /// The left parenthesis.
   @override
@@ -8143,7 +8149,7 @@ abstract class ForParts implements ForLoopParts {
   NodeList<Expression> get updaters;
 }
 
-abstract class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
+sealed class ForPartsImpl extends ForLoopPartsImpl implements ForParts {
   @override
   final Token leftSeparator;
 
@@ -8213,7 +8219,7 @@ abstract class ForPartsWithDeclarations implements ForParts {
   VariableDeclarationList get variables;
 }
 
-class ForPartsWithDeclarationsImpl extends ForPartsImpl
+final class ForPartsWithDeclarationsImpl extends ForPartsImpl
     implements ForPartsWithDeclarations {
   /// The declaration of the loop variables, or `null` if there are no
   /// variables.  Note that a for statement cannot have both a variable list and
@@ -8273,7 +8279,7 @@ abstract class ForPartsWithExpression implements ForParts {
   Expression? get initialization;
 }
 
-class ForPartsWithExpressionImpl extends ForPartsImpl
+final class ForPartsWithExpressionImpl extends ForPartsImpl
     implements ForPartsWithExpression {
   /// The initialization expression, or `null` if there is no initialization
   /// expression. Note that a for statement cannot have both a variable list and
@@ -8336,7 +8342,7 @@ abstract class ForPartsWithPattern implements ForParts {
 ///
 ///   forLoopParts ::=
 ///       [PatternVariableDeclaration] ';' [Expression]? ';' expressionList?
-class ForPartsWithPatternImpl extends ForPartsImpl
+final class ForPartsWithPatternImpl extends ForPartsImpl
     implements ForPartsWithPattern {
   @override
   final PatternVariableDeclarationImpl variables;
@@ -8407,7 +8413,7 @@ abstract class ForStatement implements Statement {
   Token get rightParenthesis;
 }
 
-class ForStatementImpl extends StatementImpl implements ForStatement {
+final class ForStatementImpl extends StatementImpl implements ForStatement {
   @override
   final Token? awaitKeyword;
 
@@ -8535,7 +8541,7 @@ abstract class FunctionBody implements AstNode {
 ///        [BlockFunctionBody]
 ///      | [EmptyFunctionBody]
 ///      | [ExpressionFunctionBody]
-abstract class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
+sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   /// Additional information about local variables and parameters that are
   /// declared within this function body or any enclosing function body.  `null`
   /// if resolution has not yet been performed.
@@ -8641,7 +8647,7 @@ abstract class FunctionDeclaration implements NamedCompilationUnitMember {
 ///
 ///    functionSignature ::=
 ///        [Type]? ('get' | 'set')? [SimpleIdentifier] [FormalParameterList]
-class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements FunctionDeclaration {
   /// The token representing the 'augment' keyword, or `null` if this is not an
   /// function augmentation.
@@ -8752,7 +8758,7 @@ abstract class FunctionDeclarationStatement implements Statement {
 }
 
 /// A [FunctionDeclaration] used as a statement.
-class FunctionDeclarationStatementImpl extends StatementImpl
+final class FunctionDeclarationStatementImpl extends StatementImpl
     implements FunctionDeclarationStatement {
   /// The function declaration being wrapped.
   FunctionDeclarationImpl _functionDeclaration;
@@ -8818,7 +8824,7 @@ abstract class FunctionExpression implements Expression {
 ///
 ///    functionExpression ::=
 ///        [TypeParameterList]? [FormalParameterList] [FunctionBody]
-class FunctionExpressionImpl extends ExpressionImpl
+final class FunctionExpressionImpl extends ExpressionImpl
     implements FunctionExpression {
   /// The type parameters associated with the method, or `null` if the method is
   /// not a generic method.
@@ -8942,7 +8948,7 @@ abstract class FunctionExpressionInvocation
 ///
 ///    functionExpressionInvocation ::=
 ///        [Expression] [TypeArgumentList]? [ArgumentList]
-class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
+final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
     implements FunctionExpressionInvocation {
   /// The expression producing the function being invoked.
@@ -9042,7 +9048,7 @@ abstract class FunctionReference
 
 /// An expression representing a reference to a function, possibly with type
 /// arguments applied to it, e.g. the expression `print` in `var x = print;`.
-class FunctionReferenceImpl extends CommentReferableExpressionImpl
+final class FunctionReferenceImpl extends CommentReferableExpressionImpl
     implements FunctionReference {
   ExpressionImpl _function;
 
@@ -9140,7 +9146,8 @@ abstract class FunctionTypeAlias implements TypeAlias {
 ///
 ///    functionPrefix ::=
 ///        [TypeName]? [SimpleIdentifier]
-class FunctionTypeAliasImpl extends TypeAliasImpl implements FunctionTypeAlias {
+final class FunctionTypeAliasImpl extends TypeAliasImpl
+    implements FunctionTypeAlias {
   /// The name of the return type of the function type being defined, or `null`
   /// if no return type was given.
   TypeAnnotationImpl? _returnType;
@@ -9256,7 +9263,7 @@ abstract class FunctionTypedFormalParameter implements NormalFormalParameter {
 ///    functionSignature ::=
 ///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
 ///        [FormalParameterList] '?'?
-class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
+final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
   /// The return type of the function, or `null` if the function does not have a
   /// return type.
@@ -9438,7 +9445,7 @@ abstract class GenericFunctionType implements TypeAnnotation {
 ///        optionalPositionalParameterTypes | namedParameterTypes
 ///    optionalPositionalParameterTypes ::=
 ///        [ normalParameterTypes ,? ]
-class GenericFunctionTypeImpl extends TypeAnnotationImpl
+final class GenericFunctionTypeImpl extends TypeAnnotationImpl
     implements GenericFunctionType {
   /// The name of the return type of the function type being defined, or
   /// `null` if no return type was given.
@@ -9561,7 +9568,8 @@ abstract class GenericTypeAlias implements TypeAlias {
 ///    functionTypeAlias ::=
 ///        metadata 'typedef' [SimpleIdentifier] [TypeParameterList]? =
 ///        [FunctionType] ';'
-class GenericTypeAliasImpl extends TypeAliasImpl implements GenericTypeAlias {
+final class GenericTypeAliasImpl extends TypeAliasImpl
+    implements GenericTypeAlias {
   /// The type being defined by the alias.
   TypeAnnotationImpl _type;
 
@@ -9670,7 +9678,7 @@ abstract class GuardedPattern implements AstNode {
 ///        'case' [DartPattern] [WhenClause]?
 ///
 /// Clients may not extend, implement or mix-in this class.
-class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
+final class GuardedPatternImpl extends AstNodeImpl implements GuardedPattern {
   @override
   final DartPatternImpl pattern;
 
@@ -9728,7 +9736,8 @@ abstract class HideCombinator implements Combinator {
 ///
 ///    hideCombinator ::=
 ///        'hide' [SimpleIdentifier] (',' [SimpleIdentifier])*
-class HideCombinatorImpl extends CombinatorImpl implements HideCombinator {
+final class HideCombinatorImpl extends CombinatorImpl
+    implements HideCombinator {
   /// The list of names from the library that are hidden by this combinator.
   final NodeListImpl<SimpleIdentifierImpl> _hiddenNames = NodeListImpl._();
 
@@ -9789,7 +9798,7 @@ abstract class Identifier implements Expression, CommentReferableExpression {
 ///    identifier ::=
 ///        [SimpleIdentifier]
 ///      | [PrefixedIdentifier]
-abstract class IdentifierImpl extends CommentReferableExpressionImpl
+sealed class IdentifierImpl extends CommentReferableExpressionImpl
     implements Identifier {
   @override
   bool get isAssignable => true;
@@ -9834,7 +9843,7 @@ abstract class IfElement implements CollectionElement {
   CollectionElement get thenElement;
 }
 
-class IfElementImpl extends CollectionElementImpl
+final class IfElementImpl extends CollectionElementImpl
     implements IfElement, IfElementOrStatementImpl<CollectionElementImpl> {
   @override
   final Token ifKeyword;
@@ -9946,7 +9955,7 @@ class IfElementImpl extends CollectionElementImpl
   }
 }
 
-abstract class IfElementOrStatementImpl<E extends AstNodeImpl>
+sealed class IfElementOrStatementImpl<E extends AstNodeImpl>
     implements AstNodeImpl {
   /// Return the `case` clause used to match a pattern against the [expression].
   CaseClauseImpl? get caseClause;
@@ -10012,7 +10021,7 @@ abstract class IfStatement implements Statement {
 ///    ifStatement ::=
 ///        'if' '(' [Expression] [CaseClause]? ')'[Statement]
 ///        ('else' [Statement])?
-class IfStatementImpl extends StatementImpl
+final class IfStatementImpl extends StatementImpl
     implements IfStatement, IfElementOrStatementImpl<StatementImpl> {
   @override
   final Token ifKeyword;
@@ -10142,7 +10151,8 @@ abstract class ImplementsClause implements AstNode {
 ///
 ///    implementsClause ::=
 ///        'implements' [TypeName] (',' [TypeName])*
-class ImplementsClauseImpl extends AstNodeImpl implements ImplementsClause {
+final class ImplementsClauseImpl extends AstNodeImpl
+    implements ImplementsClause {
   /// The token representing the 'implements' keyword.
   @override
   final Token implementsKeyword;
@@ -10209,7 +10219,7 @@ abstract class ImplicitCallReference implements MethodReferenceExpression {
   List<DartType> get typeArgumentTypes;
 }
 
-class ImplicitCallReferenceImpl extends ExpressionImpl
+final class ImplicitCallReferenceImpl extends ExpressionImpl
     implements ImplicitCallReference {
   ExpressionImpl _expression;
 
@@ -10320,7 +10330,7 @@ abstract class ImportDirective implements NamespaceDirective {
 //         [Combinator]* ';'
 ///      | [Annotation] 'import' [StringLiteral] 'deferred' 'as' identifier
 //         [Combinator]* ';'
-class ImportDirectiveImpl extends NamespaceDirectiveImpl
+final class ImportDirectiveImpl extends NamespaceDirectiveImpl
     implements ImportDirective {
   @override
   final Token importKeyword;
@@ -10470,7 +10480,7 @@ abstract class ImportPrefixReference implements AstNode {
   Token get period;
 }
 
-class ImportPrefixReferenceImpl extends AstNodeImpl
+final class ImportPrefixReferenceImpl extends AstNodeImpl
     implements ImportPrefixReference {
   @override
   final Token name;
@@ -10580,7 +10590,7 @@ abstract class IndexExpression
 ///
 ///    indexExpression ::=
 ///        [Expression] '[' [Expression] ']'
-class IndexExpressionImpl extends ExpressionImpl
+final class IndexExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl
     implements IndexExpression {
   @override
@@ -10808,7 +10818,7 @@ abstract class InstanceCreationExpression implements Expression {
 ///    newExpression ::=
 ///        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])?
 ///        [ArgumentList]
-class InstanceCreationExpressionImpl extends ExpressionImpl
+final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
   // TODO(brianwilkerson) Consider making InstanceCreationExpressionImpl extend
   // InvocationExpressionImpl. This would probably be a breaking change, but is
@@ -10953,7 +10963,7 @@ abstract class IntegerLiteral implements Literal {
 ///    hexadecimalIntegerLiteral ::=
 ///        '0x' hexadecimalDigit+
 ///      | '0X' hexadecimalDigit+
-class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
+final class IntegerLiteralImpl extends LiteralImpl implements IntegerLiteral {
   /// The token representing the literal.
   @override
   final Token literal;
@@ -11070,7 +11080,7 @@ abstract class InterpolationElement implements AstNode {}
 ///    interpolationElement ::=
 ///        [InterpolationExpression]
 ///      | [InterpolationString]
-abstract class InterpolationElementImpl extends AstNodeImpl
+sealed class InterpolationElementImpl extends AstNodeImpl
     implements InterpolationElement {}
 
 /// An expression embedded in a string interpolation.
@@ -11100,7 +11110,7 @@ abstract class InterpolationExpression implements InterpolationElement {
 ///    interpolationExpression ::=
 ///        '$' [SimpleIdentifier]
 ///      | '$' '{' [Expression] '}'
-class InterpolationExpressionImpl extends InterpolationElementImpl
+final class InterpolationExpressionImpl extends InterpolationElementImpl
     implements InterpolationExpression {
   /// The token used to introduce the interpolation expression; either '$' if
   /// the expression is a simple identifier or '${' if the expression is a full
@@ -11179,7 +11189,7 @@ abstract class InterpolationString implements InterpolationElement {
 ///
 ///    interpolationString ::=
 ///        characters
-class InterpolationStringImpl extends InterpolationElementImpl
+final class InterpolationStringImpl extends InterpolationElementImpl
     implements InterpolationString {
   /// The characters that will be added to the string.
   @override
@@ -11271,7 +11281,7 @@ abstract class InvocationExpression implements Expression {
 
 /// Common base class for [FunctionExpressionInvocationImpl] and
 /// [MethodInvocationImpl].
-abstract class InvocationExpressionImpl extends ExpressionImpl
+sealed class InvocationExpressionImpl extends ExpressionImpl
     implements InvocationExpression {
   /// The list of arguments to the function.
   ArgumentListImpl _argumentList;
@@ -11337,7 +11347,7 @@ abstract class IsExpression implements Expression {
 ///
 ///    isExpression ::=
 ///        [Expression] 'is' '!'? [TypeName]
-class IsExpressionImpl extends ExpressionImpl implements IsExpression {
+final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /// The expression used to compute the value whose type is being tested.
   ExpressionImpl _expression;
 
@@ -11442,7 +11452,8 @@ abstract class LabeledStatement implements Statement {
 ///
 ///    labeledStatement ::=
 ///       [Label]+ [Statement]
-class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
+final class LabeledStatementImpl extends StatementImpl
+    implements LabeledStatement {
   /// The labels being associated with the statement.
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
@@ -11501,7 +11512,7 @@ class LabeledStatementImpl extends StatementImpl implements LabeledStatement {
 ///
 ///    label ::=
 ///        [SimpleIdentifier] ':'
-class LabelImpl extends AstNodeImpl implements Label {
+final class LabelImpl extends AstNodeImpl implements Label {
   /// The label being associated with the statement.
   SimpleIdentifierImpl _label;
 
@@ -11567,7 +11578,7 @@ abstract class LibraryAugmentationDirective implements UriBasedDirective {
 ///    libraryAugmentationDirective ::=
 ///        [metadata] 'library' 'augment' [StringLiteral] ';'
 @experimental
-class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
+final class LibraryAugmentationDirectiveImpl extends UriBasedDirectiveImpl
     implements LibraryAugmentationDirective {
   @override
   final Token libraryKeyword;
@@ -11631,7 +11642,8 @@ abstract class LibraryDirective implements Directive {
 ///
 ///    libraryDirective ::=
 ///        [Annotation] 'library' [Identifier] ';'
-class LibraryDirectiveImpl extends DirectiveImpl implements LibraryDirective {
+final class LibraryDirectiveImpl extends DirectiveImpl
+    implements LibraryDirective {
   /// The token representing the 'library' keyword.
   @override
   final Token libraryKeyword;
@@ -11704,7 +11716,7 @@ abstract class LibraryIdentifier implements Identifier {
 ///
 ///    libraryIdentifier ::=
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
-class LibraryIdentifierImpl extends IdentifierImpl
+final class LibraryIdentifierImpl extends IdentifierImpl
     implements LibraryIdentifier {
   /// The components of the identifier.
   final NodeListImpl<SimpleIdentifierImpl> _components = NodeListImpl._();
@@ -11787,7 +11799,7 @@ abstract class ListLiteral implements TypedLiteral {
   Token get rightBracket;
 }
 
-class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
+final class ListLiteralImpl extends TypedLiteralImpl implements ListLiteral {
   /// The left square bracket.
   @override
   final Token leftBracket;
@@ -11883,14 +11895,14 @@ abstract class ListPattern implements DartPattern {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ListPatternElement implements AstNode {}
 
-abstract class ListPatternElementImpl
+sealed class ListPatternElementImpl
     implements AstNodeImpl, ListPatternElement {}
 
 /// A list pattern.
 ///
 ///    listPattern ::=
 ///        [TypeArgumentList]? '[' [DartPattern] (',' [DartPattern])* ','? ']'
-class ListPatternImpl extends DartPatternImpl implements ListPattern {
+final class ListPatternImpl extends DartPatternImpl implements ListPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
 
@@ -11985,7 +11997,7 @@ abstract class Literal implements Expression {}
 ///      | [MapLiteral]
 ///      | [NullLiteral]
 ///      | [StringLiteral]
-abstract class LiteralImpl extends ExpressionImpl implements Literal {
+sealed class LiteralImpl extends ExpressionImpl implements Literal {
   @override
   Precedence get precedence => Precedence.primary;
 }
@@ -12025,7 +12037,7 @@ abstract class LogicalAndPattern implements DartPattern {
 ///
 ///    logicalAndPattern ::=
 ///        [DartPattern] '&&' [DartPattern]
-class LogicalAndPatternImpl extends DartPatternImpl
+final class LogicalAndPatternImpl extends DartPatternImpl
     implements LogicalAndPattern {
   @override
   final DartPatternImpl leftOperand;
@@ -12106,7 +12118,8 @@ abstract class LogicalOrPattern implements DartPattern {
 ///
 ///    logicalOrPattern ::=
 ///        [DartPattern] '||' [DartPattern]
-class LogicalOrPatternImpl extends DartPatternImpl implements LogicalOrPattern {
+final class LogicalOrPatternImpl extends DartPatternImpl
+    implements LogicalOrPattern {
   @override
   final DartPatternImpl leftOperand;
 
@@ -12189,7 +12202,7 @@ abstract class MapLiteralEntry implements CollectionElement {
 ///
 ///    mapLiteralEntry ::=
 ///        [Expression] ':' [Expression]
-class MapLiteralEntryImpl extends CollectionElementImpl
+final class MapLiteralEntryImpl extends CollectionElementImpl
     implements MapLiteralEntry {
   /// The expression computing the key with which the value will be associated.
   ExpressionImpl _key;
@@ -12285,8 +12298,7 @@ abstract class MapPattern implements DartPattern {
 /// Clients may not extend, implement or mix-in this class.
 abstract class MapPatternElement implements AstNode {}
 
-abstract class MapPatternElementImpl
-    implements AstNodeImpl, MapPatternElement {}
+sealed class MapPatternElementImpl implements AstNodeImpl, MapPatternElement {}
 
 /// An entry in a map pattern.
 ///
@@ -12309,7 +12321,7 @@ abstract class MapPatternEntry implements AstNode, MapPatternElement {
 ///
 ///    mapPatternEntry ::=
 ///        [Expression] ':' [DartPattern]
-class MapPatternEntryImpl extends AstNodeImpl
+final class MapPatternEntryImpl extends AstNodeImpl
     implements MapPatternEntry, MapPatternElementImpl {
   ExpressionImpl _key;
 
@@ -12362,7 +12374,7 @@ class MapPatternEntryImpl extends AstNodeImpl
 ///    mapPattern ::=
 ///        [TypeArgumentList]? '{' [MapPatternEntry] (',' [MapPatternEntry])*
 ///        ','? '}'
-class MapPatternImpl extends DartPatternImpl implements MapPattern {
+final class MapPatternImpl extends DartPatternImpl implements MapPattern {
   @override
   final TypeArgumentListImpl? typeArguments;
 
@@ -12532,7 +12544,7 @@ abstract class MethodDeclaration implements ClassMember {
 ///    methodName ::=
 ///        [SimpleIdentifier]
 ///      | 'operator' [SimpleIdentifier]
-class MethodDeclarationImpl extends ClassMemberImpl
+final class MethodDeclarationImpl extends ClassMemberImpl
     implements MethodDeclaration {
   /// The token for the 'external' keyword, or `null` if the constructor is not
   /// external.
@@ -12756,7 +12768,7 @@ abstract class MethodInvocation
 ///    methodInvocation ::=
 ///        ([Expression] '.')? [SimpleIdentifier] [TypeArgumentList]?
 ///        [ArgumentList]
-class MethodInvocationImpl extends InvocationExpressionImpl
+final class MethodInvocationImpl extends InvocationExpressionImpl
     with NullShortableExpressionImpl
     implements MethodInvocation {
   /// The expression producing the object on which the method is defined, or
@@ -12997,7 +13009,7 @@ abstract class MixinDeclaration implements MixinOrAugmentationDeclaration {
 ///        metadata? 'base'? 'mixin' [SimpleIdentifier]
 ///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
 ///        '{' [ClassMember]* '}'
-class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     implements MixinDeclaration {
   /// Return the 'augment' keyword, or `null` if the keyword was absent.
   final Token? augmentKeyword;
@@ -13192,7 +13204,7 @@ abstract class NamedCompilationUnitMember implements CompilationUnitMember {
 }
 
 /// A node that declares a single name within the scope of a compilation unit.
-abstract class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
+sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     implements NamedCompilationUnitMember {
   /// The name of the member being declared.
   @override
@@ -13237,7 +13249,8 @@ abstract class NamedExpression implements Expression {
 ///
 ///    namedExpression ::=
 ///        [Label] [Expression]
-class NamedExpressionImpl extends ExpressionImpl implements NamedExpression {
+final class NamedExpressionImpl extends ExpressionImpl
+    implements NamedExpression {
   /// The name associated with the expression.
   LabelImpl _name;
 
@@ -13343,7 +13356,7 @@ abstract class NamedType implements TypeAnnotation {
 ///
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
-class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
+final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   /// Cache results of `name` invocation. There is existing code that uses it,
   /// and relies on the fact that the same result is returned every time.
   static final _nameCache = Expando<IdentifierImpl>();
@@ -13472,7 +13485,7 @@ abstract class NamespaceDirective implements UriBasedDirective {
 ///    directive ::=
 ///        [ExportDirective]
 ///      | [ImportDirective]
-abstract class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
+sealed class NamespaceDirectiveImpl extends UriBasedDirectiveImpl
     implements NamespaceDirective {
   /// The configurations used to control which library will actually be loaded
   /// at run-time.
@@ -13529,7 +13542,7 @@ abstract class NativeClause implements AstNode {
 ///
 ///    nativeClause ::=
 ///        'native' [StringLiteral]
-class NativeClauseImpl extends AstNodeImpl implements NativeClause {
+final class NativeClauseImpl extends AstNodeImpl implements NativeClause {
   @override
   final Token nativeKeyword;
 
@@ -13592,7 +13605,7 @@ abstract class NativeFunctionBody implements FunctionBody {
 ///
 ///    nativeFunctionBody ::=
 ///        'native' [SimpleStringLiteral] ';'
-class NativeFunctionBodyImpl extends FunctionBodyImpl
+final class NativeFunctionBodyImpl extends FunctionBodyImpl
     implements NativeFunctionBody {
   /// The token representing 'native' that marks the start of the function body.
   @override
@@ -13697,7 +13710,9 @@ abstract class NodeList<E extends AstNode> implements List<E> {
 }
 
 /// A list of AST nodes that have a common parent.
-class NodeListImpl<E extends AstNode> with ListMixin<E> implements NodeList<E> {
+final class NodeListImpl<E extends AstNode>
+    with ListMixin<E>
+    implements NodeList<E> {
   /// The node that is the parent of each of the elements in the list.
   late final AstNodeImpl _owner;
 
@@ -13836,7 +13851,7 @@ abstract class NormalFormalParameter implements FormalParameter {
 ///        [FunctionTypedFormalParameter]
 ///      | [FieldFormalParameter]
 ///      | [SimpleFormalParameter]
-abstract class NormalFormalParameterImpl extends FormalParameterImpl
+sealed class NormalFormalParameterImpl extends FormalParameterImpl
     implements NormalFormalParameter {
   /// The documentation comment associated with this parameter, or `null` if
   /// this parameter does not have a documentation comment associated with it.
@@ -13953,7 +13968,7 @@ abstract class NullAssertPattern implements DartPattern {
 ///
 ///    nullAssertPattern ::=
 ///        [DartPattern] '!'
-class NullAssertPatternImpl extends DartPatternImpl
+final class NullAssertPatternImpl extends DartPatternImpl
     implements NullAssertPattern {
   @override
   final DartPatternImpl pattern;
@@ -14029,7 +14044,8 @@ abstract class NullCheckPattern implements DartPattern {
 ///
 ///    nullCheckPattern ::=
 ///        [DartPattern] '?'
-class NullCheckPatternImpl extends DartPatternImpl implements NullCheckPattern {
+final class NullCheckPatternImpl extends DartPatternImpl
+    implements NullCheckPattern {
   @override
   final DartPatternImpl pattern;
 
@@ -14101,7 +14117,7 @@ abstract class NullLiteral implements Literal {
 ///
 ///    nullLiteral ::=
 ///        'null'
-class NullLiteralImpl extends LiteralImpl implements NullLiteral {
+final class NullLiteralImpl extends LiteralImpl implements NullLiteral {
   /// The token representing the literal.
   @override
   final Token literal;
@@ -14204,7 +14220,7 @@ abstract class ObjectPattern implements DartPattern {
 ///
 ///    objectPattern ::=
 ///        [Identifier] [TypeArgumentList]? '(' [PatternField] ')'
-class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
+final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
   @override
@@ -14299,7 +14315,7 @@ abstract class OnClause implements AstNode {
 ///
 ///    onClause ::=
 ///        'on' [TypeName] (',' [TypeName])*
-class OnClauseImpl extends AstNodeImpl implements OnClause {
+final class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
   final Token onKeyword;
 
@@ -14360,7 +14376,7 @@ abstract class ParenthesizedExpression implements Expression {
 ///
 ///    parenthesizedExpression ::=
 ///        '(' [Expression] ')'
-class ParenthesizedExpressionImpl extends ExpressionImpl
+final class ParenthesizedExpressionImpl extends ExpressionImpl
     implements ParenthesizedExpression {
   /// The left parenthesis.
   @override
@@ -14451,7 +14467,7 @@ abstract class ParenthesizedPattern implements DartPattern {
 ///
 ///    parenthesizedPattern ::=
 ///        '(' [DartPattern] ')'
-class ParenthesizedPatternImpl extends DartPatternImpl
+final class ParenthesizedPatternImpl extends DartPatternImpl
     implements ParenthesizedPattern {
   @override
   final Token leftParenthesis;
@@ -14545,7 +14561,8 @@ abstract class PartDirective implements UriBasedDirective {
 ///
 ///    partDirective ::=
 ///        [Annotation] 'part' [StringLiteral] ';'
-class PartDirectiveImpl extends UriBasedDirectiveImpl implements PartDirective {
+final class PartDirectiveImpl extends UriBasedDirectiveImpl
+    implements PartDirective {
   /// The token representing the 'part' keyword.
   @override
   final Token partKeyword;
@@ -14620,7 +14637,8 @@ abstract class PartOfDirective implements Directive {
 ///
 ///    partOfDirective ::=
 ///        [Annotation] 'part' 'of' [Identifier] ';'
-class PartOfDirectiveImpl extends DirectiveImpl implements PartOfDirective {
+final class PartOfDirectiveImpl extends DirectiveImpl
+    implements PartOfDirective {
   /// The token representing the 'part' keyword.
   @override
   final Token partKeyword;
@@ -14721,7 +14739,7 @@ abstract class PatternAssignment implements Expression {
 ///
 /// When used as the condition in an `if`, the pattern is always a
 /// [PatternVariable] whose type is not `null`.
-class PatternAssignmentImpl extends ExpressionImpl
+final class PatternAssignmentImpl extends ExpressionImpl
     implements PatternAssignment {
   @override
   final Token equals;
@@ -14812,7 +14830,7 @@ abstract class PatternField implements AstNode {
 ///
 ///    patternField ::=
 ///        [PatternFieldName]? [DartPattern]
-class PatternFieldImpl extends AstNodeImpl implements PatternField {
+final class PatternFieldImpl extends AstNodeImpl implements PatternField {
   @override
   Element? element;
 
@@ -14876,7 +14894,8 @@ abstract class PatternFieldName implements AstNode {
 ///
 ///    patternFieldName ::=
 ///        [Token]? ':'
-class PatternFieldNameImpl extends AstNodeImpl implements PatternFieldName {
+final class PatternFieldNameImpl extends AstNodeImpl
+    implements PatternFieldName {
   @override
   final Token colon;
 
@@ -14929,7 +14948,7 @@ abstract class PatternVariableDeclaration implements AnnotatedNode {
 ///
 ///    patternDeclaration ::=
 ///        ( 'final' | 'var' ) [DartPattern] '=' [Expression]
-class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
+final class PatternVariableDeclarationImpl extends AnnotatedNodeImpl
     implements PatternVariableDeclaration {
   @override
   final Token equals;
@@ -15019,7 +15038,7 @@ abstract class PatternVariableDeclarationStatement implements Statement {
 ///
 ///    patternDeclarationStatement ::=
 ///        [PatternVariableDeclaration] ';'
-class PatternVariableDeclarationStatementImpl extends StatementImpl
+final class PatternVariableDeclarationStatementImpl extends StatementImpl
     implements PatternVariableDeclarationStatement {
   @override
   final PatternVariableDeclarationImpl declaration;
@@ -15078,7 +15097,7 @@ abstract class PostfixExpression
 ///
 ///    postfixExpression ::=
 ///        [Expression] [Token]
-class PostfixExpressionImpl extends ExpressionImpl
+final class PostfixExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PostfixExpression {
   /// The expression computing the operand for the operator.
@@ -15190,7 +15209,7 @@ abstract class PrefixedIdentifier implements Identifier {
 ///
 ///    prefixedIdentifier ::=
 ///        [SimpleIdentifier] '.' [SimpleIdentifier]
-class PrefixedIdentifierImpl extends IdentifierImpl
+final class PrefixedIdentifierImpl extends IdentifierImpl
     implements PrefixedIdentifier {
   /// The prefix associated with the library in which the identifier is defined.
   SimpleIdentifierImpl _prefix;
@@ -15301,7 +15320,7 @@ abstract class PrefixExpression
 ///
 ///    prefixExpression ::=
 ///        [Token] [Expression]
-class PrefixExpressionImpl extends ExpressionImpl
+final class PrefixExpressionImpl extends ExpressionImpl
     with NullShortableExpressionImpl, CompoundAssignmentExpressionImpl
     implements PrefixExpression {
   /// The prefix operator being applied to the operand.
@@ -15433,7 +15452,7 @@ abstract class PropertyAccess
 ///
 ///    propertyAccess ::=
 ///        [Expression] '.' [SimpleIdentifier]
-class PropertyAccessImpl extends CommentReferableExpressionImpl
+final class PropertyAccessImpl extends CommentReferableExpressionImpl
     with NullShortableExpressionImpl
     implements PropertyAccess {
   /// The expression computing the object defining the property being accessed.
@@ -15577,7 +15596,7 @@ abstract class RecordLiteral implements Literal {
   Token get rightParenthesis;
 }
 
-class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
+final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @override
   final Token? constKeyword;
 
@@ -15655,7 +15674,7 @@ abstract class RecordPattern implements DartPattern {
 ///
 ///    recordPattern ::=
 ///        '(' [PatternField] (',' [PatternField])* ')'
-class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
+final class RecordPatternImpl extends DartPatternImpl implements RecordPattern {
   final NodeListImpl<PatternFieldImpl> _fields = NodeListImpl._();
 
   @override
@@ -15770,7 +15789,7 @@ abstract class RecordTypeAnnotationField implements AstNode {
   TypeAnnotation get type;
 }
 
-abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
+sealed class RecordTypeAnnotationFieldImpl extends AstNodeImpl
     implements RecordTypeAnnotationField {
   @override
   final NodeListImpl<AnnotationImpl> metadata = NodeListImpl._();
@@ -15805,7 +15824,7 @@ abstract class RecordTypeAnnotationFieldImpl extends AstNodeImpl
   }
 }
 
-class RecordTypeAnnotationImpl extends TypeAnnotationImpl
+final class RecordTypeAnnotationImpl extends TypeAnnotationImpl
     implements RecordTypeAnnotation {
   @override
   final Token leftParenthesis;
@@ -15872,7 +15891,8 @@ abstract class RecordTypeAnnotationNamedField
   Token get name;
 }
 
-class RecordTypeAnnotationNamedFieldImpl extends RecordTypeAnnotationFieldImpl
+final class RecordTypeAnnotationNamedFieldImpl
+    extends RecordTypeAnnotationFieldImpl
     implements RecordTypeAnnotationNamedField {
   @override
   final Token name;
@@ -15903,7 +15923,7 @@ abstract class RecordTypeAnnotationNamedFields implements AstNode {
   Token get rightBracket;
 }
 
-class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
+final class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
     implements RecordTypeAnnotationNamedFields {
   @override
   final Token leftBracket;
@@ -15952,7 +15972,7 @@ class RecordTypeAnnotationNamedFieldsImpl extends AstNodeImpl
 abstract class RecordTypeAnnotationPositionalField
     implements RecordTypeAnnotationField {}
 
-class RecordTypeAnnotationPositionalFieldImpl
+final class RecordTypeAnnotationPositionalFieldImpl
     extends RecordTypeAnnotationFieldImpl
     implements RecordTypeAnnotationPositionalField {
   @override
@@ -15999,7 +16019,8 @@ abstract class RedirectingConstructorInvocation
 ///
 ///    redirectingConstructorInvocation ::=
 ///        'this' ('.' identifier)? arguments
-class RedirectingConstructorInvocationImpl extends ConstructorInitializerImpl
+final class RedirectingConstructorInvocationImpl
+    extends ConstructorInitializerImpl
     implements RedirectingConstructorInvocation {
   /// The token for the 'this' keyword.
   @override
@@ -16097,7 +16118,7 @@ abstract class RelationalPattern implements DartPattern {
 ///
 ///    relationalPattern ::=
 ///        (equalityOperator | relationalOperator) [Expression]
-class RelationalPatternImpl extends DartPatternImpl
+final class RelationalPatternImpl extends DartPatternImpl
     implements RelationalPattern {
   ExpressionImpl _operand;
 
@@ -16172,7 +16193,7 @@ abstract class RestPatternElement
   DartPattern? get pattern;
 }
 
-class RestPatternElementImpl extends AstNodeImpl
+final class RestPatternElementImpl extends AstNodeImpl
     implements
         RestPatternElement,
         ListPatternElementImpl,
@@ -16227,7 +16248,7 @@ abstract class RethrowExpression implements Expression {
 ///
 ///    rethrowExpression ::=
 ///        'rethrow'
-class RethrowExpressionImpl extends ExpressionImpl
+final class RethrowExpressionImpl extends ExpressionImpl
     implements RethrowExpression {
   /// The token representing the 'rethrow' keyword.
   @override
@@ -16287,7 +16308,8 @@ abstract class ReturnStatement implements Statement {
 ///
 ///    returnStatement ::=
 ///        'return' [Expression]? ';'
-class ReturnStatementImpl extends StatementImpl implements ReturnStatement {
+final class ReturnStatementImpl extends StatementImpl
+    implements ReturnStatement {
   /// The token representing the 'return' keyword.
   @override
   final Token returnKeyword;
@@ -16355,7 +16377,7 @@ abstract class ScriptTag implements AstNode {
 ///
 ///    scriptTag ::=
 ///        '#!' (~NEWLINE)* NEWLINE
-class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
+final class ScriptTagImpl extends AstNodeImpl implements ScriptTag {
   /// The token representing this script tag.
   @override
   final Token scriptTag;
@@ -16447,7 +16469,8 @@ abstract class SetOrMapLiteral implements TypedLiteral {
   Token get rightBracket;
 }
 
-class SetOrMapLiteralImpl extends TypedLiteralImpl implements SetOrMapLiteral {
+final class SetOrMapLiteralImpl extends TypedLiteralImpl
+    implements SetOrMapLiteral {
   @override
   final Token leftBracket;
 
@@ -16567,7 +16590,8 @@ abstract class ShowCombinator implements Combinator {
 ///
 ///    showCombinator ::=
 ///        'show' [SimpleIdentifier] (',' [SimpleIdentifier])*
-class ShowCombinatorImpl extends CombinatorImpl implements ShowCombinator {
+final class ShowCombinatorImpl extends CombinatorImpl
+    implements ShowCombinator {
   /// The list of names from the library that are made visible by this
   /// combinator.
   final NodeListImpl<SimpleIdentifierImpl> _shownNames = NodeListImpl._();
@@ -16621,7 +16645,7 @@ abstract class SimpleFormalParameter implements NormalFormalParameter {
 ///
 ///    simpleFormalParameter ::=
 ///        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
-class SimpleFormalParameterImpl extends NormalFormalParameterImpl
+final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
@@ -16761,7 +16785,8 @@ abstract class SimpleIdentifier implements Identifier {
 ///    initialCharacter ::= '_' | '$' | letter
 ///
 ///    internalCharacter ::= '_' | '$' | letter | digit
-class SimpleIdentifierImpl extends IdentifierImpl implements SimpleIdentifier {
+final class SimpleIdentifierImpl extends IdentifierImpl
+    implements SimpleIdentifier {
   /// The token representing the identifier.
   @override
   final Token token;
@@ -17009,7 +17034,7 @@ abstract class SimpleStringLiteral implements SingleStringLiteral {
 ///    singleLineStringLiteral ::=
 ///        "'" characters "'"
 ///      | '"' characters '"'
-class SimpleStringLiteralImpl extends SingleStringLiteralImpl
+final class SimpleStringLiteralImpl extends SingleStringLiteralImpl
     implements SimpleStringLiteral {
   /// The token representing the literal.
   @override
@@ -17108,7 +17133,7 @@ abstract class SingleStringLiteral implements StringLiteral {
 ///    singleStringLiteral ::=
 ///        [SimpleStringLiteral]
 ///      | [StringInterpolation]
-abstract class SingleStringLiteralImpl extends StringLiteralImpl
+sealed class SingleStringLiteralImpl extends StringLiteralImpl
     implements SingleStringLiteral {}
 
 /// A spread element.
@@ -17128,7 +17153,7 @@ abstract class SpreadElement implements CollectionElement {
   Token get spreadOperator;
 }
 
-class SpreadElementImpl extends AstNodeImpl
+final class SpreadElementImpl extends AstNodeImpl
     implements CollectionElementImpl, SpreadElement {
   @override
   final Token spreadOperator;
@@ -17224,7 +17249,7 @@ abstract class Statement implements AstNode {
 ///      | [ReturnStatement]
 ///      | [ExpressionStatement]
 ///      | [FunctionDeclarationStatement]
-abstract class StatementImpl extends AstNodeImpl implements Statement {
+sealed class StatementImpl extends AstNodeImpl implements Statement {
   @override
   StatementImpl get unlabeled => this;
 }
@@ -17257,7 +17282,7 @@ abstract class StringInterpolation implements SingleStringLiteral {
 ///    stringInterpolation ::=
 ///        ''' [InterpolationElement]* '''
 ///      | '"' [InterpolationElement]* '"'
-class StringInterpolationImpl extends SingleStringLiteralImpl
+final class StringInterpolationImpl extends SingleStringLiteralImpl
     implements StringInterpolation {
   /// The elements that will be composed to produce the resulting string.
   final NodeListImpl<InterpolationElementImpl> _elements = NodeListImpl._();
@@ -17460,7 +17485,7 @@ abstract class StringLiteral implements Literal {
 ///        [SimpleStringLiteral]
 ///      | [AdjacentStrings]
 ///      | [StringInterpolation]
-abstract class StringLiteralImpl extends LiteralImpl implements StringLiteral {
+sealed class StringLiteralImpl extends LiteralImpl implements StringLiteral {
   @override
   String? get stringValue {
     StringBuffer buffer = StringBuffer();
@@ -17507,7 +17532,7 @@ abstract class SuperConstructorInvocation
 ///
 ///    superInvocation ::=
 ///        'super' ('.' [SimpleIdentifier])? [ArgumentList]
-class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
+final class SuperConstructorInvocationImpl extends ConstructorInitializerImpl
     implements SuperConstructorInvocation {
   /// The token for the 'super' keyword.
   @override
@@ -17599,7 +17624,8 @@ abstract class SuperExpression implements Expression {
 ///
 ///    superExpression ::=
 ///        'super'
-class SuperExpressionImpl extends ExpressionImpl implements SuperExpression {
+final class SuperExpressionImpl extends ExpressionImpl
+    implements SuperExpression {
   /// The token representing the 'super' keyword.
   @override
   final Token superKeyword;
@@ -17684,7 +17710,7 @@ abstract class SuperFormalParameter implements NormalFormalParameter {
 ///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
 ///        'super' '.' [SimpleIdentifier]
 ///        ([TypeParameterList]? [FormalParameterList])?
-class SuperFormalParameterImpl extends NormalFormalParameterImpl
+final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     implements SuperFormalParameter {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
   /// `null` if no keyword was used.
@@ -17835,7 +17861,7 @@ abstract class SwitchCase implements SwitchMember {
 ///
 ///    switchCase ::=
 ///        [SimpleIdentifier]* 'case' [Expression] ':' [Statement]*
-class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
+final class SwitchCaseImpl extends SwitchMemberImpl implements SwitchCase {
   /// The expression controlling whether the statements will be executed.
   ExpressionImpl _expression;
 
@@ -17889,7 +17915,8 @@ abstract class SwitchDefault implements SwitchMember {}
 ///
 ///    switchDefault ::=
 ///        [SimpleIdentifier]* 'default' ':' [Statement]*
-class SwitchDefaultImpl extends SwitchMemberImpl implements SwitchDefault {
+final class SwitchDefaultImpl extends SwitchMemberImpl
+    implements SwitchDefault {
   /// Initialize a newly created switch default. The list of [labels] can be
   /// `null` if there are no labels.
   SwitchDefaultImpl({
@@ -17970,7 +17997,7 @@ abstract class SwitchExpressionCase implements AstNode {
 ///
 ///    switchExpressionCase ::=
 ///        [GuardedPattern] '=>' [Expression]
-class SwitchExpressionCaseImpl extends AstNodeImpl
+final class SwitchExpressionCaseImpl extends AstNodeImpl
     implements SwitchExpressionCase {
   @override
   final GuardedPatternImpl guardedPattern;
@@ -18024,7 +18051,8 @@ class SwitchExpressionCaseImpl extends AstNodeImpl
 ///    switchExpression ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchExpressionCase]
 ///        (',' [SwitchExpressionCase])* ','? '}'
-class SwitchExpressionImpl extends ExpressionImpl implements SwitchExpression {
+final class SwitchExpressionImpl extends ExpressionImpl
+    implements SwitchExpression {
   @override
   final Token switchKeyword;
 
@@ -18143,7 +18171,7 @@ abstract class SwitchMember implements AstNode {
 ///    switchMember ::=
 ///        switchCase
 ///      | switchDefault
-abstract class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
+sealed class SwitchMemberImpl extends AstNodeImpl implements SwitchMember {
   /// The labels associated with the switch member.
   final NodeListImpl<LabelImpl> _labels = NodeListImpl._();
 
@@ -18208,7 +18236,7 @@ abstract class SwitchPatternCase implements SwitchMember {
 ///
 ///    switchPatternCase ::=
 ///        [Label]* 'case' [DartPattern] [WhenClause]? ':' [Statement]*
-class SwitchPatternCaseImpl extends SwitchMemberImpl
+final class SwitchPatternCaseImpl extends SwitchMemberImpl
     implements SwitchPatternCase {
   @override
   final GuardedPatternImpl guardedPattern;
@@ -18290,7 +18318,8 @@ class SwitchStatementCaseGroup {
 ///
 ///    switchStatement ::=
 ///        'switch' '(' [Expression] ')' '{' [SwitchCase]* [SwitchDefault]? '}'
-class SwitchStatementImpl extends StatementImpl implements SwitchStatement {
+final class SwitchStatementImpl extends StatementImpl
+    implements SwitchStatement {
   /// The token representing the 'switch' keyword.
   @override
   final Token switchKeyword;
@@ -18413,7 +18442,7 @@ abstract class SymbolLiteral implements Literal {
 ///
 ///    symbolLiteral ::=
 ///        '#' (operator | (identifier ('.' identifier)*))
-class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
+final class SymbolLiteralImpl extends LiteralImpl implements SymbolLiteral {
   /// The token introducing the literal.
   @override
   final Token poundSign;
@@ -18469,7 +18498,8 @@ abstract class ThisExpression implements Expression {
 ///
 ///    thisExpression ::=
 ///        'this'
-class ThisExpressionImpl extends ExpressionImpl implements ThisExpression {
+final class ThisExpressionImpl extends ExpressionImpl
+    implements ThisExpression {
   /// The token representing the 'this' keyword.
   @override
   final Token thisKeyword;
@@ -18524,7 +18554,8 @@ abstract class ThrowExpression implements Expression {
 ///
 ///    throwExpression ::=
 ///        'throw' [Expression]
-class ThrowExpressionImpl extends ExpressionImpl implements ThrowExpression {
+final class ThrowExpressionImpl extends ExpressionImpl
+    implements ThrowExpression {
   /// The token representing the 'throw' keyword.
   @override
   final Token throwKeyword;
@@ -18607,7 +18638,7 @@ abstract class TopLevelVariableDeclaration implements CompilationUnitMember {
 ///    topLevelVariableDeclaration ::=
 ///        ('final' | 'const') type? staticFinalDeclarationList ';'
 ///      | variableDeclaration ';'
-class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
+final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     implements TopLevelVariableDeclaration {
   /// The top-level variables being declared.
   VariableDeclarationListImpl _variableList;
@@ -18704,7 +18735,7 @@ abstract class TryStatement implements Statement {
 ///
 ///    finallyClause ::=
 ///        'finally' [Block]
-class TryStatementImpl extends StatementImpl implements TryStatement {
+final class TryStatementImpl extends StatementImpl implements TryStatement {
   /// The token representing the 'try' keyword.
   @override
   final Token tryKeyword;
@@ -18817,7 +18848,7 @@ abstract class TypeAlias implements NamedCompilationUnitMember {
 ///    typeAliasBody ::=
 ///        classTypeAlias
 ///      | functionTypeAlias
-abstract class TypeAliasImpl extends NamedCompilationUnitMemberImpl
+sealed class TypeAliasImpl extends NamedCompilationUnitMemberImpl
     implements TypeAlias {
   /// The token representing the 'typedef' keyword.
   @override
@@ -18868,8 +18899,7 @@ abstract class TypeAnnotation implements AstNode {
 ///    type ::=
 ///        [NamedType]
 ///      | [GenericFunctionType]
-abstract class TypeAnnotationImpl extends AstNodeImpl
-    implements TypeAnnotation {}
+sealed class TypeAnnotationImpl extends AstNodeImpl implements TypeAnnotation {}
 
 /// A list of type arguments.
 ///
@@ -18892,7 +18922,8 @@ abstract class TypeArgumentList implements AstNode {
 ///
 ///    typeArguments ::=
 ///        '<' typeName (',' typeName)* '>'
-class TypeArgumentListImpl extends AstNodeImpl implements TypeArgumentList {
+final class TypeArgumentListImpl extends AstNodeImpl
+    implements TypeArgumentList {
   /// The left bracket.
   @override
   final Token leftBracket;
@@ -18965,7 +18996,7 @@ abstract class TypedLiteral implements Literal {
 ///    typedLiteral ::=
 ///        [ListLiteral]
 ///      | [MapLiteral]
-abstract class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
+sealed class TypedLiteralImpl extends LiteralImpl implements TypedLiteral {
   /// The token representing the 'const' keyword, or `null` if the literal is
   /// not a constant.
   @override
@@ -19035,7 +19066,7 @@ abstract class TypeLiteral implements Expression, CommentReferableExpression {
 /// The `.staticType` getter returns the type of the expression (which will
 /// always be the type `Type`).  To see the type represented by the type literal
 /// use `.typeName.type`.
-class TypeLiteralImpl extends CommentReferableExpressionImpl
+final class TypeLiteralImpl extends CommentReferableExpressionImpl
     implements TypeLiteral {
   NamedTypeImpl _typeName;
 
@@ -19122,7 +19153,7 @@ abstract class TypeParameter implements Declaration {
 ///        typeParameterVariance? [SimpleIdentifier] ('extends' [TypeName])?
 ///
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
-class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
+final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   @override
   final Token name;
 
@@ -19217,7 +19248,8 @@ abstract class TypeParameterList implements AstNode {
 ///
 ///    typeParameterList ::=
 ///        '<' [TypeParameter] (',' [TypeParameter])* '>'
-class TypeParameterListImpl extends AstNodeImpl implements TypeParameterList {
+final class TypeParameterListImpl extends AstNodeImpl
+    implements TypeParameterList {
   /// The left angle bracket.
   @override
   final Token leftBracket;
@@ -19282,7 +19314,7 @@ abstract class UriBasedDirective implements Directive {
 ///        [ExportDirective]
 ///      | [ImportDirective]
 ///      | [PartDirective]
-abstract class UriBasedDirectiveImpl extends DirectiveImpl
+sealed class UriBasedDirectiveImpl extends DirectiveImpl
     implements UriBasedDirective {
   /// The URI referenced by this directive.
   StringLiteralImpl _uri;
@@ -19413,7 +19445,7 @@ abstract class VariableDeclaration implements Declaration {
 /// a VariableDeclaration, and currently we don't record comments for it either.
 /// Consider changing the class hierarchy so that [VariableDeclaration] does not
 /// extend [Declaration].
-class VariableDeclarationImpl extends DeclarationImpl
+final class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
   final Token name;
@@ -19578,7 +19610,7 @@ abstract class VariableDeclarationList implements AnnotatedNode {
 ///      | 'const' [TypeAnnotation]?
 ///      | 'var'
 ///      | 'late'? [TypeAnnotation]
-class VariableDeclarationListImpl extends AnnotatedNodeImpl
+final class VariableDeclarationListImpl extends AnnotatedNodeImpl
     implements VariableDeclarationList {
   /// The token representing the 'final', 'const' or 'var' keyword, or `null` if
   /// no keyword was included.
@@ -19682,7 +19714,7 @@ abstract class VariableDeclarationStatement implements Statement {
 ///
 ///    variableDeclarationStatement ::=
 ///        [VariableDeclarationList] ';'
-class VariableDeclarationStatementImpl extends StatementImpl
+final class VariableDeclarationStatementImpl extends StatementImpl
     implements VariableDeclarationStatement {
   /// The variables being declared.
   VariableDeclarationListImpl _variableList;
@@ -19736,7 +19768,7 @@ abstract class VariablePattern implements DartPattern {
   Token get name;
 }
 
-abstract class VariablePatternImpl extends DartPatternImpl
+sealed class VariablePatternImpl extends DartPatternImpl
     implements VariablePattern {
   @override
   final Token name;
@@ -19774,7 +19806,7 @@ abstract class WhenClause implements AstNode {
 ///
 ///    switchCase ::=
 ///        'when' [Expression]
-class WhenClauseImpl extends AstNodeImpl implements WhenClause {
+final class WhenClauseImpl extends AstNodeImpl implements WhenClause {
   ExpressionImpl _expression;
 
   @override
@@ -19842,7 +19874,7 @@ abstract class WhileStatement implements Statement {
 ///
 ///    whileStatement ::=
 ///        'while' '(' [Expression] ')' [Statement]
-class WhileStatementImpl extends StatementImpl implements WhileStatement {
+final class WhileStatementImpl extends StatementImpl implements WhileStatement {
   /// The token representing the 'while' keyword.
   @override
   final Token whileKeyword;
@@ -19934,7 +19966,8 @@ abstract class WildcardPattern implements DartPattern {
 ///
 ///    variablePattern ::=
 ///        ( 'var' | 'final' | 'final'? [TypeAnnotation])? '_'
-class WildcardPatternImpl extends DartPatternImpl implements WildcardPattern {
+final class WildcardPatternImpl extends DartPatternImpl
+    implements WildcardPattern {
   @override
   final Token? keyword;
 
@@ -20030,7 +20063,7 @@ abstract class WithClause implements AstNode {
 ///
 ///    withClause ::=
 ///        'with' [TypeName] (',' [TypeName])*
-class WithClauseImpl extends AstNodeImpl implements WithClause {
+final class WithClauseImpl extends AstNodeImpl implements WithClause {
   /// The token representing the 'with' keyword.
   @override
   final Token withKeyword;
@@ -20094,7 +20127,7 @@ abstract class YieldStatement implements Statement {
 ///
 ///    yieldStatement ::=
 ///        'yield' '*'? [Expression] ‘;’
-class YieldStatementImpl extends StatementImpl implements YieldStatement {
+final class YieldStatementImpl extends StatementImpl implements YieldStatement {
   /// The 'yield' keyword.
   @override
   final Token yieldKeyword;
