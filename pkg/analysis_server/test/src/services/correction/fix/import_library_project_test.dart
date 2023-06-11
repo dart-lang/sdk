@@ -845,7 +845,7 @@ dependencies:
 void f(Test t) {}
 ''');
 
-    await resolveFile(b);
+    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:aaa/a.dart';
@@ -875,7 +875,7 @@ dev_dependencies:
 void f(Test t) {}
 ''');
 
-    await resolveFile(b);
+    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:aaa/a.dart';
@@ -932,7 +932,7 @@ class Test {}
 void f(Test t) {}
 ''');
 
-    await resolveFile(b);
+    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'a.dart';
@@ -1415,7 +1415,7 @@ class Test {}
 void f(Test t) {}
 ''');
 
-    await resolveFile(b);
+    await getResolvedUnit(b);
 
     await assertHasFix('''
 import 'package:test/src/a.dart';

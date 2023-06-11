@@ -73,7 +73,7 @@ abstract class AbstractCallHierarchyTest extends AbstractSingleUnitTest {
     expect(marker, greaterThanOrEqualTo(0));
     addTestSource(withoutMarkers(code));
 
-    final result = await getResolvedUnit(testFile.path);
+    final result = await getResolvedUnit(testFile);
 
     return DartCallHierarchyComputer(result).findTarget(marker);
   }
@@ -287,10 +287,10 @@ extension StringExtension on String {
 
   Future<void> test_functionCall() async {
     final contents = '''
-import 'other.dart' as f;
+import 'other.dart' as other;
 
 void f() {
-  f.myFun^ction();
+  other.myFun^ction();
 }
     ''';
 
@@ -658,7 +658,8 @@ class CallHierarchyComputerIncomingCallsTest extends AbstractCallHierarchyTest {
   Future<List<CallHierarchyCalls>> findIncomingCallsForTarget(
     CallHierarchyItem target,
   ) async {
-    final result = await getResolvedUnit(target.file);
+    final targetFile = getFile(target.file);
+    final result = await getResolvedUnit(targetFile);
     expect(result.errors, isEmpty);
 
     return DartCallHierarchyComputer(result)
@@ -1161,7 +1162,8 @@ class CallHierarchyComputerOutgoingCallsTest extends AbstractCallHierarchyTest {
   Future<List<CallHierarchyCalls>> findOutgoingCallsForTarget(
     CallHierarchyItem target,
   ) async {
-    final result = await getResolvedUnit(target.file);
+    final targetFile = getFile(target.file);
+    final result = await getResolvedUnit(targetFile);
     expect(result.errors, isEmpty);
 
     return DartCallHierarchyComputer(result).findOutgoingCalls(target);

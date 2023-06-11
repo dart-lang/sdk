@@ -129,12 +129,12 @@ class ColorComputerTest extends AbstractContextTest {
 
     newFile(testPath, dartCode);
     if (otherCode != null) {
-      newFile(otherPath, otherCode);
-      final otherResult = await getResolvedUnit(otherPath);
+      final otherFile = newFile(otherPath, otherCode);
+      final otherResult = await getResolvedUnit(otherFile);
       expectNoErrors(otherResult);
     }
 
-    final result = await getResolvedUnit(testPath);
+    final result = await getResolvedUnit(testFile);
     expectNoErrors(result);
 
     computer = ColorComputer(result);

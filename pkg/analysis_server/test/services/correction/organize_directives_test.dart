@@ -942,7 +942,8 @@ class NonLibraryAnnotation {
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
-    var result = await getResolvedUnit(testFile.path);
+    verifyNoTestUnitErrors = false;
+    var result = await getResolvedUnit(testFile);
     testUnit = result.unit;
     testErrors = result.errors;
   }
