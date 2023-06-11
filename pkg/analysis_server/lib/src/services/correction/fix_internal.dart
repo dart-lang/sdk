@@ -1081,7 +1081,8 @@ class FixProcessor extends BaseProcessor {
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED: [
       AddLate.new,
-      CreateConstructorForFinalFields.new,
+      CreateConstructorForFinalFields.requiredNamed,
+      CreateConstructorForFinalFields.requiredPositional,
     ],
     CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1: [
       AddFieldFormalParameters.new,
