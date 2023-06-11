@@ -15,7 +15,6 @@ import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/from_environment_evaluator.dart';
@@ -2459,7 +2458,7 @@ class _InstanceCreationEvaluator {
     var positionalIndex = 0;
     for (var parameter in _constructor.parameters) {
       if (parameter is SuperFormalParameterElement) {
-        var value = astFactory.simpleIdentifier(
+        var value = SimpleIdentifierImpl(
           StringToken(TokenType.STRING, parameter.name, -1),
         )
           ..staticElement = parameter
@@ -2470,7 +2469,7 @@ class _InstanceCreationEvaluator {
           superArguments.add(
             NamedExpressionImpl(
               name: LabelImpl(
-                label: astFactory.simpleIdentifier(
+                label: SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, parameter.name, -1),
                 )..staticElement = parameter,
                 colon: StringToken(TokenType.COLON, ':', -1),
