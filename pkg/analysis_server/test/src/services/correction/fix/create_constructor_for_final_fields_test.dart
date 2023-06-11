@@ -11,7 +11,9 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(CreateConstructorForFinalFieldsTest);
+    defineReflectiveTests(
+        CreateConstructorForFinalFieldsRequiredPositionalTest);
+    defineReflectiveTests(CreateConstructorForFinalFieldsRequiredNamedTest);
     defineReflectiveTests(CreateConstructorForFinalFieldsWithoutNullSafetyTest);
     defineReflectiveTests(
         CreateConstructorForFinalFieldsWithoutSuperParametersTest);
@@ -19,7 +21,99 @@ void main() {
 }
 
 @reflectiveTest
-class CreateConstructorForFinalFieldsTest extends FixProcessorTest {
+class CreateConstructorForFinalFieldsRequiredNamedTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind =>
+      DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED;
+
+  Future<void> test_class_excludesLate() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  late final int b;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int a;
+  late final int b;
+
+  Test({required this.a});
+}
+''');
+  }
+
+  Future<void> test_class_lint_sortConstructorsFirst() async {
+    createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
+    await resolveTestCode('''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Test {
+  Test({required this.a, required this.c});
+
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_class_simple() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int a;
+  final int b = 2;
+  final int c;
+
+  Test({required this.a, required this.c});
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_enum_simple() async {
+    await resolveTestCode('''
+enum E {
+  v(a: 0, c: 2);
+  final int a;
+  final int b = 1;
+  final int c;
+}
+''');
+    await assertHasFix('''
+enum E {
+  v(a: 0, c: 2);
+  final int a;
+  final int b = 1;
+  final int c;
+
+  const E({required this.a, required this.c});
+}
+''', errorFilter: (error) {
+      return error.offset == 38;
+    });
+  }
+}
+
+@reflectiveTest
+class CreateConstructorForFinalFieldsRequiredPositionalTest
+    extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
 

@@ -694,6 +694,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Create constructor for final fields',
   );
+  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED = FixKind(
+    'dart.fix.create.constructorForFinalFields.requiredNamed',
+    DartFixKindPriority.DEFAULT,
+    'Create constructor for final fields, required named',
+  );
   static const CREATE_CONSTRUCTOR_SUPER = FixKind(
     'dart.fix.create.constructorSuper',
     DartFixKindPriority.DEFAULT,

@@ -15,8 +15,16 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
 class CreateConstructorForFinalFields extends CorrectionProducer {
+  final _Style _style;
+
+  CreateConstructorForFinalFields.requiredNamed()
+      : _style = _Style.requiredNamed;
+
+  CreateConstructorForFinalFields.requiredPositional()
+      : _style = _Style.requiredPositional;
+
   @override
-  FixKind get fixKind => DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS;
+  FixKind get fixKind => _style.fixKind;
 
   FieldDeclaration? get _errorFieldDeclaration {
     if (node is VariableDeclaration) {
@@ -219,13 +227,26 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         }
         builder.write(fixContext.containerName);
         builder.write('(');
-        fields.forEachIndexed((index, field) {
-          if (index > 0) {
-            builder.write(', ');
-          }
-          builder.write('this.');
-          builder.write(field.name);
-        });
+        switch (_style) {
+          case _Style.requiredNamed:
+            builder.write('{');
+            fields.forEachIndexed((index, field) {
+              if (index > 0) {
+                builder.write(', ');
+              }
+              builder.write('required this.');
+              builder.write(field.name);
+            });
+            builder.write('}');
+          case _Style.requiredPositional:
+            fields.forEachIndexed((index, field) {
+              if (index > 0) {
+                builder.write(', ');
+              }
+              builder.write('this.');
+              builder.write(field.name);
+            });
+        }
         builder.write(');');
         builder.write(location.suffix);
       });
@@ -288,5 +309,20 @@ class _FixContext {
     required this.containerName,
     required this.location,
     required this.variableLists,
+  });
+}
+
+enum _Style {
+  requiredNamed(
+    fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED,
+  ),
+  requiredPositional(
+    fixKind: DartFixKind.CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS,
+  );
+
+  final FixKind fixKind;
+
+  const _Style({
+    required this.fixKind,
   });
 }
