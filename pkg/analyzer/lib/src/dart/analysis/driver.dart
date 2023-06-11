@@ -772,12 +772,10 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
 
     var fileOr = _fsState.getFileForUri(uriObj);
-    return fileOr.map(
-      (file) async {
-        if (file == null) {
-          return CannotResolveUriResult();
-        }
-
+    switch (fileOr) {
+      case null:
+        return CannotResolveUriResult();
+      case UriResolutionFile(:final file):
         final kind = file.kind;
         if (kind is LibraryFileKind) {
         } else if (kind is AugmentationFileKind) {
@@ -802,14 +800,12 @@ class AnalysisDriver implements AnalysisDriverGeneric {
 
         // Should not happen.
         return UnspecifiedInvalidResult();
-      },
-      (externalLibrary) async {
-        final uri = externalLibrary.source.uri;
+      case UriResolutionExternalLibrary(:final source):
+        final uri = source.uri;
         // TODO(scheglov) Check if the source is not for library.
         var element = libraryContext.getLibraryElement(uri);
         return LibraryElementResultImpl(element);
-      },
-    );
+    }
   }
 
   /// Return a [ParsedLibraryResult] for the library with the given [path].
@@ -854,17 +850,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// Return a [ParsedLibraryResult] for the library with the given [uri].
   SomeParsedLibraryResult getParsedLibraryByUri(Uri uri) {
     var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) {
-        if (file == null) {
-          return CannotResolveUriResult();
-        }
+    switch (fileOr) {
+      case null:
+        return CannotResolveUriResult();
+      case UriResolutionFile(:final file):
         return getParsedLibrary(file.path);
-      },
-      (externalLibrary) {
+      case UriResolutionExternalLibrary():
         return UriOfExternalLibraryResult();
-      },
-    );
+    }
   }
 
   /// Return a [Future] that completes with a [ResolvedLibraryResult] for the
@@ -922,19 +915,16 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   /// state (including new states of the files previously reported using
   /// [changeFile]), prior to the next time the analysis state transitions
   /// to "idle".
-  Future<SomeResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) {
+  Future<SomeResolvedLibraryResult> getResolvedLibraryByUri(Uri uri) async {
     var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) async {
-        if (file == null) {
-          return CannotResolveUriResult();
-        }
+    switch (fileOr) {
+      case null:
+        return CannotResolveUriResult();
+      case UriResolutionFile(:final file):
         return getResolvedLibrary(file.path);
-      },
-      (externalLibrary) async {
+      case UriResolutionExternalLibrary():
         return UriOfExternalLibraryResult();
-      },
-    );
+    }
   }
 
   /// Return a [Future] that completes with a [SomeResolvedUnitResult] for the
@@ -1631,13 +1621,14 @@ class AnalysisDriver implements AnalysisDriverGeneric {
     }
     _hasDartCoreDiscovered = true;
 
-    _fsState.getFileForUri(uriCache.parse('dart:core')).map(
-      (file) {
-        final kind = file?.kind as LibraryFileKind;
+    final dartCoreUri = uriCache.parse('dart:core');
+    final dartCoreResolution = _fsState.getFileForUri(dartCoreUri);
+    if (dartCoreResolution is UriResolutionFile) {
+      final kind = dartCoreResolution.file.kind;
+      if (kind is LibraryFileKind) {
         kind.discoverReferencedFiles();
-      },
-      (externalLibrary) {},
-    );
+      }
+    }
   }
 
   void _discoverLibraries() {
@@ -1758,10 +1749,11 @@ class AnalysisDriver implements AnalysisDriverGeneric {
   bool _hasLibraryByUri(String uriStr) {
     var uri = uriCache.parse(uriStr);
     var fileOr = _fsState.getFileForUri(uri);
-    return fileOr.map(
-      (file) => file != null && file.exists,
-      (_) => true,
-    );
+    return switch (fileOr) {
+      null => false,
+      UriResolutionFile(:final file) => file.exists,
+      UriResolutionExternalLibrary() => true,
+    };
   }
 
   bool _isAbsolutePath(String path) {
