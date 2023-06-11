@@ -8,7 +8,9 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -84,6 +86,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     final fixContext = _FixContext(
       builder: builder,
       containerName: className,
+      superType: superType,
       location: targetLocation,
       variableLists: variableLists,
     );
@@ -115,6 +118,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       fixContext: _FixContext(
         builder: builder,
         containerName: enumName,
+        superType: null,
         location: targetLocation,
         variableLists: variableLists,
       ),
@@ -230,22 +234,40 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         switch (_style) {
           case _Style.requiredNamed:
             builder.write('{');
-            fields.forEachIndexed((index, field) {
-              if (index > 0) {
+            var hasWritten = false;
+            final superNamed = fixContext.superNamed;
+            if (superNamed != null) {
+              for (final formalParameter in superNamed) {
+                if (hasWritten) {
+                  builder.write(', ');
+                }
+                if (formalParameter.isRequiredNamed) {
+                  builder.write('required ');
+                }
+                builder.write('super.');
+                builder.write(formalParameter.name);
+                hasWritten = true;
+              }
+            }
+            for (final field in fields) {
+              if (hasWritten) {
                 builder.write(', ');
               }
               builder.write('required this.');
               builder.write(field.name);
-            });
+              hasWritten = true;
+            }
             builder.write('}');
           case _Style.requiredPositional:
-            fields.forEachIndexed((index, field) {
-              if (index > 0) {
+            var hasWritten = false;
+            for (final field in fields) {
+              if (hasWritten) {
                 builder.write(', ');
               }
               builder.write('this.');
               builder.write(field.name);
-            });
+              hasWritten = true;
+            }
         }
         builder.write(');');
         builder.write(location.suffix);
@@ -301,15 +323,27 @@ class _Field {
 class _FixContext {
   final ChangeBuilder builder;
   final String containerName;
+  final InterfaceType? superType;
   final InsertionLocation location;
   final List<VariableDeclarationList> variableLists;
 
   _FixContext({
     required this.builder,
     required this.containerName,
+    required this.superType,
     required this.location,
     required this.variableLists,
   });
+
+  List<ParameterElement>? get superNamed {
+    final superConstructor = superType?.constructors.singleOrNull;
+    if (superConstructor != null) {
+      final superAll = superConstructor.parameters;
+      final superNamed = superAll.where((e) => e.isNamed).toList();
+      return superNamed.length == superAll.length ? superNamed : null;
+    }
+    return null;
+  }
 }
 
 enum _Style {

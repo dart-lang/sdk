@@ -44,6 +44,72 @@ class Test {
 ''');
   }
 
+  Future<void> test_class_hasSuperClass_withOptionalNamed() async {
+    await resolveTestCode('''
+class A {
+  final int? f11;
+  final int? f12;
+
+  A({this.f11, this.f12})
+}
+
+class B extends A {
+  final int f21;
+  final int f22;
+}
+''');
+    await assertHasFix('''
+class A {
+  final int? f11;
+  final int? f12;
+
+  A({this.f11, this.f12})
+}
+
+class B extends A {
+  final int f21;
+  final int f22;
+
+  B({super.f11, super.f12, required this.f21, required this.f22});
+}
+''', errorFilter: (error) {
+      return error.message.contains("'f21'");
+    });
+  }
+
+  Future<void> test_class_hasSuperClass_withRequiredNamed() async {
+    await resolveTestCode('''
+class A {
+  final int f11;
+  final int f12;
+
+  A({required this.f11, required this.f12})
+}
+
+class B extends A {
+  final int f21;
+  final int f22;
+}
+''');
+    await assertHasFix('''
+class A {
+  final int f11;
+  final int f12;
+
+  A({required this.f11, required this.f12})
+}
+
+class B extends A {
+  final int f21;
+  final int f22;
+
+  B({required super.f11, required super.f12, required this.f21, required this.f22});
+}
+''', errorFilter: (error) {
+      return error.message.contains("'f21'");
+    });
+  }
+
   Future<void> test_class_lint_sortConstructorsFirst() async {
     createAnalysisOptionsFile(lints: [LintNames.sort_constructors_first]);
     await resolveTestCode('''
