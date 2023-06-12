@@ -254,9 +254,13 @@ class QemuConfig {
         QemuConfig('qemu-i386', ['-L', '/usr/lib/i386-linux-gnu/']),
     Architecture.x64:
         QemuConfig('qemu-x86_64', ['-L', '/usr/lib/x86_64-linux-gnu/']),
+    Architecture.x64c:
+        QemuConfig('qemu-x86_64', ['-L', '/usr/lib/x86_64-linux-gnu/']),
     Architecture.arm:
         QemuConfig('qemu-arm', ['-L', '/usr/arm-linux-gnueabihf/']),
     Architecture.arm64:
+        QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
+    Architecture.arm64c:
         QemuConfig('qemu-aarch64', ['-L', '/usr/aarch64-linux-gnu/']),
     Architecture.riscv32:
         QemuConfig('qemu-riscv32', ['-L', '/usr/riscv32-linux-gnu/']),
