@@ -4,13 +4,13 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 
-/// A reference to a named parameter.
+/// A reference to a named formal parameter.
 final class NamedParameterReference extends ParameterReference {
-  /// The name of the named parameter.
+  /// The name of the named formal parameter.
   final String name;
 
-  /// Initialize a newly created reference to refer to the named parameter with
-  /// the given [name].
+  /// Initialize a newly created reference to refer to the named formal
+  /// parameter with the given [name].
   NamedParameterReference(this.name) : assert(name.isNotEmpty);
 
   @override
@@ -30,19 +30,19 @@ final class NamedParameterReference extends ParameterReference {
 /// A reference to a formal parameter.
 sealed class ParameterReference {
   /// Return the expression used to compute the value of the referenced
-  /// parameter, or `null` if there is no argument corresponding to the
-  /// parameter. Note that for named parameters this will be an expression whose
-  /// parent is a named expression.
+  /// formal parameter, or `null` if there is no argument corresponding to the
+  /// formal parameter. Note that for named formal parameters this will be an
+  /// expression whose parent is a named expression.
   Expression? argumentFrom(ArgumentList argumentList);
 }
 
-/// A reference to a positional parameter.
+/// A reference to a positional formal parameter.
 final class PositionalParameterReference extends ParameterReference {
-  /// The index of the positional parameter.
+  /// The index of the positional formal parameter.
   final int index;
 
-  /// Initialize a newly created reference to refer to the positional parameter
-  /// with the given [index].
+  /// Initialize a newly created reference to refer to the positional formal
+  /// parameter with the given [index].
   PositionalParameterReference(this.index) : assert(index >= 0);
 
   @override

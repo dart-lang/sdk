@@ -10,12 +10,14 @@ import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The context in which a refactoring was requested.
-class RefactoringContext {
-  final LspAnalysisServer server;
+class AbstractRefactoringContext {
+  /// Return the search engine used to search outside the resolved library.
+  final SearchEngine searchEngine;
 
   /// The result of resolving the library in which a refactoring was requested.
   final ResolvedLibraryResult resolvedLibraryResult;
@@ -49,8 +51,8 @@ class RefactoringContext {
   late final ChangeWorkspace workspace = DartChangeWorkspace([session]);
 
   /// Initialize a newly created refactoring context.
-  RefactoringContext({
-    required this.server,
+  AbstractRefactoringContext({
+    required this.searchEngine,
     required this.resolvedLibraryResult,
     required this.resolvedUnitResult,
     required this.selectionOffset,
@@ -62,9 +64,32 @@ class RefactoringContext {
   /// characters described by [selectionOffset] and [selectionLength].
   AstNode? get coveringNode => selection?.coveringNode;
 
-  /// Return the search engine used to search outside the resolved library.
-  SearchEngine get searchEngine => server.searchEngine;
+  /// Return the offset of the first character after the selection range.
+  int get selectionEnd => selectionOffset + selectionLength;
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;
+
+  /// Return `true` if the selection is inside the given [token].
+  bool selectionIsInToken(Token? token) =>
+      token != null &&
+      selectionOffset >= token.offset &&
+      selectionEnd <= token.end;
+}
+
+/// The context in which a refactoring was requested.
+class RefactoringContext extends AbstractRefactoringContext {
+  final LspAnalysisServer server;
+
+  /// Initialize a newly created refactoring context.
+  RefactoringContext({
+    required this.server,
+    required super.resolvedLibraryResult,
+    required super.resolvedUnitResult,
+    required super.selectionOffset,
+    required super.selectionLength,
+    required super.includeExperimental,
+  }) : super(
+          searchEngine: server.searchEngine,
+        );
 }
