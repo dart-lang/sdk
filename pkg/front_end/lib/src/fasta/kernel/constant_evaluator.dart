@@ -4554,7 +4554,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           node,
           new StaticInvocation(
               target, unevaluatedArguments(positional, named, arguments.types),
-              isConst: true));
+              isConst: node.isConst));
     }
     if (target.kind == ProcedureKind.Factory) {
       if (target.isConst) {
@@ -4581,7 +4581,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
                 node,
                 new StaticInvocation(target,
                     unevaluatedArguments(positional, named, arguments.types),
-                    isConst: true));
+                    isConst: node.isConst));
           }
         } else if (target.isExternal) {
           return createEvaluationErrorConstant(
