@@ -6594,7 +6594,8 @@ static void CreateAppAOTSnapshot(
   const bool generate_debug = debug_callback_data != nullptr;
 
   auto* const deobfuscation_trie =
-      strip ? nullptr : ImageWriter::CreateReverseObfuscationTrie(T);
+      (strip && !generate_debug) ? nullptr
+                                 : ImageWriter::CreateReverseObfuscationTrie(T);
 
   if (as_elf) {
     StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);

@@ -109,9 +109,28 @@ Future<void> checkElf(String tempDir, String scriptDill) async {
       Elf.fromFile(scriptObfuscatedSnapshot)!,
       Elf.fromFile(scriptDebuggingInfo)!);
 
+  final scriptStrippedSnapshot =
+      path.join(tempDir, 'obfuscated-stripped-elf.so');
+  final scriptSeparateDebuggingInfo =
+      path.join(tempDir, 'obfuscated-separate-debug-elf.so');
+  await run(genSnapshot, <String>[
+    ...commonGenSnapshotArgs,
+    '--strip',
+    '--obfuscate',
+    '--snapshot-kind=app-aot-elf',
+    '--elf=$scriptStrippedSnapshot',
+    '--save-debugging-info=$scriptSeparateDebuggingInfo',
+    scriptDill,
+  ]);
+  final strippedCase = TestCase(
+      scriptStrippedSnapshot,
+      /*container=*/ null, // No static symbols in stripped snapshot.
+      Elf.fromFile(scriptSeparateDebuggingInfo)!);
+
   await checkCases(unobfuscatedCase, <TestCase>[
     obfuscatedOnlyCase,
     obfuscatedCase,
+    strippedCase,
   ]);
 }
 
@@ -168,7 +187,7 @@ Future<void> checkAssembly(String tempDir, String scriptDill) async {
 
 class TestCase {
   final String snapshotPath;
-  final DwarfContainer container;
+  final DwarfContainer? container;
   final DwarfContainer? debuggingInfoContainer;
 
   TestCase(this.snapshotPath, this.container, [this.debuggingInfoContainer]);
@@ -224,7 +243,7 @@ Future<void> checkTraces(
 
 void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
   final expectedSymbolNames =
-      expected.container.staticSymbols.map((o) => o.name).toSet();
+      expected.container!.staticSymbols.map((o) => o.name).toSet();
 
   if (expected.debuggingInfoContainer != null) {
     expectSimilarStaticSymbols(
@@ -235,8 +254,10 @@ void checkStaticSymbolTables(TestCase expected, List<TestCase> cases) {
   }
 
   for (final got in cases) {
-    expectSimilarStaticSymbols(expectedSymbolNames,
-        got.container.staticSymbols.map((o) => o.name).toSet());
+    if (got.container != null) {
+      expectSimilarStaticSymbols(expectedSymbolNames,
+          got.container!.staticSymbols.map((o) => o.name).toSet());
+    }
     if (got.debuggingInfoContainer != null) {
       expectSimilarStaticSymbols(expectedSymbolNames,
           got.debuggingInfoContainer!.staticSymbols.map((o) => o.name).toSet());
