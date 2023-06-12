@@ -32,7 +32,7 @@ Future<WriteArgumentsStatus> writeArguments({
           case NamedFormalParameterReference():
             final argument = namedArguments[reference.name];
             if (argument == null) {
-              return WriteArgumentsStatusFailure();
+              continue;
             }
             if (update is FormalParameterUpdateExistingNamed) {
               // TODO(scheglov) maybe support renames

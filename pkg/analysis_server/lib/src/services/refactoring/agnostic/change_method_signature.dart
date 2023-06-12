@@ -541,7 +541,7 @@ class _SignatureUpdater {
       } else {
         existing = existingNamedParameters.remove(parameterState.name);
         if (existing == null) {
-          return ChangeStatusFailure();
+          continue;
         }
       }
 

@@ -295,6 +295,57 @@ NoExecutableElementSelectionState
 @reflectiveTest
 class ChangeMethodSignatureTest_computeSourceChange
     extends AbstractChangeMethodSignatureTest {
+  Future<void> test_classMethod_optionalNamed_reorder_notAll() async {
+    await _analyzeValidSelection(r'''
+class A {
+  void ^test({int? a, int? b, int? c}) {}
+}
+
+class B extends A {
+  void test({int? a, int? b}) {}
+}
+
+void f(A a, B b) {
+  a.test(a: 0, b: 1, c: 2);
+  b.test(a: 3, b: 4);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 2,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  void test({int? c, int? b, int? a}) {}
+}
+
+class B extends A {
+  void test({int? b, int? a}) {}
+}
+
+void f(A a, B b) {
+  a.test(c: 2, b: 1, a: 0);
+  b.test(b: 4, a: 3);
+}
+''');
+  }
+
   Future<void> test_classMethod_requiredPositional_reorder() async {
     await _analyzeValidSelection(r'''
 class A {
@@ -342,82 +393,7 @@ void f(A a, B b) {
 ''');
   }
 
-  Future<void> test_fail_arguments_noPositional_reorder() async {
-    await _analyzeValidSelection(r'''
-void ^test(int a, int b) {}
-
-void f() {
-  test(0);
-}
-''');
-
-    final signatureUpdate = MethodSignatureUpdate(
-      formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredPositional,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredPositional,
-        ),
-      ],
-      formalParametersTrailingComma: TrailingComma.never,
-    );
-
-    await _assertUpdate(signatureUpdate, r'''
-ChangeStatusFailure
-''');
-  }
-
-  @FailingTest(reason: 'Not implemented yet')
-  Future<void> test_fail_classMethod_subclass_noNamed() async {
-    await _analyzeValidSelection(r'''
-class A {
-  void ^test({int? a, int? b}) {}
-}
-
-class B extends A {
-  void test({int? a}) {}
-}
-
-void f(A a, B b) {
-  a.test(a: 0, b: 1);
-  b.test(a: 2);
-}
-''');
-
-    final signatureUpdate = MethodSignatureUpdate(
-      formalParameters: [
-        FormalParameterUpdate(
-          id: 1,
-          kind: FormalParameterKind.requiredPositional,
-        ),
-        FormalParameterUpdate(
-          id: 0,
-          kind: FormalParameterKind.requiredPositional,
-        ),
-      ],
-      formalParametersTrailingComma: TrailingComma.never,
-    );
-
-    await _assertUpdate(signatureUpdate, r'''
-class A {
-  void test({int? b, int? a}) {}
-}
-
-class B extends A {
-  void test({int? a}) {}
-}
-
-void f(A a, B b) {
-  a.test(b: 1, a: 0);
-  b.test(a: 2);
-}
-''');
-  }
-
-  Future<void> test_fail_classMethod_subclass_noPositional() async {
+  Future<void> test_classMethod_requiredPositional_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 class A {
   void ^test(int a, int b) {}
@@ -429,7 +405,7 @@ class B extends A {
 
 void f(A a, B b) {
   a.test(0, 1);
-  b.test(2);
+  b.test(2, 3);
 }
 ''');
 
@@ -519,8 +495,7 @@ void f() {
 ''');
   }
 
-  @FailingTest(reason: 'Not implemented yet')
-  Future<void> test_optionalNamed_reorder_notAllArguments() async {
+  Future<void> test_optionalNamed_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test({int? a, int? b}) {}
 
@@ -544,6 +519,7 @@ void f() {
     );
 
     await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
 void test({int? b, int? a}) {}
 
 void f() {
@@ -693,6 +669,34 @@ void test([double b, int a]) {}
 void f() {
   test(1.2, 0);
 }
+''');
+  }
+
+  Future<void> test_optionalPositional_reorder_notAll() async {
+    await _analyzeValidSelection(r'''
+void ^test([int? a, int? b]) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.optionalPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
 ''');
   }
 
@@ -882,6 +886,39 @@ void f() {
 ''');
   }
 
+  Future<void> test_requiredNamed_reorder_notAll() async {
+    await _analyzeValidSelection(r'''
+void ^test({required int a, required int b}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({required int b, required int a}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
   Future<void> test_requiredNamed_toOptionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test({
@@ -1021,6 +1058,34 @@ void test(double b, int a, {int? c}) {}
 void f() {
   test(1.2, 0, c: 2);
 }
+''');
+  }
+
+  Future<void> test_requiredPositional_reorder_notAll() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
 ''');
   }
 
