@@ -13,6 +13,7 @@ class TextExpectationsCollector {
 
   static const assertMethods = {
     'AbstractCompletionDriverTest.assertResponse',
+    'SelectionTest._assertSelection',
   };
 
   static final Map<String, _File> _files = {};
