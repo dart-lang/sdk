@@ -7,6 +7,8 @@
 
 #include "vm/os.h"
 
+#include <dlfcn.h>         // NOLINT
+#include <elf.h>           // NOLINT
 #include <errno.h>         // NOLINT
 #include <fcntl.h>         // NOLINT
 #include <limits.h>        // NOLINT
@@ -26,6 +28,7 @@
 #include "vm/code_observers.h"
 #include "vm/dart.h"
 #include "vm/flags.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate.h"
 #include "vm/lockers.h"
 #include "vm/os_thread.h"
@@ -33,6 +36,13 @@
 #include "vm/zone.h"
 
 namespace dart {
+
+// Used to choose between Elf32/Elf64 types based on host archotecture bitsize.
+#if defined(ARCH_IS_64_BIT)
+#define ElfW(Type) Elf64_##Type
+#else
+#define ElfW(Type) Elf32_##Type
+#endif
 
 #ifndef PRODUCT
 
@@ -271,14 +281,6 @@ class JitDumpCodeObserver : public CodeObserver {
     // Followed by nul-terminated name.
   };
 
-  // ELF machine architectures
-  // From linux/include/uapi/linux/elf-em.h
-  static constexpr uint32_t EM_386 = 3;
-  static constexpr uint32_t EM_X86_64 = 62;
-  static constexpr uint32_t EM_ARM = 40;
-  static constexpr uint32_t EM_AARCH64 = 183;
-  static constexpr uint32_t EM_RISCV = 243;
-
   static uint32_t GetElfMachineArchitecture() {
 #if TARGET_ARCH_IA32
     return EM_386;
@@ -295,12 +297,6 @@ class JitDumpCodeObserver : public CodeObserver {
     return 0;
 #endif
   }
-
-#if ARCH_IS_64_BIT
-  static constexpr int kElfHeaderSize = 0x40;
-#else
-  static constexpr int kElfHeaderSize = 0x34;
-#endif
 
   void WriteDebugInfo(uword base, const CodeComments* comments) {
     if (comments == nullptr || comments->Length() == 0) {
@@ -349,7 +345,7 @@ class JitDumpCodeObserver : public CodeObserver {
         i++;
       }
       DebugInfoEntry entry;
-      entry.address = base + pc_offset + kElfHeaderSize;
+      entry.address = base + pc_offset + sizeof(ElfW(Ehdr));
       entry.line_number = line_number;
       entry.column = 0;
       WriteFully(&entry, sizeof(entry));
@@ -655,6 +651,43 @@ void OS::Abort() {
 
 void OS::Exit(int code) {
   exit(code);
+}
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // First return the build ID information from the instructions image if
+  // available.
+  const Image instructions_image(snapshot_instructions);
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  Dl_info snapshot_info;
+  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
+    return {0, nullptr};
+  }
+  const uint8_t* dso_base =
+      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const ElfW(Ehdr)& elf_header = *reinterpret_cast<const ElfW(Ehdr)*>(dso_base);
+  const ElfW(Phdr)* const phdr_array =
+      reinterpret_cast<const ElfW(Phdr)*>(dso_base + elf_header.e_phoff);
+  for (intptr_t i = 0; i < elf_header.e_phnum; i++) {
+    const ElfW(Phdr)& header = phdr_array[i];
+    if (header.p_type != PT_NOTE) continue;
+    if ((header.p_flags & PF_R) != PF_R) continue;
+    const uint8_t* const note_addr = dso_base + header.p_vaddr;
+    const Elf32_Nhdr& note_header =
+        *reinterpret_cast<const Elf32_Nhdr*>(note_addr);
+    if (note_header.n_type != NT_GNU_BUILD_ID) continue;
+    const char* const note_contents =
+        reinterpret_cast<const char*>(note_addr + sizeof(Elf32_Nhdr));
+    // The note name contains the null terminator as well.
+    if (note_header.n_namesz != strlen(ELF_NOTE_GNU) + 1) continue;
+    if (strncmp(ELF_NOTE_GNU, note_contents, note_header.n_namesz) == 0) {
+      return {static_cast<intptr_t>(note_header.n_descsz),
+              reinterpret_cast<const uint8_t*>(note_contents +
+                                               note_header.n_namesz)};
+    }
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

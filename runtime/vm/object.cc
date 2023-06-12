@@ -52,6 +52,7 @@
 #include "vm/native_symbol.h"
 #include "vm/object_graph.h"
 #include "vm/object_store.h"
+#include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/profiler.h"
 #include "vm/regexp.h"
@@ -26615,11 +26616,13 @@ const char* StackTrace::ToCString() const {
     buffer.Printf("os: %s arch: %s comp: %s sim: %s\n",
                   kHostOperatingSystemName, kTargetArchitectureName,
                   kCompressedPointers, kUsingSimulator);
-    if (auto const build_id = isolate_instructions_image.build_id()) {
-      const intptr_t length = isolate_instructions_image.build_id_length();
+    const OS::BuildId& build_id =
+        OS::GetAppBuildId(T->isolate_group()->source()->snapshot_instructions);
+    if (build_id.data != nullptr) {
+      ASSERT(build_id.len > 0);
       buffer.Printf("build_id: '");
-      for (intptr_t i = 0; i < length; i++) {
-        buffer.Printf("%2.2x", build_id[i]);
+      for (intptr_t i = 0; i < build_id.len; i++) {
+        buffer.Printf("%2.2x", build_id.data[i]);
       }
       buffer.Printf("'\n");
     }
