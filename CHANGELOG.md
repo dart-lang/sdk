@@ -1,11 +1,11 @@
-## 3.0.5
+## 3.0.5 - 2023-06-14
 
 This is a patch release that:
 
 - Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
-`ListFactorySpecializer` during Flutter web builds (issue [#52634]).
+`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
 
-[#52634]: https://github.com/dart-lang/sdk/issues/52634
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
 
 ## 3.0.4 - 2023-06-07
 
