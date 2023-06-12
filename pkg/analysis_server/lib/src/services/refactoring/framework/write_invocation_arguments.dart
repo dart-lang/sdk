@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -29,7 +29,7 @@ Future<ChangeStatus> writeArguments({
     switch (update) {
       case FormalParameterUpdateExisting(:final reference):
         switch (reference) {
-          case NamedParameterReference():
+          case NamedFormalParameterReference():
             final argument = namedArguments[reference.name];
             if (argument == null) {
               return ChangeStatusFailure();
@@ -48,7 +48,7 @@ Future<ChangeStatus> writeArguments({
                 ),
               );
             }
-          case PositionalParameterReference():
+          case PositionalFormalParameterReference():
             final argument = positionArguments.elementAtOrNull(reference.index);
             if (argument == null) {
               return ChangeStatusFailure();
@@ -140,7 +140,7 @@ sealed class FormalParameterUpdate {}
 /// Existing formal parameter update.
 sealed class FormalParameterUpdateExisting extends FormalParameterUpdate {
   /// The original formal parameter reference.
-  final ParameterReference reference;
+  final FormalParameterReference reference;
 
   FormalParameterUpdateExisting({
     required this.reference,

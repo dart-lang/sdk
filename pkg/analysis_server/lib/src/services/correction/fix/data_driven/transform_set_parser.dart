@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/element_
 import 'package:analysis_server/src/services/correction/fix/data_driven/element_kind.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/modify_parameters.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/rename_parameter.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/replaced_by.dart';
@@ -20,6 +19,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
@@ -538,7 +538,7 @@ class TransformSetParser {
             ErrorContext(key: _indexKey, parentNode: node),
           );
           if (index != null) {
-            return PositionalParameterReference(index);
+            return PositionalFormalParameterReference(index);
           }
         },
         const {_nameKey}: (key, value) {
@@ -547,7 +547,7 @@ class TransformSetParser {
             ErrorContext(key: _nameKey, parentNode: node),
           );
           if (name != null) {
-            return NamedParameterReference(name);
+            return NamedFormalParameterReference(name);
           }
         },
       },
@@ -934,7 +934,7 @@ class TransformSetParser {
             // The error has already been reported.
             return null;
           }
-          return PositionalParameterReference(index);
+          return PositionalFormalParameterReference(index);
         },
         {_nameKey}: (key, value) {
           var name = _translateString(
@@ -945,7 +945,7 @@ class TransformSetParser {
             // The error has already been reported.
             return null;
           }
-          return NamedParameterReference(name);
+          return NamedFormalParameterReference(name);
         },
       },
       errorNode: node,
