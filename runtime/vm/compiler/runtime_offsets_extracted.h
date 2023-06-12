@@ -93,6 +93,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -795,6 +799,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -1501,6 +1509,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -2202,6 +2214,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -2911,6 +2927,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -3615,6 +3635,10 @@ static constexpr dart::compiler::target::word RecordShape_kMaxNumFields =
 static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -4322,6 +4346,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -5025,6 +5053,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -5731,6 +5763,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -6425,6 +6461,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -7123,6 +7163,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -7816,6 +7860,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -8517,6 +8565,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -9213,6 +9265,10 @@ static constexpr dart::compiler::target::word RecordShape_kMaxNumFields =
 static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -9912,6 +9968,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements = 0x1fffffff;
 static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -10607,6 +10667,10 @@ static constexpr dart::compiler::target::word RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -11315,6 +11379,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -12094,6 +12162,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -12877,6 +12949,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -13658,6 +13734,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -14438,6 +14518,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -15222,6 +15306,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -16001,6 +16089,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -16781,6 +16873,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -17550,6 +17646,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -18324,6 +18424,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -19096,6 +19200,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -19867,6 +19975,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
@@ -20642,6 +20754,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffff;
 static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
+static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x1;
@@ -21412,6 +21528,10 @@ static constexpr dart::compiler::target::word AOT_RecordShape_kNumFieldsMask =
     0xffff;
 static constexpr dart::compiler::target::word AOT_String_kMaxElements =
     0x1fffffffffffffff;
+static constexpr dart::compiler::target::word
+    AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
+static constexpr dart::compiler::target::word
+    AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word

@@ -92,6 +92,8 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
+  CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \

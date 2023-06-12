@@ -786,6 +786,8 @@ class OneByteString : public AllStatic {
   static word InstanceSize();
   FINAL_CLASS();
 
+  static const word kMaxNewSpaceElements;
+
  private:
   static word element_offset(intptr_t index);
 };
@@ -796,6 +798,8 @@ class TwoByteString : public AllStatic {
   static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
+
+  static const word kMaxNewSpaceElements;
 
  private:
   static word element_offset(intptr_t index);

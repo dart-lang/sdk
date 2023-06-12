@@ -10070,6 +10070,8 @@ class OneByteString : public AllStatic {
   // We use the same maximum elements for all strings.
   static constexpr intptr_t kBytesPerElement = 1;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kMaxNewSpaceElements =
+      (kNewAllocatableSize - sizeof(UntaggedOneByteString)) / kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
@@ -10210,6 +10212,8 @@ class TwoByteString : public AllStatic {
   // We use the same maximum elements for all strings.
   static constexpr intptr_t kBytesPerElement = 2;
   static constexpr intptr_t kMaxElements = String::kMaxElements;
+  static constexpr intptr_t kMaxNewSpaceElements =
+      (kNewAllocatableSize - sizeof(UntaggedTwoByteString)) / kBytesPerElement;
 
   struct ArrayTraits {
     static intptr_t elements_start_offset() {
