@@ -6,7 +6,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -263,7 +262,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
           ),
           period: constructorName != null ? Tokens.period() : null,
           name: constructorName != null
-              ? astFactory.simpleIdentifier(
+              ? SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, constructorName, -1),
                 )
               : null,
@@ -296,7 +295,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       field.constantInitializer = initializer;
       holder.addNonSyntheticField(field);
       valuesElements.add(
-        astFactory.simpleIdentifier(
+        SimpleIdentifierImpl(
           StringToken(TokenType.STRING, name, -1),
         ),
       );

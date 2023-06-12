@@ -21,7 +21,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -970,7 +969,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
               substitution.substituteType(superParameter.type);
           implicitParameters.add(implicitParameter);
           argumentsForSuperInvocation.add(
-            astFactory.simpleIdentifier(
+            SimpleIdentifierImpl(
               StringToken(TokenType.STRING, implicitParameter.name, -1),
             )
               ..staticElement = implicitParameter
@@ -990,7 +989,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
           superKeyword: Tokens.super_(),
           period: isNamed ? Tokens.period() : null,
           constructorName: isNamed
-              ? (astFactory.simpleIdentifier(
+              ? (SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
                 )..staticElement = superclassConstructor)
               : null,

@@ -31,7 +31,6 @@ import 'package:analyzer/src/source/source_resource.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
 import 'package:analyzer/src/summary/package_bundle_reader.dart';
 import 'package:analyzer/src/summary2/informative_data.dart';
-import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/uri.dart';
@@ -282,13 +281,6 @@ class DirectiveUriWithUri extends DirectiveUriWithString {
 
   @override
   String toString() => '$relativeUri';
-}
-
-/// A library from [SummaryDataStore].
-class ExternalLibrary {
-  final InSummarySource source;
-
-  ExternalLibrary._(this.source);
 }
 
 abstract class FileContent {
@@ -577,29 +569,26 @@ class FileState {
     }
 
     final absoluteUri = uriCache.resolveRelative(uri, relativeUri);
-    return _fsState.getFileForUri(absoluteUri).map(
-      (file) {
-        if (file != null) {
-          return DirectiveUriWithFile(
-            relativeUriStr: relativeUriStr,
-            relativeUri: relativeUri,
-            file: file,
-          );
-        } else {
-          return DirectiveUriWithUri(
-            relativeUriStr: relativeUriStr,
-            relativeUri: relativeUri,
-          );
-        }
-      },
-      (externalLibrary) {
+    final uriResolution = _fsState.getFileForUri(absoluteUri);
+    switch (uriResolution) {
+      case null:
+        return DirectiveUriWithUri(
+          relativeUriStr: relativeUriStr,
+          relativeUri: relativeUri,
+        );
+      case UriResolutionFile(:final file):
+        return DirectiveUriWithFile(
+          relativeUriStr: relativeUriStr,
+          relativeUri: relativeUri,
+          file: file,
+        );
+      case UriResolutionExternalLibrary(:final source):
         return DirectiveUriWithInSummarySource(
           relativeUriStr: relativeUriStr,
           relativeUri: relativeUri,
-          source: externalLibrary.source,
+          source: source,
         );
-      },
-    );
+    }
   }
 
   /// TODO(scheglov) move to _fsState?
@@ -630,15 +619,17 @@ class FileState {
 
   /// Return the [FileState] for the given [relativeUriStr], or `null` if the
   /// URI cannot be parsed, cannot correspond any file, etc.
-  Either2<FileState?, ExternalLibrary> _fileForRelativeUri(
-    String relativeUriStr,
-  ) {
+  UriResolution? _fileForRelativeUri(String? relativeUriStr) {
+    if (relativeUriStr == null) {
+      return null;
+    }
+
     Uri absoluteUri;
     try {
       var relativeUri = uriCache.parse(relativeUriStr);
       absoluteUri = uriCache.resolveRelative(uri, relativeUri);
     } on FormatException {
-      return Either2.t1(null);
+      return null;
     }
 
     return _fsState.getFileForUri(absoluteUri);
@@ -785,24 +776,19 @@ class FileState {
     final partOfUriDirective = unlinked2.partOfUriDirective;
     if (libraryAugmentationDirective != null) {
       final uriStr = libraryAugmentationDirective.uri;
-      // TODO(scheglov) This could be a useful method of `Either`.
-      final uriFile = uriStr != null
-          ? _fileForRelativeUri(uriStr).map(
-              (file) => file,
-              (_) => null,
-            )
-          : null;
-      if (uriFile != null) {
-        _kind = AugmentationKnownFileKind(
-          file: this,
-          unlinked: libraryAugmentationDirective,
-          uriFile: uriFile,
-        );
-      } else {
-        _kind = AugmentationUnknownFileKind(
-          file: this,
-          unlinked: libraryAugmentationDirective,
-        );
+      final uriResolution = _fileForRelativeUri(uriStr);
+      switch (uriResolution) {
+        case UriResolutionFile(:final file):
+          _kind = AugmentationKnownFileKind(
+            file: this,
+            unlinked: libraryAugmentationDirective,
+            uriFile: file,
+          );
+        default:
+          _kind = AugmentationUnknownFileKind(
+            file: this,
+            unlinked: libraryAugmentationDirective,
+          );
       }
     } else if (libraryDirective != null) {
       _kind = LibraryFileKind(
@@ -816,23 +802,19 @@ class FileState {
       );
     } else if (partOfUriDirective != null) {
       final uriStr = partOfUriDirective.uri;
-      final uriFile = uriStr != null
-          ? _fileForRelativeUri(uriStr).map(
-              (file) => file,
-              (_) => null,
-            )
-          : null;
-      if (uriFile != null) {
-        _kind = PartOfUriKnownFileKind(
-          file: this,
-          unlinked: partOfUriDirective,
-          uriFile: uriFile,
-        );
-      } else {
-        _kind = PartOfUriUnknownFileKind(
-          file: this,
-          unlinked: partOfUriDirective,
-        );
+      final uriResolution = _fileForRelativeUri(uriStr);
+      switch (uriResolution) {
+        case UriResolutionFile(:final file):
+          _kind = PartOfUriKnownFileKind(
+            file: this,
+            unlinked: partOfUriDirective,
+            uriFile: file,
+          );
+        default:
+          _kind = PartOfUriUnknownFileKind(
+            file: this,
+            unlinked: partOfUriDirective,
+          );
       }
     } else {
       _kind = LibraryFileKind(
@@ -1303,20 +1285,20 @@ class FileSystemState {
   /// The given [uri] must be absolute.
   ///
   /// If [uri] corresponds to a library from the summary store, return a
-  /// [ExternalLibrary].
+  /// [UriResolutionExternalLibrary].
   ///
   /// Otherwise the [uri] is resolved to a file, and the corresponding
   /// [FileState] is returned. Might be `null` if the [uri] cannot be resolved
   /// to a file, for example because it is invalid (e.g. a `package:` URI
   /// without a package name), or we don't know this package. The returned
   /// file has the last known state since if was last refreshed.
-  Either2<FileState?, ExternalLibrary> getFileForUri(Uri uri) {
+  UriResolution? getFileForUri(Uri uri) {
     final uriSource = _sourceFactory.forUri2(uri);
 
     // If the external store has this URI, create a stub file for it.
     // We are given all required unlinked and linked summaries for it.
     if (uriSource is InSummarySource) {
-      return Either2.t2(ExternalLibrary._(uriSource));
+      return UriResolutionExternalLibrary(uriSource);
     }
 
     FileState? file = _uriToFile[uri];
@@ -1324,7 +1306,7 @@ class FileSystemState {
       // If the URI cannot be resolved, for example because the factory
       // does not understand the scheme, return the unresolved file instance.
       if (uriSource == null) {
-        return Either2.t1(null);
+        return null;
       }
 
       String path = uriSource.fullName;
@@ -1333,19 +1315,19 @@ class FileSystemState {
       // That different URI must be the canonical one.
       file = _pathToFile[path];
       if (file != null) {
-        return Either2.t1(file);
+        return UriResolutionFile(file);
       }
 
       File resource = resourceProvider.getFile(path);
 
       var rewrittenUri = rewriteToCanonicalUri(_sourceFactory, uri);
       if (rewrittenUri == null) {
-        return Either2.t1(null);
+        return null;
       }
 
       file = _newFile(resource, path, rewrittenUri);
     }
-    return Either2.t1(file);
+    return UriResolutionFile(file);
   }
 
   /// Returns a list of files whose contents contains the given string.
@@ -2361,6 +2343,20 @@ class StoredFileContentStrategy implements FileContentStrategy {
   void markFileForReading(String path) {
     _fileContentCache.invalidate(path);
   }
+}
+
+sealed class UriResolution {}
+
+final class UriResolutionExternalLibrary extends UriResolution {
+  final InSummarySource source;
+
+  UriResolutionExternalLibrary(this.source);
+}
+
+final class UriResolutionFile extends UriResolution {
+  final FileState file;
+
+  UriResolutionFile(this.file);
 }
 
 class _LibraryNameToFiles {

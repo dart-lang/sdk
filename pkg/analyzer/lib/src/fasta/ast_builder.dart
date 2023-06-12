@@ -60,7 +60,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/fasta/error_converter.dart';
@@ -71,8 +70,6 @@ import 'package:pub_semver/pub_semver.dart';
 
 /// A parser listener that builds the analyzer's AST structure.
 class AstBuilder extends StackListener {
-  final AstFactoryImpl ast = astFactory;
-
   final FastaErrorReporter errorReporter;
   final Uri fileUri;
   ScriptTagImpl? scriptTag;
@@ -332,16 +329,11 @@ class AstBuilder extends StackListener {
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, extensionKeyword);
 
-    SimpleIdentifierImpl? name;
-    if (nameToken != null) {
-      name = ast.simpleIdentifier(nameToken, isDeclaration: true);
-    }
-
     _classLikeBuilder = _ExtensionDeclarationBuilder(
       comment: comment,
       metadata: metadata,
       extensionKeyword: extensionKeyword,
-      name: name?.token,
+      name: nameToken,
       typeParameters: typeParameters,
       leftBracket: Tokens.openCurlyBracket(),
       rightBracket: Tokens.closeCurlyBracket(),
@@ -662,7 +654,9 @@ class AstBuilder extends StackListener {
         // Recovery:
         // Parser has reported invalid assignment.
         var superExpression = left as SuperExpressionImpl;
-        fieldName = ast.simpleIdentifier(superExpression.superKeyword);
+        fieldName = SimpleIdentifierImpl(
+          superExpression.superKeyword,
+        );
       }
       return ConstructorFieldInitializerImpl(
         thisKeyword: thisKeyword,
@@ -815,8 +809,7 @@ class AstBuilder extends StackListener {
       // upon the type of expression. e.g. "x.this" -> templateThisAsIdentifier
       handleRecoverableError(
           templateExpectedIdentifier.withArguments(token), token, token);
-      SimpleIdentifierImpl identifier =
-          ast.simpleIdentifier(token, isDeclaration: false);
+      SimpleIdentifierImpl identifier = SimpleIdentifierImpl(token);
       push(
         PropertyAccessImpl(
           target: receiver,
@@ -916,7 +909,7 @@ class AstBuilder extends StackListener {
         }
         push(
           FunctionExpressionInvocationImpl(
-            function: ast.simpleIdentifier(assertKeyword),
+            function: SimpleIdentifierImpl(assertKeyword),
             typeArguments: null,
             argumentList: ArgumentListImpl(
               leftParenthesis: leftParenthesis,
@@ -1219,7 +1212,7 @@ class AstBuilder extends StackListener {
       externalKeyword: modifiers?.externalKeyword,
       constKeyword: modifiers?.finalConstOrVarKeyword,
       factoryKeyword: null,
-      returnType: ast.simpleIdentifier(prefixOrName.token),
+      returnType: SimpleIdentifierImpl(prefixOrName.token),
       period: period,
       name: nameOrNull?.token,
       parameters: parameters,
@@ -1290,15 +1283,14 @@ class AstBuilder extends StackListener {
     // the actual constructor name.
     SimpleIdentifierImpl returnType;
     Token? period;
-    SimpleIdentifierImpl? name;
+    Token? nameToken;
     IdentifierImpl typeName = constructorName;
     if (typeName is SimpleIdentifierImpl) {
       returnType = typeName;
     } else if (typeName is PrefixedIdentifierImpl) {
       returnType = typeName.prefix;
       period = typeName.period;
-      name =
-          ast.simpleIdentifier(typeName.identifier.token, isDeclaration: true);
+      nameToken = typeName.identifier.token;
     } else {
       throw UnimplementedError();
     }
@@ -1310,9 +1302,9 @@ class AstBuilder extends StackListener {
         externalKeyword: modifiers?.externalKeyword,
         constKeyword: modifiers?.finalConstOrVarKeyword,
         factoryKeyword: factoryKeyword,
-        returnType: ast.simpleIdentifier(returnType.token),
+        returnType: SimpleIdentifierImpl(returnType.token),
         period: period,
-        name: name?.token,
+        name: nameToken,
         parameters: parameters,
         separator: separator,
         initializers: null,
@@ -3915,12 +3907,12 @@ class AstBuilder extends StackListener {
     Token? secondPeriod,
     Token thirdToken,
   ) {
-    var identifier = ast.simpleIdentifier(thirdToken);
+    var identifier = SimpleIdentifierImpl(thirdToken);
     if (firstToken != null) {
       var target = PrefixedIdentifierImpl(
-        prefix: ast.simpleIdentifier(firstToken),
+        prefix: SimpleIdentifierImpl(firstToken),
         period: firstPeriod!,
-        identifier: ast.simpleIdentifier(secondToken!),
+        identifier: SimpleIdentifierImpl(secondToken!),
       );
       var expression = PropertyAccessImpl(
         target: target,
@@ -3935,7 +3927,7 @@ class AstBuilder extends StackListener {
       );
     } else if (secondToken != null) {
       var expression = PrefixedIdentifierImpl(
-        prefix: ast.simpleIdentifier(secondToken),
+        prefix: SimpleIdentifierImpl(secondToken),
         period: secondPeriod!,
         identifier: identifier,
       );
@@ -4319,7 +4311,7 @@ class AstBuilder extends StackListener {
         if (!leftParenthesis.next!.isIdentifier) {
           parser.rewriter.insertSyntheticIdentifier(leftParenthesis);
         }
-        variableOrDeclaration = ast.simpleIdentifier(leftParenthesis.next!);
+        variableOrDeclaration = SimpleIdentifierImpl(leftParenthesis.next!);
       }
       forLoopParts = ForEachPartsWithIdentifierImpl(
         identifier: variableOrDeclaration,
@@ -4407,8 +4399,7 @@ class AstBuilder extends StackListener {
       return;
     }
 
-    final identifier =
-        ast.simpleIdentifier(token, isDeclaration: context.inDeclaration);
+    final identifier = SimpleIdentifierImpl(token);
     if (context.inLibraryOrPartOfDeclaration) {
       if (!context.isContinuation) {
         push([identifier]);
@@ -4567,8 +4558,12 @@ class AstBuilder extends StackListener {
     assert(optional('operator', operatorKeyword));
     debugEvent("InvalidOperatorName");
 
-    push(_OperatorName(
-        operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
+    push(
+      _OperatorName(
+        operatorKeyword,
+        SimpleIdentifierImpl(token),
+      ),
+    );
   }
 
   @override
@@ -4984,7 +4979,9 @@ class AstBuilder extends StackListener {
     debugEvent("NoTypeNameInConstructorReference");
     final builder = _classLikeBuilder as _EnumDeclarationBuilder;
 
-    push(ast.simpleIdentifier(builder.name));
+    push(
+      SimpleIdentifierImpl(builder.name),
+    );
   }
 
   @override
@@ -5077,8 +5074,12 @@ class AstBuilder extends StackListener {
     assert(token.type.isUserDefinableOperator);
     debugEvent("OperatorName");
 
-    push(_OperatorName(
-        operatorKeyword, ast.simpleIdentifier(token, isDeclaration: true)));
+    push(
+      _OperatorName(
+        operatorKeyword,
+        SimpleIdentifierImpl(token),
+      ),
+    );
   }
 
   @override
@@ -5800,7 +5801,7 @@ class AstBuilder extends StackListener {
   }
 
   SimpleIdentifierImpl _tmpSimpleIdentifier() {
-    return ast.simpleIdentifier(
+    return SimpleIdentifierImpl(
       StringToken(TokenType.STRING, '__tmp', -1),
     );
   }

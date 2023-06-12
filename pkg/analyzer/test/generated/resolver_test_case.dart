@@ -216,10 +216,6 @@ class ResolutionVerifier extends RecursiveAstVisitor<void> {
       return;
     }
 
-    if (node is DeclaredSimpleIdentifier) {
-      return;
-    }
-
     var staticType = node.staticType;
     if (staticType is DynamicType && node.staticElement == null) {
       return;

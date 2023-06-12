@@ -30,10 +30,7 @@ class RemoveLeadingUnderscore extends CorrectionProducer {
     final node = this.node;
     final Token? nameToken;
     final Element? element;
-    if (node is DeclaredSimpleIdentifier) {
-      nameToken = node.token;
-      element = node.staticElement;
-    } else if (node is SimpleIdentifier) {
+    if (node is SimpleIdentifier) {
       nameToken = node.token;
       element = node.staticElement;
     } else if (node is FormalParameter) {

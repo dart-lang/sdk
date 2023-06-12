@@ -5332,22 +5332,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }
 }
 
-/// A simple identifier that declares a name.
-// TODO(rnystrom): Consider making this distinct from [SimpleIdentifier] and
-// get rid of all of the:
-//
-//     if (node.inDeclarationContext()) { ... }
-//
-// code and instead visit this separately. A declaration is semantically pretty
-// different from a use, so using the same node type doesn't seem to buy us
-// much.
-final class DeclaredSimpleIdentifier extends SimpleIdentifierImpl {
-  DeclaredSimpleIdentifier(super.token);
-
-  @override
-  bool inDeclarationContext() => true;
-}
-
 /// A variable pattern that declares a variable.
 ///
 ///    variablePattern ::=
@@ -16894,7 +16878,17 @@ final class SimpleIdentifierImpl extends IdentifierImpl
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitSimpleIdentifier(this);
 
   @override
-  bool inDeclarationContext() => false;
+  bool inDeclarationContext() {
+    final parent = this.parent;
+    switch (parent) {
+      case ImportDirective():
+        return parent.prefix == this;
+      case Label():
+        final parent2 = parent.parent;
+        return parent2 is Statement || parent2 is SwitchMember;
+    }
+    return false;
+  }
 
   @override
   bool inGetterContext() {
