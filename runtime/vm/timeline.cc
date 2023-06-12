@@ -822,13 +822,6 @@ inline void AddBeginAndInstantEventCommonFields(
     perfetto::protos::pbzero::TrackEvent* track_event,
     const TimelineEvent& event) {
   track_event->set_name(event.label());
-  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
-    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
-    // aren't able to populate right now because we aren't keeping track of
-    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
-    // field will provide any benefit though.
-    track_event->add_flow_ids(event.FlowIds()[i]);
-  }
 }
 
 inline void AddBeginEventFields(
@@ -837,6 +830,13 @@ inline void AddBeginEventFields(
   AddBeginAndInstantEventCommonFields(track_event, event);
   track_event->set_type(
       perfetto::protos::pbzero::TrackEvent::Type::TYPE_SLICE_BEGIN);
+  for (intptr_t i = 0; i < event.flow_id_count(); ++i) {
+    // TODO(derekx): |TrackEvent|s have a |terminating_flow_ids| field that we
+    // aren't able to populate right now because we aren't keeping track of
+    // terminating flow IDs in |TimelineEvent|. I'm not even sure if using that
+    // field will provide any benefit though.
+    track_event->add_flow_ids(event.FlowIds()[i]);
+  }
 }
 
 inline void AddInstantEventFields(
