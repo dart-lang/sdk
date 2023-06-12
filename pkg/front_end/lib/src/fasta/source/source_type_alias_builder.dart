@@ -264,6 +264,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
           if (target is Procedure && target.isRedirectingFactory) {
             target = builder.readTarget!;
           }
+          Class targetClass = target.enclosingClass!;
+          if (target is Constructor && targetClass.isAbstract) {
+            continue;
+          }
           Name targetName =
               new Name(constructorName, declaration.libraryBuilder.library);
           Reference? tearOffReference;

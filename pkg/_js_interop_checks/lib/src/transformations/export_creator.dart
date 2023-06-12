@@ -192,7 +192,8 @@ class ExportCreator extends Transformer {
     }
 
     var jsExporter = VariableDeclaration('#jsExporter',
-        initializer: AsExpression(getLiteral(proto), returnType),
+        initializer: AsExpression(getLiteral(proto), returnType)
+          ..fileOffset = node.fileOffset,
         type: returnType,
         isSynthesized: true)
       ..fileOffset = node.fileOffset
