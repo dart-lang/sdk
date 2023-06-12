@@ -126,7 +126,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     );
   }
 
-  List<_Field> _fieldsToWrite(
+  List<_Field>? _fieldsToWrite(
     List<VariableDeclarationList> variableLists,
   ) {
     final result = <_Field>[];
@@ -136,10 +136,22 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
           type != null && typeSystem.isPotentiallyNonNullable(type);
 
       for (final field in variableList.variables) {
+        final typeAnnotation = variableList.type;
+        if (typeAnnotation == null) {
+          return null;
+        }
         if (field.initializer == null) {
+          final fieldName = field.name.lexeme;
+          final namedFormalParameterName =
+              _Field.computeNamedFormalParameterName(fieldName);
+          if (namedFormalParameterName == null) {
+            return null;
+          }
           result.add(
             _Field(
-              name: field.name.lexeme,
+              typeAnnotation: typeAnnotation,
+              fieldName: fieldName,
+              namedFormalParameterName: namedFormalParameterName,
               hasNonNullableType: hasNonNullableType,
             ),
           );
@@ -221,6 +233,32 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     required bool isConst,
   }) async {
     final fields = _fieldsToWrite(fixContext.variableLists);
+    if (fields == null) {
+      return;
+    }
+
+    switch (_style) {
+      case _Style.requiredNamed:
+        await _notFlutterNamed(
+          fixContext: fixContext,
+          isConst: isConst,
+          fields: fields,
+        );
+      case _Style.requiredPositional:
+        await _notFlutterRequiredPositional(
+          fixContext: fixContext,
+          isConst: isConst,
+          fields: fields,
+        );
+    }
+  }
+
+  Future<void> _notFlutterNamed({
+    required _FixContext fixContext,
+    required bool isConst,
+    required List<_Field> fields,
+  }) async {
+    final fieldsForInitializers = <_Field>[];
 
     final location = fixContext.location;
     await fixContext.builder.addDartFileEdit(file, (builder) {
@@ -230,44 +268,77 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
           builder.write('const ');
         }
         builder.write(fixContext.containerName);
+        builder.write('({');
+        var hasWritten = false;
+        final superNamed = fixContext.superNamed;
+        if (superNamed != null) {
+          for (final formalParameter in superNamed) {
+            if (hasWritten) {
+              builder.write(', ');
+            }
+            if (formalParameter.isRequiredNamed) {
+              builder.write('required ');
+            }
+            builder.write('super.');
+            builder.write(formalParameter.name);
+            hasWritten = true;
+          }
+        }
+        for (final field in fields) {
+          if (hasWritten) {
+            builder.write(', ');
+          }
+          if (field.namedFormalParameterName == field.fieldName) {
+            builder.write('required this.');
+            builder.write(field.fieldName);
+          } else {
+            builder.write('required ');
+            builder.write(
+              utils.getNodeText(field.typeAnnotation),
+            );
+            builder.write(' ');
+            builder.write(field.namedFormalParameterName);
+            fieldsForInitializers.add(field);
+          }
+          hasWritten = true;
+        }
+        builder.write('})');
+
+        if (fieldsForInitializers.isNotEmpty) {
+          final code = fieldsForInitializers.map((field) {
+            return '${field.fieldName} = ${field.namedFormalParameterName}';
+          }).join(', ');
+          builder.write(' : $code');
+        }
+
+        builder.write(';');
+        builder.write(location.suffix);
+      });
+    });
+  }
+
+  Future<void> _notFlutterRequiredPositional({
+    required _FixContext fixContext,
+    required bool isConst,
+    required List<_Field> fields,
+  }) async {
+    final location = fixContext.location;
+    await fixContext.builder.addDartFileEdit(file, (builder) {
+      builder.addInsertion(location.offset, (builder) {
+        builder.write(location.prefix);
+        if (isConst) {
+          builder.write('const ');
+        }
+        builder.write(fixContext.containerName);
         builder.write('(');
-        switch (_style) {
-          case _Style.requiredNamed:
-            builder.write('{');
-            var hasWritten = false;
-            final superNamed = fixContext.superNamed;
-            if (superNamed != null) {
-              for (final formalParameter in superNamed) {
-                if (hasWritten) {
-                  builder.write(', ');
-                }
-                if (formalParameter.isRequiredNamed) {
-                  builder.write('required ');
-                }
-                builder.write('super.');
-                builder.write(formalParameter.name);
-                hasWritten = true;
-              }
-            }
-            for (final field in fields) {
-              if (hasWritten) {
-                builder.write(', ');
-              }
-              builder.write('required this.');
-              builder.write(field.name);
-              hasWritten = true;
-            }
-            builder.write('}');
-          case _Style.requiredPositional:
-            var hasWritten = false;
-            for (final field in fields) {
-              if (hasWritten) {
-                builder.write(', ');
-              }
-              builder.write('this.');
-              builder.write(field.name);
-              hasWritten = true;
-            }
+        var hasWritten = false;
+        for (final field in fields) {
+          if (hasWritten) {
+            builder.write(', ');
+          }
+          builder.write('this.');
+          builder.write(field.fieldName);
+          hasWritten = true;
         }
         builder.write(');');
         builder.write(location.suffix);
@@ -280,6 +351,10 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
     required List<VariableDeclarationList> variableLists,
   }) {
     final fields = _fieldsToWrite(variableLists);
+    if (fields == null) {
+      return;
+    }
+
     final childrenLast = [
       ...fields.whereNot((field) => field.isChild),
       ...fields.where((field) => field.isChild),
@@ -291,7 +366,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
         builder.write('required ');
       }
       builder.write('this.');
-      builder.write(field.name);
+      builder.write(field.fieldName);
     }
   }
 
@@ -307,16 +382,36 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
 }
 
 class _Field {
-  final String name;
+  final TypeAnnotation typeAnnotation;
+  final String fieldName;
+  final String namedFormalParameterName;
   final bool hasNonNullableType;
 
   _Field({
-    required this.name,
+    required this.typeAnnotation,
+    required this.fieldName,
+    required this.namedFormalParameterName,
     required this.hasNonNullableType,
   });
 
   bool get isChild {
-    return const {'child', 'children'}.contains(name);
+    return const {'child', 'children'}.contains(fieldName);
+  }
+
+  /// Returns the name for the corresponding named formal parameters, or
+  /// `null` if such name cannot be computed, so that the quick fix cannot
+  /// be computed.
+  static String? computeNamedFormalParameterName(String fieldName) {
+    var result = fieldName;
+    while (true) {
+      if (result.isEmpty) {
+        return null;
+      } else if (result.startsWith('_')) {
+        result = result.substring(1);
+      } else {
+        return result;
+      }
+    }
   }
 }
 

@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
+import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -132,7 +133,7 @@ class Test {
     });
   }
 
-  Future<void> test_class_simple() async {
+  Future<void> test_class_noSuperClass() async {
     await resolveTestCode('''
 class Test {
   final int a;
@@ -153,7 +154,42 @@ class Test {
     });
   }
 
-  Future<void> test_enum_simple() async {
+  Future<void> test_class_noSuperClass_hasPrivate() async {
+    await resolveTestCode('''
+class Test {
+  final int _a;
+  final int _b;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int _a;
+  final int _b;
+  final int c;
+
+  Test({required int a, required int b, required this.c}) : _a = a, _b = b;
+}
+''', errorFilter: (error) {
+      return error.errorCode == CompileTimeErrorCode.FINAL_NOT_INITIALIZED &&
+          error.message.contains("'_a'");
+    });
+  }
+
+  Future<void> test_class_noSuperClass_hasPrivate_onlyUnderscores() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  final int _;
+  final int __;
+}
+''');
+    await assertNoFix(errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_enum() async {
     await resolveTestCode('''
 enum E {
   v(a: 0, c: 2);
@@ -272,6 +308,27 @@ class MyWidget extends StatelessWidget {
   final int? b;
 
   const MyWidget({super.key, required this.a, this.b, required this.children});
+}
+''', errorFilter: (error) {
+      return error.message.contains("'a'");
+    });
+  }
+
+  Future<void> test_class_hasPrivate() async {
+    await resolveTestCode('''
+class Test {
+  final int a;
+  final int _b;
+  final int c;
+}
+''');
+    await assertHasFix('''
+class Test {
+  final int a;
+  final int _b;
+  final int c;
+
+  Test(this.a, this._b, this.c);
 }
 ''', errorFilter: (error) {
       return error.message.contains("'a'");
