@@ -460,9 +460,9 @@ class _SignatureUpdater {
     );
 
     switch (frameworkStatus) {
-      case framework.ChangeStatusFailure():
+      case framework.WriteArgumentsStatusFailure():
         return ChangeStatusFailure();
-      case framework.ChangeStatusSuccess():
+      case framework.WriteArgumentsStatusSuccess():
         return ChangeStatusSuccess();
     }
   }
