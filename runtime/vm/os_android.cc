@@ -8,6 +8,8 @@
 #include "vm/os.h"
 
 #include <android/log.h>   // NOLINT
+#include <dlfcn.h>         // NOLINT
+#include <elf.h>           // NOLINT
 #include <errno.h>         // NOLINT
 #include <limits.h>        // NOLINT
 #include <malloc.h>        // NOLINT
@@ -20,6 +22,7 @@
 #include "platform/utils.h"
 #include "vm/code_observers.h"
 #include "vm/dart.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
@@ -340,6 +343,50 @@ void OS::Abort() {
 
 void OS::Exit(int code) {
   exit(code);
+}
+
+// Used to choose between Elf32/Elf64 types based on host archotecture bitsize.
+#if defined(ARCH_IS_64_BIT)
+#define ElfW(Type) Elf64_##Type
+#else
+#define ElfW(Type) Elf32_##Type
+#endif
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // First return the build ID information from the instructions image if
+  // available.
+  const Image instructions_image(snapshot_instructions);
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  Dl_info snapshot_info;
+  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
+    return {0, nullptr};
+  }
+  const uint8_t* dso_base =
+      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const ElfW(Ehdr)& elf_header = *reinterpret_cast<const ElfW(Ehdr)*>(dso_base);
+  const ElfW(Phdr)* const phdr_array =
+      reinterpret_cast<const ElfW(Phdr)*>(dso_base + elf_header.e_phoff);
+  for (intptr_t i = 0; i < elf_header.e_phnum; i++) {
+    const ElfW(Phdr)& header = phdr_array[i];
+    if (header.p_type != PT_NOTE) continue;
+    if ((header.p_flags & PF_R) != PF_R) continue;
+    const uint8_t* const note_addr = dso_base + header.p_vaddr;
+    const Elf32_Nhdr& note_header =
+        *reinterpret_cast<const Elf32_Nhdr*>(note_addr);
+    if (note_header.n_type != NT_GNU_BUILD_ID) continue;
+    const char* const note_contents =
+        reinterpret_cast<const char*>(note_addr + sizeof(Elf32_Nhdr));
+    // The note name contains the null terminator as well.
+    if (note_header.n_namesz != strlen(ELF_NOTE_GNU) + 1) continue;
+    if (strncmp(ELF_NOTE_GNU, note_contents, note_header.n_namesz) == 0) {
+      return {static_cast<intptr_t>(note_header.n_descsz),
+              reinterpret_cast<const uint8_t*>(note_contents +
+                                               note_header.n_namesz)};
+    }
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

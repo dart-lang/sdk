@@ -270,6 +270,15 @@ Future<void> compareTraces(List<String> nonDwarfTrace, DwarfTestOutput output1,
     Expect.isFalse(buildId2.isEmpty);
     print('Trace 2 build ID: "${buildId2}"');
     Expect.equals(dwarfBuildId, buildId2);
+  } else {
+    // Just check that the build IDs exist in the traces and are the same.
+    final buildId1 = buildId(output1.trace);
+    Expect.isFalse(buildId1.isEmpty, 'Could not find build ID in first trace');
+    print('Trace 1 build ID: "${buildId1}"');
+    final buildId2 = buildId(output2.trace);
+    Expect.isFalse(buildId2.isEmpty, 'Could not find build ID in second trace');
+    print('Trace 2 build ID: "${buildId2}"');
+    Expect.equals(buildId1, buildId2);
   }
 
   final decoder = DwarfStackTraceDecoder(dwarf);

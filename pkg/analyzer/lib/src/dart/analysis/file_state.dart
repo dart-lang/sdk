@@ -208,12 +208,14 @@ class DirectiveState {
 }
 
 /// Meaning of a URI referenced in a directive.
-class DirectiveUri {
+sealed class DirectiveUri {
+  const DirectiveUri();
+
   Source? get source => null;
 }
 
 /// [DirectiveUriWithUri] with URI that resolves to a [FileState].
-class DirectiveUriWithFile extends DirectiveUriWithSource {
+final class DirectiveUriWithFile extends DirectiveUriWithSource {
   final FileState file;
 
   DirectiveUriWithFile({
@@ -230,7 +232,7 @@ class DirectiveUriWithFile extends DirectiveUriWithSource {
 }
 
 /// [DirectiveUriWithSource] with a [InSummarySource].
-class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
+final class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
   @override
   final InSummarySource source;
 
@@ -244,8 +246,13 @@ class DirectiveUriWithInSummarySource extends DirectiveUriWithSource {
   String toString() => '$source';
 }
 
+/// [DirectiveUri] for which we can't get its relative URI string.
+final class DirectiveUriWithoutString extends DirectiveUri {
+  const DirectiveUriWithoutString();
+}
+
 /// [DirectiveUriWithUri] that can be resolved into a [Source].
-abstract class DirectiveUriWithSource extends DirectiveUriWithUri {
+sealed class DirectiveUriWithSource extends DirectiveUriWithUri {
   DirectiveUriWithSource({
     required super.relativeUriStr,
     required super.relativeUri,
@@ -259,7 +266,7 @@ abstract class DirectiveUriWithSource extends DirectiveUriWithUri {
 }
 
 /// [DirectiveUri] for which we can get its relative URI string.
-class DirectiveUriWithString extends DirectiveUri {
+final class DirectiveUriWithString extends DirectiveUri {
   final String relativeUriStr;
 
   DirectiveUriWithString({
@@ -271,7 +278,7 @@ class DirectiveUriWithString extends DirectiveUri {
 }
 
 /// [DirectiveUriWithString] that can be parsed into a relative URI.
-class DirectiveUriWithUri extends DirectiveUriWithString {
+final class DirectiveUriWithUri extends DirectiveUriWithString {
   final Uri relativeUri;
 
   DirectiveUriWithUri({
@@ -558,7 +565,7 @@ class FileState {
 
   DirectiveUri _buildDirectiveUri(String? relativeUriStr) {
     if (relativeUriStr == null) {
-      return DirectiveUri();
+      return const DirectiveUriWithoutString();
     }
 
     final relativeUri = uriCache.tryParse(relativeUriStr);
@@ -1712,32 +1719,33 @@ class LibraryFileKind extends LibraryOrAugmentationFileKind {
   }
 
   List<PartState> get parts {
-    return _parts ??= file.unlinked2.parts.map((unlinked) {
+    return _parts ??= file.unlinked2.parts.map<PartState>((unlinked) {
       final uri = file._buildDirectiveUri(unlinked.uri);
-      if (uri is DirectiveUriWithFile) {
-        return PartWithFile(
-          library: this,
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else if (uri is DirectiveUriWithUri) {
-        return PartWithUri(
-          library: this,
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else if (uri is DirectiveUriWithString) {
-        return PartWithUriStr(
-          library: this,
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else {
-        return PartState(
-          library: this,
-          unlinked: unlinked,
-          uri: uri,
-        );
+      switch (uri) {
+        case DirectiveUriWithFile():
+          return PartWithFile(
+            library: this,
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithUri():
+          return PartWithUri(
+            library: this,
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithString():
+          return PartWithUriStr(
+            library: this,
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithoutString():
+          return PartState(
+            library: this,
+            unlinked: unlinked,
+            uri: uri,
+          );
       }
     }).toFixedList();
   }
@@ -1907,29 +1915,30 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
 
   List<AugmentationImportState> get augmentationImports {
     return _augmentationImports ??=
-        file.unlinked2.augmentations.map((unlinked) {
+        file.unlinked2.augmentations.map<AugmentationImportState>((unlinked) {
       final uri = file._buildDirectiveUri(unlinked.uri);
-      if (uri is DirectiveUriWithFile) {
-        return AugmentationImportWithFile(
-          container: this,
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else if (uri is DirectiveUriWithUri) {
-        return AugmentationImportWithUri(
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else if (uri is DirectiveUriWithString) {
-        return AugmentationImportWithUriStr(
-          unlinked: unlinked,
-          uri: uri,
-        );
-      } else {
-        return AugmentationImportState(
-          unlinked: unlinked,
-          uri: uri,
-        );
+      switch (uri) {
+        case DirectiveUriWithFile():
+          return AugmentationImportWithFile(
+            container: this,
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithUri():
+          return AugmentationImportWithUri(
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithString():
+          return AugmentationImportWithUriStr(
+            unlinked: unlinked,
+            uri: uri,
+          );
+        case DirectiveUriWithoutString():
+          return AugmentationImportState(
+            unlinked: unlinked,
+            uri: uri,
+          );
       }
     }).toFixedList();
   }
@@ -1939,37 +1948,38 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
         file.unlinked2.exports.map<LibraryExportState>((unlinked) {
       final uris = file._buildNamespaceDirectiveUris(unlinked);
       final selectedUri = uris.selected;
-      if (selectedUri is DirectiveUriWithFile) {
-        return LibraryExportWithFile(
-          container: this,
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithInSummarySource) {
-        return LibraryExportWithInSummarySource(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithUri) {
-        return LibraryExportWithUri(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithString) {
-        return LibraryExportWithUriStr(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else {
-        return LibraryExportState(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return LibraryExportWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithInSummarySource():
+          return LibraryExportWithInSummarySource(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return LibraryExportWithUri(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return LibraryExportWithUriStr(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return LibraryExportState(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
       }
     }).toFixedList();
   }
@@ -1979,37 +1989,38 @@ abstract class LibraryOrAugmentationFileKind extends FileKind {
         file.unlinked2.imports.map<LibraryImportState>((unlinked) {
       final uris = file._buildNamespaceDirectiveUris(unlinked);
       final selectedUri = uris.selected;
-      if (selectedUri is DirectiveUriWithFile) {
-        return LibraryImportWithFile(
-          container: this,
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithInSummarySource) {
-        return LibraryImportWithInSummarySource(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithUri) {
-        return LibraryImportWithUri(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else if (selectedUri is DirectiveUriWithString) {
-        return LibraryImportWithUriStr(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
-      } else {
-        return LibraryImportState(
-          unlinked: unlinked,
-          selectedUri: selectedUri,
-          uris: uris,
-        );
+      switch (selectedUri) {
+        case DirectiveUriWithFile():
+          return LibraryImportWithFile(
+            container: this,
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithInSummarySource():
+          return LibraryImportWithInSummarySource(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithUri():
+          return LibraryImportWithUri(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithString():
+          return LibraryImportWithUriStr(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
+        case DirectiveUriWithoutString():
+          return LibraryImportState(
+            unlinked: unlinked,
+            selectedUri: selectedUri,
+            uris: uris,
+          );
       }
     }).toFixedList();
   }
