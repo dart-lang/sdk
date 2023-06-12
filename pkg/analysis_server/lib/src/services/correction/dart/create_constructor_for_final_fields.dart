@@ -78,7 +78,7 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
 
     // prepare location for a new constructor
     var targetLocation = utils.prepareNewConstructorLocation(
-        resolvedResult.session, classDeclaration);
+        unitResult.session, classDeclaration);
     if (targetLocation == null) {
       return;
     }

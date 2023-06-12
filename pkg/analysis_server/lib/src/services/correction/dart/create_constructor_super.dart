@@ -31,7 +31,7 @@ class CreateConstructorSuper extends MultiCorrectionProducer {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
         var targetLocation = utils.prepareNewConstructorLocation(
-            resolvedResult.session, targetClassNode);
+            unitResult.session, targetClassNode);
         if (targetLocation != null) {
           producers.add(_CreateConstructor(
               constructor, targetLocation, targetClassElement.name));

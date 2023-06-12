@@ -171,7 +171,7 @@ class CreateMethod extends CorrectionProducer {
       // use different utils
       var targetPath = targetClassElement.source.fullName;
       var targetResolveResult =
-          await resolvedResult.session.getResolvedUnit(targetPath);
+          await unitResult.session.getResolvedUnit(targetPath);
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }

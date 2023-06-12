@@ -113,7 +113,7 @@ class ReplaceWithDecoratedBox extends CorrectionProducer {
   /// producer.
   bool _hasLint(InstanceCreationExpression expression) {
     var constructorName = expression.constructorName;
-    return resolvedResult.errors.any((error) {
+    return unitResult.errors.any((error) {
       var errorCode = error.errorCode;
       return errorCode.type == ErrorType.LINT &&
           errorCode.name == LintNames.use_decorated_box &&

@@ -246,7 +246,8 @@ class BulkFixProcessor {
   }
 
   Future<void> _applyProducer(
-      CorrectionProducerContext context, CorrectionProducer producer) async {
+      CorrectionProducerContext<ResolvedUnitResult> context,
+      CorrectionProducer producer) async {
     producer.configure(context);
     try {
       var localBuilder = builder.copy();
@@ -352,10 +353,10 @@ class BulkFixProcessor {
       );
     }
 
-    CorrectionProducerContext? correctionContext(
+    CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
         ResolvedUnitResult result, AnalysisError diagnostic) {
       var overrideSet = _readOverrideSet(result);
-      return CorrectionProducerContext.create(
+      return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
         dartFixContext: fixContext(result, diagnostic),
         diagnostic: diagnostic,
@@ -436,7 +437,7 @@ class BulkFixProcessor {
       ResolvedUnitResult result,
       AnalysisError diagnostic,
       TransformOverrideSet? overrideSet) async {
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -508,15 +509,17 @@ class BulkFixProcessor {
     }
   }
 
-  Future<void> _generateFix(CorrectionProducerContext context,
-      CorrectionProducer producer, String code) async {
+  Future<void> _generateFix(
+      CorrectionProducerContext<ResolvedUnitResult> context,
+      CorrectionProducer producer,
+      String code) async {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.resolvedResult.path, code.toLowerCase());
+      changeMap.add(context.result.path, code.toLowerCase());
     }
   }
 

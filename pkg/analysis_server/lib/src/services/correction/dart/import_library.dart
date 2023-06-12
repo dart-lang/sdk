@@ -522,7 +522,7 @@ class _ImportLibraryShow extends CorrectionProducer {
     var newShowCode = 'show ${showNames.join(', ')}';
     var offset = _showCombinator.offset;
     var length = _showCombinator.end - offset;
-    var libraryFile = resolvedResult.libraryElement.source.fullName;
+    var libraryFile = unitResult.libraryElement.source.fullName;
     await builder.addDartFileEdit(libraryFile, (builder) {
       builder.addSimpleReplacement(SourceRange(offset, length), newShowCode);
     });

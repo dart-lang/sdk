@@ -548,7 +548,7 @@ class CancelCorrectionException {
 
 class CorrectionUtils {
   final CompilationUnit unit;
-  final LibraryElement _library;
+  final LibraryElement? _library;
   final String _buffer;
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
@@ -559,9 +559,9 @@ class CorrectionUtils {
 
   String? _endOfLine;
 
-  CorrectionUtils(ResolvedUnitResult result)
+  CorrectionUtils(ParsedUnitResult result)
       : unit = result.unit,
-        _library = result.libraryElement,
+        _library = result is ResolvedUnitResult ? result.libraryElement : null,
         _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
@@ -1319,7 +1319,10 @@ class CorrectionUtils {
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in _library.libraryImports) {
+    if (_library == null) {
+      return null;
+    }
+    for (var imp in _library!.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;

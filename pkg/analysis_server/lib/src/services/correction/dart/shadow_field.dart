@@ -105,7 +105,7 @@ class ShadowField extends CorrectionProducer {
     if (parent is IsExpression && parent.expression == node) {
       return enclosingIf(parent);
     } else if (parent is BinaryExpression &&
-        resolvedResult.libraryElement.isNonNullableByDefault) {
+        unitResult.libraryElement.isNonNullableByDefault) {
       var opType = parent.operator.type;
       if (opType == TokenType.EQ_EQ || opType == TokenType.BANG_EQ) {
         return enclosingIf(parent);

@@ -87,7 +87,7 @@ class AddReturnType extends CorrectionProducer {
     if (body is ExpressionFunctionBody) {
       baseType = body.expression.typeOrThrow;
     } else if (body is BlockFunctionBody) {
-      var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
+      var computer = _ReturnTypeComputer(unitResult.typeSystem);
       body.block.accept(computer);
       baseType = computer.returnType;
       if (baseType == null && computer.hasReturn) {

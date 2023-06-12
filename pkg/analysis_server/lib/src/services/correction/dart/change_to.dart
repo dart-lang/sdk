@@ -120,12 +120,12 @@ class ChangeTo extends CorrectionProducer {
           nameToken.lexeme, (Element element) => element is InterfaceElement);
       // Check elements of this library.
       if (prefixName == null) {
-        for (var unit in resolvedResult.libraryElement.units) {
+        for (var unit in unitResult.libraryElement.units) {
           finder._updateList(unit.classes);
         }
       }
       // Check elements from imports.
-      for (var importElement in resolvedResult.libraryElement.libraryImports) {
+      for (var importElement in unitResult.libraryElement.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
@@ -218,12 +218,12 @@ class ChangeTo extends CorrectionProducer {
           node.name, (Element element) => element is FunctionElement);
       // Check to this library units.
       if (prefixName == null) {
-        for (var unit in resolvedResult.libraryElement.units) {
+        for (var unit in unitResult.libraryElement.units) {
           finder._updateList(unit.functions);
         }
       }
       // Check unprefixed imports.
-      for (var importElement in resolvedResult.libraryElement.libraryImports) {
+      for (var importElement in unitResult.libraryElement.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
