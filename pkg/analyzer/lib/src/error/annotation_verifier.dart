@@ -414,18 +414,53 @@ class AnnotationVerifier {
   /// Reports a warning at [node] if it's parent is not a valid target for an
   /// `@visibleOutsideTemplate` annotation.
   void _checkVisibleOutsideTemplate(Annotation node) {
-    var grandparent = node.parent.parent;
-    switch (grandparent) {
-      case ClassDeclaration(declaredElement: InterfaceElement(:var metadata)):
-      case EnumDeclaration(declaredElement: InterfaceElement(:var metadata)):
-      case MixinDeclaration(declaredElement: InterfaceElement(:var metadata)):
-        for (final annotation in metadata) {
-          if (annotation.isVisibleForTemplate) return;
-        }
+    void reportError() {
+      _errorReporter.reportErrorForNode(
+        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION,
+        node,
+      );
     }
 
-    _errorReporter.reportErrorForNode(
-        WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, node);
+    final AstNode? containedDeclaration;
+    switch (node.parent) {
+      case ConstructorDeclaration constructorDeclaration:
+        containedDeclaration = constructorDeclaration;
+      case EnumConstantDeclaration enumConstant:
+        containedDeclaration = enumConstant;
+      case FieldDeclaration fieldDeclaration:
+        containedDeclaration = fieldDeclaration;
+      case MethodDeclaration methodDeclaration:
+        containedDeclaration = methodDeclaration;
+      default:
+        reportError();
+        return;
+    }
+
+    final InterfaceElement? declaredElement;
+    switch (containedDeclaration.parent) {
+      case ClassDeclaration classDeclaration:
+        declaredElement = classDeclaration.declaredElement;
+      case EnumDeclaration enumDeclaration:
+        declaredElement = enumDeclaration.declaredElement;
+      case MixinDeclaration mixinDeclaration:
+        declaredElement = mixinDeclaration.declaredElement;
+      default:
+        reportError();
+        return;
+    }
+
+    if (declaredElement == null) {
+      reportError();
+      return;
+    }
+
+    for (final annotation in declaredElement.metadata) {
+      if (annotation.isVisibleForTemplate) {
+        return;
+      }
+    }
+
+    reportError();
   }
 
   /// Returns an expression (for error-reporting purposes) associated with a
