@@ -46,10 +46,10 @@ part 'test.dart';
 ''');
     addTestSource('part of libB; void f() {^}');
 
-    await resolveFile(b);
+    await getResolvedUnit(b);
 
     // Build the request
-    var resolvedUnit = await getResolvedUnit(testFile.path);
+    var resolvedUnit = await getResolvedUnit(testFile);
     request = DartCompletionRequest.forResolvedUnit(
       resolvedUnit: resolvedUnit,
       offset: completionOffset,

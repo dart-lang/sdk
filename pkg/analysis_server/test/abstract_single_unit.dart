@@ -46,19 +46,8 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  File newFile(String path, String content) {
-    content = normalizeSource(content);
-    return super.newFile(path, content);
-  }
-
-  /// Convenient function to normalize newlines in [code] for the current
-  /// platform if [useLineEndingsForPlatform] is `true`.
-  String normalizeSource(String code) =>
-      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
-
-  @override
-  Future<ResolvedUnitResult> resolveFile(File file) async {
-    var result = await super.resolveFile(file);
+  Future<ResolvedUnitResult> getResolvedUnit(File file) async {
+    var result = await super.getResolvedUnit(file);
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;
@@ -80,12 +69,23 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     return result;
   }
 
+  @override
+  File newFile(String path, String content) {
+    content = normalizeSource(content);
+    return super.newFile(path, content);
+  }
+
+  /// Convenient function to normalize newlines in [code] for the current
+  /// platform if [useLineEndingsForPlatform] is `true`.
+  String normalizeSource(String code) =>
+      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
+
   Future<void> resolveTestCode(String code) async {
     addTestSource(code);
     await resolveTestFile();
   }
 
   Future<void> resolveTestFile() async {
-    await resolveFile(testFile);
+    await getResolvedUnit(testFile);
   }
 }

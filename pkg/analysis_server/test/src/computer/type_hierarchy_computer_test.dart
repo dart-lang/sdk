@@ -55,7 +55,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractSingleUnitTest {
 
   Future<TypeHierarchyItem?> findTarget() async {
     expect(code, isNotNull, reason: 'addTestSource should be called first');
-    final result = await getResolvedUnit(testFile.path);
+    final result = await getResolvedUnit(testFile);
     return DartLazyTypeHierarchyComputer(result)
         .findTarget(code.position.offset);
   }
@@ -94,7 +94,8 @@ class TypeHierarchyComputerFindSubtypesTest extends AbstractTypeHierarchyTest {
 
   Future<List<TypeHierarchyItem>?> findSubtypes(
       TypeHierarchyItem target) async {
-    final result = await getResolvedUnit(target.file);
+    final file = getFile(target.file);
+    final result = await getResolvedUnit(file);
     return DartLazyTypeHierarchyComputer(result)
         .findSubtypes(target.location, searchEngine);
   }
@@ -285,7 +286,8 @@ class TypeHierarchyComputerFindSupertypesTest
     extends AbstractTypeHierarchyTest {
   Future<List<TypeHierarchyItem>?> findSupertypes(
       TypeHierarchyItem target) async {
-    final result = await getResolvedUnit(target.file);
+    final file = getFile(target.file);
+    final result = await getResolvedUnit(file);
     final anchor = target is TypeHierarchyRelatedItem ? target.anchor : null;
     return DartLazyTypeHierarchyComputer(result)
         .findSupertypes(target.location, anchor: anchor);
@@ -348,6 +350,7 @@ class D extends C<int> {}
 class ^E extends D {}
     ''';
     addTestSource(content);
+    fileForContextSelection = testFile;
 
     // Walk the tree and collect names at each level.
     var names = <String>[];
@@ -607,7 +610,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   Future<void> test_enum_body() async {
     final content = '''
 /*[0*/enum /*[1*/MyEnum1/*1]*/ {
-  ^
+^  v
 }/*0]*/
     ''';
 
@@ -625,6 +628,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   Future<void> test_enum_keyword() async {
     final content = '''
 /*[0*/en^um /*[1*/MyEnum1/*1]*/ {
+  v
 }/*0]*/
     ''';
 
@@ -642,6 +646,7 @@ class TypeHierarchyComputerFindTargetTest extends AbstractTypeHierarchyTest {
   Future<void> test_enumName() async {
     final content = '''
 /*[0*/enum /*[1*/MyEn^um1/*1]*/ {
+  v
 }/*0]*/
     ''';
 

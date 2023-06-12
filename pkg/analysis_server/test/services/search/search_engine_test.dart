@@ -36,7 +36,7 @@ class PubPackageResolutionTest extends AbstractContextTest {
 
   /// Resolve the [file] into [result].
   Future<void> resolveFile2(File file) async {
-    result = await resolveFile(file);
+    result = await getResolvedUnit(file);
 
     findNode = FindNode(result.content, result.unit);
     findElement = FindElement(result.unit);

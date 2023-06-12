@@ -33,6 +33,10 @@ class AbstractContextTest with ResourceProviderMixin {
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
 
+  /// If not `null`, [getResolvedUnit] will use the context that corresponds
+  /// to this file, instead of the given file.
+  File? fileForContextSelection;
+
   /// TODO(scheglov) Stop writing into it. Convert into getter.
   late String testFilePath = '$testPackageLibPath/test.dart';
 
@@ -169,8 +173,12 @@ class AbstractContextTest with ResourceProviderMixin {
     return _contextFor(file).driver;
   }
 
-  Future<ResolvedUnitResult> getResolvedUnit(String path) async =>
-      await (await session).getResolvedUnit(path) as ResolvedUnitResult;
+  Future<ResolvedUnitResult> getResolvedUnit(File file) async {
+    final path = file.path;
+    final session = await sessionFor(fileForContextSelection ?? file);
+    final result = await session.getResolvedUnit(path);
+    return result as ResolvedUnitResult;
+  }
 
   @override
   File newFile(String path, String content) {
@@ -181,12 +189,6 @@ class AbstractContextTest with ResourceProviderMixin {
     final file = super.newFile(path, content);
     _addAnalyzedFileToDrivers(file);
     return file;
-  }
-
-  Future<ResolvedUnitResult> resolveFile(File file) async {
-    final path = file.path;
-    var session = await sessionFor(file);
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   Future<AnalysisSession> sessionFor(File file) async {
