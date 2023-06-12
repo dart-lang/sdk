@@ -220,6 +220,9 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $qemu ]
 cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+cc/StressMallocDirectly: Skip # Queries RSS
+cc/StressMallocThroughZones: Skip # Queries RSS
+cc/SweepDontNeed: Skip # Queries RSS
 cc/TypeArguments_Cache_ManyInstantiations: Slow, Pass # Generates 100k classes, slow on emulated architectures.
 
 # On the simulator stack traces produced by the Profiler do not match

@@ -2299,10 +2299,12 @@ ISOLATE_UNIT_TEST_CASE(GrowableObjectArray) {
   }
   Heap* heap = IsolateGroup::Current()->heap();
   GCTestHelper::CollectAllGarbage();
+  GCTestHelper::WaitForGCTasks();  // Sweeper must finish for accurate capacity.
   intptr_t capacity_before = heap->CapacityInWords(Heap::kOld);
   new_array = Array::MakeFixedLength(array);
   EXPECT_EQ(1, new_array.Length());
   GCTestHelper::CollectAllGarbage();
+  GCTestHelper::WaitForGCTasks();  // Sweeper must finish for accurate capacity.
   intptr_t capacity_after = heap->CapacityInWords(Heap::kOld);
   // Page should shrink.
   EXPECT_LT(capacity_after, capacity_before);

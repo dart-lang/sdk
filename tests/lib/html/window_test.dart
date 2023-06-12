@@ -11,4 +11,13 @@ main() {
     expect(window.scrollX, 0);
     expect(window.scrollY, 0);
   });
+  test('open', () {
+    window.open('', 'blank');
+    try {
+      // A blank page with no access to the original window (noopener) should
+      // result in null.
+      window.open('', 'invalid', 'noopener=true');
+      fail('Expected Window.open to throw.');
+    } on NullWindowException {}
+  });
 }

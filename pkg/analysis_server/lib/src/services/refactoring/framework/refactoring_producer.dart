@@ -51,7 +51,7 @@ abstract class RefactoringProducer {
   Selection? get selection => _context.selection;
 
   /// Return the offset of the first character after the selection range.
-  int get selectionEnd => selectionOffset + selectionLength;
+  int get selectionEnd => _context.selectionEnd;
 
   /// Return the number of selected characters.
   int get selectionLength => _context.selectionLength;
@@ -87,10 +87,7 @@ abstract class RefactoringProducer {
   bool isAvailable();
 
   /// Return `true` if the selection is inside the given [token].
-  bool selectionIsInToken(Token? token) =>
-      token != null &&
-      selectionOffset >= token.offset &&
-      selectionEnd <= token.end;
+  bool selectionIsInToken(Token? token) => _context.selectionIsInToken(token);
 
   /// Return `true` if the client has support for command parameters of the
   /// provided `kind`. Subclasses that produce command parameters of this kind

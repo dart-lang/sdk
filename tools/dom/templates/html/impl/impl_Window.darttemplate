@@ -50,17 +50,18 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   /**
    * Opens a new window.
    *
+   * Throws a NullWindowException if the opened window is null.
+   *
    * ## Other resources
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
    */
   WindowBase open(String url, String name, [String$NULLABLE options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
-    }
+    final win =
+        options == null ? _open2(url, name) : _open3(url, name, options);
+    if (win == null) throw new NullWindowException();
+    return _DOMWindowCrossFrame._createSafe(win);
   }
 
   // API level getter and setter for Location.
@@ -253,4 +254,11 @@ $!MEMBERS
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
       JS<num>('num', '#.scrollY', this).round() :
       document.documentElement$NULLASSERT.scrollTop;
+}
+
+class NullWindowException implements Exception {
+  @override
+  String toString() {
+    return 'Attempted to call Window.open with a null window.';
+  }
 }
