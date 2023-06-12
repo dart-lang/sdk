@@ -32154,17 +32154,18 @@ class Window extends EventTarget
   /**
    * Opens a new window.
    *
+   * Throws a NullWindowException if the opened window is null.
+   *
    * ## Other resources
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
    *   from MDN.
    */
   WindowBase open(String url, String name, [String? options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
-    }
+    final win =
+        options == null ? _open2(url, name) : _open3(url, name, options);
+    if (win == null) throw new NullWindowException();
+    return _DOMWindowCrossFrame._createSafe(win);
   }
 
   // API level getter and setter for Location.
@@ -33776,6 +33777,13 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
+}
+
+class NullWindowException implements Exception {
+  @override
+  String toString() {
+    return 'Attempted to call Window.open with a null window.';
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40017,7 +40025,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-EventTarget? _convertDartToNative_EventTarget(e) {
+_convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -40116,7 +40124,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final _window;
+  final Object _window;
 
   // Fields.
   HistoryBase get history =>
