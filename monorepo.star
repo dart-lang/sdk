@@ -111,6 +111,42 @@ def monorepo_builder(name, short_name, category):
 
 monorepo_builder("flutter-linux-android_debug", "android-debug", "build")
 monorepo_builder("flutter-linux-android_profile", "android-profile", "build")
+monorepo_builder("flutter-linux-android_release", "android-release", "build")
+monorepo_builder(
+    "flutter-linux-android_debug_arm64",
+    "android-debug-arm64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_profile_arm64",
+    "android-profile-arm64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_release_arm64",
+    "android-release-arm64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_debug_x64",
+    "android-debug-x64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_profile_x64",
+    "android-profile-x64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_release_x64",
+    "android-release-x64",
+    "build",
+)
+monorepo_builder(
+    "flutter-linux-android_debug_x86",
+    "android-debug-x86",
+    "build",
+)
 monorepo_builder("flutter-linux-host_debug", "debug", "build")
 monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "build")
 monorepo_builder("flutter-linux-host_profile", "profile", "build")
@@ -138,7 +174,7 @@ def monorepo_tester(name, short_name, category):
     luci.console_view_entry(
         builder = name,
         short_name = short_name,
-        console_view = "flutter-web",
+        console_view = category,
     )
     dart.try_builder(
         name,
@@ -150,12 +186,16 @@ def monorepo_tester(name, short_name, category):
         cq_branches = [],
     )
 
-monorepo_tester("flutter-linux-web-tests-0", "wt0", "web_test")
-monorepo_tester("flutter-linux-web-tests-1", "wt1", "web_test")
-monorepo_tester("flutter-linux-web-tests-2", "wt2", "web_test")
-monorepo_tester("flutter-linux-web-tests-3", "wt3", "web_test")
-monorepo_tester("flutter-linux-web-tests-4", "wt4", "web_test")
-monorepo_tester("flutter-linux-web-tests-5", "wt5", "web_test")
-monorepo_tester("flutter-linux-web-tests-6", "wt6", "web_test")
-monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "web_test")
-monorepo_tester("flutter-linux-web-tool-tests", "wtool", "web_test")
+monorepo_tester("flutter-linux-flutter-plugins", "plugins", "flutter-engine")
+monorepo_tester("flutter-linux-framework-coverage", "coverage", "flutter-engine")
+monorepo_tester("flutter-linux-framework-tests", "tests", "flutter-engine")
+monorepo_tester("flutter-linux-tool-tests", "tool", "flutter-engine")
+monorepo_tester("flutter-linux-web-tests-0", "wt0", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-1", "wt1", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-2", "wt2", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-3", "wt3", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-4", "wt4", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-5", "wt5", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-6", "wt6", "flutter-web")
+monorepo_tester("flutter-linux-web-tests-7-last", "wt7", "flutter-web")
+monorepo_tester("flutter-linux-web-tool-tests", "wtool", "flutter-web")
