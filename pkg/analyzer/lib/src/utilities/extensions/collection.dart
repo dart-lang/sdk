@@ -22,6 +22,17 @@ extension ListExtension<E> on List<E> {
     }
   }
 
+  /// Returns the element at [index].
+  ///
+  /// Returns `null`, if [index] is negative or greater than the length.
+  E? elementAtOrNull2(int index) {
+    if (0 <= index && index < length) {
+      return this[index];
+    } else {
+      return null;
+    }
+  }
+
   E? nextOrNull(E element) {
     final index = indexOf(element);
     if (index >= 0 && index < length - 1) {

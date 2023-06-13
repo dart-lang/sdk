@@ -19,6 +19,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -212,6 +213,17 @@ class _Declaration {
   _Declaration({
     required this.element,
     required this.node,
+  });
+}
+
+/// Formal parameters of a declaration that match the selection.
+final class _DeclarationFormalParameters {
+  final List<FormalParameter> positional;
+  final Map<String, FormalParameter> named;
+
+  _DeclarationFormalParameters({
+    required this.positional,
+    required this.named,
   });
 }
 
@@ -523,25 +535,34 @@ class _SignatureUpdater {
       return ChangeStatusFailure();
     }
 
-    final existingNamedParameters = formalParameterList.namedMap;
+    final existingFormalParameters = _declarationFormalParameters(
+      formalParameterList: formalParameterList,
+    );
+    if (existingFormalParameters == null) {
+      return ChangeStatusFailure();
+    }
 
     final requiredPositionalWrites = <String>[];
     final optionalPositionalWrites = <String>[];
     final namedWrites = <String>[];
     for (final update in signatureUpdate.formalParameters) {
-      FormalParameter? existing;
-      // TODO(scheglov) Check that existing id.
+      final FormalParameter? existing;
       final id = update.id;
-      final parameterState = selectionState.formalParameters[id];
-      final positionalIndex = parameterState.positionalIndex;
+      final formalParameterState =
+          selectionState.formalParameters.elementAtOrNull2(id);
+      if (formalParameterState == null) {
+        return ChangeStatusFailure();
+      }
+      final positionalIndex = formalParameterState.positionalIndex;
       if (positionalIndex != null) {
-        final parameters = formalParameterList.parameters;
-        existing = parameters.elementAtOrNull(positionalIndex);
+        existing = existingFormalParameters.positional
+            .elementAtOrNull2(positionalIndex);
         if (existing == null) {
           return ChangeStatusFailure();
         }
       } else {
-        existing = existingNamedParameters.remove(parameterState.name);
+        existing =
+            existingFormalParameters.named.remove(formalParameterState.name);
         if (existing == null) {
           continue;
         }
@@ -568,6 +589,7 @@ class _SignatureUpdater {
           return ChangeStatusFailure();
       }
     }
+    // TODO(scheglov) add back remaining named formal parameters
 
     await builder.addDartFileEdit(path, (builder) {
       builder.addReplacement(
@@ -724,6 +746,49 @@ class _SignatureUpdater {
       return NamedFormalParameterReference(existing.name);
     }
   }
+
+  /// If [formalParameterList] does not have the same number and kind of
+  /// positional formal parameters, returns `null`.
+  ///
+  /// Otherwise, returns separated positional and named formal parameters.
+  _DeclarationFormalParameters? _declarationFormalParameters({
+    required FormalParameterList formalParameterList,
+  }) {
+    final positional = <FormalParameter>[];
+    final named = <String, FormalParameter>{};
+    for (final formalParameter in formalParameterList.parameters) {
+      if (formalParameter.isPositional) {
+        positional.add(formalParameter);
+      } else {
+        final name = formalParameter.name?.lexeme;
+        if (name == null) {
+          return null;
+        }
+        named[name] = formalParameter;
+      }
+    }
+
+    final selectionPositional = selectionState.formalParameters
+        .where((state) => state.kind.isPositional)
+        .toList();
+    if (positional.length != selectionPositional.length) {
+      return null;
+    }
+
+    for (var i = 0; i < positional.length; i++) {
+      final positionalKind = positional[i].isRequiredPositional
+          ? FormalParameterKind.requiredPositional
+          : FormalParameterKind.optionalPositional;
+      if (positionalKind != selectionPositional[i].kind) {
+        return null;
+      }
+    }
+
+    return _DeclarationFormalParameters(
+      positional: positional,
+      named: named,
+    );
+  }
 }
 
 extension on FormalParameterList {
@@ -731,17 +796,6 @@ extension on FormalParameterList {
     final last = parameters.lastOrNull;
     final nextToken = last?.endToken.next;
     return nextToken != null && nextToken.type == TokenType.COMMA;
-  }
-
-  Map<String, FormalParameter> get namedMap {
-    return Map.fromEntries(
-      parameters.map((formalParameter) {
-        final name = formalParameter.name?.lexeme;
-        if (formalParameter.isNamed && name != null) {
-          return MapEntry(name, formalParameter);
-        }
-      }).whereNotNull(),
-    );
   }
 }
 

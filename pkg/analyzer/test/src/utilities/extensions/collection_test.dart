@@ -26,6 +26,13 @@ class ListExtensionTest {
     expect(elements, [0, 1]);
   }
 
+  test_elementAtOrNull2() {
+    expect([0, 1].elementAtOrNull2(-1), isNull);
+    expect([0, 1].elementAtOrNull2(0), 0);
+    expect([0, 1].elementAtOrNull2(1), 1);
+    expect([0, 1].elementAtOrNull2(2), isNull);
+  }
+
   test_nextOrNull() {
     var elements = [0, 1, 2];
     expect(elements.nextOrNull(0), 1);
