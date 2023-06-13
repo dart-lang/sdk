@@ -2,14 +2,19 @@
 library static_interop;
 import self as self;
 import "dart:js_interop" as js_;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 
 import "dart:js_interop";
 
-abstract class A extends core::Object {
+@#C2
+@#C3
+class A extends core::Object {
   synthetic constructor •() → self::A
     : super core::Object::•()
     ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
 }
 @#C2
 inline class B /* declaredRepresentationType = self::A */ {
@@ -74,6 +79,7 @@ static method method(self::A a) → void {
 constants  {
   #C1 = null
   #C2 = js_::JS {name:#C1}
+  #C3 = _js::_StaticInterop {}
 }
 
 

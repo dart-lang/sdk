@@ -14,7 +14,6 @@ import 'package:expect/minitest.dart';
 @JS()
 external dynamic eval(String code);
 
-@JS()
 inline class External<T extends Nested> {
   final JSObject obj;
   external External();
@@ -39,7 +38,6 @@ inline class External<T extends Nested> {
   external T get nested;
 }
 
-@JS()
 inline class Nested {
   final JSObject obj;
   external Nested();

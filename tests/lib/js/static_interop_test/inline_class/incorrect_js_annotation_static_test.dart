@@ -20,12 +20,18 @@ external jsi.JSVoid jsiTopLevel();
 external jsi.JSVoid pkgJsTopLevel();
 
 @jsi.JS()
-inline class JsiInlineClass {}
+inline class JsiInlineClass {
+  final jsi.JSObject obj;
+  external JsiInlineClass();
+}
 
 @pkgJs.JS()
-inline class PkgJsInlineClass {}
+inline class PkgJsInlineClass {
 //           ^
 // [web] Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'.
+  final jsi.JSObject obj;
+  external PkgJsInlineClass();
+}
 
 @jsi.JS()
 class JsiClass {}

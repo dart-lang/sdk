@@ -7924,6 +7924,51 @@ const MessageCode messageJsInteropExternalMemberNotJSAnnotated = const MessageCo
         r"""Try removing the 'external' keyword or adding a JS interop annotation.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeJsInteropInlineClassMemberNotInterop =
+    messageJsInteropInlineClassMemberNotInterop;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageJsInteropInlineClassMemberNotInterop = const MessageCode(
+    "JsInteropInlineClassMemberNotInterop",
+    problemMessage:
+        r"""Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type.""",
+    correctionMessage:
+        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            string)> templateJsInteropInlineClassNotInterop = const Template<
+        Message Function(String name, String string)>(
+    problemMessageTemplate:
+        r"""Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'.""",
+    correctionMessageTemplate:
+        r"""Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
+    withArguments: _withArgumentsJsInteropInlineClassNotInterop);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String string)>
+    codeJsInteropInlineClassNotInterop =
+    const Code<Message Function(String name, String string)>(
+  "JsInteropInlineClassNotInterop",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropInlineClassNotInterop(
+    String name, String string) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (string.isEmpty) throw 'No string provided';
+  return new Message(codeJsInteropInlineClassNotInterop,
+      problemMessage:
+          """Inline class '${name}' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '${string}'.""",
+      correctionMessage: """Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types.""",
+      arguments: {'name': name, 'string': string});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropInlineClassUsedWithWrongJsAnnotation =
     messageJsInteropInlineClassUsedWithWrongJsAnnotation;
 

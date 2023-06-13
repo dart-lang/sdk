@@ -14,6 +14,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropExternalExtensionMemberOnTypeInvalid,
         messageJsInteropExternalExtensionMemberWithStaticDisallowed,
         messageJsInteropExternalMemberNotJSAnnotated,
+        messageJsInteropInlineClassMemberNotInterop,
         messageJsInteropInlineClassUsedWithWrongJsAnnotation,
         messageJsInteropInvalidStaticClassMemberName,
         messageJsInteropNamedParameters,
@@ -26,6 +27,7 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropParameterInitializersAreIgnored,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
+        templateJsInteropInlineClassNotInterop,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
@@ -59,7 +61,7 @@ class JsInteropChecks extends RecursiveVisitor {
   final Set<Constant> _constantCache = {};
   final CoreTypes _coreTypes;
   final Procedure _functionToJSTarget;
-  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
+  late final InlineExtensionIndex _inlineExtensionIndex;
   // Errors on constants need source information, so we use the surrounding
   // `ConstantExpression` as the source.
   ConstantExpression? _lastConstantExpression;
@@ -146,7 +148,10 @@ class JsInteropChecks extends RecursiveVisitor {
         _functionToJSTarget = _coreTypes.index.getTopLevelProcedure(
             'dart:js_interop', 'FunctionToJSExportedDartFunction|get#toJS'),
         _staticTypeContext = StatefulStaticTypeContext.stacked(
-            TypeEnvironment(_coreTypes, hierarchy));
+            TypeEnvironment(_coreTypes, hierarchy)) {
+    _inlineExtensionIndex =
+        InlineExtensionIndex(_coreTypes, _staticTypeContext.typeEnvironment);
+  }
 
   /// Verifies given [member] is an external extension member on a static
   /// interop type that needs custom behavior.
@@ -191,6 +196,15 @@ class JsInteropChecks extends RecursiveVisitor {
     if (hasPackageJSAnnotation(node)) {
       _reporter.report(messageJsInteropInlineClassUsedWithWrongJsAnnotation,
           node.fileOffset, node.name.length, node.fileUri);
+    }
+    if (hasDartJSInteropAnnotation(node) &&
+        !_inlineExtensionIndex.isInteropInlineClass(node)) {
+      _reporter.report(
+          templateJsInteropInlineClassNotInterop.withArguments(
+              node.name, node.declaredRepresentationType.toString()),
+          node.fileOffset,
+          node.name.length,
+          node.fileUri);
     }
     super.visitInlineClass(node);
   }
@@ -616,8 +630,14 @@ class JsInteropChecks extends RecursiveVisitor {
       if (member.isExtensionMember) {
         final annotatable =
             _inlineExtensionIndex.getExtensionAnnotatable(member);
-        if (annotatable == null || !hasNativeAnnotation(annotatable)) {
+        if (annotatable == null) {
           _reporter.report(messageJsInteropExternalExtensionMemberOnTypeInvalid,
+              member.fileOffset, member.name.text.length, member.fileUri);
+        }
+      } else if (member.isInlineClassMember) {
+        final inlineClass = _inlineExtensionIndex.getInlineClass(member);
+        if (inlineClass == null) {
+          _reporter.report(messageJsInteropInlineClassMemberNotInterop,
               member.fileOffset, member.name.text.length, member.fileUri);
         }
       } else if (!hasJSInteropAnnotation(member)) {
@@ -872,18 +892,15 @@ class JsInteropChecks extends RecursiveVisitor {
   /// A JS interop member is `external`, and is in a valid JS interop context,
   /// which can be:
   ///   - inside a JS interop class
-  ///   - inside an extension on a JS interop annotatable
+  ///   - inside an extension on a JS interop or @Native annotatable
   ///   - inside a JS interop inline class
   ///   - a top level member that is JS interop annotated or in a JS interop
   ///     library
-  /// If a member belongs to a class, the class must be JS interop annotated.
   bool _isJSInteropMember(Member member) {
     if (member.isExternal) {
       if (_classHasJSAnnotation) return true;
       if (member.isExtensionMember) {
-        final annotatable =
-            _inlineExtensionIndex.getExtensionAnnotatable(member);
-        return annotatable != null && hasJSInteropAnnotation(annotatable);
+        return _inlineExtensionIndex.getExtensionAnnotatable(member) != null;
       }
       if (member.isInlineClassMember) {
         return _inlineExtensionIndex.getInlineClass(member) != null;

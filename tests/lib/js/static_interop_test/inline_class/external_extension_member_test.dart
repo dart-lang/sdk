@@ -14,7 +14,6 @@ import 'package:expect/minitest.dart';
 @JS()
 external dynamic eval(String code);
 
-@JS()
 inline class Extension {
   final JSObject obj;
   external Extension();

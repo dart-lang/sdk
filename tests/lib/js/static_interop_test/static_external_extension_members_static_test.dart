@@ -5,10 +5,11 @@
 // SharedOptions=--enable-experiment=inline-class
 
 // Test that external extension members with the 'static' keyword on JS interop
-// types are disallowed.
+// and @Native types are disallowed.
 
 library static_external_extension_members_static_test;
 
+import 'dart:html';
 import 'dart:js_interop';
 
 import 'package:js/js.dart' as pkgJs;
@@ -79,9 +80,30 @@ extension on StaticInterop {
 }
 
 @JS()
-inline class InlineClass {}
+inline class InlineClass {
+  final JSObject obj;
+  external InlineClass();
+}
 
 extension on InlineClass {
+  external static JSNumber field;
+  //                       ^
+  // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
+  external static final JSNumber finalField;
+  //                             ^
+  // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
+  external static JSNumber get getSet;
+  //                           ^
+  // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
+  external static set getSet(JSNumber _);
+  //                  ^
+  // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
+  external static void method();
+  //                   ^
+  // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
+}
+
+extension on Window {
   external static JSNumber field;
   //                       ^
   // [web] External extension members with the keyword 'static' on JS interop and @Native types are disallowed.
