@@ -27,6 +27,7 @@ part 'errors.dart';
 part 'iterable.dart';
 part 'list.dart';
 part 'linked_list.dart';
+part 'lowering.dart';
 part 'patch.dart';
 part 'print.dart';
 part 'sort.dart';

@@ -178,7 +178,8 @@ class JsFunction extends JsObject {
 
 // TODO(jmesserly): this is totally unnecessary in dev_compiler.
 @patch
-class JsArray<E> extends JsObject with ListMixin<E> {
+// TODO(johnniwinther): Support with clause in patches/augmentations.
+class JsArray<E> /*extends JsObject with ListMixin<E>*/ {
   @patch
   factory JsArray() => JsArray<E>._fromJs([]);
 

@@ -5985,6 +5985,10 @@ UnmatchedAugmentationClassMember:
         augment void method() {}
       }
 
+UnmatchedPatchClassMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin class."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
+
 UnmatchedAugmentationLibraryMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
@@ -5994,6 +5998,10 @@ UnmatchedAugmentationLibraryMember:
       import augment 'lib.dart';
     lib.dart:
       augment void method() {}
+
+UnmatchedPatchLibraryMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin library."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 UnmatchedAugmentationClass:
   problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
@@ -6005,10 +6013,18 @@ UnmatchedAugmentationClass:
     lib.dart:
       augment class Class {}
 
+UnmatchedPatchClass:
+  problemMessage: "Patch class '#name' doesn't match a class in the origin library."
+  correctionMessage: "Try changing the name to an existing class or removing the '@patch' annotation."
+
 UnmatchedAugmentationDeclaration:
   problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
   correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
   experiments: macros
+
+UnmatchedPatchDeclaration:
+  problemMessage: "Patch '#name' doesn't match a declaration in the origin library."
+  correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
 UnmatchedAugmentationConstructor:
   problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
@@ -6025,6 +6041,9 @@ UnmatchedAugmentationConstructor:
         augment Class.name2();
       }
 
+UnmatchedPatchConstructor:
+  problemMessage: "Patch constructor '#name' doesn't match a constructor in the origin class."
+  correctionMessage: "Try changing the name to an existing constructor or removing the '@patch' annotation."
 
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
@@ -6041,6 +6060,10 @@ NonAugmentationClassMemberConflict:
         void method() {}
       }
 
+NonPatchClassMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin class."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
+
 NonAugmentationLibraryMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
   correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
@@ -6051,6 +6074,10 @@ NonAugmentationLibraryMemberConflict:
       void method() {}
     lib.dart:
       void method() {}
+
+NonPatchLibraryMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin library."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
 
 NonAugmentationLibraryConflict:
   problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
@@ -6063,6 +6090,10 @@ NonAugmentationLibraryConflict:
     lib.dart:
       class method {}
 
+NonPatchLibraryConflict:
+  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the origin library."
+  correctionMessage: "Try changing the name of the declaration."
+
 NonAugmentationClassConflict:
   problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
   correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
@@ -6073,6 +6104,10 @@ NonAugmentationClassConflict:
       class Class {}
     lib.dart:
       class Class {}
+
+NonPatchClassConflict:
+  problemMessage: "Class '#name' conflicts with an existing class of the same name in the origin library."
+  correctionMessage: "Try changing the name of the class or adding an '@patch' annotation."
 
 NonAugmentationConstructorConflict:
   problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
@@ -6088,6 +6123,10 @@ NonAugmentationConstructorConflict:
       augment class Class {
         Class.name();
       }
+
+NonPatchConstructorConflict:
+  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the origin class."
+  correctionMessage: "Try changing the name of the constructor or adding an '@patch' annotation."
 
 NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."

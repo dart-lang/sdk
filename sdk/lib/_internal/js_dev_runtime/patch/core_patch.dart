@@ -819,7 +819,6 @@ class NoSuchMethodError {
   final Map<Symbol, dynamic>? _namedArguments;
   final Invocation? _invocation;
 
-  @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments)
       : _receiver = receiver,

@@ -7,6 +7,7 @@ import 'dart:_foreign_helper' show JS;
 import 'dart:js_interop' hide JS;
 import 'dart:js_util' as js_util;
 
+@patch
 extension JSObjectUtilExtension on JSObject {
   @patch
   @pragma('dart2js:prefer-inline')
@@ -55,6 +56,7 @@ extension JSObjectUtilExtension on JSObject {
       JS<bool>('bool', 'delete #[#]', this, property).toJS;
 }
 
+@patch
 extension JSFunctionUtilExtension on JSFunction {
   // TODO(joshualitt): Specialize `callAsConstructor`.
   @patch

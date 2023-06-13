@@ -698,7 +698,6 @@ class NoSuchMethodError {
       NoSuchMethodError._(receiver, invocation.memberName,
           invocation.positionalArguments, invocation.namedArguments);
 
-  @patch
   NoSuchMethodError(Object? receiver, Symbol memberName,
       List? positionalArguments, Map<Symbol, dynamic>? namedArguments,
       [List? existingArgumentNames = null])

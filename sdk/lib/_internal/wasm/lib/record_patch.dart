@@ -7,6 +7,7 @@ part of "core_patch.dart";
 // `entry-point` needed to make sure the class will be in the class hierarchy
 // in programs without records.
 @pragma('wasm:entry-point')
+@patch
 abstract class Record {
   _Type get _recordRuntimeType;
 

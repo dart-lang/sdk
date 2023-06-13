@@ -13,6 +13,7 @@ import 'builder/class_builder.dart';
 import 'builder/extension_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/member_builder.dart';
+import 'builder/metadata_builder.dart';
 import 'builder/name_iterator.dart';
 import 'builder/type_variable_builder.dart';
 import 'fasta_codes.dart';
@@ -23,6 +24,8 @@ import 'kernel/kernel_helper.dart';
 import 'problems.dart' show internalProblem, unsupported;
 import 'source/source_class_builder.dart';
 import 'source/source_extension_builder.dart';
+import 'source/source_function_builder.dart';
+import 'source/source_inline_class_builder.dart';
 import 'source/source_library_builder.dart';
 import 'source/source_member_builder.dart';
 import 'util/helpers.dart' show DelayedActionPerformer;
@@ -1372,71 +1375,81 @@ abstract class MergedScope<T extends Builder> {
   void _addBuilderToMergedScope(T parentBuilder, String name,
       Builder newBuilder, Builder? existingBuilder,
       {required bool setter}) {
+    bool inAugmentation = parentBuilder.isAugmentation;
+    bool isAugmentationBuilder = inAugmentation
+        ? newBuilder.isAugmentation
+        : newBuilder.hasPatchAnnotation;
     if (existingBuilder != null) {
-      if (parentBuilder.isAugmentation) {
-        if (newBuilder.isAugmentation) {
-          existingBuilder.applyPatch(newBuilder);
-        } else {
-          newBuilder.isConflictingAugmentationMember = true;
-          Message message;
-          Message context;
-          if (newBuilder is SourceMemberBuilder &&
-              existingBuilder is SourceMemberBuilder) {
-            if (_origin is SourceLibraryBuilder) {
-              message = templateNonAugmentationLibraryMemberConflict
-                  .withArguments(name);
-            } else {
-              message = templateNonAugmentationClassMemberConflict
-                  .withArguments(name);
-            }
-            context = messageNonAugmentationMemberConflictCause;
-          } else if (newBuilder is SourceClassBuilder &&
-              existingBuilder is SourceClassBuilder) {
-            message = templateNonAugmentationClassConflict.withArguments(name);
-            context = messageNonAugmentationClassConflictCause;
-          } else {
-            if (_origin is SourceLibraryBuilder) {
-              message =
-                  templateNonAugmentationLibraryConflict.withArguments(name);
-            } else {
-              message = templateNonAugmentationClassMemberConflict
-                  .withArguments(name);
-            }
-            context = messageNonAugmentationMemberConflictCause;
-          }
-          originLibrary.addProblem(
-              message, newBuilder.charOffset, name.length, newBuilder.fileUri,
-              context: [
-                context.withLocation(existingBuilder.fileUri!,
-                    existingBuilder.charOffset, name.length)
-              ]);
-        }
-      } else {
-        // Patch libraries implicitly assume matching members are patch
-        // members.
+      if (isAugmentationBuilder) {
         existingBuilder.applyPatch(newBuilder);
+      } else {
+        newBuilder.isConflictingAugmentationMember = true;
+        Message message;
+        Message context;
+        if (newBuilder is SourceMemberBuilder &&
+            existingBuilder is SourceMemberBuilder) {
+          if (_origin is SourceLibraryBuilder) {
+            message = inAugmentation
+                ? templateNonAugmentationLibraryMemberConflict
+                    .withArguments(name)
+                : templateNonPatchLibraryMemberConflict.withArguments(name);
+          } else {
+            message = inAugmentation
+                ? templateNonAugmentationClassMemberConflict.withArguments(name)
+                : templateNonPatchClassMemberConflict.withArguments(name);
+          }
+          context = messageNonAugmentationMemberConflictCause;
+        } else if (newBuilder is SourceClassBuilder &&
+            existingBuilder is SourceClassBuilder) {
+          message = inAugmentation
+              ? templateNonAugmentationClassConflict.withArguments(name)
+              : templateNonPatchClassConflict.withArguments(name);
+          context = messageNonAugmentationClassConflictCause;
+        } else {
+          if (_origin is SourceLibraryBuilder) {
+            message = inAugmentation
+                ? templateNonAugmentationLibraryConflict.withArguments(name)
+                : templateNonPatchLibraryConflict.withArguments(name);
+          } else {
+            message = inAugmentation
+                ? templateNonAugmentationClassMemberConflict.withArguments(name)
+                : templateNonPatchClassMemberConflict.withArguments(name);
+          }
+          context = messageNonAugmentationMemberConflictCause;
+        }
+        originLibrary.addProblem(
+            message, newBuilder.charOffset, name.length, newBuilder.fileUri,
+            context: [
+              context.withLocation(existingBuilder.fileUri!,
+                  existingBuilder.charOffset, name.length)
+            ]);
       }
     } else {
-      if (newBuilder.isAugmentation) {
+      if (isAugmentationBuilder) {
         Message message;
         if (newBuilder is SourceMemberBuilder) {
           if (_origin is SourceLibraryBuilder) {
-            message =
-                templateUnmatchedAugmentationLibraryMember.withArguments(name);
+            message = inAugmentation
+                ? templateUnmatchedAugmentationLibraryMember.withArguments(name)
+                : templateUnmatchedPatchLibraryMember.withArguments(name);
           } else {
-            message =
-                templateUnmatchedAugmentationClassMember.withArguments(name);
+            message = inAugmentation
+                ? templateUnmatchedAugmentationClassMember.withArguments(name)
+                : templateUnmatchedPatchClassMember.withArguments(name);
           }
         } else if (newBuilder is SourceClassBuilder) {
-          message = templateUnmatchedAugmentationClass.withArguments(name);
+          message = inAugmentation
+              ? templateUnmatchedAugmentationClass.withArguments(name)
+              : templateUnmatchedPatchClass.withArguments(name);
         } else {
-          message =
-              templateUnmatchedAugmentationDeclaration.withArguments(name);
+          message = inAugmentation
+              ? templateUnmatchedAugmentationDeclaration.withArguments(name)
+              : templateUnmatchedPatchDeclaration.withArguments(name);
         }
         originLibrary.addProblem(
             message, newBuilder.charOffset, name.length, newBuilder.fileUri);
       } else {
-        if (!parentBuilder.isAugmentation &&
+        if (!inAugmentation &&
             !name.startsWith('_') &&
             !_allowInjectedPublicMember(newBuilder)) {
           originLibrary.addProblem(
@@ -1558,55 +1571,59 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
         .forEach((String name, MemberBuilder newConstructor) {
       MemberBuilder? existingConstructor =
           _originConstructorScope.lookupLocalMember(name);
-      if (classBuilder.isAugmentation) {
-        if (existingConstructor != null) {
-          if (newConstructor.isAugmentation) {
-            existingConstructor.applyPatch(newConstructor);
-          } else {
-            newConstructor.isConflictingAugmentationMember = true;
-            originLibrary.addProblem(
-                templateNonAugmentationConstructorConflict
-                    .withArguments(newConstructor.fullNameForErrors),
-                newConstructor.charOffset,
-                noLength,
-                newConstructor.fileUri,
-                context: [
-                  messageNonAugmentationConstructorConflictCause.withLocation(
-                      existingConstructor.fileUri!,
-                      existingConstructor.charOffset,
-                      noLength)
-                ]);
-          }
+      bool inAugmentation = classBuilder.isAugmentation;
+      bool isAugmentationBuilder = inAugmentation
+          ? newConstructor.isAugmentation
+          : newConstructor.hasPatchAnnotation;
+      if (existingConstructor != null) {
+        if (isAugmentationBuilder) {
+          existingConstructor.applyPatch(newConstructor);
         } else {
-          if (newConstructor.isAugmentation) {
-            originLibrary.addProblem(
-                templateUnmatchedAugmentationConstructor
-                    .withArguments(newConstructor.fullNameForErrors),
-                newConstructor.charOffset,
-                noLength,
-                newConstructor.fileUri);
-          } else {
-            _originConstructorScope.addLocalMember(name, newConstructor);
-            for (ConstructorScope augmentationConstructorScope
-                in _augmentationConstructorScopes.values) {
-              _addConstructorToAugmentationScope(
-                  augmentationConstructorScope, name, newConstructor);
-            }
-          }
+          newConstructor.isConflictingAugmentationMember = true;
+          originLibrary.addProblem(
+              inAugmentation
+                  ? templateNonAugmentationConstructorConflict
+                      .withArguments(newConstructor.fullNameForErrors)
+                  : templateNonPatchConstructorConflict
+                      .withArguments(newConstructor.fullNameForErrors),
+              newConstructor.charOffset,
+              noLength,
+              newConstructor.fileUri,
+              context: [
+                messageNonAugmentationConstructorConflictCause.withLocation(
+                    existingConstructor.fileUri!,
+                    existingConstructor.charOffset,
+                    noLength)
+              ]);
         }
       } else {
-        if (existingConstructor != null) {
-          // Patch libraries implicitly assume matching members are patch
-          // members.
-          existingConstructor.applyPatch(newConstructor);
-        } else if (name.startsWith('_')) {
-          // Members injected into patch are not part of the origin scope.
+        if (isAugmentationBuilder) {
+          originLibrary.addProblem(
+              inAugmentation
+                  ? templateUnmatchedAugmentationConstructor
+                      .withArguments(newConstructor.fullNameForErrors)
+                  : templateUnmatchedPatchConstructor
+                      .withArguments(newConstructor.fullNameForErrors),
+              newConstructor.charOffset,
+              noLength,
+              newConstructor.fileUri);
+        } else {
           _originConstructorScope.addLocalMember(name, newConstructor);
-          for (ConstructorScope augmentationScope
+          for (ConstructorScope augmentationConstructorScope
               in _augmentationConstructorScopes.values) {
             _addConstructorToAugmentationScope(
-                augmentationScope, name, newConstructor);
+                augmentationConstructorScope, name, newConstructor);
           }
+        }
+        if (!inAugmentation &&
+            !name.startsWith('_') &&
+            !_allowInjectedPublicMember(newConstructor)) {
+          originLibrary.addProblem(
+              templatePatchInjectionFailed.withArguments(
+                  name, originLibrary.importUri),
+              newConstructor.charOffset,
+              noLength,
+              newConstructor.fileUri);
         }
       }
     });
@@ -1637,6 +1654,13 @@ class MergedClassMemberScope extends MergedScope<SourceClassBuilder> {
 
   @override
   bool _allowInjectedPublicMember(Builder newBuilder) {
+    if (originLibrary.importUri.isScheme("dart") &&
+        originLibrary.importUri.path.startsWith("_")) {
+      return true;
+    }
+    if (newBuilder.isStatic) {
+      return _origin.name.startsWith('_');
+    }
     // TODO(johnniwinther): Restrict the use of injected public class members.
     return true;
   }
@@ -1675,6 +1699,32 @@ extension on Builder {
       self.isConflictingAugmentationMember = value;
     }
     // TODO(johnniwinther): Handle all cases here.
+  }
+
+  bool _hasPatchAnnotation(List<MetadataBuilder>? metadata) {
+    if (metadata == null) {
+      return false;
+    }
+    for (MetadataBuilder metadataBuilder in metadata) {
+      if (metadataBuilder.beginToken.next?.lexeme == 'patch') {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  bool get hasPatchAnnotation {
+    Builder self = this;
+    if (self is SourceFunctionBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceClassBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceExtensionBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    } else if (self is SourceInlineClassBuilder) {
+      return _hasPatchAnnotation(self.metadata);
+    }
+    return false;
   }
 }
 

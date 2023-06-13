@@ -10045,6 +10045,150 @@ const MessageCode messageNonPartOfDirectiveInPart = const MessageCode(
         r"""Try removing the other directives, or moving them to the library for which this is a part.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonPatchClassConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Class '#name' conflicts with an existing class of the same name in the origin library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the class or adding an '@patch' annotation.""",
+    withArguments: _withArgumentsNonPatchClassConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonPatchClassConflict =
+    const Code<Message Function(String name)>(
+  "NonPatchClassConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonPatchClassConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonPatchClassConflict,
+      problemMessage:
+          """Class '${name}' conflicts with an existing class of the same name in the origin library.""",
+      correctionMessage: """Try changing the name of the class or adding an '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonPatchClassMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the origin class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the member or adding an '@patch' annotation.""",
+    withArguments: _withArgumentsNonPatchClassMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonPatchClassMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonPatchClassMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonPatchClassMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonPatchClassMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the origin class.""",
+      correctionMessage: """Try changing the name of the member or adding an '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonPatchConstructorConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Constructor '#name' conflicts with an existing constructor of the same name in the origin class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the constructor or adding an '@patch' annotation.""",
+    withArguments: _withArgumentsNonPatchConstructorConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonPatchConstructorConflict =
+    const Code<Message Function(String name)>(
+  "NonPatchConstructorConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonPatchConstructorConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonPatchConstructorConflict,
+      problemMessage:
+          """Constructor '${name}' conflicts with an existing constructor of the same name in the origin class.""",
+      correctionMessage: """Try changing the name of the constructor or adding an '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonPatchLibraryConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Declaration '#name' conflicts with an existing declaration of the same name in the origin library.""",
+    correctionMessageTemplate: r"""Try changing the name of the declaration.""",
+    withArguments: _withArgumentsNonPatchLibraryConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonPatchLibraryConflict =
+    const Code<Message Function(String name)>(
+  "NonPatchLibraryConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonPatchLibraryConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonPatchLibraryConflict,
+      problemMessage:
+          """Declaration '${name}' conflicts with an existing declaration of the same name in the origin library.""",
+      correctionMessage: """Try changing the name of the declaration.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateNonPatchLibraryMemberConflict = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Member '#name' conflicts with an existing member of the same name in the origin library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name of the member or adding an '@patch' annotation.""",
+    withArguments: _withArgumentsNonPatchLibraryMemberConflict);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeNonPatchLibraryMemberConflict =
+    const Code<Message Function(String name)>(
+  "NonPatchLibraryMemberConflict",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsNonPatchLibraryMemberConflict(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeNonPatchLibraryMemberConflict,
+      problemMessage:
+          """Member '${name}' conflicts with an existing member of the same name in the origin library.""",
+      correctionMessage: """Try changing the name of the member or adding an '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeNonPositiveArrayDimensions =
     messageNonPositiveArrayDimensions;
 
@@ -13030,6 +13174,149 @@ Message _withArgumentsUnmatchedAugmentationLibraryMember(String name) {
       problemMessage:
           """Augmentation member '${name}' doesn't match a member in the augmented library.""",
       correctionMessage: """Try changing the name to an existing member or removing the 'augment' modifier.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(String name)> templateUnmatchedPatchClass = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Patch class '#name' doesn't match a class in the origin library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing class or removing the '@patch' annotation.""",
+    withArguments: _withArgumentsUnmatchedPatchClass);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedPatchClass =
+    const Code<Message Function(String name)>(
+  "UnmatchedPatchClass",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedPatchClass(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedPatchClass,
+      problemMessage:
+          """Patch class '${name}' doesn't match a class in the origin library.""",
+      correctionMessage: """Try changing the name to an existing class or removing the '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedPatchClassMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Patch member '#name' doesn't match a member in the origin class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the '@patch' annotation.""",
+    withArguments: _withArgumentsUnmatchedPatchClassMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedPatchClassMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedPatchClassMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedPatchClassMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedPatchClassMember,
+      problemMessage:
+          """Patch member '${name}' doesn't match a member in the origin class.""",
+      correctionMessage: """Try changing the name to an existing member or removing the '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedPatchConstructor = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Patch constructor '#name' doesn't match a constructor in the origin class.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing constructor or removing the '@patch' annotation.""",
+    withArguments: _withArgumentsUnmatchedPatchConstructor);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedPatchConstructor =
+    const Code<Message Function(String name)>(
+  "UnmatchedPatchConstructor",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedPatchConstructor(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedPatchConstructor,
+      problemMessage:
+          """Patch constructor '${name}' doesn't match a constructor in the origin class.""",
+      correctionMessage: """Try changing the name to an existing constructor or removing the '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedPatchDeclaration = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Patch '#name' doesn't match a declaration in the origin library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing declaration or removing the '@patch' annotation.""",
+    withArguments: _withArgumentsUnmatchedPatchDeclaration);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedPatchDeclaration =
+    const Code<Message Function(String name)>(
+  "UnmatchedPatchDeclaration",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedPatchDeclaration(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedPatchDeclaration,
+      problemMessage:
+          """Patch '${name}' doesn't match a declaration in the origin library.""",
+      correctionMessage: """Try changing the name to an existing declaration or removing the '@patch' annotation.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateUnmatchedPatchLibraryMember = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""Patch member '#name' doesn't match a member in the origin library.""",
+    correctionMessageTemplate:
+        r"""Try changing the name to an existing member or removing the '@patch' annotation.""",
+    withArguments: _withArgumentsUnmatchedPatchLibraryMember);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeUnmatchedPatchLibraryMember =
+    const Code<Message Function(String name)>(
+  "UnmatchedPatchLibraryMember",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsUnmatchedPatchLibraryMember(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeUnmatchedPatchLibraryMember,
+      problemMessage:
+          """Patch member '${name}' doesn't match a member in the origin library.""",
+      correctionMessage: """Try changing the name to an existing member or removing the '@patch' annotation.""",
       arguments: {'name': name});
 }
 

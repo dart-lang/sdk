@@ -1,5 +1,6 @@
 {
   "none": {
+    "comment:0": "This adds to the default libraries found in the platform.",
     "libraries": {
       "test": {
         "patches": [

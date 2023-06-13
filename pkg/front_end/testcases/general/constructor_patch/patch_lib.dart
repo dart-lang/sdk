@@ -29,5 +29,6 @@ class Class {
 class Class2 {
   final int injectedField;
 
+  @patch
   Class2(this.field) : injectedField = field;
 }

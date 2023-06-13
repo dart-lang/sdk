@@ -17,6 +17,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -310,6 +311,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new FactoryBodyBuilderContext(this);
+
+  @override
+  String get fullNameForErrors {
+    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
