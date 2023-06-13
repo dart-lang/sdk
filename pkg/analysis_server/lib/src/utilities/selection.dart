@@ -25,13 +25,11 @@ class Selection {
   Selection(
       {required this.offset, required this.length, required this.coveringNode});
 
-  /// Return a list containing the contiguous children of the [coveringNode]
-  /// that together cover the selected [range] of characters, or an empty list
-  /// if there is no such set of children. The list will never have a single
-  /// element.
+  /// Returns the contiguous subset of [coveringNode] children that are at
+  /// least partially covered by the selection. Touching is not enough.
   ///
   /// A list of nodes is defined to be _contiguous_ if they are syntactically
-  /// adjacent with no intervening tokens other than comments or a comma. For
+  /// adjacent with no intervening tokens other than comments or commas. For
   /// example, the nodes might be a sequence of members in a compilation unit, a
   /// sequence of statements in a block, or a sequence of parameters in a
   /// parameter list that don't cross a separator such as `{` or `[`.
@@ -402,43 +400,27 @@ class _ChildrenFinder extends SimpleAstVisitor<void> {
     _fromList(node.mixinTypes);
   }
 
-  /// If two or more of the [elements] in the list can cover the [range], then
+  /// If one or more of the [elements] in the list can cover the [range], then
   /// add the elements to the list of [nodes] and return `true`.
   bool _fromList(List<AstNode> elements) {
-    int leftIndex() {
-      var offset = range.offset;
-      for (int i = elements.length - 1; i >= 0; i--) {
-        if (elements[i].offset <= offset) {
-          return i;
-        }
+    var first = elements.length;
+    for (; first > 0; first--) {
+      final element = elements[first - 1];
+      if (element.end <= range.offset) {
+        break;
       }
-      return -1;
     }
 
-    var first = leftIndex();
-    if (first < 0) {
-      return false;
-    }
-
-    int rightIndex() {
-      var end = range.end;
-      for (int i = first + 1; i < elements.length; i++) {
-        if (elements[i].offset >= end) {
-          return i - 1;
-        }
+    var last = first;
+    for (; last < elements.length; last++) {
+      final element = elements[last];
+      if (element.offset >= range.end) {
+        break;
       }
-      return -1;
+      nodes.add(element);
     }
 
-    var last = rightIndex();
-    if (last < 0) {
-      return false;
-    }
-
-    for (int i = first; i <= last; i++) {
-      nodes.add(elements[i]);
-    }
-    return true;
+    return nodes.isNotEmpty;
   }
 }
 

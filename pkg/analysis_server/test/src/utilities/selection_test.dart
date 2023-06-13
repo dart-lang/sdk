@@ -74,19 +74,327 @@ import augment 'a.dart';
 ''');
   }
 
-  Future<void> test_block_statements() async {
+  /// B01: between 0 and 1, no touch
+  Future<void> test_block_statements_B01_B01() async {
     final selection = await _computeSelection('''
 void f() {
-  var v = 0;
-  [!if (v < 0) v++;
-  while (v > 0) v--;!]
-  print(v);
+  000;
+ [! !] 111;
+  222;
 }
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  IfStatementImpl: if (v < 0) v++;
-  WhileStatementImpl: while (v > 0) v--;
+''');
+  }
+
+  /// B01: between 0 and 1, no touch
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_B01_E2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+ [! 111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// B01: between 0 and 1, no touch
+  /// TB1: touch begin of 1
+  Future<void> test_block_statements_B01_TB1() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+ [! !]111;
+  222;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// B0: before 0
+  Future<void> test_block_statements_B0_B0() async {
+    final selection = await _computeSelection('''
+void f() {
+ [! !] 000;
+  111;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// B12: between 1 and 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_B12_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [! 222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// BB0: before begin of 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_BB0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+[!  000;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I0: inside 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  0[!00;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I1: inside 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  1[!11;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I2: inside 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I2_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  2[!22;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// TB0: touch begin of 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  [!000;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// A3: after 3
+  Future<void> test_block_statements_TB1_A3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+  333; !]
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+  ExpressionStatementImpl: 333;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// B23: before 2 and 3
+  Future<void> test_block_statements_TB1_B23() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+ !] 333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2TB3: touch end of 2, touch begin of 3
+  Future<void> test_block_statements_TB1_TE2TB3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;!]333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2: touch end 3
+  Future<void> test_block_statements_TB1_TE3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+  333;!]
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+  ExpressionStatementImpl: 333;
+''');
+  }
+
+  /// TB2: touch begin of 2
+  /// B23: between 2 and 3
+  Future<void> test_block_statements_TB2_B23() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [!222; !]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB2: touch begin of 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB2_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [!222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// TE0TB1: touch end of 0, touch begin of 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TE0TB1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;[!111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TE2: touch end of 2
+  /// B12: between 1 and 2, no touch
+  Future<void> test_block_statements_TE1_B12() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;[! !]
+  222;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
 ''');
   }
 
