@@ -1319,10 +1319,11 @@ class CorrectionUtils {
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    if (_library == null) {
+    var library = _library;
+    if (library == null) {
       return null;
     }
-    for (var imp in _library!.libraryImports) {
+    for (var imp in library.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;

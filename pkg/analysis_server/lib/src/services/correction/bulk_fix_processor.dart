@@ -519,7 +519,7 @@ class BulkFixProcessor {
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.result.path, code.toLowerCase());
+      changeMap.add(context.unitResult.path, code.toLowerCase());
     }
   }
 
