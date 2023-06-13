@@ -2,14 +2,1113 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/src/test_utilities/find_node.dart';
+import 'package:linter/src/rules/use_build_context_synchronously.dart';
+import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(AsyncStateTest);
     defineReflectiveTests(UseBuildContextSynchronouslyTest);
   });
+}
+
+@reflectiveTest
+class AsyncStateTest extends PubPackageResolutionTest {
+  @override
+  bool get addFlutterPackageDep => true;
+
+  FindNode get findNode => FindNode(result.content, result.unit);
+
+  Future<void> assertNoErrorsInCode(String code) async {
+    addTestFile(code);
+    await resolveTestFile();
+  }
+
+  test_adjacentStrings_referenceAfter_awaitInString() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  '' '${await Future.value()}';
+  context /* ref */;
+}
+''');
+    var adjacentStrings = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(adjacentStrings.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_adjacentStrings_referenceInSecondString_awaitInFirstString() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  '${await Future.value()}' '${context /* ref */}';
+}
+''');
+    var adjacentStrings = findNode.adjacentStrings('await');
+    var reference = findNode.stringInterpolation('context /* ref */');
+    expect(adjacentStrings.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_awaitExpression_referenceInExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  await context /* ref */;
+}
+''');
+    var await_ = findNode.awaitExpression('context /* ref */');
+    var reference = findNode.simple('context /* ref */');
+    expect(await_.asyncStateFor(reference), isNull);
+  }
+
+  test_block_referenceThenAwait() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  await Future.value();
+  context /* ref */;
+}
+''');
+    var block = findNode.block('context /* ref */');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_cascade_referenceAfter_awaitInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value())..toString();
+  context /* ref */;
+}
+''');
+    var cascade = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(cascade.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_cascade_referenceAfterTarget_awaitAfterTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  []..add(await Future.value())..add(context /* ref */);
+}
+''');
+    var cascade = findNode.expressionStatement('await');
+    var reference = findNode.cascade('context /* ref */');
+    expect(cascade.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_cascade_referenceAfterTarget_awaitInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value())..add(context /* ref */);
+}
+''');
+    var cascade = findNode.cascade('await');
+    var reference = findNode.methodInvocation('context /* ref */');
+    expect(cascade.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_cascade_referenceAfterTarget_awaitInTarget2() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value())..add(1)..add(context /* ref */);
+}
+''');
+    var cascade = findNode.cascade('await');
+    var reference = findNode.methodInvocation('context /* ref */');
+    expect(cascade.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  @FailingTest()
+  test_conditional_referenceAfter_awaitInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  await Future.value(true) ? null : null;
+  context /* ref */;
+}
+''');
+    var conditional = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(conditional.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  @FailingTest()
+  test_conditional_referenceAfter_awaitInThen() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  false ? await Future.value() : null;
+  context /* ref */;
+}
+''');
+    var conditional = findNode.expressionStatement('false');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(conditional.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_conditional_referenceInElse_mountedCheckInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  context.mounted ? null : context /* ref */;
+}
+''');
+    var conditional = findNode.conditionalExpression('context /* ref */');
+    var reference = findNode.simple('context /* ref */');
+    expect(conditional.asyncStateFor(reference), isNull);
+  }
+
+  test_conditional_referenceInElse_notMountedCheckInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  !context.mounted ? null : context /* ref */;
+}
+''');
+    var conditional = findNode.conditionalExpression('context /* ref */');
+    var reference = findNode.simple('context /* ref */');
+    expect(
+        conditional.asyncStateFor(reference), equals(AsyncState.mountedCheck));
+  }
+
+  test_conditional_referenceInThen_mountedCheckInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  context.mounted ? context /* ref */ : null;
+}
+''');
+    var conditional = findNode.conditionalExpression('context /* ref */');
+    var reference = findNode.simple('context /* ref */');
+    expect(
+        conditional.asyncStateFor(reference), equals(AsyncState.mountedCheck));
+  }
+
+  test_conditional_referenceInThen_notMountedCheckInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  !context.mounted ? context /* ref */ : null;
+}
+''');
+    var conditional = findNode.conditionalExpression('context /* ref */');
+    var reference = findNode.simple('context /* ref */');
+    expect(conditional.asyncStateFor(reference), isNull);
+  }
+
+  test_forElementWithDeclaration_referenceAfter_awaitInPartCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var i = 0; i < await Future.value(1); i++) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithDeclaration_referenceAfter_awaitInPartInitialization() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var i = await Future.value(1); i < 7; i++) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithDeclaration_referenceAfter_awaitInPartUpdaters() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var i = 0; i < 5; i += await Future.value()) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithDeclaration_referenceAfter_mountedCheckInPartCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var i = 0; context.mounted; i++) context /* ref */,
+  ];
+}
+''');
+    var forElement = findNode.forElement('for ');
+    var reference = findNode.expression('context /* ref */');
+    expect(forElement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_forElementWithEach_referenceAfter_awaitInExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var e in []) await Future.value(),
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithEach_referenceAfter_awaitInPartExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    for (var e in await Future.value([])) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithExpression_referenceAfter_awaitInPartCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, int i) async {
+  [
+    for (i = 0; i < await Future.value(1); i++) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithExpression_referenceAfter_awaitInPartInitialization() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, int i) async {
+  [
+    for (i = await Future.value(1); i < 7; i++) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithExpression_referenceAfter_awaitInPartUpdaters() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, int i) async {
+  [
+    for (i = 0; i < 5; i += await Future.value()) null,
+  ];
+  context /* ref */;
+}
+''');
+    var listLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forElementWithExpression_referenceAfter_mountedCheckInPartCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, int i) async {
+  [
+    for (i = 0; context.mounted; i++) context /* ref */,
+  ];
+}
+''');
+    var forElement = findNode.forElement('for ');
+    var reference = findNode.expression('context /* ref */');
+    expect(forElement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_functionExpressionInvocation_referenceAfter_awaitInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  ((await Future.value()).add)(1);
+  context /* ref */;
+}
+''');
+    var functionExpressionInvocation = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(functionExpressionInvocation.asyncStateFor(reference),
+        AsyncState.asynchronous);
+  }
+
+  test_ifElement_referenceAfter_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    if (await Future.value(true)) null,
+    context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.listLiteral('if (');
+    var reference = findNode.expression('context /* ref */,');
+    expect(ifElement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifElement_referenceInElse_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    if (await Future.value(true)) null else context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.ifElement('if (');
+    var reference = findNode.expression('context /* ref */');
+    expect(ifElement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifElement_referenceInElse_mountedGuardInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    if (context.mounted) null else context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.ifElement('if (');
+    var reference = findNode.expression('context /* ref */');
+    expect(ifElement.asyncStateFor(reference), isNull);
+  }
+
+  test_ifElement_referenceInElse_notMountedGuardInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    if (!context.mounted) null else context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.ifElement('if (');
+    var reference = findNode.expression('context /* ref */');
+    expect(ifElement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifElement_referenceInThen_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [
+    if (await Future.value(true)) context /* ref */,
+  ];
+}
+''');
+    var ifElement = findNode.ifElement('if (');
+    var reference = findNode.expression('context /* ref */');
+    expect(ifElement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceAfter_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true)) {
+    return;
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceAfter_asyncInThen_notMountedGuardInElse() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2) {
+    await Future.value();
+  } else {
+    if (!mounted) return;
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if (1');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceAfter_awaitThenExitInElse() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2) {
+  } else {
+    await Future.value();
+    return;
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_ifStatement_referenceAfter_awaitThenExitInThen() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2) {
+    await Future.value();
+    return;
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_ifStatement_referenceAfter_notMountedCheckInCondition_break() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case (1):
+      if (!context.mounted) break;
+      context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceAfter_notMountedCheckInCondition_exit() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted) return;
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceAfter_notMountedGuardInCondition_exitInThen_awaitInElse() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted) {
+    return;
+  } else {
+    await f();
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceAfter_notMountedGuardsInThenAndElse() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2) {
+    if (!mounted) return;
+  } else {
+    if (!mounted) return;
+  }
+  context /* ref */;
+}
+''');
+    var ifStatement = findNode.ifStatement('if (1');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+  }
+
+  test_ifStatement_referenceInElse_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true)) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInElse_mountedGuardInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_ifStatement_referenceInThen_asyncInAssignmentInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, bool m) async {
+  if (m = context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInThen_asyncInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true)) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if (');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInThen_awaitAndMountedInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true) && context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInThen_awaitOrMountedInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (await Future.value(true) || context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInThen_conditionAndMountedInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2 && context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInThen_conditionOrMountedInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2 || context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_ifStatement_referenceInThen_mountedAndAwaitInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted && await Future.value(true)) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInThen_mountedInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInThen_mountedOrAwaitInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (context.mounted || await Future.value(true)) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_indexExpression_referenceInRhs_asyncInIndex() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, List<Object> list) async {
+  list[await c()] = context /* ref */;
+}
+''');
+    var indexExpression = findNode.assignment('[');
+    var reference = findNode.expression('context /* ref */');
+    expect(indexExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_instanceCreationExpression_referenceInParameters_awaitInParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  new List.filled(await Future.value(1), context /* ref */);
+}
+''');
+    var instanceCreation = findNode.instanceCreation('await');
+    var reference = findNode.argumentList('context /* ref */');
+    expect(instanceCreation.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_isExpression_referenceAfter_awaitInExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  await Future.value() is int;
+  context /* ref */;
+}
+Future<void> c() async {}
+''');
+    var isExpression = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(isExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_methodInvocation_referenceAfter_asyncInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value([])).add(1);
+  context /* ref */;
+}
+''');
+    var await_ = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(await_.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_methodInvocation_referenceAfter_awaitInParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [].indexOf(1, await Future.value());
+  context /* ref */;
+}
+''');
+    var methodInvocation = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(methodInvocation.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_methodInvocation_referenceAfter_awaitInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value()).add(1);
+  context /* ref */;
+}
+''');
+    var methodInvocation = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(methodInvocation.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_methodInvocation_referenceInParameters_awaitInParameters() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  f(await c(), context /* ref */);
+}
+void f(_, _) {}
+''');
+    var methodInvocation = findNode.methodInvocation('await');
+    var reference = findNode.argumentList('context /* ref */');
+    expect(methodInvocation.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_postfix_referenceAfter_awaitInExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value())!;
+  context /* ref */;
+}
+''');
+    var postfix = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(postfix.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_propertyAccess_referenceAfter_awaitInTarget() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value(true)).isEven;
+  context /* ref */;
+}
+''');
+    var propertyAccess = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(propertyAccess.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_recordLiteral_referenceAfter_awaitInField() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (await Future.value(), );
+  context /* ref */;
+}
+''');
+    var recordLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(recordLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_recordLiteral_referenceAfter_awaitInNamedField() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (f: await Future.value(), );
+  context /* ref */;
+}
+''');
+    var recordLiteral = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(recordLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_spread_referenceAfter_awaitInSpread() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  [...(await Future.value())];
+  context /* ref */;
+}
+''');
+    var spread = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(spread.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_stringInterpolation_referenceAfter_awaitInStringInterpolation() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  '${await Future.value()}';
+  context /* ref */;
+}
+''');
+    var stringInterpolation = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(
+        stringInterpolation.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchExpression_referenceAfter_awaitInCaseBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (switch (1) {
+    _ => await c(),
+  });
+  context /* ref */;
+}
+''');
+    var switchExpression = findNode.expressionStatement('switch');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchExpression_referenceAfter_awaitInCondition() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (switch (await Future.value()) {
+    _ => null,
+  });
+  context /* ref */;
+}
+''');
+    var switchExpression = findNode.expressionStatement('switch');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceAfter_awaitInCaseBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1:
+      await Future.value();
+  }
+  context /* ref */;
+}
+''');
+    var switchStatement = findNode.switchStatement('switch');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceAfter_awaitInDefault() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    default:
+      await Future.value();
+  }
+  context /* ref */;
+}
+''');
+    var switchStatement = findNode.switchStatement('switch');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceInCaseBody_awaitInCaseWhen() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when await Future.value():
+      context /* ref */;
+  }
+}
+''');
+    var switchStatement = findNode.switchPatternCase('case');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_tryStatement_referenceAfter_awaitInBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  try {
+    await Future.value();
+  }
+  context /* ref */;
+}
+Future<void> c() async {}
+''');
+    var tryStatement = findNode.tryStatement('try');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(tryStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_tryStatement_referenceAfter_notMountedGuardInCatch() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  try {
+  } on Exception {
+    if (!context.mounted) return;
+  }
+  context /* ref */;
+}
+Future<void> c() async {}
+''');
+    var tryStatement = findNode.tryStatement('try');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(tryStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_tryStatement_referenceAfter_notMountedGuardInFinally() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  try {
+  } finally {
+    if (!context.mounted) return;
+  }
+  context /* ref */;
+}
+Future<void> c() async {}
+''');
+    var tryStatement = findNode.tryStatement('try');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(tryStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+  }
+
+  test_tryStatement_referenceAfter_notMountedGuardInTry() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  try {
+    if (!context.mounted) return;
+  }
+  context /* ref */;
+}
+Future<void> c() async {}
+''');
+    var tryStatement = findNode.tryStatement('try');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(tryStatement.asyncStateFor(reference), isNull);
+  }
+
+  test_tryStatement_referenceInCatch_awaitInBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  try {
+    await Future.value();
+  } on Exception {
+    context /* ref */;
+  }
+}
+Future<void> c() async {}
+''');
+    var tryStatement = findNode.tryStatement('try');
+    var reference = findNode.catchClause('context /* ref */');
+    expect(tryStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_whileStatement_referenceAfter_asyncInBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  while (true) {
+    await Future.value();
+    break;
+  }
+  context /* ref */;
+}
+''');
+    var whileStatement = findNode.whileStatement('while (');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(whileStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_whileStatement_referenceInBody_asyncInBody() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  while (true) {
+    await Future.value();
+    context /* ref */;
+  }
+}
+''');
+    var whileStatement = findNode.whileStatement('while (');
+    var reference = findNode.block('context /* ref */');
+    expect(whileStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_whileStatement_referenceInBody_asyncInBody2() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  while (true) {
+    context /* ref */;
+    await Future.value();
+  }
+}
+''');
+    var whileStatement = findNode.whileStatement('while (');
+    var reference = findNode.block('context /* ref */');
+    expect(whileStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_yield_referenceAfter_asyncInExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  yield (await Future.value());
+  context /* ref */;
+}
+''');
+    var yield_ = findNode.yieldStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(yield_.asyncStateFor(reference), AsyncState.asynchronous);
+  }
 }
 
 @reflectiveTest
@@ -106,386 +1205,6 @@ Future<void> f() async {}
     ]);
   }
 
-  test_await_expressionContainsReferenceToContext() async {
-    // Await expression contains use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(
-    BuildContext context, Future<bool> Function(BuildContext) condition) async {
-  await condition(context);
-}
-''');
-  }
-
-  test_awaitAndExitInIfElse_beforeReferenceToContext() async {
-    // Await-and-exit in an if-else, then use of BuildContext, is REPORTED.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (1 == 2) {
-    ;
-  } else {
-    await c();
-    return;
-  }
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitBeforeConditional_mountedGuard() async {
-    // Await, then an "if mounted" guard in a conditional expression, and use of
-    // BuildContext in the conditional-then, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  mounted ? Navigator.of(context) : null;
-}
-Future<void> c() async => true;
-bool mounted = false;
-''');
-  }
-
-  test_awaitBeforeConditional_mountedGuard2() async {
-    // Await, then an "if not mounted" guard in a conditional expression, and
-    // use of BuildContext in the conditional-else, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  !mounted ? null : Navigator.of(context);
-}
-Future<void> c() async => true;
-bool mounted = false;
-''');
-  }
-
-  test_awaitBeforeConditional_mountedGuard3() async {
-    // Await, then an "if mounted" guard in a conditional expression, and
-    // use of BuildContext in the conditional-else, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  mounted ? null : Navigator.of(context);
-}
-Future<void> c() async => true;
-bool mounted = false;
-''', [
-      lint(111, 21),
-    ]);
-  }
-
-  test_awaitBeforeConditional_mountedGuard4() async {
-    // Await, then an "if not mounted" guard in a conditional expression, and
-    // use of BuildContext in the conditional-then, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  !mounted ? Navigator.of(context) : null;
-}
-Future<void> c() async => true;
-bool mounted = false;
-''', [
-      lint(105, 21),
-    ]);
-  }
-
-  test_awaitBeforeConditional_mountedGuard5() async {
-    // Await, then an "if mounted" guard in a conditional expression, an await
-    // in the conditional-else, and use of BuildContext afterward, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  mounted ? 'x' : await c();
-  Navigator.of(context);
-}
-Future<void> c() async => true;
-bool mounted = false;
-''', [
-      lint(123, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_awaitAndMountedGuard() async {
-    // Await, then if-condition with an await "&&" a mounted check, then use of
-    // BuildContext in the if-body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (await c() && mounted) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitBeforeIf_AwaitOrMountedGuard() async {
-    // Await, then if-condition with an await "||" a mounted check, then use of
-    // BuildContext in the if-body, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (await c() || mounted) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-Future<bool> c() async => true;
-''', [
-      lint(126, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_ConditionOrMountedGuard() async {
-    // Await, then if-condition with a condition "||" a mounted check, then use
-    // of BuildContext in the if-body, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (c() || mounted) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-bool c() => true;
-''', [
-      lint(120, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext2() async {
-    // Await, then a proper "exit if not mounted" guard in an if-condition,
-    // then use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (!context.mounted) return;
-  Navigator.of(context);
-}
-
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext3() async {
-    // Await, then a proper "exit if not mounted" guard in an if-condition,
-    // then use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (!context.mounted) {
-    return;
-  }
-  Navigator.of(context);
-}
-
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext4() async {
-    // Await, then an unrelated if/else, with a proper "exit if not mounted"
-    // guard in the then-statement, and another in the else-statement, then use
-    // of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (1 == 2) {
-    if (!mounted) return;
-  } else {
-    if (!mounted) return;
-  }
-  Navigator.of(context);
-}
-
-bool mounted = false;
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext5() async {
-    // Await, then an unrelated if/else, and both the then-statement and the
-    // else-statement contain an "exit if not mounted" guard and an await, then
-    // use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (1 == 2) {
-    if (!mounted) return;
-    await f();
-  } else {
-    if (!mounted) return;
-    await f();
-  }
-  Navigator.of(context);
-}
-
-bool mounted = false;
-Future<void> f() async {}
-''', [
-      lint(207, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext6() async {
-    // Await, then an unrelated if/else, and the then-statement contains an
-    // await, and the else-statement contains an "exit if not mounted" check,
-    // then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (1 == 2) {
-    await f();
-  } else {
-    if (!mounted) return;
-  }
-  Navigator.of(context);
-}
-
-bool mounted = false;
-Future<void> f() async {}
-''', [
-      lint(166, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_mountedExitGuardInIf_beforeReferenceToContext7() async {
-    // Await, then a proper "exit if not mounted" guard in an if-condition,
-    // then more await in else-statement, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (!context.mounted) {
-    return;
-  } else {
-    await f();
-  }
-  Navigator.of(context);
-}
-
-Future<void> f() async {}
-''', [
-      lint(162, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_mountedGuardAndAwait() async {
-    // Await, then if-condition with a mounted check "&&" an await, then use of
-    // BuildContext in the if-body, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (mounted && await c()) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-Future<bool> c() async => true;
-''', [
-      lint(126, 21),
-    ]);
-  }
-
-  test_awaitBeforeIf_mountedGuardInIf1() async {
-    // Await, then a proper "if mounted" guard in an if-condition, then use of
-    // BuildContext in the if-body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (mounted) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitBeforeIf_mountedGuardInIf2() async {
-    // Await, then a proper "if mounted" guard in an if-condition (and'd with
-    // another condition), then use of BuildContext in the if-body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (c && mounted) {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-bool get c => true;
-''');
-  }
-
-  test_awaitBeforeIf_mountedGuardInIf3() async {
-    // Await, then a proper "if mounted" guard in an if-condition, then use of
-    // BuildContext in the else-body, is OK.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-  if (mounted) {
-  } else {
-    Navigator.of(context);
-  }
-}
-
-bool mounted = false;
-Future<void> f() async {}
-''', [
-      lint(124, 21),
-    ]);
-  }
-
   test_awaitBeforeIfStatement_withReferenceToContext() async {
     // Await, then use of BuildContext in an unrelated if-body, is REPORTED.
     await assertDiagnostics(r'''
@@ -501,44 +1220,6 @@ Future<bool> c() async => true;
 ''', [
       lint(115, 21),
     ]);
-  }
-
-  test_awaitBeforeMountedCheckInTryBody_beforeReferenceToContext() async {
-    // Await, then try-statement with mounted check in the try-body, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  try {
-    if (!context.mounted) return;
-  } on Exception {
-  }
-  Navigator.of(context);
-}
-Future<void> c() async {}
-''', [
-      lint(159, 21),
-    ]);
-  }
-
-  test_awaitBeforeMountedCheckInTryFinally_beforeReferenceToContext() async {
-    // Await, then try-statement with mounted check in the try-finally, then use
-    // of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  try {
-  } finally {
-    if (!context.mounted) return;
-  }
-  Navigator.of(context);
-}
-Future<void> c() async {}
-''');
   }
 
   test_awaitBeforeReferenceToContext_inClosure() async {
@@ -557,28 +1238,6 @@ void foo(BuildContext context) async {
 void f1(Function f) {}
 void f2(BuildContext c) {}
 Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitBeforeSwitch_mountedGuardInCase_beforeReferenceToContext() async {
-    // Await, then switch statement, and in one case body, a proper "exit if
-    // mounted" guard, then use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await f();
-
-  switch ('') {
-    case 'a':
-      if (!mounted) {
-        break;
-      }
-      Navigator.of(context);
-  }
-}
-bool mounted = false;
-Future<void> f() async {}
 ''');
   }
 
@@ -603,355 +1262,6 @@ Future<void> f() async {}
     ]);
   }
 
-  test_awaitInAdjacentStrings_beforeReferenceToContext() async {
-    // Await in an adjacent strings, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  '' '${await c()}';
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(102, 21),
-    ]);
-  }
-
-  test_awaitInAdjacentStrings_beforeReferenceToContext2() async {
-    // Await in adjacent strings, then use of BuildContext in later in same
-    // adjacent strings, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  '${await c()}' '${Navigator.of(context)}';
-}
-Future<bool> c() async => true;
-''', [
-      lint(99, 21),
-    ]);
-  }
-
-  test_awaitInCascadeSection_beforeReferenceToContext() async {
-    // Await in a cascade target, then use of BuildContext in same cascade, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  []..add(await c())..add(Navigator.of(context));
-}
-Future<int> c() async => 1;
-''', [
-      lint(105, 21),
-    ]);
-  }
-
-  test_awaitInCascadeTarget_beforeReferenceToContext() async {
-    // Await in a cascade target, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c())..toString();
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(108, 21),
-    ]);
-  }
-
-  test_awaitInCascadeTarget_beforeReferenceToContext2() async {
-    // Await in a cascade target, then use of BuildContext in same cascade, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c())..add(Navigator.of(context));
-}
-Future<List<void>> c() async => [];
-''', [
-      lint(98, 21),
-    ]);
-  }
-
-  test_awaitInCascadeTarget_beforeReferenceToContext3() async {
-    // Await in a cascade target, then use of BuildContext in same cascade, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c())..add(1)..add(Navigator.of(context));
-}
-Future<List<void>> c() async => [];
-''', [
-      lint(106, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithDeclaration_beforeReferenceToContext() async {
-    // Await in for-element for-parts-with-declaration variables, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [
-    for (var i = await c(); i < 5; i++) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(138, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithDeclaration_beforeReferenceToContext2() async {
-    // Await in for-element for-parts-with-declaration condition, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [
-    for (var i = 0; i < await c(); i++) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(138, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithDeclaration_beforeReferenceToContext3() async {
-    // Await, then mounted check in for-element for-parts-with-declaration
-    // condition, then use of
-    // BuildContext in the same for-element body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  [
-    for (var i = 0; context.mounted; i++)
-      Navigator.of(context),
-  ];
-}
-Future<void> c() async => 1;
-''');
-  }
-
-  test_awaitInForElementWithDeclaration_beforeReferenceToContext4() async {
-    // Await in for-element for-parts-with-declaration updaters, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [
-    for (var i = 0; i < 5; i += await c()) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(141, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithEach_beforeReferenceToContext() async {
-    // Await in for-element for-each-parts condition, then use of BuildContext,
-    // is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [
-    for (var e in await c()) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<List<int>> c() async => [];
-''', [
-      lint(127, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithEach_beforeReferenceToContext2() async {
-    // Await in for-element for-each-parts condition, then use of BuildContext,
-    // is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [
-    for (var e in []) await c(),
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(123, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithExpression_beforeReferenceToContext() async {
-    // Await in for-element for-parts-with-expression variables, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  [
-    for (i = await c(); i < 5; i++) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(141, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithExpression_beforeReferenceToContext2() async {
-    // Await in for-element for-parts-with-expression condition, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  [
-    for (i = 0; i < await c(); i++) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(141, 21),
-    ]);
-  }
-
-  test_awaitInForElementWithExpression_beforeReferenceToContext3() async {
-    // Await, then mounted check in for-element for-parts-with-expression
-    // condition, then use of BuildContext in the same for-element body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  await c();
-  [
-    for (var i = 0; context.mounted; i++)
-      Navigator.of(context),
-  ];
-}
-Future<void> c() async => 1;
-''');
-  }
-
-  test_awaitInForElementWithExpression_beforeReferenceToContext4() async {
-    // Await in for-element for-parts-with-expression updaters, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  [
-    for (i = 0; i < 5; i += await c()) 'text',
-  ];
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(144, 21),
-    ]);
-  }
-
-  test_awaitInFunctionExpressionInvocation_beforeReferenceToContext() async {
-    // Await in a function expression invocation function, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  ((await c()).add)(1);
-  Navigator.of(context);
-}
-Future<List<int>> c() async => [];
-''', [
-      lint(105, 21),
-    ]);
-  }
-
-  // https://github.com/dart-lang/linter/issues/3457
-  test_awaitInIfCondition_aboveReferenceToContext() async {
-    // Await in an if-condition, then use of BuildContext in the if-body, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (await c()) {
-    Navigator.of(context);
-  }
-}
-Future<bool> c() async => true;
-''', [
-      lint(102, 21),
-    ]);
-  }
-
-  test_awaitInIfCondition_beforeReferenceToContext() async {
-    // Await in an if-condition, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (await c()) return;
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(106, 21),
-    ]);
-  }
-
-  test_awaitInIfCondition_beforeReferenceToContext2() async {
-    // Await in an if-condition, and use of BuildContext in single-statement
-    // if-then, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (await c()) Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(96, 21),
-    ]);
-  }
-
-  test_awaitInIfCondition_beforeReferenceToContext3() async {
-    // Await in an if-condition, and use of BuildContext in single-statement
-    // if-else, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (await c()) print(1);
-  else Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(113, 21),
-    ]);
-  }
-
   test_awaitInIfCondition_expressionContainsReferenceToContext() async {
     // Await expression contains use of BuildContext, is OK.
     await assertNoDiagnostics(r'''
@@ -963,137 +1273,6 @@ void foo(
     return;
   }
 }
-''');
-  }
-
-  test_awaitInIfElement_beforeReferenceToContext() async {
-    // Await in an if-element condition, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [if (await c()) 1];
-  Navigator.of(context);
-}
-Future<bool> c() async => false;
-''', [
-      lint(103, 21),
-    ]);
-  }
-
-  test_awaitInIfElement_beforeReferenceToContext2() async {
-    // Await in an if-element condition, then use of BuildContext in
-    // then-expression, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [if (await c()) Navigator.of(context)];
-}
-Future<bool> c() async => false;
-''', [
-      lint(97, 21),
-    ]);
-  }
-
-  test_awaitInIfElement_beforeReferenceToContext3() async {
-    // Await, then mounted check in an if-element condition, then use of
-    // BuildContext in then-expression, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  [if (context.mounted) Navigator.of(context)];
-}
-Future<void> c() async {}
-''');
-  }
-
-  test_awaitInIfElement_beforeReferenceToContext4() async {
-    // Await, then mounted check in an if-element condition, then use of
-    // BuildContext in then-expression, is OK.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c();
-  [
-    if (context.mounted) 1
-    else Navigator.of(context)
-  ];
-}
-Future<void> c() async {}
-''', [
-      lint(132, 21),
-    ]);
-  }
-
-  test_awaitInIfReferencesContext_beforeReferenceToContext() async {
-    // Await in an if-condition, then use of BuildContext in if-then statement,
-    // is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (await c()) {
-    Navigator.of(context);
-  }
-}
-Future<bool> c() async => true;
-''', [
-      lint(102, 21),
-    ]);
-  }
-
-  test_awaitInIfThen_afterReferenceToContext() async {
-    // Use of BuildContext, then await in an if-body, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  Navigator.of(context);
-  if (1 == 2) {
-    await c();
-    return;
-  }
-}
-Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitInIfThen_beforeReferenceToContext() async {
-    // Await in an if-body, then definite exit, then use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (1 == 2) {
-    await c();
-    return;
-  }
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitInIfThenAndExitInElse_afterReferenceToContext() async {
-    // Use of BuildContext, then await in an if-body and await in the associated
-    // else, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  Navigator.of(context);
-  if (1 == 2) {
-    await c();
-  } else {
-    await c();
-    return;
-  }
-}
-Future<bool> c() async => true;
 ''');
   }
 
@@ -1116,496 +1295,6 @@ Future<bool> c() async => true;
 ''', [
       lint(154, 21),
     ]);
-  }
-
-  test_awaitInIndexExpressionIndex_beforeReferenceToContext() async {
-    // Await in an index expression index, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, List<Object> list) async {
-  list[await c()] = Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(118, 21),
-    ]);
-  }
-
-  test_awaitInInstanceCreationExpression_beforeReferenceToContext() async {
-    // Await in an instance creation expression parameter, then use of
-    // BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  List.filled(await c(), Navigator.of(context));
-}
-Future<int> c() async => 1;
-''', [
-      lint(104, 21),
-    ]);
-  }
-
-  test_awaitInIsExpression_beforeReferenceToContext2() async {
-    // Await in a record literal, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  await c() is int;
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(101, 21),
-    ]);
-  }
-
-  test_awaitInMethodInvocation_beforeReferenceToContext() async {
-    // Await in a method invocation target, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c()).add(1);
-  Navigator.of(context);
-}
-Future<List<int>> c() async => [];
-''', [
-      lint(103, 21),
-    ]);
-  }
-
-  test_awaitInMethodInvocation_beforeReferenceToContext2() async {
-    // Await in a method invocation parameter, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [].indexOf(1, await c());
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(109, 21),
-    ]);
-  }
-
-  test_awaitInMethodInvocation_beforeReferenceToContext3() async {
-    // Await in a method invocation parameter, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  f(await c(), Navigator.of(context));
-}
-Future<int> c() async => 1;
-void f(int a, NavigatorState b) {}
-''', [
-      lint(94, 21),
-    ]);
-  }
-
-  test_awaitInPostfixExpression_beforeReferenceToContext() async {
-    // Await in postfix expression, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c())!;
-  Navigator.of(context);
-}
-Future<bool?> c() async => true;
-''', [
-      lint(97, 21),
-    ]);
-  }
-
-  test_awaitInPropertyAccess_beforeReferenceToContext() async {
-    // Await in property access, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c()).isEven;
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(103, 21),
-    ]);
-  }
-
-  test_awaitInRecordLiteral_beforeReferenceToContext() async {
-    // Await in a record literal, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c(), );
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(98, 21),
-    ]);
-  }
-
-  test_awaitInRecordLiteral_beforeReferenceToContext2() async {
-    // Await in a record literal, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (f: await c(), );
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(101, 21),
-    ]);
-  }
-
-  test_awaitInSpread_beforeReferenceToContext() async {
-    // Await in a spread element, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  [...(await c())];
-  Navigator.of(context);
-}
-Future<List<int>> c() async => [];
-''', [
-      lint(101, 21),
-    ]);
-  }
-
-  test_awaitInStringInterpolation_beforeReferenceToContext() async {
-    // Await in a string interpolation, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  '${await c()}';
-  Navigator.of(context);
-}
-Future<String> c() async => '';
-''', [
-      lint(106, 21),
-    ]);
-  }
-
-  test_awaitInSwitchExpressionCase_beforeReferenceToContext() async {
-    // Await in a switch expression case, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (switch (1) {
-    _ => await c(),
-  });
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(123, 21),
-    ]);
-  }
-
-  test_awaitInSwitchExpressionCase_beforeReferenceToContext2() async {
-    // Await in a switch expression condition, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (switch (await c()) {
-    _ => 7,
-  });
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(123, 21),
-    ]);
-  }
-
-  test_awaitInSwitchStatementCase_beforeReferenceToContext() async {
-    // Await in a switch statement case, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  switch (i) {
-    case 1:
-      await c();
-  }
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(136, 21),
-    ]);
-  }
-
-  test_awaitInSwitchStatementCaseGuard_beforeReferenceToContext() async {
-    // Await in a switch statement case guard, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  switch (1) {
-    case 1 when await c():
-  }
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''', [
-      lint(127, 21),
-    ]);
-  }
-
-  test_awaitInSwitchStatementCaseGuard_beforeReferenceToContext2() async {
-    // Await in a switch statement case guard, then use of BuildContext in the
-    // case statements, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  switch (1) {
-    case 1 when await c():
-      Navigator.of(context);
-  }
-}
-Future<bool> c() async => true;
-''', [
-      lint(127, 21),
-    ]);
-  }
-
-  test_awaitInSwitchStatementDefault_beforeReferenceToContext() async {
-    // Await in a switch statement default case, then use of BuildContext, is
-    // REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, int i) async {
-  switch (i) {
-    default:
-      await c();
-  }
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(137, 21),
-    ]);
-  }
-
-  test_awaitInTryBody_beforeReferenceToContext() async {
-    // Await in a try-body, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  try {
-    await c();
-  } on Exception {
-  }
-  Navigator.of(context);
-}
-Future<void> c() async {}
-''', [
-      lint(127, 21),
-    ]);
-  }
-
-  test_awaitInTryBody_beforeReferenceToContextInCatchClause() async {
-    // Await in a try-body, then use of BuildContext in try-catch clause,
-    // is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  try {
-    await c();
-  } on Exception {
-    Navigator.of(context);
-  }
-}
-Future<void> c() async {}
-''', [
-      lint(125, 21),
-    ]);
-  }
-
-  test_awaitInTryBody_beforeReferenceToContextInTryBody() async {
-    // Await in a try-body, then use of BuildContext in try-body,
-    // is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  try {
-    await c();
-    Navigator.of(context);
-  } on Exception {
-    return;
-  }
-}
-Future<void> c() async {}
-''', [
-      lint(106, 21),
-    ]);
-  }
-
-  test_awaitInWhileBody_afterReferenceToContext() async {
-    // While-true statement, and inside the while-body: use of BuildContext,
-    // then await, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  while (true) {
-    // OK the first time only!
-    Navigator.of(context);
-    await f();
-  }
-}
-
-Future<void> f() async {}
-''', [
-      lint(131, 21),
-    ]);
-  }
-
-  test_awaitInWhileBody_afterReferenceToContext2() async {
-    // While-true statement, and inside the while-body: use of BuildContext,
-    // then await, then mounted guard, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  while (true) {
-    Navigator.of(context);
-    await f();
-    if (!context.mounted) return;
-  }
-}
-
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitInWhileBody_afterReferenceToContextOutsideWait() async {
-    // Use of BuildContext, then While-true statement, and inside the
-    // while-body: await and break, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  Navigator.of(context);
-  while (true) {
-    await f();
-    break;
-  }
-}
-Future<void> f() async {}
-''');
-  }
-
-  test_awaitInWhileBody_beforeReferenceToContext() async {
-    // While-true statement, and inside the while-body: await and break, then
-    // use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  while (true) {
-    await f();
-    break;
-  }
-  Navigator.of(context);
-}
-Future<void> f() async {}
-''', [
-      lint(128, 21),
-    ]);
-  }
-
-  test_awaitInYield_beforeReferenceToContext() async {
-    // Await in a yield expression, then use of BuildContext, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-Stream<int> foo(BuildContext context) async* {
-  yield await c();
-  Navigator.of(context);
-}
-Future<int> c() async => 1;
-''', [
-      lint(108, 21),
-    ]);
-  }
-
-  test_awaitThenExitInIf_afterReferenceToContext() async {
-    // Use of BuildContext, then await-and-return in an if-body and
-    // await-and-return in the associated else, then use of BuildContext, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  Navigator.of(context);
-  if (1 == 2) {
-    await c();
-    return;
-  } else {
-    await c();
-    return;
-  }
-}
-Future<bool> c() async => true;
-''');
-  }
-
-  test_awaitThenExitInIf_beforeReferenceToContext() async {
-    // Await-and-return in an if-body, then use of BuildContext, is OK.
-    await assertNoDiagnostics(
-      r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  if (1 == 2) {
-    await c();
-    return;
-  }
-  Navigator.of(context);
-}
-Future<bool> c() async => true;
-''',
-    );
-  }
-
-  test_conditionalOperator() async {
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-Future<String> foo(BuildContext context, bool condition) async {
-  await Future<void>.delayed(Duration());
-  return mounted ? bar(context) : 'no';
-}
-
-bool get mounted => true;
-
-String bar(BuildContext context) => 'bar';
-''');
   }
 
   /// https://github.com/dart-lang/linter/issues/3818
@@ -1687,23 +1376,6 @@ Future<void> c() async {}
     ]);
   }
 
-  test_ifConditionContainsMountedCheckInAssignmentRhs_thenReferenceToContext() async {
-    // If-condition contains assignment with mounted check in RHS, then use of
-    // BuildContext in if-then statement, is OK.
-    await assertNoDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context, bool m) async {
-  await c();
-  if (m = context.mounted) {
-    Navigator.of(context);
-  }
-}
-
-Future<void> c() async {}
-''');
-  }
-
   test_ifConditionContainsMountedOrReferenceToContext() async {
     // Binary expression contains mounted check OR use of BuildContext, is
     // REPORTED.
@@ -1741,23 +1413,6 @@ void foo(
 Future<void> c() async {}
 ''', [
       lint(162, 18),
-    ]);
-  }
-
-  test_methodCall_targetIsAsync_contextRefFollows() async {
-    // Method call with async code in target and use of BuildContext in
-    // following statement, is REPORTED.
-    await assertDiagnostics(r'''
-import 'package:flutter/widgets.dart';
-
-void foo(BuildContext context) async {
-  (await c()).add(1);
-  Navigator.of(context);
-}
-
-Future<List<int>> c() async => [];
-''', [
-      lint(103, 21),
     ]);
   }
 

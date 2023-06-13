@@ -91,7 +91,7 @@ class UseBuildContextSynchronously extends LintRule {
 /// A mounted check is a check of whether a bool-typed identifier, 'mounted',
 /// is checked to be `true` or `false`, in a position which affects control
 /// flow.
-enum _AsyncState {
+enum AsyncState {
   /// A value indicating that a node contains an "asynchronous gap" which is
   /// not definitely guarded with a mounted check.
   asynchronous,
@@ -104,23 +104,23 @@ enum _AsyncState {
   /// guard a certain other node.
   notMountedCheck;
 
-  _AsyncState? get asynchronousOrNull =>
+  AsyncState? get asynchronousOrNull =>
       this == asynchronous ? asynchronous : null;
 }
 
 /// A visitor whose `visit*` methods return the async state between a given node
 /// and [reference].
 ///
-/// The entrypoint for this visitor is [_AstNodeExtension.asyncStateFor].
+/// The entrypoint for this visitor is [AstNodeExtension.asyncStateFor].
 ///
 /// Each `visit*` method can return one of three values:
 /// * `null` means there is no interesting asynchrony between node and
 ///   [reference].
-/// * [_AsyncState.asynchronous] means the node contains an asynchronous gap
+/// * [AsyncState.asynchronous] means the node contains an asynchronous gap
 ///   which is not guarded with a mounted check.
-/// * [_AsyncState.mountedCheck] means the node guards [reference] with a
+/// * [AsyncState.mountedCheck] means the node guards [reference] with a
 ///   positive mounted check.
-/// * [_AsyncState.notMountedCheck] means the node guards [reference] with a
+/// * [AsyncState.notMountedCheck] means the node guards [reference] with a
 ///   negative mounted check.
 ///
 /// (For all `visit*` methods except the entrypoint call, the value is
@@ -156,46 +156,45 @@ enum _AsyncState {
 ///   PrefixExpression (from inside to outside).
 /// * Otherwise, a node may just contain an asynchronous gap. The vast majority
 ///   of node types fall into this category. Most of these `visit*` methods
-///   use [_AsyncState.asynchronousOrNull] or [_asynchronousIfAnyIsAsync].
-class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
+///   use [AsyncState.asynchronousOrNull] or [_asynchronousIfAnyIsAsync].
+class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   static const mountedName = 'mounted';
 
   final AstNode reference;
 
-  _AsyncStateVisitor({required this.reference});
+  AsyncStateVisitor({required this.reference});
 
   @override
-  _AsyncState? visitAdjacentStrings(AdjacentStrings node) =>
+  AsyncState? visitAdjacentStrings(AdjacentStrings node) =>
       _asynchronousIfAnyIsAsync(node.strings);
 
   @override
-  _AsyncState? visitAsExpression(AsExpression node) =>
+  AsyncState? visitAsExpression(AsExpression node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitAssignmentExpression(AssignmentExpression node) =>
+  AsyncState? visitAssignmentExpression(AssignmentExpression node) =>
       _inOrderAsyncState([
         (node: node.leftHandSide, mountedCanGuard: false),
         (node: node.rightHandSide, mountedCanGuard: true),
       ]);
 
   @override
-  _AsyncState? visitAwaitExpression(AwaitExpression node) =>
+  AsyncState? visitAwaitExpression(AwaitExpression node) =>
       // An expression _inside_ an await is executed before the await, and so is
       // safe; otherwise asynchronous.
-      reference == node.expression ? null : _AsyncState.asynchronous;
+      reference == node.expression ? null : AsyncState.asynchronous;
 
   @override
-  _AsyncState? visitBinaryExpression(BinaryExpression node) {
+  AsyncState? visitBinaryExpression(BinaryExpression node) {
     if (node.leftOperand == reference) {
       return null;
     } else if (node.rightOperand == reference) {
       var leftGuardState = node.leftOperand.accept(this);
       return switch (leftGuardState) {
-        _AsyncState.asynchronous => _AsyncState.asynchronous,
-        _AsyncState.mountedCheck when node.isAnd => _AsyncState.mountedCheck,
-        _AsyncState.notMountedCheck when node.isOr =>
-          _AsyncState.notMountedCheck,
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.mountedCheck when node.isAnd => AsyncState.mountedCheck,
+        AsyncState.notMountedCheck when node.isOr => AsyncState.notMountedCheck,
         _ => null,
       };
     }
@@ -211,26 +210,26 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
         // If the right is uninteresting, just return the state of the left.
         (_, null) => leftGuardState,
         // Anything on the left followed by async on the right is async.
-        (_, _AsyncState.asynchronous) => _AsyncState.asynchronous,
+        (_, AsyncState.asynchronous) => AsyncState.asynchronous,
         // An async state on the left is superceded by the state on the right.
-        (_AsyncState.asynchronous, _) => rightGuardState,
+        (AsyncState.asynchronous, _) => rightGuardState,
         // Otherwise just use the state on the left.
-        (_AsyncState.mountedCheck, _) => _AsyncState.mountedCheck,
-        (_AsyncState.notMountedCheck, _) => _AsyncState.notMountedCheck,
+        (AsyncState.mountedCheck, _) => AsyncState.mountedCheck,
+        (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
       };
     } else if (node.isOr) {
       var leftGuardState = node.leftOperand.accept(this);
       var rightGuardState = node.rightOperand.accept(this);
       return switch ((leftGuardState, rightGuardState)) {
         // Anything on the left followed by async on the right is async.
-        (_, _AsyncState.asynchronous) => _AsyncState.asynchronous,
+        (_, AsyncState.asynchronous) => AsyncState.asynchronous,
         // Async on the left followed by anything on the right is async.
-        (_AsyncState.asynchronous, _) => _AsyncState.asynchronous,
+        (AsyncState.asynchronous, _) => AsyncState.asynchronous,
         // A mounted guard only applies if both sides are guarded.
-        (_AsyncState.mountedCheck, _AsyncState.mountedCheck) =>
-          _AsyncState.mountedCheck,
-        (_AsyncState.notMountedCheck, _AsyncState.notMountedCheck) =>
-          _AsyncState.notMountedCheck,
+        (AsyncState.mountedCheck, AsyncState.mountedCheck) =>
+          AsyncState.mountedCheck,
+        (AsyncState.notMountedCheck, AsyncState.notMountedCheck) =>
+          AsyncState.notMountedCheck,
         // Otherwise it's just uninteresting.
         (_, _) => null,
       };
@@ -243,7 +242,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitBlock(Block node) {
+  AsyncState? visitBlock(Block node) {
     if (reference is Statement) {
       var index = node.statements.indexOf(reference as Statement);
       if (index >= 0) {
@@ -269,47 +268,47 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitBlockFunctionBody(BlockFunctionBody node) =>
+  AsyncState? visitBlockFunctionBody(BlockFunctionBody node) =>
       // Stop visiting when we arrive at a function body.
       // Awaits and mounted checks inside it don't matter.
       null;
 
   @override
-  _AsyncState? visitCascadeExpression(CascadeExpression node) =>
+  AsyncState? visitCascadeExpression(CascadeExpression node) =>
       _asynchronousIfAnyIsAsync([node.target, ...node.cascadeSections]);
 
   @override
-  _AsyncState? visitConditionalExpression(ConditionalExpression node) {
+  AsyncState? visitConditionalExpression(ConditionalExpression node) {
     if (reference == node.condition) return null;
 
     var conditionMountedCheck = node.condition.accept(this);
     if (conditionMountedCheck == null) return null;
 
     if (reference == node.thenExpression) {
-      return conditionMountedCheck == _AsyncState.mountedCheck
-          ? _AsyncState.mountedCheck
+      return conditionMountedCheck == AsyncState.mountedCheck
+          ? AsyncState.mountedCheck
           : null;
     } else if (reference == node.elseExpression) {
-      return conditionMountedCheck == _AsyncState.notMountedCheck
-          ? _AsyncState.mountedCheck
+      return conditionMountedCheck == AsyncState.notMountedCheck
+          ? AsyncState.mountedCheck
           : null;
     } else {
       // `reference` is a statement that comes after `node` in a NodeList.
 
       // TODO(srawlins): What if `thenExpression` has an `await`?
-      if (conditionMountedCheck == _AsyncState.notMountedCheck &&
+      if (conditionMountedCheck == AsyncState.notMountedCheck &&
           node.thenExpression.terminatesControl) {
-        return _AsyncState.mountedCheck;
-      } else if (conditionMountedCheck == _AsyncState.mountedCheck &&
+        return AsyncState.mountedCheck;
+      } else if (conditionMountedCheck == AsyncState.mountedCheck &&
           node.elseExpression.terminatesControl) {
-        return _AsyncState.mountedCheck;
+        return AsyncState.mountedCheck;
       }
       return null;
     }
   }
 
   @override
-  _AsyncState? visitDoStatement(DoStatement node) {
+  AsyncState? visitDoStatement(DoStatement node) {
     if (node.body == reference) {
       // After one loop, an `await` in the condition can affect the body.
       return node.condition.accept(this)?.asynchronousOrNull;
@@ -328,22 +327,22 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
+  AsyncState? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
       // Stop visiting when we arrive at a function body.
       // Awaits and mounted checks inside it don't matter.
       null;
 
   @override
-  _AsyncState? visitExpressionStatement(ExpressionStatement node) =>
+  AsyncState? visitExpressionStatement(ExpressionStatement node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitExtensionOverride(ExtensionOverride node) =>
+  AsyncState? visitExtensionOverride(ExtensionOverride node) =>
       // TODO(srawlins): The target? Like `E(await foo).m()`.
       _asynchronousIfAnyIsAsync(node.argumentList.arguments);
 
   @override
-  _AsyncState? visitForElement(ForElement node) {
+  AsyncState? visitForElement(ForElement node) {
     var forLoopParts = node.forLoopParts;
     var referenceIsBody = node.body == reference;
     return switch (forLoopParts) {
@@ -371,7 +370,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitForStatement(ForStatement node) {
+  AsyncState? visitForStatement(ForStatement node) {
     var forLoopParts = node.forLoopParts;
     var referenceIsBody = node.body == reference;
     return switch (forLoopParts) {
@@ -401,27 +400,27 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitFunctionExpressionInvocation(
+  AsyncState? visitFunctionExpressionInvocation(
           FunctionExpressionInvocation node) =>
       _asynchronousIfAnyIsAsync(
           [node.function, ...node.argumentList.arguments]);
 
   @override
-  _AsyncState? visitIfElement(IfElement node) {
+  AsyncState? visitIfElement(IfElement node) {
     if (reference == node.expression) {
       return null;
     }
     var conditionMountedCheck = node.expression.accept(this);
     if (reference == node.thenElement) {
       return switch (conditionMountedCheck) {
-        _AsyncState.asynchronous => _AsyncState.asynchronous,
-        _AsyncState.mountedCheck => _AsyncState.mountedCheck,
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.mountedCheck => AsyncState.mountedCheck,
         _ => null,
       };
     } else if (reference == node.elseElement) {
       return switch (conditionMountedCheck) {
-        _AsyncState.asynchronous => _AsyncState.asynchronous,
-        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.notMountedCheck => AsyncState.mountedCheck,
         _ => null,
       };
     } else {
@@ -432,7 +431,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitIfStatement(IfStatement node) {
+  AsyncState? visitIfStatement(IfStatement node) {
     if (reference == node.expression) {
       return null;
     }
@@ -440,14 +439,14 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
 
     if (reference == node.thenStatement) {
       return switch (conditionMountedCheck) {
-        _AsyncState.asynchronous => _AsyncState.asynchronous,
-        _AsyncState.mountedCheck => _AsyncState.mountedCheck,
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.mountedCheck => AsyncState.mountedCheck,
         _ => null,
       };
     } else if (reference == node.elseStatement) {
       return switch (conditionMountedCheck) {
-        _AsyncState.asynchronous => _AsyncState.asynchronous,
-        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        AsyncState.asynchronous => AsyncState.asynchronous,
+        AsyncState.notMountedCheck => AsyncState.mountedCheck,
         _ => null,
       };
     } else {
@@ -458,33 +457,33 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
       var thenTerminates = node.thenStatement.terminatesControl;
       var elseTerminates = node.elseStatement?.terminatesControl ?? false;
 
-      if (thenAsyncState == _AsyncState.notMountedCheck) {
-        if (elseAsyncState == _AsyncState.notMountedCheck || elseTerminates) {
-          return _AsyncState.notMountedCheck;
+      if (thenAsyncState == AsyncState.notMountedCheck) {
+        if (elseAsyncState == AsyncState.notMountedCheck || elseTerminates) {
+          return AsyncState.notMountedCheck;
         }
       }
-      if (elseAsyncState == _AsyncState.notMountedCheck && thenTerminates) {
-        return _AsyncState.notMountedCheck;
+      if (elseAsyncState == AsyncState.notMountedCheck && thenTerminates) {
+        return AsyncState.notMountedCheck;
       }
 
-      if (thenAsyncState == _AsyncState.asynchronous && !thenTerminates) {
-        return _AsyncState.asynchronous;
+      if (thenAsyncState == AsyncState.asynchronous && !thenTerminates) {
+        return AsyncState.asynchronous;
       }
-      if (elseAsyncState == _AsyncState.asynchronous && !elseTerminates) {
-        return _AsyncState.asynchronous;
-      }
-
-      if (conditionMountedCheck == _AsyncState.asynchronous) {
-        return _AsyncState.asynchronous;
+      if (elseAsyncState == AsyncState.asynchronous && !elseTerminates) {
+        return AsyncState.asynchronous;
       }
 
-      if (conditionMountedCheck == _AsyncState.mountedCheck && elseTerminates) {
-        return _AsyncState.notMountedCheck;
+      if (conditionMountedCheck == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
       }
 
-      if (conditionMountedCheck == _AsyncState.notMountedCheck &&
+      if (conditionMountedCheck == AsyncState.mountedCheck && elseTerminates) {
+        return AsyncState.notMountedCheck;
+      }
+
+      if (conditionMountedCheck == AsyncState.notMountedCheck &&
           thenTerminates) {
-        return _AsyncState.notMountedCheck;
+        return AsyncState.notMountedCheck;
       }
 
       return null;
@@ -492,61 +491,61 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitIndexExpression(IndexExpression node) =>
+  AsyncState? visitIndexExpression(IndexExpression node) =>
       _asynchronousIfAnyIsAsync([node.target, node.index]);
 
   @override
-  _AsyncState? visitInstanceCreationExpression(
+  AsyncState? visitInstanceCreationExpression(
           InstanceCreationExpression node) =>
       _asynchronousIfAnyIsAsync(node.argumentList.arguments);
 
   @override
-  _AsyncState? visitInterpolationExpression(InterpolationExpression node) =>
+  AsyncState? visitInterpolationExpression(InterpolationExpression node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitIsExpression(IsExpression node) =>
+  AsyncState? visitIsExpression(IsExpression node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitLabeledStatement(LabeledStatement node) =>
+  AsyncState? visitLabeledStatement(LabeledStatement node) =>
       node.statement.accept(this);
 
   @override
-  _AsyncState? visitListLiteral(ListLiteral node) =>
+  AsyncState? visitListLiteral(ListLiteral node) =>
       _asynchronousIfAnyIsAsync(node.elements);
 
   @override
-  _AsyncState? visitMapLiteralEntry(MapLiteralEntry node) =>
+  AsyncState? visitMapLiteralEntry(MapLiteralEntry node) =>
       _asynchronousIfAnyIsAsync([node.key, node.value]);
 
   @override
-  _AsyncState? visitMethodInvocation(MethodInvocation node) =>
+  AsyncState? visitMethodInvocation(MethodInvocation node) =>
       _asynchronousIfAnyIsAsync([node.target, ...node.argumentList.arguments]);
 
   @override
-  _AsyncState? visitNamedExpression(NamedExpression node) =>
+  AsyncState? visitNamedExpression(NamedExpression node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitParenthesizedExpression(ParenthesizedExpression node) =>
+  AsyncState? visitParenthesizedExpression(ParenthesizedExpression node) =>
       node.expression.accept(this);
 
   @override
-  _AsyncState? visitPostfixExpression(PostfixExpression node) =>
+  AsyncState? visitPostfixExpression(PostfixExpression node) =>
       node.operand.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitPrefixedIdentifier(PrefixedIdentifier node) =>
-      node.identifier.name == mountedName ? _AsyncState.mountedCheck : null;
+  AsyncState? visitPrefixedIdentifier(PrefixedIdentifier node) =>
+      node.identifier.name == mountedName ? AsyncState.mountedCheck : null;
 
   @override
-  _AsyncState? visitPrefixExpression(PrefixExpression node) {
+  AsyncState? visitPrefixExpression(PrefixExpression node) {
     if (node.isNot) {
       var guardState = node.operand.accept(this);
       return switch (guardState) {
-        _AsyncState.mountedCheck => _AsyncState.notMountedCheck,
-        _AsyncState.notMountedCheck => _AsyncState.mountedCheck,
+        AsyncState.mountedCheck => AsyncState.notMountedCheck,
+        AsyncState.notMountedCheck => AsyncState.mountedCheck,
         _ => guardState,
       };
     } else {
@@ -555,60 +554,62 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitPropertyAccess(PropertyAccess node) =>
+  AsyncState? visitPropertyAccess(PropertyAccess node) =>
       node.target?.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitRecordLiteral(RecordLiteral node) =>
+  AsyncState? visitRecordLiteral(RecordLiteral node) =>
       _asynchronousIfAnyIsAsync(node.fields);
 
   @override
-  _AsyncState? visitSetOrMapLiteral(SetOrMapLiteral node) =>
+  AsyncState? visitSetOrMapLiteral(SetOrMapLiteral node) =>
       _asynchronousIfAnyIsAsync(node.elements);
 
   @override
-  _AsyncState? visitSimpleIdentifier(SimpleIdentifier node) =>
-      node.name == mountedName ? _AsyncState.mountedCheck : null;
+  AsyncState? visitSimpleIdentifier(SimpleIdentifier node) =>
+      node.name == mountedName ? AsyncState.mountedCheck : null;
 
   @override
-  _AsyncState? visitSpreadElement(SpreadElement node) =>
+  AsyncState? visitSpreadElement(SpreadElement node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitStringInterpolation(StringInterpolation node) =>
+  AsyncState? visitStringInterpolation(StringInterpolation node) =>
       _asynchronousIfAnyIsAsync(node.elements);
 
   @override
-  _AsyncState? visitSwitchCase(SwitchCase node) =>
+  AsyncState? visitSwitchCase(SwitchCase node) =>
+      // TODO(srawlins): Handle when `reference` is in one of the statements.
       _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
-  _AsyncState? visitSwitchPatternCase(SwitchPatternCase node) =>
+  AsyncState? visitSwitchPatternCase(SwitchPatternCase node) =>
+      // TODO(srawlins): Handle when `reference` is in one of the statements.
       _inOrderAsyncStateGuardable(
           [node.guardedPattern.whenClause, ...node.statements]);
 
   @override
-  _AsyncState? visitSwitchDefault(SwitchDefault node) =>
+  AsyncState? visitSwitchDefault(SwitchDefault node) =>
       _asynchronousIfAnyIsAsync(node.statements);
 
   @override
-  _AsyncState? visitSwitchExpression(SwitchExpression node) =>
+  AsyncState? visitSwitchExpression(SwitchExpression node) =>
       // TODO(srawlins): Support mounted guard checks in case patterns.
       _asynchronousIfAnyIsAsync([node.expression, ...node.cases]);
 
   @override
-  _AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) =>
+  AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitSwitchStatement(SwitchStatement node) =>
+  AsyncState? visitSwitchStatement(SwitchStatement node) =>
       // TODO(srawlins): Check for definite exits and mounted checks in the
       // members.
       node.expression.accept(this)?.asynchronousOrNull ??
       _asynchronousIfAnyIsAsync(node.members);
 
   @override
-  _AsyncState? visitTryStatement(TryStatement node) {
+  AsyncState? visitTryStatement(TryStatement node) {
     if (node.body == reference) {
       return null;
     } else if (node.catchClauses.any((clause) => clause == reference)) {
@@ -618,11 +619,11 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
     }
 
     var finallyAsyncState = node.finallyBlock?.accept(this);
-    if (finallyAsyncState == _AsyncState.asynchronous) {
-      return _AsyncState.asynchronous;
+    if (finallyAsyncState == AsyncState.asynchronous) {
+      return AsyncState.asynchronous;
     }
-    if (finallyAsyncState == _AsyncState.notMountedCheck) {
-      return _AsyncState.notMountedCheck;
+    if (finallyAsyncState == AsyncState.notMountedCheck) {
+      return AsyncState.notMountedCheck;
     }
     // Only statements in the `finally` section of a try-statement can
     // sufficiently guard statements following the try-statement.
@@ -630,23 +631,23 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   }
 
   @override
-  _AsyncState? visitVariableDeclaration(VariableDeclaration node) =>
+  AsyncState? visitVariableDeclaration(VariableDeclaration node) =>
       node.initializer?.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitVariableDeclarationStatement(
+  AsyncState? visitVariableDeclarationStatement(
           VariableDeclarationStatement node) =>
       _asynchronousIfAnyIsAsync([
         for (var variable in node.variables.variables) variable.initializer,
       ]);
 
   @override
-  _AsyncState? visitWhenClause(WhenClause node) =>
+  AsyncState? visitWhenClause(WhenClause node) =>
       // TODO: Support mounted guard checks in when clause.
       node.expression.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitWhileStatement(WhileStatement node) =>
+  AsyncState? visitWhileStatement(WhileStatement node) =>
       // TODO(srawlins): if the condition is a mounted guard and `reference` is
       // the body or follows the while.
       // A while-statement's body is not guaranteed to execute, so no mounted
@@ -655,25 +656,25 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
       node.body.accept(this)?.asynchronousOrNull;
 
   @override
-  _AsyncState? visitYieldStatement(YieldStatement node) =>
+  AsyncState? visitYieldStatement(YieldStatement node) =>
       node.expression.accept(this)?.asynchronousOrNull;
 
-  /// Returns [_AsyncState.asynchronous] if visiting any of [nodes] returns
-  /// [_AsyncState.asynchronous], otherwise `null`.
+  /// Returns [AsyncState.asynchronous] if visiting any of [nodes] returns
+  /// [AsyncState.asynchronous], otherwise `null`.
   ///
   /// This function does not take mounted checks into account, so it cannot be
   /// used when [nodes] can affect control flow.
-  _AsyncState? _asynchronousIfAnyIsAsync(List<AstNode?> nodes) {
+  AsyncState? _asynchronousIfAnyIsAsync(List<AstNode?> nodes) {
     var index = nodes.indexOf(reference);
     if (index < 0) {
-      return nodes.any((node) => node?.accept(this) == _AsyncState.asynchronous)
-          ? _AsyncState.asynchronous
+      return nodes.any((node) => node?.accept(this) == AsyncState.asynchronous)
+          ? AsyncState.asynchronous
           : null;
     } else {
       return nodes
               .take(index)
-              .any((node) => node?.accept(this) == _AsyncState.asynchronous)
-          ? _AsyncState.asynchronous
+              .any((node) => node?.accept(this) == AsyncState.asynchronous)
+          ? AsyncState.asynchronous
           : null;
     }
   }
@@ -689,7 +690,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
   ///
   /// If [reference] is one of the [nodes], this traversal starts at the node
   /// that precedes it, rather than at the end of the list.
-  _AsyncState? _inOrderAsyncState(
+  AsyncState? _inOrderAsyncState(
       List<({AstNode? node, bool mountedCanGuard})> nodes) {
     if (nodes.isEmpty) return null;
     if (nodes.first.node == reference) return null;
@@ -702,8 +703,8 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
       var (:node, :mountedCanGuard) = nodes[i];
       if (node == null) continue;
       var asyncState = node.accept(this);
-      if (asyncState == _AsyncState.asynchronous) {
-        return _AsyncState.asynchronous;
+      if (asyncState == AsyncState.asynchronous) {
+        return AsyncState.asynchronous;
       }
       if (mountedCanGuard && asyncState != null) {
         // Walking from the last node to the first, as soon as we encounter a
@@ -717,7 +718,7 @@ class _AsyncStateVisitor extends SimpleAstVisitor<_AsyncState> {
 
   /// A simple wrapper for [_inOrderAsyncState] for [nodes] which can all guard
   /// [reference] with a mounted check.
-  _AsyncState? _inOrderAsyncStateGuardable(Iterable<AstNode?> nodes) =>
+  AsyncState? _inOrderAsyncStateGuardable(Iterable<AstNode?> nodes) =>
       _inOrderAsyncState([
         for (var node in nodes) (node: node, mountedCanGuard: true),
       ]);
@@ -752,7 +753,7 @@ class _Visitor extends SimpleAstVisitor {
         // Dart 3.0 code.
         case SwitchPatternCase():
           var asyncState = parent!.asyncStateFor(child);
-          if (asyncState == _AsyncState.asynchronous) {
+          if (asyncState == AsyncState.asynchronous) {
             rule.reportLint(node);
             return;
           } else if (asyncState.isGuarded) {
@@ -761,7 +762,7 @@ class _Visitor extends SimpleAstVisitor {
 
         case TryStatement():
           var asyncState = parent.asyncStateFor(child);
-          if (asyncState == _AsyncState.asynchronous) {
+          if (asyncState == AsyncState.asynchronous) {
             rule.reportLint(node);
             return;
           }
@@ -809,12 +810,12 @@ class _Visitor extends SimpleAstVisitor {
   }
 }
 
-extension on _AsyncState? {
+extension on AsyncState? {
   bool get isGuarded =>
-      this == _AsyncState.mountedCheck || this == _AsyncState.notMountedCheck;
+      this == AsyncState.mountedCheck || this == AsyncState.notMountedCheck;
 }
 
-extension _AstNodeExtension on AstNode {
+extension AstNodeExtension on AstNode {
   bool get terminatesControl {
     var self = this;
     if (self is Block) {
@@ -835,8 +836,24 @@ extension _AstNodeExtension on AstNode {
   ///
   /// [reference] must be a direct child of `this`, or a sibling of `this`
   /// in a List of [AstNode]s.
-  _AsyncState? asyncStateFor(AstNode reference) =>
-      accept(_AsyncStateVisitor(reference: reference));
+  AsyncState? asyncStateFor(AstNode reference) {
+    assert(
+      () {
+        if (reference.parent == this) return true;
+        switch (reference.parent) {
+          case Block(:var statements):
+          case SwitchCase(:var statements):
+          case SwitchPatternCase(:var statements):
+            return statements.contains(this);
+        }
+        return false;
+      }(),
+      "'reference' ($reference) (a ${reference.runtimeType}) (parent: ${reference.parent.runtimeType}) must be a "
+      "direct child of 'this' ($this) (a $runtimeType), or a sibling in a "
+      'list of AstNodes',
+    );
+    return accept(AsyncStateVisitor(reference: reference));
+  }
 }
 
 extension on PrefixExpression {
