@@ -19157,7 +19157,13 @@ const char* MegamorphicCache::ToCString() const {
 }
 
 void SubtypeTestCache::Init() {
-  cached_array_ = Array::New(kTestEntryLength, Heap::kOld);
+  const auto& array =
+      Array::Handle(Array::New(kHeaderSize + kTestEntryLength, Heap::kOld));
+  // Set the number of occupied entries to 0 and mark the first (only) entry
+  // unoccupied before making this array visible.
+  array.SetAt(kMetadataIndex, Object::smi_zero());
+  array.SetAt(kHeaderSize + kInstanceCidOrSignature, Object::null_object());
+  cached_array_ = array.ptr();
 }
 
 void SubtypeTestCache::Cleanup() {
@@ -19194,12 +19200,31 @@ void SubtypeTestCache::set_cache(const Array& value) const {
 }
 
 intptr_t SubtypeTestCache::NumberOfChecks() const {
+  ASSERT(!IsNull());
   NoSafepointScope no_safepoint;
-  // Do not count the sentinel;
-  return (Smi::Value(cache()->untag()->length()) / kTestEntryLength) - 1;
+  return NumOccupiedBits::decode(RawSmiValue(Smi::RawCast(
+      cache()->untag()->element<std::memory_order_acquire>(kMetadataIndex))));
 }
 
-void SubtypeTestCache::AddCheck(
+intptr_t SubtypeTestCache::NumEntries() const {
+  return NumEntries(Array::Handle(cache()));
+}
+
+intptr_t SubtypeTestCache::NumEntries(const Array& array) {
+  SubtypeTestCacheTable table(array);
+  return table.Length();
+}
+
+bool SubtypeTestCache::IsHash() const {
+  if (IsNull()) return false;
+  return RawSmiValue(cache()->untag()->length()) > kMaxLinearCacheSize;
+}
+
+bool SubtypeTestCache::IsHash(const Array& array) {
+  return array.Length() > kMaxLinearCacheSize;
+}
+
+intptr_t SubtypeTestCache::AddCheck(
     const Object& instance_class_id_or_signature,
     const AbstractType& destination_type,
     const TypeArguments& instance_type_arguments,
@@ -19212,17 +19237,36 @@ void SubtypeTestCache::AddCheck(
              ->isolate_group()
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
+  ASSERT(!test_result.IsNull());
   ASSERT(Smi::New(kRecordCid) != instance_class_id_or_signature.ptr());
 
-  intptr_t old_num = NumberOfChecks();
-  Array& data = Array::Handle(cache());
-  intptr_t new_len = data.Length() + kTestEntryLength;
-  data = Array::Grow(data, new_len);
+  const intptr_t old_num = NumberOfChecks();
+  Zone* const zone = Thread::Current()->zone();
+  Array& data = Array::Handle(zone, cache());
+  bool was_grown;
+  data = EnsureCapacity(zone, data, old_num + 1, &was_grown);
 
+  const auto& loc = FindKeyOrUnused(
+      data, instance_class_id_or_signature, destination_type,
+      instance_type_arguments, instantiator_type_arguments,
+      function_type_arguments, instance_parent_function_type_arguments,
+      instance_delayed_type_arguments);
   SubtypeTestCacheTable entries(data);
-  auto entry = entries[old_num];
-  ASSERT(entry.Get<kInstanceCidOrSignature>() == Object::null());
-  entry.Set<kInstanceCidOrSignature>(instance_class_id_or_signature);
+  auto entry = entries[loc.entry];
+  if (loc.present) {
+    if (entry.Get<kTestResult>() != test_result.ptr()) {
+      const auto& old_result = Bool::Handle(zone, entry.Get<kTestResult>());
+      FATAL("Existing subtype test cache entry has result %s, not %s",
+            old_result.ToCString(), test_result.ToCString());
+    }
+    return loc.entry;
+  }
+
+  const intptr_t metadata = Smi::Value(Smi::RawCast(data.At(kMetadataIndex)));
+  const Smi& new_metadata = Smi::Handle(
+      zone, Smi::New(NumOccupiedBits::update(old_num + 1, metadata)));
+  // First set the tuple values with the test result last, then increment
+  // the number of entries in the metadata due to the new occupied entry.
   entry.Set<kDestinationType>(destination_type);
   entry.Set<kInstanceTypeArguments>(instance_type_arguments);
   entry.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
@@ -19232,10 +19276,226 @@ void SubtypeTestCache::AddCheck(
   entry.Set<kInstanceDelayedFunctionTypeArguments>(
       instance_delayed_type_arguments);
   entry.Set<kTestResult>(test_result);
+  // If this is a new backing array, we don't need store-release barriers, as no
+  // reader has access to the array until it is set as the backing store (which
+  // is done with a store-release barrier).
+  //
+  // Otherwise, the instance cid or signature must be set last with a
+  // store-release barrier, so that concurrent readers can depend on a non-null
+  // value meaning that the rest of the entry is safe to load without barriers.
+  //
+  // Similarly, we set the metadata afterwards with a store-release barrier to
+  // ensure that any reader that sees the updated count can depend on all
+  // entries up to that count being occupied.
+  if (was_grown) {
+    entry.Set<kInstanceCidOrSignature>(instance_class_id_or_signature);
+    data.SetAt(kMetadataIndex, new_metadata);
+    set_cache(data);
+  } else {
+    entry.Set<kInstanceCidOrSignature, std::memory_order_release>(
+        instance_class_id_or_signature);
+    data.SetAtRelease(kMetadataIndex, new_metadata);
+  }
+  return loc.entry;
+}
 
-  // We let any concurrently running mutator thread now see the new entry (the
-  // `set_cache()` uses a store-release barrier).
-  set_cache(data);
+SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
+    const Array& array,
+    const Object& instance_class_id_or_signature,
+    const AbstractType& destination_type,
+    const TypeArguments& instance_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const TypeArguments& instance_parent_function_type_arguments,
+    const TypeArguments& instance_delayed_type_arguments) {
+  const bool is_hash = IsHash(array);
+  SubtypeTestCacheTable table(array);
+  const intptr_t num_entries = table.Length();
+  // For a linear cache, start at the first entry and probe linearly. This can
+  // be done because a linear cache always has at least one unoccupied entry
+  // after all the occupied ones.
+  intptr_t probe = 0;
+  intptr_t probe_distance = 1;
+  if (is_hash) {
+    // For a hash-based cache, instead start at an entry determined by the hash
+    // of the keys.
+    //
+    // If we have an instance cid, then just use that as our starting hash.
+    uint32_t hash =
+        instance_class_id_or_signature.IsFunctionType()
+            ? FunctionType::Cast(instance_class_id_or_signature).Hash()
+            : Smi::Cast(instance_class_id_or_signature).Value();
+    hash = CombineHashes(hash, destination_type.Hash());
+    hash = CombineHashes(hash, instance_type_arguments.Hash());
+    hash = CombineHashes(hash, instantiator_type_arguments.Hash());
+    hash = CombineHashes(hash, function_type_arguments.Hash());
+    hash = CombineHashes(hash, instance_parent_function_type_arguments.Hash());
+    hash = CombineHashes(hash, instance_delayed_type_arguments.Hash());
+    hash = FinalizeHash(hash);
+    probe = hash & (num_entries - 1);
+  }
+  while (true) {
+    const auto& tuple = table.At(probe);
+    if (tuple.Get<kInstanceCidOrSignature, std::memory_order_acquire>() ==
+        Object::null()) {
+      break;
+    }
+    // We don't need to perform load-acquire semantics when re-retrieving
+    // the kInstanceCidOrSignature field, as occupied entries never change.
+    if ((tuple.Get<kInstanceCidOrSignature>() ==
+         instance_class_id_or_signature.ptr()) &&
+        (tuple.Get<kDestinationType>() == destination_type.ptr()) &&
+        (tuple.Get<kInstanceTypeArguments>() ==
+         instance_type_arguments.ptr()) &&
+        (tuple.Get<kInstantiatorTypeArguments>() ==
+         instantiator_type_arguments.ptr()) &&
+        (tuple.Get<kFunctionTypeArguments>() ==
+         function_type_arguments.ptr()) &&
+        (tuple.Get<kInstanceParentFunctionTypeArguments>() ==
+         instance_parent_function_type_arguments.ptr()) &&
+        (tuple.Get<kInstanceDelayedFunctionTypeArguments>() ==
+         instance_delayed_type_arguments.ptr())) {
+      return {probe, true};
+    }
+    // Advance probe by the current probing distance.
+    probe = probe + probe_distance;
+    if (is_hash) {
+      // Wrap around if the probe goes off the end of the entries array.
+      probe = probe & (num_entries - 1);
+      // We had a collision, so increase the probe distance. See comment in
+      // EnsureCapacityLocked for an explanation of how this hits all slots.
+      probe_distance++;
+    }
+  }
+  // We should always get the next slot for a linear cache.
+  ASSERT(is_hash || probe == NumberOfChecks(array));
+  return {probe, false};
+}
+
+intptr_t SubtypeTestCache::NumberOfChecks(const Array& array) {
+  return NumOccupiedBits::decode(
+      Smi::Value(Smi::RawCast(array.AtAcquire(kMetadataIndex))));
+}
+
+ArrayPtr SubtypeTestCache::EnsureCapacity(Zone* zone,
+                                          const Array& array,
+                                          intptr_t new_occupied,
+                                          bool* was_grown) const {
+  ASSERT(new_occupied > NumberOfChecks(array));
+  ASSERT(was_grown != nullptr);
+  // How many entries are in the current array (including unoccupied entries).
+  const intptr_t current_capacity = NumEntries(array);
+
+  // Early returns for cases where no growth is needed.
+  *was_grown = false;
+  const bool is_linear = IsLinear(array);
+  if (is_linear) {
+    // We need at least one unoccupied entry in addition to the occupied ones.
+    if (current_capacity > new_occupied) return array.ptr();
+  } else {
+    if (LoadFactor(new_occupied, current_capacity) < kMaxLoadFactor) {
+      return array.ptr();
+    }
+  }
+
+  // Every path from here should result in a new backing array.
+  *was_grown = true;
+  // Initially null for initializing unoccupied entries.
+  auto& instance_cid_or_signature = Object::Handle(zone);
+  if (new_occupied <= kMaxLinearCacheEntries) {
+    ASSERT(is_linear);
+    // Not enough room for both the new entry and at least one unoccupied
+    // entry, so grow the tuple capacity of the linear cache by about 50%,
+    // ensuring that space for at least one new tuple is added, capping the
+    // total number of occupied entries to the max allowed.
+    const intptr_t new_capacity =
+        Utils::Minimum(current_capacity + (current_capacity >> 1),
+                       kMaxLinearCacheEntries) +
+        1;
+    const intptr_t cache_size = kHeaderSize + new_capacity * kTestEntryLength;
+    ASSERT(cache_size <= kMaxLinearCacheSize);
+    const auto& new_data =
+        Array::Handle(zone, Array::Grow(array, cache_size, Heap::kOld));
+    ASSERT(!new_data.IsNull());
+    // No need to adjust the number of occupied entries or old entries, as they
+    // are copied over by Array::Grow. Just mark any new entries as unoccupied.
+    SubtypeTestCacheTable table(new_data);
+    for (intptr_t i = current_capacity; i < new_capacity; i++) {
+      const auto& tuple = table.At(i);
+      tuple.Set<kInstanceCidOrSignature>(instance_cid_or_signature);
+    }
+    return new_data.ptr();
+  }
+
+  // Either we're converting a linear cache into a hash-based cache, or the
+  // load factor of the hash-based cache has increased to the point where we
+  // need to grow it.
+  const intptr_t new_capacity =
+      is_linear ? kNumInitialHashCacheEntries : 2 * current_capacity;
+  // Because we use quadratic (actually triangle number) probing it is
+  // important that the size is a power of two (otherwise we could fail to
+  // find an empty slot).  This is described in Knuth's The Art of Computer
+  // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
+  // appendix, 2nd edition).
+  ASSERT(Utils::IsPowerOfTwo(new_capacity));
+  ASSERT(LoadFactor(new_occupied, new_capacity) < kMaxLoadFactor);
+  const intptr_t new_size = kHeaderSize + new_capacity * kTestEntryLength;
+  const auto& new_data =
+      Array::Handle(zone, Array::NewUninitialized(new_size, Heap::kOld));
+  ASSERT(!new_data.IsNull());
+  // First set up the metadata in new_data.
+  const intptr_t metadata = RawSmiValue(Smi::RawCast(array.At(kMetadataIndex)));
+  const Smi& smi_handle = Smi::Handle(Smi::New(EntryCountLog2Bits::update(
+      Utils::ShiftForPowerOfTwo(new_capacity), metadata)));
+  new_data.SetAt(kMetadataIndex, smi_handle);
+  // Then mark all the entries in new_data as unoccupied.
+  SubtypeTestCacheTable to_table(new_data);
+  for (const auto& tuple : to_table) {
+    tuple.Set<kInstanceCidOrSignature>(instance_cid_or_signature);
+  }
+  // Finally, copy over the entries.
+  auto& destination_type = AbstractType::Handle(zone);
+  auto& instance_type_arguments = TypeArguments::Handle(zone);
+  auto& instantiator_type_arguments = TypeArguments::Handle(zone);
+  auto& function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
+  auto& test_result = Bool::Handle(zone);
+  const SubtypeTestCacheTable from_table(array);
+  for (const auto& from_tuple : from_table) {
+    instance_cid_or_signature = from_tuple.Get<kInstanceCidOrSignature>();
+    // Skip unoccupied entries.
+    if (instance_cid_or_signature.IsNull()) continue;
+    destination_type = from_tuple.Get<kDestinationType>();
+    instance_type_arguments = from_tuple.Get<kInstanceTypeArguments>();
+    instantiator_type_arguments = from_tuple.Get<kInstantiatorTypeArguments>();
+    function_type_arguments = from_tuple.Get<kFunctionTypeArguments>();
+    instance_parent_function_type_arguments =
+        from_tuple.Get<kInstanceParentFunctionTypeArguments>();
+    instance_delayed_type_arguments =
+        from_tuple.Get<kInstanceDelayedFunctionTypeArguments>();
+    test_result = from_tuple.Get<kTestResult>();
+    // Since new_data has a different total capacity, we can't use the old
+    // entry indexes, but must recalculate them.
+    auto loc = FindKeyOrUnused(
+        new_data, instance_cid_or_signature, destination_type,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, instance_parent_function_type_arguments,
+        instance_delayed_type_arguments);
+    ASSERT(!loc.present);
+    const auto& to_tuple = to_table.At(loc.entry);
+    to_tuple.Set<kInstanceCidOrSignature>(instance_cid_or_signature);
+    to_tuple.Set<kDestinationType>(destination_type);
+    to_tuple.Set<kInstanceTypeArguments>(instance_type_arguments);
+    to_tuple.Set<kInstantiatorTypeArguments>(instantiator_type_arguments);
+    to_tuple.Set<kFunctionTypeArguments>(function_type_arguments);
+    to_tuple.Set<kInstanceParentFunctionTypeArguments>(
+        instance_parent_function_type_arguments);
+    to_tuple.Set<kInstanceDelayedFunctionTypeArguments>(
+        instance_delayed_type_arguments);
+    to_tuple.Set<kTestResult>(test_result);
+  }
+  return new_data.ptr();
 }
 
 void SubtypeTestCache::GetCheck(
@@ -19272,7 +19532,12 @@ void SubtypeTestCache::GetCurrentCheck(
   Array& data = Array::Handle(cache());
   SubtypeTestCacheTable entries(data);
   auto entry = entries[ix];
-  *instance_class_id_or_signature = entry.Get<kInstanceCidOrSignature>();
+  // First get the field that determines occupancy. We have to do this with
+  // load-acquire because some callers may not have the subtype test cache lock.
+  *instance_class_id_or_signature =
+      entry.Get<kInstanceCidOrSignature, std::memory_order_acquire>();
+  // We should not be retrieving unoccupied entries.
+  ASSERT(!instance_class_id_or_signature->IsNull());
   *destination_type = entry.Get<kDestinationType>();
   *instance_type_arguments = entry.Get<kInstanceTypeArguments>();
   *instantiator_type_arguments = entry.Get<kInstantiatorTypeArguments>();
@@ -19281,7 +19546,36 @@ void SubtypeTestCache::GetCurrentCheck(
       entry.Get<kInstanceParentFunctionTypeArguments>();
   *instance_delayed_type_arguments =
       entry.Get<kInstanceDelayedFunctionTypeArguments>();
-  *test_result ^= entry.Get<kTestResult>();
+  *test_result = entry.Get<kTestResult>();
+}
+
+bool SubtypeTestCache::GetNextCheck(
+    intptr_t* ix,
+    Object* instance_class_id_or_signature,
+    AbstractType* destination_type,
+    TypeArguments* instance_type_arguments,
+    TypeArguments* instantiator_type_arguments,
+    TypeArguments* function_type_arguments,
+    TypeArguments* instance_parent_function_type_arguments,
+    TypeArguments* instance_delayed_type_arguments,
+    Bool* test_result) const {
+  ASSERT(ix != nullptr);
+  for (intptr_t i = *ix; i < NumEntries(); i++) {
+    ASSERT(Thread::Current()
+               ->isolate_group()
+               ->subtype_test_cache_mutex()
+               ->IsOwnedByCurrentThread());
+    if (IsOccupied(i)) {
+      GetCurrentCheck(i, instance_class_id_or_signature, destination_type,
+                      instance_type_arguments, instantiator_type_arguments,
+                      function_type_arguments,
+                      instance_parent_function_type_arguments,
+                      instance_delayed_type_arguments, test_result);
+      *ix = i + 1;
+      return true;
+    }
+  }
+  return false;
 }
 
 bool SubtypeTestCache::HasCheck(
@@ -19294,37 +19588,26 @@ bool SubtypeTestCache::HasCheck(
     const TypeArguments& instance_delayed_type_arguments,
     intptr_t* index,
     Bool* result) const {
-  ASSERT(Thread::Current()
-             ->isolate_group()
-             ->subtype_test_cache_mutex()
-             ->IsOwnedByCurrentThread());
-  const intptr_t last_index = NumberOfChecks();
   const auto& data = Array::Handle(cache());
-
-  SubtypeTestCacheTable entries(data);
-  for (intptr_t i = 0; i < last_index; i++) {
-    const auto entry = entries[i];
-    if (entry.Get<kInstanceCidOrSignature>() ==
-            instance_class_id_or_signature.ptr() &&
-        entry.Get<kDestinationType>() == destination_type.ptr() &&
-        entry.Get<kInstanceTypeArguments>() == instance_type_arguments.ptr() &&
-        entry.Get<kInstantiatorTypeArguments>() ==
-            instantiator_type_arguments.ptr() &&
-        entry.Get<kFunctionTypeArguments>() == function_type_arguments.ptr() &&
-        entry.Get<kInstanceParentFunctionTypeArguments>() ==
-            instance_parent_function_type_arguments.ptr() &&
-        entry.Get<kInstanceDelayedFunctionTypeArguments>() ==
-            instance_delayed_type_arguments.ptr()) {
-      if (index != nullptr) {
-        *index = i;
-      }
-      if (result != nullptr) {
-        *result ^= entry.Get<kTestResult>();
-      }
-      return true;
+  auto loc = FindKeyOrUnused(
+      data, instance_class_id_or_signature, destination_type,
+      instance_type_arguments, instantiator_type_arguments,
+      function_type_arguments, instance_parent_function_type_arguments,
+      instance_delayed_type_arguments);
+  if (loc.present) {
+    if (index != nullptr) {
+      *index = loc.entry;
+    }
+    if (result != nullptr) {
+      SubtypeTestCacheTable entries(data);
+      const auto& entry = entries[loc.entry];
+      // A positive result from FindKeyOrUnused means that load-acquire is not
+      // needed, as an occupied entry never changes for a given backing array.
+      *result = entry.Get<kTestResult>();
+      ASSERT(!result->IsNull());
     }
   }
-  return false;
+  return loc.present;
 }
 
 void SubtypeTestCache::WriteEntryToBuffer(Zone* zone,
@@ -19336,6 +19619,16 @@ void SubtypeTestCache::WriteEntryToBuffer(Zone* zone,
              ->subtype_test_cache_mutex()
              ->IsOwnedByCurrentThread());
   WriteCurrentEntryToBuffer(zone, buffer, index, line_prefix);
+}
+
+void SubtypeTestCache::WriteToBuffer(Zone* zone,
+                                     BaseTextBuffer* buffer,
+                                     const char* line_prefix) const {
+  ASSERT(Thread::Current()
+             ->isolate_group()
+             ->subtype_test_cache_mutex()
+             ->IsOwnedByCurrentThread());
+  WriteToBufferUnlocked(zone, buffer, line_prefix);
 }
 
 void SubtypeTestCache::WriteCurrentEntryToBuffer(
@@ -19358,11 +19651,10 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
                   &function_type_arguments,
                   &instance_parent_function_type_arguments,
                   &instance_delayed_type_arguments, &result);
-  ASSERT(!result.IsNull());
   buffer->Printf(
-      "[ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
-      ", %#" Px " ]",
-      static_cast<uword>(instance_class_id_or_signature.ptr()),
+      "%" Pd ": [ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
+      ", %#" Px ", %#" Px " ]",
+      index, static_cast<uword>(instance_class_id_or_signature.ptr()),
       static_cast<uword>(destination_type.ptr()),
       static_cast<uword>(instance_type_arguments.ptr()),
       static_cast<uword>(instantiator_type_arguments.ptr()),
@@ -19422,6 +19714,33 @@ void SubtypeTestCache::WriteCurrentEntryToBuffer(
   buffer->Printf("%sresult: %s", separator, result.ToCString());
 }
 
+void SubtypeTestCache::WriteToBufferUnlocked(Zone* zone,
+                                             BaseTextBuffer* buffer,
+                                             const char* line_prefix) const {
+  const char* separator =
+      line_prefix == nullptr ? " " : OS::SCreate(zone, "\n%s", line_prefix);
+  const char* internal_line_prefix =
+      line_prefix == nullptr
+          ? nullptr
+          : OS::SCreate(zone, "%s%s", line_prefix, line_prefix);
+  const intptr_t num_entries = NumEntries();
+  buffer->AddString("SubtypeTestCache(");
+  bool first_entry = true;
+  for (intptr_t i = 0; i < num_entries; i++) {
+    if (!IsOccupied(i)) continue;
+    if (!first_entry) {
+      buffer->Printf(",%s", separator);
+    } else {
+      buffer->AddString(line_prefix != nullptr ? separator : "");
+      first_entry = false;
+    }
+    buffer->AddString("{");
+    WriteCurrentEntryToBuffer(zone, buffer, i, internal_line_prefix);
+    buffer->Printf(line_prefix != nullptr ? "}" : " }");
+  }
+  buffer->AddString(line_prefix != nullptr && !first_entry ? "\n)" : ")");
+}
+
 void SubtypeTestCache::Reset() const {
   set_cache(Array::Handle(cached_array_));
 }
@@ -19446,26 +19765,27 @@ SubtypeTestCachePtr SubtypeTestCache::Copy(Thread* thread) const {
   }
   Zone* const zone = thread->zone();
   const auto& result = SubtypeTestCache::Handle(zone, SubtypeTestCache::New());
-  // STC caches are copied on write, so no need to copy the array.
-  const auto& entry_cache = Array::Handle(zone, cache());
+  // STC caches are only copied on write if there are not enough unoccupied
+  // entries to store a new one, so we need to copy the array.
+  auto& entry_cache = Array::Handle(zone, cache());
+  entry_cache = entry_cache.Copy();
   result.set_cache(entry_cache);
   return result.ptr();
+}
+
+bool SubtypeTestCache::IsOccupied(intptr_t index) const {
+  ASSERT(!IsNull());
+  const intptr_t cache_index =
+      kHeaderSize + index * kTestEntryLength + kInstanceCidOrSignature;
+  NoSafepointScope no_safepoint;
+  return cache()->untag()->element<std::memory_order_acquire>(cache_index) !=
+         Object::null();
 }
 
 const char* SubtypeTestCache::ToCString() const {
   auto const zone = Thread::Current()->zone();
   ZoneTextBuffer buffer(zone);
-  const intptr_t num_checks = NumberOfChecks();
-  buffer.AddString("SubtypeTestCache(");
-  for (intptr_t i = 0; i < num_checks; i++) {
-    if (i != 0) {
-      buffer.AddString(",");
-    }
-    buffer.AddString("{ entry: ");
-    WriteCurrentEntryToBuffer(zone, &buffer, i);
-    buffer.AddString(" }");
-  }
-  buffer.AddString(")");
+  WriteToBufferUnlocked(zone, &buffer);
   return buffer.buffer();
 }
 

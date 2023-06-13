@@ -3040,8 +3040,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ ldr(kCacheArrayReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(kCacheArrayReg,
-                  target::Array::data_offset() - kHeapObjectTag);
+
+  Label done;
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(kScratchReg, kCacheArrayReg, Slot::Array_length());
+  __ CompareImmediate(kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  // TODO(sstrickl): Handle hash-based tables in the stub.
+  __ BranchIf(GREATER, &done);
+  __ AddImmediate(
+      kCacheArrayReg,
+      target::Array::data_offset() - kHeapObjectTag +
+          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
 
   Label loop, not_closure;
   if (n >= 5) {
@@ -3114,16 +3126,15 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
   }
 
-  Label found, done, next_iteration;
+  Label found, next_iteration;
 
   // Loop header
   __ Bind(&loop);
   __ Comment("Loop");
-  __ LoadCompressed(
-      kScratchReg,
-      Address(kCacheArrayReg,
-              target::kCompressedWordSize *
-                  target::SubtypeTestCache::kInstanceCidOrSignature));
+  __ LoadAcquireCompressed(
+      kScratchReg, kCacheArrayReg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature);
   __ CompareObjectRegisters(kScratchReg, kNullReg);
   __ b(&done, EQ);
   __ CompareObjectRegisters(kScratchReg,

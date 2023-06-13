@@ -2420,27 +2420,13 @@ class FieldInvalidator {
       field.set_type_test_cache(cache_);
     }
     entries_ = cache_.cache();
-
-    for (intptr_t i = 0; entries_.At(i) != Object::null();
-         i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
-           instance_cid_or_signature_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kDestinationType) == type.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments_.ptr())) {
-        return entries_.At(i + SubtypeTestCache::kTestResult) ==
-               Bool::True().ptr();
-      }
+    const auto& keyloc = SubtypeTestCache::FindKeyOrUnused(
+        entries_, instance_cid_or_signature_, type, instance_type_arguments_,
+        instantiator_type_arguments_, function_type_arguments_,
+        parent_function_type_arguments_, delayed_function_type_arguments_);
+    if (keyloc.present) {
+      return entries_.At(keyloc.entry + SubtypeTestCache::kTestResult) ==
+             Bool::True().ptr();
     }
 
     instance_ ^= value.ptr();

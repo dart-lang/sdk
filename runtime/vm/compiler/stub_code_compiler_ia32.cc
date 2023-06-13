@@ -2380,8 +2380,21 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ movl(
       kCacheArrayReg,
       FieldAddress(kCacheArrayReg, target::SubtypeTestCache::cache_offset()));
-  __ addl(kCacheArrayReg,
-          Immediate(target::Array::data_offset() - kHeapObjectTag));
+
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(kScratchReg, kCacheArrayReg, Slot::Array_length());
+  __ CompareImmediate(kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  Label not_found_before_push;
+  // For IA32, we never handle hash caches in the stub, as there's too much
+  // register pressure.
+  __ BranchIf(GREATER, &not_found_before_push);
+  __ AddImmediate(
+      kCacheArrayReg,
+      target::Array::data_offset() - kHeapObjectTag +
+          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
 
   Label loop, not_closure;
   if (n >= 5) {
@@ -2453,19 +2466,19 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     kInstanceParentFunctionTypeArgumentsDepth = -2;
   }
 
-  Label done, next_iteration;
+  Label found, not_found, done, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ movl(kScratchReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize *
-                      target::SubtypeTestCache::kInstanceCidOrSignature));
+  __ LoadAcquireCompressed(
+      kScratchReg, kCacheArrayReg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature);
   __ cmpl(kScratchReg, raw_null);
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpl(kScratchReg, kInstanceCidOrSignature);
   if (n == 1) {
-    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ j(EQUAL, &found, Assembler::kNearJump);
   } else {
     __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
     __ movl(kScratchReg,
@@ -2479,7 +2492,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                     target::kWordSize *
                         target::SubtypeTestCache::kInstanceTypeArguments));
     if (n == 3) {
-      __ j(EQUAL, &done, Assembler::kNearJump);
+      __ j(EQUAL, &found, Assembler::kNearJump);
     } else {
       __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
       __ movl(
@@ -2495,7 +2508,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                           target::SubtypeTestCache::kFunctionTypeArguments));
       compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
       if (n == 5) {
-        __ j(EQUAL, &done, Assembler::kNearJump);
+        __ j(EQUAL, &found, Assembler::kNearJump);
       } else {
         ASSERT(n == 7);
         __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
@@ -2515,7 +2528,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                                 kInstanceDelayedFunctionTypeArguments));
         compare_to_stack(kScratchReg,
                          kInstanceDelayedFunctionTypeArgumentsDepth);
-        __ j(EQUAL, &done, Assembler::kNearJump);
+        __ j(EQUAL, &found, Assembler::kNearJump);
       }
     }
   }
@@ -2525,16 +2538,27 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
                     target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
-  __ Bind(&done);
-  // In the not found case, the test result slot is null, so we can
-  // unconditionally load from the cache entry.
-  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize * target::SubtypeTestCache::kTestResult));
+  __ Bind(&found);
   if (n >= 7) {
     __ Drop(2);
     original_tos_offset = 0;  // In case we add any input uses after this point.
   }
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
+          Address(kCacheArrayReg,
+                  target::kWordSize * target::SubtypeTestCache::kTestResult));
+  __ ret();
+
+  __ Bind(&not_found);
+  if (n >= 7) {
+    __ Drop(2);
+    original_tos_offset = 0;  // In case we add any input uses after this point.
+  }
+  __ Bind(&not_found_before_push);
+  // In the not found case, even though the field that determines occupancy was
+  // null, another thread might be updating the cache and in the middle of
+  // filling in the entry. Thus, we load the null object explicitly instead of
+  // just using the (possibly mid-update) test result field.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
   __ ret();
 }
 

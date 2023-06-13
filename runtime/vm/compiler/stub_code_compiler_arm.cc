@@ -2746,8 +2746,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ ldr(kCacheArrayReg,
          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
                       target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(kCacheArrayReg,
-                  target::Array::data_offset() - kHeapObjectTag);
+
+  Label not_found_before_push;
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(kScratchReg, kCacheArrayReg, Slot::Array_length());
+  __ CompareImmediate(kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  // TODO(sstrickl): Handle hash-based tables in the stub.
+  __ BranchIf(GREATER, &not_found_before_push);
+  __ AddImmediate(
+      kCacheArrayReg,
+      target::Array::data_offset() - kHeapObjectTag +
+          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
 
   Label loop, not_closure;
   if (n >= 5) {
@@ -2823,10 +2835,10 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   // Loop header.
   __ Bind(&loop);
-  __ ldr(kScratchReg,
-         Address(kCacheArrayReg,
-                 target::kWordSize *
-                     target::SubtypeTestCache::kInstanceCidOrSignature));
+  __ LoadAcquireCompressed(
+      kScratchReg, kCacheArrayReg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature);
   __ cmp(kScratchReg, Operand(kNullReg));
   __ b(&not_found, EQ);
   __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrSignatureReg));
@@ -2904,10 +2916,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ Ret();
 
   __ Bind(&not_found);
-  __ mov(TypeTestABI::kSubtypeTestCacheResultReg, Operand(kNullReg));
   if (n >= 7) {
     __ Drop(1);  // delayed function type args.
   }
+  __ Bind(&not_found_before_push);
+  __ mov(TypeTestABI::kSubtypeTestCacheResultReg, Operand(kNullReg));
   if (pushed_registers != 0) {
     __ PopList(pushed_registers);
   }

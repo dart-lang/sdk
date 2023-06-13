@@ -42,7 +42,7 @@ namespace dart {
 DEFINE_FLAG(
     int,
     max_subtype_cache_entries,
-    100,
+    1000,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(
     int,
@@ -839,6 +839,110 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+// A local flag used only in type_testing_stubs_test.cc that, when true, causes
+// a failure when a STC entry for the given arguments already exists. Used to
+// check that the SubtypeNTestCache stubs found the cache entry instead of
+// calling the runtime.
+bool TESTING_runtime_fail_on_existing_STC_entry = false;
+#endif
+
+// Checks for false negatives in the SubtypeNTestCache stubs and returns the
+// result found if any, otherwise null.
+static BoolPtr ResultForExistingTypeTestCacheEntry(
+    Zone* zone,
+    Thread* thread,
+    const Instance& instance,
+    const AbstractType& destination_type,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const SubtypeTestCache& cache) {
+  ASSERT(destination_type.IsCanonical());
+  ASSERT(instantiator_type_arguments.IsCanonical());
+  ASSERT(function_type_arguments.IsCanonical());
+  if (cache.IsNull()) return Bool::null();
+  // Record instances are not added to the cache as they don't have a valid
+  // key (type of a record depends on types of all its fields).
+  if (instance.IsRecord()) return Bool::null();
+  Class& instance_class = Class::Handle(zone);
+  if (instance.IsSmi()) {
+    instance_class = Smi::Class();
+  } else {
+    instance_class = instance.clazz();
+  }
+  // If the type is uninstantiated and refers to parent function type
+  // parameters, the function_type_arguments have been canonicalized
+  // when concatenated.
+  auto& instance_class_id_or_signature = Object::Handle(zone);
+  auto& instance_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
+  if (instance_class.IsClosureClass()) {
+    const auto& closure = Closure::Cast(instance);
+    const auto& function = Function::Handle(zone, closure.function());
+    instance_class_id_or_signature = function.signature();
+    ASSERT(instance_class_id_or_signature.IsFunctionType());
+    instance_type_arguments = closure.instantiator_type_arguments();
+    instance_parent_function_type_arguments = closure.function_type_arguments();
+    instance_delayed_type_arguments = closure.delayed_type_arguments();
+    ASSERT(instance_class_id_or_signature.IsCanonical());
+    ASSERT(instance_type_arguments.IsCanonical());
+    ASSERT(instance_parent_function_type_arguments.IsCanonical());
+    ASSERT(instance_delayed_type_arguments.IsCanonical());
+  } else {
+    instance_class_id_or_signature = Smi::New(instance_class.id());
+    if (instance_class.NumTypeArguments() > 0) {
+      instance_type_arguments = instance.GetTypeArguments();
+      ASSERT(instance_type_arguments.IsCanonical());
+    }
+  }
+
+  intptr_t index = -1;
+  auto& result = Bool::Handle(zone);
+  if (cache.HasCheck(instance_class_id_or_signature, destination_type,
+                     instance_type_arguments, instantiator_type_arguments,
+                     function_type_arguments,
+                     instance_parent_function_type_arguments,
+                     instance_delayed_type_arguments, &index, &result)) {
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+    if (TESTING_runtime_fail_on_existing_STC_entry) {
+      TextBuffer buffer(1024);
+      buffer.Printf("for\n");
+      buffer.Printf("  * instance cid or signature %s\n",
+                    instance_class_id_or_signature.ToCString());
+      buffer.Printf("  * destination type %s\n", destination_type.ToCString());
+      buffer.Printf("  * instance type arguments: %s (hash: %" Pu ")\n",
+                    instance_type_arguments.ToCString(),
+                    instance_type_arguments.Hash());
+      buffer.Printf("  * instantiator type arguments: %s (hash: %" Pu ")\n",
+                    instantiator_type_arguments.ToCString(),
+                    instantiator_type_arguments.Hash());
+      buffer.Printf("  * function type arguments: %s (hash: %" Pu ")\n",
+                    function_type_arguments.ToCString(),
+                    function_type_arguments.Hash());
+      buffer.Printf(
+          "  * instance parent function type arguments: %s (hash: %" Pu ")\n",
+          instance_parent_function_type_arguments.ToCString(),
+          instance_parent_function_type_arguments.Hash());
+      buffer.Printf("  * instance delayed type arguments: %s (hash: %" Pu ")\n",
+                    instance_delayed_type_arguments.ToCString(),
+                    instance_delayed_type_arguments.Hash());
+      buffer.Printf("  * number of occupied entries in cache: %" Pd "\n",
+                    cache.NumberOfChecks());
+      buffer.Printf("  * number of available entries in cache: %" Pd "\n",
+                    cache.NumEntries());
+      buffer.Printf("expected to find entry with result %s at index %" Pd
+                    " of cache in stub, but reached runtime",
+                    result.value() ? "true" : "false", index);
+      FATAL("%s", buffer.buffer());
+    }
+#endif
+    return result.ptr();
+  }
+
+  return Bool::null();
+}
+
 // This updates the type test cache, an array containing 8 elements:
 // - instance class (or function if the instance is a closure)
 // - instance type arguments (null if the instance class is not generic)
@@ -934,7 +1038,6 @@ static void UpdateTypeTestCache(
   {
     SafepointMutexLocker ml(
         thread->isolate_group()->subtype_test_cache_mutex());
-
     const intptr_t len = new_cache.NumberOfChecks();
     if (len >= FLAG_max_subtype_cache_entries) {
       if (FLAG_trace_type_checks) {
@@ -966,18 +1069,18 @@ static void UpdateTypeTestCache(
       // found missing and now.
       return;
     }
-    new_cache.AddCheck(instance_class_id_or_signature, destination_type,
-                       instance_type_arguments, instantiator_type_arguments,
-                       function_type_arguments,
-                       instance_parent_function_type_arguments,
-                       instance_delayed_type_arguments, result);
+    const intptr_t new_index = new_cache.AddCheck(
+        instance_class_id_or_signature, destination_type,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, instance_parent_function_type_arguments,
+        instance_delayed_type_arguments, result);
     if (FLAG_trace_type_checks) {
       TextBuffer buffer(256);
       buffer.Printf("  Added new entry to test cache %#" Px " at index %" Pd
                     ":\n",
-                    static_cast<uword>(new_cache.ptr()), len);
+                    static_cast<uword>(new_cache.ptr()), new_index);
       buffer.Printf("    new entry: ");
-      new_cache.WriteEntryToBuffer(zone, &buffer, len, "      ");
+      new_cache.WriteEntryToBuffer(zone, &buffer, new_index, "      ");
       THR_Print("%s\n", buffer.buffer());
     }
   }
@@ -1046,6 +1149,29 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
 
   const TypeCheckMode mode = static_cast<TypeCheckMode>(
       Smi::CheckedHandle(zone, arguments.ArgAt(6)).Value());
+
+  // Handle cases where currently the SubtypeNTestCache stubs return a false
+  // negative and the information is already in the cache.
+#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  bool check_false_negatives = TESTING_runtime_fail_on_existing_STC_entry;
+#else
+  bool check_false_negatives = false;
+#endif
+  // TODO(sstrickl): Remove the hash-based cache case when the stubs have been
+  // updated to handle hash-based caches (the only non-testing use case).
+  check_false_negatives |= cache.IsHash();
+  if (check_false_negatives) {
+    const auto& result = Bool::Handle(
+        zone, ResultForExistingTypeTestCacheEntry(
+                  zone, thread, src_instance, dst_type,
+                  instantiator_type_arguments, function_type_arguments, cache));
+    if (!result.IsNull() && result.value()) {
+      // Early exit because a positive entry already exists in the cache.
+      // (Negative entries should fall through to generating an exception.)
+      arguments.SetReturn(src_instance);
+      return;
+    }
+  }
 
 #if defined(TARGET_ARCH_IA32)
   ASSERT(mode == kTypeCheckFromInline);
