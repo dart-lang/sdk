@@ -8,7 +8,6 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../services/completion/dart/completion_check.dart';
-import '../services/completion/dart/completion_contributor_util.dart';
 import '../services/completion/dart/completion_printer.dart' as printer;
 import '../services/completion/dart/text_expectations.dart';
 import 'impl/completion_driver.dart';
@@ -21,6 +20,8 @@ void main() {
     defineReflectiveTests(CompletionWithSuggestionsTest2);
   });
 }
+
+typedef SuggestionMatcher = bool Function(CompletionSuggestion suggestion);
 
 abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {

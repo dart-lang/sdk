@@ -8,6 +8,7 @@ import 'class_member_test.dart' as class_member;
 import 'class_test.dart' as class_;
 import 'closure_test.dart' as closure;
 import 'constructor_test.dart' as constructor_;
+import 'documentation_test.dart' as documentation;
 import 'enum_test.dart' as enum_;
 import 'extension_member_test.dart' as extension_member;
 import 'imported_reference_test.dart' as imported_reference;
@@ -30,6 +31,7 @@ void main() {
     class_.main();
     closure.main();
     constructor_.main();
+    documentation.main();
     enum_.main();
     extension_member.main();
     imported_reference.main();
