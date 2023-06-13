@@ -115,10 +115,6 @@ class FormalParameterUpdate {
   /// The new kind for the formal parameter, might be the same as it were
   /// initially, or different.
   ///
-  /// TODO(scheglov) Test and implement turning optional into required,
-  /// when there are invocations that don't provide the corresponding
-  /// argument.
-  ///
   /// TODO(scheglov) We might need `defaultValueText` added.
   final FormalParameterKind kind;
 

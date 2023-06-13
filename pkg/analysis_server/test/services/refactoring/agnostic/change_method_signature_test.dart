@@ -761,6 +761,43 @@ void f() {
 ''');
   }
 
+  Future<void> test_optionalNamed_toRequiredNamed_notAll() async {
+    await _analyzeValidSelection(r'''
+void ^test({int? a, double? b}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int? a,
+  required double? b,
+}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+  }
+
   Future<void> test_optionalNamed_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 void ^test({
@@ -963,6 +1000,35 @@ void test(int a, double b) {}
 void f() {
   test(0, 1.2);
 }
+''');
+  }
+
+  Future<void> test_optionalPositional_toRequiredPositional_notAll() async {
+    await _analyzeValidSelection(r'''
+void ^test([int a, double b]) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
 ''');
   }
 
