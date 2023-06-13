@@ -6420,6 +6420,20 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     intptr_t argument_count,
                                     const char** argument_names,
                                     const char** argument_values) {
+  Dart_RecordTimelineEvent(label, timestamp0, timestamp1_or_id,
+                           /*flow_id_count=*/0, /*flow_ids=*/nullptr, type,
+                           argument_count, argument_names, argument_values);
+}
+
+DART_EXPORT void Dart_RecordTimelineEvent(const char* label,
+                                          int64_t timestamp0,
+                                          int64_t timestamp1_or_id,
+                                          intptr_t flow_id_count,
+                                          const int64_t* flow_ids,
+                                          Dart_Timeline_Event_Type type,
+                                          intptr_t argument_count,
+                                          const char** argument_names,
+                                          const char** argument_values) {
 #if defined(SUPPORT_TIMELINE)
   if (type < Dart_Timeline_Event_Begin) {
     return;
@@ -6436,9 +6450,6 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event != nullptr) {
     switch (type) {
       case Dart_Timeline_Event_Begin:
-        // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
-        // corresponding to flow events reported by embedders get included in
-        // Perfetto traces.
         event->Begin(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
@@ -6473,6 +6484,15 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
         break;
       default:
         FATAL("Unknown Dart_Timeline_Event_Type");
+    }
+    if (flow_id_count > 0 && flow_ids != nullptr) {
+      std::unique_ptr<const int64_t[]> flow_ids_copy;
+      int64_t* flow_ids_internal = new int64_t[flow_id_count];
+      for (intptr_t i = 0; i < flow_id_count; ++i) {
+        flow_ids_internal[i] = flow_ids[i];
+      }
+      flow_ids_copy = std::unique_ptr<const int64_t[]>(flow_ids_internal);
+      event->SetFlowIds(flow_id_count, flow_ids_copy);
     }
     event->SetNumArguments(argument_count);
     for (intptr_t i = 0; i < argument_count; i++) {

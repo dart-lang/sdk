@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -34,7 +35,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
-abstract class CorrectionProducer extends _AbstractCorrectionProducer {
+abstract class CorrectionProducer
+    extends _AbstractCorrectionProducer<ResolvedUnitResult> {
   /// Return the arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
@@ -66,7 +68,7 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   bool get canBeAppliedToFile => false;
 
   /// Return the type for the class `bool` from `dart:core`.
-  DartType get coreTypeBool => resolvedResult.typeProvider.boolType;
+  DartType get coreTypeBool => unitResult.typeProvider.boolType;
 
   /// Return the length of the error message being fixed, or `null` if there is
   /// no diagnostic.
@@ -106,6 +108,11 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
     return method != null && method.isStatic;
   }
 
+  /// Return the library element for the library in which a correction is being
+  /// produced.
+  @override
+  LibraryElement get libraryElement => unitResult.libraryElement;
+
   /// Return the arguments that should be used when composing the message for a
   /// multi-fix, or `null` if the fix message has no parameters or if this
   /// producer doesn't support multi-fixes.
@@ -114,6 +121,14 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   /// Return the fix kind that should be used to build a multi-fix, or `null` if
   /// this producer doesn't support multi-fixes.
   FixKind? get multiFixKind => null;
+
+  @override
+  TypeProvider get typeProvider => unitResult.typeProvider;
+
+  /// Return the type system appropriate to the library in which the correction
+  /// was requested.
+  @override
+  TypeSystem get typeSystem => unitResult.typeSystem;
 
   Future<void> compute(ChangeBuilder builder);
 
@@ -141,8 +156,8 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   LinterContext getLinterContext() {
     return LinterContextImpl(
       [], // unused
-      LinterContextUnit(resolvedResult.content, resolvedResult.unit),
-      resolvedResult.session.declaredVariables,
+      LinterContextUnit(unitResult.content, unitResult.unit),
+      unitResult.session.declaredVariables,
       typeProvider,
       typeSystem as TypeSystemImpl,
       InheritanceManager3(), // unused
@@ -296,7 +311,7 @@ abstract class CorrectionProducer extends _AbstractCorrectionProducer {
   }
 }
 
-class CorrectionProducerContext {
+class CorrectionProducerContext<T extends ParsedUnitResult> {
   final int selectionOffset;
   final int selectionLength;
   final int selectionEnd;
@@ -305,11 +320,9 @@ class CorrectionProducerContext {
   final CorrectionUtils utils;
   final String file;
 
-  final TypeProvider typeProvider;
-
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
-  final ResolvedUnitResult resolvedResult;
+  final T result;
   final ChangeWorkspace workspace;
 
   /// TODO(migration) Make it non-nullable, specialize "fix" context?
@@ -326,9 +339,10 @@ class CorrectionProducerContext {
   final AstNode node;
 
   final Token token;
+  final TypeProvider? typeProvider;
 
   CorrectionProducerContext._({
-    required this.resolvedResult,
+    required this.result,
     required this.workspace,
     this.applyingBulkFixes = false,
     this.dartFixContext,
@@ -338,15 +352,58 @@ class CorrectionProducerContext {
     this.overrideSet,
     this.selectionOffset = -1,
     this.selectionLength = 0,
-  })  : file = resolvedResult.path,
-        session = resolvedResult.session,
-        sessionHelper = AnalysisSessionHelper(resolvedResult.session),
-        typeProvider = resolvedResult.typeProvider,
+  })  : file = result.path,
+        session = result.session,
+        sessionHelper = AnalysisSessionHelper(result.session),
         selectionEnd = selectionOffset + selectionLength,
-        unit = resolvedResult.unit,
-        utils = CorrectionUtils(resolvedResult);
+        unit = result.unit,
+        utils = CorrectionUtils(result),
+        typeProvider =
+            result is ResolvedUnitResult ? result.typeProvider : null;
 
-  static CorrectionProducerContext? create({
+  bool get isNonNullableByDefault =>
+      unit.featureSet.isEnabled(Feature.non_nullable);
+
+  LibraryElement? get libraryElement => result is ResolvedUnitResult
+      ? (result as ResolvedUnitResult).libraryElement
+      : null;
+
+  TypeSystem? get typeSystem => result is ResolvedUnitResult
+      ? (result as ResolvedUnitResult).typeSystem
+      : null;
+
+  static CorrectionProducerContext<ParsedUnitResult> createParsed({
+    required ParsedUnitResult resolvedResult,
+    required ChangeWorkspace workspace,
+    bool applyingBulkFixes = false,
+    DartFixContext? dartFixContext,
+    Diagnostic? diagnostic,
+    TransformOverrideSet? overrideSet,
+    int selectionOffset = -1,
+    int selectionLength = 0,
+  }) {
+    var selectionEnd = selectionOffset + selectionLength;
+    var locator = NodeLocator(selectionOffset, selectionEnd);
+    var node = locator.searchWithin(resolvedResult.unit);
+    node ??= resolvedResult.unit;
+
+    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+
+    return CorrectionProducerContext._(
+      result: resolvedResult,
+      workspace: workspace,
+      node: node,
+      token: token,
+      applyingBulkFixes: applyingBulkFixes,
+      dartFixContext: dartFixContext,
+      diagnostic: diagnostic,
+      overrideSet: overrideSet,
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+    );
+  }
+
+  static CorrectionProducerContext<ResolvedUnitResult>? createResolved({
     required ResolvedUnitResult resolvedResult,
     required ChangeWorkspace workspace,
     bool applyingBulkFixes = false,
@@ -364,7 +421,7 @@ class CorrectionProducerContext {
     final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
 
     return CorrectionProducerContext._(
-      resolvedResult: resolvedResult,
+      result: resolvedResult,
       workspace: workspace,
       node: node,
       token: token,
@@ -401,16 +458,30 @@ abstract class CorrectionProducerWithDiagnostic extends CorrectionProducer {
 
 /// An object that can dynamically compute multiple corrections (fixes or
 /// assists).
-abstract class MultiCorrectionProducer extends _AbstractCorrectionProducer {
+abstract class MultiCorrectionProducer
+    extends _AbstractCorrectionProducer<ResolvedUnitResult> {
+  /// Return the library element for the library in which a correction is being
+  /// produced.
+  @override
+  LibraryElement get libraryElement => unitResult.libraryElement;
+
   /// Return the individual producers generated by this producer.
   Future<List<CorrectionProducer>> get producers;
+
+  @override
+  TypeProvider get typeProvider => unitResult.typeProvider;
+
+  /// Return the type system appropriate to the library in which the correction
+  /// was requested.
+  @override
+  TypeSystem get typeSystem => unitResult.typeSystem;
 }
 
 /// The behavior shared by [CorrectionProducer] and [MultiCorrectionProducer].
-abstract class _AbstractCorrectionProducer {
+abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
   /// TODO(migration) Make it not `late`, require in constructor.
-  late CorrectionProducerContext _context;
+  late CorrectionProducerContext<T> _context;
 
   /// The most deeply nested node that completely covers the highlight region of
   /// the diagnostic, or `null` if there is no diagnostic, such a node does not
@@ -459,7 +530,7 @@ abstract class _AbstractCorrectionProducer {
 
   /// Return the library element for the library in which a correction is being
   /// produced.
-  LibraryElement get libraryElement => resolvedResult.libraryElement;
+  LibraryElement? get libraryElement => _context.libraryElement;
 
   AstNode get node => _context.node;
 
@@ -467,11 +538,8 @@ abstract class _AbstractCorrectionProducer {
   /// running tests, or `null` if there are no overrides to apply.
   TransformOverrideSet? get overrideSet => _context.overrideSet;
 
-  ResolvedUnitResult get resolvedResult => _context.resolvedResult;
-
   /// Return the resource provider used to access the file system.
-  ResourceProvider get resourceProvider =>
-      resolvedResult.session.resourceProvider;
+  ResourceProvider get resourceProvider => unitResult.session.resourceProvider;
 
   int get selectionEnd => _context.selectionEnd;
 
@@ -483,25 +551,27 @@ abstract class _AbstractCorrectionProducer {
 
   Token get token => _context.token;
 
-  TypeProvider get typeProvider => _context.typeProvider;
+  TypeProvider? get typeProvider => _context.typeProvider;
 
   /// Return the type system appropriate to the library in which the correction
   /// was requested.
-  TypeSystem get typeSystem => _context.resolvedResult.typeSystem;
+  TypeSystem? get typeSystem => _context.typeSystem;
 
   CompilationUnit get unit => _context.unit;
+
+  T get unitResult => _context.result;
 
   CorrectionUtils get utils => _context.utils;
 
   /// Configure this producer based on the [context].
-  void configure(CorrectionProducerContext context) {
+  void configure(CorrectionProducerContext<T> context) {
     _context = context;
   }
 
   /// Return the text that should be displayed to users when referring to the
   /// given [type].
-  String displayStringForType(DartType type) => type.getDisplayString(
-      withNullability: libraryElement.isNonNullableByDefault);
+  String displayStringForType(DartType type) =>
+      type.getDisplayString(withNullability: _context.isNonNullableByDefault);
 
   /// Return the function body of the most deeply nested method or function that
   /// encloses the [node], or `null` if the node is not in a method or function.

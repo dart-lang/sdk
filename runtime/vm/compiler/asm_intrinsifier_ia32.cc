@@ -1540,6 +1540,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in EAX.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure,
                               Register length_reg) {
@@ -1547,8 +1548,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
-  __ cmpl(length_reg, Immediate(0));
-  __ j(LESS, failure);
+  // Too big: call to runtime to allocate old.
+  __ cmpl(length_reg, Immediate(target::ToRawSmi(max_elements)));
+  __ j(ABOVE, failure);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, EAX));
   if (length_reg != EDI) {
@@ -1645,7 +1647,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subl(EDI, Address(ESP, +kStartIndexOffset));
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   __ Bind(&ok);
   // EAX: new string as tagged pointer.
   // Copy string.
@@ -1707,7 +1711,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);
@@ -1720,7 +1726,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
                                             Label* normal_ir_body) {
   __ movl(EDI, Address(ESP, +1 * target::kWordSize));  // Length.
   Label ok;
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, EDI);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, EDI);
   // EDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

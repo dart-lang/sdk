@@ -46,7 +46,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
     }
 
     // Ignore if the uri is not a package: uri.
-    var sourceUri = resolvedResult.uri;
+    var sourceUri = unitResult.uri;
     if (!sourceUri.isScheme('package')) {
       return;
     }

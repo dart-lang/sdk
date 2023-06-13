@@ -72,7 +72,7 @@ class AddKeyToConstructors extends CorrectionProducer {
   Future<void> _computeClassDeclaration(
       ChangeBuilder builder, ClassDeclaration node) async {
     var targetLocation =
-        utils.prepareNewConstructorLocation(resolvedResult.session, node);
+        utils.prepareNewConstructorLocation(unitResult.session, node);
     if (targetLocation == null) {
       return;
     }
@@ -169,8 +169,8 @@ class AddKeyToConstructors extends CorrectionProducer {
     if (keyClass == null) {
       return null;
     }
-    var isNonNullable = resolvedResult.libraryElement.featureSet
-        .isEnabled(Feature.non_nullable);
+    var isNonNullable =
+        unitResult.libraryElement.featureSet.isEnabled(Feature.non_nullable);
     return keyClass.instantiate(
       typeArguments: const [],
       nullabilitySuffix:

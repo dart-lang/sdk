@@ -14,7 +14,7 @@ class AddEolAtEndOfFile extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var content = resolvedResult.content;
+    var content = unitResult.content;
     if (!content.endsWith(eol)) {
       await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleInsertion(content.length, eol);

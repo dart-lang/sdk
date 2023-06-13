@@ -22,7 +22,7 @@ class MakeConditionalOnDebugMode extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    if (resolvedResult.session.uriConverter.uriToPath(_foundationUri) == null) {
+    if (unitResult.session.uriConverter.uriToPath(_foundationUri) == null) {
       return;
     }
     var printInvocation = utils.findSimplePrintInvocation(node);

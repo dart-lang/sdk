@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -45,7 +45,7 @@ class AddParameter extends ParameterModification {
 /// The type change of a parameter.
 class ChangeParameterType extends ParameterModification {
   /// The location of the changed parameter.
-  final ParameterReference reference;
+  final FormalParameterReference reference;
 
   /// The nullability of the parameter.
   final String nullability;
@@ -124,7 +124,7 @@ class ModifyParameters extends Change<_Data> {
         if (argument == null) {
           // If there is no argument corresponding to the parameter then we assume
           // that the parameter was absent.
-          var index = reference is PositionalParameterReference
+          var index = reference is PositionalFormalParameterReference
               ? reference.index
               : remainingArguments.last + 1;
           remainingArguments.add(index);
@@ -167,10 +167,10 @@ class ModifyParameters extends Change<_Data> {
       var argumentValue = parameter.argumentValue;
       if (argumentValue != null) {
         switch (parameter.reference) {
-          case NamedParameterReference(:final name):
+          case NamedFormalParameterReference(:final name):
             builder.write(name);
             builder.write(': ');
-          case PositionalParameterReference():
+          case PositionalFormalParameterReference():
           // Nothing.
         }
         argumentValue.writeOn(builder, templateContext);
@@ -373,7 +373,7 @@ abstract class ParameterModification {}
 /// The removal of an existing parameter.
 class RemoveParameter extends ParameterModification {
   /// The parameter that was removed.
-  final ParameterReference parameter;
+  final FormalParameterReference parameter;
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].

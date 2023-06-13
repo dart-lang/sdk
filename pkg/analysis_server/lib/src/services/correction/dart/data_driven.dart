@@ -24,7 +24,7 @@ class DataDriven extends MultiCorrectionProducer {
   @override
   Future<List<CorrectionProducer>> get producers async {
     var importedUris = <Uri>[];
-    var library = resolvedResult.libraryElement;
+    var library = unitResult.libraryElement;
     for (var importElement in library.libraryImports) {
       // TODO(brianwilkerson) Filter based on combinators to help avoid making
       //  invalid suggestions.

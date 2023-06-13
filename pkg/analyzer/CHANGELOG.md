@@ -1,5 +1,6 @@
 ## 5.14.0-dev
 * Updated SDK constraint to `>=3.0.0 <4.0.0`.
+* Make AST classes `abstract final` or `sealed`.
 * Fixed #52486.
 
 ## 5.13.0

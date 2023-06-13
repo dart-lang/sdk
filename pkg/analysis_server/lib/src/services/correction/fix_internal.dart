@@ -282,7 +282,7 @@ class FixInFileProcessor {
     var workspace = context.workspace;
     var resolveResult = context.resolveResult;
 
-    var correctionContext = CorrectionProducerContext.create(
+    var correctionContext = CorrectionProducerContext.createResolved(
       dartFixContext: context,
       diagnostic: error,
       resolvedResult: resolveResult,
@@ -327,7 +327,7 @@ class FixInFileProcessor {
 
   Future<_FixState> _fixError(DartFixContext fixContext, _FixState fixState,
       CorrectionProducer producer, AnalysisError diagnostic) async {
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -1764,7 +1764,7 @@ class FixProcessor extends BaseProcessor {
 
   Future<void> _addFromProducers() async {
     var error = fixContext.error;
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       dartFixContext: fixContext,
       diagnostic: error,
       resolvedResult: resolvedResult,

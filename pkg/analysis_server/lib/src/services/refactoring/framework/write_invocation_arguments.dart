@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -13,7 +13,7 @@ import 'package:collection/collection.dart';
 
 /// Replaces [argumentList] with new code that has arguments as requested
 /// by the formal parameter updates, reordering, changing kind, etc.
-Future<ChangeStatus> writeArguments({
+Future<WriteArgumentsStatus> writeArguments({
   required List<FormalParameterUpdate> formalParameterUpdates,
   required ResolvedUnitResult resolvedUnit,
   required ArgumentList argumentList,
@@ -29,10 +29,10 @@ Future<ChangeStatus> writeArguments({
     switch (update) {
       case FormalParameterUpdateExisting(:final reference):
         switch (reference) {
-          case NamedParameterReference():
+          case NamedFormalParameterReference():
             final argument = namedArguments[reference.name];
             if (argument == null) {
-              return ChangeStatusFailure();
+              continue;
             }
             if (update is FormalParameterUpdateExistingNamed) {
               // TODO(scheglov) maybe support renames
@@ -48,10 +48,10 @@ Future<ChangeStatus> writeArguments({
                 ),
               );
             }
-          case PositionalParameterReference():
+          case PositionalFormalParameterReference():
             final argument = positionArguments.elementAtOrNull(reference.index);
             if (argument == null) {
-              return ChangeStatusFailure();
+              return WriteArgumentsStatusFailure();
             }
             if (update is FormalParameterUpdateExistingNamed) {
               newArguments.add(
@@ -89,17 +89,13 @@ Future<ChangeStatus> writeArguments({
       builder.write('(');
       for (final argument in newArguments) {
         switch (argument) {
-          case _ArgumentAsIs():
-            final text = utils.getNodeText(argument.argument);
-            builder.write(text);
           case _ArgumentAddName():
             final text = utils.getNodeText(argument.argument);
             builder.write(argument.name);
             builder.write(': ');
             builder.write(text);
-          case _ArgumentRemoveName():
-            final expression = argument.namedExpression.expression;
-            final text = utils.getNodeText(expression);
+          case _ArgumentAsIs():
+            final text = utils.getNodeText(argument.argument);
             builder.write(text);
           case _ArgumentNewNamed():
             builder.write(argument.name);
@@ -107,6 +103,10 @@ Future<ChangeStatus> writeArguments({
             builder.write(argument.valueCode);
           case _ArgumentNewPositional():
             builder.write(argument.valueCode);
+          case _ArgumentRemoveName():
+            final expression = argument.namedExpression.expression;
+            final text = utils.getNodeText(expression);
+            builder.write(text);
         }
         // TODO(scheglov) Use strategy.
         if (argument != newArguments.last || argumentList.hasTrailingComma) {
@@ -118,21 +118,8 @@ Future<ChangeStatus> writeArguments({
     builder.format(range.node(argumentList));
   });
 
-  return ChangeStatusSuccess();
+  return WriteArgumentsStatusSuccess();
 }
-
-/// The supertype return types from [writeArguments].
-sealed class ChangeStatus {}
-
-/// The supertype for any failure inside [writeArguments].
-///
-/// Currently it has no subtypes, but if more specific error message is
-/// necessary, with pieces of data (e.g. nodes, names, etc), such subtypes
-/// can be added.
-final class ChangeStatusFailure extends ChangeStatus {}
-
-/// The result that signals the success.
-final class ChangeStatusSuccess extends ChangeStatus {}
 
 /// Formal parameter update.
 sealed class FormalParameterUpdate {}
@@ -140,7 +127,7 @@ sealed class FormalParameterUpdate {}
 /// Existing formal parameter update.
 sealed class FormalParameterUpdateExisting extends FormalParameterUpdate {
   /// The original formal parameter reference.
-  final ParameterReference reference;
+  final FormalParameterReference reference;
 
   FormalParameterUpdateExisting({
     required this.reference,
@@ -194,6 +181,19 @@ final class FormalParameterUpdateNewPositional
     required super.valueCode,
   });
 }
+
+/// The supertype return types from [writeArguments].
+sealed class WriteArgumentsStatus {}
+
+/// The supertype for any failure inside [writeArguments].
+///
+/// Currently it has no subtypes, but if more specific error message is
+/// necessary, with pieces of data (e.g. nodes, names, etc), such subtypes
+/// can be added.
+final class WriteArgumentsStatusFailure extends WriteArgumentsStatus {}
+
+/// The result that signals the success.
+final class WriteArgumentsStatusSuccess extends WriteArgumentsStatus {}
 
 /// The description of how an argument should be written.
 sealed class _Argument {}

@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
-import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart'
-    show FormalParameterKind;
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
     as framework;
@@ -462,9 +460,9 @@ class _SignatureUpdater {
     );
 
     switch (frameworkStatus) {
-      case framework.ChangeStatusFailure():
+      case framework.WriteArgumentsStatusFailure():
         return ChangeStatusFailure();
-      case framework.ChangeStatusSuccess():
+      case framework.WriteArgumentsStatusSuccess():
         return ChangeStatusSuccess();
     }
   }
@@ -543,7 +541,7 @@ class _SignatureUpdater {
       } else {
         existing = existingNamedParameters.remove(parameterState.name);
         if (existing == null) {
-          return ChangeStatusFailure();
+          continue;
         }
       }
 
@@ -714,14 +712,14 @@ class _SignatureUpdater {
     }
   }
 
-  ParameterReference _asFrameworkFormalParameterReference(
+  FormalParameterReference _asFrameworkFormalParameterReference(
     FormalParameterState existing,
   ) {
     final positionalIndex = existing.positionalIndex;
     if (positionalIndex != null) {
-      return PositionalParameterReference(positionalIndex);
+      return PositionalFormalParameterReference(positionalIndex);
     } else {
-      return NamedParameterReference(existing.name);
+      return NamedFormalParameterReference(existing.name);
     }
   }
 }

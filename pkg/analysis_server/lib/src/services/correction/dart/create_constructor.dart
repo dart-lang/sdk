@@ -93,7 +93,7 @@ class CreateConstructor extends CorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
+        .prepareNewConstructorLocation(unitResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }
@@ -178,7 +178,7 @@ class CreateConstructor extends CorrectionProducer {
 
     // prepare location
     var targetLocation = CorrectionUtils(targetUnit)
-        .prepareNewConstructorLocation(resolvedResult.session, targetNode);
+        .prepareNewConstructorLocation(unitResult.session, targetNode);
     if (targetLocation == null) {
       return;
     }

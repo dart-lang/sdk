@@ -26,8 +26,8 @@ class ConvertPartOfToUri extends CorrectionProducer {
       return;
     }
 
-    var libraryPath = resolvedResult.libraryElement.source.fullName;
-    var partPath = resolvedResult.path;
+    var libraryPath = unitResult.libraryElement.source.fullName;
+    var partPath = unitResult.path;
     var relativePath = relative(libraryPath, from: dirname(partPath));
     var uri = Uri.file(relativePath).toString();
     var replacementRange = range.node(libraryName);

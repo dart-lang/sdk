@@ -1,8 +1,10 @@
+## 11.7.0
+- Expose RPC error codes that were defined in `package:dds`.
+
 ## 11.6.0
 - Update to version `4.7` of the spec.
 - Add deprecation notice to `Stack.awaiterFrames`.
 - Add deprecation notice to `FrameKind.kAsyncActivation`.
-- Expose RPC error codes that were defined in `package:dds`.
 
 ## 11.5.0
 - Update to version `4.6` of the spec.

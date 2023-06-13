@@ -31,7 +31,7 @@ class RemoveCharacter extends CorrectionProducer {
     if (problemMessage == null) return;
 
     var offset = problemMessage.offset;
-    var content = resolvedResult.content;
+    var content = unitResult.content;
     var codeUnit = content.codeUnitAt(offset);
     _codePoint = codeUnit.toRadixString(16).toUpperCase();
     await builder.addDartFileEdit(file, (builder) {

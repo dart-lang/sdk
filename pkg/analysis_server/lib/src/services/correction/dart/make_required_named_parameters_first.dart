@@ -58,7 +58,7 @@ class MakeRequiredNamedParametersFirst extends CorrectionProducer {
       var firstParameter = parameters[firstOptionalParameter!];
       var firstComments = firstParameter.beginToken.precedingComments;
       var offset = firstComments?.offset ?? firstParameter.offset;
-      var lineInfo = resolvedResult.lineInfo;
+      var lineInfo = unitResult.lineInfo;
       builder.addInsertion(offset, (builder) {
         for (var index in requiredParameterIndices) {
           var nodeRange = range.nodeWithComments(lineInfo, parameters[index]);

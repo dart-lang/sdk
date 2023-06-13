@@ -4,9 +4,9 @@
 
 import 'package:analysis_server/src/services/correction/fix/data_driven/accessor.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/expression.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_error_code.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analyzer/error/listener.dart';
 
 /// A parser for the textual representation of a code fragment.
@@ -176,12 +176,12 @@ class CodeFragmentParser {
         // The error has already been reported.
         return null;
       }
-      ParameterReference reference;
+      FormalParameterReference reference;
       if (token.kind == _TokenKind.identifier) {
-        reference = NamedParameterReference(token.lexeme);
+        reference = NamedFormalParameterReference(token.lexeme);
       } else {
         var argumentIndex = int.parse(token.lexeme);
-        reference = PositionalParameterReference(argumentIndex);
+        reference = PositionalFormalParameterReference(argumentIndex);
       }
       advance();
       token = _expect(const [_TokenKind.closeSquareBracket]);

@@ -21,7 +21,7 @@ class SurroundWith extends MultiCorrectionProducer {
 
     // prepare selected statements
     var selectionAnalyzer = StatementAnalyzer(
-        resolvedResult, SourceRange(selectionOffset, selectionLength));
+        unitResult, SourceRange(selectionOffset, selectionLength));
     selectionAnalyzer.analyze();
     var selectedNodes = selectionAnalyzer.selectedNodes;
     // convert nodes to statements

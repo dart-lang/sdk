@@ -22,7 +22,7 @@ class MakeSuperInvocationLast extends CorrectionProducer {
     if (parent is! ConstructorDeclaration) return;
 
     var initializers = parent.initializers;
-    var lineInfo = resolvedResult.lineInfo;
+    var lineInfo = unitResult.lineInfo;
 
     var deletionRange =
         range.nodeInListWithComments(lineInfo, initializers, node);

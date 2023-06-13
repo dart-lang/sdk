@@ -195,7 +195,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,

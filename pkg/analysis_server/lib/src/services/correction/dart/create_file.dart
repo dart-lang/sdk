@@ -44,7 +44,7 @@ class CreateFile extends CorrectionProducer {
         if (source != null) {
           var pathContext = resourceProvider.pathContext;
           var relativePath = pathContext.relative(
-              resolvedResult.libraryElement.source.fullName,
+              unitResult.libraryElement.source.fullName,
               from: pathContext.dirname(source.fullName));
 
           // URIs always use forward slashes regardless of platform.
