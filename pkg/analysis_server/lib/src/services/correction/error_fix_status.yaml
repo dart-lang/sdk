@@ -1051,6 +1051,10 @@ CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
 CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
+CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+  status: needsEvaluation
+CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+  status: needsEvaluation
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsFix
   notes: |-

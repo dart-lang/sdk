@@ -509,6 +509,10 @@ import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_on_type_alias_expands_to_type_parameter_test.dart'
     as mixin_on_type_alias_expands_to_type_parameter;
+import 'mixin_subtype_of_base_is_not_base_test.dart'
+    as mixin_subtype_of_base_is_not_base;
+import 'mixin_subtype_of_final_is_not_base_test.dart'
+    as mixin_subtype_of_final_is_not_base;
 import 'mixin_super_class_constraint_deferred_class_test.dart'
     as mixin_super_class_constraint_deferred_class;
 import 'mixin_super_class_constraint_disallowed_class_test.dart'
@@ -1208,6 +1212,8 @@ main() {
     mixin_of_type_alias_expands_to_type_parameter.main();
     mixin_on_sealed_class.main();
     mixin_on_type_alias_expands_to_type_parameter.main();
+    mixin_subtype_of_base_is_not_base.main();
+    mixin_subtype_of_final_is_not_base.main();
     mixin_super_class_constraint_deferred_class.main();
     mixin_super_class_constraint_disallowed_class.main();
     mixin_super_class_constraint_non_interface.main();

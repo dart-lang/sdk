@@ -3107,6 +3107,28 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     uniqueName: 'MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER',
   );
 
+  ///  Parameters:
+  ///  0: the name of the mixin that is not 'base'
+  ///  1: the name of the 'base' supertype
+  static const CompileTimeErrorCode MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE =
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE',
+  );
+
+  ///  Parameters:
+  ///  0: the name of the mixin that is not 'final'
+  ///  1: the name of the 'final' supertype
+  static const CompileTimeErrorCode MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE =
+      CompileTimeErrorCode(
+    'SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED',
+    "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'.",
+    hasPublishedDocs: true,
+    uniqueName: 'MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE',
+  );
+
   ///  No parameters.
   static const CompileTimeErrorCode
       MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS = CompileTimeErrorCode(
