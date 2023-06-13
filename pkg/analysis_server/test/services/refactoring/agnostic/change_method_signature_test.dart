@@ -7,6 +7,8 @@ import 'package:analysis_server/src/protocol_server.dart'
 import 'package:analysis_server/src/services/refactoring/agnostic/change_method_signature.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
+import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
+    show ArgumentsTrailingComma;
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -295,6 +297,154 @@ NoExecutableElementSelectionState
 @reflectiveTest
 class ChangeMethodSignatureTest_computeSourceChange
     extends AbstractChangeMethodSignatureTest {
+  Future<void> test_argumentsTrailingComma_always_add() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, double b) {}
+
+void f() {
+  test(0, 1.2);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.always,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(double b, int a) {}
+
+void f() {
+  test(
+    1.2,
+    0,
+  );
+}
+''');
+  }
+
+  Future<void> test_argumentsTrailingComma_ifPresent_false() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, double b) {}
+
+void f() {
+  test(0, 1.2);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(double b, int a) {}
+
+void f() {
+  test(1.2, 0);
+}
+''');
+  }
+
+  Future<void> test_argumentsTrailingComma_ifPresent_true() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, double b) {}
+
+void f() {
+  test(
+    0,
+    1.2,
+  );
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(double b, int a) {}
+
+void f() {
+  test(
+    1.2,
+    0,
+  );
+}
+''');
+  }
+
+  Future<void> test_argumentsTrailingComma_never_remove() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, double b) {}
+
+void f() {
+  test(
+    0,
+    1.2,
+  );
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.never,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(double b, int a) {}
+
+void f() {
+  test(1.2, 0);
+}
+''');
+  }
+
   Future<void> test_classMethod_optionalNamed_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 class A {
@@ -327,6 +477,7 @@ void f(A a, B b) {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -374,6 +525,7 @@ void f(A a, B b) {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -421,6 +573,7 @@ void f(A a, B b) {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -449,6 +602,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -480,6 +634,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -516,6 +671,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -552,6 +708,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -588,6 +745,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -627,6 +785,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -660,6 +819,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -693,6 +853,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -721,6 +882,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -754,6 +916,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -790,6 +953,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -826,6 +990,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -868,6 +1033,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -907,6 +1073,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -943,6 +1110,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -979,6 +1147,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1012,6 +1181,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1049,6 +1219,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1082,6 +1253,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1110,6 +1282,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1143,6 +1316,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1176,6 +1350,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''
@@ -1209,6 +1384,7 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 
     await _assertUpdate(signatureUpdate, r'''

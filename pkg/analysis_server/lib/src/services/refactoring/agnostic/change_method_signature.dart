@@ -6,6 +6,8 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
+    show ArgumentsTrailingComma;
+import 'package:analysis_server/src/services/refactoring/framework/write_invocation_arguments.dart'
     as framework;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
@@ -138,15 +140,18 @@ class MethodSignatureUpdate {
   /// TODO(scheglov) Consider adding.
   final List<FormalParameterUpdate> formalParameters;
 
-  /// Specifies whether the trailing comme should be added after formal
-  /// parameters.
+  /// Specifies whether to add the trailing comma after formal parameters.
   ///
   /// TODO(scheglov) Test for empty formal parameter lists.
   final TrailingComma formalParametersTrailingComma;
 
+  /// Specifies whether to add the trailing comma after arguments.
+  final ArgumentsTrailingComma argumentsTrailingComma;
+
   MethodSignatureUpdate({
     required this.formalParameters,
     required this.formalParametersTrailingComma,
+    required this.argumentsTrailingComma,
   });
 }
 
@@ -454,6 +459,7 @@ class _SignatureUpdater {
             );
         }
       }).toList(),
+      trailingComma: signatureUpdate.argumentsTrailingComma,
       resolvedUnit: resolvedUnit,
       argumentList: argumentList,
       builder: builder,

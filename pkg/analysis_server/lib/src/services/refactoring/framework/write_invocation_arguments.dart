@@ -15,6 +15,7 @@ import 'package:collection/collection.dart';
 /// by the formal parameter updates, reordering, changing kind, etc.
 Future<WriteArgumentsStatus> writeArguments({
   required List<FormalParameterUpdate> formalParameterUpdates,
+  required ArgumentsTrailingComma trailingComma,
   required ResolvedUnitResult resolvedUnit,
   required ArgumentList argumentList,
   required ChangeBuilder builder,
@@ -108,9 +109,19 @@ Future<WriteArgumentsStatus> writeArguments({
             final text = utils.getNodeText(expression);
             builder.write(text);
         }
-        // TODO(scheglov) Use strategy.
-        if (argument != newArguments.last || argumentList.hasTrailingComma) {
+        if (argument != newArguments.last) {
           builder.write(', ');
+        } else {
+          switch (trailingComma) {
+            case ArgumentsTrailingComma.always:
+              builder.write(', ');
+            case ArgumentsTrailingComma.ifPresent:
+              if (argumentList.hasTrailingComma) {
+                builder.write(', ');
+              }
+            case ArgumentsTrailingComma.never:
+              break;
+          }
         }
       }
       builder.write(')');
@@ -119,6 +130,18 @@ Future<WriteArgumentsStatus> writeArguments({
   });
 
   return WriteArgumentsStatusSuccess();
+}
+
+/// The strategy for trailing comma after arguments.
+enum ArgumentsTrailingComma {
+  /// Always add the trailing comma.
+  always,
+
+  /// Keep the trailing comma, if already present.
+  ifPresent,
+
+  /// Remove the trailing comma.
+  never,
 }
 
 /// Formal parameter update.
