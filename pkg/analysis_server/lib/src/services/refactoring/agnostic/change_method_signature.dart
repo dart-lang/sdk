@@ -98,12 +98,16 @@ final class FormalParameterState {
   /// changing types, so this field should be read-only in UI.
   final String typeStr;
 
+  /// If `true`, the selection covers this formal parameter.
+  final bool isSelected;
+
   FormalParameterState({
     required this.id,
     required this.kind,
     required this.positionalIndex,
     required this.name,
     required this.typeStr,
+    required this.isSelected,
   });
 }
 
@@ -209,10 +213,12 @@ final class ValidSelectionState extends SelectionState {
 class _Declaration {
   final ExecutableElement element;
   final AstNode node;
+  final List<FormalParameter> selected;
 
   _Declaration({
     required this.element,
     required this.node,
+    required this.selected,
   });
 }
 
@@ -286,6 +292,7 @@ class _SelectionAnalyzer {
           positionalIndex: kind.isPositional ? positionalIndex++ : null,
           name: nameToken.lexeme,
           typeStr: refactoringContext.utils.getNodeText(typeNode),
+          isSelected: declaration.selected.contains(parameterNode),
         ),
       );
     }
@@ -301,28 +308,19 @@ class _SelectionAnalyzer {
     final coveringNode = refactoringContext.coveringNode;
 
     switch (coveringNode) {
-      case FunctionDeclaration():
-        if (refactoringContext.selectionIsInToken(coveringNode.name)) {
-          final element = coveringNode.declaredElement;
-          if (element != null) {
-            return _Declaration(
-              element: element,
-              node: coveringNode,
-            );
-          }
-        }
-        return null;
-      case MethodDeclaration():
-        if (refactoringContext.selectionIsInToken(coveringNode.name)) {
-          final element = coveringNode.declaredElement;
-          if (element != null) {
-            return _Declaration(
-              element: element,
-              node: coveringNode,
-            );
-          }
-        }
-        return null;
+      case FormalParameter():
+        return _declarationFormalParameter(coveringNode);
+      case FormalParameterList():
+        return _declarationFormalParameterList(coveringNode);
+    }
+
+    final atExecutable = _declarationExecutable(
+      node: coveringNode,
+      anyLocation: false,
+      selected: const [],
+    );
+    if (atExecutable != null) {
+      return atExecutable;
     }
 
     Element? element;
@@ -348,6 +346,88 @@ class _SelectionAnalyzer {
     return _Declaration(
       element: element,
       node: node,
+      selected: const [],
+    );
+  }
+
+  _Declaration? _declarationExecutable({
+    required AstNode? node,
+    required bool anyLocation,
+    required List<FormalParameter> selected,
+  }) {
+    bool hasGoodLocation(Token? name) {
+      return anyLocation || refactoringContext.selectionIsInToken(name);
+    }
+
+    _Declaration? buildDeclaration(Declaration node) {
+      final element = node.declaredElement;
+      if (element is ExecutableElement) {
+        return _Declaration(
+          element: element,
+          node: node,
+          selected: selected,
+        );
+      }
+      return null;
+    }
+
+    if (node is FunctionExpression) {
+      final functionDeclaration = node.parent;
+      if (functionDeclaration is FunctionDeclaration) {
+        node = functionDeclaration;
+      }
+    }
+
+    switch (node) {
+      case FunctionDeclaration():
+        if (hasGoodLocation(node.name)) {
+          return buildDeclaration(node);
+        }
+      case MethodDeclaration():
+        if (hasGoodLocation(node.name)) {
+          return buildDeclaration(node);
+        }
+    }
+
+    return null;
+  }
+
+  _Declaration? _declarationFormalParameter(FormalParameter node) {
+    final FormalParameter formalParameter;
+    if (node.parent case DefaultFormalParameter result) {
+      formalParameter = result;
+    } else {
+      formalParameter = node;
+    }
+
+    final formalParameterList = formalParameter.parent;
+    if (formalParameterList is! FormalParameterList) {
+      return null;
+    }
+
+    return _declarationExecutable(
+      node: formalParameterList.parent,
+      anyLocation: true,
+      selected: [formalParameter],
+    );
+  }
+
+  _Declaration? _declarationFormalParameterList(FormalParameterList node) {
+    final selection = refactoringContext.selection;
+    final selectedNodes = selection?.nodesInRange();
+    if (selectedNodes == null) {
+      return null;
+    }
+
+    final selected = selectedNodes.whereType<FormalParameter>().toList();
+    if (selected.isEmpty) {
+      return null;
+    }
+
+    return _declarationExecutable(
+      node: node.parent,
+      anyLocation: true,
+      selected: selected,
     );
   }
 }

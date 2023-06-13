@@ -13,6 +13,7 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
@@ -69,9 +70,16 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
     required TestCode testCode,
   }) async {
     // There must be exactly one position.
-    expect(testCode.ranges, isEmpty);
-    expect(testCode.positions, hasLength(1));
-    final position = testCode.position;
+    final singlePosition = testCode.positions.singleOrNull;
+    final singleRange = testCode.ranges.singleOrNull;
+    final SourceRange selectionRange;
+    if (singlePosition != null && singleRange == null) {
+      selectionRange = SourceRange(singlePosition.offset, 0);
+    } else if (singlePosition == null && singleRange != null) {
+      selectionRange = singleRange.sourceRange;
+    } else {
+      fail('Expected exactly one: $singlePosition $singleRange');
+    }
 
     final analysisSession = await session;
 
@@ -86,8 +94,8 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
       searchEngine: SearchEngineImpl(allDrivers),
       resolvedLibraryResult: resolvedLibraryResult,
       resolvedUnitResult: unitResult,
-      selectionOffset: position.offset,
-      selectionLength: 0,
+      selectionOffset: selectionRange.offset,
+      selectionLength: selectionRange.length,
       includeExperimental: true,
     );
   }
@@ -153,7 +161,182 @@ formalParameters
 ''');
   }
 
-  Future<void> test_formalParameters_optionalNamed() async {
+  Future<void> test_formalParameters_requiredNamed_full() async {
+    await _analyzeSelection(r'''
+void test({
+  [!required int a!],
+  required int b,
+}) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: a
+    typeStr: int
+    selected
+  id: 1
+    kind: requiredNamed
+    name: b
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredNamed_multiple() async {
+    await _analyzeSelection(r'''
+void test({
+  required int a,
+  [!required int b,
+  required int c,!]
+  required int d,
+}) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: a
+    typeStr: int
+  id: 1
+    kind: requiredNamed
+    name: b
+    typeStr: int
+    selected
+  id: 2
+    kind: requiredNamed
+    name: c
+    typeStr: int
+    selected
+  id: 3
+    kind: requiredNamed
+    name: d
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredNamed_name_full() async {
+    await _analyzeSelection(r'''
+void test({
+  required int [!aaaa!],
+  required int bbbb,
+}) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: aaaa
+    typeStr: int
+    selected
+  id: 1
+    kind: requiredNamed
+    name: bbbb
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredNamed_name_partial() async {
+    await _analyzeSelection(r'''
+void test({
+  required int a[!aa!]a,
+  required int bbbb,
+}) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: aaaa
+    typeStr: int
+    selected
+  id: 1
+    kind: requiredNamed
+    name: bbbb
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredNamed_name_position() async {
+    await _analyzeSelection(r'''
+void test({
+  required int ^a,
+  required int b
+}) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: a
+    typeStr: int
+    selected
+  id: 1
+    kind: requiredNamed
+    name: b
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredPositional_multiple() async {
+    await _analyzeSelection(r'''
+void test(int a, [!int b, int c,!] int d) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+  id: 1
+    kind: requiredPositional
+    name: b
+    typeStr: int
+    selected
+  id: 2
+    kind: requiredPositional
+    name: c
+    typeStr: int
+    selected
+  id: 3
+    kind: requiredPositional
+    name: d
+    typeStr: int
+''');
+  }
+
+  Future<void> test_formalParameters_requiredPositional_name() async {
+    await _analyzeSelection(r'''
+void test(int ^a, int b) {}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@function::test
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+    selected
+  id: 1
+    kind: requiredPositional
+    name: b
+    typeStr: int
+''');
+  }
+
+  Future<void> test_kind_optionalNamed() async {
     await _analyzeSelection(r'''
 void ^test({int? a}) {}
 ''');
@@ -168,7 +351,7 @@ formalParameters
 ''');
   }
 
-  Future<void> test_formalParameters_optionalPositional() async {
+  Future<void> test_kind_optionalPositional() async {
     await _analyzeSelection(r'''
 void ^test([int? a]) {}
 ''');
@@ -183,7 +366,7 @@ formalParameters
 ''');
   }
 
-  Future<void> test_formalParameters_requiredNamed() async {
+  Future<void> test_kind_requiredNamed() async {
     await _analyzeSelection(r'''
 void ^test({required int a}) {}
 ''');
@@ -198,7 +381,7 @@ formalParameters
 ''');
   }
 
-  Future<void> test_formalParameters_requiredPositional2() async {
+  Future<void> test_kind_requiredPositional2() async {
     await _analyzeSelection(r'''
 void ^test(int a, String b) {}
 ''');
@@ -287,6 +470,9 @@ NoExecutableElementSelectionState
           buffer.writeln('    kind: ${formalParameter.kind.name}');
           buffer.writeln('    name: ${formalParameter.name}');
           buffer.writeln('    typeStr: ${formalParameter.typeStr}');
+          if (formalParameter.isSelected) {
+            buffer.writeln('    selected');
+          }
         }
     }
 
