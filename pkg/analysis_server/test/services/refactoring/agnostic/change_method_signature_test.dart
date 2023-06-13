@@ -545,7 +545,7 @@ void f(A a, B b) {
 ''');
   }
 
-  Future<void> test_classMethod_requiredPositional_reorder_notAll() async {
+  Future<void> test_classMethod_requiredPositional_reorder_less() async {
     await _analyzeValidSelection(r'''
 class A {
   void ^test(int a, int b) {}
@@ -553,11 +553,6 @@ class A {
 
 class B extends A {
   void test(int a) {}
-}
-
-void f(A a, B b) {
-  a.test(0, 1);
-  b.test(2, 3);
 }
 ''');
 
@@ -573,6 +568,111 @@ void f(A a, B b) {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_classMethod_requiredPositional_reorder_more() async {
+    await _analyzeValidSelection(r'''
+class A {
+  void ^test(int a, int b) {}
+}
+
+class B extends A {
+  void test(int a, int b, int c) {}
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void>
+      test_classMethod_requiredPositional_reorder_more_optional() async {
+    await _analyzeValidSelection(r'''
+class A {
+  void ^test(int a, int b) {}
+}
+
+class B extends A {
+  void test(int a, int b, [int c]) {}
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_fail_noSuchId_greater() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_fail_noSuchId_negative() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: -1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 

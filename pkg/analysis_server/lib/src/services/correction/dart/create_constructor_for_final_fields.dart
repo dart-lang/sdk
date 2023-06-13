@@ -11,6 +11,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -355,10 +356,9 @@ class CreateConstructorForFinalFields extends CorrectionProducer {
       return;
     }
 
-    final childrenLast = [
-      ...fields.whereNot((field) => field.isChild),
-      ...fields.where((field) => field.isChild),
-    ];
+    final childrenLast = fields.stablePartition(
+      (field) => !field.isChild,
+    );
 
     for (final field in childrenLast) {
       builder.write(', ');

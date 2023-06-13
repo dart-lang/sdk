@@ -9885,6 +9885,22 @@ CompileTimeErrorCode:
 
       class C {}
       ```
+  MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'base'
+      1: the name of the 'base' supertype
+  MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'final'
+      1: the name of the 'final' supertype
   MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
     problemMessage: "Deferred classes can't be used as superclass constraints."
     correctionMessage: Try changing the import to not be deferred.
