@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 class Class1<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
   constructor _() → self::Class1<self::Class1::T%>
     ;
   static method _#_#tearOff<T extends core::Object? = dynamic>() → self::Class1<self::Class1::_#_#tearOff::T%>
@@ -14,7 +13,6 @@ class Class1<T extends core::Object? = dynamic> extends core::Object {
     return new self::Class1::_<self::Class1::_#new#tearOff::T%>();
 }
 class Class2<T extends core::num> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class2::•]/*isLegacy*/;
   constructor _() → self::Class2<self::Class2::T>
     ;
   static method _#_#tearOff<T extends core::num>() → self::Class2<self::Class2::_#_#tearOff::T>
@@ -25,7 +23,6 @@ class Class2<T extends core::num> extends core::Object {
     return new self::Class2::_<self::Class2::_#new#tearOff::T>();
 }
 class Class3<T extends self::Class3::S% = dynamic, S extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class3::•]/*isLegacy*/;
   constructor _() → self::Class3<self::Class3::T%, self::Class3::S%>
     ;
   static method _#_#tearOff<T extends self::Class3::_#_#tearOff::S% = dynamic, S extends core::Object? = dynamic>() → self::Class3<self::Class3::_#_#tearOff::T%, self::Class3::_#_#tearOff::S%>
@@ -36,7 +33,6 @@ class Class3<T extends self::Class3::S% = dynamic, S extends core::Object? = dyn
     return new self::Class3::_<self::Class3::_#new#tearOff::T%, self::Class3::_#new#tearOff::S%>();
 }
 class Class4<T extends self::Class4<self::Class4::T> = self::Class4<dynamic>> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Class4::•]/*isLegacy*/;
   constructor _() → self::Class4<self::Class4::T>
     ;
   static method _#_#tearOff<T extends self::Class4<self::Class4::_#_#tearOff::T> = self::Class4<dynamic>>() → self::Class4<self::Class4::_#_#tearOff::T>
@@ -47,7 +43,6 @@ class Class4<T extends self::Class4<self::Class4::T> = self::Class4<dynamic>> ex
     return new self::Class4::_<self::Class4::_#new#tearOff::T>();
 }
 class Class4int extends self::Class4<self::Class4int> {
-  static final field dynamic _redirecting# = <dynamic>[self::Class4int::•]/*isLegacy*/;
   constructor _() → self::Class4int
     ;
   static method _#_#tearOff() → self::Class4int
@@ -68,12 +63,3 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_redirecting_factory_tear_off.dart:13:7 -> ConstructorTearOffConstant(Class1.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_redirecting_factory_tear_off.dart:45:7 -> ConstructorTearOffConstant(Class2.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_redirecting_factory_tear_off.dart:50:7 -> ConstructorTearOffConstant(Class3.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_redirecting_factory_tear_off.dart:55:7 -> ConstructorTearOffConstant(Class4.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_redirecting_factory_tear_off.dart:60:7 -> ConstructorTearOffConstant(Class4int.)
-Extra constant evaluation: evaluated: 25, effectively constant: 5

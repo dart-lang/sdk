@@ -5,7 +5,6 @@
 library kernel.checks;
 
 import 'ast.dart';
-import 'src/redirecting_factory_body.dart';
 import 'target/targets.dart';
 import 'transformations/flags.dart';
 import 'type_environment.dart' show StatefulStaticTypeContext, TypeEnvironment;
@@ -1459,11 +1458,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitExpressionStatement(ExpressionStatement node) {
     // Bypass verification of the [StaticGet] in [RedirectingFactoryBody] as
     // this is a static get without a getter.
-    if (node is! RedirectingFactoryBody) {
-      enterTreeNode(node);
-      super.visitExpressionStatement(node);
-      exitTreeNode(node);
-    }
+    enterTreeNode(node);
+    super.visitExpressionStatement(node);
+    exitTreeNode(node);
   }
 
   bool isNullType(DartType node) => node is NullType;
@@ -1576,11 +1573,6 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (tearOffTarget.enclosingLibrary.importUri.isScheme('dart')) {
       // Platform libraries are not compilation with test flags and might
       // contain tear-offs not expected when testing lowerings.
-      return;
-    }
-    if (currentMember != null && isRedirectingFactoryField(currentMember!)) {
-      // The encoding of the redirecting factory field uses
-      // [ConstructorTearOffConstant] nodes also when lowerings are enabled.
       return;
     }
     if (tearOffTarget is Constructor &&

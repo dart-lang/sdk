@@ -11,7 +11,6 @@ class Y extends self::X {
     ;
 }
 class A<T extends core::Object? = dynamic, S extends self::A::T% = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir]/*isLegacy*/;
   constructor •(self::A::T% t, self::A::S% s) → self::A<self::A::T%, self::A::S%>
     ;
   static factory redir<T extends core::Object? = dynamic, S extends self::A::redir::T% = dynamic>(self::A::redir::T% t, self::A::redir::S% s) → self::A<self::A::redir::T%, self::A::redir::S%>
@@ -19,8 +18,3 @@ class A<T extends core::Object? = dynamic, S extends self::A::T% = dynamic> exte
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_typeparambounds_test.dart:16:7 -> ConstructorTearOffConstant(A.redir)
-Extra constant evaluation: evaluated: 5, effectively constant: 1

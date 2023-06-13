@@ -1,0 +1,23 @@
+library;
+import self as self;
+import "main_lib.dart" as mai;
+
+import "org-dartlang-testcase:///main_lib.dart";
+
+static method main() → dynamic {
+  new mai::_Class::•();
+}
+
+library;
+import self as mai;
+import "dart:core" as core;
+
+class Class extends core::Object {
+  static factory •() → mai::Class
+    return new mai::_Class::•();
+}
+class _Class extends core::Object implements mai::Class {
+  synthetic constructor •() → mai::_Class
+    : super core::Object::•()
+    ;
+}

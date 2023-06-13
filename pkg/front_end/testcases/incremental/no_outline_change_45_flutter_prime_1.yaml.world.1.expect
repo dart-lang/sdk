@@ -2,7 +2,6 @@ main = <No Member>;
 library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
     constructor •() → main::Foo
       : super dart.core::Object::•()
       ;
@@ -15,7 +14,4 @@ library from "org-dartlang-test:///main.dart" as main {
       : super main::Foo::•()
       ;
   }
-}
-constants  {
-  #C1 = constructor-tearoff main::Foo::bar
 }

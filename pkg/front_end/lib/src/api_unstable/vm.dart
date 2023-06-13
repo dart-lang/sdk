@@ -6,8 +6,6 @@ export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
 
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-export 'package:kernel/src/redirecting_factory_body.dart'
-    show expressionValueWrappedFinalizableName, isRedirectingFactoryField;
 
 export '../api_prototype/compiler_options.dart'
     show

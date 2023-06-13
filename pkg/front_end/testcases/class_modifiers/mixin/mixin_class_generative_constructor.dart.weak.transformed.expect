@@ -93,7 +93,6 @@ mixin class ConstMixinClassConstructor extends core::Object /*hasConstConstructo
 }
 mixin class MixinClassFactory extends core::Object {
   field core::int foo = 0;
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
   constructor •() → self::MixinClassFactory
     : super core::Object::•()
     ;
@@ -107,9 +106,4 @@ mixin class MixinClassFactory extends core::Object {
   static factory z() → self::MixinClassFactory {
     return new self::MixinClassFactory::•();
   }
-}
-
-constants  {
-  #C1 = constructor-tearoff self::MixinClassFactory::x
-  #C2 = constructor-tearoff self::MixinClassFactory::y
 }

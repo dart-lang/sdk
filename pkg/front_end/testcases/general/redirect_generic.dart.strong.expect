@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 class Class<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •<T extends core::Object? = dynamic>((self::Class::•::T%) → void f) → self::Class<self::Class::•::T%>
     return new self::ClassImpl::•<self::Class::•::T%>(f);
 }
@@ -11,8 +10,4 @@ class ClassImpl<T extends core::Object? = dynamic> extends core::Object implemen
   constructor •((self::ClassImpl::T%) → void f) → self::ClassImpl<self::ClassImpl::T%>
     : super core::Object::•()
     ;
-}
-
-constants  {
-  #C1 = constructor-tearoff self::Class::•
 }

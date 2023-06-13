@@ -7,8 +7,6 @@ library fasta.dill_library_builder;
 import 'dart:convert' show jsonDecode;
 
 import 'package:kernel/ast.dart';
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show isRedirectingFactoryField;
 
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
@@ -185,9 +183,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
       classBuilder.addConstructor(constructor, tearOffs[constructor.name.text]);
     }
     for (Field field in cls.fields) {
-      if (!isRedirectingFactoryField(field)) {
-        classBuilder.addField(field);
-      }
+      classBuilder.addField(field);
     }
   }
 

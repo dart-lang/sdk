@@ -88,8 +88,6 @@ export 'package:_fe_analyzer_shared/src/util/link_implementation.dart'
 
 export 'package:_fe_analyzer_shared/src/util/relativize.dart'
     show relativizeUri;
-export 'package:kernel/src/redirecting_factory_body.dart'
-    show isRedirectingFactoryField;
 
 export '../api_prototype/compiler_options.dart'
     show

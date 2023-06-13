@@ -101,7 +101,6 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   field core::int field = 0;
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor _() → self::Class1
     : super core::Object::•()
     ;
@@ -194,13 +193,12 @@ Try correcting the name to the name of an existing method, or defining a method 
     super + new Class1();
           ^";
   }
-  method method({dynamic a = #C2}) → dynamic {}
+  method method({dynamic a = #C1}) → dynamic {}
   get call() → core::int
     return 0;
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = constructor-tearoff self::Class1::•
-  #C2 = null
+  #C1 = null
 }

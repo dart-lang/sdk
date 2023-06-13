@@ -4,9 +4,6 @@
 
 library dart2js.kernel.env;
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactoryField;
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
@@ -90,9 +87,6 @@ class KLibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
-        if (isRedirectingFactoryField(member)) {
-          continue;
-        }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
             _setterMap![member.name.text] = member;
@@ -309,7 +303,6 @@ class KClassEnvImpl implements KClassEnv {
 
     void addField(ir.Field member, {required bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
-      if (isRedirectingFactoryField(member)) return;
       var name = elementMap.getName(member.name);
       _memberMap![name] = member;
       if (member.hasSetter) {

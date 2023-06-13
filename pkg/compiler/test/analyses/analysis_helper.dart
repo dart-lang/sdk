@@ -18,8 +18,7 @@ import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:compiler/src/phase/load_kernel.dart' as load_kernel;
 import 'package:expect/expect.dart';
 import 'package:front_end/src/api_prototype/constant_evaluator.dart' as ir;
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactoryField, relativizeUri;
+import 'package:front_end/src/api_unstable/dart2js.dart' show relativizeUri;
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/class_hierarchy.dart' as ir;
 import 'package:kernel/core_types.dart' as ir;
@@ -122,10 +121,6 @@ class StaticTypeVisitorBase extends StaticTypeVisitor {
 
   @override
   ir.DartType visitField(ir.Field node) {
-    if (isRedirectingFactoryField(node)) {
-      // Skip synthetic .dill members.
-      return const ir.VoidType();
-    }
     _staticTypeContext = ir.StaticTypeContext(node, typeEnvironment);
     _variableScopeModel =
         ScopeModel.from(node, _constantEvaluator).variableScopeModel;

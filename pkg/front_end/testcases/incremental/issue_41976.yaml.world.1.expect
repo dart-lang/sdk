@@ -2,7 +2,6 @@ main = foo::main;
 library from "org-dartlang-test:///foo.dart" as foo {
 
   abstract class Key extends dart.core::Object /*hasConstConstructor*/  {
-    static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
     const constructor empty() → foo::Key
       : super dart.core::Object::•()
       ;
@@ -24,7 +23,4 @@ library from "org-dartlang-test:///foo.dart" as foo {
     foo::Key k = new foo::ValueKey::•("t");
     dart.core::print("${k}");
   }
-}
-constants  {
-  #C1 = constructor-tearoff foo::Key::•
 }

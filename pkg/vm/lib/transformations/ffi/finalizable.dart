@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:front_end/src/api_unstable/vm.dart'
-    show expressionValueWrappedFinalizableName;
 import 'package:kernel/ast.dart';
 import 'package:kernel/kernel.dart';
 import 'package:kernel/type_environment.dart';
@@ -529,7 +527,7 @@ mixin FinalizableTransformer on Transformer {
   Expression _wrapReachabilityFences(
       Expression expression, List<Expression> declarations) {
     final resultVariable = VariableDeclaration(
-        expressionValueWrappedFinalizableName,
+        ":expressionValueWrappedFinalizable",
         initializer: expression,
         type: staticTypeContext!.getExpressionType(expression),
         isFinal: true,
