@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::A
     : super core::Object::•()
     ;
@@ -17,8 +16,4 @@ class B extends self::A {
 }
 static method main() → dynamic {
   new self::B::•();
-}
-
-constants  {
-  #C1 = constructor-tearoff self::A::fisk
 }

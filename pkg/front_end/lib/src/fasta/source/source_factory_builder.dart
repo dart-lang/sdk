@@ -4,8 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show RedirectingFactoryBody, getRedirectingFactoryTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -17,6 +15,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
 import '../kernel/hierarchy/class_member.dart';
@@ -36,6 +35,7 @@ import '../type_inference/type_inferrer.dart';
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'name_scheme.dart';
+import 'redirecting_factory_body.dart';
 import 'source_class_builder.dart';
 import 'source_function_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
@@ -238,8 +238,8 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     if (bodyInternal != null) {
       unexpected("null", "${bodyInternal.runtimeType}", charOffset, fileUri);
     }
-    bodyInternal = RedirectingFactoryBody.createRedirectingFactoryBody(
-        target, typeArguments, function);
+    bodyInternal =
+        createRedirectingFactoryBody(target, typeArguments, function);
     _procedureInternal.function.body = bodyInternal;
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
@@ -310,6 +310,12 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new FactoryBodyBuilderContext(this);
+
+  @override
+  String get fullNameForErrors {
+    return "${flattenName(classBuilder.name, charOffset, fileUri)}"
+        "${name.isEmpty ? '' : '.$name'}";
+  }
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {
@@ -368,8 +374,8 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
           charOffset, noLength, fileUri);
     }
 
-    bodyInternal = RedirectingFactoryBody.createRedirectingFactoryBody(
-        target, typeArguments, function);
+    bodyInternal =
+        createRedirectingFactoryBody(target, typeArguments, function);
     _procedureInternal.function.body = bodyInternal;
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
@@ -393,7 +399,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   void setRedirectingFactoryError(String message) {
-    body = RedirectingFactoryBody.createRedirectingFactoryErrorBody(message);
+    body = createRedirectingFactoryErrorBody(message);
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
   }
@@ -491,8 +497,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       }
 
       _procedureInternal.function.body =
-          RedirectingFactoryBody.createRedirectingFactoryBody(
-              target, typeArguments, function);
+          createRedirectingFactoryBody(target, typeArguments, function);
       assert(function == _procedureInternal.function);
       _procedureInternal.function.body!.parent = function;
       _procedureInternal.function.redirectingFactoryTarget =
@@ -562,7 +567,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   }
 
   List<DartType>? getTypeArguments() {
-    return getRedirectingFactoryTarget(_procedure)!.typeArguments;
+    return _procedure.function.redirectingFactoryTarget!.typeArguments;
   }
 
   @override

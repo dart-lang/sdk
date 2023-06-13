@@ -577,35 +577,25 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
-    if (offset != 0) {
-      AddImmediate(TMP2, address, offset);
-      ldar(dst, TMP2);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(TMP2);
-#endif
-    } else {
-      ldar(dst, address);
-#if defined(USING_THREAD_SANITIZER)
-      TsanLoadAcquire(address);
-#endif
-    }
-  }
-
-  void LoadAcquireCompressed(Register dst,
-                             Register address,
-                             int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kEightBytes) override {
     Register src = address;
     if (offset != 0) {
       AddImmediate(TMP2, address, offset);
       src = TMP2;
     }
-    ldar(dst, src, kObjectBytes);  // ldar does zero extension for 4 bytes.
-#if defined(DART_COMPRESSED_POINTERS)
-    add(dst, dst, Operand(HEAP_BITS, LSL, 32));
-#endif
+    ldar(dst, src, size);
 #if defined(USING_THREAD_SANITIZER)
     TsanLoadAcquire(src);
+#endif
+  }
+
+  void LoadAcquireCompressed(Register dst,
+                             Register address,
+                             int32_t offset = 0) override {
+    LoadAcquire(dst, address, offset, kObjectBytes);
+#if defined(DART_COMPRESSED_POINTERS)
+    add(dst, dst, Operand(HEAP_BITS, LSL, 32));
 #endif
   }
 
@@ -646,7 +636,7 @@ class Assembler : public AssemblerBase {
 
   void CompareWithMemoryValue(Register value,
                               Address address,
-                              OperandSize sz = kEightBytes) {
+                              OperandSize sz = kEightBytes) override {
     LoadFromOffset(TMP, address, sz);
     cmp(value, Operand(TMP), sz);
   }

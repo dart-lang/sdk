@@ -29,6 +29,9 @@ if (is_linux) {
     } else if (current_cpu == "arm64") {
       target_sysroot = rebase_path("//build/linux/alpine-linux-aarch64-sysroot",
                                    root_build_dir)
+    } else if (current_cpu == "riscv64") {
+      target_sysroot = rebase_path("//build/linux/alpine-linux-riscv64-sysroot",
+                                   root_build_dir)
     } else {
       print("There is no $dart_sysroot sysroot present for $current_cpu")
       assert(false)

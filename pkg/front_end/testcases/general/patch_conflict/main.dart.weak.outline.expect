@@ -1,0 +1,137 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:16:8: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin class.
+// Try changing the name to an existing member or removing the '@patch' annotation.
+//   void missingOriginMethod() {} /* Error: missing origin method */
+//        ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:18:8: Error: Member 'existingOriginMethod' conflicts with an existing member of the same name in the origin class.
+// Try changing the name of the member or adding an '@patch' annotation.
+//   void existingOriginMethod() {} /* Error: conflict with origin method */
+//        ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/patch_conflict/origin_lib.dart:10:8: Context: This is the existing member.
+//   void existingOriginMethod() {}
+//        ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:11:3: Error: Patch constructor 'Class.missingOriginConstructor' doesn't match a constructor in the origin class.
+// Try changing the name to an existing constructor or removing the '@patch' annotation.
+//   Class.missingOriginConstructor(); /* Error: missing origin class */
+//   ^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:13:3: Error: Constructor 'Class.existingOriginConstructor' conflicts with an existing constructor of the same name in the origin class.
+// Try changing the name of the constructor or adding an '@patch' annotation.
+//   Class.existingOriginConstructor(); /* Error: conflict with origin class */
+//   ^
+// pkg/front_end/testcases/general/patch_conflict/origin_lib.dart:8:3: Context: This is the existing constructor.
+//   Class.existingOriginConstructor();
+//   ^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:22:6: Error: Patch member 'missingOriginMethod' doesn't match a member in the origin library.
+// Try changing the name to an existing member or removing the '@patch' annotation.
+// void missingOriginMethod() {} /* Error: missing origin method */
+//      ^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:25:7: Error: Patch class 'MissingOriginClass' doesn't match a class in the origin library.
+// Try changing the name to an existing class or removing the '@patch' annotation.
+// class MissingOriginClass {} /* Error: missing origin class */
+//       ^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:28:11: Error: Patch 'MissingOriginExtension' doesn't match a declaration in the origin library.
+// Try changing the name to an existing declaration or removing the '@patch' annotation.
+// extension MissingOriginExtension on int {} /* Error: missing origin extension */
+//           ^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:30:6: Error: Member 'existingOriginMethod' conflicts with an existing member of the same name in the origin library.
+// Try changing the name of the member or adding an '@patch' annotation.
+// void existingOriginMethod() {} /* Error: conflict with origin method */
+//      ^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/patch_conflict/origin_lib.dart:13:6: Context: This is the existing member.
+// void existingOriginMethod() {}
+//      ^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:32:7: Error: Declaration 'existingOriginDeclaration' conflicts with an existing declaration of the same name in the origin library.
+// Try changing the name of the declaration.
+// class existingOriginDeclaration {} /* Error: conflict with origin declaration */
+//       ^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/patch_conflict/origin_lib.dart:15:6: Context: This is the existing member.
+// void existingOriginDeclaration() {}
+//      ^^^^^^^^^^^^^^^^^^^^^^^^^
+//
+// pkg/front_end/testcases/general/patch_conflict/patch_lib.dart:34:7: Error: Class 'ExistingOriginClass' conflicts with an existing class of the same name in the origin library.
+// Try changing the name of the class or adding an '@patch' annotation.
+// class ExistingOriginClass {} /* Error: conflict with origin class */
+//       ^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/patch_conflict/origin_lib.dart:17:7: Context: This is the existing class.
+// class ExistingOriginClass {}
+//       ^^^^^^^^^^^^^^^^^^^
+//
+import self as self2;
+import "dart:_internal" as _in;
+import "dart:core" as core;
+
+import "dart:_internal";
+
+@_in::patch
+class MissingOriginClass extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::MissingOriginClass
+    ;
+}
+class existingOriginDeclaration#0#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::existingOriginDeclaration#0#1
+    ;
+}
+class ExistingOriginClass#0#1 extends core::Object { // from org-dartlang-testcase:///patch_lib.dart
+  synthetic constructor •() → self2::ExistingOriginClass#0#1
+    ;
+}
+@_in::patch
+class Class extends core::Object {
+  @_in::patch
+  constructor missingOriginConstructor() → self2::Class
+    ;
+  constructor •() → self2::Class
+    ;
+  constructor existingOriginConstructor() → self2::Class
+    ;
+  method existingOriginMethod() → void
+    ;
+  @_in::patch
+  method /* from org-dartlang-testcase:///patch_lib.dart */ missingOriginMethod() → void
+    ;
+}
+class ExistingOriginClass extends core::Object {
+  synthetic constructor •() → self2::ExistingOriginClass
+    ;
+}
+@_in::patch
+extension MissingOriginExtension on core::int { // from org-dartlang-testcase:///patch_lib.dart
+}
+static method existingOriginMethod() → void
+  ;
+static method existingOriginDeclaration() → void
+  ;
+@_in::patch
+static method /* from org-dartlang-testcase:///patch_lib.dart */ missingOriginMethod() → void
+  ;
+static method /* from org-dartlang-testcase:///patch_lib.dart */ existingOriginMethod#1() → void
+  ;
+
+
+Extra constant evaluation status:
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:24:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:37 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:10:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:15:4 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:27:2 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:21:2 -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 6, effectively constant: 6

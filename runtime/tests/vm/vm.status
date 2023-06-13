@@ -11,6 +11,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
@@ -223,6 +224,7 @@ cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectu
 cc/StressMallocDirectly: Skip # Queries RSS
 cc/StressMallocThroughZones: Skip # Queries RSS
 cc/SweepDontNeed: Skip # Queries RSS
+cc/TTS_STC_ManyAsserts: Skip # OOM crash can occur when growing the STC.
 cc/TypeArguments_Cache_ManyInstantiations: Slow, Pass # Generates 100k classes, slow on emulated architectures.
 
 # On the simulator stack traces produced by the Profiler do not match

@@ -1554,10 +1554,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// Emits non-external static fields for a class, and initialize them eagerly
   /// if possible, otherwise define them as lazy properties.
   void _emitStaticFieldsAndAccessors(Class c, List<js_ast.Statement> body) {
-    var fields = c.fields
-        .where(
-            (f) => f.isStatic && !f.isExternal && !isRedirectingFactoryField(f))
-        .toList();
+    var fields = c.fields.where((f) => f.isStatic && !f.isExternal).toList();
     var fieldNames = Set.from(fields.map((f) => f.name));
     var staticSetters = c.procedures.where(
         (p) => p.isStatic && p.isAccessor && fieldNames.contains(p.name));
@@ -2129,15 +2126,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           propertyName('constructor'), js.fun(r'function() { return []; }')));
     }
 
-    Set<Member>? redirectingFactories;
     var staticFieldNames = <Name>{};
     for (var m in c.fields) {
       if (m.isStatic) {
-        if (isRedirectingFactoryField(m)) {
-          redirectingFactories = getRedirectingFactories(m).toSet();
-        } else {
-          staticFieldNames.add(m.name);
-        }
+        staticFieldNames.add(m.name);
       } else if (_extensionTypes.isNativeClass(c)) {
         jsMethods.addAll(_emitNativeFieldAccessors(m));
       } else if (virtualFields.containsKey(m)) {
@@ -2176,7 +2168,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // TODO(jmesserly): is there any other kind of forwarding stub?
         jsMethods.addAll(_emitCovarianceCheckStub(m));
       } else if (m.isFactory) {
-        if (redirectingFactories?.contains(m) ?? false) {
+        if (m.isRedirectingFactory) {
           // Skip redirecting factories (they've already been resolved).
         } else {
           jsMethods.add(_emitFactoryConstructor(m));

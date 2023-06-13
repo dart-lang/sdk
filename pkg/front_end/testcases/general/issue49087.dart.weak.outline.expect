@@ -3,7 +3,6 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir]/*isLegacy*/;
   const constructor •(core::int x, {core::String? y = null}) → self::A
     : super core::Object::•()
     ;
@@ -16,8 +15,3 @@ static method test2() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue49087.dart:5:7 -> ConstructorTearOffConstant(A.redir)
-Extra constant evaluation: evaluated: 5, effectively constant: 1

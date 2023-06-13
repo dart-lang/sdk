@@ -8,12 +8,15 @@ import 'dart:isolate';
 import 'dart:typed_data';
 
 @pragma("vm:entry-point")
+@patch
 abstract final class _Compound extends NativeType {}
 
 @pragma("vm:entry-point")
+@patch
 abstract base class Struct extends _Compound {}
 
 @pragma("vm:entry-point")
+@patch
 abstract base class Union extends _Compound {}
 
 @pragma("vm:entry-point")

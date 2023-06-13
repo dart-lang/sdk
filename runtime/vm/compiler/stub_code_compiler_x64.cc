@@ -2962,7 +2962,7 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 
 // Used to check class and type arguments. Arguments passed in registers:
 //
-// Input registers (from TypeTestABI struct):
+// Input registers (all preserved, from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against (must be preserved).
 //   - kDstTypeReg: destination type (for n>=3).
@@ -2971,20 +2971,17 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 // Inputs from stack:
 //   - TOS + 0: return address.
 //
-// All input registers are preserved.
-//
-// Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
-// result (true or false).
+// Outputs (from TypeTestABI struct):
+//   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
 static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+  RegisterSet saved_registers;
 
   // Until we have the result, we use the result register to store the null
   // value for quick access. This has the side benefit of initializing the
   // result to null, so it only needs to be changed if found.
   const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
   __ LoadObject(kNullReg, NullObject());
-
-  const Register kScratchReg = TypeTestABI::kScratchReg;
 
   // Only used for n >= 7, so set conditionally in that case to catch misuse.
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
@@ -2993,175 +2990,33 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Free up these 2 registers to be used for 7-value test.
   if (n >= 7) {
     kInstanceParentFunctionTypeArgumentsReg = PP;
+    saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
     kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
-    __ pushq(kInstanceParentFunctionTypeArgumentsReg);
-    __ pushq(kInstanceDelayedFunctionTypeArgumentsReg);
+    saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
+  __ PushRegisters(saved_registers);
 
-  // Loop initialization (moved up here to avoid having all dependent loads
-  // after each other).
+  Label done;
+  StubCodeCompiler::GenerateSubtypeTestCacheSearch(
+      assembler, n, kNullReg, STCInternalRegs::kCacheEntryReg,
+      STCInternalRegs::kInstanceCidOrSignatureReg,
+      STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+      kInstanceParentFunctionTypeArgumentsReg,
+      kInstanceDelayedFunctionTypeArgumentsReg, &done);
 
-  // We avoid a load-acquire barrier here by relying on the fact that all other
-  // loads from the array are data-dependent loads.
-  __ movq(STCInternalRegs::kCacheEntryReg,
-          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
-                       target::SubtypeTestCache::cache_offset()));
-  __ addq(STCInternalRegs::kCacheEntryReg,
-          Immediate(target::Array::data_offset() - kHeapObjectTag));
-
-  Label loop, not_closure;
-  if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
-                           TypeTestABI::kInstanceReg);
-  } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
-                   TypeTestABI::kInstanceReg);
-  }
-  __ cmpq(STCInternalRegs::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
-  __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
-
-  // Closure handling.
-  {
-    __ Comment("Closure");
-    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
-                      FieldAddress(TypeTestABI::kInstanceReg,
-                                   target::Closure::function_offset()));
-    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
-                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
-                                   target::Function::signature_offset()));
-    if (n >= 3) {
-      __ LoadCompressed(
-          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ LoadCompressed(
-            kInstanceParentFunctionTypeArgumentsReg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset()));
-        __ LoadCompressed(
-            kInstanceDelayedFunctionTypeArgumentsReg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset()));
-      }
-    }
-    __ jmp(&loop, Assembler::kNearJump);
-  }
-
-  // Non-Closure handling.
-  {
-    __ Comment("Non-Closure");
-    __ Bind(&not_closure);
-    if (n >= 3) {
-      Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg,
-                       STCInternalRegs::kInstanceCidOrSignatureReg);
-      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
-      __ movl(
-          kScratchReg,
-          FieldAddress(kScratchReg,
-                       target::Class::
-                           host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
-      __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg,
-                           TIMES_COMPRESSED_WORD_SIZE, 0));
-      __ Bind(&has_no_type_arguments);
-      __ Comment("No type arguments");
-
-      if (n >= 7) {
-        __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
-        __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
-      }
-    }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
-  }
-
-  Label found, not_found, next_iteration;
-
-  // Loop header.
-  __ Bind(&loop);
-  __ Comment("Loop");
-  __ OBJ(mov)(kScratchReg,
-              Address(STCInternalRegs::kCacheEntryReg,
-                      target::kCompressedWordSize *
-                          target::SubtypeTestCache::kInstanceCidOrSignature));
-  __ OBJ(cmp)(kScratchReg, kNullReg);
-  __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ OBJ(cmp)(kScratchReg, STCInternalRegs::kInstanceCidOrSignatureReg);
-  if (n == 1) {
-    __ j(EQUAL, &found, Assembler::kNearJump);
-  } else {
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ OBJ(cmp)(TypeTestABI::kDstTypeReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kCompressedWordSize *
-                            target::SubtypeTestCache::kDestinationType));
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ OBJ(cmp)(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kCompressedWordSize *
-                            target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 3) {
-      __ j(EQUAL, &found, Assembler::kNearJump);
-    } else {
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ OBJ(cmp)(
-          TypeTestABI::kInstantiatorTypeArgumentsReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ OBJ(cmp)(
-          TypeTestABI::kFunctionTypeArgumentsReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kFunctionTypeArguments));
-
-      if (n == 5) {
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      } else {
-        ASSERT(n == 7);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-
-        __ OBJ(cmp)(kInstanceParentFunctionTypeArgumentsReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::
-                                    kInstanceParentFunctionTypeArguments));
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ OBJ(cmp)(kInstanceDelayedFunctionTypeArgumentsReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::
-                                    kInstanceDelayedFunctionTypeArguments));
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      }
-    }
-  }
-
-  __ Bind(&next_iteration);
-  __ Comment("Next iteration");
-  __ addq(STCInternalRegs::kCacheEntryReg,
-          Immediate(target::kCompressedWordSize *
-                    target::SubtypeTestCache::kTestEntryLength));
-  __ jmp(&loop, Assembler::kNearJump);
-
-  __ Bind(&found);
   __ Comment("Found");
   __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
                     Address(STCInternalRegs::kCacheEntryReg,
                             target::kCompressedWordSize *
                                 target::SubtypeTestCache::kTestResult));
 
-  __ Bind(&not_found);
-  __ Comment("Not found");
-  if (n >= 7) {
-    __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
-    __ popq(kInstanceParentFunctionTypeArgumentsReg);
-  }
-  __ ret();
+  __ Bind(&done);
+  __ Comment("Done");
+  // We initialize kSubtypeTestCacheResultReg to null so it can be used for
+  // null checks, so the result value is already correct in the not found case
+  // and so popping and exiting can be shared between both branches.
+  __ PopRegisters(saved_registers);
+  __ Ret();
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].

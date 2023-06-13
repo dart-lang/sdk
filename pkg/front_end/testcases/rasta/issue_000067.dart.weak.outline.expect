@@ -5,7 +5,6 @@ import "dart:core" as core;
 import "package:expect/expect.dart";
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::foo]/*isLegacy*/;
   constructor •() → self::A
     ;
   static factory foo() → self::A
@@ -14,7 +13,6 @@ class A extends core::Object {
     ;
 }
 class C extends self::A {
-  static final field dynamic _redirecting# = <dynamic>[self::C::bar]/*isLegacy*/;
   constructor •() → self::C
     ;
   static factory bar() → self::C
@@ -30,9 +28,3 @@ class D extends self::C {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:7:7 -> ConstructorTearOffConstant(A.foo)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_000067.dart:15:7 -> ConstructorTearOffConstant(C.bar)
-Extra constant evaluation: evaluated: 6, effectively constant: 2

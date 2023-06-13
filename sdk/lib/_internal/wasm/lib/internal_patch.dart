@@ -96,6 +96,7 @@ class Lists {
 // the type of a value.
 //
 // Important: this is unsafe and must be used with care.
+@patch
 external T unsafeCast<T>(Object? v);
 
 // A version of [unsafeCast] that is opaque to the TFA. The TFA knows about the

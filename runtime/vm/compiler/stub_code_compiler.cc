@@ -289,7 +289,7 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
                 "Must handle possibility of inst tav reg being spilled");
   static_assert(((1 << InstantiationABI::kFunctionTypeArgumentsReg) &
                  InstantiateTAVInternalRegs::kSavedRegisters) == 0,
-                "Must handle possibility of inst tav reg being spilled");
+                "Must handle possibility of function tav reg being spilled");
 
   // Takes labels for the cache hit/miss cases (to allow for restoring spilled
   // registers).
@@ -1116,29 +1116,20 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
 
   // Fall through to &is_simple_case
-
-  const RegisterSet caller_saved_registers(
-      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters,
-      /*fpu_registers=*/0);
-
   __ Bind(&is_simple_case);
   {
-    __ PushRegisters(caller_saved_registers);
     __ Call(StubCodeSubtype3TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ PopRegisters(caller_saved_registers);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
   __ Bind(&is_complex_case);
   {
-    __ PushRegisters(caller_saved_registers);
     __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ PopRegisters(caller_saved_registers);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call
   }
@@ -2556,6 +2547,224 @@ void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
       /*try_index=*/-1,
       /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
 }
+
+#if !defined(TARGET_ARCH_IA32)
+void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
+    Assembler* assembler,
+    int n,
+    Register null_reg,
+    Register cache_entry_reg,
+    Register instance_cid_or_sig_reg,
+    Register instance_type_args_reg,
+    Register parent_fun_type_args_reg,
+    Register delayed_type_args_reg,
+    Label* not_found) {
+#if defined(DEBUG)
+  RegisterSet input_regs;
+  ASSERT(null_reg != kNoRegister);
+  input_regs.AddRegister(null_reg);
+  ASSERT(cache_entry_reg != kNoRegister);
+  ASSERT(!input_regs.ContainsRegister(cache_entry_reg));
+  input_regs.AddRegister(cache_entry_reg);
+  ASSERT(instance_cid_or_sig_reg != kNoRegister);
+  ASSERT(!input_regs.ContainsRegister(instance_cid_or_sig_reg));
+  input_regs.AddRegister(instance_cid_or_sig_reg);
+  if (n >= 3) {
+    ASSERT(instance_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(instance_type_args_reg));
+    input_regs.AddRegister(instance_type_args_reg);
+  }
+  if (n >= 7) {
+    ASSERT(parent_fun_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(parent_fun_type_args_reg));
+    input_regs.AddRegister(parent_fun_type_args_reg);
+    ASSERT(!input_regs.ContainsRegister(TypeTestABI::kInstanceReg));
+    ASSERT(delayed_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(delayed_type_args_reg));
+    input_regs.AddRegister(delayed_type_args_reg);
+  } else {
+    ASSERT(!input_regs.ContainsRegister(TypeTestABI::kInstanceReg));
+  }
+  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kScratchReg));
+  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kDstTypeReg));
+  ASSERT(
+      !input_regs.ContainsRegister(TypeTestABI::kInstantiatorTypeArgumentsReg));
+  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kFunctionTypeArgumentsReg));
+#endif
+  Label loop;
+
+  __ LoadAcquireCompressed(
+      cache_entry_reg, TypeTestABI::kSubtypeTestCacheReg,
+      target::SubtypeTestCache::cache_offset() - kHeapObjectTag);
+
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(TypeTestABI::kScratchReg, cache_entry_reg,
+                  Slot::Array_length());
+  __ CompareImmediate(TypeTestABI::kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  // TODO(sstrickl): Handle hash-based tables in the stub and load the first
+  // entry to check here instead of generating a false negative.
+  __ BranchIf(GREATER, not_found);
+  __ AddImmediate(
+      cache_entry_reg,
+      target::Array::data_offset() - kHeapObjectTag +
+          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
+
+  Label not_closure;
+  if (n >= 5) {
+    __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
+  } else {
+    __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
+  }
+  __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);
+  __ BranchIf(NOT_EQUAL, &not_closure, Assembler::kNearJump);
+
+  // Closure handling.
+  {
+    __ Comment("Closure");
+    __ LoadCompressed(instance_cid_or_sig_reg,
+                      FieldAddress(TypeTestABI::kInstanceReg,
+                                   target::Closure::function_offset()));
+    __ LoadCompressed(instance_cid_or_sig_reg,
+                      FieldAddress(instance_cid_or_sig_reg,
+                                   target::Function::signature_offset()));
+    if (n >= 3) {
+      __ LoadCompressed(
+          instance_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::instantiator_type_arguments_offset()));
+      if (n >= 7) {
+        __ LoadCompressed(
+            parent_fun_type_args_reg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::function_type_arguments_offset()));
+        __ LoadCompressed(
+            delayed_type_args_reg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::delayed_type_arguments_offset()));
+      }
+    }
+    __ Jump(&loop, Assembler::kNearJump);
+  }
+
+  // Non-Closure handling.
+  {
+    __ Comment("Non-Closure");
+    __ Bind(&not_closure);
+    if (n >= 3) {
+      Label has_no_type_arguments;
+      __ LoadClassById(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
+      __ MoveRegister(instance_type_args_reg, null_reg);
+      __ LoadFieldFromOffset(
+          TypeTestABI::kScratchReg, TypeTestABI::kScratchReg,
+          target::Class::host_type_arguments_field_offset_in_words_offset(),
+          kFourBytes);
+      __ CompareImmediate(TypeTestABI::kScratchReg,
+                          target::Class::kNoTypeArguments, kFourBytes);
+      __ BranchIf(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+      __ LoadIndexedCompressed(instance_type_args_reg,
+                               TypeTestABI::kInstanceReg, 0,
+                               TypeTestABI::kScratchReg);
+      __ Bind(&has_no_type_arguments);
+      __ Comment("No type arguments");
+
+      if (n >= 7) {
+        __ MoveRegister(parent_fun_type_args_reg, null_reg);
+        __ MoveRegister(delayed_type_args_reg, null_reg);
+      }
+    }
+    __ SmiTag(instance_cid_or_sig_reg);
+  }
+
+  Label next_iteration, found;
+  __ Bind(&loop);
+  __ Comment("Loop");
+  // LoadAcquireCompressed assumes the loaded value is a heap object and
+  // extends it with the heap bits if compressed. However, the entry may be
+  // a Smi.
+  //
+  // Instead, just use LoadAcquire to load the lower bits when compressed and
+  // only compare the low bits of the loaded value using CompareObjectRegisters.
+  __ LoadAcquire(TypeTestABI::kScratchReg, cache_entry_reg,
+                 target::kCompressedWordSize *
+                     target::SubtypeTestCache::kInstanceCidOrSignature,
+                 kObjectBytes);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, null_reg);
+  __ BranchIf(EQUAL, not_found, Assembler::kNearJump);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
+  if (n == 1) {
+    __ BranchIf(EQUAL, &found, Assembler::kNearJump);
+  } else {
+    __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ CompareWithMemoryValue(
+        TypeTestABI::kDstTypeReg,
+        Address(cache_entry_reg,
+                target::kCompressedWordSize *
+                    target::SubtypeTestCache::kDestinationType),
+        kObjectBytes);
+    __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+    __ CompareWithMemoryValue(
+        instance_type_args_reg,
+        Address(cache_entry_reg,
+                target::kCompressedWordSize *
+                    target::SubtypeTestCache::kInstanceTypeArguments),
+        kObjectBytes);
+    if (n == 3) {
+      __ BranchIf(EQUAL, &found, Assembler::kNearJump);
+    } else {
+      __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ CompareWithMemoryValue(
+          TypeTestABI::kInstantiatorTypeArgumentsReg,
+          Address(cache_entry_reg,
+                  target::kCompressedWordSize *
+                      target::SubtypeTestCache::kInstantiatorTypeArguments),
+          kObjectBytes);
+      __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+      __ CompareWithMemoryValue(
+          TypeTestABI::kFunctionTypeArgumentsReg,
+          Address(cache_entry_reg,
+                  target::kCompressedWordSize *
+                      target::SubtypeTestCache::kFunctionTypeArguments),
+          kObjectBytes);
+
+      if (n == 5) {
+        __ BranchIf(EQUAL, &found, Assembler::kNearJump);
+      } else {
+        ASSERT(n == 7);
+        __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+
+        __ CompareWithMemoryValue(
+            parent_fun_type_args_reg,
+            Address(cache_entry_reg,
+                    target::kCompressedWordSize *
+                        target::SubtypeTestCache::
+                            kInstanceParentFunctionTypeArguments),
+            kObjectBytes);
+        __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
+        __ CompareWithMemoryValue(
+            delayed_type_args_reg,
+            Address(cache_entry_reg,
+                    target::kCompressedWordSize *
+                        target::SubtypeTestCache::
+                            kInstanceDelayedFunctionTypeArguments),
+            kObjectBytes);
+        __ BranchIf(EQUAL, &found, Assembler::kNearJump);
+      }
+    }
+  }
+
+  __ Bind(&next_iteration);
+  __ Comment("Next iteration");
+  __ AddImmediate(
+      cache_entry_reg,
+      target::kCompressedWordSize * target::SubtypeTestCache::kTestEntryLength);
+  __ Jump(&loop, Assembler::kNearJump);
+
+  __ Bind(&found);
+}
+#endif
 
 }  // namespace compiler
 

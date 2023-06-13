@@ -711,10 +711,11 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kFourBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    movl(dst, Address(address, offset));
+    LoadFromOffset(dst, Address(address, offset), size);
   }
   void StoreRelease(Register src,
                     Register address,
@@ -726,7 +727,10 @@ class Assembler : public AssemblerBase {
     // We don't run TSAN on 32 bit systems.
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kFourBytes) override {
+    ASSERT_EQUAL(size, kFourBytes);
     cmpl(value, address);
   }
 

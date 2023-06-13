@@ -5,7 +5,6 @@ import "dart:core" as core;
 typedef Bar = self::Foo;
 typedef BarGeneric<X extends core::Object? = dynamic> = self::FooGeneric<X%>;
 class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::namedFactory]/*isLegacy*/;
   const constructor named() → self::Foo
     : super core::Object::•()
     ;
@@ -13,7 +12,6 @@ class Foo extends core::Object /*hasConstConstructor*/  {
     return new self::Foo::named();
 }
 class FooGeneric<X extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::FooGeneric::namedFactory]/*isLegacy*/;
   const constructor named() → self::FooGeneric<self::FooGeneric::X%>
     : super core::Object::•()
     ;
@@ -29,10 +27,8 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47339.dart:5:7 -> ConstructorTearOffConstant(Foo.namedFactory)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47339.dart:16:7 -> ConstructorTearOffConstant(FooGeneric.namedFactory)
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:12:11 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:14:22 -> InstanceConstant(const Foo{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:23:23 -> InstanceConstant(const FooGeneric<int*>{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue47339.dart:25:48 -> InstanceConstant(const FooGeneric<int*>{})
-Extra constant evaluation: evaluated: 10, effectively constant: 6
+Extra constant evaluation: evaluated: 6, effectively constant: 4

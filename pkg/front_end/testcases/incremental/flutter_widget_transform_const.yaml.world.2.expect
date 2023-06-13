@@ -51,32 +51,30 @@ library from "org-dartlang-test:///foo.dart" as foo {
       return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C12);
   }
   class Bar extends fra::Widget /*hasConstConstructor*/  {
-    static final field dynamic _redirecting# = <dynamic>[#C13]/*isLegacy*/;
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Bar
       return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
     static method _#new#tearOff() → foo::Bar
-      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C17);
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C16);
     static method _#_#tearOff() → foo::Bar
-      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C19);
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C18);
   }
   class Baz extends fra::Widget /*hasConstConstructor*/  {
-    static final field dynamic _redirecting# = <dynamic>[#C20]/*isLegacy*/;
     const constructor __({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static factory •({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
-      return #C24;
+      return #C22;
     static method _#new#tearOff() → foo::Baz
-      return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C25);
+      return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C23);
     static factory _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Baz
       return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
     static method _#_#tearOff() → foo::Baz
-      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C27);
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C25);
     static method _#__#tearOff() → foo::Baz
-      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C29);
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C27);
   }
   class Boz extends fra::Widget /*hasConstConstructor*/  {
     const constructor _({wid::_Location? $creationLocationd_0dea112b090073317d4 = #C1}) → foo::Boz
@@ -87,13 +85,13 @@ library from "org-dartlang-test:///foo.dart" as foo {
         return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
       }
       else {
-        return #C34;
+        return #C32;
       }
     }
     static method _#new#tearOff({required dart.core::bool createNew = #C1}) → foo::Boz
-      return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C35);
+      return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C33);
     static method _#_#tearOff() → foo::Boz
-      return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C37);
+      return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C35);
   }
 }
 library from "org-dartlang-test:///main.dart" as main {
@@ -114,31 +112,29 @@ constants  {
   #C10 = 3.0
   #C11 = 7.0
   #C12 = wid::_Location {file:#C2, line:#C10, column:#C11, name:#C5, parameterLocations:#C1}
-  #C13 = constructor-tearoff foo::Bar::•
-  #C14 = 4.0
-  #C15 = 42.0
-  #C16 = "Bar"
-  #C17 = wid::_Location {file:#C2, line:#C14, column:#C15, name:#C16, parameterLocations:#C1}
-  #C18 = 5.0
-  #C19 = wid::_Location {file:#C2, line:#C18, column:#C11, name:#C16, parameterLocations:#C1}
-  #C20 = constructor-tearoff foo::Baz::_
-  #C21 = 6.0
-  #C22 = "Baz"
-  #C23 = wid::_Location {file:#C2, line:#C21, column:#C4, name:#C22, parameterLocations:#C1}
-  #C24 = foo::Baz {_location:#C23}
-  #C25 = wid::_Location {file:#C2, line:#C21, column:#C8, name:#C22, parameterLocations:#C1}
-  #C26 = 15.0
-  #C27 = wid::_Location {file:#C2, line:#C11, column:#C26, name:#C22, parameterLocations:#C1}
-  #C28 = 8.0
-  #C29 = wid::_Location {file:#C2, line:#C28, column:#C11, name:#C22, parameterLocations:#C1}
-  #C30 = 9.0
-  #C31 = 128.0
-  #C32 = "Boz"
-  #C33 = wid::_Location {file:#C2, line:#C30, column:#C31, name:#C32, parameterLocations:#C1}
-  #C34 = foo::Boz {_location:#C33}
-  #C35 = wid::_Location {file:#C2, line:#C30, column:#C8, name:#C32, parameterLocations:#C1}
-  #C36 = 10.0
-  #C37 = wid::_Location {file:#C2, line:#C36, column:#C11, name:#C32, parameterLocations:#C1}
+  #C13 = 4.0
+  #C14 = 42.0
+  #C15 = "Bar"
+  #C16 = wid::_Location {file:#C2, line:#C13, column:#C14, name:#C15, parameterLocations:#C1}
+  #C17 = 5.0
+  #C18 = wid::_Location {file:#C2, line:#C17, column:#C11, name:#C15, parameterLocations:#C1}
+  #C19 = 6.0
+  #C20 = "Baz"
+  #C21 = wid::_Location {file:#C2, line:#C19, column:#C4, name:#C20, parameterLocations:#C1}
+  #C22 = foo::Baz {_location:#C21}
+  #C23 = wid::_Location {file:#C2, line:#C19, column:#C8, name:#C20, parameterLocations:#C1}
+  #C24 = 15.0
+  #C25 = wid::_Location {file:#C2, line:#C11, column:#C24, name:#C20, parameterLocations:#C1}
+  #C26 = 8.0
+  #C27 = wid::_Location {file:#C2, line:#C26, column:#C11, name:#C20, parameterLocations:#C1}
+  #C28 = 9.0
+  #C29 = 128.0
+  #C30 = "Boz"
+  #C31 = wid::_Location {file:#C2, line:#C28, column:#C29, name:#C30, parameterLocations:#C1}
+  #C32 = foo::Boz {_location:#C31}
+  #C33 = wid::_Location {file:#C2, line:#C28, column:#C8, name:#C30, parameterLocations:#C1}
+  #C34 = 10.0
+  #C35 = wid::_Location {file:#C2, line:#C34, column:#C11, name:#C30, parameterLocations:#C1}
 }
 
 

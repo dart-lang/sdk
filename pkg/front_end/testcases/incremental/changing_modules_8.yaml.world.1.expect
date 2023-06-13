@@ -12,7 +12,6 @@ library from "package:module/lib1.dart" as lib1 {
   import "package:module/lib2.dart";
 
   abstract class XSet extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
     static factory identity() → lib1::XSet
       return lib2::XLinkedHashSet::identity();
   }
@@ -23,7 +22,6 @@ library from "package:module/lib2.dart" as lib2 {
   import "package:module/lib3.dart";
 
   class XLinkedHashSet extends dart.core::Object implements lib1::XSet {
-    static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
     static factory identity() → lib2::XLinkedHashSet
       return new lib3::XIdentityHashSet::•();
   }
@@ -37,8 +35,4 @@ library from "package:module/lib3.dart" as lib3 {
       : super dart.core::Object::•()
       ;
   }
-}
-constants  {
-  #C1 = constructor-tearoff lib1::XSet::identity
-  #C2 = constructor-tearoff lib2::XLinkedHashSet::identity
 }

@@ -5,7 +5,6 @@ import "dart:core" as core;
 class Class1 extends core::Object {
   final field core::int field1;
   final field core::int field2;
-  static final field dynamic _redirecting# = <dynamic>[self::Class1::redirectPositionalSame, self::Class1::redirectPositionalFewer1, self::Class1::redirectPositionalFewer2, self::Class1::redirectNamedSame, self::Class1::redirectNamedReorder, self::Class1::redirectNamedFewer1, self::Class1::redirectNamedFewer2, self::Class1::redirectNamedFewer3]/*isLegacy*/;
   constructor positional([core::int field1 = 1, core::int field2 = 2]) → self::Class1
     ;
   constructor named({core::int field1 = 1, core::int field2 = 2}) → self::Class1
@@ -56,15 +55,3 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalSame)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer1)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectPositionalFewer2)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedSame)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedReorder)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer1)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer2)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values_complex.dart:12:7 -> ConstructorTearOffConstant(Class1.redirectNamedFewer3)
-Extra constant evaluation: evaluated: 49, effectively constant: 8

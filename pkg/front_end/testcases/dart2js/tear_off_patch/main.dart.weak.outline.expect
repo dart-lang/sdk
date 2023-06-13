@@ -17,7 +17,6 @@ typedef Alias<T extends core::num> = self2::Class<T>;
 typedef AliasImpl<T extends core::num> = self2::ClassImpl<T>;
 @_in::patch
 class Class<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self2::Class::redirect, self2::Class::redirect2]/*isLegacy*/;
   @_in::patch
   external constructor •({core::bool defaultValue = true, required self2::Class::T% value = null}) → self2::Class<self2::Class::T%>;
   static method _#new#tearOff<T extends core::Object? = dynamic>({has-declared-initializer core::bool defaultValue, required self2::Class::_#new#tearOff::T% value}) → self2::Class<self2::Class::_#new#tearOff::T%>
@@ -68,8 +67,6 @@ Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:8 -> InstanceC
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:27 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:21 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:10 -> InstanceConstant(const _Patch{})
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///origin_lib.dart:5:7 -> ConstructorTearOffConstant(Class.redirect2)
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:36 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:19:45 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 52, effectively constant: 9
+Extra constant evaluation: evaluated: 49, effectively constant: 7

@@ -237,15 +237,11 @@ struct TypeTestABI {
   static constexpr Register kSubtypeTestCacheReg = R3;
   static constexpr Register kScratchReg = R4;
 
+  // For calls to SubtypeNTestCacheStub. Must be distinct from the registers
+  // listed above.
+  static constexpr Register kSubtypeTestCacheResultReg = R7;
   // For calls to InstanceOfStub.
   static constexpr Register kInstanceOfResultReg = kInstanceReg;
-  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
-  // registers above, for it is also used internally as kNullReg in those stubs.
-  static constexpr Register kSubtypeTestCacheResultReg = R7;
-
-  // Registers that need saving across SubtypeTestCacheStub calls.
-  static constexpr intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
-      1 << kSubtypeTestCacheReg;
 
   static constexpr intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |

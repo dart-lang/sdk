@@ -23,6 +23,7 @@ namespace dart {
 // Forward declarations.
 class Code;
 class DescriptorList;
+class Label;
 
 namespace compiler {
 
@@ -117,6 +118,47 @@ class StubCodeCompiler {
   // were spilled in the
   // `StubCode::*<stub-name>Shared{With,Without}FpuRegsStub()`
   static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
+
+#if !defined(TARGET_ARCH_IA32)
+  // Generates the code for searching a subtype test cache for an entry that
+  // matches the contents of the TypeTestABI registers. If no matching
+  // entry is found, then the loop jumps to [not_found], otherwise execution
+  // continues immediately after the loop and [cache_entry_reg] points to
+  // the start of the matching cache entry.
+  //
+  // The following registers must be provided, that is, they cannot be
+  // kNoRegister for any [n]:
+  // - null_reg
+  // - cache_entry_reg
+  // - instance_cid_or_sig_reg
+  //
+  // The following registers must be provided for [n] >= 3:
+  // - instance_type_args_reg
+  //
+  // The following registers must be provided for [n] >= 7:
+  // - parent_fun_type_args_reg
+  // - delayed_type_args_reg
+  //
+  // All provided registers must be distinct, and in addition, all provided
+  // registers must be distinct from the following TypeTestABI registers:
+  // - kScratchReg
+  // - kDstTypeReg
+  // - kInstantiatorTypeArgumentsReg
+  // - kFunctionTypeArgumentsReg
+  //
+  // and all but [delayed_type_args_reg] must be distinct from the following
+  // TypeTestABI register:
+  // - kInstanceReg
+  static void GenerateSubtypeTestCacheSearch(Assembler* assembler,
+                                             int n,
+                                             Register null_reg,
+                                             Register cache_entry_reg,
+                                             Register instance_cid_or_sig_reg,
+                                             Register instance_type_args_reg,
+                                             Register parent_fun_type_args_reg,
+                                             Register delayed_type_args_reg,
+                                             Label* not_found);
+#endif
 
  private:
   // Common function for generating InitLateStaticField and

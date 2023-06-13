@@ -22,11 +22,6 @@ class Isolate {
   }
 
   @patch
-  static Future<Uri?> get packageRoot {
-    throw new UnsupportedError("Isolate.packageRoot");
-  }
-
-  @patch
   static Future<Uri?> get packageConfig {
     throw new UnsupportedError("Isolate.packageConfig");
   }

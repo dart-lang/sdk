@@ -7392,27 +7392,77 @@ class MegamorphicCache : public CallSiteData {
 
 class SubtypeTestCache : public Object {
  public:
+  // The contents of the backing array storage is a header followed by
+  // a number of entry tuples. Any entry that is unoccupied has the null value
+  // as its first component.
+  //
+  // If the cache is linear, the entries can be accessed in a linear fashion:
+  // all occupied entries come first, followed by at least one unoccupied
+  // entry to mark the end of the cache. Guaranteeing at least one unoccupied
+  // entry avoids the need for a length check when iterating over the contents
+  // of the linear cache in stubs.
+  //
+  // If the cache is hash-based, the array is instead treated as a hash table
+  // probed by using a hash value derived from the inputs.
+
+  enum Header {
+    // A single Smi that is a bitfield containing two values:
+    // - The number of occupied entries in the cache for all cache types.
+    // - For hash-based caches, the upper bits contain log2(N) where N
+    //   is the number of total entries in the cache, so this information can
+    //   be quickly retrieved by stubs.
+    //
+    // Note: accesses outside of the subtype test cache mutex must have acquire
+    // semantics. In C++ code, use NumOccupied to retrieve the number of
+    // occupied entries.
+    kMetadataIndex = 0,
+    kHeaderSize,
+  };
+
+  using NumOccupiedBits =
+      BitField<intptr_t,
+               intptr_t,
+               0,
+               compiler::target::kSmiBits - compiler::target::kBitsPerWordLog2>;
+  using EntryCountLog2Bits = BitField<intptr_t,
+                                      intptr_t,
+                                      NumOccupiedBits::kNextBit,
+                                      compiler::target::kBitsPerWordLog2>;
+
+  // The tuple of values stored in a given entry.
+  //
+  // Note that occupied entry contents are never modified. That means reading a
+  // non-null instance cid or signature means the rest of the entry can be
+  // loaded without worrying about concurrent modification. Thus, we always set
+  // the instance cid or signature last when making an occupied entry.
   enum Entries {
-    kTestResult = 0,
-    kInstanceCidOrSignature = 1,
-    kDestinationType = 2,
-    kInstanceTypeArguments = 3,
-    kInstantiatorTypeArguments = 4,
-    kFunctionTypeArguments = 5,
-    kInstanceParentFunctionTypeArguments = 6,
-    kInstanceDelayedFunctionTypeArguments = 7,
+    kInstanceCidOrSignature = 0,
+    kDestinationType = 1,
+    kInstanceTypeArguments = 2,
+    kInstantiatorTypeArguments = 3,
+    kFunctionTypeArguments = 4,
+    kInstanceParentFunctionTypeArguments = 5,
+    kInstanceDelayedFunctionTypeArguments = 6,
+    kTestResult = 7,
     kTestEntryLength = 8,
   };
 
-  virtual intptr_t NumberOfChecks() const;
-  void AddCheck(const Object& instance_class_id_or_signature,
-                const AbstractType& destination_type,
-                const TypeArguments& instance_type_arguments,
-                const TypeArguments& instantiator_type_arguments,
-                const TypeArguments& function_type_arguments,
-                const TypeArguments& instance_parent_function_type_arguments,
-                const TypeArguments& instance_delayed_type_arguments,
-                const Bool& test_result) const;
+  // Returns the number of occupied entries stored in the cache.
+  intptr_t NumberOfChecks() const;
+
+  // Retrieves the number of entries (occupied or unoccupied) in the cache.
+  intptr_t NumEntries() const;
+
+  // Adds a check, returning the index of the new entry in the cache.
+  intptr_t AddCheck(
+      const Object& instance_class_id_or_signature,
+      const AbstractType& destination_type,
+      const TypeArguments& instance_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      const TypeArguments& instance_parent_function_type_arguments,
+      const TypeArguments& instance_delayed_type_arguments,
+      const Bool& test_result) const;
   void GetCheck(intptr_t ix,
                 Object* instance_class_id_or_signature,
                 AbstractType* destination_type,
@@ -7435,12 +7485,31 @@ class SubtypeTestCache : public Object {
                        TypeArguments* instance_delayed_type_arguments,
                        Bool* test_result) const;
 
+  // Like GetCheck(), but returns the contents of the first occupied entry
+  // at or after the initial contents of [ix]. Returns whether an occupied entry
+  // was found, and if an occupied entry was found, [ix] is updated to the entry
+  // index following the occupied entry.
+  bool GetNextCheck(intptr_t* ix,
+                    Object* instance_class_id_or_signature,
+                    AbstractType* destination_type,
+                    TypeArguments* instance_type_arguments,
+                    TypeArguments* instantiator_type_arguments,
+                    TypeArguments* function_type_arguments,
+                    TypeArguments* instance_parent_function_type_arguments,
+                    TypeArguments* instance_delayed_type_arguments,
+                    Bool* test_result) const;
+
   // Returns whether all the elements of an existing cache entry, excluding
   // the result, match the non-pointer arguments. The pointer arguments are
   // out parameters as follows:
   //
   // If [index] is not nullptr, then it is set to the matching entry's index.
   // If [result] is not nullptr, then it is set to the matching entry's result.
+  //
+  // If called without the STC mutex lock, may return outdated information:
+  // * May return a false negative if the entry was added concurrently.
+  // * The [index] field may be invalid for the STC if the backing array is
+  //   grown concurrently and the new backing array is hash-based.
   bool HasCheck(const Object& instance_class_id_or_signature,
                 const AbstractType& destination_type,
                 const TypeArguments& instance_type_arguments,
@@ -7460,16 +7529,18 @@ class SubtypeTestCache : public Object {
                           intptr_t index,
                           const char* line_prefix = nullptr) const;
 
-  // Like WriteEntryToBuffer(), but does not require the subtype test cache
-  // mutex and so may see an outdated view of the cache.
-  void WriteCurrentEntryToBuffer(Zone* zone,
-                                 BaseTextBuffer* buffer,
-                                 intptr_t index,
-                                 const char* line_prefix = nullptr) const;
+  // Writes the contents of this SubtypeTestCache to the given text buffer.
+  void WriteToBuffer(Zone* zone,
+                     BaseTextBuffer* buffer,
+                     const char* line_prefix = nullptr) const;
+
   void Reset() const;
 
   // Tests that [other] contains the same entries in the same order.
   bool Equals(const SubtypeTestCache& other) const;
+
+  // Returns whether the cache backed by the given storage is hash-based.
+  bool IsHash() const;
 
   // Creates a separate copy of the current STC contents.
   SubtypeTestCachePtr Copy(Thread* thread) const;
@@ -7489,14 +7560,116 @@ class SubtypeTestCache : public Object {
 
   ArrayPtr cache() const;
 
+  // The maximum number of occupied entries for a linear subtype test cache
+  // before swapping to a hash table-based cache. Exposed publicly for tests.
+#if defined(TARGET_ARCH_IA32)
+  // We don't generate hash cache probing in the stub on IA32, so larger caches
+  // force runtime checks.
+  static constexpr intptr_t kMaxLinearCacheEntries = 100;
+#else
+  // TODO(sstrickl): Currently we don't generate hash cache probing in the
+  // other architectures, so use 100 like IA32. Update this to 10 once we do.
+  static constexpr intptr_t kMaxLinearCacheEntries = 100;
+#endif
+
  private:
+  static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {
+    return occupied / static_cast<double>(capacity);
+  }
+
+  // Retrieves the number of occupied entries in a cache backed by the given
+  // array.
+  static intptr_t NumberOfChecks(const Array& array);
+
+  // Retrieves the number of entries (occupied or unoccupied) in a cache
+  // backed by the given array.
+  static intptr_t NumEntries(const Array& array);
+
+  // Returns whether the cache backed by the given storage is linear.
+  static bool IsLinear(const Array& array) { return !IsHash(array); }
+
+  // Returns whether the cache backed by the given storage is hash-based.
+  static bool IsHash(const Array& array);
+
+  struct KeyLocation {
+    // The entry index if [present] is true, otherwise where the entry would
+    // be located if added afterwards without any intermediate additions.
+    intptr_t entry;
+    bool present;  // Whether an entry already exists in the cache.
+  };
+
+  // If a cache entry in the given array contains the given inputs, returns a
+  // KeyLocation with the index of the entry and true. Otherwise, returns a
+  // KeyLocation with the index that would be used if the instantiation for the
+  // given type arguments is added and false.
+  //
+  // If called without the STC mutex lock, may return outdated information:
+  // * The [present] field may be a false negative if the entry was added
+  //   concurrently.
+  static KeyLocation FindKeyOrUnused(
+      const Array& array,
+      const Object& instance_class_id_or_signature,
+      const AbstractType& destination_type,
+      const TypeArguments& instance_type_arguments,
+      const TypeArguments& instantiator_type_arguments,
+      const TypeArguments& function_type_arguments,
+      const TypeArguments& instance_parent_function_type_arguments,
+      const TypeArguments& instance_delayed_type_arguments);
+
+  // If the given array can contain the requested number of entries, returns
+  // the same array and sets [was_grown] to false.
+  //
+  // If the given array cannot contain the requested number of entries,
+  // returns a new array that can and which contains all the entries of the
+  // given array and sets [was_grown] to true.
+  ArrayPtr EnsureCapacity(Zone* zone,
+                          const Array& array,
+                          intptr_t new_capacity,
+                          bool* was_grown) const;
+
+  // Whether the entry at the given index in the cache is occupied.
+  bool IsOccupied(intptr_t index) const;
+
+ public:  // Used in the StubCodeCompiler.
+  // The maximum size of the array backing a linear cache. All hash based
+  // caches are guaranteed to have sizes larger than this.
+  static constexpr intptr_t kMaxLinearCacheSize =
+      kHeaderSize + (kMaxLinearCacheEntries + 1) * kTestEntryLength;
+
+ private:
+  // The initial number of entries used when converting from a linear to
+  // a hash-based cache.
+  static constexpr intptr_t kNumInitialHashCacheEntries =
+      Utils::RoundUpToPowerOfTwo(2 * kMaxLinearCacheEntries);
+  static_assert(Utils::IsPowerOfTwo(kNumInitialHashCacheEntries),
+                "number of hash-based cache entries must be a power of two");
+
+  // The max load factor allowed in hash-based caches.
+  static constexpr double kMaxLoadFactor = 0.71;
+
   void set_cache(const Array& value) const;
+
+  // Like WriteEntryToBuffer(), but does not require the subtype test cache
+  // mutex and so may see an incorrect view of the cache if there are concurrent
+  // modifications.
+  void WriteCurrentEntryToBuffer(Zone* zone,
+                                 BaseTextBuffer* buffer,
+                                 intptr_t index,
+                                 const char* line_prefix = nullptr) const;
+
+  // Like WriteToBuffer(), but does not require the subtype test cache mutex and
+  // so may see an incorrect view of the cache if there are concurrent
+  // modifications.
+  void WriteToBufferUnlocked(Zone* zone,
+                             BaseTextBuffer* buffer,
+                             const char* line_prefix = nullptr) const;
 
   // A VM heap allocated preinitialized empty subtype entry array.
   static ArrayPtr cached_array_;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
+  friend class FieldInvalidator;
   friend class VMSerializationRoots;
   friend class VMDeserializationRoots;
 };
@@ -13224,13 +13397,14 @@ using StaticCallsTableEntry = StaticCallsTable::TupleView;
 
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
-                                                           Object,
                                                            AbstractType,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments,
                                                            TypeArguments,
-                                                           TypeArguments>>;
+                                                           TypeArguments,
+                                                           Bool>,
+                                                SubtypeTestCache::kHeaderSize>;
 
 using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;

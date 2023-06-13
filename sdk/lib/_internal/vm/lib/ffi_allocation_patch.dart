@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:typed_data';
 
+@patch
 extension AllocatorAlloc on Allocator {
   // TODO(http://dartbug.com/39964): Add `alignmentOf<T>()` call.
   @patch

@@ -7,6 +7,7 @@
 #include "platform/assert.h"
 
 #include "vm/class_finalizer.h"
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/compiler/backend/flow_graph_compiler.h"
 #include "vm/compiler/backend/il_test_helper.h"
 #include "vm/flags.h"
@@ -15,11 +16,13 @@
 #include "vm/symbols.h"
 #include "vm/type_testing_stubs.h"
 #include "vm/unit_test.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(TARGET_ARCH_IA32)
 
 namespace dart {
 
+DECLARE_FLAG(int, max_subtype_cache_entries);
 // Note that flags that this affects may only mutable in some modes, e.g.,
 // tracing type checks can only be done in DEBUG mode.
 DEFINE_FLAG(bool,
@@ -193,6 +196,11 @@ static void CanonicalizeTAV(TypeArguments* tav) {
   *tav = tav->Canonicalize(Thread::Current());
 }
 
+#if !defined(PRODUCT)
+// Defined before CheckFailureForExistingTypeTestCacheEntry in runtime_entry.cc.
+extern bool TESTING_runtime_fail_on_existing_STC_entry;
+#endif
+
 struct TTSTestCase {
   const Object& instance;
   const TypeArguments& instantiator_tav;
@@ -202,10 +210,16 @@ struct TTSTestCase {
   // Whether a non-default stub will result from specialization.
   const bool should_specialize;
   // Whether the test should not be caught by the TTS, but instead cached
-  // in the TTS. If should_specialize is false, then the test case is cached
-  // in the TTS after any invocation, otherwise only on invocations after
-  // specializations.
+  // in the STC. If should_specialize is false, then the test case is cached
+  // in the STC after any invocation, otherwise only on invocations that do
+  // not cause a (re)specialization.
   const bool should_be_false_negative;
+  // Whether a false negative that is already cached in the STC should be
+  // missed by the appropriate SubtypeNTestCache stub.
+  //
+  // TODO(sstrickl): Remove this option when SubtypeNTestCache stubs handle
+  // hash-based caches appropriately, as then no misses should be possible.
+  const bool should_miss_in_stc_stub;
   // Whether the test should cause specialization of a stub that is already
   // specialized.
   const bool should_respecialize;
@@ -216,6 +230,7 @@ struct TTSTestCase {
               bool should_specialize = true,
               bool should_fail = false,
               bool should_be_false_negative = false,
+              bool should_miss_in_stc_stub = false,
               bool should_respecialize = false)
       : instance(obj),
         instantiator_tav(i_tav),
@@ -223,10 +238,13 @@ struct TTSTestCase {
         should_fail(should_fail),
         should_specialize(should_specialize),
         should_be_false_negative(should_be_false_negative),
+        should_miss_in_stc_stub(should_miss_in_stc_stub),
         should_respecialize(should_respecialize) {
     // Failure is only compatible with should_specialize (for checking
     // eager specialization a la AOT mode).
     ASSERT(!should_fail || (!should_be_false_negative && !should_respecialize));
+    // We can only check the STC and fail if a false negative happens.
+    ASSERT(!should_miss_in_stc_stub || should_be_false_negative);
     // Respecialization can only happen for test cases that would specialize
     // and which won't end up cached in the TTS.
     ASSERT(!should_respecialize ||
@@ -273,8 +291,6 @@ struct TTSTestCase {
                    Bool* out_result = nullptr,
                    intptr_t* out_index = nullptr) const {
     if (cache.IsNull()) return false;
-    SafepointMutexLocker ml(
-        IsolateGroup::Current()->subtype_test_cache_mutex());
     if (instance.IsClosure()) {
       const auto& closure = Closure::Cast(instance);
       const auto& sig = FunctionType::Handle(
@@ -312,6 +328,7 @@ static TTSTestCase Failure(const TTSTestCase& original) {
                      original.function_tav, original.should_specialize,
                      /*should_fail=*/true,
                      /*should_be_false_negative=*/false,
+                     /*should_miss_in_stc_stub=*/false,
                      /*should_respecialize=*/false);
 }
 
@@ -321,6 +338,17 @@ static TTSTestCase FalseNegative(const TTSTestCase& original) {
                      original.function_tav, original.should_specialize,
                      /*should_fail=*/false,
                      /*should_be_false_negative=*/true,
+                     /*should_miss_in_stc_stub=*/false,
+                     /*should_respecialize=*/false);
+}
+
+// Inherits should_specialize from original.
+static TTSTestCase STCMiss(const TTSTestCase& original) {
+  return TTSTestCase(original.instance, original.instantiator_tav,
+                     original.function_tav, original.should_specialize,
+                     /*should_fail=*/false,
+                     /*should_be_false_negative=*/true,
+                     /*should_miss_in_stc_stub=*/true,
                      /*should_respecialize=*/false);
 }
 
@@ -329,6 +357,7 @@ static TTSTestCase Respecialization(const TTSTestCase& original) {
                      original.function_tav, /*should_specialize=*/true,
                      /*should_fail=*/false,
                      /*should_be_false_negative=*/false,
+                     /*should_miss_in_stc_stub=*/false,
                      /*should_respecialize=*/true);
 }
 
@@ -466,6 +495,8 @@ class TTSTestState : public ValueObject {
               test_case.should_specialize ? "true" : "false");
     THR_Print("  Should be false negative: %s\n",
               test_case.should_be_false_negative ? "true" : "false");
+    THR_Print("  Should miss in STC stub: %s\n",
+              test_case.should_miss_in_stc_stub ? "true" : "false");
     THR_Print("  Should respecialize: %s\n",
               test_case.should_respecialize ? "true" : "false");
   }
@@ -481,6 +512,7 @@ class TTSTestState : public ValueObject {
                   signature, symbol, UntaggedFunction::kRegularFunction, false,
                   false, false, false, false, klass, TokenPosition::kNoSource));
 
+    TraceStubInvocationScope scope;
     compiler::ObjectPoolBuilder pool_builder;
     SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
     compiler::Assembler assembler(&pool_builder);
@@ -496,6 +528,11 @@ class TTSTestState : public ValueObject {
     invoke_tts.set_exception_handlers(
         ExceptionHandlers::Handle(zone, ExceptionHandlers::New(0)));
     EXPECT_EQ(2, pool.Length());
+
+    if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+      Disassembler::DisassembleStub(symbol.ToCString(), invoke_tts);
+    }
+
     return invoke_tts.ptr();
   }
 
@@ -524,11 +561,24 @@ class TTSTestState : public ValueObject {
           thread_->isolate_group()->subtype_test_cache_mutex());
       previous_stc_ = previous_stc_.Copy(thread_);
     }
+    const bool previous_has_entry = test_case.HasSTCEntry(previous_stc_, type_);
+#if !defined(PRODUCT)
+    // If there's an existing STC entry for this test case, then we should
+    // never hit the runtime unless this test explicitly expects the stub to
+    // miss the entry.
+    if (!test_case.should_miss_in_stc_stub && previous_has_entry) {
+      TESTING_runtime_fail_on_existing_STC_entry = true;
+    }
+#endif
     {
       TraceStubInvocationScope scope;
       last_result_ = DartEntry::InvokeCode(tts_invoker_, arguments_descriptor_,
                                            last_arguments_, thread_);
     }
+#if !defined(PRODUCT)
+    // Reset runtime failure flag.
+    TESTING_runtime_fail_on_existing_STC_entry = false;
+#endif
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();
     if (test_case.should_fail) {
@@ -556,8 +606,7 @@ class TTSTestState : public ValueObject {
         // If we shouldn't go to the runtime, report any unexpected changes in
         // non-ABI registers.
         if (!is_lazy_specialization && !test_case.should_respecialize &&
-            (!test_case.should_be_false_negative ||
-             test_case.HasSTCEntry(previous_stc_, type_))) {
+            (!test_case.should_be_false_negative || previous_has_entry)) {
           ReportModifiedRegisters(modified_rest_regs());
         }
       }
@@ -593,16 +642,15 @@ class TTSTestState : public ValueObject {
     auto& new_result = Bool::Handle(zone());
     SafepointMutexLocker ml(
         thread_->isolate_group()->subtype_test_cache_mutex());
-    for (intptr_t i = 0; i < old_cache.NumberOfChecks(); i++) {
-      old_cache.GetCheck(0, &cid_or_sig, &type, &instance_type_args,
-                         &instantiator_type_args, &function_type_args,
-                         &instance_parent_type_args,
-                         &instance_delayed_type_args, &old_result);
-      intptr_t new_index;
+    intptr_t i = 0;
+    while (old_cache.GetNextCheck(&i, &cid_or_sig, &type, &instance_type_args,
+                                  &instantiator_type_args, &function_type_args,
+                                  &instance_parent_type_args,
+                                  &instance_delayed_type_args, &old_result)) {
       if (!new_cache.HasCheck(
               cid_or_sig, type, instance_type_args, instantiator_type_args,
               function_type_args, instance_parent_type_args,
-              instance_delayed_type_args, &new_index, &new_result)) {
+              instance_delayed_type_args, /*index=*/nullptr, &new_result)) {
         dart::Expect(__FILE__, __LINE__)
             .Fail("New STC is missing check in old STC");
       }
@@ -618,9 +666,13 @@ class TTSTestState : public ValueObject {
     // Make sure should_be_false_negative is not set if respecialization is.
     ASSERT(!test_case.should_be_false_negative ||
            !test_case.should_respecialize);
+    const bool hit_check_cap =
+        !previous_stc_.IsNull() &&
+        previous_stc_.NumberOfChecks() >= FLAG_max_subtype_cache_entries;
     const bool had_stc_entry = test_case.HasSTCEntry(previous_stc_, type_);
-    const bool should_update_stc =
-        !is_lazy_specialization && test_case.should_be_false_negative;
+    const bool should_update_stc = !is_lazy_specialization &&
+                                   test_case.should_be_false_negative &&
+                                   !hit_check_cap;
     if (should_update_stc && !had_stc_entry) {
       // We should have changed the STC to include the new entry.
       EXPECT(!last_stc_.IsNull());
@@ -641,30 +693,35 @@ class TTSTestState : public ValueObject {
       if (previous_stc_.IsNull()) {
         EXPECT(last_stc_.IsNull());
       } else {
-        EXPECT(!last_stc_.IsNull() &&
-               previous_stc_.cache() == last_stc_.cache());
+        EXPECT(!last_stc_.IsNull());
+        const auto& previous_array =
+            Array::Handle(zone(), previous_stc_.cache());
+        const auto& last_array = Array::Handle(zone(), last_stc_.cache());
+        EXPECT(last_array.Equals(previous_array));
       }
     }
 
     // False negatives should always be an STC hit when not lazily
-    // (re)specializing. Note that we test the original type, _not_
-    // last_tested_type_.
+    // (re)specializing.
     const bool has_stc_entry = test_case.HasSTCEntry(last_stc_, type_);
     if ((!should_update_stc && has_stc_entry) ||
         (should_update_stc && !has_stc_entry)) {
-      TextBuffer buffer(128);
+      ZoneTextBuffer buffer(zone());
       buffer.Printf(
-          "%s entry for %s, got:",
+          "%s STC entry for:\n  instance:%s\n  destination type: %s",
           test_case.should_be_false_negative ? "Expected" : "Did not expect",
-          type_.ToCString());
+          test_case.instance.ToCString(), type_.ToCString());
+      if (last_tested_type_.ptr() != type_.ptr()) {
+        buffer.Printf("\n  tested type: %s", last_tested_type_.ToCString());
+      }
+      buffer.AddString("\ngot:");
       if (last_stc_.IsNull()) {
         buffer.AddString(" null");
       } else {
         buffer.AddString("\n");
-        for (intptr_t i = 0; i < last_stc_.NumberOfChecks(); i++) {
-          last_stc_.WriteCurrentEntryToBuffer(zone(), &buffer, i);
-          buffer.AddString("\n");
-        }
+        SafepointMutexLocker ml(
+            thread_->isolate_group()->subtype_test_cache_mutex());
+        last_stc_.WriteToBuffer(zone(), &buffer, "  ");
       }
       dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
     }
@@ -2482,6 +2539,109 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
   TTSTestState state(thread, type_b_int);
   state.InvokeEagerlySpecializedStub(Failure({obj_i, tav_null, tav_null}));
 }
+
+static void SubtypeTestCacheHashTest(Thread* thread, intptr_t num_classes) {
+  TextBuffer buffer(MB);
+  buffer.AddString("class D<S> {}\n");
+  buffer.AddString("D<int> Function() createClosureD() => () => D<int>();\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf(R"(class C%)" Pd R"(<S> extends D<S> {}
+        C%)" Pd R"(<int> Function() createClosureC%)" Pd R"(() => () => C%)" Pd
+                  R"(<int>();
+)",
+                  i, i, i, i);
+  }
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
+  EXPECT_VALID(api_lib);
+
+  // D + C0...CN, where N = kNumClasses - 1
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() > num_classes);
+
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+
+  const auto& class_d = Class::Handle(zone, GetClass(root_lib, "D"));
+  ASSERT(!class_d.IsNull());
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ClassFinalizer::FinalizeClass(class_d);
+  }
+  const auto& object_d =
+      Instance::CheckedHandle(zone, Invoke(root_lib, "createClosureD"));
+  ASSERT(!object_d.IsNull());
+  auto& type_closure_d_int =
+      AbstractType::Handle(zone, object_d.GetType(Heap::kNew));
+
+  const auto& tav_null = Object::null_type_arguments();
+
+  TTSTestState state(thread, type_closure_d_int);
+
+  auto& class_c = Class::Handle(zone);
+  auto& object_c = Object::Handle(zone);
+  bool became_hash_cache = false;
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    auto const class_name = OS::SCreate(zone, "C%" Pd "", i);
+    class_c = GetClass(root_lib, class_name);
+    ASSERT(!class_c.IsNull());
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ClassFinalizer::FinalizeClass(class_c);
+    }
+    auto const function_name = OS::SCreate(zone, "createClosureC%" Pd "", i);
+    object_c = Invoke(root_lib, function_name);
+
+    TTSTestCase base_case = {object_c, tav_null, tav_null,
+                             /*should_specialize=*/false};
+    if (i == 0) {
+      state.InvokeEagerlySpecializedStub(FalseNegative(base_case));
+      // We should get a linear cache the first time.
+      EXPECT(!state.last_stc().IsHash());
+    } else if (i >= FLAG_max_subtype_cache_entries) {
+      // We don't need to verify that the STC is unchanged across calls when we
+      // no longer have room in the cache, as
+      // TTSTestState::ReportUnexpectedSTCChanges already checks this.
+      state.InvokeExistingStub(STCMiss(base_case));
+    } else if (state.last_stc().IsHash()) {
+      state.InvokeExistingStub(STCMiss(base_case));
+      // We should never change from hash back to linear.
+      EXPECT(state.last_stc().IsHash());
+    } else {  // current cache is linear.
+      state.InvokeExistingStub(FalseNegative(base_case));
+      if (state.last_stc().IsHash()) {
+        became_hash_cache = true;
+      }
+    }
+  }
+
+  // Ensure we're actually testing hash caches at some point.
+  EXPECT(became_hash_cache);
+}
+
+// A smaller version of the following test case, just to ensure some coverage
+// on slower builds.
+TEST_CASE(TTS_STC_SomeAsserts) {
+  SubtypeTestCacheHashTest(thread,
+                           2 * SubtypeTestCache::kMaxLinearCacheEntries);
+}
+
+// Too slow in debug mode. Also avoid the sanitizers and simulators for similar
+// reasons. Any core issues will likely be found by TTS_STC_SomeAsserts.
+#if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
+    !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
+    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
+TEST_CASE(TTS_STC_ManyAsserts) {
+  const intptr_t kNumClasses = 5000;
+  static_assert(kNumClasses > SubtypeTestCache::kMaxLinearCacheEntries,
+                "too few classes to trigger change to a hash-based cache");
+  SubtypeTestCacheHashTest(thread, kNumClasses);
+}
+#endif
 
 }  // namespace dart
 

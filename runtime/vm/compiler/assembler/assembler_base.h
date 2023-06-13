@@ -722,7 +722,10 @@ class AssemblerBase : public StackResource {
     kRelaxedNonAtomic,
   };
 
-  virtual void LoadAcquire(Register reg, Register address, int32_t offset) = 0;
+  virtual void LoadAcquire(Register reg,
+                           Register address,
+                           int32_t offset = 0,
+                           OperandSize size = kWordBytes) = 0;
 
   virtual void LoadFieldAddressForOffset(Register reg,
                                          Register base,
@@ -761,7 +764,7 @@ class AssemblerBase : public StackResource {
 #if defined(DART_COMPRESSED_POINTERS)
   virtual void LoadAcquireCompressed(Register dst,
                                      Register address,
-                                     int32_t offset) = 0;
+                                     int32_t offset = 0) = 0;
   virtual void LoadCompressedField(Register dst,
                                    const FieldAddress& address) = 0;
   virtual void LoadCompressedFieldFromOffset(Register dst,
@@ -781,7 +784,7 @@ class AssemblerBase : public StackResource {
 #else
   virtual void LoadAcquireCompressed(Register dst,
                                      Register address,
-                                     int32_t offset) {
+                                     int32_t offset = 0) {
     LoadAcquire(dst, address, offset);
   }
   virtual void LoadCompressedField(Register dst, const FieldAddress& address) {
@@ -824,6 +827,10 @@ class AssemblerBase : public StackResource {
   virtual void CompareImmediate(Register reg,
                                 target::word imm,
                                 OperandSize width = kWordBytes) = 0;
+
+  virtual void CompareWithMemoryValue(Register value,
+                                      Address address,
+                                      OperandSize size = kWordBytes) = 0;
 
   virtual void AndImmediate(Register dst, target::word imm) = 0;
 

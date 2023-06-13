@@ -43,8 +43,6 @@ class _Platform {
   external static String _localeName();
 
   @patch
-  static String? _packageRoot() => VMLibraryHooks.packageRootString;
-  @patch
   static String? _packageConfig() => VMLibraryHooks.packageConfigString;
 
   @patch

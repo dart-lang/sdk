@@ -2669,11 +2669,13 @@ Datagram _makeDatagram(
 @patch
 @pragma("vm:entry-point")
 class ResourceHandle {
+  @patch
   factory ResourceHandle.fromFile(RandomAccessFile file) {
     int fd = (file as _RandomAccessFile).fd;
     return _ResourceHandleImpl(fd);
   }
 
+  @patch
   factory ResourceHandle.fromSocket(Socket socket) {
     final _socket = socket as _Socket;
     if (_socket._raw == null) {
@@ -2685,6 +2687,7 @@ class ResourceHandle {
     return _ResourceHandleImpl(fd);
   }
 
+  @patch
   factory ResourceHandle.fromRawSocket(RawSocket socket) {
     final _RawSocket raw = socket as _RawSocket;
     final _NativeSocket nativeSocket = raw._socket;
@@ -2692,6 +2695,7 @@ class ResourceHandle {
     return _ResourceHandleImpl(fd);
   }
 
+  @patch
   factory ResourceHandle.fromRawDatagramSocket(RawDatagramSocket socket) {
     final _RawDatagramSocket raw = socket as _RawDatagramSocket;
     final _NativeSocket nativeSocket = socket._socket;
@@ -2699,19 +2703,23 @@ class ResourceHandle {
     return _ResourceHandleImpl(fd);
   }
 
+  @patch
   factory ResourceHandle.fromStdin(Stdin stdin) {
     return _ResourceHandleImpl(stdin._fd);
   }
 
+  @patch
   factory ResourceHandle.fromStdout(Stdout stdout) {
     return _ResourceHandleImpl(stdout._fd);
   }
 
+  @patch
   factory ResourceHandle.fromReadPipe(ReadPipe pipe) {
     _ReadPipe rp = pipe as _ReadPipe;
     return ResourceHandle.fromFile(rp._openedFile!);
   }
 
+  @patch
   factory ResourceHandle.fromWritePipe(WritePipe pipe) {
     _WritePipe wp = pipe as _WritePipe;
     return ResourceHandle.fromFile(wp._file);
@@ -2794,6 +2802,7 @@ class _ResourceHandleImpl implements ResourceHandle {
 @patch
 class SocketControlMessage {
   @pragma("vm:external-name", "SocketControlMessage_fromHandles")
+  @patch
   external factory SocketControlMessage.fromHandles(
       List<ResourceHandle> handles);
 }

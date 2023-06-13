@@ -226,7 +226,6 @@ import "org-dartlang-testcase:///issue41842_lib.dart" as lib;
 
 class A<T extends core::Object? = dynamic> extends core::Object {
   field dynamic T = null;
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3, #C4, #C5, #C6, #C7, #C8, #C9, #C10, #C11, #C12, #C13]/*isLegacy*/;
   constructor •() → self::A<self::A::T%>
     : super core::Object::•()
     ;
@@ -331,20 +330,4 @@ class Bar<T extends core::Object? = dynamic> extends self::A<iss::Bar::T%> {
     return new iss::Bar::named<iss::Bar::•::T%>(x);
   static factory bar<T extends core::Object? = dynamic>(core::int x) → iss::Bar<iss::Bar::bar::T%>
     return new iss::Bar::foo<iss::Bar::bar::T%>(x);
-}
-
-constants  {
-  #C1 = constructor-tearoff self::A::foo1
-  #C2 = constructor-tearoff self::A::foo2
-  #C3 = constructor-tearoff self::A::foo3
-  #C4 = constructor-tearoff self::A::foo5
-  #C5 = constructor-tearoff self::A::foo6
-  #C6 = constructor-tearoff self::A::foo4
-  #C7 = constructor-tearoff self::A::foo7
-  #C8 = constructor-tearoff self::A::foo8
-  #C9 = constructor-tearoff self::A::foo9
-  #C10 = constructor-tearoff self::A::foo10
-  #C11 = constructor-tearoff self::A::foo11
-  #C12 = constructor-tearoff self::A::foo12
-  #C13 = constructor-tearoff self::A::foo13
 }

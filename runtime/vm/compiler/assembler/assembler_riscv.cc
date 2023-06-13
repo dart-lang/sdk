@@ -2584,9 +2584,12 @@ void Assembler::TsanStoreRelease(Register addr) {
 }
 #endif
 
-void Assembler::LoadAcquire(Register dst, Register address, int32_t offset) {
+void Assembler::LoadAcquire(Register dst,
+                            Register address,
+                            int32_t offset,
+                            OperandSize size) {
   ASSERT(dst != address);
-  LoadFromOffset(dst, address, offset);
+  LoadFromOffset(dst, address, offset, size);
   fence(HartEffects::kRead, HartEffects::kMemory);
 
 #if defined(USING_THREAD_SANITIZER)
@@ -2622,8 +2625,20 @@ void Assembler::CompareWithCompressedFieldFromOffset(Register value,
   UNIMPLEMENTED();
 }
 
-void Assembler::CompareWithMemoryValue(Register value, Address address) {
+void Assembler::CompareWithMemoryValue(Register value,
+                                       Address address,
+                                       OperandSize size) {
+#if XLEN >= 64
+  ASSERT(size == kEightBytes || size == kFourBytes);
+  if (size == kFourBytes) {
+    lw(TMP2, address);
+  } else {
+    ld(TMP2, address);
+  }
+#else
+  ASSERT_EQUAL(size, kFourBytes);
   lx(TMP2, address);
+#endif
   CompareRegisters(value, TMP2);
 }
 

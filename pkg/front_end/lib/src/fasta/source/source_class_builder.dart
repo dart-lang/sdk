@@ -45,7 +45,6 @@ import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
 import '../kernel/kernel_helper.dart';
-import 'package:kernel/src/redirecting_factory_body.dart' show redirectingName;
 import '../kernel/type_algorithms.dart' show computeTypeVariableBuilderVariance;
 import '../kernel/utils.dart' show compareProcedures;
 import '../names.dart' show equalsName;
@@ -1296,48 +1295,6 @@ class SourceClassBuilder extends ClassBuilderImpl
   bool _isPrivateNameInThisLibrary(Name name) =>
       name.isPrivate && name.library == libraryBuilder.library;
 
-  void _addRedirectingConstructor(
-      SourceFactoryBuilder constructorBuilder,
-      SourceLibraryBuilder library,
-      Reference? fieldReference,
-      Reference? getterReference) {
-    // Add a new synthetic field to this class for representing factory
-    // constructors. This is used to support resolving such constructors in
-    // source code.
-    //
-    // The synthetic field looks like this:
-    //
-    //     final _redirecting# = [c1, ..., cn];
-    //
-    // Where each c1 ... cn are an instance of [StaticGet] whose target is
-    // [constructor.target].
-    //
-    // TODO(ahe): Add a kernel node to represent redirecting factory bodies.
-    _RedirectingConstructorsFieldBuilder? constructorsField =
-        origin.scope.lookupLocalMember(redirectingName, setter: false)
-            as _RedirectingConstructorsFieldBuilder?;
-    if (constructorsField == null) {
-      ListLiteral literal = new ListLiteral(<Expression>[]);
-      Name name = new Name(redirectingName, library.library);
-      Field field = new Field.immutable(name,
-          isStatic: true,
-          isFinal: true,
-          initializer: literal,
-          fileUri: cls.fileUri,
-          fieldReference: fieldReference,
-          getterReference: getterReference)
-        ..fileOffset = cls.fileOffset;
-      cls.addField(field);
-      constructorsField = new _RedirectingConstructorsFieldBuilder(field, this);
-      origin.scope
-          .addLocalMember(redirectingName, constructorsField, setter: false);
-    }
-    Field field = constructorsField.field;
-    ListLiteral literal = field.initializer as ListLiteral;
-    literal.expressions.add(
-        new ConstructorTearOff(constructorBuilder.member)..parent = literal);
-  }
-
   int resolveConstructors(SourceLibraryBuilder library) {
     if (constructorReferences == null) return 0;
     for (ConstructorReferenceBuilder ref in constructorReferences!) {
@@ -1393,24 +1350,6 @@ class SourceClassBuilder extends ClassBuilderImpl
           }
 
           Builder? targetBuilder = redirectionTarget.target;
-          if (declaration.next == null) {
-            // Only the first one (that is, the last on in the linked list)
-            // is actually in the kernel tree. This call creates a StaticGet
-            // to [declaration.target] in a field `_redirecting#` which is
-            // only legal to do to things in the kernel tree.
-            Reference? fieldReference;
-            Reference? getterReference;
-            if (referencesFromIndexed != null) {
-              Name name =
-                  new Name(redirectingName, referencesFromIndexed!.library);
-              fieldReference =
-                  referencesFromIndexed!.lookupFieldReference(name);
-              getterReference =
-                  referencesFromIndexed!.lookupGetterReference(name);
-            }
-            _addRedirectingConstructor(
-                declaration, library, fieldReference, getterReference);
-          }
           Member? targetNode;
           if (targetBuilder is FunctionBuilder) {
             targetNode = targetBuilder.member;
@@ -2402,30 +2341,4 @@ class _SourceClassBuilderAugmentationAccess
   Iterable<SourceClassBuilder>? getAugmentations(
           SourceClassBuilder classDeclaration) =>
       classDeclaration._patches;
-}
-
-class _RedirectingConstructorsFieldBuilder extends DillFieldBuilder
-    with SourceMemberBuilderMixin {
-  _RedirectingConstructorsFieldBuilder(Field field, SourceClassBuilder parent)
-      : super(field, parent);
-
-  @override
-  SourceLibraryBuilder get libraryBuilder =>
-      super.libraryBuilder as SourceLibraryBuilder;
-
-  @override
-  void buildOutlineExpressions(
-      ClassHierarchy classHierarchy,
-      List<DelayedActionPerformer> delayedActionPerformers,
-      List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    // Do nothing.
-  }
-
-  @override
-  void checkVariance(
-      SourceClassBuilder sourceClassBuilder, TypeEnvironment typeEnvironment) {}
-
-  @override
-  void checkTypes(
-      SourceLibraryBuilder library, TypeEnvironment typeEnvironment) {}
 }

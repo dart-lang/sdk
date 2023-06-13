@@ -4,7 +4,6 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field Never n;
-  static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
   static factory •(Never n) → self::C
     return new self::D::•(n);
 }
@@ -15,8 +14,3 @@ class D extends core::Object implements self::C {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue42844_1.dart:5:7 -> ConstructorTearOffConstant(C.)
-Extra constant evaluation: evaluated: 4, effectively constant: 1

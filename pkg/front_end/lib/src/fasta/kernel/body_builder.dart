@@ -40,12 +40,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show
-        EnsureLoaded,
-        RedirectionTarget,
-        getRedirectingFactoryTarget,
-        getRedirectionTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -1419,6 +1413,41 @@ class BodyBuilder extends StackListenerImpl
     return true;
   }
 
+  RedirectionTarget _getRedirectionTarget(Procedure factory) {
+    List<DartType> typeArguments = new List<DartType>.generate(
+        factory.function.typeParameters.length, (int i) {
+      return new TypeParameterType.withDefaultNullabilityForLibrary(
+          factory.function.typeParameters[i], factory.enclosingLibrary);
+    }, growable: true);
+
+    // Cyclic factories are detected earlier, so we're guaranteed to
+    // reach either a non-redirecting factory or an error eventually.
+    Member target = factory;
+    for (;;) {
+      RedirectingFactoryTarget? redirectingFactoryTarget =
+          target.function?.redirectingFactoryTarget;
+      if (redirectingFactoryTarget == null ||
+          redirectingFactoryTarget.isError) {
+        return new RedirectionTarget(target, typeArguments);
+      }
+      Member nextMember = redirectingFactoryTarget.target!;
+      ensureLoaded(nextMember);
+      List<DartType>? nextTypeArguments =
+          redirectingFactoryTarget.typeArguments;
+      if (nextTypeArguments != null) {
+        Substitution sub = Substitution.fromPairs(
+            target.function!.typeParameters, typeArguments);
+        typeArguments =
+            new List<DartType>.generate(nextTypeArguments.length, (int i) {
+          return sub.substituteType(nextTypeArguments[i]);
+        }, growable: true);
+      } else {
+        typeArguments = <DartType>[];
+      }
+      target = nextMember;
+    }
+  }
+
   /// Return an [Expression] resolving the argument invocation.
   ///
   /// The arguments specify the [StaticInvocation] whose `.target` is
@@ -1430,15 +1459,14 @@ class BodyBuilder extends StackListenerImpl
     Procedure initialTarget = target;
     Expression replacementNode;
 
-    RedirectionTarget redirectionTarget =
-        getRedirectionTarget(initialTarget, this);
+    RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
     Member resolvedTarget = redirectionTarget.target;
     if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
       return null;
     }
 
     RedirectingFactoryTarget? redirectingFactoryTarget =
-        getRedirectingFactoryTarget(resolvedTarget);
+        resolvedTarget.function?.redirectingFactoryTarget;
     if (redirectingFactoryTarget != null) {
       // If the redirection target is itself a redirecting factory, it means
       // that it is unresolved.
@@ -9984,4 +10012,11 @@ class ExpressionOrPatternGuardCase {
   ExpressionOrPatternGuardCase.patternGuard(
       this.caseOffset, PatternGuard this.patternGuard)
       : expression = null;
+}
+
+class RedirectionTarget {
+  final Member target;
+  final List<DartType> typeArguments;
+
+  RedirectionTarget(this.target, this.typeArguments);
 }

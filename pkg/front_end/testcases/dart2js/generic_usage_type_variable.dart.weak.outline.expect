@@ -13,7 +13,6 @@ abstract class C extends core::Object {
   field self::D? v5;
   field core::List<dynamic> v6;
   final field Null v7;
-  static final field dynamic _redirecting# = <dynamic>[self::C::name2]/*isLegacy*/;
   constructor •() → self::C
     ;
   constructor name1(self::D? v5, Null v7) → self::C
@@ -81,7 +80,6 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:22:35 -> ListConstant(const <List<dynamic>*>[])
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///generic_usage_type_variable.dart:18:16 -> ConstructorTearOffConstant(C.name2)
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:39:7 -> MapConstant(const <String*, dynamic>{})
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:39:7 -> MapConstant(const <String*, dynamic>{})
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:39:7 -> MapConstant(const <String*, dynamic>{})
@@ -93,4 +91,4 @@ Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dar
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:39:7 -> MapConstant(const <String*, dynamic>{})
 Evaluated: ListLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:15:23 -> ListConstant(const <C*>[])
 Evaluated: MapLiteral @ org-dartlang-testcase:///generic_usage_type_variable.dart:16:24 -> MapConstant(const <Type*, Type*>{dynamic: dynamic})
-Extra constant evaluation: evaluated: 93, effectively constant: 13
+Extra constant evaluation: evaluated: 91, effectively constant: 12

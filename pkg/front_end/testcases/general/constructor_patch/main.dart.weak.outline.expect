@@ -37,6 +37,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
 class Class2 extends core::Object {
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
+  @_in::patch
   external constructor •(core::int field) → self2::Class2;
 }
 class Subclass extends self2::Class {
@@ -55,4 +56,5 @@ Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:43 -> Instance
 Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:9 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:17:8 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:24:60 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 6, effectively constant: 5
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 7, effectively constant: 6

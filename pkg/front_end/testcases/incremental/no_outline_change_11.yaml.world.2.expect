@@ -4,7 +4,6 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
   import "org-dartlang-test:///lib2.dart";
 
   class Foo extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
     static factory •() → lib1::Foo
       return new lib2::Bar::•();
   }
@@ -31,7 +30,4 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → dynamic {
     lib1::libMethod();
   }
-}
-constants  {
-  #C1 = constructor-tearoff lib1::Foo::•
 }
