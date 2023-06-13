@@ -19187,9 +19187,7 @@ SubtypeTestCachePtr SubtypeTestCache::New() {
 }
 
 ArrayPtr SubtypeTestCache::cache() const {
-  // We rely on the fact that any loads from the array are dependent loads and
-  // avoid the load-acquire barrier here.
-  return untag()->cache<std::memory_order_relaxed>();
+  return untag()->cache<std::memory_order_acquire>();
 }
 
 void SubtypeTestCache::set_cache(const Array& value) const {
