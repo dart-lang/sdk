@@ -179,7 +179,8 @@ class NativeAssetsBuildRunner {
   }) async {
     final buildDirName = BuildConfig.checksum(
       packageRoot: packageRoot,
-      target: target,
+      targetOs: target.os,
+      targetArchitecture: target.architecture,
       buildMode: buildMode,
       linkModePreference: linkMode,
       targetIOSSdk: targetIOSSdk,
@@ -196,7 +197,8 @@ class NativeAssetsBuildRunner {
     return BuildConfig(
       outDir: outDirUri,
       packageRoot: packageRoot,
-      target: target,
+      targetOs: target.os,
+      targetArchitecture: target.architecture,
       buildMode: buildMode,
       linkModePreference: linkMode,
       targetIOSSdk: targetIOSSdk,

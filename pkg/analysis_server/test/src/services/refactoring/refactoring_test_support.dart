@@ -45,8 +45,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     addSource(mainFilePath, testCode.code);
   }
 
-  /// Finds and executes the refactor with [title], updating [content] with
-  /// edits sent by the server.
+  /// Executes the [action], updating [content] with edits sent by the server.
   Future<void> executeRefactor(CodeAction action) async {
     await executeCommandForEdits(
       action.command!,

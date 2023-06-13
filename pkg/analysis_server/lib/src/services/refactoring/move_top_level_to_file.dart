@@ -166,7 +166,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   }
 
   @override
-  bool isAvailable() {
+  Future<bool> isAvailable() async {
     if (supportsFileCreation) {
       var members = _membersToMove();
       if (members != null) {
