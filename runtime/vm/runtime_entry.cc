@@ -32,6 +32,7 @@
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/type_testing_stubs.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/deopt_instructions.h"
@@ -906,8 +907,10 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
                      instance_delayed_type_arguments, &index, &result)) {
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
     if (TESTING_runtime_fail_on_existing_STC_entry) {
-      TextBuffer buffer(1024);
-      buffer.Printf("for\n");
+      SafepointMutexLocker ml(
+          thread->isolate_group()->subtype_test_cache_mutex());
+      ZoneTextBuffer buffer(zone);
+      buffer.Printf("For\n");
       buffer.Printf("  * instance cid or signature %s\n",
                     instance_class_id_or_signature.ToCString());
       buffer.Printf("  * destination type %s\n", destination_type.ToCString());
@@ -927,6 +930,9 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
       buffer.Printf("  * instance delayed type arguments: %s (hash: %" Pu ")\n",
                     instance_delayed_type_arguments.ToCString(),
                     instance_delayed_type_arguments.Hash());
+      buffer.AddString("  * cache: ");
+      cache.WriteToBuffer(zone, &buffer, "    ");
+      buffer.AddString("\n");
       buffer.Printf("  * number of occupied entries in cache: %" Pd "\n",
                     cache.NumberOfChecks());
       buffer.Printf("  * number of available entries in cache: %" Pd "\n",

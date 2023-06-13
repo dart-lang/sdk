@@ -663,6 +663,10 @@ class RegisterSet : public ValueObject {
     }
   }
 
+  void AddRegister(Register reg, Representation rep = kTagged) {
+    Add(Location::RegisterLocation(reg), rep);
+  }
+
   void Add(Location loc, Representation rep = kTagged) {
     if (loc.IsRegister()) {
       cpu_registers_.Add(loc.reg());
