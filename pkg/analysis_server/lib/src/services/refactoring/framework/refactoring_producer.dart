@@ -44,6 +44,8 @@ abstract class RefactoringProducer {
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
 
+  RefactoringContext get refactoringContext => _context;
+
   /// Return the search engine used to search outside the resolved library.
   SearchEngine get searchEngine => _context.searchEngine;
 
@@ -84,7 +86,7 @@ abstract class RefactoringProducer {
   Future<void> compute(List<Object?> commandArguments, ChangeBuilder builder);
 
   /// Return `true` if this refactoring is available in the given context.
-  bool isAvailable();
+  Future<bool> isAvailable();
 
   /// Return `true` if the selection is inside the given [token].
   bool selectionIsInToken(Token? token) => _context.selectionIsInToken(token);

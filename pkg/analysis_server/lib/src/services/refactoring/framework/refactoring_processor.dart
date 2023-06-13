@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/services/refactoring/convert_formal_parameters.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
@@ -13,6 +14,8 @@ typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
   static const Map<String, ProducerGenerator> generators = {
+    ConvertFormalParametersToNamed.commandName:
+        ConvertFormalParametersToNamed.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
   };
 
@@ -33,7 +36,8 @@ class RefactoringProcessor {
         continue;
       }
 
-      if (!producer.isAvailable()) {
+      final isAvailable = await producer.isAvailable();
+      if (!isAvailable) {
         continue;
       }
 
