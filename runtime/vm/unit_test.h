@@ -548,7 +548,7 @@ class AssemblerTest {
     Thread* thread = Thread::Current();
     ASSERT(thread != nullptr);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
+        bit_cast<intptr_t, uword>(entry()), static_cast<intptr_t>(code_.ptr()),
         reinterpret_cast<intptr_t>(thread), 0, 0, fp_return, fp_args));
   }
   template <typename ResultType, typename Arg1Type>
@@ -560,7 +560,7 @@ class AssemblerTest {
     Thread* thread = Thread::Current();
     ASSERT(thread != nullptr);
     return bit_cast<ResultType, int64_t>(Simulator::Current()->Call(
-        bit_cast<intptr_t, uword>(entry()), reinterpret_cast<intptr_t>(&code_),
+        bit_cast<intptr_t, uword>(entry()), static_cast<intptr_t>(code_.ptr()),
         reinterpret_cast<intptr_t>(thread), reinterpret_cast<intptr_t>(arg1), 0,
         fp_return, fp_args));
   }
@@ -598,16 +598,16 @@ class AssemblerTest {
   ResultType InvokeWithCodeAndThread() {
     Thread* thread = Thread::Current();
     ASSERT(thread != nullptr);
-    typedef ResultType (*FunctionType)(const Code&, Thread*);
-    return reinterpret_cast<FunctionType>(entry())(code_, thread);
+    typedef ResultType (*FunctionType)(CodePtr, Thread*);
+    return reinterpret_cast<FunctionType>(entry())(code_.ptr(), thread);
   }
 
   template <typename ResultType, typename Arg1Type>
   ResultType InvokeWithCodeAndThread(Arg1Type arg1) {
     Thread* thread = Thread::Current();
     ASSERT(thread != nullptr);
-    typedef ResultType (*FunctionType)(const Code&, Thread*, Arg1Type);
-    return reinterpret_cast<FunctionType>(entry())(code_, thread, arg1);
+    typedef ResultType (*FunctionType)(CodePtr, Thread*, Arg1Type);
+    return reinterpret_cast<FunctionType>(entry())(code_.ptr(), thread, arg1);
   }
 
   template <typename ResultType, typename Arg1Type>

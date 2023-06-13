@@ -1125,11 +1125,6 @@ class StreamInfo : public AllStatic {
   static word enabled_offset();
 };
 
-class VMHandles : public AllStatic {
- public:
-  static constexpr intptr_t kOffsetOfRawPtrInHandle = kWordSize;
-};
-
 class MonomorphicSmiableCall : public AllStatic {
  public:
   static word expected_cid_offset();
