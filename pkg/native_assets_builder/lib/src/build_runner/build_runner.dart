@@ -86,6 +86,50 @@ class NativeAssetsBuildRunner {
     return assetList;
   }
 
+  /// [workingDirectory] is expected to contain `.dart_tool`.
+  ///
+  /// This method is invoked by launchers such as dartdev (for `dart run`) and
+  /// flutter_tools (for `flutter run` and `flutter build`).
+  ///
+  /// Completes the future with an error if the build fails.
+  Future<List<Asset>> dryRun({
+    required LinkModePreference linkModePreference,
+    required OS targetOs,
+    required Uri workingDirectory,
+    required bool includeParentEnvironment,
+  }) async {
+    assert(_metadata.isEmpty);
+    final packageLayout =
+        await PackageLayout.fromRootPackageRoot(workingDirectory);
+    final packagesWithNativeAssets =
+        await packageLayout.packagesWithNativeAssets;
+    final planner = await NativeAssetsBuildPlanner.fromRootPackageRoot(
+      rootPackageRoot: packageLayout.rootPackageRoot,
+      packagesWithNativeAssets: packagesWithNativeAssets,
+      dartExecutable: Uri.file(Platform.resolvedExecutable),
+    );
+    final plan = planner.plan();
+    final assetList = <Asset>[];
+    for (final package in plan) {
+      final config = await _cliConfigDryRun(
+        packageName: package.name,
+        packageRoot: packageLayout.packageRoot(package.name),
+        targetOs: targetOs,
+        linkMode: linkModePreference,
+        buildParentDir: packageLayout.dartToolNativeAssetsBuilder,
+      );
+      final assets = await _buildPackage(
+        config,
+        packageLayout.packageConfigUri,
+        workingDirectory,
+        includeParentEnvironment,
+        dryRun: true,
+      );
+      assetList.addAll(assets);
+    }
+    return assetList;
+  }
+
   Future<List<Asset>> _buildPackageCached(
     BuildConfig config,
     Uri packageConfigUri,
@@ -119,6 +163,7 @@ class NativeAssetsBuildRunner {
       packageConfigUri,
       workingDirectory,
       includeParentEnvironment,
+      dryRun: false,
     );
   }
 
@@ -126,8 +171,9 @@ class NativeAssetsBuildRunner {
     BuildConfig config,
     Uri packageConfigUri,
     Uri workingDirectory,
-    bool includeParentEnvironment,
-  ) async {
+    bool includeParentEnvironment, {
+    required bool dryRun,
+  }) async {
     final outDir = config.outDir;
     final configFile = outDir.resolve('config.yaml');
     final buildDotDart = config.packageRoot.resolve('build.dart');
@@ -153,7 +199,9 @@ class NativeAssetsBuildRunner {
       throwOnUnexpectedExitCode: true,
     );
     final buildOutput = await BuildOutput.readFromFile(outDir: outDir);
-    setMetadata(config.target, config.packageName, buildOutput?.metadata);
+    if (!dryRun) {
+      setMetadata(config.target, config.packageName, buildOutput?.metadata);
+    }
     return buildOutput?.assets ?? [];
   }
 
@@ -205,6 +253,27 @@ class NativeAssetsBuildRunner {
       cCompiler: cCompilerConfig,
       dependencyMetadata: dependencyMetadata,
       targetAndroidNdkApi: targetAndroidNdkApi,
+    );
+  }
+
+  static Future<BuildConfig> _cliConfigDryRun({
+    required String packageName,
+    required Uri packageRoot,
+    required OS targetOs,
+    required LinkModePreference linkMode,
+    required Uri buildParentDir,
+  }) async {
+    final String buildDirName = 'dry_run_${targetOs}_$linkMode';
+    final outDirUri = buildParentDir.resolve('$buildDirName/');
+    final outDir = Directory.fromUri(outDirUri);
+    if (!await outDir.exists()) {
+      await outDir.create(recursive: true);
+    }
+    return BuildConfig.dryRun(
+      outDir: outDirUri,
+      packageRoot: packageRoot,
+      targetOs: targetOs,
+      linkModePreference: linkMode,
     );
   }
 
