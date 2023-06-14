@@ -377,17 +377,20 @@ class ModelEmitter {
     return js.Comment(generatedBy(_options, flavor: '$flavor'));
   }
 
-  js.Statement buildDeferredInitializerGlobal(js.LiteralString partFileName,
-      {js.Expression? code}) {
-    return js.js.statement(
-        '((s,d) => {s[d] = s[d] || {#eventLog: []}; '
-        's[d].#eventLog.push({part:#part,event:"beginLoadPart"});})'
-        '(self,#deferredInitializers)',
-        {
-          'deferredInitializers': js.string(deferredInitializersGlobal),
-          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-          'part': partFileName,
-        });
+  List<js.Statement> buildDeferredInitializerGlobal() {
+    return [
+      js.js.statement(
+          'self.#deferredInitializers = '
+          'self.#deferredInitializers || Object.create(null);',
+          {'deferredInitializers': deferredInitializersGlobal}),
+      js.js.statement(
+          'self.#deferredInitializers.#eventLog = '
+          'self.#deferredInitializers.#eventLog || [];',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'eventLog': INITIALIZATION_EVENT_LOG
+          })
+    ];
   }
 
   js.Statement buildStartupMetrics() {
@@ -438,7 +441,7 @@ var ${startupMetricsGlobal} =
     js.Program program = js.Program([
       buildGeneratedBy(),
       js.Comment(HOOKS_API_USAGE),
-      if (isSplit) buildDeferredInitializerGlobal(js.string('main')),
+      if (isSplit) ...buildDeferredInitializerGlobal(),
       if (_closedWorld.backendUsage.requiresStartupMetrics)
         buildStartupMetrics(),
       code
@@ -580,7 +583,15 @@ var ${startupMetricsGlobal} =
     final outputFileJsString = js.string(outputFileName);
     js.Program program = js.Program([
       if (isFirst) buildGeneratedBy(),
-      if (isFirst) buildDeferredInitializerGlobal(outputFileJsString),
+      if (isFirst) ...buildDeferredInitializerGlobal(),
+      js.js.statement(
+          '#deferredInitializers.#eventLog.push({"part": '
+          '#outputFileName, "event": "beginLoadPart"});',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'eventLog': INITIALIZATION_EVENT_LOG,
+            'outputFileName': outputFileJsString
+          }),
       js.js.statement('#deferredInitializers.current = #code',
           {'deferredInitializers': deferredInitializersGlobal, 'code': code})
     ]);
@@ -593,26 +604,31 @@ var ${startupMetricsGlobal} =
         annotationMonitor: _resourceInfoCollector.monitorFor(outputFileName));
     _task.measureSubtask('emit buffers', () {
       output.addBuffer(buffer);
-      // Add semi-colon to separate from IIFE epilogue.
-      output.add(';');
     });
 
     // Make a unique hash of the code (before the sourcemaps are added)
     // This will be used to retrieve the initializing function from the global
     // variable.
     String hash = hasher.getHash();
+    final jsStringHash = js.string(hash);
 
     // Now we copy the deferredInitializer.current into its correct hash.
-    final epilogue = js.js.statement(
-        '((d,h)=>{d[h]=d.current; '
-        'd.#eventLog.push({hash:h,event:"endPartLoad",part:#part})})'
-        '(#deferredInitializers,#hash)',
-        {
-          'deferredInitializers': deferredInitializersGlobal,
-          'hash': js.string(hash),
-          'eventLog': js.string(INITIALIZATION_EVENT_LOG),
-          'part': outputFileJsString,
-        });
+    final epilogue = js.Program([
+      js.js.statement(
+          '#deferredInitializers[#hash] = #deferredInitializers.current', {
+        'deferredInitializers': deferredInitializersGlobal,
+        'hash': jsStringHash
+      }),
+      js.js.statement(
+          '#deferredInitializers.#eventLog.push({"part": #outputFileName, '
+          '"hash": #hash, "event": "endPartLoad"})',
+          {
+            'deferredInitializers': deferredInitializersGlobal,
+            'hash': jsStringHash,
+            'eventLog': INITIALIZATION_EVENT_LOG,
+            'outputFileName': outputFileJsString,
+          })
+    ]);
     output.add('\n');
     output.add(js
         .createCodeBuffer(epilogue, _options,
