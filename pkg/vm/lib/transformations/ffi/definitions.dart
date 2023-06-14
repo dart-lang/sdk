@@ -268,7 +268,6 @@ class _FfiDefinitionTransformer extends FfiTransformer {
       if (node.typeParameters.isNotEmpty ||
           node.procedures.where((Procedure e) => !e.isSynthetic).isNotEmpty ||
           node.fields.isNotEmpty ||
-          node.redirectingFactories.isNotEmpty ||
           node.constructors.length != 1 ||
           !node.constructors.single.isConst) {
         // We want exactly one constructor, no other members and no type arguments.

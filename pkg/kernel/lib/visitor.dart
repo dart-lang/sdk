@@ -161,9 +161,6 @@ abstract class MemberVisitor<R> {
   R visitConstructor(Constructor node) => defaultMember(node);
   R visitProcedure(Procedure node) => defaultMember(node);
   R visitField(Field node) => defaultMember(node);
-  R visitRedirectingFactory(RedirectingFactory node) {
-    return defaultMember(node);
-  }
 }
 
 abstract class MemberVisitor1<R, A> {
@@ -174,9 +171,6 @@ abstract class MemberVisitor1<R, A> {
   R visitConstructor(Constructor node, A arg) => defaultMember(node, arg);
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  R visitRedirectingFactory(RedirectingFactory node, A arg) {
-    return defaultMember(node, arg);
-  }
 }
 
 abstract class InitializerVisitor<R> {
@@ -481,10 +475,6 @@ abstract class TreeVisitor<R>
   R visitProcedure(Procedure node) => defaultMember(node);
   @override
   R visitField(Field node) => defaultMember(node);
-  @override
-  R visitRedirectingFactory(RedirectingFactory node) {
-    return defaultMember(node);
-  }
 
   // Classes
   R visitClass(Class node) => defaultTreeNode(node);
@@ -850,10 +840,6 @@ abstract class TreeVisitor1<R, A>
   R visitProcedure(Procedure node, A arg) => defaultMember(node, arg);
   @override
   R visitField(Field node, A arg) => defaultMember(node, arg);
-  @override
-  R visitRedirectingFactory(RedirectingFactory node, A arg) {
-    return defaultMember(node, arg);
-  }
 
   // Classes
   R visitClass(Class node, A arg) => defaultTreeNode(node, arg);
@@ -1286,9 +1272,6 @@ abstract class MemberReferenceVisitor<R> {
   R visitFieldReference(Field node) => defaultMemberReference(node);
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  R visitRedirectingFactoryReference(RedirectingFactory node) {
-    return defaultMemberReference(node);
-  }
 }
 
 abstract class MemberReferenceVisitor1<R, A> {
@@ -1301,9 +1284,6 @@ abstract class MemberReferenceVisitor1<R, A> {
       defaultMemberReference(node, arg);
   R visitProcedureReference(Procedure node, A arg) =>
       defaultMemberReference(node, arg);
-  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) {
-    return defaultMemberReference(node, arg);
-  }
 }
 
 abstract class Visitor<R> extends TreeVisitor<R>
@@ -1456,10 +1436,6 @@ abstract class Visitor<R> extends TreeVisitor<R>
   R visitConstructorReference(Constructor node) => defaultMemberReference(node);
   @override
   R visitProcedureReference(Procedure node) => defaultMemberReference(node);
-  @override
-  R visitRedirectingFactoryReference(RedirectingFactory node) {
-    return defaultMemberReference(node);
-  }
 
   R visitName(Name node) => defaultNode(node);
   R visitSupertype(Supertype node) => defaultNode(node);
@@ -1609,9 +1585,6 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
       defaultMemberReference(node, arg);
   @override
   R visitProcedureReference(Procedure node, A arg) =>
-      defaultMemberReference(node, arg);
-  @override
-  R visitRedirectingFactoryReference(RedirectingFactory node, A arg) =>
       defaultMemberReference(node, arg);
 
   R visitName(Name node, A arg) => defaultNode(node, arg);
@@ -2068,16 +2041,6 @@ class RemovingTransformer extends TreeVisitor1<TreeNode, TreeNode?> {
   /// sentinel for [Field] nodes.
   void transformFieldList(List<Field> nodes, TreeNode parent) {
     transformList(nodes, parent, dummyField);
-  }
-
-  /// Transforms or removes [RedirectingFactory] nodes in [nodes] as
-  /// children of [parent].
-  ///
-  /// This is convenience method for calling [transformList] with removal
-  /// sentinel for [RedirectingFactory] nodes.
-  void transformRedirectingFactoryList(
-      List<RedirectingFactory> nodes, TreeNode parent) {
-    transformList(nodes, parent, dummyRedirectingFactory);
   }
 
   /// Transforms or removes [Typedef] nodes in [nodes] as children of [parent].

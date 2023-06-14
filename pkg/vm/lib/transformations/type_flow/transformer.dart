@@ -1170,7 +1170,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
     transformConstructorList(node.constructors, node);
     transformProcedureList(node.procedures, node);
     transformFieldList(node.fields, node);
-    transformRedirectingFactoryList(node.redirectingFactories, node);
     return node;
   }
 

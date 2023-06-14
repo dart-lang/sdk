@@ -471,7 +471,6 @@ class ConstantsTransformer extends RemovingTransformer {
       transformTypeParameterList(node.typeParameters, node);
       transformConstructorList(node.constructors, node);
       transformProcedureList(node.procedures, node);
-      transformRedirectingFactoryList(node.redirectingFactories, node);
     });
     _staticTypeContext = oldStaticTypeContext;
     return node;
@@ -543,22 +542,6 @@ class ConstantsTransformer extends RemovingTransformer {
       transformAnnotations(node.annotations, node);
       transformTypeParameterList(node.typeParameters, node);
     });
-    return node;
-  }
-
-  @override
-  RedirectingFactory visitRedirectingFactory(
-      RedirectingFactory node, TreeNode? removalSentinel) {
-    // Currently unreachable as the compiler doesn't produce
-    // RedirectingFactoryConstructor.
-    _matchCacheIndex = 0;
-    StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
-    _staticTypeContext = new StaticTypeContext(node, typeEnvironment);
-    constantEvaluator.withNewEnvironment(() {
-      transformAnnotations(node.annotations, node);
-      node.function = transform(node.function)..parent = node;
-    });
-    _staticTypeContext = oldStaticTypeContext;
     return node;
   }
 

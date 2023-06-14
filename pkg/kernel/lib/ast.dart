@@ -1257,30 +1257,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     _proceduresView = null;
   }
 
-  List<RedirectingFactory> _redirectingFactoriesInternal;
-  DirtifyingList<RedirectingFactory>? _redirectingFactoriesView;
-
-  /// Redirecting factory constructors declared in the class.
-  ///
-  /// For mixin applications this should be empty.
-  List<RedirectingFactory> get redirectingFactories {
-    ensureLoaded();
-    // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return _redirectingFactoriesInternal;
-    return _redirectingFactoriesView ??=
-        new DirtifyingList(this, _redirectingFactoriesInternal);
-  }
-
-  /// Internal. Should *ONLY* be used from within kernel.
-  ///
-  /// Used for adding redirecting factory constructor when reading the dill
-  /// file.
-  void set redirectingFactoryConstructorsInternal(
-      List<RedirectingFactory> redirectingFactoryConstructors) {
-    _redirectingFactoriesInternal = redirectingFactoryConstructors;
-    _redirectingFactoriesView = null;
-  }
-
   Class(
       {required this.name,
       bool isAbstract = false,
@@ -1292,7 +1268,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Constructor>? constructors,
       List<Procedure>? procedures,
       List<Field>? fields,
-      List<RedirectingFactory>? redirectingFactoryConstructors,
       required this.fileUri,
       Reference? reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
@@ -1300,14 +1275,11 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         this._fieldsInternal = fields ?? <Field>[],
         this._constructorsInternal = constructors ?? <Constructor>[],
         this._proceduresInternal = procedures ?? <Procedure>[],
-        this._redirectingFactoriesInternal =
-            redirectingFactoryConstructors ?? <RedirectingFactory>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this._constructorsInternal, this);
     setParents(this._proceduresInternal, this);
     setParents(this._fieldsInternal, this);
-    setParents(this._redirectingFactoriesInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1329,9 +1301,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
     for (int i = 0; i < constructors.length; ++i) {
       constructors[i].bindCanonicalNames(canonicalName);
-    }
-    for (int i = 0; i < redirectingFactories.length; ++i) {
-      redirectingFactories[i].bindCanonicalNames(canonicalName);
     }
     dirty = false;
   }
@@ -1355,10 +1324,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
     for (int i = 0; i < constructors.length; ++i) {
       Constructor member = constructors[i];
-      member._relinkNode();
-    }
-    for (int i = 0; i < redirectingFactories.length; ++i) {
-      RedirectingFactory member = redirectingFactories[i];
       member._relinkNode();
     }
     dirty = false;
@@ -1402,7 +1367,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         fields,
         constructors,
         procedures,
-        redirectingFactories
       ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
@@ -1443,13 +1407,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     dirty = true;
     field.parent = this;
     _fieldsInternal.add(field);
-  }
-
-  /// Adds a field to this class.
-  void addRedirectingFactory(RedirectingFactory redirectingFactory) {
-    dirty = true;
-    redirectingFactory.parent = this;
-    _redirectingFactoriesInternal.add(redirectingFactory);
   }
 
   @override
@@ -1502,7 +1459,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
-    visitList(redirectingFactories, v);
   }
 
   @override
@@ -1519,7 +1475,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(constructors, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
-    v.transformList(redirectingFactories, this);
   }
 
   @override
@@ -1546,7 +1501,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformConstructorList(constructors, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
-    v.transformRedirectingFactoryList(redirectingFactories, this);
   }
 
   @override
@@ -2836,175 +2790,6 @@ class Constructor extends Member {
   }
 }
 
-/// Residue of a redirecting factory constructor for the linking phase.
-///
-/// In the following example, `bar` is a redirecting factory constructor.
-///
-///     class A {
-///       A.foo();
-///       factory A.bar() = A.foo;
-///     }
-///
-/// An invocation of `new A.bar()` has the same effect as an invocation of
-/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
-/// invocations of `foo`, and after it is done, the redirecting constructor can
-/// be removed from the class.  However, it is needed during the linking phase,
-/// because other modules can refer to that constructor.
-///
-/// [RedirectingFactory]s contain the necessary information for
-/// linking and are treated as non-runnable members of classes that merely serve
-/// as containers for that information.
-///
-/// Redirecting factory constructors can be unnamed.  In this case, the name is
-/// an empty string (in a [Name]).
-class RedirectingFactory extends Member {
-  int flags = 0;
-
-  /// [RedirectingFactory]s may redirect to constructors or factories
-  /// of instantiated generic types, that is, generic types with supplied type
-  /// arguments.  The supplied type arguments are stored in this field.
-  final List<DartType> typeArguments;
-
-  /// Reference to the constructor or the factory that this
-  /// [RedirectingFactory] redirects to.
-  // TODO(johnniwinther): Make this non-nullable.
-  Reference? targetReference;
-
-  /// [FunctionNode] that holds the type parameters, copied from the enclosing
-  /// class, and the parameters defined on the redirecting factory.
-  ///
-  /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
-  /// of the [targetReference] constructor using the [typeArguments] and
-  /// [VariableGet] of the parameters.
-  @override
-  FunctionNode function;
-
-  RedirectingFactory(this.targetReference,
-      {required Name name,
-      bool isConst = false,
-      bool isExternal = false,
-      int transformerFlags = 0,
-      List<DartType>? typeArguments,
-      required this.function,
-      required Uri fileUri,
-      Reference? reference})
-      : this.typeArguments = typeArguments ?? <DartType>[],
-        super(name, fileUri, reference) {
-    function.parent = this;
-    this.isConst = isConst;
-    this.isExternal = isExternal;
-    this.transformerFlags = transformerFlags;
-  }
-
-  @override
-  void bindCanonicalNames(CanonicalName parent) {
-    parent.getChildFromRedirectingFactory(this).bindTo(reference);
-  }
-
-  @override
-  Class get enclosingClass => parent as Class;
-
-  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
-  static const int FlagExternal = 1 << 1;
-  static const int FlagNonNullableByDefault = 1 << 2;
-
-  @override
-  bool get isConst => flags & FlagConst != 0;
-
-  @override
-  bool get isExternal => flags & FlagExternal != 0;
-
-  void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
-  }
-
-  @override
-  void set isExternal(bool value) {
-    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
-  }
-
-  @override
-  bool get isInstanceMember => false;
-
-  @override
-  bool get hasGetter => false;
-
-  @override
-  bool get hasSetter => false;
-
-  @override
-  bool get isExtensionMember => false;
-
-  @override
-  bool get isInlineClassMember => false;
-
-  bool get isUnresolved => targetReference == null;
-
-  @override
-  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
-
-  @override
-  void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagNonNullableByDefault)
-        : (flags & ~FlagNonNullableByDefault);
-  }
-
-  Member? get target => targetReference?.asMember;
-
-  void set target(Member? member) {
-    assert(member is Constructor ||
-        (member is Procedure && member.kind == ProcedureKind.Factory));
-    targetReference = getMemberReferenceGetter(member);
-  }
-
-  @override
-  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactory(this);
-
-  @override
-  R accept1<R, A>(MemberVisitor1<R, A> v, A arg) =>
-      v.visitRedirectingFactory(this, arg);
-
-  @override
-  R acceptReference<R>(MemberReferenceVisitor<R> v) =>
-      v.visitRedirectingFactoryReference(this);
-
-  @override
-  void visitChildren(Visitor v) {
-    visitList(annotations, v);
-    target?.acceptReference(v);
-    visitList(typeArguments, v);
-    name.accept(v);
-    function.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    v.transformList(annotations, this);
-    v.transformDartTypeList(typeArguments);
-    function = v.transform(function)..parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformExpressionList(annotations, this);
-    v.transformDartTypeList(typeArguments);
-    function = v.transform(function)..parent = this;
-  }
-
-  @override
-  DartType get getterType =>
-      function.computeFunctionType(enclosingLibrary.nonNullable);
-
-  @override
-  DartType get setterType => const NeverType.nonNullable();
-
-  @override
-  Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
-  }
-}
-
 /// Enum for the semantics of the `Procedure.stubTarget` property.
 enum ProcedureStubKind {
   /// A regular procedure declared in source code.
@@ -3346,15 +3131,13 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
-  // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactory = 1 << 4;
-  static const int FlagExtensionMember = 1 << 5;
-  static const int FlagNonNullableByDefault = 1 << 6;
-  static const int FlagSynthetic = 1 << 7;
-  static const int FlagInternalImplementation = 1 << 8;
-  static const int FlagIsAbstractFieldAccessor = 1 << 9;
-  static const int FlagInlineMember = 1 << 10;
-  static const int FlagHasWeakTearoffReferencePragma = 1 << 11;
+  static const int FlagExtensionMember = 1 << 4;
+  static const int FlagNonNullableByDefault = 1 << 5;
+  static const int FlagSynthetic = 1 << 6;
+  static const int FlagInternalImplementation = 1 << 7;
+  static const int FlagIsAbstractFieldAccessor = 1 << 8;
+  static const int FlagInlineMember = 1 << 9;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3397,7 +3180,7 @@ class Procedure extends Member {
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
   bool get isRedirectingFactory {
-    return flags & FlagRedirectingFactory != 0;
+    return function.redirectingFactoryTarget != null;
   }
 
   /// If set, this flag indicates that this function was not present in the
@@ -3452,12 +3235,6 @@ class Procedure extends Member {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
-  }
-
-  void set isRedirectingFactory(bool value) {
-    flags = value
-        ? (flags | FlagRedirectingFactory)
-        : (flags & ~FlagRedirectingFactory);
   }
 
   void set isExtensionMember(bool value) {
@@ -15247,12 +15024,6 @@ final List<InlineType> emptyListOfInlineType =
 final List<Constructor> emptyListOfConstructor =
     List.filled(0, dummyConstructor, growable: false);
 
-/// Almost const <RedirectingFactory>[], but not const in an attempt to avoid
-/// polymorphism. See
-/// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<RedirectingFactory> emptyListOfRedirectingFactory =
-    List.filled(0, dummyRedirectingFactory, growable: false);
-
 /// Almost const <Initializer>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Initializer> emptyListOfInitializer =
@@ -15406,14 +15177,6 @@ final Procedure dummyProcedure = new Procedure(
 /// constructor.
 final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
-/// Non-nullable [RedirectingFactory] dummy value.
-///
-/// This is used as the removal sentinel in [RemovingTransformer] and can be
-/// used for instance as a dummy initial value for the `List.filled`
-/// constructor.
-final RedirectingFactory dummyRedirectingFactory = new RedirectingFactory(null,
-    name: dummyName, fileUri: dummyUri, function: dummyFunctionNode);
-
 /// Non-nullable [Typedef] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -15561,7 +15324,6 @@ final List<TreeNode> dummyTreeNodes = [
   dummyMember,
   dummyProcedure,
   dummyField,
-  dummyRedirectingFactory,
   dummyTypedef,
   dummyInitializer,
   dummyFunctionNode,
