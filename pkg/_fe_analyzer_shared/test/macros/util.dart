@@ -175,6 +175,10 @@ Matcher deepEqualsDeclaration(Declaration declaration) =>
 Matcher deepEqualsTypeAnnotation(TypeAnnotation declaration) =>
     _DeepEqualityMatcher(declaration);
 
+/// Checks if two [Arguments]s are identical
+Matcher deepEqualsArguments(Arguments arguments) =>
+    _DeepEqualityMatcher(arguments);
+
 /// Checks if two [Declaration]s, [TypeAnnotation]s, or [Code] objects are of
 /// the same type and all their fields are equal.
 class _DeepEqualityMatcher extends Matcher {
@@ -187,10 +191,11 @@ class _DeepEqualityMatcher extends Matcher {
 
   @override
   bool matches(item, Map matchState) {
-    if (item.runtimeType != instance.runtimeType) {
+    // For type promotion.
+    final instance = this.instance;
+    if (!equals(item.runtimeType).matches(instance.runtimeType, matchState)) {
       return false;
     }
-
     if (instance is Declaration || instance is TypeAnnotation) {
       var instanceReflector = reflect(instance);
       var itemReflector = reflect(item);
@@ -206,47 +211,52 @@ class _DeepEqualityMatcher extends Matcher {
         var instanceValue = instanceField.reflectee;
         var itemValue = itemField.reflectee;
 
-        // Handle lists of things
-        if (instanceValue is List) {
-          if (!_listEquals(instanceValue, itemValue, matchState)) {
-            return false;
-          }
-        } else if (instanceValue is Declaration ||
-            instanceValue is Code ||
-            instanceValue is TypeAnnotation) {
-          // Handle nested declarations and code objects
-          if (!_DeepEqualityMatcher(instanceValue)
-              .matches(itemValue, matchState)) {
-            return false;
-          }
-        } else {
-          // Handles basic values and identity
-          if (instanceValue != itemValue) {
-            return false;
-          }
+        if (!_DeepEqualityMatcher(instanceValue)
+            .matches(itemValue, matchState)) {
+          return false;
         }
       }
     } else if (instance is Code) {
-      if (!_listEquals(
-          (instance as Code).parts, (item as Code).parts, matchState)) {
+      item as Code;
+      if (!_DeepEqualityMatcher(instance.parts)
+          .matches(item.parts, matchState)) {
         return false;
+      }
+    } else if (instance is Arguments) {
+      item as Arguments;
+      if (!equals(instance.positional.length)
+          .matches(item.positional.length, matchState)) {
+        return false;
+      }
+      for (var i = 0; i < instance.positional.length; i++) {
+        if (!_DeepEqualityMatcher(instance.positional[i].value)
+            .matches(item.positional[i].value, matchState)) {
+          return false;
+        }
+      }
+      if (instance.named.length != item.named.length) return false;
+      if (!equals(instance.named.keys).matches(item.named.keys, matchState)) {
+        return false;
+      }
+      for (var key in instance.named.keys) {
+        if (!_DeepEqualityMatcher(instance.named[key]!.value)
+            .matches(item.named[key]!.value, matchState)) {
+          return false;
+        }
+      }
+    } else if (instance is List) {
+      item as List;
+      if (!equals(instance.length).matches(item.length, matchState)) {
+        return false;
+      }
+      for (var i = 0; i < instance.length; i++) {
+        if (!_DeepEqualityMatcher(instance[i]).matches(item[i], matchState)) {
+          return false;
+        }
       }
     } else {
       // Handles basic values and identity
-      if (instance != item) {
-        return false;
-      }
-    }
-    return true;
-  }
-
-  bool _listEquals(List instanceValue, List itemValue, Map matchState) {
-    if (instanceValue.length != itemValue.length) {
-      return false;
-    }
-    for (var i = 0; i < instanceValue.length; i++) {
-      if (!_DeepEqualityMatcher(instanceValue[i])
-          .matches(itemValue[i], matchState)) {
+      if (!equals(instance).matches(item, matchState)) {
         return false;
       }
     }

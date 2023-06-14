@@ -200,9 +200,11 @@ Future<SerializableResponse> _instantiateMacro(
           'macro class "\${request.name}".');
     }
 
-    var instance = Function.apply(constructor, request.arguments.positional, {
-      for (MapEntry<String, Object?> entry in request.arguments.named.entries)
-        new Symbol(entry.key): entry.value,
+    var instance = Function.apply(constructor, [
+      for (var argument in request.arguments.positional) argument.value,
+    ], {
+      for (MapEntry<String, Argument> entry in request.arguments.named.entries)
+        new Symbol(entry.key): entry.value.value,
     }) as Macro;
     var identifier = new MacroInstanceIdentifierImpl(instance, request.instanceId);
     _macroInstances[identifier] = instance;
