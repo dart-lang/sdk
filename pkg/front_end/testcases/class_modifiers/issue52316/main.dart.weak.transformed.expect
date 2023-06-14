@@ -22,13 +22,13 @@ library;
 // class LegacyWithFinal with LegacyImplementFinalCore {}
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/issue52316/main.dart:24:7: Error: The type 'LegacyOnBase' must be 'base', 'final' or 'sealed' because the supertype 'LinkedList' is 'base'.
-// Try adding 'base', 'final', or 'sealed' to the type.
+// pkg/front_end/testcases/class_modifiers/issue52316/main.dart:24:7: Error: The mixin 'LegacyOnBase' must be 'base' because the supertype 'LinkedList' is 'base'.
+// Try adding 'base' to the mixin.
 // mixin LegacyOnBase<E extends LinkedListEntry<E>>
 //       ^
 //
-// pkg/front_end/testcases/class_modifiers/issue52316/main.dart:29:7: Error: The type 'LegacyOnFinal' must be 'base', 'final' or 'sealed' because the supertype 'MapEntry' is 'final'.
-// Try adding 'base', 'final', or 'sealed' to the type.
+// pkg/front_end/testcases/class_modifiers/issue52316/main.dart:29:7: Error: The mixin 'LegacyOnFinal' must be 'base' because the supertype 'MapEntry' is 'final'.
+// Try adding 'base' to the mixin.
 // mixin LegacyOnFinal on LegacyImplementFinalCore {}
 //       ^
 //

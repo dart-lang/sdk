@@ -2307,17 +2307,22 @@ severity: $severity
               return;
             }
           }
-
+          final Template<Message Function(String, String)> template =
+              cls.isMixinDeclaration
+                  ? templateMixinSubtypeOfFinalIsNotBase
+                  : templateSubtypeOfFinalIsNotBaseFinalOrSealed;
           cls.addProblem(
-              templateSubtypeOfFinalIsNotBaseFinalOrSealed.withArguments(
-                  cls.fullNameForErrors,
+              template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.charOffset,
               noLength);
         } else if (baseOrFinalSuperClass.isBase) {
+          final Template<Message Function(String, String)> template =
+              cls.isMixinDeclaration
+                  ? templateMixinSubtypeOfBaseIsNotBase
+                  : templateSubtypeOfBaseIsNotBaseFinalOrSealed;
           cls.addProblem(
-              templateSubtypeOfBaseIsNotBaseFinalOrSealed.withArguments(
-                  cls.fullNameForErrors,
+              template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.charOffset,
               noLength);

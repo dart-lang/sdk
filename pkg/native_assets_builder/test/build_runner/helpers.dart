@@ -60,6 +60,38 @@ Future<List<Asset>> build(
   return assets;
 }
 
+Future<List<Asset>> dryRun(
+  Uri packageUri,
+  Logger logger,
+  Uri dartExecutable, {
+  LinkModePreference linkModePreference = LinkModePreference.dynamic,
+  CCompilerConfig? cCompilerConfig,
+  bool includeParentEnvironment = true,
+  List<String>? capturedLogs,
+}) async {
+  StreamSubscription<LogRecord>? subscription;
+  if (capturedLogs != null) {
+    subscription =
+        logger.onRecord.listen((event) => capturedLogs.add(event.message));
+  }
+
+  final assets = await NativeAssetsBuildRunner(
+    logger: logger,
+    dartExecutable: dartExecutable,
+  ).dryRun(
+    linkModePreference: linkModePreference,
+    targetOs: Target.current.os,
+    workingDirectory: packageUri,
+    includeParentEnvironment: includeParentEnvironment,
+  );
+
+  if (subscription != null) {
+    await subscription.cancel();
+  }
+
+  return assets;
+}
+
 Future<void> expectAssetsExist(List<Asset> assets) async {
   for (final asset in assets) {
     final uri = (asset.path as AssetAbsolutePath).uri;

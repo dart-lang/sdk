@@ -56,21 +56,26 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     CodeActionKind actionKind,
     String title,
     String command,
-  ) =>
-      _commandOrCodeAction(
-        actionKind,
-        Command(
-          title: title,
-          command: command,
-          arguments: [
-            {
-              'path': path,
-              if (triggerKind == CodeActionTriggerKind.Automatic)
-                'autoTriggered': true,
-            }
-          ],
-        ),
-      );
+  ) {
+    assert(
+      (() => Commands.serverSupportedCommands.contains(command))(),
+      'serverSupportedCommands did not contain $command',
+    );
+    return _commandOrCodeAction(
+      actionKind,
+      Command(
+        title: title,
+        command: command,
+        arguments: [
+          {
+            'path': path,
+            if (triggerKind == CodeActionTriggerKind.Automatic)
+              'autoTriggered': true,
+          }
+        ],
+      ),
+    );
+  }
 
   /// Helper to create refactors that execute commands provided with
   /// the current file, location and document version.
@@ -79,24 +84,31 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     String name,
     RefactoringKind refactorKind, [
     Map<String, dynamic>? options,
-  ]) =>
-      _commandOrCodeAction(
-          actionKind,
-          Command(
-            title: name,
-            command: Commands.performRefactor,
-            arguments: [
-              // TODO(dantup): Change this to a single entry that is a Map once
-              //  enough time has passed that old versions of Dart-Code prior to
-              //  to June 2022 need not be supported against newer SDKs.
-              refactorKind.toJson(),
-              path,
-              docIdentifier.version,
-              offset,
-              length,
-              options,
-            ],
-          ));
+  ]) {
+    final command = Commands.performRefactor;
+    assert(
+      (() => Commands.serverSupportedCommands.contains(command))(),
+      'serverSupportedCommands did not contain $command',
+    );
+
+    return _commandOrCodeAction(
+        actionKind,
+        Command(
+          title: name,
+          command: command,
+          arguments: [
+            // TODO(dantup): Change this to a single entry that is a Map once
+            //  enough time has passed that old versions of Dart-Code prior to
+            //  to June 2022 need not be supported against newer SDKs.
+            refactorKind.toJson(),
+            path,
+            docIdentifier.version,
+            offset,
+            length,
+            options,
+          ],
+        ));
+  }
 
   @override
   Future<List<CodeActionWithPriority>> getAssistActions() async {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/convert_formal_parameters.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
@@ -54,12 +55,18 @@ class RefactoringProcessor {
         'that are not supported by the client',
       );
 
+      final command = entry.key;
+      assert(
+        (() => Commands.serverSupportedCommands.contains(command))(),
+        'serverSupportedCommands did not contain $command',
+      );
+
       refactorings.add(
         CodeAction(
             title: producer.title,
             kind: producer.kind,
             command: Command(
-              command: entry.key,
+              command: command,
               title: producer.title,
               arguments: [
                 {

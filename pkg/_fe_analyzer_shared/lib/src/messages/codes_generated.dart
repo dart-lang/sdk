@@ -9390,6 +9390,70 @@ Message _withArgumentsMixinInheritsFromNotObject(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateMixinSubtypeOfBaseIsNotBase = const Template<
+        Message Function(String name, String name2)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'base'.""",
+    correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
+    withArguments: _withArgumentsMixinSubtypeOfBaseIsNotBase);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeMixinSubtypeOfBaseIsNotBase =
+    const Code<Message Function(String name, String name2)>(
+        "MixinSubtypeOfBaseIsNotBase",
+        analyzerCodes: <String>["MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinSubtypeOfBaseIsNotBase(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeMixinSubtypeOfBaseIsNotBase,
+      problemMessage:
+          """The mixin '${name}' must be 'base' because the supertype '${name2}' is 'base'.""",
+      correctionMessage: """Try adding 'base' to the mixin.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String name,
+        String
+            name2)> templateMixinSubtypeOfFinalIsNotBase = const Template<
+        Message Function(String name, String name2)>(
+    problemMessageTemplate:
+        r"""The mixin '#name' must be 'base' because the supertype '#name2' is 'final'.""",
+    correctionMessageTemplate: r"""Try adding 'base' to the mixin.""",
+    withArguments: _withArgumentsMixinSubtypeOfFinalIsNotBase);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeMixinSubtypeOfFinalIsNotBase =
+    const Code<Message Function(String name, String name2)>(
+        "MixinSubtypeOfFinalIsNotBase",
+        analyzerCodes: <String>["MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE"]);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsMixinSubtypeOfFinalIsNotBase(String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeMixinSubtypeOfFinalIsNotBase,
+      problemMessage:
+          """The mixin '${name}' must be 'base' because the supertype '${name2}' is 'final'.""",
+      correctionMessage: """Try adding 'base' to the mixin.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeMixinWithClause = messageMixinWithClause;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
