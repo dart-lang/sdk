@@ -10,7 +10,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  static factory •() → self::A
+  static factory •() → self::A /* redirection-target: self::B::• */
     return self::B::•();
   static method _#new#tearOff() → self::A;
 }

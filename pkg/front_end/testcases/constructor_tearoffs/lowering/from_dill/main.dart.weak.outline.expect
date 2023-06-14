@@ -27,7 +27,7 @@ class Class2 extends core::Object {
     ;
   static method _#named#tearOff() → self2::Class2
     return new self2::Class2::named();
-  static factory redirect() → self2::Class2
+  static factory redirect() → self2::Class2 /* redirection-target: self2::Class2::named */
     return new self2::Class2::named();
   static method _#redirect#tearOff() → self2::Class2
     return new self2::Class2::named();
@@ -48,7 +48,7 @@ class Class4<T extends core::Object? = dynamic> extends core::Object {
     ;
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#new#tearOff::T%>
     return self2::Class4::•<self2::Class4::_#new#tearOff::T%>();
-  static factory redirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::redirect::T%> /* redirection-target: self2::Class4::_<self2::Class4::redirect::T%>*/
     return new self2::Class4::_<self2::Class4::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::_#redirect#tearOff::T%>
     return new self2::Class4::_<self2::Class4::_#redirect#tearOff::T%>();

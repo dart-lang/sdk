@@ -46,7 +46,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     ;
   static method _#fact#tearOff<T extends core::Object? = dynamic>(mai::A::_#fact#tearOff::T% a, {core::int? b, has-declared-initializer core::int c}) → mai::A<mai::A::_#fact#tearOff::T%>
     return mai::A::fact<mai::A::_#fact#tearOff::T%>(a, b: b, c: c);
-  static factory redirect<T extends core::Object? = dynamic>() → mai::A<mai::A::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → mai::A<mai::A::redirect::T%> /* redirection-target: mai::A::•<mai::A::redirect::T%>*/
     return new mai::A::•<mai::A::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → mai::A<mai::A::_#redirect#tearOff::T%>
     return new mai::A::•<mai::A::_#redirect#tearOff::T%>();

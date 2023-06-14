@@ -19,7 +19,7 @@ import "dart:core" as core;
 class B<T extends core::Object? = dynamic> extends self::C<self::B::T%> {
   constructor •() → self::B<self::B::T%>
     ;
-  static factory foo<T extends core::Object? = dynamic>() → self::B<self::B::foo::T%>
+  static factory foo<T extends core::Object? = dynamic>() → self::B<self::B::foo::T%> /* redirection-target: self::B::•<self::B::foo::T%>*/
     return new self::B::•<self::B::foo::T%>();
 }
 class C<K extends core::Object? = dynamic> extends core::Object {

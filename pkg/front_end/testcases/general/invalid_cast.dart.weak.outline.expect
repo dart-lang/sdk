@@ -11,7 +11,7 @@ class C extends core::Object {
     ;
   static factory fact() → self::C*
     ;
-  static factory fact2() → self::C*
+  static factory fact2() → self::C* /* redirection-target: self::D::• */
     return new self::D::•();
   static method staticFunction(core::int* i) → void
     ;

@@ -6,7 +6,7 @@ class Foo extends core::Object {
   constructor named(dynamic p) → self::Foo
     ;
   @self::forFactoryItself
-  static factory •(dynamic p) → self::Foo
+  static factory •(dynamic p) → self::Foo /* redirection-target: self::Foo::named */
     return new self::Foo::named(p);
 }
 static const field core::int forParameter = 1;

@@ -17,7 +17,7 @@ abstract class C extends core::Object {
     ;
   constructor name1(self::D? v5, Null v7) → self::C
     ;
-  static factory name2(self::D arg1, Null arg2) → self::C
+  static factory name2(self::D arg1, Null arg2) → self::C /* redirection-target: self::C1::name1 */
     return new self::C1::name1(arg1, arg2);
   static method _#name2#tearOff(self::D arg1, Null arg2) → self::C
     return new self::C1::name1(arg1, arg2);

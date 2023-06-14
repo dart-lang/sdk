@@ -24,7 +24,6 @@ import 'package:kernel/type_environment.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/function_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -38,9 +37,7 @@ import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../builder/void_type_declaration_builder.dart';
-import '../dill/dill_member_builder.dart';
 import '../fasta_codes.dart';
-import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/hierarchy/hierarchy_builder.dart';
 import '../kernel/hierarchy/hierarchy_node.dart';
@@ -50,7 +47,6 @@ import '../kernel/utils.dart' show compareProcedures;
 import '../names.dart' show equalsName;
 import '../problems.dart' show unexpected, unhandled, unimplemented;
 import '../scope.dart';
-import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_constructor_builder.dart';
@@ -93,9 +89,11 @@ Class initializeClass(
 }
 
 class SourceClassBuilder extends ClassBuilderImpl
+    with ClassDeclarationMixin
     implements Comparable<SourceClassBuilder>, ClassDeclaration {
   final Class actualCls;
 
+  @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   @override
@@ -931,16 +929,6 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
   }
 
-  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
-      Message message, int charOffset, int length) {
-    addProblem(message, charOffset, length);
-    String text = libraryBuilder.loader.target.context
-        .format(
-            message.withLocation(fileUri, charOffset, length), Severity.error)
-        .plain;
-    factory.setRedirectingFactoryError(text);
-  }
-
   void checkRedirectingFactories(TypeEnvironment typeEnvironment) {
     Iterator<SourceFactoryBuilder> iterator = constructorScope.filteredIterator(
         parent: this, includeDuplicates: true, includeAugmentations: true);
@@ -1292,115 +1280,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
   bool _isPrivateNameInThisLibrary(Name name) =>
       name.isPrivate && name.library == libraryBuilder.library;
-
-  int resolveConstructors(SourceLibraryBuilder library) {
-    if (constructorReferences == null) return 0;
-    for (ConstructorReferenceBuilder ref in constructorReferences!) {
-      ref.resolveIn(scope, library);
-    }
-    int count = constructorReferences!.length;
-    if (count != 0) {
-      Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
-          parent: this, includeDuplicates: true, includeAugmentations: true);
-      while (iterator.moveNext()) {
-        MemberBuilder declaration = iterator.current;
-        if (declaration.parent?.origin != origin) {
-          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
-              fileUri);
-        }
-        if (declaration is RedirectingFactoryBuilder) {
-          // Compute the immediate redirection target, not the effective.
-
-          ConstructorReferenceBuilder redirectionTarget =
-              declaration.redirectionTarget;
-          List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
-          Builder? target = redirectionTarget.target;
-          if (typeArguments != null && target is MemberBuilder) {
-            Object? redirectionTargetName = redirectionTarget.name;
-            if (redirectionTargetName is String) {
-              // Do nothing. This is the case of an identifier followed by
-              // type arguments, such as the following:
-              //   B<T>
-              //   B<T>.named
-            } else if (redirectionTargetName is QualifiedName) {
-              if (target.name.isEmpty) {
-                // Do nothing. This is the case of a qualified
-                // non-constructor prefix (for example, with a library
-                // qualifier) followed by type arguments, such as the
-                // following:
-                //   lib.B<T>
-              } else if (target.name != redirectionTargetName.suffix.lexeme) {
-                // Do nothing. This is the case of a qualified
-                // non-constructor prefix followed by type arguments followed
-                // by a constructor name, such as the following:
-                //   lib.B<T>.named
-              } else {
-                // TODO(cstefantsova,johnniwinther): Handle this in case in
-                // ConstructorReferenceBuilder.resolveIn and unify with other
-                // cases of handling of type arguments after constructor
-                // names.
-                addProblem(
-                    messageConstructorWithTypeArguments,
-                    redirectionTargetName.charOffset,
-                    redirectionTargetName.name.length);
-              }
-            }
-          }
-
-          Builder? targetBuilder = redirectionTarget.target;
-          Member? targetNode;
-          if (targetBuilder is FunctionBuilder) {
-            targetNode = targetBuilder.member;
-          } else if (targetBuilder is DillMemberBuilder) {
-            targetNode = targetBuilder.member;
-          } else if (targetBuilder is AmbiguousBuilder) {
-            addProblemForRedirectingFactory(
-                declaration,
-                templateDuplicatedDeclarationUse
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength);
-          } else {
-            addProblemForRedirectingFactory(
-                declaration,
-                templateRedirectionTargetNotFound
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength);
-          }
-          if (targetNode != null &&
-              targetNode is Constructor &&
-              targetNode.enclosingClass.isAbstract) {
-            addProblemForRedirectingFactory(
-                declaration,
-                templateAbstractRedirectedClassInstantiation
-                    .withArguments(redirectionTarget.fullNameForErrors),
-                redirectionTarget.charOffset,
-                noLength);
-            targetNode = null;
-          }
-          if (targetNode != null &&
-              targetNode is Constructor &&
-              targetNode.enclosingClass.isEnum) {
-            addProblemForRedirectingFactory(
-                declaration,
-                messageEnumFactoryRedirectsToConstructor,
-                redirectionTarget.charOffset,
-                noLength);
-            targetNode = null;
-          }
-          if (targetNode != null) {
-            List<DartType> typeArguments = declaration.typeArguments ??
-                new List<DartType>.filled(
-                    targetNode.enclosingClass!.typeParameters.length,
-                    const UnknownType());
-            declaration.setRedirectingFactoryBody(targetNode, typeArguments);
-          }
-        }
-      }
-    }
-    return count;
-  }
 
   void _handleSeenCovariant(
       ClassHierarchyMembers memberHierarchy,

@@ -37,9 +37,9 @@ class Class1<T extends core::Object?> extends core::Object /*hasConstConstructor
   const constructor _() → opt::Class1<opt::Class1::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object?>() → opt::Class1<opt::Class1::redirect::T%>
+  static factory redirect<T extends core::Object?>() → opt::Class1<opt::Class1::redirect::T%> /* redirection-target: opt::Class1::_<opt::Class1::redirect::T%>*/
     return new opt::Class1::_<opt::Class1::redirect::T%>();
-  static factory constRedirect<T extends core::Object?>() → opt::Class1<opt::Class1::constRedirect::T%>
+  static factory constRedirect<T extends core::Object?>() → opt::Class1<opt::Class1::constRedirect::T%> /* redirection-target: opt::Class1::_<opt::Class1::constRedirect::T%>*/
     return new opt::Class1::_<opt::Class1::constRedirect::T%>();
   static factory fact<T extends core::Object?>() → opt::Class1<opt::Class1::fact::T%>
     return new opt::Class1::_<opt::Class1::fact::T%>();
@@ -48,9 +48,9 @@ class Class2<T extends core::Object> extends core::Object /*hasConstConstructor*
   const constructor _() → opt::Class2<opt::Class2::T>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object>() → opt::Class2<opt::Class2::redirect::T>
+  static factory redirect<T extends core::Object>() → opt::Class2<opt::Class2::redirect::T> /* redirection-target: opt::Class2::_<opt::Class2::redirect::T>*/
     return new opt::Class2::_<opt::Class2::redirect::T>();
-  static factory constRedirect<T extends core::Object>() → opt::Class2<opt::Class2::constRedirect::T>
+  static factory constRedirect<T extends core::Object>() → opt::Class2<opt::Class2::constRedirect::T> /* redirection-target: opt::Class2::_<opt::Class2::constRedirect::T>*/
     return new opt::Class2::_<opt::Class2::constRedirect::T>();
   static factory fact<T extends core::Object>() → opt::Class2<opt::Class2::fact::T>
     return new opt::Class2::_<opt::Class2::fact::T>();
@@ -59,9 +59,9 @@ class Class3<T extends core::String> extends core::Object /*hasConstConstructor*
   const constructor _() → opt::Class3<opt::Class3::T>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::String>() → opt::Class3<opt::Class3::redirect::T>
+  static factory redirect<T extends core::String>() → opt::Class3<opt::Class3::redirect::T> /* redirection-target: opt::Class3::_<opt::Class3::redirect::T>*/
     return new opt::Class3::_<opt::Class3::redirect::T>();
-  static factory constRedirect<T extends core::String>() → opt::Class3<opt::Class3::constRedirect::T>
+  static factory constRedirect<T extends core::String>() → opt::Class3<opt::Class3::constRedirect::T> /* redirection-target: opt::Class3::_<opt::Class3::constRedirect::T>*/
     return new opt::Class3::_<opt::Class3::constRedirect::T>();
   static factory fact<T extends core::String>() → opt::Class3<opt::Class3::fact::T>
     return new opt::Class3::_<opt::Class3::fact::T>();
@@ -70,9 +70,9 @@ class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstC
   const constructor _() → opt::Class4<opt::Class4::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::redirect::T%> /* redirection-target: opt::Class4::_<opt::Class4::redirect::T%>*/
     return new opt::Class4::_<opt::Class4::redirect::T%>();
-  static factory constRedirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::constRedirect::T%>
+  static factory constRedirect<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::constRedirect::T%> /* redirection-target: opt::Class4::_<opt::Class4::constRedirect::T%>*/
     return new opt::Class4::_<opt::Class4::constRedirect::T%>();
   static factory fact<T extends core::Object? = dynamic>() → opt::Class4<opt::Class4::fact::T%>
     return new opt::Class4::_<opt::Class4::fact::T%>();
@@ -81,9 +81,9 @@ class Class5<T extends dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor _() → opt::Class5<opt::Class5::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends dynamic>() → opt::Class5<opt::Class5::redirect::T%>
+  static factory redirect<T extends dynamic>() → opt::Class5<opt::Class5::redirect::T%> /* redirection-target: opt::Class5::_<opt::Class5::redirect::T%>*/
     return new opt::Class5::_<opt::Class5::redirect::T%>();
-  static factory constRedirect<T extends dynamic>() → opt::Class5<opt::Class5::constRedirect::T%>
+  static factory constRedirect<T extends dynamic>() → opt::Class5<opt::Class5::constRedirect::T%> /* redirection-target: opt::Class5::_<opt::Class5::constRedirect::T%>*/
     return new opt::Class5::_<opt::Class5::constRedirect::T%>();
   static factory fact<T extends dynamic>() → opt::Class5<opt::Class5::fact::T%>
     return new opt::Class5::_<opt::Class5::fact::T%>();

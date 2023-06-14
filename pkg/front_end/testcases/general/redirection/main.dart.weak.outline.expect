@@ -11,7 +11,7 @@ import self as self2;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  static factory •() → self2::Class
+  static factory •() → self2::Class /* redirection-target: self2::_Class::• */
     return new self2::_Class::•();
 }
 class _Class extends core::Object implements self2::Class {

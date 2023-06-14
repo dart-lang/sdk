@@ -111,6 +111,7 @@ import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'class_declaration.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -1577,9 +1578,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    Iterator<ClassDeclaration> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      SourceClassBuilder builder = iterator.current;
+      ClassDeclaration builder = iterator.current;
       count += builder.resolveConstructors(this);
     }
     return count;
@@ -1764,6 +1765,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       library.problemsAsJson!.add(formattedMessage.toJsonString());
     }
     return formattedMessage;
+  }
+
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length, Uri fileUri) {
+    addProblem(message, charOffset, length, fileUri);
+    String text = loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.setRedirectingFactoryError(text);
   }
 
   void addClass(
@@ -2246,6 +2257,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         memberScope,
         constructorScope,
         this,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
         endOffset,

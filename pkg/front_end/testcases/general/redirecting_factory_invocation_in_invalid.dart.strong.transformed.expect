@@ -104,7 +104,7 @@ class Class1 extends core::Object {
   constructor _() → self::Class1
     : super core::Object::•()
     ;
-  static factory •() → self::Class1
+  static factory •() → self::Class1 /* redirection-target: self::Class1::_ */
     return new self::Class1::_();
   get getter() → core::int
     return 0;

@@ -771,6 +771,20 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
       writeSpaced(getAsyncMarkerKeyword(function.dartAsyncMarker));
       writeSpaced("*/");
     }
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        function.redirectingFactoryTarget;
+    if (redirectingFactoryTarget != null &&
+        redirectingFactoryTarget.target != null) {
+      writeWord('/* redirection-target:');
+      writeMemberReferenceFromReference(
+          redirectingFactoryTarget.targetReference);
+      if (redirectingFactoryTarget.typeArguments!.isNotEmpty) {
+        writeSymbol('<');
+        writeList(redirectingFactoryTarget.typeArguments!, writeType);
+        writeSymbol('>');
+      }
+      writeWord('*/');
+    }
     Statement? body = function.body;
     if (body != null) {
       writeFunctionBody(body, terminateLine: terminateLine);
@@ -1433,6 +1447,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
           break;
         case InlineClassMemberKind.Factory:
           writeWord('factory');
+          break;
+        case InlineClassMemberKind.RedirectingFactory:
+          writeWord('redirecting-factory');
           break;
         case InlineClassMemberKind.Method:
           writeWord('method');
