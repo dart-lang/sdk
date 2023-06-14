@@ -3172,6 +3172,16 @@ void Class::set_is_isolate_unsendable_due_to_pragma(bool value) const {
       IsIsolateUnsendableDueToPragmaBit::update(value, state_bits()));
 }
 
+void Class::set_is_future_subtype(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(IsFutureSubtypeBit::update(value, state_bits()));
+}
+
+void Class::set_can_be_future(bool value) const {
+  ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
+  set_state_bits(CanBeFutureBit::update(value, state_bits()));
+}
+
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
   if (Object::empty_array().ptr() == Array::null()) {

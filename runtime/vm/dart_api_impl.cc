@@ -2539,15 +2539,8 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
   API_TIMELINE_DURATION(T);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsInstance()) {
-    ObjectStore* object_store = T->isolate_group()->object_store();
-    const Type& future_rare_type =
-        Type::Handle(Z, object_store->non_nullable_future_rare_type());
-    ASSERT(!future_rare_type.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    bool is_future = Class::IsSubtypeOf(
-        obj_class, Object::null_type_arguments(), Nullability::kNonNullable,
-        future_rare_type, Heap::kNew);
-    return is_future;
+    return obj_class.is_future_subtype();
   }
   return false;
 }
