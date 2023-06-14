@@ -18,9 +18,9 @@ Alternatively, if you want to contribute to the linter or examine the source, cl
 
 ## Usage
 
-The linter gives you feedback to help you catch potential errors and keep your code in line with the published 
-[Dart Style Guide][style_guide]. Enforceable lint rules (or "lints") are cataloged [here][lints] and can be configured via an 
-[analysis options file][options_file].  The linter is run from within the `dart analyze` [command-line tool][analyzer_cli] shipped with the 
+The linter gives you feedback to help you catch potential errors and keep your code in line with the published
+[Dart Style Guide][style_guide]. Enforceable lint rules (or "lints") are cataloged [here][lints] and can be configured via an
+[analysis options file][options_file].  The linter is run from within the `dart analyze` [command-line tool][analyzer_cli] shipped with the
 Dart SDK.  Assuming you have lints configured in an `analysis_options.yaml` file at the root of your project with these contents:
 
 ```yaml
@@ -33,13 +33,13 @@ linter:
 you could lint your package like this:
 
     $ dart analyze .
-    
+
 and see any violations of the `annotate_overrides`, `hash_and_equals`, and `prefer_is_not_empty` rules in the console.
 To help you choose the rules you want to enable for your package, we have provided a [complete list of rules][lints]
 with lints recommended by the Dart team collected in [`package:lints`][package-dart-lints]. Lints recommended for Flutter apps, packages,
 and plugins are documented in [`package:flutter_lints`][package-flutter-lints].
 
-If a specific lint warning should be ignored, it can be flagged with a comment.  For example, 
+If a specific lint warning should be ignored, it can be flagged with a comment.  For example,
 
 ```dart
    // ignore: camel_case_types
@@ -66,7 +66,7 @@ class whyOhWhy { }
 
 tells the Dart analyzer to ignore all occurrences of the `camel_case_types` warning in this file.
 
-As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For 
+As lints are treated the same as errors and warnings by the analyzer, their severity can similarly be configured in an options file.  For
 example, an analysis options file that specifies
 
 ```yaml
@@ -76,7 +76,7 @@ linter:
 analyzer:
   errors:
     camel_case_types: error
-```  
+```
 
 tells the analyzer to treat `camel_case_types` lints as errors.  For more on configuring analysis see the analysis option file [docs][options_file].
 
