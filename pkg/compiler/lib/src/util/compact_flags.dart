@@ -1,27 +1,30 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-const int emptyValue = 0;
+const int emptyCompactFlags = 0;
 
-int create(List<Enum> setFlags) {
-  return updateAllFlags(setFlags, true, 0);
-}
+typedef CompactFlags = int;
 
-int updateAllFlags(List<Enum> flagIndices, bool newState, int currentValue) {
-  int flags = currentValue;
-  for (final hasIndex in flagIndices) {
-    flags = updateFlag(hasIndex, newState, flags);
+extension CompactFlagsMethods on CompactFlags {
+  CompactFlags updateAllFlags(List<Enum> flagIndices, bool newState) {
+    int flags = this;
+    for (final index in flagIndices) {
+      flags = flags.updateFlag(index, newState);
+    }
+    return flags;
   }
-  return flags;
+
+  CompactFlags updateFlag(Enum flag, bool newState) {
+    return newState ? setFlag(flag) : clearFlag(flag);
+  }
+
+  CompactFlags setFlag(Enum flag) => this | (1 << flag.index);
+
+  CompactFlags clearFlag(Enum flag) => this & ~(1 << flag.index);
+
+  bool hasFlag(Enum flag) => ((this >> flag.index) & 1) == 1;
 }
 
-int updateFlag(Enum flag, bool newState, int currentValue) {
-  return newState ? setFlag(flag, currentValue) : clearFlag(flag, currentValue);
+CompactFlags create(List<Enum> setFlags) {
+  return emptyCompactFlags.updateAllFlags(setFlags, true);
 }
-
-int setFlag(Enum flag, int currentValue) => currentValue | (1 << flag.index);
-
-int clearFlag(Enum flag, int currentValue) => currentValue & ~(1 << flag.index);
-
-bool hasFlag(Enum flag, int currentValue) =>
-    ((currentValue >> flag.index) & 1) == 1;
