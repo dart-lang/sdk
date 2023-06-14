@@ -99,9 +99,9 @@ mixin class MixinClassFactory extends core::Object {
   constructor named() → self::MixinClassFactory
     : super core::Object::•()
     ;
-  static factory x() → self::MixinClassFactory
+  static factory x() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::named */
     return new self::MixinClassFactory::named();
-  static factory y() → self::MixinClassFactory
+  static factory y() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::• */
     return new self::MixinClassFactory::•();
   static factory z() → self::MixinClassFactory {
     return new self::MixinClassFactory::•();

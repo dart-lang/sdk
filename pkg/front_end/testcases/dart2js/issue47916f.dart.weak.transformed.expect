@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<self::A::•::T%>*/
     return self::B::•<self::A::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>;
 }

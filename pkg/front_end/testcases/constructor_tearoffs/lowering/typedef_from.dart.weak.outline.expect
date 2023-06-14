@@ -19,7 +19,7 @@ class Class<S extends core::Object? = dynamic, T extends core::Object? = dynamic
     ;
   static method _#fact#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#fact#tearOff::S% a, {self::Class::_#fact#tearOff::T? b, has-declared-initializer core::int c}) → self::Class<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>
     return self::Class::fact<self::Class::_#fact#tearOff::S%, self::Class::_#fact#tearOff::T%>(a, b: b, c: c);
-  static factory redirect<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::redirect::S% a) → self::Class<self::Class::redirect::S%, self::Class::redirect::T%>
+  static factory redirect<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::redirect::S% a) → self::Class<self::Class::redirect::S%, self::Class::redirect::T%> /* redirection-target: self::Class::named<self::Class::redirect::S%, self::Class::redirect::T%>*/
     return new self::Class::named<self::Class::redirect::S%, self::Class::redirect::T%>(a);
   static method _#redirect#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(self::Class::_#redirect#tearOff::S% a) → self::Class<self::Class::_#redirect#tearOff::S%, self::Class::_#redirect#tearOff::T%>
     return new self::Class::named<self::Class::_#redirect#tearOff::S%, self::Class::_#redirect#tearOff::T%>(a);

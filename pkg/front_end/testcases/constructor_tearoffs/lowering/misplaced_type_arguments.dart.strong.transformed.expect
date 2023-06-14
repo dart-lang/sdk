@@ -61,7 +61,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     return new self::A::•<self::A::fact::T%>();
   static method _#fact#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#fact#tearOff::T%>
     return self::A::fact<self::A::_#fact#tearOff::T%>();
-  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self::A<self::A::redirect::T%> /* redirection-target: self::A::•<self::A::redirect::T%>*/
     return new self::A::•<self::A::redirect::T%>();
   static method _#redirect#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#redirect#tearOff::T%>
     return new self::A::•<self::A::_#redirect#tearOff::T%>();

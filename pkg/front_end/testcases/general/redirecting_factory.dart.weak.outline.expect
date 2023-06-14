@@ -21,7 +21,7 @@ abstract class FooBase<Tf extends core::Object? = dynamic> extends core::Object 
                            ^";
 }
 abstract class Foo<T extends core::Object? = dynamic> extends core::Object implements self::FooBase<dynamic> {
-  static factory •<T extends core::Object? = dynamic>(core::int x) → self::Foo<self::Foo::•::T%>
+  static factory •<T extends core::Object? = dynamic>(core::int x) → self::Foo<self::Foo::•::T%> /* redirection-target: self::Bar::•<core::String, self::Foo::•::T%>*/
     return new self::Bar::•<core::String, self::Foo::•::T%>(x);
 }
 class Bar<Sb extends core::Object? = dynamic, Tb extends core::Object? = dynamic> extends core::Object implements self::Foo<self::Bar::Tb%> {
@@ -36,11 +36,11 @@ class Builder<X extends core::Object? = dynamic> extends core::Object {
     ;
 }
 class SimpleCase<A extends core::Object? = dynamic, B extends core::Object? = dynamic> extends core::Object {
-  static factory •<A extends core::Object? = dynamic, B extends core::Object? = dynamic>() → self::SimpleCase<self::SimpleCase::•::A%, self::SimpleCase::•::B%>
+  static factory •<A extends core::Object? = dynamic, B extends core::Object? = dynamic>() → self::SimpleCase<self::SimpleCase::•::A%, self::SimpleCase::•::B%> /* redirection-target: self::SimpleCaseImpl::•<self::SimpleCase::•::A%, self::SimpleCase::•::B%>*/
     return self::SimpleCaseImpl::•<self::SimpleCase::•::A%, self::SimpleCase::•::B%>();
 }
 class SimpleCaseImpl<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic> extends core::Object implements self::SimpleCase<self::SimpleCaseImpl::Ai%, self::SimpleCaseImpl::Bi%> {
-  static factory •<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>
+  static factory •<Ai extends core::Object? = dynamic, Bi extends core::Object? = dynamic>() → self::SimpleCaseImpl<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%> /* redirection-target: self::SimpleCaseImpl2::•<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>*/
     return new self::SimpleCaseImpl2::•<self::SimpleCaseImpl::•::Ai%, self::SimpleCaseImpl::•::Bi%>();
 }
 class SimpleCaseImpl2<Ai2 extends core::Object? = dynamic, Bi2 extends core::Object? = dynamic> extends core::Object implements self::SimpleCaseImpl<self::SimpleCaseImpl2::Ai2%, self::SimpleCaseImpl2::Bi2%> {

@@ -5,7 +5,7 @@ library from "org-dartlang-test:///main.dart" as main {
     constructor •() → main::Foo
       : super dart.core::Object::•()
       ;
-    static factory bar() → main::Foo
+    static factory bar() → main::Foo /* redirection-target: main::Baz::• */
       return new main::Baz::•();
     method bar() → void {}
   }

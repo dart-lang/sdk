@@ -15,6 +15,7 @@ import '../builder/metadata_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../dill/dill_member_builder.dart';
+import '../fasta_codes.dart';
 import '../identifiers.dart';
 import '../kernel/body_builder_context.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
@@ -406,9 +407,17 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   @override
   void buildOutlineNodes(void Function(Member, BuiltMemberKind) f) {
     _build();
-    f(_procedureInternal, BuiltMemberKind.RedirectingFactory);
+    f(
+        _procedureInternal,
+        isInlineClassMember
+            ? BuiltMemberKind.InlineClassRedirectingFactory
+            : BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
-      f(_factoryTearOff!, BuiltMemberKind.Method);
+      f(
+          _factoryTearOff!,
+          isInlineClassMember
+              ? BuiltMemberKind.InlineClassTearOff
+              : BuiltMemberKind.Method);
     }
   }
 
@@ -604,12 +613,13 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         targetNode.computeFunctionType(libraryBuilder.nonNullable);
     if (typeArguments != null &&
         targetFunctionType.typeParameters.length != typeArguments.length) {
-      classBuilder.addProblemForRedirectingFactory(
+      libraryBuilder.addProblemForRedirectingFactory(
           factory,
           templateTypeArgumentMismatch
               .withArguments(targetFunctionType.typeParameters.length),
           redirectionTarget.charOffset,
-          noLength);
+          noLength,
+          redirectionTarget.fileUri);
       return null;
     }
 
@@ -629,25 +639,27 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
         // [typeParameter].
         if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
             SubtypeCheckMode.ignoringNullabilities)) {
-          classBuilder.addProblemForRedirectingFactory(
+          libraryBuilder.addProblemForRedirectingFactory(
               factory,
               templateRedirectingFactoryIncompatibleTypeArgument.withArguments(
                   typeArgument,
                   typeParameterBound,
                   libraryBuilder.isNonNullableByDefault),
               redirectionTarget.charOffset,
-              noLength);
+              noLength,
+              redirectionTarget.fileUri);
           hasProblem = true;
         } else if (libraryBuilder.isNonNullableByDefault) {
           if (!typeEnvironment.isSubtypeOf(typeArgument, typeParameterBound,
               SubtypeCheckMode.withNullabilities)) {
-            classBuilder.addProblemForRedirectingFactory(
+            libraryBuilder.addProblemForRedirectingFactory(
                 factory,
                 templateRedirectingFactoryIncompatibleTypeArgument
                     .withArguments(typeArgument, typeParameterBound,
                         libraryBuilder.isNonNullableByDefault),
                 redirectionTarget.charOffset,
-                noLength);
+                noLength,
+                redirectionTarget.fileUri);
             hasProblem = true;
           }
         }
@@ -715,13 +727,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
   void _checkRedirectingFactory(TypeEnvironment typeEnvironment) {
     // Check that factory declaration is not cyclic.
     if (_isCyclicRedirectingFactory(this)) {
-      classBuilder.addProblemForRedirectingFactory(
+      libraryBuilder.addProblemForRedirectingFactory(
           this,
           templateCyclicRedirectingFactoryConstructors
               .withArguments("${classBuilder.name}"
                   "${name == '' ? '' : '.${name}'}"),
           charOffset,
-          noLength);
+          noLength,
+          fileUri);
       return;
     }
 
@@ -761,25 +774,27 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       // Check whether [redirecteeType] <: [factoryType].
       if (!typeEnvironment.isSubtypeOf(redirecteeType, factoryType,
           SubtypeCheckMode.ignoringNullabilities)) {
-        classBuilder.addProblemForRedirectingFactory(
+        libraryBuilder.addProblemForRedirectingFactory(
             this,
             templateIncompatibleRedirecteeFunctionType.withArguments(
                 redirecteeType,
                 factoryType,
                 libraryBuilder.isNonNullableByDefault),
             redirectionTarget.charOffset,
-            noLength);
+            noLength,
+            redirectionTarget.fileUri);
       } else if (libraryBuilder.isNonNullableByDefault) {
         if (!typeEnvironment.isSubtypeOf(
             redirecteeType, factoryType, SubtypeCheckMode.withNullabilities)) {
-          classBuilder.addProblemForRedirectingFactory(
+          libraryBuilder.addProblemForRedirectingFactory(
               this,
               templateIncompatibleRedirecteeFunctionType.withArguments(
                   redirecteeType,
                   factoryType,
                   libraryBuilder.isNonNullableByDefault),
               redirectionTarget.charOffset,
-              noLength);
+              noLength,
+              redirectionTarget.fileUri);
         }
       }
     }

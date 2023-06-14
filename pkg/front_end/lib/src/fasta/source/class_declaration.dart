@@ -2,11 +2,24 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:kernel/ast.dart';
+
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
+import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builder.dart';
+import '../builder/function_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
+import '../builder/type_builder.dart';
+import '../dill/dill_member_builder.dart';
+import '../fasta_codes.dart';
+import '../identifiers.dart';
+import '../problems.dart';
+import '../scope.dart';
+import '../type_inference/type_schema.dart';
+import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 
 /// Common interface for builders for a class declarations in source code, such
@@ -21,10 +34,141 @@ abstract class ClassDeclaration
   /// Returns `true` if this class declaration has a generative constructor,
   /// either explicitly or implicitly through a no-name default constructor.
   bool get hasGenerativeConstructor;
+
+  int resolveConstructors(SourceLibraryBuilder library);
+}
+
+mixin ClassDeclarationMixin implements ClassDeclaration {
+  List<ConstructorReferenceBuilder>? get constructorReferences;
+
+  @override
+  int resolveConstructors(SourceLibraryBuilder library) {
+    if (constructorReferences == null) return 0;
+    for (ConstructorReferenceBuilder ref in constructorReferences!) {
+      ref.resolveIn(scope, library);
+    }
+    int count = constructorReferences!.length;
+    if (count != 0) {
+      Iterator<MemberBuilder> iterator = constructorScope.filteredIterator(
+          parent: this, includeDuplicates: true, includeAugmentations: true);
+      while (iterator.moveNext()) {
+        MemberBuilder declaration = iterator.current;
+        if (declaration.parent?.origin != origin) {
+          unexpected("$fileUri", "${declaration.parent!.fileUri}", charOffset,
+              fileUri);
+        }
+        if (declaration is RedirectingFactoryBuilder) {
+          // Compute the immediate redirection target, not the effective.
+
+          ConstructorReferenceBuilder redirectionTarget =
+              declaration.redirectionTarget;
+          List<TypeBuilder>? typeArguments = redirectionTarget.typeArguments;
+          Builder? target = redirectionTarget.target;
+          if (typeArguments != null && target is MemberBuilder) {
+            Object? redirectionTargetName = redirectionTarget.name;
+            if (redirectionTargetName is String) {
+              // Do nothing. This is the case of an identifier followed by
+              // type arguments, such as the following:
+              //   B<T>
+              //   B<T>.named
+            } else if (redirectionTargetName is QualifiedName) {
+              if (target.name.isEmpty) {
+                // Do nothing. This is the case of a qualified
+                // non-constructor prefix (for example, with a library
+                // qualifier) followed by type arguments, such as the
+                // following:
+                //   lib.B<T>
+              } else if (target.name != redirectionTargetName.suffix.lexeme) {
+                // Do nothing. This is the case of a qualified
+                // non-constructor prefix followed by type arguments followed
+                // by a constructor name, such as the following:
+                //   lib.B<T>.named
+              } else {
+                // TODO(cstefantsova,johnniwinther): Handle this in case in
+                // ConstructorReferenceBuilder.resolveIn and unify with other
+                // cases of handling of type arguments after constructor
+                // names.
+                addProblem(
+                    messageConstructorWithTypeArguments,
+                    redirectionTargetName.charOffset,
+                    redirectionTargetName.name.length);
+              }
+            }
+          }
+
+          Builder? targetBuilder = redirectionTarget.target;
+          Member? targetNode;
+          if (targetBuilder is FunctionBuilder) {
+            targetNode = targetBuilder.member;
+          } else if (targetBuilder is DillMemberBuilder) {
+            targetNode = targetBuilder.member;
+          } else if (targetBuilder is AmbiguousBuilder) {
+            libraryBuilder.addProblemForRedirectingFactory(
+                declaration,
+                templateDuplicatedDeclarationUse
+                    .withArguments(redirectionTarget.fullNameForErrors),
+                redirectionTarget.charOffset,
+                noLength,
+                redirectionTarget.fileUri);
+          } else {
+            libraryBuilder.addProblemForRedirectingFactory(
+                declaration,
+                templateRedirectionTargetNotFound
+                    .withArguments(redirectionTarget.fullNameForErrors),
+                redirectionTarget.charOffset,
+                noLength,
+                redirectionTarget.fileUri);
+          }
+          if (targetNode != null &&
+              targetNode is Constructor &&
+              targetNode.enclosingClass.isAbstract) {
+            libraryBuilder.addProblemForRedirectingFactory(
+                declaration,
+                templateAbstractRedirectedClassInstantiation
+                    .withArguments(redirectionTarget.fullNameForErrors),
+                redirectionTarget.charOffset,
+                noLength,
+                redirectionTarget.fileUri);
+            targetNode = null;
+          }
+          if (targetNode != null &&
+              targetNode is Constructor &&
+              targetNode.enclosingClass.isEnum) {
+            libraryBuilder.addProblemForRedirectingFactory(
+                declaration,
+                messageEnumFactoryRedirectsToConstructor,
+                redirectionTarget.charOffset,
+                noLength,
+                redirectionTarget.fileUri);
+            targetNode = null;
+          }
+          if (targetNode != null) {
+            List<DartType>? typeArguments = declaration.typeArguments;
+            if (typeArguments == null) {
+              int typeArgumentCount;
+              if (targetBuilder!.isInlineClassMember) {
+                InlineClassBuilder inlineClassBuilder =
+                    targetBuilder.parent as InlineClassBuilder;
+                typeArgumentCount = inlineClassBuilder.typeVariablesCount;
+              } else {
+                typeArgumentCount =
+                    targetNode.enclosingClass!.typeParameters.length;
+              }
+              typeArguments = new List<DartType>.filled(
+                  typeArgumentCount, const UnknownType());
+            }
+            declaration.setRedirectingFactoryBody(targetNode, typeArguments);
+          }
+        }
+      }
+    }
+    return count;
+  }
 }
 
 abstract class ClassDeclarationAugmentationAccess<D extends ClassDeclaration> {
   D getOrigin(D classDeclaration);
+
   Iterable<D>? getAugmentations(D classDeclaration);
 }
 

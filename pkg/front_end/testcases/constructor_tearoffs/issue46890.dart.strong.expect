@@ -30,7 +30,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•() {}
   static factory bar<X extends core::Object? = dynamic>() → self::A<self::A::bar::X%>
     return new self::A::foo<self::A::bar::X%>();
-  static factory baz<X extends core::Object? = dynamic>() → self::A<self::A::baz::X%>
+  static factory baz<X extends core::Object? = dynamic>() → self::A<self::A::baz::X%> /* redirection-target: self::A::bar<self::A::baz::X%>*/
     return self::A::bar<self::A::baz::X%>();
 }
 static method test() → dynamic {

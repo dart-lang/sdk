@@ -115,7 +115,7 @@ class Class4b extends core::Object {
 @_in::patch
 class Class5a extends core::Object {
   @_in::patch
-  external static factory •() → self2::Class5a
+  external static factory •() → self2::Class5a /* redirection-target: self2::Class5aImpl::• */
     return new self2::Class5aImpl::•();
 }
 @_in::patch
@@ -154,7 +154,7 @@ class Class6a<T extends core::Object? = dynamic> extends core::Object {
 @_in::patch
 class Class6b<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
-  external static factory •<T extends core::Object? = dynamic>((self2::Class6b::•::T%) → void f) → self2::Class6b<self2::Class6b::•::T%>
+  external static factory •<T extends core::Object? = dynamic>((self2::Class6b::•::T%) → void f) → self2::Class6b<self2::Class6b::•::T%> /* redirection-target: self2::_Class6bImpl::•<self2::Class6b::•::T%>*/
     return new self2::_Class6bImpl::•<self2::Class6b::•::T%>(f);
 }
 @_in::patch

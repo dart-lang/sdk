@@ -194,6 +194,7 @@ enum BuiltMemberKind {
   InlineClassOperator,
   InlineClassTearOff,
   InlineClassFactory,
+  InlineClassRedirectingFactory,
   LateIsSetField,
   LateGetter,
   LateSetter,

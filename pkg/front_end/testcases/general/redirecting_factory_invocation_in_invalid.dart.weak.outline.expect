@@ -6,7 +6,7 @@ class Class1 extends core::Object {
   field core::int field;
   constructor _() → self::Class1
     ;
-  static factory •() → self::Class1
+  static factory •() → self::Class1 /* redirection-target: self::Class1::_ */
     return new self::Class1::_();
   get getter() → core::int
     ;

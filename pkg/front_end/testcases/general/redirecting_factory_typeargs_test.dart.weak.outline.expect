@@ -13,7 +13,7 @@ class Y extends self::X {
 class A extends core::Object {
   constructor •() → self::A
     ;
-  static factory redir() → self::A
+  static factory redir() → self::A /* redirection-target: self::B::•<self::Y>*/
     return new self::B::•<self::Y>();
 }
 class B<T extends self::X> extends self::A {

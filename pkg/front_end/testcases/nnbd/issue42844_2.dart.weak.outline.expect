@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   final field dynamic n;
-  static factory •(dynamic n) → self::C
+  static factory •(dynamic n) → self::C /* redirection-target: self::D::• */
     return new self::D::•(n);
 }
 class D extends core::Object implements self::C {

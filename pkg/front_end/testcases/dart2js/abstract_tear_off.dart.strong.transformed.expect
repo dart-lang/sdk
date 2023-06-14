@@ -18,7 +18,7 @@ abstract class Class extends core::Object {
   constructor •() → self::Class
     : super core::Object::•()
     ;
-  static factory redirect() → self::Class
+  static factory redirect() → self::Class /* redirection-target: self::ClassImpl::• */
     return new self::ClassImpl::•();
   static method _#redirect#tearOff() → self::Class
     return new self::ClassImpl::•();

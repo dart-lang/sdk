@@ -14,9 +14,9 @@ class Class1<T extends core::Object?> extends core::Object /*hasConstConstructor
   const constructor _() → self2::Class1<self2::Class1::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object?>() → self2::Class1<self2::Class1::redirect::T%>
+  static factory redirect<T extends core::Object?>() → self2::Class1<self2::Class1::redirect::T%> /* redirection-target: self2::Class1::_<self2::Class1::redirect::T%>*/
     return new self2::Class1::_<self2::Class1::redirect::T%>();
-  static factory constRedirect<T extends core::Object?>() → self2::Class1<self2::Class1::constRedirect::T%>
+  static factory constRedirect<T extends core::Object?>() → self2::Class1<self2::Class1::constRedirect::T%> /* redirection-target: self2::Class1::_<self2::Class1::constRedirect::T%>*/
     return new self2::Class1::_<self2::Class1::constRedirect::T%>();
   static factory fact<T extends core::Object?>() → self2::Class1<self2::Class1::fact::T%>
     ;
@@ -25,9 +25,9 @@ class Class2<T extends core::Object> extends core::Object /*hasConstConstructor*
   const constructor _() → self2::Class2<self2::Class2::T>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object>() → self2::Class2<self2::Class2::redirect::T>
+  static factory redirect<T extends core::Object>() → self2::Class2<self2::Class2::redirect::T> /* redirection-target: self2::Class2::_<self2::Class2::redirect::T>*/
     return new self2::Class2::_<self2::Class2::redirect::T>();
-  static factory constRedirect<T extends core::Object>() → self2::Class2<self2::Class2::constRedirect::T>
+  static factory constRedirect<T extends core::Object>() → self2::Class2<self2::Class2::constRedirect::T> /* redirection-target: self2::Class2::_<self2::Class2::constRedirect::T>*/
     return new self2::Class2::_<self2::Class2::constRedirect::T>();
   static factory fact<T extends core::Object>() → self2::Class2<self2::Class2::fact::T>
     ;
@@ -36,9 +36,9 @@ class Class3<T extends core::String> extends core::Object /*hasConstConstructor*
   const constructor _() → self2::Class3<self2::Class3::T>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::String>() → self2::Class3<self2::Class3::redirect::T>
+  static factory redirect<T extends core::String>() → self2::Class3<self2::Class3::redirect::T> /* redirection-target: self2::Class3::_<self2::Class3::redirect::T>*/
     return new self2::Class3::_<self2::Class3::redirect::T>();
-  static factory constRedirect<T extends core::String>() → self2::Class3<self2::Class3::constRedirect::T>
+  static factory constRedirect<T extends core::String>() → self2::Class3<self2::Class3::constRedirect::T> /* redirection-target: self2::Class3::_<self2::Class3::constRedirect::T>*/
     return new self2::Class3::_<self2::Class3::constRedirect::T>();
   static factory fact<T extends core::String>() → self2::Class3<self2::Class3::fact::T>
     ;
@@ -47,9 +47,9 @@ class Class4<T extends core::Object? = dynamic> extends core::Object /*hasConstC
   const constructor _() → self2::Class4<self2::Class4::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::redirect::T%>
+  static factory redirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::redirect::T%> /* redirection-target: self2::Class4::_<self2::Class4::redirect::T%>*/
     return new self2::Class4::_<self2::Class4::redirect::T%>();
-  static factory constRedirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::constRedirect::T%>
+  static factory constRedirect<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::constRedirect::T%> /* redirection-target: self2::Class4::_<self2::Class4::constRedirect::T%>*/
     return new self2::Class4::_<self2::Class4::constRedirect::T%>();
   static factory fact<T extends core::Object? = dynamic>() → self2::Class4<self2::Class4::fact::T%>
     ;
@@ -58,9 +58,9 @@ class Class5<T extends dynamic> extends core::Object /*hasConstConstructor*/  {
   const constructor _() → self2::Class5<self2::Class5::T%>
     : super core::Object::•()
     ;
-  static factory redirect<T extends dynamic>() → self2::Class5<self2::Class5::redirect::T%>
+  static factory redirect<T extends dynamic>() → self2::Class5<self2::Class5::redirect::T%> /* redirection-target: self2::Class5::_<self2::Class5::redirect::T%>*/
     return new self2::Class5::_<self2::Class5::redirect::T%>();
-  static factory constRedirect<T extends dynamic>() → self2::Class5<self2::Class5::constRedirect::T%>
+  static factory constRedirect<T extends dynamic>() → self2::Class5<self2::Class5::constRedirect::T%> /* redirection-target: self2::Class5::_<self2::Class5::constRedirect::T%>*/
     return new self2::Class5::_<self2::Class5::constRedirect::T%>();
   static factory fact<T extends dynamic>() → self2::Class5<self2::Class5::fact::T%>
     ;

@@ -53,7 +53,7 @@ class CP<T extends core::Object> extends opt::P<opt::CP::T> /*hasConstConstructo
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
-  static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T>
+  static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T> /* redirection-target: opt::CP::_<opt::CP::•::T>*/
     return new opt::CP::_<opt::CP::•::T>(type);
 }
 class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
@@ -65,7 +65,7 @@ class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructo
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;
-  static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T>
+  static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T> /* redirection-target: opt::VP::_<opt::VP::forToken::T>*/
     return new opt::VP::_<opt::VP::forToken::T>(token, useValue);
 }
 class M extends core::Object /*hasConstConstructor*/  {

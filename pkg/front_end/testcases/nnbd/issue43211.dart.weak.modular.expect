@@ -226,7 +226,7 @@ class C extends core::Object {
     self::A<self::A<Null>>? a;
     self::D<core::String>? b;
   }
-  static factory redirect(self::A<self::A<Null>>? a) → self::C
+  static factory redirect(self::A<self::A<Null>>? a) → self::C /* redirection-target: self::C::internal */
     return new self::C::internal(a);
   static factory fact(self::A<self::A<Null>>? a) → self::C {
     self::A<self::A<Null>>? b;

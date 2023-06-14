@@ -174,7 +174,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   }
 
   @override
-  String get debugName => "FunctionBuilder";
+  String get debugName => "${runtimeType}";
 
   @override
   AsyncMarker get asyncModifier;
@@ -472,7 +472,7 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
     if (!_hasBuiltOutlineExpressions) {
       DeclarationBuilder? classOrExtensionBuilder =
-          isClassMember || isExtensionMember
+          isClassMember || isExtensionMember || isInlineClassMember
               ? parent as DeclarationBuilder
               : null;
       Scope parentScope =

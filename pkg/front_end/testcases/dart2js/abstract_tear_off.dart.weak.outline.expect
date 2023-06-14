@@ -6,7 +6,7 @@ typedef F<unrelated T extends core::Object? = dynamic> = self::Class;
 abstract class Class extends core::Object {
   constructor •() → self::Class
     ;
-  static factory redirect() → self::Class
+  static factory redirect() → self::Class /* redirection-target: self::ClassImpl::• */
     return new self::ClassImpl::•();
   static method _#redirect#tearOff() → self::Class
     return new self::ClassImpl::•();

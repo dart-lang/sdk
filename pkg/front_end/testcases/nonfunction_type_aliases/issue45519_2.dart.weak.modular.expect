@@ -73,7 +73,7 @@ class C<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•() {}
   static factory •<X extends core::Object? = dynamic>() → self::C<self::C::•::X%>
     return new self::C::foo<self::C::•::X%>();
-  static factory bar<X extends core::Object? = dynamic>() → self::C<self::C::bar::X%>
+  static factory bar<X extends core::Object? = dynamic>() → self::C<self::C::bar::X%> /* redirection-target: self::C::•<self::C::bar::X%>*/
     return self::C::•<self::C::bar::X%>();
 }
 class D<X extends core::Object? = dynamic> extends core::Object {
@@ -82,7 +82,7 @@ class D<X extends core::Object? = dynamic> extends core::Object {
     ;
   static factory foo<X extends core::Object? = dynamic>() → self::D<self::D::foo::X%>
     return new self::D::•<self::D::foo::X%>();
-  static factory bar<X extends core::Object? = dynamic>() → self::D<self::D::bar::X%>
+  static factory bar<X extends core::Object? = dynamic>() → self::D<self::D::bar::X%> /* redirection-target: self::D::•<self::D::bar::X%>*/
     return new self::D::•<self::D::bar::X%>();
 }
 static method test() → dynamic {

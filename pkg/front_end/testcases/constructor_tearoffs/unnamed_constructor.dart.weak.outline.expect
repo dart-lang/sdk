@@ -7,9 +7,9 @@ class A extends core::Object {
     ;
   constructor redirecting() → self::A
     ;
-  static factory redirectingFactory() → self::A
+  static factory redirectingFactory() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
-  static factory redirectingFactoryChild() → self::A
+  static factory redirectingFactoryChild() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A {

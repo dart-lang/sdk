@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   constructor •() → self::A
     ;
-  static factory fisk() → self::A
+  static factory fisk() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A {

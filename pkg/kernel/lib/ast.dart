@@ -2055,6 +2055,7 @@ enum InlineClassMemberKind {
   Setter,
   Operator,
   TearOff,
+  RedirectingFactory,
 }
 
 /// Information about an member declaration in an inline class.

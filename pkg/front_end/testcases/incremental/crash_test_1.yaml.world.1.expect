@@ -12,7 +12,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
     constructor •() → lib::C
       : super dart.core::Object::•()
       ;
-    static factory e4() → lib::C
+    static factory e4() → lib::C /* redirection-target: lib::C::• */
       return new lib::C::•();
   }
 }
