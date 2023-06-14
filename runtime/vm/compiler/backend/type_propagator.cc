@@ -949,19 +949,22 @@ bool CompileType::CanBeSmi() {
 }
 
 bool CompileType::CanBeFuture() {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
+  IsolateGroup* isolate_group = IsolateGroup::Current();
+  ObjectStore* object_store = isolate_group->object_store();
+
   if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
     if ((cid_ == kNullCid) || (cid_ == kNeverCid) ||
         IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       return false;
     }
-    const Class& cls =
-        Class::Handle(zone, thread->isolate_group()->class_table()->At(cid_));
-    return cls.is_future_subtype();
+    const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));
+    return Class::IsSubtypeOf(
+        cls, TypeArguments::null_type_arguments(), Nullability::kNonNullable,
+        Type::Handle(object_store->non_nullable_future_rare_type()),
+        Heap::kNew);
   }
 
-  AbstractType& type = AbstractType::Handle(zone, ToAbstractType()->ptr());
+  AbstractType& type = AbstractType::Handle(ToAbstractType()->ptr());
   if (type.IsTypeParameter()) {
     type = TypeParameter::Cast(type).bound();
   }
@@ -977,7 +980,10 @@ bool CompileType::CanBeFuture() {
   if ((type_class_id == kNullCid) || (type_class_id == kNeverCid)) {
     return false;
   }
-  return Class::Handle(zone, type.type_class()).can_be_future();
+  Type& future_type =
+      Type::Handle(object_store->non_nullable_future_rare_type());
+  future_type = future_type.ToNullability(Nullability::kNullable, Heap::kNew);
+  return type.IsSubtypeOf(future_type, Heap::kNew);
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {

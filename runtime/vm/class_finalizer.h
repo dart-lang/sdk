@@ -54,9 +54,6 @@ class ClassFinalizer : public AllStatic {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Register class in the lists of direct subclasses and direct implementors.
   static void RegisterClassInHierarchy(Zone* zone, const Class& cls);
-
-  // Mark [cls], its superclass and superinterfaces as can_be_future().
-  static void MarkClassCanBeFuture(Zone* zone, const Class& cls);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   // Ensures members of the class are loaded, class layout is finalized and size

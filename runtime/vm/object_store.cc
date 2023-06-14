@@ -494,8 +494,9 @@ void ObjectStore::LazyInitAsyncMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
-  if (nullable_future_null_type_.load() == Type::null()) {
+  if (non_nullable_future_rare_type_.load() == Type::null()) {
     ASSERT(non_nullable_future_never_type_.load() == Type::null());
+    ASSERT(nullable_future_null_type_.load() == Type::null());
 
     auto* const zone = thread->zone();
     const auto& cls = Class::Handle(zone, future_class());
@@ -520,6 +521,9 @@ void ObjectStore::LazyInitAsyncMembers() {
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread);
     nullable_future_null_type_.store(type.ptr());
+
+    type = cls.RareType();
+    non_nullable_future_rare_type_.store(type.ptr());
   }
 }
 

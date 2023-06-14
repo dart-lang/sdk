@@ -60,6 +60,7 @@ class ObjectPointerVisitor;
   LAZY_FFI(Class, varargs_class)                                               \
   LAZY_FFI(Function, handle_finalizer_message_function)                        \
   LAZY_FFI(Function, handle_native_finalizer_message_function)                 \
+  LAZY_ASYNC(Type, non_nullable_future_rare_type)                              \
   LAZY_ASYNC(Type, non_nullable_future_never_type)                             \
   LAZY_ASYNC(Type, nullable_future_null_type)                                  \
   LAZY_ISOLATE(Class, send_port_class)                                         \
