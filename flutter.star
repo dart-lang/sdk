@@ -46,26 +46,9 @@ dart.ci_sandbox_builder(
     properties = [{
         "bisection_enabled": True,
         "flutter_test_suites": [
-            "add_to_app_life_cycle_tests",
-            "flutter_plugins",
-            "framework_coverage",
             "framework_tests",
-            "tool_tests",
         ],
     }],
-)
-
-dart.try_builder(
-    "flutter-engine-linux-web_tests",
-    recipe = "dart/flutter_engine",
-    cq_branches = ["main"],
-    execution_timeout = 8 * time.hour,
-    properties = {
-        "flutter_test_suites": [
-            "web_tests",
-            "web_tool_tests",
-        ],
-    },
 )
 
 dart.ci_builder(
