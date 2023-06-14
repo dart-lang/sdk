@@ -1,0 +1,8 @@
+expect(expected, actual) {}
+
+inline class Class {
+  const Class(this.i);
+  final int i;
+}
+
+main() {}

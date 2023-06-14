@@ -2257,6 +2257,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableConstFunctions;
+  bool inInlineClassConstConstructor = false;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
@@ -4287,7 +4288,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (enableConstFunctions) {
+    if (enableConstFunctions || inInlineClassConstConstructor) {
       return env.lookupVariable(variable) ??
           createEvaluationErrorConstant(
               node,
@@ -4315,7 +4316,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitVariableSet(VariableSet node) {
-    if (enableConstFunctions) {
+    if (enableConstFunctions || inInlineClassConstConstructor) {
       final VariableDeclaration variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
@@ -4624,6 +4625,20 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
           return doubleSpecialCases(left, right) ?? evaluateIdentical();
         }
         return evaluateIdentical();
+      }
+    } else if (target.isInlineClassMember) {
+      if (target.isConst) {
+        bool oldInInlineClassConstructor = inInlineClassConstConstructor;
+        inInlineClassConstConstructor = true;
+        Constant result = _handleFunctionInvocation(
+            node.target.function, typeArguments, positional, named);
+        inInlineClassConstConstructor = oldInInlineClassConstructor;
+        return result;
+      } else {
+        return createEvaluationErrorConstant(
+            node,
+            templateNotConstantExpression
+                .withArguments('Invocation of non-const inline class member'));
       }
     } else if (target.isExtensionMember) {
       return createEvaluationErrorConstant(node, messageConstEvalExtension);
@@ -5237,7 +5252,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    if (enableConstFunctions) {
+    if (enableConstFunctions || inInlineClassConstConstructor) {
       env = new EvaluationEnvironment.withParent(env);
     } else {
       env = new EvaluationEnvironment();
@@ -5368,8 +5383,11 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator) {
-    if (!exprEvaluator.enableConstFunctions) {
-      throw new UnsupportedError("Const functions feature is not enabled.");
+    if (!exprEvaluator.enableConstFunctions &&
+        !exprEvaluator.inInlineClassConstConstructor) {
+      throw new UnsupportedError("Statement evaluation is only supported when "
+          "in inline class const constructors or when the const functions "
+          "feature is enabled.");
     }
   }
 
