@@ -318,12 +318,14 @@ template("build_gen_snapshot_dart_io") {
     deps = [ "//third_party/zlib" ]
 
     if (is_fuchsia) {
-      deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
       if (using_fuchsia_gn_sdk) {
+        deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
         public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
       } else if (using_fuchsia_sdk) {
+        deps += [ "$fuchsia_sdk_root/fidl:fuchsia.io" ]
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
+        deps += [ "//sdk/fidl/fuchsia.io:fuchsia.io_hlcpp" ]
         public_deps = [ "//sdk/lib/fdio" ]
       }
     }
@@ -428,12 +430,14 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
-      deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
       if (using_fuchsia_gn_sdk) {
+        deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
         public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
       } else if (using_fuchsia_sdk) {
+        deps += [ "$fuchsia_sdk_root/fidl:fuchsia.io" ]
         public_deps = [ "$fuchsia_sdk_root/pkg:fdio" ]
       } else {
+        deps += [ "//sdk/fidl/fuchsia.io:fuchsia.io_hlcpp" ]
         public_deps = [ "//sdk/lib/fdio" ]
       }
     }
