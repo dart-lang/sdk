@@ -279,7 +279,7 @@ class KernelToElementMap implements IrToElementMap {
 
   void _ensureCallType(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
-    if (data is KClassDataImpl && !data.isCallTypeComputed) {
+    if (!data.isCallTypeComputed) {
       MemberEntity? callMember =
           _elementEnvironment.lookupClassMember(cls, Names.call);
       if (callMember is FunctionEntity &&
@@ -293,7 +293,7 @@ class KernelToElementMap implements IrToElementMap {
 
   void _ensureThisAndRawType(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
-    if (data is KClassDataImpl && data.thisType == null) {
+    if (data.thisType == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
         data.thisType =
@@ -315,7 +315,7 @@ class KernelToElementMap implements IrToElementMap {
 
   void _ensureJsInteropType(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
-    if (data is KClassDataImpl && data.jsInteropType == null) {
+    if (data.jsInteropType == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
         _ensureThisAndRawType(cls, data);
@@ -329,7 +329,7 @@ class KernelToElementMap implements IrToElementMap {
 
   void _ensureClassInstantiationToBounds(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
-    if (data is KClassDataImpl && data.instantiationToBounds == null) {
+    if (data.instantiationToBounds == null) {
       ir.Class node = data.node;
       if (node.typeParameters.isEmpty) {
         _ensureThisAndRawType(cls, data);
@@ -349,7 +349,7 @@ class KernelToElementMap implements IrToElementMap {
 
   void _ensureSupertypes(ClassEntity cls, KClassData data) {
     assert(checkFamily(cls));
-    if (data is KClassDataImpl && data.orderedTypeSet == null) {
+    if (data.orderedTypeSet == null) {
       _ensureThisAndRawType(cls, data);
 
       ir.Class node = data.node;
@@ -1260,7 +1260,7 @@ class KernelToElementMap implements IrToElementMap {
     }
     IndexedClass cls =
         createClass(library, node.name, isAbstract: node.isAbstract);
-    return classes.register(cls, KClassDataImpl(node), classEnv);
+    return classes.register(cls, KClassData(node), classEnv);
   }
 
   TypeVariableEntity getTypeVariableInternal(ir.TypeParameter node) {
@@ -1351,7 +1351,7 @@ class KernelToElementMap implements IrToElementMap {
           NO_LOCATION_SPANNABLE, "Unexpected constructor node: ${node}.");
     }
     return members.register<IndexedConstructor, KConstructorData>(
-        constructor, KConstructorDataImpl(node, functionNode));
+        constructor, KConstructorData(node, functionNode));
   }
 
   IndexedFunction getMethodInternal(ir.Procedure node) {
@@ -1401,7 +1401,7 @@ class KernelToElementMap implements IrToElementMap {
         break;
     }
     members.register<IndexedFunction, KFunctionData>(
-        function, KFunctionDataImpl(node, node.function));
+        function, KFunctionData(node, node.function));
     // We need to register the function before creating the type variables.
     methodMap[node] = function;
     for (ir.TypeParameter typeParameter in node.function.typeParameters) {
@@ -1444,7 +1444,7 @@ class KernelToElementMap implements IrToElementMap {
         isConst: node.isConst);
     return members.register<IndexedField, KFieldData>(
         field,
-        KFieldDataImpl(node,
+        KFieldData(node,
             isLateBackingField: isLateBackingField,
             isLateFinalBackingField: isLateFinalBackingField));
   }
