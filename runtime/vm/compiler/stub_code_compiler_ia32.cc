@@ -1035,7 +1035,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-  __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Load number of arguments into EBX and adjust count for type arguments.
   __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
@@ -1059,7 +1058,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Compute address of 'arguments array' data area into EDI.
   __ movl(EDI, Address(EBP, kArgumentsOffset));
-  __ movl(EDI, Address(EDI, VMHandles::kOffsetOfRawPtrInHandle));
   __ leal(EDI, FieldAddress(EDI, target::Array::data_offset()));
 
   __ Bind(&push_arguments);
@@ -1072,7 +1070,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Call the dart code entrypoint.
   __ movl(EAX, Address(EBP, kTargetCodeOffset));
-  __ movl(EAX, Address(EAX, VMHandles::kOffsetOfRawPtrInHandle));
   __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
 
   // Read the saved number of passed arguments as Smi.

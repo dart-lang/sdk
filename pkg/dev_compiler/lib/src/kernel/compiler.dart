@@ -279,7 +279,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   /// members.
   // TODO(srujzs): Is there some way to share this from the js_util_optimizer to
   // avoid having to recompute?
-  final _inlineExtensionIndex = InlineExtensionIndex();
+  final InlineExtensionIndex _inlineExtensionIndex;
 
   final Class _jsArrayClass;
   final Class _privateSymbolClass;
@@ -367,7 +367,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         _assertInteropMethod = sdk.getTopLevelMember(
             'dart:_runtime', 'assertInterop') as Procedure,
         _futureOrNormalizer = FutureOrNormalizer(_coreTypes),
-        _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy);
+        _typeRecipeGenerator = TypeRecipeGenerator(_coreTypes, _hierarchy),
+        _inlineExtensionIndex = InlineExtensionIndex(
+            _coreTypes, _staticTypeContext.typeEnvironment);
 
   @override
   Library? get currentLibrary => _currentLibrary;

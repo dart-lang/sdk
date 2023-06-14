@@ -1328,7 +1328,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ ldr(R4, Address(R1, target::VMHandles::kOffsetOfRawPtrInHandle));
+  __ mov(R4, Operand(R1));
 
   // Load number of arguments into R9 and adjust count for type arguments.
   __ ldr(R3,
@@ -1340,8 +1340,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ SmiUntag(R9);
 
   // Compute address of 'arguments array' data area into R2.
-  __ ldr(R2, Address(R2, target::VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(R2, target::Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, R2, target::Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1364,7 +1363,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     __ LoadImmediate(CODE_REG, 0);  // GC safe value into CODE_REG.
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
-    __ ldr(CODE_REG, Address(R0, target::VMHandles::kOffsetOfRawPtrInHandle));
+    __ mov(CODE_REG, Operand(R0));
     __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
   __ blx(R0);  // R4 is the arguments descriptor array.

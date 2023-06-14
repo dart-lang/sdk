@@ -1403,7 +1403,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ StoreToOffset(TMP, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array, which is passed to Dart code.
-  __ LoadFromOffset(ARGS_DESC_REG, A1, VMHandles::kOffsetOfRawPtrInHandle);
+  __ mv(ARGS_DESC_REG, A1);
 
   // Load number of arguments into T5 and adjust count for type arguments.
   __ LoadFieldFromOffset(T5, ARGS_DESC_REG,
@@ -1416,8 +1416,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ add(T5, T5, T3);
 
   // Compute address of 'arguments array' data area into A2.
-  __ LoadFromOffset(A2, A2, VMHandles::kOffsetOfRawPtrInHandle);
-  __ AddImmediate(A2, target::Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(A2, A2, target::Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1439,7 +1438,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     // We now load the pool pointer(PP) with a GC safe value as we are about to
     // invoke dart code. We don't need a real object pool here.
     __ li(PP, 1);  // PP is untagged, callee will tag and spill PP.
-    __ lx(CODE_REG, Address(A0, VMHandles::kOffsetOfRawPtrInHandle));
+    __ mv(CODE_REG, A0);
     __ lx(A0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
 

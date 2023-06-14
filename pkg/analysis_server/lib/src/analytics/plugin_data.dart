@@ -6,6 +6,7 @@ import 'dart:convert';
 
 import 'package:analysis_server/src/analytics/percentile_calculator.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
+import 'package:path/path.dart' as path;
 
 /// Data about the plugins associated with the context roots.
 class PluginData {
@@ -34,7 +35,7 @@ class PluginData {
     for (var i = 0; i < plugins.length; i++) {
       var info = plugins[i];
       usageCounts
-          .putIfAbsent(info.pluginId, () => PercentileCalculator())
+          .putIfAbsent(info.safePluginId, () => PercentileCalculator())
           .addValue(info.contextRoots.length);
     }
   }
@@ -46,5 +47,23 @@ class PluginData {
       encoded[entry.key] = entry.value.toJson();
     }
     return encoded;
+  }
+}
+
+extension on PluginInfo {
+  /// Return an id for this plugin that doesn't contain any PII.
+  ///
+  /// If the plugin is installed in the pub cache, then the returned name will
+  /// be the name and version of the containing package as listed on `pub.dev`.
+  /// If not, then it might be an internal name so we default to 'unknown'.
+  String get safePluginId {
+    var components = path.split(pluginId);
+    if (components.contains('.pub-cache')) {
+      var index = components.lastIndexOf('analyzer_plugin');
+      if (index > 1 && components[index - 1] == 'tools') {
+        return components[index - 2];
+      }
+    }
+    return 'unknown';
   }
 }

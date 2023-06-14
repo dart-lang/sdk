@@ -592,6 +592,10 @@ JsInteropExternalExtensionMemberWithStaticDisallowed/analyzerCode: Fail # Web co
 JsInteropExternalExtensionMemberWithStaticDisallowed/example: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/analyzerCode: Fail # Web compiler specific
 JsInteropExternalMemberNotJSAnnotated/example: Fail # Web compiler specific
+JsInteropInlineClassNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassNotInterop/example: Fail # Web compiler specific
+JsInteropInlineClassMemberNotInterop/analyzerCode: Fail # Web compiler specific
+JsInteropInlineClassMemberNotInterop/example: Fail # Web compiler specific
 JsInteropInlineClassUsedWithWrongJsAnnotation/analyzerCode: Fail # Web compiler specific
 JsInteropInlineClassUsedWithWrongJsAnnotation/example: Fail # Web compiler specific
 JsInteropInvalidStaticClassMemberName/analyzerCode: Fail

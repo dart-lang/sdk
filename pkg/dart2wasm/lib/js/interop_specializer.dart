@@ -343,10 +343,14 @@ class InteropSpecializerFactory {
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
   late String _libraryJSString;
-  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
+  late final InlineExtensionIndex _inlineExtensionIndex;
 
   InteropSpecializerFactory(
-      this._staticTypeContext, this._util, this._methodCollector);
+      this._staticTypeContext, this._util, this._methodCollector) {
+    final typeEnvironment = _staticTypeContext.typeEnvironment;
+    _inlineExtensionIndex =
+        InlineExtensionIndex(typeEnvironment.coreTypes, typeEnvironment);
+  }
 
   void enterLibrary(Library library) {
     _libraryJSString = getJSName(library);

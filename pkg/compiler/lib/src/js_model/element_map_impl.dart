@@ -1651,8 +1651,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JConstructorBody _getConstructorBody(IndexedConstructor constructor) {
-    JConstructorDataImpl data =
-        members.getData(constructor) as JConstructorDataImpl;
+    JConstructorData data = members.getData(constructor) as JConstructorData;
     JConstructorBody? constructorBody = data.constructorBody;
     if (constructorBody == null) {
       /// The constructor calls the constructor body with all parameters.

@@ -1518,7 +1518,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
-  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(R10, kArgDescReg);
 
   // Push arguments. At this point we only need to preserve kTargetReg.
   ASSERT(kTargetReg != RDX);
@@ -1538,8 +1538,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ SmiUntag(RBX);
 
   // Compute address of 'arguments array' data area into RDX.
-  __ movq(RDX, Address(kArgsReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ leaq(RDX, FieldAddress(RDX, target::Array::data_offset()));
+  __ leaq(RDX, FieldAddress(kArgsReg, target::Array::data_offset()));
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1564,7 +1563,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
-    __ movq(CODE_REG, Address(kTargetReg, VMHandles::kOffsetOfRawPtrInHandle));
+    __ movq(CODE_REG, kTargetReg);
     __ movq(kTargetReg,
             FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }

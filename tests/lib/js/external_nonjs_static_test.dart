@@ -159,17 +159,11 @@ class GenericNonJSClass<T> {}
 extension ExtensionNative on HtmlElement {
   external var field;
   external final finalField;
-  external static var staticField;
-  external static final staticFinalField;
 
   external get getter;
   external set setter(_);
 
-  external static get staticGetter;
-  external static set staticSetter(_);
-
   external method();
-  external static staticMethod();
   external optionalParameterMethod([int? a, int b = 0]);
 
   nonExternalMethod() => 1;

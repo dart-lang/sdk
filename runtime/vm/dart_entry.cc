@@ -82,20 +82,18 @@ class DartEntryScope : public TransitionToGenerated {
 #endif
 };
 
-extern "C" {
 // Note: The invocation stub follows the C ABI, so we cannot pass C++ struct
 // values like ObjectPtr. In some calling conventions (IA32), ObjectPtr is
 // passed/returned different from a pointer.
-typedef uword /*ObjectPtr*/ (*invokestub)(const Code& target_code,
-                                          const Array& arguments_descriptor,
-                                          const Array& arguments,
-                                          Thread* thread);
-typedef uword /*ObjectPtr*/ (*invokestub_bare_instructions)(
+extern "C" typedef uword /*ObjectPtr*/ (*invokestub)(
+#if defined(DART_PRECOMPILED_RUNTIME)
     uword entry_point,
-    const Array& arguments_descriptor,
-    const Array& arguments,
+#else
+    uword /*CodePtr*/ target_code,
+#endif
+    uword /*ArrayPtr*/ arguments_descriptor,
+    uword /*ArrayPtr*/ arguments,
     Thread* thread);
-}
 
 ObjectPtr DartEntry::InvokeFunction(const Function& function,
                                     const Array& arguments,
@@ -118,7 +116,6 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
       return Error::Cast(result).ptr();
     }
   }
-  Code& code = Code::Handle(thread->zone());
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 
   ASSERT(function.HasCode());
@@ -126,30 +123,26 @@ ObjectPtr DartEntry::InvokeFunction(const Function& function,
   DartEntryScope dart_entry_scope(thread);
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
+#if defined(USING_SIMULATOR)
+  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
+      static_cast<intptr_t>(stub),
 #if defined(DART_PRECOMPILED_RUNTIME)
-  uword entry_point = function.entry_point();
-#if defined(USING_SIMULATOR)
-  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), static_cast<intptr_t>(entry_point),
-      reinterpret_cast<intptr_t>(&arguments_descriptor),
-      reinterpret_cast<intptr_t>(&arguments),
-      reinterpret_cast<intptr_t>(thread)));
+      static_cast<intptr_t>(function.entry_point()),
 #else
-  return static_cast<ObjectPtr>((reinterpret_cast<invokestub_bare_instructions>(
-      stub))(entry_point, arguments_descriptor, arguments, thread));
+      static_cast<intptr_t>(function.CurrentCode()),
 #endif
-#else  // defined(DART_PRECOMPILED_RUNTIME)
-  code = function.CurrentCode();  // *After* the safepoint transition.
-#if defined(USING_SIMULATOR)
-  return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), reinterpret_cast<intptr_t>(&code),
-      reinterpret_cast<intptr_t>(&arguments_descriptor),
-      reinterpret_cast<intptr_t>(&arguments),
+      static_cast<intptr_t>(arguments_descriptor.ptr()),
+      static_cast<intptr_t>(arguments.ptr()),
       reinterpret_cast<intptr_t>(thread)));
-#else
+#else  // USING_SIMULATOR
   return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
-      code, arguments_descriptor, arguments, thread));
+#if defined(DART_PRECOMPILED_RUNTIME)
+      function.entry_point(),
+#else
+      static_cast<uword>(function.CurrentCode()),
 #endif
+      static_cast<uword>(arguments_descriptor.ptr()),
+      static_cast<uword>(arguments.ptr()), thread));
 #endif
 }
 
@@ -173,27 +166,28 @@ ObjectPtr DartEntry::InvokeCode(const Code& code,
 
   const uword stub = StubCode::InvokeDartCode().EntryPoint();
 #if defined(DART_PRECOMPILED_RUNTIME)
-  uword entry_point = code.EntryPoint();
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), static_cast<intptr_t>(entry_point),
-      reinterpret_cast<intptr_t>(&arguments_descriptor),
-      reinterpret_cast<intptr_t>(&arguments),
+      static_cast<intptr_t>(stub), static_cast<intptr_t>(code.EntryPoint()),
+      static_cast<intptr_t>(arguments_descriptor.ptr()),
+      static_cast<intptr_t>(arguments.ptr()),
       reinterpret_cast<intptr_t>(thread)));
 #else
-  return static_cast<ObjectPtr>((reinterpret_cast<invokestub_bare_instructions>(
-      stub))(entry_point, arguments_descriptor, arguments, thread));
+  return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
+      code.EntryPoint(), arguments_descriptor.ptr(), arguments.ptr(), thread));
 #endif
 #else  // defined(DART_PRECOMPILED_RUNTIME)
 #if defined(USING_SIMULATOR)
   return bit_copy<ObjectPtr, int64_t>(Simulator::Current()->Call(
-      static_cast<intptr_t>(stub), reinterpret_cast<intptr_t>(&code),
-      reinterpret_cast<intptr_t>(&arguments_descriptor),
-      reinterpret_cast<intptr_t>(&arguments),
+      static_cast<intptr_t>(stub), static_cast<intptr_t>(code.ptr()),
+      static_cast<intptr_t>(arguments_descriptor.ptr()),
+      static_cast<intptr_t>(arguments.ptr()),
       reinterpret_cast<intptr_t>(thread)));
 #else
   return static_cast<ObjectPtr>((reinterpret_cast<invokestub>(stub))(
-      code, arguments_descriptor, arguments, thread));
+      static_cast<uword>(code.ptr()),
+      static_cast<uword>(arguments_descriptor.ptr()),
+      static_cast<uword>(arguments.ptr()), thread));
 #endif
 #endif
 }

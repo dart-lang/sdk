@@ -5496,6 +5496,14 @@ JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
+JsInteropInlineClassNotInterop:
+  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
+
+JsInteropInlineClassMemberNotInterop:
+  problemMessage: "Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
+
 JsInteropInlineClassUsedWithWrongJsAnnotation:
   problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
   correctionMessage: "Try using the '@JS' annotation from 'dart:js_interop' annotation on this inline class instead."

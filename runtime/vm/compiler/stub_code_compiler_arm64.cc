@@ -1585,7 +1585,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ StoreToOffset(R6, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ LoadFromOffset(R4, R1, VMHandles::kOffsetOfRawPtrInHandle);
+  __ mov(R4, R1);
 
   // Load number of arguments into R5 and adjust count for type arguments.
   __ LoadCompressedSmiFieldFromOffset(
@@ -1598,8 +1598,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ csinc(R5, R5, R5, EQ);  // R5 <- (R3 == 0) ? R5 : R5 + 1
 
   // Compute address of 'arguments array' data area into R2.
-  __ LoadFromOffset(R2, R2, VMHandles::kOffsetOfRawPtrInHandle);
-  __ AddImmediate(R2, target::Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, R2, target::Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1624,7 +1623,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     // invoke dart code. We don't need a real object pool here.
     // Smi zero does not work because ARM64 assumes PP to be untagged.
     __ LoadObject(PP, NullObject());
-    __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+    __ mov(CODE_REG, R0);
     __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
 

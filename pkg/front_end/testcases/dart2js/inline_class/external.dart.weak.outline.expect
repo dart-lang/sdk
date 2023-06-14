@@ -2,13 +2,18 @@
 library static_interop;
 import self as self;
 import "dart:js_interop" as js_;
+import "dart:_js_annotations" as _js;
 import "dart:core" as core;
 
 import "dart:js_interop";
 
-abstract class A extends core::Object {
+@js_::JS::•()
+@_js::staticInterop
+class A extends core::Object {
   synthetic constructor •() → self::A
     ;
+  static method _#new#tearOff() → self::A
+    return new self::A::•();
 }
 @js_::JS::•()
 inline class B /* declaredRepresentationType = self::A */ {
@@ -59,5 +64,7 @@ static method method(self::A a) → void
 
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:5:2 -> InstanceConstant(const JS{JS.name: null})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:12:2 -> InstanceConstant(const JS{JS.name: null})
-Extra constant evaluation: evaluated: 13, effectively constant: 2
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:10:2 -> InstanceConstant(const JS{JS.name: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///external.dart:11:2 -> InstanceConstant(const _StaticInterop{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:14:2 -> InstanceConstant(const JS{JS.name: null})
+Extra constant evaluation: evaluated: 16, effectively constant: 4

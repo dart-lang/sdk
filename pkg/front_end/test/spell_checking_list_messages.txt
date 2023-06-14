@@ -36,6 +36,7 @@ dart.dev
 dart2js_server
 dart:_internal
 dart:ffi
+dart:html
 dart:js_interop
 dart_runner
 dartbug.com

@@ -18,6 +18,7 @@ import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:http/src/response.dart' as http;
 import 'package:linter/src/rules.dart';
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 import 'package:unified_analytics/unified_analytics.dart';
@@ -316,8 +317,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     manager.changedPlugins(_MockPluginManager(plugins: [
-      _MockPluginInfo('a'),
-      _MockPluginInfo('b'),
+      _MockPluginInfo(path.join('.pub-cache', 'a', 'tools', 'analyzer_plugin')),
+      _MockPluginInfo(path.join('.pub-cache', 'b', 'tools', 'analyzer_plugin')),
     ]));
     await manager.shutdown();
     var counts =
