@@ -1,0 +1,35 @@
+class A<T> extends J<T> {}
+class I<T> {}
+class J<T> extends I<T> {}
+exhaustiveInferred(A<num> a) => 
+extension<T> on A<T> {
+  void member(T t) {}
+}
+extension<T> on I<T> {
+  num get member {}
+}
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+exhaustiveTyped(A<num> a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+switch (a) {}
+unreachable(A<num> a) => 
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+nonExhaustiveRestricted(A<num> a) => 
+switch (a) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+intersection(o) {}
+num exhaustiveMixed(I<num> i) => 
+switch (i) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----

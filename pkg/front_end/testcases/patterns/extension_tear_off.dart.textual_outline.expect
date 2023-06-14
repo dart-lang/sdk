@@ -1,0 +1,7 @@
+extension _ on int {
+  int method(int i) => this + i;
+}
+
+method(dynamic d) => switch (d) {};
+main() {}
+expect(expected, actual) {}

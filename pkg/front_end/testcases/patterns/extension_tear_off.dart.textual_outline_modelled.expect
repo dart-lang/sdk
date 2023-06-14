@@ -1,0 +1,10 @@
+extension _ on int {
+  int method(int i) => this + i;
+}
+method(dynamic d) => 
+switch (d) {}
+---- unknown chunk starts ----
+;
+---- unknown chunk ends ----
+expect(expected, actual) {}
+main() {}
