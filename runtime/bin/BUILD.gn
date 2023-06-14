@@ -315,7 +315,10 @@ template("build_gen_snapshot_dart_io") {
                  "..:dart_precompiler_config",
                ] + extra_configs
 
+    deps = [ "//third_party/zlib" ]
+
     if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
       if (using_fuchsia_gn_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
       } else if (using_fuchsia_sdk) {
@@ -324,8 +327,6 @@ template("build_gen_snapshot_dart_io") {
         public_deps = [ "//sdk/lib/fdio" ]
       }
     }
-
-    deps = [ "//third_party/zlib" ]
 
     defines = [ "DART_IO_SECURE_SOCKET_DISABLED" ]
 
@@ -427,6 +428,7 @@ template("dart_io") {
     deps += [ "//third_party/boringssl" ]
 
     if (is_fuchsia) {
+      deps += [ "$fuchsia_sdk_root/fidl/fuchsia.io" ]
       if (using_fuchsia_gn_sdk) {
         public_deps = [ "$fuchsia_sdk_root/pkg/fdio" ]
       } else if (using_fuchsia_sdk) {

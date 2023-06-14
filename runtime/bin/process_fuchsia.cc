@@ -9,6 +9,8 @@
 
 #include <errno.h>
 #include <fcntl.h>
+#include <fuchsia/io/cpp/fidl.h>
+#include <lib/fdio/directory.h>
 #include <lib/fdio/io.h>
 #include <lib/fdio/namespace.h>
 #include <lib/fdio/spawn.h>
@@ -586,27 +588,38 @@ class ProcessStarter {
              exit_pipe_fds[0], exit_pipe_fds[1]);
 
     NamespaceScope ns(namespc_, path_);
-    const int pathfd =
-        TEMP_FAILURE_RETRY(openat(ns.fd(), ns.path(), O_RDONLY));
+    int pathfd = -1;
+    zx_status_t status;
+    if (ns.fd() == AT_FDCWD) {
+      status = fdio_open_fd(
+          ns.path(),
+          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
+                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
+          &pathfd);
+    } else {
+      status = fdio_open_fd_at(
+          ns.fd(), ns.path(),
+          static_cast<uint32_t>(fuchsia::io::OpenFlags::RIGHT_READABLE |
+                                fuchsia::io::OpenFlags::RIGHT_EXECUTABLE),
+          &pathfd);
+    }
+    if (status != ZX_OK) {
+      close(exit_pipe_fds[0]);
+      close(exit_pipe_fds[1]);
+      ReportStartError(
+          "Failed to load executable for process start (fdio_open_fd_at %s).",
+          zx_status_get_string(status));
+      return status;
+    }
     zx_handle_t vmo = ZX_HANDLE_INVALID;
-    zx_status_t status = fdio_get_vmo_clone(pathfd, &vmo);
+    status = fdio_get_vmo_exec(pathfd, &vmo);
     close(pathfd);
     if (status != ZX_OK) {
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      *os_error_message_ = DartUtils::ScopedCopyCString(
-          "Failed to load executable for process start.");
-      return status;
-    }
-
-    // After reading the binary into a VMO, we need to mark it as executable,
-    // since the VMO returned by fdio_get_vmo_clone should be read-only.
-    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
-    if (status != ZX_OK) {
-      close(exit_pipe_fds[0]);
-      close(exit_pipe_fds[1]);
-      *os_error_message_ = DartUtils::ScopedCopyCString(
-          "Failed to mark binary as executable for process start.");
+      ReportStartError(
+          "Failed to load executable for process start (fdio_get_vmo_exec %s).",
+          zx_status_get_string(status));
       return status;
     }
 
@@ -639,7 +652,7 @@ class ProcessStarter {
       LOG_ERR("ProcessStarter: Start() fdio_spawn_vmo failed\n");
       close(exit_pipe_fds[0]);
       close(exit_pipe_fds[1]);
-      ReportStartError(err_msg);
+      ReportStartError("Process start failed: %s\n", err_msg);
       return status;
     }
 
@@ -655,7 +668,8 @@ class ProcessStarter {
       close(exit_pipe_fds[1]);
       zx_task_kill(process);
       ProcessInfoList::RemoveProcess(process);
-      ReportStartError(zx_status_get_string(status));
+      ReportStartError("Process start failed: %s\n",
+                       zx_status_get_string(status));
       return status;
     }
 
@@ -679,10 +693,13 @@ class ProcessStarter {
   }
 
  private:
-  void ReportStartError(const char* errormsg) {
+  void ReportStartError(const char* format, ...) PRINTF_ATTRIBUTE(2, 3) {
     const intptr_t kMaxMessageSize = 256;
     char* message = DartUtils::ScopedCString(kMaxMessageSize);
-    snprintf(message, kMaxMessageSize, "Process start failed: %s\n", errormsg);
+    va_list args;
+    va_start(args, format);
+    vsnprintf(message, kMaxMessageSize, format, args);
+    va_end(args);
     *os_error_message_ = message;
   }
 
