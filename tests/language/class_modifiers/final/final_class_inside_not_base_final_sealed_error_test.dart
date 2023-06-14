@@ -25,10 +25,20 @@ class Implements implements FinalClass {}
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'Implements' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
 
+mixin MixinImplements implements FinalClass {}
+//    ^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The mixin 'MixinImplements' must be 'base' because the supertype 'FinalClass' is 'final'.
+
+mixin MixinImplementsIndirect implements SubtypeOfFinal {}
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The mixin 'MixinImplementsIndirect' must be 'base' because the supertype 'FinalClass' is 'final'.
+
 mixin On on FinalClass {}
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'FinalClass' is 'final'.
+// [cfe] The mixin 'On' must be 'base' because the supertype 'FinalClass' is 'final'.
 
 class ExtendsExtends extends Extends {}
 

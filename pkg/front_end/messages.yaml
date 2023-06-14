@@ -6492,6 +6492,24 @@ SubtypeOfFinalIsNotBaseFinalOrSealed:
       final class A {}
       class B extends A {}
 
+MixinSubtypeOfBaseIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      base class A {}
+      mixin B implements A {}
+
+MixinSubtypeOfFinalIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      final class A {}
+      mixin B implements A {}
+
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
   experiments: patterns

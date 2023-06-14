@@ -107,7 +107,7 @@ class SimpleImplementApplication = Object
 mixin SimpleMixinImplement implements BaseMixin {}
 //    ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// [cfe] The mixin 'SimpleMixinImplement' must be 'base' because the supertype 'BaseMixin' is 'base'.
 
 // Implementing with a base mixin (valid, used for tests below)
 
@@ -132,17 +132,17 @@ interface class InterfaceMixinImplementApplied extends Object
 mixin SimpleMixinOn on BaseMixin {}
 //    ^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOn' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// [cfe] The mixin 'SimpleMixinOn' must be 'base' because the supertype 'BaseMixin' is 'base'.
 
 mixin SimpleMixinOnBaseSimple on BaseMixin, SimpleClass {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOnBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// [cfe] The mixin 'SimpleMixinOnBaseSimple' must be 'base' because the supertype 'BaseMixin' is 'base'.
 
 mixin SimpleMixinOnSimpleBase on SimpleClass, BaseMixin {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOnSimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// [cfe] The mixin 'SimpleMixinOnSimpleBase' must be 'base' because the supertype 'BaseMixin' is 'base'.
 
 /// It is an error to use BaseMixin as a mixin, if the result is not base,
 /// final or sealed.
