@@ -17,6 +17,26 @@ class UnnecessaryNullChecksTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_this';
 
+  /// https://github.com/dart-lang/linter/issues/4457
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4457')
+  test_shadowSwitchPatternCase() async {
+    await assertNoDiagnostics(r'''
+class C {
+  String? name;
+
+  void m(bool b) {
+    switch (b) {
+      case true:
+        var name = this.name!;
+        print(name);
+      case false:
+        break;
+    }
+  }
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4381
   @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4381')
   test_shadowInObjectPattern() async {
