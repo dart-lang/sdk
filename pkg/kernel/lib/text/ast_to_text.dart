@@ -1225,36 +1225,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   }
 
   @override
-  void visitRedirectingFactory(RedirectingFactory node) {
-    writeAnnotationList(node.annotations);
-    writeIndentation();
-    writeModifier(node.isExternal, 'external');
-    writeModifier(node.isConst, 'const');
-    writeWord('redirecting_factory');
-    writeFunction(node.function, name: node.name);
-    writeSpaced('=');
-    writeMemberReferenceFromReference(node.targetReference!);
-    if (node.typeArguments.isNotEmpty) {
-      writeSymbol('<');
-      writeList(node.typeArguments, writeType);
-      writeSymbol('>');
-    }
-    List<String> features = <String>[];
-    if (node.enclosingLibrary.isNonNullableByDefault !=
-        node.isNonNullableByDefault) {
-      if (node.isNonNullableByDefault) {
-        features.add("isNonNullableByDefault");
-      } else {
-        features.add("isLegacy");
-      }
-    }
-    if (features.isNotEmpty) {
-      writeWord("/*${features.join(',')}*/");
-    }
-    endLine(';');
-  }
-
-  @override
   void visitClass(Class node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
@@ -1309,7 +1279,6 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
     node.fields.forEach(writeNode);
     node.constructors.forEach(writeNode);
     node.procedures.forEach(writeNode);
-    node.redirectingFactories.forEach(writeNode);
     --indentation;
     writeIndentation();
     endLine('}');

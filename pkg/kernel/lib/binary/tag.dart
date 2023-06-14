@@ -18,7 +18,6 @@ class Tag {
   static const int Field = 4;
   static const int Constructor = 5;
   static const int Procedure = 6;
-  static const int RedirectingFactory = 108;
 
   // Initializers
   static const int InvalidInitializer = 7;
@@ -225,7 +224,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 104;
+  static const int BinaryFormatVersion = 105;
 }
 
 abstract class ConstantTag {

@@ -597,16 +597,13 @@ class ProcedureHelper {
     kAbstract = 1 << 1,
     kExternal = 1 << 2,
     kConst = 1 << 3,  // Only for external const factories.
-
-    // TODO(29841): Remove this line after the issue is resolved.
-    kRedirectingFactory = 1 << 4,
-    kExtensionMember = 1 << 5,
-    kIsNonNullableByDefault = 1 << 6,
-    kSyntheticProcedure = 1 << 7,
-    kInternalImplementation = 1 << 8,
-    kIsAbstractFieldAccessor = 1 << 9,
-    kInlineClassMember = 1 << 10,
-    kHasWeakTearoffReferencePragma = 1 << 11,
+    kExtensionMember = 1 << 4,
+    kIsNonNullableByDefault = 1 << 5,
+    kSyntheticProcedure = 1 << 6,
+    kInternalImplementation = 1 << 7,
+    kIsAbstractFieldAccessor = 1 << 8,
+    kInlineClassMember = 1 << 9,
+    kHasWeakTearoffReferencePragma = 1 << 10,
   };
 
   explicit ProcedureHelper(KernelReaderHelper* helper)
@@ -632,9 +629,6 @@ class ProcedureHelper {
   bool IsForwardingStub() const {
     return stub_kind_ == kAbstractForwardingStubKind ||
            stub_kind_ == kConcreteForwardingStubKind;
-  }
-  bool IsRedirectingFactory() const {
-    return (flags_ & kRedirectingFactory) != 0;
   }
   bool IsNoSuchMethodForwarder() const {
     return stub_kind_ == kNoSuchMethodForwarderStubKind;

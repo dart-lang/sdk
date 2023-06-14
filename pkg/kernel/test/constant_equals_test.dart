@@ -45,9 +45,13 @@ void main() {
       name: new Name('foo'), fileUri: uri);
   cls.addConstructor(constructor);
   Procedure redirectingFactory = new Procedure(
-      new Name('foo'), ProcedureKind.Factory, new FunctionNode(null),
-      fileUri: uri, isStatic: true)
-    ..isRedirectingFactory = true;
+      new Name('foo'),
+      ProcedureKind.Factory,
+      new FunctionNode(null)
+        ..redirectingFactoryTarget =
+            new RedirectingFactoryTarget(constructor, []),
+      fileUri: uri,
+      isStatic: true);
   cls.addProcedure(redirectingFactory);
 
   TearOffConstant tearOffConstant1a = new StaticTearOffConstant(procedure1);

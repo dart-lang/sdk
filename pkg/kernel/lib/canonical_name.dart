@@ -155,12 +155,6 @@ class CanonicalName {
         .getChildFromQualifiedName(constructor.name);
   }
 
-  CanonicalName getChildFromRedirectingFactory(
-      RedirectingFactory redirectingFactory) {
-    return getChild(factoriesName)
-        .getChildFromQualifiedName(redirectingFactory.name);
-  }
-
   CanonicalName getChildFromFieldWithName(Name name) {
     return getChild(fieldsName).getChildFromQualifiedName(name);
   }

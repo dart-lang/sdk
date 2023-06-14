@@ -92,11 +92,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     throw 'Cloning of fields is not implemented here';
   }
 
-  @override
-  TreeNode visitRedirectingFactory(RedirectingFactory node) {
-    throw 'Cloning of redirecting factory constructors is not implemented here';
-  }
-
   // The currently active file uri where we are cloning [TreeNode]s from.  If
   // this is set to `null` we cannot clone file offsets to newly created nodes.
   // The [_cloneFileOffset] helper function will ensure this.
@@ -1159,30 +1154,6 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
       ..fileOffset = _cloneFileOffset(node.fileOffset)
       ..fileEndOffset = _cloneFileOffset(node.fileEndOffset)
       ..flags = node.flags;
-    setParents(result.annotations, result);
-
-    _activeFileUri = activeFileUriSaved;
-    return result;
-  }
-
-  RedirectingFactory cloneRedirectingFactory(
-      RedirectingFactory node, Reference? reference) {
-    final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri;
-
-    RedirectingFactory result = new RedirectingFactory(node.targetReference,
-        name: node.name,
-        isConst: node.isConst,
-        isExternal: node.isExternal,
-        transformerFlags: node.transformerFlags,
-        typeArguments: node.typeArguments.map(visitType).toList(),
-        function: super.clone(node.function),
-        fileUri: node.fileUri,
-        reference: reference)
-      ..fileOffset = _cloneFileOffset(node.fileOffset)
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(super.clone).toList()
-          : const <Expression>[];
     setParents(result.annotations, result);
 
     _activeFileUri = activeFileUriSaved;

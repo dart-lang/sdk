@@ -380,7 +380,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedureInternal.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget(target, typeArguments);
     bodyInternal?.parent = function;
-    _procedure.isRedirectingFactory = true;
     if (isPatch) {
       if (function.typeParameters.isNotEmpty) {
         Map<TypeParameter, DartType> substitution = <TypeParameter, DartType>{};
@@ -423,7 +422,6 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _procedureInternal.isExternal = isExternal;
     _procedureInternal.isConst = isConst;
     _procedureInternal.isStatic = isStatic;
-    _procedureInternal.isRedirectingFactory = true;
     if (redirectionTarget.typeArguments != null) {
       typeArguments = new List<DartType>.generate(
           redirectionTarget.typeArguments!.length,

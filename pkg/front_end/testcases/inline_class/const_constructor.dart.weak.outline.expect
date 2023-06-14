@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+inline class Class /* declaredRepresentationType = core::int */ {
+  constructor • = self::Class|;
+  tearoff • = self::Class|_#new#tearOff;
+}
+static inline-class-member method Class|(core::int i) → self::Class
+  ;
+static inline-class-member method Class|_#new#tearOff(core::int i) → self::Class
+  return self::Class|(i);
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

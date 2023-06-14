@@ -10425,7 +10425,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           field.accessKind = ObjectAccessKind.Static;
           field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
-          field.target = fieldTarget.member;
+          field.target = fieldTarget.tearoffTarget;
           break;
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;

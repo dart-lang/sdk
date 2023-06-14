@@ -1702,7 +1702,6 @@ class BinaryBuilder {
     node.fieldsInternal = _readFieldList(node);
     _readConstructorList(node);
     node.proceduresInternal = _readProcedureList(node, procedureOffsets);
-    _readRedirectingFactoryList(node);
   }
 
   void _readConstructorList(Class node) {
@@ -1715,21 +1714,6 @@ class BinaryBuilder {
       node.constructorsInternal = new List<Constructor>.generate(
           length, (int index) => readConstructor()..parent = node,
           growable: useGrowableLists);
-    }
-  }
-
-  void _readRedirectingFactoryList(Class node) {
-    int length = readUInt30();
-    if (!useGrowableLists && length == 0) {
-      // When lists don't have to be growable anyway, we might as well use a
-      // constant one for the empty list.
-      node.redirectingFactoryConstructorsInternal =
-          emptyListOfRedirectingFactory;
-    } else {
-      node.redirectingFactoryConstructorsInternal =
-          new List<RedirectingFactory>.generate(
-              length, (int index) => readRedirectingFactory()..parent = node,
-              growable: useGrowableLists);
     }
   }
 
@@ -1919,51 +1903,6 @@ class BinaryBuilder {
         !(node.isForwardingStub && node.function.body != null));
     assert(!(node.isMemberSignature && node.stubTargetReference == null),
         "No member signature origin for member signature $node.");
-    return node;
-  }
-
-  RedirectingFactory readRedirectingFactory() {
-    int tag = readByte();
-    assert(tag == Tag.RedirectingFactory);
-    CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    Reference reference = canonicalName.reference;
-    RedirectingFactory? node = reference.node as RedirectingFactory?;
-    if (alwaysCreateNewNamedNodes) {
-      node = null;
-    }
-    Uri fileUri = readUriReference();
-    int fileOffset = readOffset();
-    int fileEndOffset = readOffset();
-    int flags = readByte();
-    Name name = readName();
-    assert(() {
-      debugPath.add(name.text);
-      return true;
-    }());
-    List<Expression> annotations = readAnnotationList();
-    Reference targetReference = readNonNullMemberReference();
-    List<DartType> typeArguments = readDartTypeList();
-    FunctionNode function = readFunctionNode(outerEndOffset: fileEndOffset);
-    if (node == null) {
-      node = new RedirectingFactory(targetReference,
-          reference: reference,
-          name: name,
-          fileUri: fileUri,
-          function: function,
-          typeArguments: typeArguments);
-    } else {
-      node.name = name;
-      node.fileUri = fileUri;
-      node.targetReference = targetReference;
-      node.typeArguments.addAll(typeArguments);
-      node.function = function..parent = node;
-    }
-    node.fileOffset = fileOffset;
-    node.fileEndOffset = fileEndOffset;
-    node.flags = flags;
-    node.annotations = annotations;
-    setParents(annotations, node);
-    debugPath.removeLast();
     return node;
   }
 
@@ -4279,13 +4218,6 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   Procedure readProcedure(int endOffset) {
     final int nodeOffset = _byteOffset;
     final Procedure result = super.readProcedure(endOffset);
-    return _associateMetadata(result, nodeOffset);
-  }
-
-  @override
-  RedirectingFactory readRedirectingFactory() {
-    final int nodeOffset = _byteOffset;
-    final RedirectingFactory result = super.readRedirectingFactory();
     return _associateMetadata(result, nodeOffset);
   }
 

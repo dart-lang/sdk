@@ -850,7 +850,6 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.cls.constructors.isNotEmpty) return;
-    if (builder.cls.redirectingFactories.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }

@@ -334,5 +334,4 @@ void finishProcedurePatch(Procedure origin, Procedure patch) {
   origin.isExternal = patch.isExternal;
   origin.function = patch.function;
   origin.function.parent = origin;
-  origin.isRedirectingFactory = patch.isRedirectingFactory;
 }

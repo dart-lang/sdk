@@ -283,7 +283,6 @@ FreshTypeParameters buildRedirectingFactoryTearOffProcedureParameters(
     {required Procedure tearOff,
     required Procedure implementationConstructor,
     required SourceLibraryBuilder libraryBuilder}) {
-  assert(implementationConstructor.isRedirectingFactory);
   FunctionNode function = implementationConstructor.function;
   FreshTypeParameters freshTypeParameters =
       _createFreshTypeParameters(function.typeParameters, tearOff.function);

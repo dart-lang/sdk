@@ -404,15 +404,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeRedirectingFactoryNodeList(List<RedirectingFactory> nodes) {
-    final int len = nodes.length;
-    writeUInt30(len);
-    for (int i = 0; i < len; i++) {
-      final RedirectingFactory node = nodes[i];
-      writeRedirectingFactoryNode(node);
-    }
-  }
-
   void writeSwitchCaseNodeList(List<SwitchCase> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
@@ -505,13 +496,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   void writeConstructorNode(Constructor node) {
-    if (_metadataSubsections != null) {
-      _writeNodeMetadata(node);
-    }
-    node.accept(this);
-  }
-
-  void writeRedirectingFactoryNode(RedirectingFactory node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1275,7 +1259,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
     procedureOffsets.add(getBufferOffset());
-    writeRedirectingFactoryNodeList(node.redirectingFactories);
     leaveScope(typeParameters: node.typeParameters);
 
     assert(procedureOffsets.length > 0);
@@ -1453,26 +1436,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeNode(node.type);
     writeOptionalNode(node.initializer);
     leaveScope(memberScope: true);
-  }
-
-  @override
-  void visitRedirectingFactory(RedirectingFactory node) {
-    CanonicalName? canonicalName =
-        getNonNullableMemberReferenceGetter(node).canonicalName;
-    if (canonicalName == null) {
-      throw new ArgumentError('Missing canonical name for $node');
-    }
-    writeByte(Tag.RedirectingFactory);
-    _writeNonNullCanonicalName(canonicalName);
-    writeUriReference(node.fileUri);
-    writeOffset(node.fileOffset);
-    writeOffset(node.fileEndOffset);
-    writeByte(node.flags);
-    writeName(node.name);
-    writeAnnotationList(node.annotations);
-    writeNonNullReference(node.targetReference!);
-    writeNodeList(node.typeArguments);
-    writeFunctionNode(node.function);
   }
 
   @override
@@ -3176,12 +3139,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   @override
   void visitComponent(Component node) {
     throw new UnsupportedError('serialization of Components');
-  }
-
-  @override
-  void visitRedirectingFactoryReference(RedirectingFactory node) {
-    throw new UnsupportedError(
-        'serialization of RedirectingFactory references');
   }
 
   @override
