@@ -278,7 +278,8 @@ class JSInvocationMirror implements Invocation {
 class Primitives {
   static Object? _identityHashCodeProperty;
 
-  static int objectHashCode(object) {
+  /// Identity hash code for a JavaScript object or function.
+  static int objectHashCode(Object? object) {
     Object property =
         _identityHashCodeProperty ??= _computeIdentityHashCodeProperty();
     int? hash = JS('int|Null', r'#[#]', object, property);
@@ -1850,12 +1851,37 @@ class _StackTrace implements StackTrace {
   }
 }
 
-int objectHashCode(var object) {
-  if (object == null || JS('bool', 'typeof # != "object"', object)) {
-    return object.hashCode;
-  } else {
+/// Implementation of `identityHashCode`.
+///
+/// This hash code is compatible with identical, which means that it's
+/// guaranteed to give the same result every time it's passed the same argument,
+/// throughout a single program execution, for any non-record object.
+int objectHashCode(Object? object) {
+  // `typeof null == "object"` so test `null` first.
+  if (object == null) return object.hashCode;
+  if (JS('bool', 'typeof # == "object"', object)) {
     return Primitives.objectHashCode(object);
   }
+  // Other values are primitives so use the override of `Object.hashCode`.
+  return object.hashCode;
+}
+
+/// Hash code for constant Maps and Sets. Unlike `identityHashCode`, this is
+/// defined for Records.
+int constantHashCode(Object? key) {
+  // Types are tested here one-by-one so that each call to get:hashCode can be
+  // resolved differently.
+
+  // Some common primitives used as keys in a GeneralConstantMap.
+  if (key is num) return key.hashCode; // One method on JSNumber.
+
+  // Specially handled known types.
+  if (key is Type) return key.hashCode;
+  if (key is Record) return key.hashCode;
+  if (key is Symbol) return key.hashCode;
+
+  // Everything else, including less common primitives.
+  return identityHashCode(key);
 }
 
 /// Called by generated code to build a map literal. [keyValuePairs] is

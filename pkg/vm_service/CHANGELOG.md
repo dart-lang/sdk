@@ -1,4 +1,4 @@
-## 11.7.0
+## 11.7.1
 - Expose RPC error codes that were defined in `package:dds`.
 
 ## 11.6.0

@@ -44,6 +44,11 @@ namespace dart {
 #define ElfW(Type) Elf32_##Type
 #endif
 
+// Missing from older versions of <elf.h>.
+#if !defined(EM_RISCV)
+#define EM_RISCV 243
+#endif
+
 #ifndef PRODUCT
 
 DEFINE_FLAG(bool,
