@@ -1535,14 +1535,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
       AstNode? returnType, AstNode reportNode, String displayName) {
-    if (!_strictInference) {
+    if (!_strictInference || returnType != null) {
       return;
     }
-    if (returnType == null) {
-      _errorReporter.reportErrorForNode(
+
+    switch (reportNode) {
+      case MethodDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case FunctionDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case _:
+        _errorReporter.reportErrorForNode(
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           reportNode,
-          [displayName]);
+          [displayName],
+        );
     }
   }
 
