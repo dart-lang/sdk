@@ -381,7 +381,6 @@ dereferencing
 deregister
 descent
 descriptive
-deserializable
 deserializer
 deserializers
 deserializes
@@ -903,7 +902,6 @@ masks
 master
 matchers
 materialize
-materializes
 matters
 mature
 mb
@@ -1250,7 +1248,6 @@ regenerations
 regis
 registering
 rehash
-reified
 reindexed
 reinstate
 reissued

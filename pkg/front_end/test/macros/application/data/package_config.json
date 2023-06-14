@@ -14,10 +14,6 @@
     {
       "name": "_fe_analyzer_shared",
       "rootUri": "../../../../../_fe_analyzer_shared/lib/"
-    },
-    {
-      "name": "dart_internal",
-      "rootUri": "../../../../../dart_internal/lib/"
     }
   ]
 }

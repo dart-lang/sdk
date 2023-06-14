@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization_extensions.dart';
 import 'package:test/test.dart';
 
 import '../util.dart';
@@ -156,8 +156,7 @@ void main() {
     ]) {
       group('with mode $mode', () {
         test('NamedTypeAnnotation', () {
-          expectSerializationEquality<TypeAnnotationImpl>(
-              fooType, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(fooType, mode);
         });
 
         final fooNamedParam = ParameterDeclarationImpl(
@@ -215,8 +214,7 @@ void main() {
             returnType: fooType,
             typeParameters: [zapTypeParam],
           );
-          expectSerializationEquality<TypeAnnotationImpl>(
-              functionType, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(functionType, mode);
         });
 
         test('FunctionDeclaration', () {
@@ -233,8 +231,7 @@ void main() {
               positionalParameters: [],
               returnType: fooType,
               typeParameters: []);
-          expectSerializationEquality<DeclarationImpl>(
-              function, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(function, mode);
         });
 
         test('MethodDeclaration', () {
@@ -253,8 +250,7 @@ void main() {
               typeParameters: [zapTypeParam],
               definingType: fooType.identifier,
               isStatic: false);
-          expectSerializationEquality<DeclarationImpl>(
-              method, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(method, mode);
         });
 
         test('ConstructorDeclaration', () {
@@ -274,8 +270,7 @@ void main() {
             definingType: fooType.identifier,
             isFactory: true,
           );
-          expectSerializationEquality<DeclarationImpl>(
-              constructor, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(constructor, mode);
         });
 
         test('VariableDeclaration', () {
@@ -288,8 +283,7 @@ void main() {
             isLate: true,
             type: barType,
           );
-          expectSerializationEquality<DeclarationImpl>(
-              bar, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(bar, mode);
         });
 
         test('FieldDeclaration', () {
@@ -304,8 +298,7 @@ void main() {
             definingType: fooType.identifier,
             isStatic: false,
           );
-          expectSerializationEquality<DeclarationImpl>(
-              bar, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(bar, mode);
         });
 
         var objectType = NamedTypeAnnotationImpl(
@@ -341,8 +334,7 @@ void main() {
               superclass: objectType,
               typeParameters: [zapTypeParam],
             );
-            expectSerializationEquality<DeclarationImpl>(
-                fooClass, mode, RemoteInstance.deserialize);
+            expectSerializationEquality(fooClass, mode);
           }
         });
 
@@ -355,8 +347,7 @@ void main() {
             mixins: [serializableType],
             typeParameters: [zapTypeParam],
           );
-          expectSerializationEquality<DeclarationImpl>(
-              fooEnum, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(fooEnum, mode);
         });
 
         test('EnumValueDeclaration', () {
@@ -366,8 +357,7 @@ void main() {
             definingEnum:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
           );
-          expectSerializationEquality<DeclarationImpl>(
-              entry, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(entry, mode);
         });
 
         test('MixinDeclaration', () {
@@ -381,8 +371,7 @@ void main() {
               superclassConstraints: [serializableType],
               typeParameters: [zapTypeParam],
             );
-            expectSerializationEquality<DeclarationImpl>(
-                mixin, mode, RemoteInstance.deserialize);
+            expectSerializationEquality(mixin, mode);
           }
         });
 
@@ -399,8 +388,7 @@ void main() {
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
                 typeArguments: [barType]),
           );
-          expectSerializationEquality<DeclarationImpl>(
-              typeAlias, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(typeAlias, mode);
         });
 
         /// Transitively tests [RecordField]
@@ -427,135 +415,17 @@ void main() {
               ),
             ],
           );
-          expectSerializationEquality<TypeAnnotationImpl>(
-              recordType, mode, RemoteInstance.deserialize);
+          expectSerializationEquality(recordType, mode);
         });
       });
     }
-  });
-
-  group('Arguments', () {
-    test('can create properly typed collections', () {
-      withSerializationMode(SerializationMode.jsonClient, () {
-        final parsed = Arguments.deserialize(deserializerFactory([
-          // positional args
-          [
-            // int
-            ArgumentKind.int.index,
-            1,
-            // List<int>
-            ArgumentKind.list.index,
-            [ArgumentKind.int.index],
-            [
-              ArgumentKind.int.index,
-              1,
-              ArgumentKind.int.index,
-              2,
-              ArgumentKind.int.index,
-              3,
-            ],
-            // List<Set<String>>
-            ArgumentKind.list.index,
-            [ArgumentKind.set.index, ArgumentKind.string.index],
-            [
-              // Set<String>
-              ArgumentKind.set.index,
-              [ArgumentKind.string.index],
-              [
-                ArgumentKind.string.index,
-                'hello',
-                ArgumentKind.string.index,
-                'world',
-              ]
-            ],
-            // Map<int, List<String>>
-            ArgumentKind.map.index,
-            [
-              ArgumentKind.int.index,
-              ArgumentKind.nullable.index,
-              ArgumentKind.list.index,
-              ArgumentKind.string.index
-            ],
-            [
-              // key: int
-              ArgumentKind.int.index,
-              4,
-              // value: List<String>
-              ArgumentKind.list.index,
-              [ArgumentKind.string.index],
-              [
-                ArgumentKind.string.index,
-                'zip',
-              ],
-              ArgumentKind.int.index,
-              5,
-              ArgumentKind.nil.index,
-            ]
-          ],
-          // named args
-          [],
-        ]));
-        expect(parsed.positional.length, 4);
-        expect(parsed.positional.first.value, 1);
-        expect(parsed.positional[1].value, [1, 2, 3]);
-        expect(parsed.positional[1].value, isA<List<int>>());
-        expect(parsed.positional[2].value, [
-          {'hello', 'world'}
-        ]);
-        expect(parsed.positional[2].value, isA<List<Set<String>>>());
-        expect(
-          parsed.positional[3].value,
-          {
-            4: ['zip'],
-            5: null,
-          },
-        );
-        expect(parsed.positional[3].value, isA<Map<int, List<String>?>>());
-      });
-    });
-
-    group('can be serialized and deserialized', () {
-      for (var mode in [
-        SerializationMode.byteDataServer,
-        SerializationMode.jsonServer
-      ]) {
-        test('with mode $mode', () {
-          final arguments = Arguments([
-            MapArgument({
-              StringArgument('hello'): ListArgument(
-                  [BoolArgument(true), NullArgument()],
-                  [ArgumentKind.nullable, ArgumentKind.bool]),
-            }, [
-              ArgumentKind.string,
-              ArgumentKind.list,
-              ArgumentKind.nullable,
-              ArgumentKind.bool
-            ]),
-          ], {
-            'a': SetArgument([
-              MapArgument({
-                IntArgument(1): StringArgument('1'),
-              }, [
-                ArgumentKind.int,
-                ArgumentKind.string
-              ])
-            ], [
-              ArgumentKind.map,
-              ArgumentKind.int,
-              ArgumentKind.string
-            ])
-          });
-          expectSerializationEquality(arguments, mode, Arguments.deserialize);
-        });
-      }
-    });
   });
 }
 
 /// Serializes [serializable] in server mode, then deserializes it in client
 /// mode, and checks that all the fields are the same.
-void expectSerializationEquality<T extends Serializable>(T serializable,
-    SerializationMode serverMode, T deserialize(Deserializer deserializer)) {
+void expectSerializationEquality(
+    Serializable serializable, SerializationMode serverMode) {
   late Object? serialized;
   withSerializationMode(serverMode, () {
     var serializer = serializerFactory();
@@ -564,18 +434,14 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
   });
   withSerializationMode(_clientModeForServerMode(serverMode), () {
     var deserializer = deserializerFactory(serialized);
-    var deserialized = deserialize(deserializer);
-
-    expect(
-        serializable,
-        (switch (deserialized) {
-          Declaration() => deepEqualsDeclaration(deserialized as Declaration),
-          TypeAnnotation() =>
-            deepEqualsTypeAnnotation(deserialized as TypeAnnotation),
-          Arguments() => deepEqualsArguments(deserialized),
-          _ =>
-            throw new UnsupportedError('Unsupported object type $deserialized'),
-        }));
+    var deserialized = (deserializer..moveNext()).expectRemoteInstance();
+    if (deserialized is Declaration) {
+      expect(serializable, deepEqualsDeclaration(deserialized));
+    } else if (deserialized is TypeAnnotation) {
+      expect(serializable, deepEqualsTypeAnnotation(deserialized));
+    } else {
+      throw new UnsupportedError('Unsupported object type $deserialized');
+    }
   });
 }
 
@@ -583,7 +449,8 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
 Object? roundTrip<Declaration>(Object? serialized) {
   return withSerializationMode(_clientModeForServerMode(serializationMode), () {
     var deserializer = deserializerFactory(serialized);
-    var instance = RemoteInstance.deserialize(deserializer);
+    var instance =
+        RemoteInstance.deserialize<NamedTypeAnnotationImpl>(deserializer);
     var serializer = serializerFactory();
     instance.serialize(serializer);
     return serializer.result;

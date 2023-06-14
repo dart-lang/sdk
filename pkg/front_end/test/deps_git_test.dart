@@ -23,7 +23,6 @@ import 'utils/io_utils.dart' show computeRepoDirUri;
 final Uri repoDir = computeRepoDirUri();
 
 Set<String> allowlistedExternalDartFiles = {
-  "pkg/dart_internal/lib/extract_type_arguments.dart",
   "third_party/pkg/package_config/lib/package_config.dart",
   "third_party/pkg/package_config/lib/package_config_types.dart",
   "third_party/pkg/package_config/lib/src/discovery.dart",

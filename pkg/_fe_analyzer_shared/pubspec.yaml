@@ -7,7 +7,6 @@ environment:
   sdk: ^3.0.0
 
 dependencies:
-  dart_internal: ^0.2.7
   meta: ^1.0.2
 
 # We use 'any' version constraints here as we get our package versions from
