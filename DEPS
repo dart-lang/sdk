@@ -139,6 +139,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
   "dartdoc_rev": "57994242382fa71f4dd6f9ad5d3cffe82e5276c2",
+  "ecosystem_rev": "a2dac18e19a8587c7918a2a7d54d115a2872fc9e",
   "ffi_rev": "f582ca022042323af061f35ccd24b6c4d38f7bd1",
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
@@ -376,6 +377,8 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
+  Var("dart_root") + "/third_party/pkg/ecosystem":
+      Var("dart_git") + "ecosystem.git" + "@" + Var("ecosystem_rev"),
   Var("dart_root") + "/third_party/pkg/ffi":
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
