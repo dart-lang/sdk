@@ -61,6 +61,12 @@ luci.console_view_entry(
     category = "coordinator",
     console_view = "monorepo",
 )
+luci.console_view_entry(
+    builder = "flutter-linux",
+    short_name = "engine",
+    category = "coordinator",
+    console_view = "flutter-engine",
+)
 dart.try_builder(
     "flutter-linux",
     executable = dart.flutter_recipe("engine_v2/engine_v2"),
@@ -76,7 +82,50 @@ dart.try_builder(
     cq_branches = ["main"],
 )
 
-def monorepo_builder(name, short_name, category):
+dart.ci_sandbox_builder(
+    name = "flutter-web",
+    channels = [],
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 180 * time.minute,
+    notifies = None,
+    priority = priority.normal,
+    properties = {
+        "$flutter/goma": {"server": "goma.chromium.org"},
+        "config_name": "web_linux",
+        "environment": "unused",
+        "goma_jobs": "200",
+    },
+    triggered_by = ["dart-gitiles-trigger-monorepo"],
+    schedule = "triggered",
+)
+luci.console_view_entry(
+    builder = "flutter-web",
+    short_name = "web",
+    category = "coordinator",
+    console_view = "monorepo",
+)
+luci.console_view_entry(
+    builder = "flutter-web",
+    short_name = "web",
+    category = "coordinator",
+    console_view = "flutter-web",
+)
+dart.try_builder(
+    "flutter-web",
+    executable = dart.flutter_recipe("engine_v2/engine_v2"),
+    execution_timeout = 180 * time.minute,
+    properties = {
+        "$flutter/goma": {"server": "goma.chromium.org"},
+        "builder_name_suffix": "-try",
+        "config_name": "web_linux",
+        "environment": "unused",
+        "goma_jobs": "200",
+    },
+    on_cq = False,
+    cq_branches = ["main"],
+)
+
+def monorepo_builder(name, short_name, console):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -91,13 +140,13 @@ def monorepo_builder(name, short_name, category):
     luci.console_view_entry(
         builder = name,
         short_name = short_name,
-        category = category,
+        category = console,
         console_view = "monorepo",
     )
     luci.console_view_entry(
         builder = name,
         short_name = short_name,
-        console_view = "flutter-engine",
+        console_view = console,
     )
     dart.try_builder(
         name,
@@ -109,51 +158,51 @@ def monorepo_builder(name, short_name, category):
         cq_branches = [],
     )
 
-monorepo_builder("flutter-linux-android_debug", "android-debug", "build")
-monorepo_builder("flutter-linux-android_profile", "android-profile", "build")
-monorepo_builder("flutter-linux-android_release", "android-release", "build")
+monorepo_builder("flutter-linux-android_debug", "android-debug", "flutter-engine")
+monorepo_builder("flutter-linux-android_profile", "android-profile", "flutter-engine")
+monorepo_builder("flutter-linux-android_release", "android-release", "flutter-engine")
 monorepo_builder(
     "flutter-linux-android_debug_arm64",
     "android-debug-arm64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_profile_arm64",
     "android-profile-arm64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_release_arm64",
     "android-release-arm64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_debug_x64",
     "android-debug-x64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_profile_x64",
     "android-profile-x64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_release_x64",
     "android-release-x64",
-    "build",
+    "flutter-engine",
 )
 monorepo_builder(
     "flutter-linux-android_debug_x86",
     "android-debug-x86",
-    "build",
+    "flutter-engine",
 )
-monorepo_builder("flutter-linux-host_debug", "debug", "build")
-monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "build")
-monorepo_builder("flutter-linux-host_profile", "profile", "build")
-monorepo_builder("flutter-linux-host_release", "release", "build")
-monorepo_builder("flutter-linux-wasm_release", "wasm", "build")
+monorepo_builder("flutter-linux-host_debug", "debug", "flutter-engine")
+monorepo_builder("flutter-linux-host_debug_unopt", "debug-unopt", "flutter-engine")
+monorepo_builder("flutter-linux-host_profile", "profile", "flutter-engine")
+monorepo_builder("flutter-linux-host_release", "release", "flutter-engine")
+monorepo_builder("flutter-linux-wasm_release", "wasm", "flutter-web")
 
-def monorepo_tester(name, short_name, category):
+def monorepo_tester(name, short_name, console):
     dart.ci_sandbox_builder(
         name = name,
         channels = [],
@@ -168,13 +217,13 @@ def monorepo_tester(name, short_name, category):
     luci.console_view_entry(
         builder = name,
         short_name = short_name,
-        category = category,
+        category = console,
         console_view = "monorepo",
     )
     luci.console_view_entry(
         builder = name,
         short_name = short_name,
-        console_view = category,
+        console_view = console,
     )
     dart.try_builder(
         name,
