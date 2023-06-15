@@ -4,8 +4,6 @@
 
 // Tests that equality is allowed for receivers of specific types.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 import "package:expect/expect.dart";
 
 main() {

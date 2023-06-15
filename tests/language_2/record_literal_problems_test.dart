@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-// SharedOptions=--enable-experiment=records
-
 main() {
   var r1 = const (42);
   //             ^

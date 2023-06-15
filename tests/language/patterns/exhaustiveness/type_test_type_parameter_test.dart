@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // Test that using a type parameter as a type test in a pattern doesn't
 // incorrectly use the bound for exhaustiveness.
 //

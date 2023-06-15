@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
-
 import 'sealed_class_mixin_on_lib.dart';
 
 // It is an error to declare a mixin with an `on` type which is a sealed class
