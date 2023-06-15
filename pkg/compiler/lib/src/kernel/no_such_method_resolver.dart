@@ -8,8 +8,8 @@ import '../common/elements.dart';
 import '../common/names.dart';
 import '../elements/entities.dart';
 
+import '../js_model/elements.dart';
 import 'element_map.dart';
-import 'kelements.dart';
 
 /// Interface for determining the form of a `noSuchMethod` implementation.
 class NoSuchMethodResolver {
@@ -23,7 +23,7 @@ class NoSuchMethodResolver {
   ///
   ///     noSuchMethod(i) => super.noSuchMethod(i);
   ///
-  bool hasForwardingSyntax(KFunction method) {
+  bool hasForwardingSyntax(JFunction method) {
     ir.Procedure node = elementMap.lookupProcedure(method);
     if (node.function.positionalParameters.isEmpty) return false;
     ir.VariableDeclaration firstParameter =
@@ -59,7 +59,7 @@ class NoSuchMethodResolver {
   ///
   ///     noSuchMethod(i) => throw Error();
   ///
-  bool hasThrowingSyntax(KFunction method) {
+  bool hasThrowingSyntax(JFunction method) {
     ir.Procedure node = elementMap.lookupProcedure(method);
     ir.Statement? body = node.function.body;
     if (body is ir.Block && body.statements.isNotEmpty) {

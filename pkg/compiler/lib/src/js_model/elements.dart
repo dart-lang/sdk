@@ -4,6 +4,8 @@
 
 library dart2js.js_model.elements;
 
+import 'package:kernel/ast.dart' as ir show LocalFunction;
+
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -816,4 +818,37 @@ class JTypeVariable extends IndexedTypeVariable {
   @override
   String toString() =>
       '${jsElementPrefix}type_variable(${typeDeclaration?.name}.$name)';
+}
+
+class JLocalFunction implements Local {
+  @override
+  final String? name;
+  final MemberEntity memberContext;
+  final Entity executableContext;
+  final ir.LocalFunction node;
+  late final FunctionType functionType;
+
+  JLocalFunction(
+      this.name, this.memberContext, this.executableContext, this.node);
+
+  @override
+  String toString() => '${jsElementPrefix}local_function'
+      '(${memberContext.name}.${name ?? '<anonymous>'})';
+}
+
+class JLocalTypeVariable implements TypeVariableEntity {
+  @override
+  final JLocalFunction typeDeclaration;
+  @override
+  final String name;
+  @override
+  final int index;
+  late final DartType bound;
+  late final DartType defaultType;
+
+  JLocalTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  @override
+  String toString() =>
+      '${jsElementPrefix}local_type_variable(${typeDeclaration.name}.$name)';
 }

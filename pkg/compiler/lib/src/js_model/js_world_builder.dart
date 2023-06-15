@@ -22,7 +22,6 @@ import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
-import '../kernel/kelements.dart';
 import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../universe/class_hierarchy.dart';
@@ -160,14 +159,14 @@ class JClosedWorldBuilder {
           Set<ir.LocalFunction>();
       for (Local localFunction
           in kernelRtiNeed.localFunctionsNeedingSignature) {
-        ir.LocalFunction node = (localFunction as KLocalFunction).node;
+        ir.LocalFunction node = (localFunction as JLocalFunction).node;
         localFunctionsNodesNeedingSignature.add(node);
       }
       Set<ir.LocalFunction> localFunctionsNodesNeedingTypeArguments =
           Set<ir.LocalFunction>();
       for (Local localFunction
           in kernelRtiNeed.localFunctionsNeedingTypeArguments) {
-        ir.LocalFunction node = (localFunction as KLocalFunction).node;
+        ir.LocalFunction node = (localFunction as JLocalFunction).node;
         localFunctionsNodesNeedingTypeArguments.add(node);
       }
 
@@ -417,7 +416,7 @@ class JClosedWorldBuilder {
       localFunctionMap.forEach((Local entity, OutputUnit unit) {
         // Ensure closure classes are included in the output unit corresponding
         // to the local function.
-        if (entity is KLocalFunction) {
+        if (entity is JLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
           result[closureInfo.closureClassEntity!] = unit;
         }
@@ -441,7 +440,7 @@ class JClosedWorldBuilder {
       localFunctionMap.forEach((Local entity, OutputUnit unit) {
         // Ensure closure call-methods are included in the output unit
         // corresponding to the local function.
-        if (entity is KLocalFunction) {
+        if (entity is JLocalFunction) {
           var closureInfo = closureDataLookup.getClosureInfo(entity.node);
           result[closureInfo.callMethod!] = unit;
           if (closureInfo.signatureMethod != null) {
@@ -577,7 +576,7 @@ class JsToFrontendMapImpl extends JsToFrontendMap {
   }
 
   TypeVariableEntity? toBackendTypeVariable(TypeVariableEntity typeVariable) {
-    if (typeVariable is KLocalTypeVariable) {
+    if (typeVariable is JLocalTypeVariable) {
       if (_closureData == null) {
         failedAt(
             typeVariable,

@@ -39,7 +39,6 @@ import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
-import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
@@ -2404,7 +2403,7 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
+  FunctionType getLocalFunctionType(covariant JLocalFunction function) {
     return function.functionType;
   }
 

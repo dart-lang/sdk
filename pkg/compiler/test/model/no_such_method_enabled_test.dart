@@ -8,8 +8,8 @@ import 'package:compiler/src/common/names.dart';
 import 'package:compiler/src/compiler.dart';
 import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/js_backend/no_such_method_registry.dart';
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:compiler/src/js_model/js_world.dart' show JClosedWorld;
-import 'package:compiler/src/kernel/kelements.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/util/memory_compiler.dart';
 
@@ -295,7 +295,7 @@ checkTest(Compiler compiler, NoSuchMethodTest test) {
 
     Expect.equals(
         info.hasForwardingSyntax,
-        resolver.hasForwardingSyntax(noSuchMethod as KFunction),
+        resolver.hasForwardingSyntax(noSuchMethod as JFunction),
         "Unexpected hasForwardSyntax result on $noSuchMethod.");
     Expect.equals(
         info.hasThrowingSyntax,
