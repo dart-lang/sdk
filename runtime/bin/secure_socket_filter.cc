@@ -530,9 +530,11 @@ void SSLFilter::Connect(const char* hostname,
     SSL_set_verify(ssl_, certificate_mode, nullptr);
   } else {
     SSLCertContext::SetAlpnProtocolList(protocols_handle, ssl_, nullptr, false);
-    status = SSL_set_tlsext_host_name(ssl_, hostname);
-    SecureSocketUtils::CheckStatusSSL(status, "TlsException",
-                                      "Set SNI host name", ssl_);
+    if (!SocketBase::IsValidAddress(hostname)) {
+      status = SSL_set_tlsext_host_name(ssl_, hostname);
+      SecureSocketUtils::CheckStatusSSL(status, "TlsException",
+                                             "Set SNI host name", ssl_);
+    }
     // Sets the hostname in the certificate-checking object, so it is checked
     // against the certificate presented by the server.
     X509_VERIFY_PARAM* certificate_checking_parameters = SSL_get0_param(ssl_);
