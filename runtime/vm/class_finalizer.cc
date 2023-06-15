@@ -571,6 +571,7 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
 
   bool has_isolate_unsendable_pragma =
       cls.is_isolate_unsendable_due_to_pragma();
+  bool is_future_subtype = cls.IsFutureClass();
 
   // Finalize super class.
   Class& super_class = Class::Handle(zone, cls.SuperClass());
@@ -588,7 +589,8 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     super_type ^= FinalizeType(super_type);
     cls.set_super_type(super_type);
     has_isolate_unsendable_pragma |=
-        Class::IsIsolateUnsendableDueToPragma(super_type.type_class());
+        super_class.is_isolate_unsendable_due_to_pragma();
+    is_future_subtype |= super_class.is_future_subtype();
   }
   // Finalize interface types (but not necessarily interface classes).
   const auto& interface_types = Array::Handle(zone, cls.interfaces());
@@ -602,12 +604,17 @@ void ClassFinalizer::FinalizeTypesInClass(const Class& cls) {
     FinalizeTypesInClass(interface_class);
     interface_types.SetAt(i, interface_type);
     has_isolate_unsendable_pragma |=
-        Class::IsIsolateUnsendableDueToPragma(interface_type.type_class());
+        interface_class.is_isolate_unsendable_due_to_pragma();
+    is_future_subtype |= interface_class.is_future_subtype();
   }
   cls.set_is_type_finalized();
   cls.set_is_isolate_unsendable_due_to_pragma(has_isolate_unsendable_pragma);
+  cls.set_is_future_subtype(is_future_subtype);
+  if (is_future_subtype && !cls.is_abstract()) {
+    MarkClassCanBeFuture(zone, cls);
+  }
 
-  RegisterClassInHierarchy(thread->zone(), cls);
+  RegisterClassInHierarchy(zone, cls);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
 
@@ -652,6 +659,24 @@ void ClassFinalizer::RegisterClassInHierarchy(Zone* zone, const Class& cls) {
         worklist.Add(&Class::Handle(zone, type.type_class()));
       }
     }
+  }
+}
+
+void ClassFinalizer::MarkClassCanBeFuture(Zone* zone, const Class& cls) {
+  if (cls.can_be_future()) return;
+
+  cls.set_can_be_future(true);
+
+  Class& base = Class::Handle(zone, cls.SuperClass());
+  if (!base.IsNull()) {
+    MarkClassCanBeFuture(zone, base);
+  }
+  auto& interfaces = Array::Handle(zone, cls.interfaces());
+  auto& type = AbstractType::Handle(zone);
+  for (intptr_t i = 0; i < interfaces.Length(); ++i) {
+    type ^= interfaces.At(i);
+    base = type.type_class();
+    MarkClassCanBeFuture(zone, base);
   }
 }
 #endif  // defined(DART_PRECOMPILED_RUNTIME)

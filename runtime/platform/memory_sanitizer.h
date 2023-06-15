@@ -19,9 +19,13 @@
 extern "C" void __msan_poison(const volatile void*, size_t);
 extern "C" void __msan_unpoison(const volatile void*, size_t);
 extern "C" void __msan_unpoison_param(size_t);
+extern "C" void __msan_allocated_memory(const volatile void*, size_t);
+extern "C" void __sanitizer_dtor_callback(const volatile void*, size_t);
 extern "C" void __msan_check_mem_is_initialized(const volatile void*, size_t);
 #define MSAN_POISON(ptr, len) __msan_poison(ptr, len)
 #define MSAN_UNPOISON(ptr, len) __msan_unpoison(ptr, len)
+#define MSAN_ALLOCATED(ptr, len) __msan_allocated_memory(ptr, len)
+#define MSAN_RELEASED(ptr, len) __sanitizer_dtor_callback(ptr, len)
 #define MSAN_CHECK_INITIALIZED(ptr, len)                                       \
   __msan_check_mem_is_initialized(ptr, len)
 #define NO_SANITIZE_MEMORY __attribute__((no_sanitize("memory")))
@@ -30,6 +34,12 @@ extern "C" void __msan_check_mem_is_initialized(const volatile void*, size_t);
   do {                                                                         \
   } while (false && (ptr) == nullptr && (len) == 0)
 #define MSAN_UNPOISON(ptr, len)                                                \
+  do {                                                                         \
+  } while (false && (ptr) == nullptr && (len) == 0)
+#define MSAN_ALLOCATED(ptr, len)                                               \
+  do {                                                                         \
+  } while (false && (ptr) == nullptr && (len) == 0)
+#define MSAN_RELEASED(ptr, len)                                                \
   do {                                                                         \
   } while (false && (ptr) == nullptr && (len) == 0)
 #define MSAN_CHECK_INITIALIZED(ptr, len)                                       \
