@@ -68,7 +68,7 @@ vars = {
   # Checkout extra javascript engines for testing or benchmarking.
   # d8, the V8 shell, is always checked out.
   "checkout_javascript_engines": False,
-  "d8_tag": "version:11.1.193",
+  "d8_tag": "version:11.6.145",
   "jsshell_tag": "version:95.0",
 
   # As Flutter does, we use Fuchsia's GN and Clang toolchain. These revision
@@ -139,6 +139,7 @@ vars = {
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
   "dartdoc_rev": "57994242382fa71f4dd6f9ad5d3cffe82e5276c2",
+  "ecosystem_rev": "a2dac18e19a8587c7918a2a7d54d115a2872fc9e",
   "ffi_rev": "f582ca022042323af061f35ccd24b6c4d38f7bd1",
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
@@ -149,7 +150,7 @@ vars = {
   "http_parser_rev": "19466c0daf9138ab20877f34dbcf4479b31d33d6",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "73467f3651669af4870260fea4e99d7ba6ccb7ec",
-  "leak_tracker_rev": "f17da619a987aec1b89b0e29ec198a5e3361fea1", # https://dart-review.googlesource.com/c/sdk/+/308248
+  "leak_tracker_rev": "2149e5c0b7a1a5ceaba24f55ccabb2f6567fc3ff",
   "linter_rev": "27b46ce246204a2c0170a4bd5b23b94095e89a22", # disable rev_sdk_deps.dart
   "lints_rev": "4b79906085d48fc4eee241a80e1a1b177dbdaf23",
   "logging_rev": "f2fe2ac2a61a269b2e0ce65be330f7af1bc67428",
@@ -161,7 +162,7 @@ vars = {
   "package_config_rev": "203de2022af26b3ab2bcec18cc49614d9e502897",
   "path_rev": "592505f67d0563f72c933c2ba100ea7d4f3cb873",
   "pool_rev": "c6b1b2c22663c084a82c9bfe409c196fb38eea53",
-  "protobuf_rev": "edf8e923c3ba6d94bc24066f677356debf9cc031",
+  "protobuf_rev": "a9bf79fae6e767bcf6e716965fc4a5432730b3af",
   "pub_rev": "078c7fea0be2656debc675646806da14fa94f853", # disable rev_sdk_deps.dart
   "pub_semver_rev": "3930557ee0b20ef528713952c318139409edadb4",
   "shelf_rev": "ce379aa3c22024edb2df3657fd564f1f463406e6",
@@ -376,6 +377,8 @@ deps = {
       Var("dart_git") + "dart_style.git" + "@" + Var("dart_style_rev"),
   Var("dart_root") + "/third_party/pkg/dartdoc":
       Var("dart_git") + "dartdoc.git" + "@" + Var("dartdoc_rev"),
+  Var("dart_root") + "/third_party/pkg/ecosystem":
+      Var("dart_git") + "ecosystem.git" + "@" + Var("ecosystem_rev"),
   Var("dart_root") + "/third_party/pkg/ffi":
       Var("dart_git") + "ffi.git" + "@" + Var("ffi_rev"),
   Var("dart_root") + "/third_party/pkg/fixnum":
