@@ -5909,8 +5909,16 @@ class BodyBuilder extends StackListenerImpl
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
-          return buildProblem(
-              fasta.messageNonConstFactory, charOffset, charLength);
+          if (procedure.isInlineClassMember) {
+            // Both generative constructors and factory constructors from
+            // inline classes are encoded as procedures so we use the message
+            // for non-const constructors here.
+            return buildProblem(
+                fasta.messageNonConstConstructor, charOffset, charLength);
+          } else {
+            return buildProblem(
+                fasta.messageNonConstFactory, charOffset, charLength);
+          }
         }
         StaticInvocation node;
         if (typeAliasBuilder == null) {
