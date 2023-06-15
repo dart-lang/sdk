@@ -11793,7 +11793,9 @@ class Pointer : public Instance {
 
 class DynamicLibrary : public Instance {
  public:
-  static DynamicLibraryPtr New(void* handle, Heap::Space space = Heap::kNew);
+  static DynamicLibraryPtr New(void* handle,
+                               bool canBeClosed,
+                               Heap::Space space = Heap::kNew);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedDynamicLibrary));
@@ -11812,6 +11814,25 @@ class DynamicLibrary : public Instance {
 
   void SetHandle(void* value) const {
     StoreNonPointer(&untag()->handle_, value);
+  }
+
+  bool CanBeClosed() const {
+    ASSERT(!IsNull());
+    return untag()->canBeClosed_;
+  }
+
+  void SetCanBeClosed(bool value) const {
+    ASSERT(!IsNull());
+    StoreNonPointer(&untag()->canBeClosed_, value);
+  }
+
+  bool IsClosed() const {
+    ASSERT(!IsNull());
+    return untag()->isClosed_;
+  }
+
+  void SetClosed(bool value) const {
+    StoreNonPointer(&untag()->isClosed_, value);
   }
 
  private:

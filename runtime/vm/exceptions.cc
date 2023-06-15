@@ -1059,6 +1059,12 @@ void Exceptions::ThrowArgumentError(const Instance& arg) {
   Exceptions::ThrowByType(Exceptions::kArgument, args);
 }
 
+void Exceptions::ThrowStateError(const Instance& arg) {
+  const Array& args = Array::Handle(Array::New(1));
+  args.SetAt(0, arg);
+  Exceptions::ThrowByType(Exceptions::kState, args);
+}
+
 void Exceptions::ThrowRangeError(const char* argument_name,
                                  const Integer& argument_value,
                                  intptr_t expected_from,
@@ -1125,6 +1131,10 @@ ObjectPtr Exceptions::Create(ExceptionType type, const Array& arguments) {
       library = Library::CoreLibrary();
       class_name = &Symbols::ArgumentError();
       constructor_name = &Symbols::DotValue();
+      break;
+    case kState:
+      library = Library::CoreLibrary();
+      class_name = &Symbols::StateError();
       break;
     case kIntegerDivisionByZeroException:
       library = Library::CoreLibrary();

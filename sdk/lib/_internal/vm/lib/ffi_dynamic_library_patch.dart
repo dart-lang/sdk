@@ -40,6 +40,10 @@ final class DynamicLibrary {
   external int getHandle();
 
   @patch
+  @pragma("vm:external-name", "Ffi_dl_close")
+  external void close();
+
+  @patch
   bool operator ==(Object other) {
     if (other is! DynamicLibrary) return false;
     DynamicLibrary otherLib = other;

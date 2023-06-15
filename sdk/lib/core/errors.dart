@@ -571,6 +571,7 @@ class UnimplementedError extends Error implements UnsupportedError {
 /// actions. The message should be descriptive.
 class StateError extends Error {
   final String message;
+  @pragma("vm:entry-point")
   StateError(this.message);
   String toString() => "Bad state: $message";
 }

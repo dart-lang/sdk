@@ -314,8 +314,10 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     manager.changedPlugins(_MockPluginManager(plugins: [
-      _MockPluginInfo(path.join('.pub-cache', 'a', 'tools', 'analyzer_plugin')),
-      _MockPluginInfo(path.join('.pub-cache', 'b', 'tools', 'analyzer_plugin')),
+      _MockPluginInfo(
+          path.join('.pub-cache', 'pub.dev', 'a', 'tools', 'analyzer_plugin')),
+      _MockPluginInfo(
+          path.join('.pub-cache', 'pub.dev', 'b', 'tools', 'analyzer_plugin')),
     ]));
     await manager.shutdown();
     var counts = '{"count":1,"percentiles":[0,0,0,0,0]}';

@@ -380,9 +380,9 @@ class ModelEmitter {
   js.Statement buildDeferredInitializerGlobal(js.LiteralString partFileName,
       {js.Expression? code}) {
     return js.js.statement(
-        '((s,d) => {s[d] = s[d] || {#eventLog: []}; '
-        's[d].#eventLog.push({part:#part,event:"beginLoadPart"});})'
-        '(self,#deferredInitializers)',
+        '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
+        's[d][e].push({part:#part,event:"beginLoadPart"});})'
+        '(self,#deferredInitializers, #eventLog)',
         {
           'deferredInitializers': js.string(deferredInitializersGlobal),
           'eventLog': js.string(INITIALIZATION_EVENT_LOG),

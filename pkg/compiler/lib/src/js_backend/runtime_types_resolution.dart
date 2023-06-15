@@ -11,7 +11,7 @@ import '../elements/entities.dart';
 import '../elements/names.dart';
 import '../elements/types.dart';
 import '../ir/runtime_type_analysis.dart';
-import '../kernel/kelements.dart';
+import '../js_model/elements.dart' show JLocalFunction;
 import '../kernel/kernel_world.dart';
 import '../options.dart';
 import '../serialization/serialization.dart';
@@ -1157,7 +1157,7 @@ class RuntimeTypesNeedBuilderImpl implements RuntimeTypesNeedBuilder {
       if (closedWorld.annotationsData
           // TODO(johnniwinther): Support @pragma on local functions and use
           // this here instead of the enclosing member.
-          .getParameterCheckPolicy((function as KLocalFunction).memberContext)
+          .getParameterCheckPolicy((function as JLocalFunction).memberContext)
           .isEmitted) {
         checkFunction(
             function, _elementEnvironment.getLocalFunctionType(function));

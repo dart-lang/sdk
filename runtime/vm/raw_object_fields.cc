@@ -231,6 +231,8 @@ namespace dart {
   F(Pointer, data_)                                                            \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
+  F(DynamicLibrary, isClosed_)                                                 \
+  F(DynamicLibrary, canBeClosed_)                                              \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \

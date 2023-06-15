@@ -26397,13 +26397,17 @@ const char* Pointer::ToCString() const {
                      NativeAddress());
 }
 
-DynamicLibraryPtr DynamicLibrary::New(void* handle, Heap::Space space) {
+DynamicLibraryPtr DynamicLibrary::New(void* handle,
+                                      bool canBeClosed,
+                                      Heap::Space space) {
   DynamicLibrary& result = DynamicLibrary::Handle();
   result ^=
       Object::Allocate(kDynamicLibraryCid, DynamicLibrary::InstanceSize(),
                        space, DynamicLibrary::ContainsCompressedPointers());
   NoSafepointScope no_safepoint;
   result.SetHandle(handle);
+  result.SetClosed(false);
+  result.SetCanBeClosed(canBeClosed);
   return result.ptr();
 }
 

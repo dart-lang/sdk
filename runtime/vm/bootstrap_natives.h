@@ -365,6 +365,7 @@ namespace dart {
   V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_pointerFromFunction, 1)                                                \
   V(Ffi_dl_open, 1)                                                            \
+  V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \

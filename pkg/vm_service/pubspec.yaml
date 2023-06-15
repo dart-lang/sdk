@@ -9,8 +9,6 @@ repository: https://github.com/dart-lang/sdk/tree/main/pkg/vm_service
 environment:
   sdk: '>=2.19.0 <4.0.0'
 
-dependencies:
-
 # We use 'any' version constraints here as we get our package versions from
 # the dart-lang/sdk repo's DEPS file. Note that this is a special case; the
 # best practice for packages is to specify their compatible version ranges.
@@ -25,6 +23,7 @@ dev_dependencies:
   pub_semver: any
   test_package: any
   test: any
+  vm_service_protos: any
 
 dependency_overrides:
   test_package:

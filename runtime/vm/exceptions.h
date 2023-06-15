@@ -55,6 +55,7 @@ class Exceptions : AllStatic {
     kRangeMsg,
     kArgument,
     kArgumentValue,
+    kState,
     kIntegerDivisionByZeroException,
     kNoSuchMethod,
     kFormat,
@@ -78,6 +79,7 @@ class Exceptions : AllStatic {
   DART_NORETURN static void ThrowOOM();
   DART_NORETURN static void ThrowStackOverflow();
   DART_NORETURN static void ThrowArgumentError(const Instance& arg);
+  DART_NORETURN static void ThrowStateError(const Instance& arg);
   DART_NORETURN static void ThrowRangeError(const char* argument_name,
                                             const Integer& argument_value,
                                             intptr_t expected_from,

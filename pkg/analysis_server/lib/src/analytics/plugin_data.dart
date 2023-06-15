@@ -53,14 +53,17 @@ class PluginData {
 extension on PluginInfo {
   /// Return an id for this plugin that doesn't contain any PII.
   ///
-  /// If the plugin is installed in the pub cache, then the returned name will
-  /// be the name and version of the containing package as listed on `pub.dev`.
-  /// If not, then it might be an internal name so we default to 'unknown'.
+  /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
+  /// the returned name will be the name and version of the containing package
+  /// as listed on `pub.dev`. If not, then it might be an internal name so we
+  /// default to 'unknown'.
   String get safePluginId {
     var components = path.split(pluginId);
     if (components.contains('.pub-cache')) {
       var index = components.lastIndexOf('analyzer_plugin');
-      if (index > 1 && components[index - 1] == 'tools') {
+      if (index > 2 &&
+          components[index - 1] == 'tools' &&
+          components[index - 3] == 'pub.dev') {
         return components[index - 2];
       }
     }

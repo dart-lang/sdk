@@ -3301,6 +3301,8 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
+  bool isClosed_;
+  bool canBeClosed_;
 
   friend class DynamicLibrary;
 };
