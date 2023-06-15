@@ -68,8 +68,9 @@ Expression? _getExpressionCondition(Expression rawExpression) {
 
 class PreferConditionalAssignment extends LintRule {
   static const LintCode code = LintCode('prefer_conditional_assignment',
-      "Unnecessary 'null' comparison before assigning a value.",
-      correctionMessage: "Try using the '??=' assignment operator.");
+      "The 'if' statement could be replaced by a null-aware assignment.",
+      correctionMessage:
+          "Try using the '??=' operator to conditionally assign a value.");
 
   PreferConditionalAssignment()
       : super(
