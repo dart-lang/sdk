@@ -1035,7 +1035,6 @@ Future<void> writeDartCallTest(
           : isLeaf
               ? 2021
               : 2020,
-      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
     ));
     var suffix = isNative ? 'Native' : '';
     suffix += isLeaf ? 'Leaf' : '';
@@ -1144,7 +1143,6 @@ Future<void> writeDartCallbackTest(
     buffer.write(headerDartCallbackTest(
       isNnbd: isNnbd,
       copyrightYear: isVarArgs ? 2023 : 2020,
-      vmFlags: isVarArgs ? '--enable-experiment=records' : '',
     ));
 
     buffer.write("""
