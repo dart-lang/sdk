@@ -3,8 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // @dart=2.19
-// SharedOptions=--enable-experiment=class-modifiers
-
 import "dart:async";
 import "dart:collection";
 

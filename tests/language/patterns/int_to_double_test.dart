@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 /// Test where a pattern does and does not create a context type that leads to
 /// int-to-double conversion.
 

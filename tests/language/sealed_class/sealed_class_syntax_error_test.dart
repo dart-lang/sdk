@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
-
 // Syntax errors such as using `sealed` keyword in a place other than a class or
 // mixin.
 

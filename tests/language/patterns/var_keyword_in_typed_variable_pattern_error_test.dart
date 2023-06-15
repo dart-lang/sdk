@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // Test that the proper errors are generated if both `var` and a type are used
 // in a declared variable pattern.
 

@@ -4,8 +4,6 @@
 
 // @dart = 2.9
 
-// SharedOptions=--enable-experiment=records
-
 main() {
   (int, int, {/*missing*/}) r1 = (1, 2);
 //^

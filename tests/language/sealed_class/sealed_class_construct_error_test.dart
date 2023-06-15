@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class
-
 // Error when we try to construct a sealed class or mixin because they should
 // both be implicitly abstract.
 

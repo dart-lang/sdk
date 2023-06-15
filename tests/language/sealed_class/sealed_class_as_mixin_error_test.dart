@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=sealed-class,class-modifiers
-
 // Error when attempting to mix in a sealed class outside of library.
 
 import 'sealed_class_as_mixin_lib.dart';
