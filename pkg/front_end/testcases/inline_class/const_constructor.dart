@@ -6,10 +6,25 @@ inline class Class {
   final int i;
 
   const Class(this.i);
+
+  Class.named(this.i);
+
+  const factory Class.redirect(int i) = Class;
+
+  factory Class.fact(int i) => Class(i);
+
+  factory Class.redirect2(int i) = Class;
+}
+
+test() {
+  const Class.named(42);
+  const Class.fact(87);
+  const Class.redirect2(87);
 }
 
 main() {
   expect(42, const Class(42));
+  expect(87, const Class.redirect(87));
 }
 
 expect(expected, actual) {

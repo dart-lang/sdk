@@ -490,8 +490,6 @@ class _FilterSink extends ByteConversionSink {
   }
 
   void addSlice(List<int> data, int start, int end, bool isLast) {
-    // TODO(40614): Remove once non-nullability is sound.
-    ArgumentError.checkNotNull(end, "end");
     if (_closed) return;
     RangeError.checkValidRange(start, end, data.length);
     try {
@@ -528,7 +526,7 @@ class _FilterSink extends ByteConversionSink {
     } catch (e) {
       // TODO(kevmoo): not sure why this isn't a try/finally
       _closed = true;
-      throw e;
+      rethrow;
     }
     _closed = true;
     _sink.close();
