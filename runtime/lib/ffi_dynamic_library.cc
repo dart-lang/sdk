@@ -55,6 +55,9 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
 DEFINE_NATIVE_ENTRY(Ffi_dl_getHandle, 0, 1) {
   SimulatorUnsupported();
 }
+DEFINE_NATIVE_ENTRY(Ffi_dl_close, 0, 1) {
+  SimulatorUnsupported();
+}
 DEFINE_NATIVE_ENTRY(Ffi_dl_providesSymbol, 0, 2) {
   SimulatorUnsupported();
 }
@@ -167,26 +170,58 @@ DEFINE_NATIVE_ENTRY(Ffi_dl_open, 0, 1) {
     free(error);
     Exceptions::ThrowArgumentError(msg);
   }
-  return DynamicLibrary::New(handle);
+  return DynamicLibrary::New(handle, true);
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_processLibrary, 0, 0) {
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_MACOS) ||              \
     defined(DART_HOST_OS_ANDROID) || defined(DART_HOST_OS_FUCHSIA)
-  return DynamicLibrary::New(RTLD_DEFAULT);
+  return DynamicLibrary::New(RTLD_DEFAULT, false);
 #else
-  return DynamicLibrary::New(kWindowsDynamicLibraryProcessPtr);
+  return DynamicLibrary::New(kWindowsDynamicLibraryProcessPtr, false);
 #endif
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_executableLibrary, 0, 0) {
-  return DynamicLibrary::New(LoadDynamicLibrary(nullptr));
+  return DynamicLibrary::New(LoadDynamicLibrary(nullptr), false);
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_dl_close, 0, 1) {
+  GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
+  if (dlib.IsClosed()) {
+    // Already closed, nothing to do
+  } else if (!dlib.CanBeClosed()) {
+    const String& msg = String::Handle(
+        String::New("DynamicLibrary.process() and DynamicLibrary.executable() "
+                    "can't be closed."));
+    Exceptions::ThrowStateError(msg);
+  } else {
+    void* handle = dlib.GetHandle();
+    char* error = nullptr;
+    Utils::UnloadDynamicLibrary(handle, &error);
+
+    if (error == nullptr) {
+      dlib.SetClosed(true);
+    } else {
+      const String& msg = String::Handle(String::New(error));
+      free(error);
+      Exceptions::ThrowStateError(msg);
+    }
+  }
+
+  return Object::null();
 }
 
 DEFINE_NATIVE_ENTRY(Ffi_dl_lookup, 1, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(DynamicLibrary, dlib, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(String, argSymbolName,
                                arguments->NativeArgAt(1));
+
+  if (dlib.IsClosed()) {
+    const String& msg =
+        String::Handle(String::New("Cannot lookup symbols in closed library."));
+    Exceptions::ThrowStateError(msg);
+  }
 
   void* handle = dlib.GetHandle();
 
