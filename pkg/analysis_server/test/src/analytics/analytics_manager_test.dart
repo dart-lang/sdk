@@ -77,7 +77,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   Future<void> test_plugin_request() async {
     _defaultStartup();
-    PluginManager.pluginResponseTimes[_MockPluginInfo('a')] = {
+    PluginManager.pluginResponseTimes[_pluginInfo('a')] = {
       'analysis.getNavigation': PercentileCalculator(),
     };
     await manager.shutdown();
@@ -314,10 +314,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   Future<void> test_startup_withPlugins() async {
     _defaultStartup();
     manager.changedPlugins(_MockPluginManager(plugins: [
-      _MockPluginInfo(
-          path.join('.pub-cache', 'pub.dev', 'a', 'tools', 'analyzer_plugin')),
-      _MockPluginInfo(
-          path.join('.pub-cache', 'pub.dev', 'b', 'tools', 'analyzer_plugin')),
+      _pluginInfo('a'),
+      _pluginInfo('b'),
     ]));
     await manager.shutdown();
     var counts = '{"count":1,"percentiles":[0,0,0,0,0]}';
@@ -410,6 +408,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
   }
 
   DateTime _now() => DateTime.now();
+
+  _MockPluginInfo _pluginInfo(String name) => _MockPluginInfo(
+      path.join('.pub-cache', 'pub.dev', name, 'tools', 'analyzer_plugin'));
 }
 
 /// A record of an event that was reported to analytics.

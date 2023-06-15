@@ -50,7 +50,7 @@ class PluginData {
   }
 }
 
-extension on PluginInfo {
+extension PluginInfoExtension on PluginInfo {
   /// Return an id for this plugin that doesn't contain any PII.
   ///
   /// If the plugin is installed in the pub cache and hosted on `pub.dev`, then
