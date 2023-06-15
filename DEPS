@@ -162,7 +162,7 @@ vars = {
   "package_config_rev": "203de2022af26b3ab2bcec18cc49614d9e502897",
   "path_rev": "592505f67d0563f72c933c2ba100ea7d4f3cb873",
   "pool_rev": "c6b1b2c22663c084a82c9bfe409c196fb38eea53",
-  "protobuf_rev": "edf8e923c3ba6d94bc24066f677356debf9cc031",
+  "protobuf_rev": "a9bf79fae6e767bcf6e716965fc4a5432730b3af",
   "pub_rev": "078c7fea0be2656debc675646806da14fa94f853", # disable rev_sdk_deps.dart
   "pub_semver_rev": "3930557ee0b20ef528713952c318139409edadb4",
   "shelf_rev": "ce379aa3c22024edb2df3657fd564f1f463406e6",
