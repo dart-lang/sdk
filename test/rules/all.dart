@@ -49,6 +49,7 @@ import 'deprecated_member_use_from_same_package_test.dart'
     as deprecated_member_use_from_same_package;
 import 'directives_ordering_test.dart' as directives_ordering;
 import 'discarded_futures_test.dart' as discarded_futures;
+import 'empty_statements_test.dart' as empty_statements;
 import 'eol_at_end_of_file_test.dart' as eol_at_end_of_file;
 import 'exhaustive_cases_test.dart' as exhaustive_cases;
 import 'file_names_test.dart' as file_names;
@@ -186,6 +187,7 @@ void main() {
   deprecated_member_use_from_same_package.main();
   directives_ordering.main();
   discarded_futures.main();
+  empty_statements.main();
   eol_at_end_of_file.main();
   exhaustive_cases.main();
   file_names.main();

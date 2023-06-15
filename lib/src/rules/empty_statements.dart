@@ -69,8 +69,23 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule);
 
+  bool definesSemantics(EmptyStatement node) {
+    var parent = node.parent;
+    if (parent is! SwitchPatternCase) return false;
+
+    var statements = parent.statements;
+    if (statements.last != node) return false;
+
+    for (var statement in statements) {
+      if (statement is! EmptyStatement) return false;
+    }
+
+    return true;
+  }
+
   @override
   void visitEmptyStatement(EmptyStatement node) {
+    if (definesSemantics(node)) return;
     rule.reportLint(node);
   }
 }
