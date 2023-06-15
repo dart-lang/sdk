@@ -133,10 +133,8 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'latency': _IsPercentiles(),
         'method': Method.workspace_didChangeWorkspaceFolders.toString(),
         'duration': _IsPercentiles(),
-        'added':
-            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
-        'removed':
-            '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
+        'added': '{"count":1,"percentiles":[3,3,3,3,3]}',
+        'removed': '{"count":1,"percentiles":[2,2,2,2,2]}',
       }),
     ]);
   }
@@ -157,9 +155,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'method': ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS,
         'duration': _IsPercentiles(),
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_INCLUDED:
-            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
+            '{"count":1,"percentiles":[3,3,3,3,3]}',
         ANALYSIS_REQUEST_SET_ANALYSIS_ROOTS_EXCLUDED:
-            '{"count":1,"percentiles":[2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2]}',
+            '{"count":1,"percentiles":[2,2,2,2,2]}',
       }),
     ]);
   }
@@ -180,7 +178,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'method': ANALYSIS_REQUEST_SET_PRIORITY_FILES,
         'duration': _IsPercentiles(),
         ANALYSIS_REQUEST_SET_PRIORITY_FILES_FILES:
-            '{"count":1,"percentiles":[1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1]}',
+            '{"count":1,"percentiles":[1,1,1,1,1]}',
       }),
     ]);
   }
@@ -243,8 +241,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'latency': _IsPercentiles(),
         'method': Method.initialized.toString(),
         'duration': _IsPercentiles(),
-        'openWorkspacePaths':
-            '{"count":1,"percentiles":[3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3]}',
+        'openWorkspacePaths': '{"count":1,"percentiles":[3,3,3,3,3]}',
       }),
     ]);
   }
@@ -321,8 +318,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _MockPluginInfo(path.join('.pub-cache', 'b', 'tools', 'analyzer_plugin')),
     ]));
     await manager.shutdown();
-    var counts =
-        '{"count":1,"percentiles":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0]}';
+    var counts = '{"count":1,"percentiles":[0,0,0,0,0]}';
     analytics.assertEvents([
       _ExpectedEvent.session(eventData: {
         'plugins': '{"recordCount":1,"rootCounts":{"a":$counts,"b":$counts}}'
@@ -499,7 +495,7 @@ class _IsPercentiles extends Matcher {
       return false;
     }
     var percentiles = map['percentiles'];
-    if (percentiles is! List || percentiles.length != 20) {
+    if (percentiles is! List || percentiles.length != 5) {
       return false;
     }
     return !percentiles.any((element) => element is! int);
