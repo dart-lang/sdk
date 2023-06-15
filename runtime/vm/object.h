@@ -1687,10 +1687,6 @@ class Class : public Object {
   static bool IsIsolateUnsendable(ClassPtr clazz) {
     return IsIsolateUnsendableBit::decode(clazz->untag()->state_bits_);
   }
-  static bool IsIsolateUnsendableDueToPragma(ClassPtr clazz) {
-    return IsIsolateUnsendableDueToPragmaBit::decode(
-        clazz->untag()->state_bits_);
-  }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   CodePtr allocation_stub() const { return untag()->allocation_stub(); }
@@ -1941,13 +1937,19 @@ class Class : public Object {
     // Whether instances of the class cannot be sent across ports.
     //
     // Will be true iff
-    //    - class is marked with `@pramga('vm:isolate-unsendable')
+    //    - class is marked with `@pragma('vm:isolate-unsendable')
     //    - super class / super interface classes are marked as unsendable.
     //    - class has native fields.
     kIsIsolateUnsendableBit,
-    // True if this class has `@pramga('vm:isolate-unsendable') annotation or
+    // True if this class has `@pragma('vm:isolate-unsendable') annotation or
     // base class or implemented interfaces has this bit.
     kIsIsolateUnsendableDueToPragmaBit,
+    // This class is a subtype of Future.
+    kIsFutureSubtypeBit,
+    // This class has a non-abstract subtype which is a subtype of Future.
+    // It means that variable of static type based on this class may hold
+    // a Future instance.
+    kCanBeFutureBit,
   };
   class ConstBit : public BitField<uint32_t, bool, kConstBit, 1> {};
   class ImplementedBit : public BitField<uint32_t, bool, kImplementedBit, 1> {};
@@ -1981,6 +1983,9 @@ class Class : public Object {
   class IsIsolateUnsendableDueToPragmaBit
       : public BitField<uint32_t, bool, kIsIsolateUnsendableDueToPragmaBit, 1> {
   };
+  class IsFutureSubtypeBit
+      : public BitField<uint32_t, bool, kIsFutureSubtypeBit, 1> {};
+  class CanBeFutureBit : public BitField<uint32_t, bool, kCanBeFutureBit, 1> {};
 
   void set_name(const String& value) const;
   void set_user_name(const String& value) const;
@@ -2032,6 +2037,14 @@ class Class : public Object {
   bool is_isolate_unsendable_due_to_pragma() const {
     return IsIsolateUnsendableDueToPragmaBit::decode(state_bits());
   }
+
+  void set_is_future_subtype(bool value) const;
+  bool is_future_subtype() const {
+    return IsFutureSubtypeBit::decode(state_bits());
+  }
+
+  void set_can_be_future(bool value) const;
+  bool can_be_future() const { return CanBeFutureBit::decode(state_bits()); }
 
  private:
   void set_functions(const Array& value) const;
