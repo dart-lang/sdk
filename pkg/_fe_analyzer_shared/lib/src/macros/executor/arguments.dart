@@ -35,7 +35,11 @@ sealed class Argument implements Serializable {
         new _IterableArgument._deserialize(kind, deserializer),
       ArgumentKind.map => new MapArgument._deserialize(deserializer),
       ArgumentKind.nil => new NullArgument(),
-      // These are just for type arguments and aren't supported as actual args.\
+      ArgumentKind.typeAnnotation => new TypeAnnotationArgument(
+          (deserializer..moveNext()).expectRemoteInstance()),
+      ArgumentKind.code =>
+        new CodeArgument((deserializer..moveNext()).expectCode()),
+      // These are just for type arguments and aren't supported as actual args.
       ArgumentKind.object ||
       ArgumentKind.dynamic ||
       ArgumentKind.num ||
@@ -130,6 +134,38 @@ final class StringArgument extends Argument {
   }
 }
 
+final class CodeArgument extends Argument {
+  @override
+  ArgumentKind get kind => ArgumentKind.code;
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    value.serialize(serializer);
+  }
+
+  @override
+  final Code value;
+
+  CodeArgument(this.value);
+}
+
+final class TypeAnnotationArgument extends Argument {
+  @override
+  ArgumentKind get kind => ArgumentKind.typeAnnotation;
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    value.serialize(serializer);
+  }
+
+  @override
+  final TypeAnnotationImpl value;
+
+  TypeAnnotationArgument(this.value);
+}
+
 abstract base class _CollectionArgument extends Argument {
   /// Flat list of the actual reified type arguments for this list, in the order
   /// they would appear if written in code.
@@ -185,6 +221,8 @@ abstract base class _CollectionArgument extends Argument {
           extractIterableTypeArgument(typedInstanceStack.removeLast(), <S>() {
             return new List<List<S>>.empty();
           }) as List<Object?>,
+        ArgumentKind.typeAnnotation => const <TypeAnnotation>[],
+        ArgumentKind.code => const <Code>[],
         ArgumentKind.object => const <Object>[],
         ArgumentKind.dynamic => const <dynamic>[],
         ArgumentKind.num => const <num>[],
@@ -421,4 +459,6 @@ enum ArgumentKind {
   dynamic,
   num,
   nullable,
+  typeAnnotation,
+  code,
 }
