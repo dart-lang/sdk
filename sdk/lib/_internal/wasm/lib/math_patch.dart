@@ -118,6 +118,12 @@ double sqrt(num x) => _sqrt(x.toDouble());
 double exp(num x) => _exp(x.toDouble());
 @patch
 double log(num x) => _log(x.toDouble());
+@patch
+double log10(num x) => _log10(x.toDouble());
+@patch
+double log2(num x) => _log2(x.toDouble());
+@patch
+double log1p(num x) => _log1p(x.toDouble());
 
 @pragma("wasm:import", "Math.atan2")
 external double _atan2(double a, double b);
@@ -139,6 +145,12 @@ external double _sqrt(double x);
 external double _exp(double x);
 @pragma("wasm:import", "Math.log")
 external double _log(double x);
+@pragma("wasm:import", "Math.log10")
+external double _log10(double x);
+@pragma("wasm:import", "Math.log2")
+external double _log2(double x);
+@pragma("wasm:import", "Math.log1p")
+external double _log1p(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch

@@ -161,6 +161,18 @@ double exp(num x) => _exp(x.toDouble());
 @pragma("vm:exact-result-type", "dart:core#_Double")
 @pragma("vm:prefer-inline")
 double log(num x) => _log(x.toDouble());
+@patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:prefer-inline")
+double log10(num x) => _log10(x.toDouble());
+@patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:prefer-inline")
+double log2(num x) => _log2(x.toDouble());
+@patch
+@pragma("vm:exact-result-type", "dart:core#_Double")
+@pragma("vm:prefer-inline")
+double log1p(num x) => _log1p(x.toDouble());
 
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
@@ -192,6 +204,15 @@ external double _exp(double x);
 @pragma("vm:recognized", "other")
 @pragma("vm:prefer-inline")
 external double _log(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+external double _log10(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+external double _log2(double x);
+@pragma("vm:recognized", "other")
+@pragma("vm:prefer-inline")
+external double _log1p(double x);
 
 // TODO(iposva): Handle patch methods within a patch class correctly.
 @patch

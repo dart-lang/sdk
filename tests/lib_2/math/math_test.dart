@@ -148,6 +148,25 @@ class MathTest {
     checkVeryClose(ln2, log(2.0));
   }
 
+  static void testLog10() {
+    checkVeryClose(1.0, log10(10.0));
+    // Even though E is imprecise, it is good enough to get really close to log10e.
+    // We still provide an epsilon.
+    checkClose(log10e, log10(e), 1e-16);
+  }
+
+  static void testLog2() {
+    checkVeryClose(1.0, log2(2.0));
+    // Even though E is imprecise, it is good enough to get really close to log2e.
+    // We still provide an epsilon.
+    checkClose(log2e, log2(e), 1e-16);
+  }
+
+  static void testLog1p() {
+    checkVeryClose(ln10, log1p(9.0));
+    checkVeryClose(ln2, log1p(1.0));
+  }
+
   static bool parseIntThrowsFormatException(str) {
     try {
       int.parse(str);

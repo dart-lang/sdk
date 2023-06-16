@@ -54,6 +54,15 @@ double exp(num x) => JS('num', r'Math.exp(#)', checkNum(x));
 double log(num x) => JS('num', r'Math.log(#)', checkNum(x));
 
 @patch
+double log10(num x) => JS('num', r'Math.log10(#)', checkNum(x));
+
+@patch
+double log2(num x) => JS('num', r'Math.log2(#)', checkNum(x));
+
+@patch
+double log1p(num x) => JS('num', r'Math.log1p(#)', checkNum(x));
+
+@patch
 num pow(num x, num exponent) {
   checkNum(x);
   checkNum(exponent);

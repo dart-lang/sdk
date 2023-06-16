@@ -61,6 +61,18 @@ double log(@nullCheck num x) => JS<double>('!', r'Math.log(#)', x);
 
 @patch
 @notNull
+double log10(@nullCheck num x) => JS<double>('!', r'Math.log10(#)', x);
+
+@patch
+@notNull
+double log2(@nullCheck num x) => JS<double>('!', r'Math.log2(#)', x);
+
+@patch
+@notNull
+double log1p(@nullCheck num x) => JS<double>('!', r'Math.log1p(#)', x);
+
+@patch
+@notNull
 num pow(@nullCheck num x, @nullCheck num exponent) =>
     JS<num>('!', r'Math.pow(#, #)', x, exponent);
 

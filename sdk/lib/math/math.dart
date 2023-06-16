@@ -253,3 +253,21 @@ external double exp(num x);
 /// Returns negative infinity if [x] is equal to zero.
 /// Returns NaN if [x] is NaN or less than zero.
 external double log(num x);
+
+/// Converts [x] to a [double] and returns the base 10 logarithm of the value.
+///
+/// Returns negative infinity if [x] is equal to zero.
+/// Returns NaN if [x] is NaN or less than zero.
+external double log10(num x);
+
+/// Converts [x] to a [double] and returns the base 2 logarithm of the value.
+///
+/// Returns negative infinity if [x] is equal to zero.
+/// Returns NaN if [x] is NaN or less than zero.
+external double log2(num x);
+
+/// Converts [x] to a [double] and returns the natural logarithm of 1 + [x].
+///
+/// Returns negative infinity if [x] is equal to zero.
+/// Returns NaN if [x] is NaN or less than zero.
+external double log1p(num x);
