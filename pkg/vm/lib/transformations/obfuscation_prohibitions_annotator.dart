@@ -27,11 +27,11 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
 
   ObfuscationProhibitionsVisitor(this.parser);
 
-  void _addIfEntryPoint(
+  void _checkAnnotations(
       List<Expression> annotations, String name, TreeNode node) {
-    for (var ann in annotations) {
-      ParsedPragma? pragma = parser.parsePragma(ann);
-      if (pragma is ParsedEntryPointPragma) {
+    for (final annotation in annotations) {
+      final pragma = parser.parsePragma(annotation);
+      if (pragma is ParsedEntryPointPragma || pragma is ParsedKeepNamePragma) {
         metadata.protectedNames.add(name);
         if (node is Field) {
           metadata.protectedNames.add(name + "=");
@@ -54,22 +54,22 @@ class ObfuscationProhibitionsVisitor extends RecursiveVisitor {
 
   @override
   visitClass(Class klass) {
-    _addIfEntryPoint(klass.annotations, klass.name, klass);
+    _checkAnnotations(klass.annotations, klass.name, klass);
     klass.visitChildren(this);
   }
 
   @override
   visitConstructor(Constructor ctor) {
-    _addIfEntryPoint(ctor.annotations, ctor.name.text, ctor);
+    _checkAnnotations(ctor.annotations, ctor.name.text, ctor);
   }
 
   @override
   visitProcedure(Procedure proc) {
-    _addIfEntryPoint(proc.annotations, proc.name.text, proc);
+    _checkAnnotations(proc.annotations, proc.name.text, proc);
   }
 
   @override
   visitField(Field field) {
-    _addIfEntryPoint(field.annotations, field.name.text, field);
+    _checkAnnotations(field.annotations, field.name.text, field);
   }
 }
