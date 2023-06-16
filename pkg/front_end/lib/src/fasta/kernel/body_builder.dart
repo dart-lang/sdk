@@ -1245,7 +1245,7 @@ class BodyBuilder extends StackListenerImpl
     if (_context.isConstructor) {
       finishConstructor(asyncModifier, body,
           superParametersAsArguments: superParametersAsArguments);
-    } else {
+    } else if (body != null) {
       _context.setAsyncModifier(asyncModifier);
     }
 
