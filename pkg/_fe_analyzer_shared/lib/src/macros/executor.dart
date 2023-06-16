@@ -2,10 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dart_internal/extract_type_arguments.dart';
+import 'package:meta/meta.dart';
+
 import 'api.dart';
 // ignore: unused_import
 import 'bootstrap.dart'; // For doc comments only.
 import 'executor/serialization.dart';
+
+part 'executor/arguments.dart';
 
 /// The interface used by Dart language implementations, in order to load
 /// and execute macros, as well as produce library augmentations from those
@@ -84,146 +89,6 @@ abstract class MacroExecutor {
   /// Tell the executor to shut down and clean up any resources it may have
   /// allocated.
   Future<void> close();
-}
-
-/// The arguments passed to a macro constructor.
-///
-/// All argument instances must be of type [Code] or a built-in value type that
-/// is serializable (num, bool, String, null, etc).
-class Arguments implements Serializable {
-  final List<Object?> positional;
-
-  final Map<String, Object?> named;
-
-  Arguments(this.positional, this.named);
-
-  factory Arguments.deserialize(Deserializer deserializer) {
-    deserializer
-      ..moveNext()
-      ..expectList();
-    List<Object?> positionalArgs = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        _deserializeArg(deserializer, alreadyMoved: true),
-    ];
-    deserializer
-      ..moveNext()
-      ..expectList();
-    Map<String, Object?> namedArgs = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
-        deserializer.expectString(): _deserializeArg(deserializer),
-    };
-    return new Arguments(positionalArgs, namedArgs);
-  }
-
-  static Object? _deserializeArg(Deserializer deserializer,
-      {bool alreadyMoved = false}) {
-    if (!alreadyMoved) deserializer.moveNext();
-    _ArgumentKind kind = _ArgumentKind.values[deserializer.expectInt()];
-    return switch (kind) {
-      _ArgumentKind.nil => null,
-      _ArgumentKind.string => (deserializer..moveNext()).expectString(),
-      _ArgumentKind.bool => (deserializer..moveNext()).expectBool(),
-      _ArgumentKind.int => (deserializer..moveNext()).expectInt(),
-      _ArgumentKind.double => (deserializer..moveNext()).expectDouble(),
-      _ArgumentKind.list => [
-          for (bool hasNext = (deserializer
-                    ..moveNext()
-                    ..expectList())
-                  .moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true),
-        ],
-      _ArgumentKind.set => {
-          for (bool hasNext = (deserializer
-                    ..moveNext()
-                    ..expectList())
-                  .moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true),
-        },
-      _ArgumentKind.map => {
-          for (bool hasNext = (deserializer
-                    ..moveNext()
-                    ..expectList())
-                  .moveNext();
-              hasNext;
-              hasNext = deserializer.moveNext())
-            _deserializeArg(deserializer, alreadyMoved: true):
-                _deserializeArg(deserializer),
-        },
-    };
-  }
-
-  @override
-  void serialize(Serializer serializer) {
-    serializer.startList();
-    for (Object? arg in positional) {
-      _serializeArg(arg, serializer);
-    }
-    serializer.endList();
-
-    serializer.startList();
-    for (MapEntry<String, Object?> arg in named.entries) {
-      serializer.addString(arg.key);
-      _serializeArg(arg.value, serializer);
-    }
-    serializer.endList();
-  }
-
-  static void _serializeArg(Object? arg, Serializer serializer) {
-    if (arg == null) {
-      serializer.addInt(_ArgumentKind.nil.index);
-    } else if (arg is String) {
-      serializer
-        ..addInt(_ArgumentKind.string.index)
-        ..addString(arg);
-    } else if (arg is int) {
-      serializer
-        ..addInt(_ArgumentKind.int.index)
-        ..addInt(arg);
-    } else if (arg is double) {
-      serializer
-        ..addInt(_ArgumentKind.double.index)
-        ..addDouble(arg);
-    } else if (arg is bool) {
-      serializer
-        ..addInt(_ArgumentKind.bool.index)
-        ..addBool(arg);
-    } else if (arg is List) {
-      serializer
-        ..addInt(_ArgumentKind.list.index)
-        ..startList();
-      for (Object? item in arg) {
-        _serializeArg(item, serializer);
-      }
-      serializer.endList();
-    } else if (arg is Set) {
-      serializer
-        ..addInt(_ArgumentKind.set.index)
-        ..startList();
-      for (Object? item in arg) {
-        _serializeArg(item, serializer);
-      }
-      serializer.endList();
-    } else if (arg is Map) {
-      serializer
-        ..addInt(_ArgumentKind.map.index)
-        ..startList();
-      for (MapEntry<Object?, Object?> entry in arg.entries) {
-        _serializeArg(entry.key, serializer);
-        _serializeArg(entry.value, serializer);
-      }
-      serializer.endList();
-    } else {
-      throw new UnsupportedError('Unsupported argument type $arg');
-    }
-  }
 }
 
 /// A resolved [Identifier], this is used when creating augmentation libraries
@@ -324,16 +189,4 @@ enum Phase {
 
   /// This phase allows augmenting existing declarations.
   definitions,
-}
-
-/// Used for serializing and deserializing arguments.
-enum _ArgumentKind {
-  string,
-  bool,
-  double,
-  int,
-  list,
-  map,
-  set,
-  nil,
 }

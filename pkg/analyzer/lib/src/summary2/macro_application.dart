@@ -22,6 +22,51 @@ import 'package:analyzer/src/summary2/macro_application_error.dart';
 import 'package:analyzer/src/summary2/macro_declarations.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 
+/// The full list of [macro.ArgumentKind]s for this dart type (includes the type
+/// itself as well as type arguments, in source order with
+/// [macro.ArgumentKind.nullable] modifiers preceding the nullable types).
+List<macro.ArgumentKind> _dartTypeArgumentKinds(DartType dartType) => [
+      if (dartType.nullabilitySuffix == NullabilitySuffix.question)
+        macro.ArgumentKind.nullable,
+      switch (dartType) {
+        DartType(isDartCoreBool: true) => macro.ArgumentKind.bool,
+        DartType(isDartCoreDouble: true) => macro.ArgumentKind.double,
+        DartType(isDartCoreInt: true) => macro.ArgumentKind.int,
+        DartType(isDartCoreNum: true) => macro.ArgumentKind.num,
+        DartType(isDartCoreNull: true) => macro.ArgumentKind.nil,
+        DartType(isDartCoreObject: true) => macro.ArgumentKind.object,
+        DartType(isDartCoreString: true) => macro.ArgumentKind.string,
+        // TODO: Support nested type arguments for collections.
+        DartType(isDartCoreList: true) => macro.ArgumentKind.list,
+        DartType(isDartCoreMap: true) => macro.ArgumentKind.map,
+        DartType(isDartCoreSet: true) => macro.ArgumentKind.set,
+        DynamicType() => macro.ArgumentKind.dynamic,
+        _ =>
+          throw UnsupportedError('Unsupported macro type argument $dartType'),
+      },
+      if (dartType is ParameterizedType) ...[
+        for (var type in dartType.typeArguments)
+          ..._dartTypeArgumentKinds(type),
+      ]
+    ];
+
+List<macro.ArgumentKind> _typeArgumentsForNode(TypedLiteral node) {
+  if (node.typeArguments == null) {
+    return [
+      // TODO: Use downward inference to build these types and detect maps
+      // versus sets.
+      if (node is ListLiteral || node is SetOrMapLiteral)
+        macro.ArgumentKind.dynamic,
+      if (node is SetOrMapLiteral && node.elements.first is MapLiteralEntry)
+        macro.ArgumentKind.dynamic,
+    ];
+  }
+  return [
+    for (var type in node.typeArguments!.arguments.map((arg) => arg.type!))
+      ..._dartTypeArgumentKinds(type),
+  ];
+}
+
 class LibraryMacroApplier {
   final DeclarationBuilder declarationBuilder;
   final LibraryBuilder libraryBuilder;
@@ -343,8 +388,8 @@ class LibraryMacroApplier {
     required int annotationIndex,
     required ArgumentList node,
   }) {
-    final positional = <Object?>[];
-    final named = <String, Object?>{};
+    final positional = <macro.Argument>[];
+    final named = <String, macro.Argument>{};
     for (var i = 0; i < node.arguments.length; ++i) {
       final argument = node.arguments[i];
       final evaluation = _ArgumentEvaluation(
@@ -404,38 +449,44 @@ class _ArgumentEvaluation {
     required this.argumentIndex,
   });
 
-  Object? evaluate(Expression node) {
+  macro.Argument evaluate(Expression node) {
     if (node is AdjacentStrings) {
-      return node.strings.map(evaluate).join('');
+      return macro.StringArgument(
+          node.strings.map(evaluate).map((arg) => arg.value).join(''));
     } else if (node is BooleanLiteral) {
-      return node.value;
+      return macro.BoolArgument(node.value);
     } else if (node is DoubleLiteral) {
-      return node.value;
+      return macro.DoubleArgument(node.value);
     } else if (node is IntegerLiteral) {
-      return node.value;
+      return macro.IntArgument(node.value!);
     } else if (node is ListLiteral) {
-      return node.elements.cast<Expression>().map(evaluate).toList();
+      final typeArguments = _typeArgumentsForNode(node);
+      return macro.ListArgument(
+          node.elements.cast<Expression>().map(evaluate).toList(),
+          typeArguments);
     } else if (node is NullLiteral) {
-      return null;
+      return macro.NullArgument();
     } else if (node is PrefixExpression &&
         node.operator.type == TokenType.MINUS) {
       final operandValue = evaluate(node.operand);
-      if (operandValue is double) {
-        return -operandValue;
-      } else if (operandValue is int) {
-        return -operandValue;
+      if (operandValue is macro.DoubleArgument) {
+        return macro.DoubleArgument(-operandValue.value);
+      } else if (operandValue is macro.IntArgument) {
+        return macro.IntArgument(-operandValue.value);
       }
     } else if (node is SetOrMapLiteral) {
       return _setOrMapLiteral(node);
     } else if (node is SimpleStringLiteral) {
-      return node.value;
+      return macro.StringArgument(node.value);
     }
     _throwError(node, 'Not supported: ${node.runtimeType}');
   }
 
-  Object _setOrMapLiteral(SetOrMapLiteral node) {
+  macro.Argument _setOrMapLiteral(SetOrMapLiteral node) {
+    final typeArguments = _typeArgumentsForNode(node);
+
     if (node.elements.every((e) => e is Expression)) {
-      final result = <Object?>{};
+      final result = <macro.Argument>[];
       for (final element in node.elements) {
         if (element is! Expression) {
           _throwError(element, 'Expression expected');
@@ -443,10 +494,10 @@ class _ArgumentEvaluation {
         final value = evaluate(element);
         result.add(value);
       }
-      return result;
+      return macro.SetArgument(result, typeArguments);
     }
 
-    final result = <Object?, Object?>{};
+    final result = <macro.Argument, macro.Argument>{};
     for (final element in node.elements) {
       if (element is! MapLiteralEntry) {
         _throwError(element, 'MapLiteralEntry expected');
@@ -455,7 +506,7 @@ class _ArgumentEvaluation {
       final value = evaluate(element.value);
       result[key] = value;
     }
-    return result;
+    return macro.MapArgument(result, typeArguments);
   }
 
   Never _throwError(AstNode node, String message) {
