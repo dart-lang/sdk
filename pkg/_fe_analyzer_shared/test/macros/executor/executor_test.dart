@@ -92,7 +92,7 @@ void main() {
                 reason: 'Can create an instance with no arguments.');
 
             instanceId = await executor.instantiateMacro(
-                macroUri, macroName, '', Arguments([1], {}));
+                macroUri, macroName, '', Arguments([IntArgument(1)], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with positional arguments.');
 
@@ -101,23 +101,33 @@ void main() {
                 macroName,
                 'named',
                 Arguments([], {
-                  'myBool': true,
-                  'myDouble': 1.0,
-                  'myInt': 1,
-                  'myList': [
-                    1,
-                    2,
-                    3,
-                  ],
-                  'mySet': {
-                    true,
-                    null,
-                    {'a': 1.0}
-                  },
-                  'myMap': {
-                    'x': 1,
-                  },
-                  'myString': 'a',
+                  'myBool': BoolArgument(true),
+                  'myDouble': DoubleArgument(1.0),
+                  'myInt': IntArgument(1),
+                  'myList': ListArgument([
+                    IntArgument(1),
+                    IntArgument(2),
+                    IntArgument(3),
+                  ], [
+                    ArgumentKind.nullable,
+                    ArgumentKind.int
+                  ]),
+                  'mySet': SetArgument([
+                    BoolArgument(true),
+                    NullArgument(),
+                    MapArgument({StringArgument('a'): DoubleArgument(1.0)},
+                        [ArgumentKind.string, ArgumentKind.double]),
+                  ], [
+                    ArgumentKind.nullable,
+                    ArgumentKind.object,
+                  ]),
+                  'myMap': MapArgument({
+                    StringArgument('x'): IntArgument(1),
+                  }, [
+                    ArgumentKind.string,
+                    ArgumentKind.int
+                  ]),
+                  'myString': StringArgument('a'),
                 }));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with named arguments.');

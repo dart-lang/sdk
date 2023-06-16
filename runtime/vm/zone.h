@@ -5,7 +5,6 @@
 #ifndef RUNTIME_VM_ZONE_H_
 #define RUNTIME_VM_ZONE_H_
 
-#include "platform/address_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/handles.h"
@@ -278,8 +277,6 @@ inline uword Zone::AllocUnsafe(intptr_t size) {
 
   // Check that the result has the proper alignment and return it.
   ASSERT(Utils::IsAligned(result, kAlignment));
-
-  ASAN_UNPOISON(reinterpret_cast<void*>(result), size);
   return result;
 }
 
@@ -315,8 +312,6 @@ inline ElementType* Zone::Realloc(ElementType* old_data,
       if (new_end <= limit_) {
         position_ = Utils::RoundUp(new_end, kAlignment);
         size_ += static_cast<intptr_t>(new_len - old_len);
-        ASAN_UNPOISON(reinterpret_cast<void*>(old_data),
-                      new_len * kElementSize);
         return old_data;
       }
     }

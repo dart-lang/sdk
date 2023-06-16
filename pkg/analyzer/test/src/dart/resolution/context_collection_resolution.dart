@@ -483,9 +483,14 @@ class PubPackageResolutionTest extends ContextResolutionTest {
     if (macrosEnvironment != null) {
       var packagesRootFolder = getFolder(packagesRootPath);
       macrosEnvironment.packageSharedFolder.copyTo(packagesRootFolder);
+      macrosEnvironment.packageDartInternalFolder.copyTo(packagesRootFolder);
       config.add(
         name: '_fe_analyzer_shared',
         rootPath: getFolder('$packagesRootPath/_fe_analyzer_shared').path,
+      );
+      config.add(
+        name: 'dart_internal',
+        rootPath: getFolder('$packagesRootPath/dart_internal').path,
       );
     }
 

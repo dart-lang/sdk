@@ -1961,6 +1961,10 @@ class OutlineBuilder extends StackListenerImpl {
     }
     TypeBuilder? returnType = pop() as TypeBuilder?;
     bool isAbstract = bodyKind == MethodBody.Abstract;
+    if (isAbstract) {
+      // An error has been reported if this wasn't already sync.
+      asyncModifier = AsyncMarker.Sync;
+    }
     if (getOrSet != null && optional("set", getOrSet)) {
       if (formals == null || formals.length != 1) {
         // This isn't abstract as we'll add an error-recovery node in

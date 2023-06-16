@@ -83,16 +83,18 @@ class _NoArgumentsNode implements _Node {
 }
 
 class _ArgumentsNode implements _Node {
-  final List<Object?> positionalArguments;
-  final Map<String, Object?> namedArguments;
+  final List<macro.Argument> positionalArguments;
+  final Map<String, macro.Argument> namedArguments;
 
   _ArgumentsNode(this.positionalArguments, this.namedArguments);
 }
 
 class _PrimitiveValueNode implements _Node {
-  final Object? value;
+  Object? get value => argument.value;
 
-  _PrimitiveValueNode(this.value);
+  final macro.Argument argument;
+
+  _PrimitiveValueNode(this.argument);
 }
 
 class _TokenNode implements _Node {
@@ -109,9 +111,11 @@ class _NamedArgumentIdentifierNode implements _Node {
 
 class _NamedArgumentNode implements _Node {
   final String name;
-  final Object? value;
+  final macro.Argument argument;
 
-  _NamedArgumentNode(this.name, this.value);
+  Object? get value => argument.value;
+
+  _NamedArgumentNode(this.name, this.argument);
 }
 
 class _MacroListener implements Listener {
@@ -267,15 +271,15 @@ class _MacroListener implements Listener {
       pushUnsupported();
       return;
     }
-    List<Object?> positionalArguments = [];
-    Map<String, Object?> namedArguments = {};
+    List<macro.Argument> positionalArguments = [];
+    Map<String, macro.Argument> namedArguments = {};
     for (int i = 0; i < count; i++) {
       _Node node = pop();
       if (node is _PrimitiveValueNode) {
-        positionalArguments.add(node.value);
+        positionalArguments.add(node.argument);
       } else if (node is _NamedArgumentNode &&
           !namedArguments.containsKey(node.name)) {
-        namedArguments[node.name] = node.value;
+        namedArguments[node.name] = node.argument;
       } else {
         _unsupported();
       }
@@ -317,7 +321,7 @@ class _MacroListener implements Listener {
       _Node name = pop();
       if (name is _NamedArgumentIdentifierNode &&
           value is _PrimitiveValueNode) {
-        push(new _NamedArgumentNode(name.name, value.value));
+        push(new _NamedArgumentNode(name.name, value.argument));
       } else {
         pushUnsupported();
       }
@@ -335,22 +339,25 @@ class _MacroListener implements Listener {
 
   @override
   void handleLiteralNull(Token token) {
-    push(new _PrimitiveValueNode(null));
+    push(new _PrimitiveValueNode(new macro.NullArgument()));
   }
 
   @override
   void handleLiteralBool(Token token) {
-    push(new _PrimitiveValueNode(token.lexeme == 'true'));
+    push(new _PrimitiveValueNode(
+        new macro.BoolArgument(token.lexeme == 'true')));
   }
 
   @override
   void handleLiteralDouble(Token token) {
-    push(new _PrimitiveValueNode(double.parse(token.lexeme)));
+    push(new _PrimitiveValueNode(
+        new macro.DoubleArgument(double.parse(token.lexeme))));
   }
 
   @override
   void handleLiteralInt(Token token) {
-    push(new _PrimitiveValueNode(int.parse(token.lexeme)));
+    push(new _PrimitiveValueNode(
+        new macro.IntArgument(int.parse(token.lexeme))));
   }
 
   @override
@@ -371,7 +378,7 @@ class _MacroListener implements Listener {
         if (unrecognized) {
           pushUnsupported();
         } else {
-          push(new _PrimitiveValueNode(text));
+          push(new _PrimitiveValueNode(new macro.StringArgument(text)));
         }
       } else {
         pushUnsupported();
@@ -405,7 +412,8 @@ class _MacroListener implements Listener {
       if (unrecognized) {
         pushUnsupported();
       } else {
-        push(new _PrimitiveValueNode(values.reversed.join()));
+        push(new _PrimitiveValueNode(
+            new macro.StringArgument(values.reversed.join())));
       }
     }
   }

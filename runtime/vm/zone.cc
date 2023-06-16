@@ -4,10 +4,8 @@
 
 #include "vm/zone.h"
 
-#include "platform/address_sanitizer.h"
 #include "platform/assert.h"
 #include "platform/leak_sanitizer.h"
-#include "platform/memory_sanitizer.h"
 #include "platform/utils.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
@@ -98,16 +96,11 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
     OUT_OF_MEMORY();
   }
   Segment* result = reinterpret_cast<Segment*>(memory->start());
-
 #ifdef DEBUG
   // Zap the entire allocated segment (including the header).
   ASAN_UNPOISON(reinterpret_cast<void*>(result), size);
   memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
 #endif
-  ASAN_POISON(reinterpret_cast<void*>(result), size);
-  MSAN_ALLOCATED(reinterpret_cast<void*>(result), size);
-
-  ASAN_UNPOISON(reinterpret_cast<void*>(result), sizeof(Segment));
   result->next_ = next;
   result->size_ = size;
   result->memory_ = memory;
@@ -129,9 +122,6 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
     ASAN_UNPOISON(reinterpret_cast<void*>(current), current->size());
     memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
 #endif
-    ASAN_POISON(reinterpret_cast<void*>(current), size);
-    MSAN_RELEASED(reinterpret_cast<void*>(current), size);
-
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
 
     if (size == kSegmentSize) {
@@ -145,7 +135,6 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
     }
     if (memory != nullptr) {
       total_size_.fetch_sub(size);
-      ASAN_UNPOISON(reinterpret_cast<void*>(current), size);
       delete memory;
     }
     current = next;
@@ -163,8 +152,6 @@ Zone::Zone()
   // Zap the entire initial buffer.
   memset(&buffer_, kZapUninitializedByte, kInitialChunkSize);
 #endif
-  ASAN_POISON(&buffer_, kInitialChunkSize);
-  MSAN_POISON(&buffer_, kInitialChunkSize);
 }
 
 Zone::~Zone() {
@@ -184,9 +171,6 @@ void Zone::Reset() {
   ASAN_UNPOISON(&buffer_, kInitialChunkSize);
   memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
 #endif
-  ASAN_POISON(&buffer_, kInitialChunkSize);
-  MSAN_POISON(&buffer_, kInitialChunkSize);
-
   position_ = reinterpret_cast<uword>(&buffer_);
   limit_ = position_ + kInitialChunkSize;
   size_ = 0;

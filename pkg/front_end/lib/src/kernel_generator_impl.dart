@@ -146,10 +146,12 @@ Future<CompilerResult> _buildInternal(
   List<int>? summary = null;
   if (buildSummary) {
     if (options.verify) {
-      for (LocatedMessage error in verifyComponent(
-          options.target, VerificationStage.outline, summaryComponent)) {
+      List<LocatedMessage> errors = verifyComponent(
+          options.target, VerificationStage.outline, summaryComponent);
+      for (LocatedMessage error in errors) {
         options.report(error, Severity.error);
       }
+      assert(errors.isEmpty, "Verification errors found.");
     }
     if (options.debugDump) {
       printComponentText(summaryComponent,

@@ -52,6 +52,7 @@ extensions/extension_field_with_type_parameter_usage: FormatterCrash
 extensions/issue38600: FormatterCrash
 extensions/issue38712: FormatterCrash
 extensions/issue38745: FormatterCrash
+general/abstract_async: FormatterCrash
 general/annotation_eof: FormatterCrash
 general/bad_setter_abstract: FormatterCrash
 general/bug31124: FormatterCrash

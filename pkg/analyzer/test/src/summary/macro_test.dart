@@ -69,6 +69,7 @@ class MacroElementsTest extends ElementsBaseTest {
 
   Set<String> get _macroApiSet {
     return {
+      'package:dart_internal/extract_type_arguments.dart',
       'package:_fe_analyzer_shared/src/macros/api.dart',
     };
   }
