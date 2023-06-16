@@ -86,22 +86,6 @@ class _MyState extends State<MyWidget> {
   }
 
   // And another.
-  void methodWithBuildContextParameter2b(BuildContext context) async {
-    for (var i = 0; i < 1; ++i) {
-      await Future<void>.delayed(Duration());
-    }
-    Navigator.of(context).pushNamed('routeName'); // LINT
-  }
-
-  // And another.
-  void methodWithBuildContextParameter2c(BuildContext context) async {
-    for (var i in [1]) {
-      await Future<void>.delayed(Duration());
-    }
-    Navigator.of(context).pushNamed('routeName'); // LINT
-  }
-
-  // And another.
   void methodWithBuildContextParameter2d(BuildContext context) async {
     bool f() => true;
     do {
