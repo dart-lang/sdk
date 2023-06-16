@@ -369,7 +369,7 @@ class AnalyticsManager {
     if (responseTimes.isNotEmpty) {
       h3('Plugin response times');
       for (var pluginEntry in responseTimes.entries) {
-        h4(pluginEntry.key.pluginId);
+        h4(pluginEntry.key.safePluginId);
         var entries = sorted(pluginEntry.value.entries);
         for (var responseEntry in entries) {
           h5(responseEntry.key);
@@ -523,7 +523,7 @@ class AnalyticsManager {
         for (var responseEntry in pluginEntry.value.entries) {
           await analytics
               .sendEvent(eventName: DashEvent.pluginRequest, eventData: {
-            'pluginId': pluginEntry.key.pluginId,
+            'pluginId': pluginEntry.key.safePluginId,
             'method': responseEntry.key,
             'duration': responseEntry.value.toAnalyticsString(),
           });

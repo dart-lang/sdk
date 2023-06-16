@@ -169,25 +169,12 @@ class GeneralConstantMap<K, V> extends ConstantMap<K, V> {
   final _jsData;
 
   // We cannot create the backing map on creation since hashCode interceptors
-  // have not been defined when constants are created.
+  // have not been defined when constants are created. It is also not desirable
+  // to add this execution cost to initial program load.
   Map<K, V> _getMap() {
     LinkedHashMap<K, V>? backingMap = JS('LinkedHashMap|Null', r'#.$map', this);
     if (backingMap == null) {
-      // TODO(sra): A backing map is slow for String and small integer keys
-      // because a custom map can't use the standard acceleration path for these
-      // types.
-      backingMap = LinkedHashMap<K, V>(
-        hashCode: constantHashCode,
-        // In legacy mode (--no-sound-null-safety), `null` keys are
-        // permitted. In sound mode, `null` keys are permitted only if [K] is
-        // nullable.
-
-        // TODO(sra): Can we use a faster test like `(o) => true`? The
-        // `isValid` test is supposed to protect the calls to `hashCode` and
-        // `equals` methods, where there is a downcast from TOP to K that
-        // would throw. However, our hashCode and equals accept TOP arguments.
-        isValidKey: JS_GET_FLAG('LEGACY') ? _typeTest<K?>() : _typeTest<K>(),
-      );
+      backingMap = JsConstantLinkedHashMap<K, V>();
       fillLiteralMap(_jsData, backingMap);
       JS('', r'#.$map = #', this, backingMap);
     }

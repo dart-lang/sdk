@@ -11,6 +11,7 @@ import 'dart:_js_helper'
         fillLiteralSet,
         InternalMap,
         JsLinkedHashMap,
+        JsIdentityLinkedHashMap,
         LinkedHashMapCell,
         LinkedHashMapKeyIterable,
         LinkedHashMapKeyIterator;
@@ -514,7 +515,7 @@ class LinkedHashMap<K, V> {
       } else {
         if (identical(identityHashCode, hashCode) &&
             identical(identical, equals)) {
-          return new _LinkedIdentityHashMap<K, V>();
+          return JsIdentityLinkedHashMap<K, V>();
         }
         if (equals == null) {
           equals = _defaultEquals;
@@ -532,7 +533,7 @@ class LinkedHashMap<K, V> {
   }
 
   @patch
-  factory LinkedHashMap.identity() = _LinkedIdentityHashMap<K, V>;
+  factory LinkedHashMap.identity() = JsIdentityLinkedHashMap<K, V>;
 
   // Private factory constructor called by generated code for map literals.
   @pragma('dart2js:noInline')
@@ -562,28 +563,8 @@ class LinkedHashMap<K, V> {
       fillLiteralMap(keyValuePairs, new JsLinkedHashMap());
 }
 
-base class _LinkedIdentityHashMap<K, V> extends JsLinkedHashMap<K, V> {
-  _LinkedIdentityHashMap();
-
-  int internalComputeHashCode(var key) {
-    // We force the hash codes to be unsigned 30-bit integers to avoid
-    // issues with problematic keys like '__proto__'. Another option
-    // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & #', identityHashCode(key), _mask30);
-  }
-
-  int internalFindBucketIndex(var bucket, var key) {
-    if (bucket == null) return -1;
-    int length = JS('int', '#.length', bucket);
-    for (int i = 0; i < length; i++) {
-      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
-      if (identical(cell.hashMapCellKey, key)) return i;
-    }
-    return -1;
-  }
-}
-
-// TODO(floitsch): use ES6 maps when available.
+// TODO(sra): Move to same library as JsLinkedHashMap and make the `internalXXX`
+// names private.
 base class _LinkedCustomHashMap<K, V> extends JsLinkedHashMap<K, V> {
   final _Equality<K> _equals;
   final _Hasher<K> _hashCode;
