@@ -196,59 +196,94 @@ static void CanonicalizeTAV(TypeArguments* tav) {
   *tav = tav->Canonicalize(Thread::Current());
 }
 
-#if !defined(PRODUCT)
-// Defined before CheckFailureForExistingTypeTestCacheEntry in runtime_entry.cc.
-extern bool TESTING_runtime_fail_on_existing_STC_entry;
+#if defined(TESTING)
+// Defined before DRT_TypeCheck in runtime_entry.cc.
+extern bool TESTING_runtime_entered_on_TTS_invocation;
+extern bool TESTING_found_hash_STC_entry;
 #endif
+
+enum TTSTestResult {
+  // The TTS invocation should enter the runtime and trigger a TypeError.
+  kFail,
+  // The TTS invocation should return a result from the TTS stub without
+  // entering the runtime and without an associated STC entry.
+  kTTS,
+  // The TTS invocation should return a result from checking the STC without
+  // entering the runtime. The STC prior to invocation should be non-null and
+  // include a matching entry for the test case.
+  kExistingSTCEntry,
+  // The TTS invocation should enter the runtime and add a new entry to the
+  // STC, creating a new STC if necessary.
+  kNewSTCEntry,
+  // The TTS invocation should enter the runtime but return early after
+  // checking the STC. The STC prior to the invocation must be hash-based.
+  //
+  // TODO(sstrickl): Remove this possibility when the SubtypeNTestCache stubs
+  // have been updated to handle hash-based caches.
+  kRuntimeHash,
+  // The TTS invocation should enter the runtime and return a successful check
+  // but without adding an entry to the STC. This should only happen when the
+  // STC has hit the limit described by FLAG_max_subtype_cache_entries prior
+  // to the invocation.
+  kRuntimeCheck,
+  // The TTS invocation should enter the runtime and the TTS is specialized
+  // after this test case. This test case should not create a new STC or modify
+  // an existing STC.
+  //
+  // Used only within TTSTestState::InvokeLazilySpecializedStub. This is
+  // needed because there is a single special case for updating the STC that
+  // happens only when specializing the lazy specialization stub, and so we
+  // need to distinguish specialization and respecialization.
+  kSpecialize,
+  // The TTS invocation should enter the runtime and the TTS is respecialized
+  // after this test case. This test case should not create a new STC or modify
+  // an existing STC.
+  //
+  // Used only when calling TTSTestState::InvokeExistingStub.
+  kRespecialize,
+};
+
+static const char* kTestResultStrings[] = {
+    "fails in runtime",
+    "passes in TTS",
+    "passes in STC stub",
+    "passes in runtime, adding new STC entry",
+    "passes in runtime, checking hash-based STC entry",
+    "passes in runtime, no changes to max size STC",
+    "passes in runtime, initial TTS stub specialization",
+    "passes in runtime, TTS stub respecialized",
+};
 
 struct TTSTestCase {
   const Object& instance;
   const TypeArguments& instantiator_tav;
   const TypeArguments& function_tav;
-  // Whether the result of the test should be a type error.
-  const bool should_fail;
-  // Whether a non-default stub will result from specialization.
-  const bool should_specialize;
-  // Whether the test should not be caught by the TTS, but instead cached
-  // in the STC. If should_specialize is false, then the test case is cached
-  // in the STC after any invocation, otherwise only on invocations that do
-  // not cause a (re)specialization.
-  const bool should_be_false_negative;
-  // Whether a false negative that is already cached in the STC should be
-  // missed by the appropriate SubtypeNTestCache stub.
-  //
-  // TODO(sstrickl): Remove this option when SubtypeNTestCache stubs handle
-  // hash-based caches appropriately, as then no misses should be possible.
-  const bool should_miss_in_stc_stub;
-  // Whether the test should cause specialization of a stub that is already
-  // specialized.
-  const bool should_respecialize;
+  const TTSTestResult expected_result;
 
   TTSTestCase(const Object& obj,
               const TypeArguments& i_tav,
               const TypeArguments& f_tav,
-              bool should_specialize = true,
-              bool should_fail = false,
-              bool should_be_false_negative = false,
-              bool should_miss_in_stc_stub = false,
-              bool should_respecialize = false)
+              const TTSTestResult result = kTTS)
       : instance(obj),
         instantiator_tav(i_tav),
         function_tav(f_tav),
-        should_fail(should_fail),
-        should_specialize(should_specialize),
-        should_be_false_negative(should_be_false_negative),
-        should_miss_in_stc_stub(should_miss_in_stc_stub),
-        should_respecialize(should_respecialize) {
-    // Failure is only compatible with should_specialize (for checking
-    // eager specialization a la AOT mode).
-    ASSERT(!should_fail || (!should_be_false_negative && !should_respecialize));
-    // We can only check the STC and fail if a false negative happens.
-    ASSERT(!should_miss_in_stc_stub || should_be_false_negative);
-    // Respecialization can only happen for test cases that would specialize
-    // and which won't end up cached in the TTS.
-    ASSERT(!should_respecialize ||
-           (should_specialize && !should_be_false_negative));
+        expected_result(result) {}
+
+  bool ShouldEnterRuntime() const {
+    switch (expected_result) {
+      case kTTS:
+      case kExistingSTCEntry:
+        return false;
+      case kFail:
+      case kNewSTCEntry:
+      case kRuntimeHash:
+      case kRuntimeCheck:
+      case kSpecialize:
+      case kRespecialize:
+        return true;
+      default:
+        UNREACHABLE();
+    }
   }
 
   bool HasSameSTCEntry(const TTSTestCase& other) const {
@@ -322,43 +357,48 @@ struct TTSTestCase {
   DISALLOW_ALLOCATION();
 };
 
-// Inherits should_specialize from original.
+// Takes an existing test case and creates a failing test case from it.
 static TTSTestCase Failure(const TTSTestCase& original) {
   return TTSTestCase(original.instance, original.instantiator_tav,
-                     original.function_tav, original.should_specialize,
-                     /*should_fail=*/true,
-                     /*should_be_false_negative=*/false,
-                     /*should_miss_in_stc_stub=*/false,
-                     /*should_respecialize=*/false);
+                     original.function_tav, kFail);
 }
 
-// Inherits should_specialize from original.
+// Takes an existing test case and creates a passing test case that finds an
+// existing STC entry without entering the runtime.
+static TTSTestCase STCCheck(const TTSTestCase& original) {
+  return TTSTestCase(original.instance, original.instantiator_tav,
+                     original.function_tav, kExistingSTCEntry);
+}
+
+// Takes an existing test case and creates a passing test case that adds a
+// new STC entry.
 static TTSTestCase FalseNegative(const TTSTestCase& original) {
   return TTSTestCase(original.instance, original.instantiator_tav,
-                     original.function_tav, original.should_specialize,
-                     /*should_fail=*/false,
-                     /*should_be_false_negative=*/true,
-                     /*should_miss_in_stc_stub=*/false,
-                     /*should_respecialize=*/false);
+                     original.function_tav, kNewSTCEntry);
 }
 
-// Inherits should_specialize from original.
-static TTSTestCase STCMiss(const TTSTestCase& original) {
+// Takes an existing test case and creates a test case that should go to the
+// runtime but find the entry in the hash-based STC.
+//
+// TODO(sstrickl): Remove this and its uses when the SubtypeNTestCache stubs can
+// find entries in hash-based caches.
+static TTSTestCase HashCheck(const TTSTestCase& original) {
   return TTSTestCase(original.instance, original.instantiator_tav,
-                     original.function_tav, original.should_specialize,
-                     /*should_fail=*/false,
-                     /*should_be_false_negative=*/true,
-                     /*should_miss_in_stc_stub=*/true,
-                     /*should_respecialize=*/false);
+                     original.function_tav, kRuntimeHash);
 }
 
+// Takes an existing test case and creates a test case that should go to the
+// runtime and pass but not modify the STC, as the STC has grown too large.
+static TTSTestCase RuntimeCheck(const TTSTestCase& original) {
+  return TTSTestCase(original.instance, original.instantiator_tav,
+                     original.function_tav, kRuntimeCheck);
+}
+
+// Takes an existing test case and creates a passing test case that should go t
+// the runtime and (re)specialize the STC.
 static TTSTestCase Respecialization(const TTSTestCase& original) {
   return TTSTestCase(original.instance, original.instantiator_tav,
-                     original.function_tav, /*should_specialize=*/true,
-                     /*should_fail=*/false,
-                     /*should_be_false_negative=*/false,
-                     /*should_miss_in_stc_stub=*/false,
-                     /*should_respecialize=*/true);
+                     original.function_tav, kRespecialize);
 }
 
 class TTSTestState : public ValueObject {
@@ -405,19 +445,17 @@ class TTSTestState : public ValueObject {
   }
 
   void InvokeEagerlySpecializedStub(const TTSTestCase& test_case) {
-    ASSERT(!test_case.should_respecialize);  // No respecialization possible.
+    // This shouldn't be used except within InvokeLazilySpecializedStub.
+    EXPECT_NE(kSpecialize, test_case.expected_result);
+    // A new stub is being installed, so we won't respecialize.
+    EXPECT_NE(kRespecialize, test_case.expected_result);
     last_tested_type_ = TypeToTest(test_case);
-    const auto& default_stub =
-        Code::Handle(zone(), TypeTestingStubGenerator::DefaultCodeForType(
-                                 last_tested_type_, /*lazy_specialize=*/false));
     {
       // To make sure we output the disassembled stub if desired.
       TraceStubInvocationScope scope;
       previous_tts_stub_ = TypeTestingStubGenerator::SpecializeStubFor(
           thread_, last_tested_type_);
     }
-    EXPECT_EQ(test_case.should_specialize,
-              previous_tts_stub_.ptr() != default_stub.ptr());
     last_tested_type_.SetTypeTestingStub(previous_tts_stub_);
     PrintInvocationHeader("eagerly specialized", test_case);
     InvokeStubHelper(test_case);
@@ -426,39 +464,39 @@ class TTSTestState : public ValueObject {
     EXPECT(previous_tts_stub_.ptr() == new_tts_stub_.ptr());
   }
 
-  void InvokeLazilySpecializedStub(const TTSTestCase& test_case) {
-    ASSERT(!test_case.should_respecialize);  // No respecialization possible.
+  void InvokeLazilySpecializedStub(const TTSTestCase& test_case,
+                                   bool should_specialize = true) {
+    // This is governed by the should_specialize parameter.
+    EXPECT_NE(kSpecialize, test_case.expected_result);
+    // A new stub is being installed, so we won't respecialize.
+    EXPECT_NE(kRespecialize, test_case.expected_result);
     last_tested_type_ = TypeToTest(test_case);
-    const auto& default_stub =
-        Code::Handle(zone(), TypeTestingStubGenerator::DefaultCodeForType(
-                                 last_tested_type_, /*lazy_specialize=*/false));
     const auto& specializing_stub =
         Code::Handle(zone(), TypeTestingStubGenerator::DefaultCodeForType(
                                  last_tested_type_, /*lazy_specialize=*/true));
     last_tested_type_.SetTypeTestingStub(specializing_stub);
-    PrintInvocationHeader("lazy specialized", test_case);
-    InvokeStubHelper(test_case,
-                     /*is_lazy_specialization=*/test_case.should_specialize);
-    if (test_case.should_fail || test_case.instance.IsNull()) {
-      // We only specialize if we go to runtime and the runtime check
-      // succeeds. The lazy specialization stub for nullable types has a
-      // special fast case for null that skips the runtime.
-      EXPECT(new_tts_stub_.ptr() == specializing_stub.ptr());
-    } else if (test_case.should_specialize) {
-      // Specializing test cases should never result in a default TTS.
-      EXPECT(new_tts_stub_.ptr() != default_stub.ptr());
+    const TTSTestCase initial_case{
+        test_case.instance, test_case.instantiator_tav, test_case.function_tav,
+        should_specialize && test_case.expected_result != kFail
+            ? kSpecialize
+            : test_case.expected_result};
+    PrintInvocationHeader("lazy specialized", initial_case);
+    InvokeStubHelper(initial_case);
+    if (initial_case.expected_result == kSpecialize) {
+      EXPECT(previous_tts_stub_.ptr() != new_tts_stub_.ptr());
     } else {
-      // Non-specializing test cases should result in a default TTS.
-      EXPECT(new_tts_stub_.ptr() == default_stub.ptr());
+      EXPECT(previous_tts_stub_.ptr() == new_tts_stub_.ptr());
     }
   }
 
   void InvokeExistingStub(const TTSTestCase& test_case) {
+    // This shouldn't be used except within InvokeLazilySpecializedStub.
+    EXPECT_NE(kSpecialize, test_case.expected_result);
     last_tested_type_ = TypeToTest(test_case);
     PrintInvocationHeader("existing", test_case);
     InvokeStubHelper(test_case);
     // Only respecialization should result in a new stub.
-    EXPECT_EQ(test_case.should_respecialize,
+    EXPECT_EQ(test_case.expected_result == kRespecialize,
               previous_tts_stub_.ptr() != new_tts_stub_.ptr());
   }
 
@@ -490,15 +528,8 @@ class TTSTestState : public ValueObject {
     THR_Print("  Instantiator TAV: %s\n",
               test_case.instantiator_tav.ToCString());
     THR_Print("  Function TAV: %s\n", test_case.function_tav.ToCString());
-    THR_Print("  Should fail: %s\n", test_case.should_fail ? "true" : "false");
-    THR_Print("  Should specialize: %s\n",
-              test_case.should_specialize ? "true" : "false");
-    THR_Print("  Should be false negative: %s\n",
-              test_case.should_be_false_negative ? "true" : "false");
-    THR_Print("  Should miss in STC stub: %s\n",
-              test_case.should_miss_in_stc_stub ? "true" : "false");
-    THR_Print("  Should respecialize: %s\n",
-              test_case.should_respecialize ? "true" : "false");
+    THR_Print("  Expected result: %s\n",
+              kTestResultStrings[test_case.expected_result]);
   }
 
   static CodePtr CreateInvocationStub(Thread* thread, Zone* zone) {
@@ -536,8 +567,7 @@ class TTSTestState : public ValueObject {
     return invoke_tts.ptr();
   }
 
-  void InvokeStubHelper(const TTSTestCase& test_case,
-                        bool is_lazy_specialization = false) {
+  void InvokeStubHelper(const TTSTestCase& test_case) {
     ASSERT(test_case.instantiator_tav.IsNull() ||
            test_case.instantiator_tav.IsCanonical());
     ASSERT(test_case.function_tav.IsNull() ||
@@ -561,27 +591,25 @@ class TTSTestState : public ValueObject {
           thread_->isolate_group()->subtype_test_cache_mutex());
       previous_stc_ = previous_stc_.Copy(thread_);
     }
-    const bool previous_has_entry = test_case.HasSTCEntry(previous_stc_, type_);
-#if !defined(PRODUCT)
-    // If there's an existing STC entry for this test case, then we should
-    // never hit the runtime unless this test explicitly expects the stub to
-    // miss the entry.
-    if (!test_case.should_miss_in_stc_stub && previous_has_entry) {
-      TESTING_runtime_fail_on_existing_STC_entry = true;
-    }
+#if defined(TESTING)
+    // Clear the runtime entered and hash cache hit flags prior to invocation.
+    TESTING_runtime_entered_on_TTS_invocation = false;
+    TESTING_found_hash_STC_entry = false;
 #endif
     {
       TraceStubInvocationScope scope;
       last_result_ = DartEntry::InvokeCode(tts_invoker_, arguments_descriptor_,
                                            last_arguments_, thread_);
     }
-#if !defined(PRODUCT)
-    // Reset runtime failure flag.
-    TESTING_runtime_fail_on_existing_STC_entry = false;
+#if defined(TESTING)
+    EXPECT_EQ(test_case.ShouldEnterRuntime(),
+              TESTING_runtime_entered_on_TTS_invocation);
+    EXPECT_EQ(test_case.expected_result == kRuntimeHash,
+              TESTING_found_hash_STC_entry);
 #endif
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();
-    if (test_case.should_fail) {
+    if (test_case.expected_result == kFail) {
       EXPECT(!last_result_.IsNull());
       EXPECT(last_result_.IsError());
       EXPECT(last_result_.IsUnhandledException());
@@ -597,34 +625,31 @@ class TTSTestState : public ValueObject {
         EXPECT(last_result_.IsUnhandledException());
         if (last_result_.IsUnhandledException()) {
           const auto& exception = UnhandledException::Cast(last_result_);
-          dart::Expect(__FILE__, __LINE__)
-              .Fail("%s", exception.ToErrorCString());
+          FAIL("%s", exception.ToErrorCString());
         }
       } else {
         EXPECT(new_tts_stub_.ptr() != StubCode::LazySpecializeTypeTest().ptr());
         ReportModifiedRegisters(modified_abi_regs());
         // If we shouldn't go to the runtime, report any unexpected changes in
         // non-ABI registers.
-        if (!is_lazy_specialization && !test_case.should_respecialize &&
-            (!test_case.should_be_false_negative || previous_has_entry)) {
+        if (!test_case.ShouldEnterRuntime()) {
           ReportModifiedRegisters(modified_rest_regs());
         }
       }
     }
-    ReportUnexpectedSTCChanges(test_case, is_lazy_specialization);
+    ReportUnexpectedSTCChanges(test_case);
   }
 
   static void ReportModifiedRegisters(SmiPtr encoded_reg_mask) {
     if (encoded_reg_mask == Smi::null()) {
-      dart::Expect(__FILE__, __LINE__).Fail("No modified register information");
+      FAIL("No modified register information");
       return;
     }
     const intptr_t reg_mask = Smi::Value(encoded_reg_mask);
     for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
       if (((1 << i) & reg_mask) != 0) {
         const Register reg = static_cast<Register>(i);
-        dart::Expect(__FILE__, __LINE__)
-            .Fail("%s was modified", RegisterNames::RegisterName(reg));
+        FAIL("%s was modified", RegisterNames::RegisterName(reg));
       }
     }
   }
@@ -651,29 +676,41 @@ class TTSTestState : public ValueObject {
               cid_or_sig, type, instance_type_args, instantiator_type_args,
               function_type_args, instance_parent_type_args,
               instance_delayed_type_args, /*index=*/nullptr, &new_result)) {
-        dart::Expect(__FILE__, __LINE__)
-            .Fail("New STC is missing check in old STC");
+        FAIL("New STC is missing check in old STC");
       }
       if (old_result.value() != new_result.value()) {
-        dart::Expect(__FILE__, __LINE__)
-            .Fail("New STC has different result from old STC");
+        FAIL("New STC has different result from old STC");
       }
     }
   }
 
-  void ReportUnexpectedSTCChanges(const TTSTestCase& test_case,
-                                  bool is_lazy_specialization = false) {
-    // Make sure should_be_false_negative is not set if respecialization is.
-    ASSERT(!test_case.should_be_false_negative ||
-           !test_case.should_respecialize);
+  // Returns whether the given test case is expected to have updated the STC.
+  // Should only be called after TTS invocation, as it uses last_tested_type_.
+  bool ShouldUpdateCache(const TTSTestCase& test_case) const {
+    if (test_case.expected_result == kSpecialize) {
+      // Check to see if we got a default stub from specializing. Should match
+      // the definition of would_update_cache_if_not_lazy in DRT_TypeCheck.
+      const bool would_update_cache_if_not_lazy =
+          !test_case.instance.IsNull() &&
+          (last_tested_type_.type_test_stub() ==
+               StubCode::DefaultNullableTypeTest().ptr() ||
+           last_tested_type_.type_test_stub() ==
+               StubCode::DefaultTypeTest().ptr());
+      return would_update_cache_if_not_lazy && previous_stc_.IsNull();
+    } else {
+      return test_case.expected_result == kNewSTCEntry;
+    }
+  }
+
+  void ReportUnexpectedSTCChanges(const TTSTestCase& test_case) {
     const bool hit_check_cap =
         !previous_stc_.IsNull() &&
         previous_stc_.NumberOfChecks() >= FLAG_max_subtype_cache_entries;
-    const bool had_stc_entry = test_case.HasSTCEntry(previous_stc_, type_);
-    const bool should_update_stc = !is_lazy_specialization &&
-                                   test_case.should_be_false_negative &&
-                                   !hit_check_cap;
-    if (should_update_stc && !had_stc_entry) {
+    EXPECT(test_case.expected_result != kRuntimeCheck || hit_check_cap);
+    const bool should_update_cache = ShouldUpdateCache(test_case);
+    if (should_update_cache) {
+      // We should not have already had an entry.
+      EXPECT(!test_case.HasSTCEntry(previous_stc_, type_));
       // We should have changed the STC to include the new entry.
       EXPECT(!last_stc_.IsNull());
       if (!last_stc_.IsNull()) {
@@ -701,16 +738,18 @@ class TTSTestState : public ValueObject {
       }
     }
 
-    // False negatives should always be an STC hit when not lazily
-    // (re)specializing.
     const bool has_stc_entry = test_case.HasSTCEntry(last_stc_, type_);
-    if ((!should_update_stc && has_stc_entry) ||
-        (should_update_stc && !has_stc_entry)) {
+    // We also expect an entry if we expect an STC hit in the STC stub or in
+    // the runtime.
+    const bool expects_stc_entry =
+        should_update_cache || test_case.expected_result == kExistingSTCEntry ||
+        test_case.expected_result == kRuntimeHash;
+    if ((!expects_stc_entry && has_stc_entry) ||
+        (expects_stc_entry && !has_stc_entry)) {
       ZoneTextBuffer buffer(zone());
-      buffer.Printf(
-          "%s STC entry for:\n  instance:%s\n  destination type: %s",
-          test_case.should_be_false_negative ? "Expected" : "Did not expect",
-          test_case.instance.ToCString(), type_.ToCString());
+      buffer.Printf("%s STC entry for:\n  instance:%s\n  destination type: %s",
+                    expects_stc_entry ? "Expected" : "Did not expect",
+                    test_case.instance.ToCString(), type_.ToCString());
       if (last_tested_type_.ptr() != type_.ptr()) {
         buffer.Printf("\n  tested type: %s", last_tested_type_.ToCString());
       }
@@ -723,7 +762,8 @@ class TTSTestState : public ValueObject {
             thread_->isolate_group()->subtype_test_cache_mutex());
         last_stc_.WriteToBuffer(zone(), &buffer, "  ");
       }
-      dart::Expect(__FILE__, __LINE__).Fail("%s", buffer.buffer());
+      THR_Print("%s\n", buffer.buffer());
+      FAIL("unexpected STC modification");
     }
   }
 
@@ -750,30 +790,75 @@ class TTSTestState : public ValueObject {
 // 3) Install an eagerly specialized stub, similar to AOT mode but keeping any
 //    STC created by the earlier steps, and test.
 static void RunTTSTest(const AbstractType& dst_type,
-                       const TTSTestCase& test_case) {
+                       const TTSTestCase& test_case,
+                       bool should_specialize = true) {
+  // We're testing null here, there's no need to call this with null.
+  EXPECT(!test_case.instance.IsNull());
+  // should_specialize is what governs whether specialization is expected here.
+  EXPECT_NE(kSpecialize, test_case.expected_result);
+  EXPECT_NE(kRespecialize, test_case.expected_result);
+  // We're creating a new STC so it _can't_ use an existing entry.
+  EXPECT_NE(kExistingSTCEntry, test_case.expected_result);
+  EXPECT_NE(kRuntimeHash, test_case.expected_result);
+
   bool null_should_fail = !Instance::NullIsAssignableTo(
       dst_type, test_case.instantiator_tav, test_case.function_tav);
+  const TTSTestCase null_test{Instance::Handle(), test_case.instantiator_tav,
+                              test_case.function_tav,
+                              null_should_fail ? kFail : kTTS};
 
-  const TTSTestCase null_test(
-      Instance::Handle(), test_case.instantiator_tav, test_case.function_tav,
-      test_case.should_specialize, null_should_fail,
-      // Null is never a false negative.
-      /*should_be_false_negative=*/false,
-      // Since null is never a false negative, it can't trigger
-      // respecialization.
-      /*should_respecialize=*/false);
+  // First test the lazy case.
+  {
+    TTSTestState state(Thread::Current(), dst_type);
 
-  TTSTestState state(Thread::Current(), dst_type);
-  // First check the null case. This should _never_ create an STC.
-  state.InvokeLazilySpecializedStub(null_test);
-  state.InvokeExistingStub(null_test);
-  state.InvokeEagerlySpecializedStub(null_test);
-  EXPECT(state.last_stc().IsNull());
+    // We only get specialization when testing null if the type being tested
+    // isn't nullable and it is either a Type or a RecordType.
+    const auto& type_to_test =
+        AbstractType::Handle(state.TypeToTest(test_case));
+    const bool null_should_specialize =
+        null_should_fail &&
+        (type_to_test.IsType() || type_to_test.IsRecordType());
 
-  // Now run the actual test case.
-  state.InvokeLazilySpecializedStub(test_case);
-  state.InvokeExistingStub(test_case);
-  state.InvokeEagerlySpecializedStub(test_case);
+    // First check the null case. This should _never_ create an STC.
+    state.InvokeLazilySpecializedStub(null_test, null_should_specialize);
+    state.InvokeExistingStub(null_test);
+    EXPECT(state.last_stc().IsNull());
+
+    // Now run the actual test case, starting with a fresh stub.
+    state.InvokeLazilySpecializedStub(test_case, should_specialize);
+    if (test_case.expected_result == kNewSTCEntry) {
+      if (state.last_stc().IsNull()) {
+        // The stub specialized to a non-default stub, so we need to run the
+        // test again to see it added to the cache.
+        state.InvokeExistingStub(test_case);
+      } else {
+        // The stub doesn't specialize or it specialized to a default stub,
+        // in which case the entry did get added to the STC already.
+      }
+      state.InvokeExistingStub(STCCheck(test_case));
+    } else {
+      state.InvokeExistingStub(test_case);
+    }
+  }
+
+  // Now test the eager case with a fresh stub/null STC.
+  {
+    TTSTestState state(Thread::Current(), dst_type);
+
+    // First check the null case. This should _never_ create an STC.
+    state.InvokeEagerlySpecializedStub(null_test);
+    state.InvokeExistingStub(null_test);
+    EXPECT(state.last_stc().IsNull());
+
+    state.InvokeEagerlySpecializedStub(test_case);
+    if (test_case.expected_result == kNewSTCEntry) {
+      // When eagerly specializing, the first invocation always adds to the STC.
+      state.InvokeExistingStub(STCCheck(test_case));
+    } else {
+      // Other cases should be idempotent.
+      state.InvokeExistingStub(test_case);
+    }
+  }
 }
 
 const char* kSubtypeRangeCheckScript =
@@ -976,8 +1061,6 @@ ISOLATE_UNIT_TEST_CASE(TTS_SubtypeRangeCheck) {
     auto& type_non_nullable_object =
         Type::Handle(isolate_group->object_store()->non_nullable_object_type());
     RunTTSTest(type_non_nullable_object, {obj_a, tav_null, tav_null});
-    RunTTSTest(type_non_nullable_object,
-               Failure({Object::null_object(), tav_null, tav_null}));
   }
 }
 
@@ -1139,10 +1222,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   type_base_a2_t =
       type_base_a2_t.ToNullability(Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_base_a2_t);
-  RunTTSTest(type_base_a2_t, FalseNegative({obj_basea2int, tav_null, tav_null,
-                                            /*should_specialize=*/false}));
-  RunTTSTest(type_base_a2_t, Failure({obj_base_int, tav_null, tav_null,
-                                      /*should_specialize=*/false}));
+  RunTTSTest(type_base_a2_t,
+             FalseNegative({obj_basea2int, tav_null, tav_null}));
+  RunTTSTest(type_base_a2_t, Failure({obj_base_int, tav_null, tav_null}));
 
   //   <...> as Base<A2<A1>>
   const auto& tav_a1 = TypeArguments::Handle(TypeArguments::New(1));
@@ -1156,10 +1238,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_GenericSubtypeRangeCheck) {
   type_base_a2_a1 =
       type_base_a2_a1.ToNullability(Nullability::kNonNullable, Heap::kNew);
   FinalizeAndCanonicalize(&type_base_a2_a1);
-  RunTTSTest(type_base_a2_a1, FalseNegative({obj_basea2a1, tav_null, tav_null,
-                                             /*should_specialize=*/false}));
-  RunTTSTest(type_base_a2_a1, Failure({obj_basea2int, tav_null, tav_null,
-                                       /*should_specialize=*/false}));
+  RunTTSTest(type_base_a2_a1,
+             FalseNegative({obj_basea2a1, tav_null, tav_null}));
+  RunTTSTest(type_base_a2_a1, Failure({obj_basea2int, tav_null, tav_null}));
 }
 
 const char* kRecordSubtypeRangeCheckScript =
@@ -1547,14 +1628,11 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   //       X = int Function()*  :    ... a canonically different type.
   //
   RunTTSTest(type_future_nullable_function_int_nullary,
-             FalseNegative({obj_futurefunction, tav_null, tav_null,
-                            /*should_specialize=*/false}));
+             FalseNegative({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_legacy_function_int_nullary,
-             FalseNegative({obj_futurefunction, tav_null, tav_null,
-                            /*should_specialize=*/false}));
+             FalseNegative({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_function_int_nullary,
-             FalseNegative({obj_futurefunction, tav_null, tav_null,
-                            /*should_specialize=*/false}));
+             FalseNegative({obj_futurefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
                                            tav_nullable_function, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurefunction,
@@ -1664,11 +1742,9 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
   //       X = int Function()   :    ... a canonically different type.
 
   RunTTSTest(type_future_nullable_function_int_nullary,
-             FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
-                            /*should_specialize=*/false}));
+             FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
   RunTTSTest(type_future_legacy_function_int_nullary,
-             FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
-                            /*should_specialize=*/false}));
+             FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
                                            tav_nullable_function, tav_null}));
   RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
@@ -1679,8 +1755,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
 
   if (!strict_null_safety) {
     RunTTSTest(type_future_function_int_nullary,
-               FalseNegative({obj_futurenullablefunction, tav_null, tav_null,
-                              /*should_specialize=*/false}));
+               FalseNegative({obj_futurenullablefunction, tav_null, tav_null}));
     RunTTSTest(type_future_t, FalseNegative({obj_futurenullablefunction,
                                              tav_function, tav_null}));
     RunTTSTest(type_future_t,
@@ -1724,8 +1799,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Future) {
 
   if (strict_null_safety) {
     RunTTSTest(type_future_function_int_nullary,
-               Failure({obj_futurenullablefunction, tav_null, tav_null,
-                        /*should_specialize=*/false}));
+               Failure({obj_futurenullablefunction, tav_null, tav_null}));
     RunTTSTest(type_future_object,
                Failure({obj_futurenullablefunction, tav_null, tav_null}));
     RunTTSTest(type_future_function,
@@ -1892,25 +1966,24 @@ ISOLATE_UNIT_TEST_CASE(TTS_Object) {
       Type::Handle(IsolateGroup::Current()->object_store()->object_type());
   const auto& tav_null = Object::null_type_arguments();
 
+  // Object* is a top type, so its TTS won't specialize at all. Object is not,
+  // so its TTS specializes the first time it is invoked.
+  const bool should_specialize =
+      IsolateGroup::Current()->use_strict_null_safety_checks();
   auto make_test_case = [&](const Instance& instance) -> TTSTestCase {
-    if (IsolateGroup::Current()->use_strict_null_safety_checks()) {
-      // The stub for non-nullable object should specialize, but only fails
-      // on null, which is already checked within RunTTSTest.
       return {instance, tav_null, tav_null};
-    } else {
-      // The default type testing stub for nullable object is the top type
-      // stub, so it should neither specialize _or_ return false negatives.
-      return {instance, tav_null, tav_null, /*should_specialize=*/false};
-    }
   };
 
   // Test on some easy-to-make instances.
-  RunTTSTest(type_obj, make_test_case(Smi::Handle(Smi::New(0))));
-  RunTTSTest(type_obj,
-             make_test_case(Integer::Handle(Integer::New(kMaxInt64))));
-  RunTTSTest(type_obj, make_test_case(Double::Handle(Double::New(1.0))));
-  RunTTSTest(type_obj, make_test_case(Symbols::Empty()));
-  RunTTSTest(type_obj, make_test_case(Array::Handle(Array::New(1))));
+  RunTTSTest(type_obj, make_test_case(Smi::Handle(Smi::New(0))),
+             should_specialize);
+  RunTTSTest(type_obj, make_test_case(Integer::Handle(Integer::New(kMaxInt64))),
+             should_specialize);
+  RunTTSTest(type_obj, make_test_case(Double::Handle(Double::New(1.0))),
+             should_specialize);
+  RunTTSTest(type_obj, make_test_case(Symbols::Empty()), should_specialize);
+  RunTTSTest(type_obj, make_test_case(Array::Handle(Array::New(1))),
+             should_specialize);
 }
 
 // Check that we generate correct TTS for type Function (the non-FunctionType
@@ -2048,9 +2121,11 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   FinalizeAndCanonicalize(&type_b_a);
   TTSTestState state(thread, type_b_a);
 
+  // Should be checked by the TTS.
   TTSTestCase b_e_testcase{obj_b_e, tav_null, tav_e};
-  TTSTestCase b_d_testcase = FalseNegative({obj_b_e, tav_null, tav_d});
-  TTSTestCase b_c_testcase = FalseNegative({obj_b_e, tav_null, tav_c});
+  // Needs to be cached in the STC and checked there.
+  TTSTestCase b_d_testcase{obj_b_e, tav_null, tav_d};
+  TTSTestCase b_c_testcase{obj_b_e, tav_null, tav_c};
 
   // First, test that the positive test case is handled by the TTS.
   state.InvokeLazilySpecializedStub(b_e_testcase);
@@ -2059,13 +2134,16 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial) {
   // Now restart, using the false negative test cases.
   state.ClearCache();
 
+  // This specializes the stub, so no STC update.
   state.InvokeLazilySpecializedStub(b_d_testcase);
-  state.InvokeExistingStub(b_d_testcase);
-  state.InvokeEagerlySpecializedStub(b_d_testcase);
+  state.InvokeExistingStub(FalseNegative(b_d_testcase));
+  // Replacing the stub with an eager version without clearing the STC means
+  // it's still in the STC to be checked.
+  state.InvokeEagerlySpecializedStub(STCCheck(b_d_testcase));
 
   state.InvokeExistingStub(b_e_testcase);
-  state.InvokeExistingStub(b_c_testcase);
-  state.InvokeExistingStub(b_d_testcase);
+  state.InvokeExistingStub(FalseNegative(b_c_testcase));
+  state.InvokeExistingStub(STCCheck(b_d_testcase));
   state.InvokeExistingStub(b_e_testcase);
 
   state.InvokeExistingStub({obj_b_never, tav_null, tav_d});
@@ -2150,7 +2228,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   TTSTestState state(thread, type_b2_t);
 
   TTSTestCase first_positive{obj_b, tav_int, tav_null};
-  TTSTestCase first_false_negative = FalseNegative({obj_b, tav_num, tav_null});
+  TTSTestCase first_false_negative = {obj_b, tav_num, tav_null};
   // No test case should possibly hit the same STC entry as another.
   ASSERT(!first_false_negative.HasSameSTCEntry(first_positive));
   // The type with the tested stub must be the same in all test cases.
@@ -2158,11 +2236,11 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
          state.TypeToTest(first_false_negative));
 
   state.InvokeLazilySpecializedStub(first_false_negative);
-  state.InvokeExistingStub(first_false_negative);
-  state.InvokeEagerlySpecializedStub(first_false_negative);
+  state.InvokeExistingStub(FalseNegative(first_false_negative));
+  state.InvokeEagerlySpecializedStub(STCCheck(first_false_negative));
 
   state.InvokeExistingStub(first_positive);
-  state.InvokeExistingStub(first_false_negative);
+  state.InvokeExistingStub(STCCheck(first_false_negative));
 
   Array& stc_cache = Array::Handle(
       state.last_stc().IsNull() ? Array::null() : state.last_stc().cache());
@@ -2181,8 +2259,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   const auto& obj_b2 = Object::Handle(Invoke(second_library, "createB2"));
 
   TTSTestCase second_positive{obj_b2, tav_int, tav_null};
-  TTSTestCase second_false_negative =
-      FalseNegative({obj_b2, tav_num, tav_null});
+  TTSTestCase second_false_negative = {obj_b2, tav_num, tav_null};
   // No test case should possibly hit the same STC entry as another.
   ASSERT(!second_positive.HasSameSTCEntry(second_false_negative));
   ASSERT(!second_positive.HasSameSTCEntry(first_positive));
@@ -2198,23 +2275,23 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   state.InvokeExistingStub(first_positive);
   // Same false negative should still be caught by STC and not cause
   // respecialization.
-  state.InvokeExistingStub(first_false_negative);
+  state.InvokeExistingStub(STCCheck(first_false_negative));
 
   // The new positive should be a false negative at the TTS level that causes
   // respecialization, as the class hierarchy has changed.
   state.InvokeExistingStub(Respecialization(second_positive));
 
   // The first false positive is still in the cache.
-  state.InvokeExistingStub(first_false_negative);
+  state.InvokeExistingStub(STCCheck(first_false_negative));
 
   // This false negative is not yet in the cache.
-  state.InvokeExistingStub(second_false_negative);
+  state.InvokeExistingStub(FalseNegative(second_false_negative));
 
   state.InvokeExistingStub(first_positive);
   state.InvokeExistingStub(second_positive);
 
   // Now the second false negative is in the cache.
-  state.InvokeExistingStub(second_false_negative);
+  state.InvokeExistingStub(STCCheck(second_false_negative));
 
   stc_cache =
       state.last_stc().IsNull() ? Array::null() : state.last_stc().cache();
@@ -2233,7 +2310,7 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   const auto& obj_b3 = Object::Handle(Invoke(third_library, "createB3"));
 
   TTSTestCase third_positive{obj_b3, tav_int, tav_null};
-  TTSTestCase third_false_negative = FalseNegative({obj_b3, tav_num, tav_null});
+  TTSTestCase third_false_negative = {obj_b3, tav_num, tav_null};
   // No test case should possibly hit the same STC entry as another.
   ASSERT(!third_positive.HasSameSTCEntry(third_false_negative));
   ASSERT(!third_positive.HasSameSTCEntry(first_positive));
@@ -2253,8 +2330,8 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   // changes/respecialization.
   state.InvokeExistingStub(first_positive);
   state.InvokeExistingStub(second_positive);
-  state.InvokeExistingStub(first_false_negative);
-  state.InvokeExistingStub(second_false_negative);
+  state.InvokeExistingStub(STCCheck(first_false_negative));
+  state.InvokeExistingStub(STCCheck(second_false_negative));
 
   // Now we lead with the new false negative, to make sure it also triggers
   // respecialization but doesn't get immediately added to the STC.
@@ -2266,11 +2343,12 @@ ISOLATE_UNIT_TEST_CASE(TTS_Partial_Incremental) {
   state.InvokeExistingStub(first_positive);
 
   // No additional checks added by rerunning the previous false negatives.
-  state.InvokeExistingStub(first_false_negative);
-  state.InvokeExistingStub(second_false_negative);
+  state.InvokeExistingStub(STCCheck(first_false_negative));
+  state.InvokeExistingStub(STCCheck(second_false_negative));
 
   // Now a check is recorded when rerunning the third false negative.
-  state.InvokeExistingStub(third_false_negative);
+  state.InvokeExistingStub(FalseNegative(third_false_negative));
+  state.InvokeExistingStub(STCCheck(third_false_negative));
 }
 
 // TTS deoptimization on reload only happens in non-product mode currently.
@@ -2596,25 +2674,36 @@ static void SubtypeTestCacheHashTest(Thread* thread, intptr_t num_classes) {
     auto const function_name = OS::SCreate(zone, "createClosureC%" Pd "", i);
     object_c = Invoke(root_lib, function_name);
 
-    TTSTestCase base_case = {object_c, tav_null, tav_null,
-                             /*should_specialize=*/false};
-    if (i == 0) {
-      state.InvokeEagerlySpecializedStub(FalseNegative(base_case));
-      // We should get a linear cache the first time.
-      EXPECT(!state.last_stc().IsHash());
-    } else if (i >= FLAG_max_subtype_cache_entries) {
-      // We don't need to verify that the STC is unchanged across calls when we
-      // no longer have room in the cache, as
-      // TTSTestState::ReportUnexpectedSTCChanges already checks this.
-      state.InvokeExistingStub(STCMiss(base_case));
-    } else if (state.last_stc().IsHash()) {
-      state.InvokeExistingStub(STCMiss(base_case));
-      // We should never change from hash back to linear.
-      EXPECT(state.last_stc().IsHash());
-    } else {  // current cache is linear.
-      state.InvokeExistingStub(FalseNegative(base_case));
-      if (state.last_stc().IsHash()) {
-        became_hash_cache = true;
+    TTSTestCase base_case = {object_c, tav_null, tav_null};
+
+    if (i >= FLAG_max_subtype_cache_entries) {
+      ASSERT(state.last_stc().NumberOfChecks() >=
+             FLAG_max_subtype_cache_entries);
+      state.InvokeExistingStub(RuntimeCheck(base_case));
+      // Rerunning the test doesn't change the fact we can't add to the STC.
+      state.InvokeExistingStub(RuntimeCheck(base_case));
+    } else {
+      // All the rest of the tests should create or modify an STC.
+      if (i == 0) {
+        state.InvokeEagerlySpecializedStub(FalseNegative(base_case));
+        // We should get a linear cache the first time.
+        EXPECT(!state.last_stc().IsHash());
+      } else {
+        const bool was_hash = state.last_stc().IsHash();
+        state.InvokeExistingStub(FalseNegative(base_case));
+        if (was_hash) {
+          // We should never change from hash back to linear.
+          EXPECT(state.last_stc().IsHash());
+        } else if (state.last_stc().IsHash()) {
+          became_hash_cache = true;
+        }
+      }
+      if (became_hash_cache) {
+        // TODO(sstrickl): Remove this special case when the STC stubs are
+        // updated.
+        state.InvokeExistingStub(HashCheck(base_case));
+      } else {
+        state.InvokeExistingStub(STCCheck(base_case));
       }
     }
   }
