@@ -840,14 +840,6 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-// A local flag used only in type_testing_stubs_test.cc that, when true, causes
-// a failure when a STC entry for the given arguments already exists. Used to
-// check that the SubtypeNTestCache stubs found the cache entry instead of
-// calling the runtime.
-bool TESTING_runtime_fail_on_existing_STC_entry = false;
-#endif
-
 // Checks for false negatives in the SubtypeNTestCache stubs and returns the
 // result found if any, otherwise null.
 static BoolPtr ResultForExistingTypeTestCacheEntry(
@@ -905,44 +897,6 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
                      function_type_arguments,
                      instance_parent_function_type_arguments,
                      instance_delayed_type_arguments, &index, &result)) {
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-    if (TESTING_runtime_fail_on_existing_STC_entry) {
-      SafepointMutexLocker ml(
-          thread->isolate_group()->subtype_test_cache_mutex());
-      ZoneTextBuffer buffer(zone);
-      buffer.Printf("For\n");
-      buffer.Printf("  * instance cid or signature %s\n",
-                    instance_class_id_or_signature.ToCString());
-      buffer.Printf("  * destination type %s\n", destination_type.ToCString());
-      buffer.Printf("  * instance type arguments: %s (hash: %" Pu ")\n",
-                    instance_type_arguments.ToCString(),
-                    instance_type_arguments.Hash());
-      buffer.Printf("  * instantiator type arguments: %s (hash: %" Pu ")\n",
-                    instantiator_type_arguments.ToCString(),
-                    instantiator_type_arguments.Hash());
-      buffer.Printf("  * function type arguments: %s (hash: %" Pu ")\n",
-                    function_type_arguments.ToCString(),
-                    function_type_arguments.Hash());
-      buffer.Printf(
-          "  * instance parent function type arguments: %s (hash: %" Pu ")\n",
-          instance_parent_function_type_arguments.ToCString(),
-          instance_parent_function_type_arguments.Hash());
-      buffer.Printf("  * instance delayed type arguments: %s (hash: %" Pu ")\n",
-                    instance_delayed_type_arguments.ToCString(),
-                    instance_delayed_type_arguments.Hash());
-      buffer.AddString("  * cache: ");
-      cache.WriteToBuffer(zone, &buffer, "    ");
-      buffer.AddString("\n");
-      buffer.Printf("  * number of occupied entries in cache: %" Pd "\n",
-                    cache.NumberOfChecks());
-      buffer.Printf("  * number of available entries in cache: %" Pd "\n",
-                    cache.NumEntries());
-      buffer.Printf("expected to find entry with result %s at index %" Pd
-                    " of cache in stub, but reached runtime",
-                    result.value() ? "true" : "false", index);
-      FATAL("%s", buffer.buffer());
-    }
-#endif
     return result.ptr();
   }
 
@@ -1125,6 +1079,18 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   arguments.SetReturn(result);
 }
 
+#if defined(TESTING)
+// Used only in type_testing_stubs_test.cc. If DRT_TypeCheck is entered, then
+// this flag is set to true.
+bool TESTING_runtime_entered_on_TTS_invocation = false;
+// Used only in type_testing_stubs_test.cc. Set to true if we got a hit in
+// the hash-based STC.
+//
+// TODO(sstrickl): Remove this when the SubtypeNTestCache stubs handle
+// hash-based caches.
+bool TESTING_found_hash_STC_entry = false;
+#endif
+
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
 // Tested instance may not be null, because a null test is always inlined.
@@ -1156,17 +1122,16 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   const TypeCheckMode mode = static_cast<TypeCheckMode>(
       Smi::CheckedHandle(zone, arguments.ArgAt(6)).Value());
 
+#if defined(TESTING)
+  TESTING_runtime_entered_on_TTS_invocation = true;
+#endif
+
   // Handle cases where currently the SubtypeNTestCache stubs return a false
   // negative and the information is already in the cache.
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  bool check_false_negatives = TESTING_runtime_fail_on_existing_STC_entry;
-#else
-  bool check_false_negatives = false;
-#endif
-  // TODO(sstrickl): Remove the hash-based cache case when the stubs have been
-  // updated to handle hash-based caches (the only non-testing use case).
-  check_false_negatives |= cache.IsHash();
-  if (check_false_negatives) {
+  //
+  // TODO(sstrickl): Remove this check and the associated helper function when
+  // the SubtypeNTestCache stubs have been updated to handle hash-based caches.
+  if (cache.IsHash()) {
     const auto& result = Bool::Handle(
         zone, ResultForExistingTypeTestCacheEntry(
                   zone, thread, src_instance, dst_type,
@@ -1175,6 +1140,9 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
       // Early exit because a positive entry already exists in the cache.
       // (Negative entries should fall through to generating an exception.)
       arguments.SetReturn(src_instance);
+#if defined(TESTING)
+      TESTING_found_hash_STC_entry = true;
+#endif
       return;
     }
   }

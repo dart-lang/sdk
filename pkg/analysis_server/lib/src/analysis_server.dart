@@ -325,6 +325,10 @@ abstract class AnalysisServer {
     addContextsToDeclarationsTracker();
   }
 
+  void afterContextsDestroyed() {
+    declarationsTracker?.discardContexts();
+  }
+
   /// Broadcast a request built from the given [params] to all of the plugins
   /// that are currently associated with the context root from the given
   /// [driver]. Return a list containing futures that will complete when each of
@@ -762,6 +766,7 @@ abstract class CommonServerContextManagerCallbacks
   void afterContextsDestroyed() {
     flushResults(filesToFlush.toList());
     filesToFlush.clear();
+    analysisServer.afterContextsDestroyed();
   }
 
   @override

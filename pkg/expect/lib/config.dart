@@ -18,6 +18,7 @@ import 'package:smith/smith.dart';
 final Configuration _configuration = Configuration.parse(
     const String.fromEnvironment("test_runner.configuration"),
     <String, dynamic>{});
+String configAsString = _configuration.toString();
 
 bool get isDart2jsConfiguration => _configuration.compiler == Compiler.dart2js;
 

@@ -2363,6 +2363,8 @@ LintCode.unnecessary_library_directive:
   status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
+LintCode.no_wildcard_variable_uses:
+  status: needsEvaluation
 LintCode.unnecessary_null_aware_assignments:
   status: hasFix
 LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
@@ -2394,8 +2396,10 @@ LintCode.unreachable_from_main:
   notes: |-
     Theoretically we could remove the unreachable declaration, but that seems
     like a dangerous option to provide.
-LintCode.unrelated_type_equality_checks:
-  status: noFix
+LintCode.unrelated_type_equality_checks_expression:
+  status: needsEvaluation
+LintCode.unrelated_type_equality_checks_pattern:
+  status: needsEvaluation
 LintCode.unsafe_html_attribute:
   status: noFix
 LintCode.unsafe_html_method:
