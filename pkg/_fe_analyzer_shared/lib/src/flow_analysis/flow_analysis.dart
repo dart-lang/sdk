@@ -4149,11 +4149,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
 
   @override
   void functionExpression_begin(Node node) {
-    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
-    _current = _current.conservativeJoin(const [], info.written);
-    _stack.add(new _FunctionExpressionContext(_current));
-    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
-        _assignedVariables.anywhere.captured);
+    _functionExpression_begin(node);
   }
 
   @override
@@ -4368,7 +4364,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     // `late x = LAZY_MAGIC(() => expr);` (where `LAZY_MAGIC` creates a lazy
     // evaluation thunk that gets replaced by the result of `expr` once it is
     // evaluated).
-    functionExpression_begin(node);
+    _functionExpression_begin(node);
   }
 
   @override
@@ -5031,6 +5027,14 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
     if (identical(_expressionWithReference, oldExpression)) {
       _expressionWithReference = newExpression;
     }
+  }
+
+  void _functionExpression_begin(Node node) {
+    AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _current = _current.conservativeJoin(const [], info.written);
+    _stack.add(new _FunctionExpressionContext(_current));
+    _current = _current.conservativeJoin(_assignedVariables.anywhere.written,
+        _assignedVariables.anywhere.captured);
   }
 
   void _functionExpression_end() {
