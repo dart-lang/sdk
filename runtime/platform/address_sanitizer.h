@@ -16,16 +16,11 @@
 #endif
 
 #if defined(USING_ADDRESS_SANITIZER)
-extern "C" void __asan_poison_memory_region(void const volatile*, size_t);
 extern "C" void __asan_unpoison_memory_region(void const volatile*, size_t);
 #define NO_SANITIZE_ADDRESS __attribute__((no_sanitize("address")))
-#define ASAN_POISON(ptr, len) __asan_poison_memory_region(ptr, len)
 #define ASAN_UNPOISON(ptr, len) __asan_unpoison_memory_region(ptr, len)
 #else  // defined(USING_ADDRESS_SANITIZER)
 #define NO_SANITIZE_ADDRESS
-#define ASAN_POISON(ptr, len)                                                  \
-  do {                                                                         \
-  } while (false && (ptr) == nullptr && (len) == 0)
 #define ASAN_UNPOISON(ptr, len)                                                \
   do {                                                                         \
   } while (false && (ptr) == nullptr && (len) == 0)
