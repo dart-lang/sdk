@@ -1621,10 +1621,6 @@ abstract final class AugmentationImportDirective implements UriBasedDirective {
   @override
   AugmentationImportElement? get element;
 
-  @Deprecated('Use element instead')
-  @override
-  AugmentationImportElement? get element2;
-
   /// The token representing the 'import' keyword.
   Token get importKeyword;
 
@@ -1662,10 +1658,6 @@ final class AugmentationImportDirectiveImpl extends UriBasedDirectiveImpl
   AugmentationImportElementImpl? get element {
     return super.element as AugmentationImportElementImpl?;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  AugmentationImportElement? get element2 => element;
 
   @override
   Token get endToken => semicolon;
@@ -2456,11 +2448,6 @@ abstract final class CatchClause implements AstNode {
   /// `null` if there is no 'catch' keyword.
   CatchClauseParameter? get exceptionParameter;
 
-  /// Return the parameter whose value will be the exception that was thrown, or
-  /// `null` if there is no 'catch' keyword.
-  @Deprecated('Use exceptionParameter instead')
-  CatchClauseParameter? get exceptionParameter2;
-
   /// Return the type of exceptions caught by this catch clause, or `null` if
   /// this catch clause catches every type of exception.
   TypeAnnotation? get exceptionType;
@@ -2478,11 +2465,6 @@ abstract final class CatchClause implements AstNode {
   /// Return the parameter whose value will be the stack trace associated with
   /// the exception, or `null` if there is no stack trace parameter.
   CatchClauseParameter? get stackTraceParameter;
-
-  /// Return the parameter whose value will be the stack trace associated with
-  /// the exception, or `null` if there is no stack trace parameter.
-  @Deprecated('Use stackTraceParameter instead')
-  CatchClauseParameter? get stackTraceParameter2;
 }
 
 /// A catch clause within a try statement.
@@ -2585,12 +2567,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
     _becomeParentOf(parameter);
   }
 
-  @Deprecated('Use exceptionParameter instead')
-  @override
-  CatchClauseParameterImpl? get exceptionParameter2 {
-    return exceptionParameter;
-  }
-
   @override
   TypeAnnotationImpl? get exceptionType => _exceptionType;
 
@@ -2606,12 +2582,6 @@ final class CatchClauseImpl extends AstNodeImpl implements CatchClause {
   set stackTraceParameter(CatchClauseParameterImpl? parameter) {
     _stackTraceParameter = parameter;
     _becomeParentOf(parameter);
-  }
-
-  @Deprecated('Use stackTraceParameter instead')
-  @override
-  CatchClauseParameterImpl? get stackTraceParameter2 {
-    return stackTraceParameter;
   }
 
   @override
@@ -2774,10 +2744,6 @@ abstract final class ClassAugmentationDeclaration
 
   @override
   ClassAugmentationElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassAugmentationElement? get declaredElement2;
 }
 
 /// The declaration of a class.
@@ -2796,10 +2762,6 @@ abstract final class ClassDeclaration
     implements ClassOrAugmentationDeclaration {
   @override
   ClassElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassElement? get declaredElement2;
 
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
@@ -2961,10 +2923,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => rightBracket;
 
@@ -3097,10 +3055,6 @@ abstract final class ClassOrAugmentationDeclaration
   @override
   ClassOrAugmentationElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassOrAugmentationElement? get declaredElement2;
-
   /// Returns the `extends` clause for this class, or `null` if the class
   /// does not extend any other class.
   ///
@@ -3164,10 +3118,6 @@ abstract final class ClassTypeAlias implements TypeAlias {
 
   @override
   ClassElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassElement? get declaredElement2;
 
   /// Return the token for the '=' separating the name from the definition.
   Token get equals;
@@ -3310,10 +3260,6 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
     _becomeParentOf(_withClause);
     _becomeParentOf(_implementsClause);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ClassElement? get declaredElement2 => declaredElement;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -4396,10 +4342,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   @override
   ConstructorElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ConstructorElement? get declaredElement2;
-
   /// Return the token for the 'external' keyword to the given [token].
   Token? get externalKeyword;
 
@@ -4413,11 +4355,6 @@ abstract final class ConstructorDeclaration implements ClassMember {
   /// Return the name of the constructor, or `null` if the constructor being
   /// declared is unnamed.
   Token? get name;
-
-  /// Return the name of the constructor, or `null` if the constructor being
-  /// declared is unnamed.
-  @Deprecated('Use name instead')
-  Token? get name2;
 
   /// Return the parameters associated with the constructor.
   FormalParameterList get parameters;
@@ -4566,10 +4503,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ConstructorElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken {
     return _body.endToken;
@@ -4594,10 +4527,6 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
       initializers.isEmpty &&
       body is EmptyFunctionBody &&
       externalKeyword == null;
-
-  @Deprecated('Use name instead')
-  @override
-  Token? get name2 => name;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -5207,12 +5136,6 @@ abstract final class Declaration implements AnnotatedNode {
   /// this node corresponds to a list of declarations or if the AST structure
   /// has not been resolved.
   Element? get declaredElement;
-
-  /// Return the element associated with this declaration, or `null` if either
-  /// this node corresponds to a list of declarations or if the AST structure
-  /// has not been resolved.
-  @Deprecated('Use declaredElement instead')
-  Element? get declaredElement2;
 }
 
 /// A node that represents the declaration of one or more names. Each declared
@@ -5236,10 +5159,6 @@ sealed class DeclarationImpl extends AnnotatedNodeImpl implements Declaration {
 abstract final class DeclaredIdentifier implements Declaration {
   @override
   LocalVariableElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  LocalVariableElement? get declaredElement2;
 
   /// Return `true` if this variable was declared with the 'const' modifier.
   bool get isConst;
@@ -5295,10 +5214,6 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   }) : _type = type {
     _becomeParentOf(_type);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  LocalVariableElement? get declaredElement2 => declaredElement;
 
   @override
   Token get endToken => name;
@@ -5580,11 +5495,6 @@ sealed class Directive implements AnnotatedNode {
   /// Return the element associated with this directive, or `null` if the AST
   /// structure has not been resolved.
   Element? get element;
-
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
-  @Deprecated('Use element instead')
-  Element? get element2;
 }
 
 /// A node that represents a directive.
@@ -5616,10 +5526,6 @@ sealed class DirectiveImpl extends AnnotatedNodeImpl implements Directive {
   set element(Element? element) {
     _element = element;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  Element? get element2 => element;
 }
 
 /// A do statement.
@@ -6038,10 +5944,6 @@ abstract final class EnumConstantDeclaration implements Declaration {
 
   /// Return the name of the constant.
   Token get name;
-
-  /// Return the name of the constant.
-  @Deprecated('Use name instead')
-  Token get name2;
 }
 
 /// The declaration of an enum constant.
@@ -6071,19 +5973,11 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
     _becomeParentOf(arguments);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  FieldElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => arguments?.endToken ?? name;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => name;
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -6115,10 +6009,6 @@ abstract final class EnumDeclaration implements NamedCompilationUnitMember {
 
   @override
   EnumElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  EnumElement? get declaredElement2;
 
   /// Return the 'enum' keyword.
   Token get enumKeyword;
@@ -6222,10 +6112,6 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   @override
   NodeListImpl<EnumConstantDeclarationImpl> get constants => _constants;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  EnumElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => rightBracket;
 
@@ -6296,12 +6182,6 @@ abstract final class ExportDirective implements NamespaceDirective {
   @override
   LibraryExportElement? get element;
 
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
-  @Deprecated('Use element instead')
-  @override
-  LibraryExportElement? get element2;
-
   /// The token representing the 'export' keyword.
   Token get exportKeyword;
 }
@@ -6333,10 +6213,6 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
   LibraryExportElementImpl? get element {
     return super.element as LibraryExportElementImpl?;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  LibraryExportElementImpl? get element2 => element;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => exportKeyword;
@@ -6796,10 +6672,6 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   @override
   ExtensionElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExtensionElement? get declaredElement2;
-
   /// Return the type that is being extended.
   TypeAnnotation get extendedType;
 
@@ -6815,11 +6687,6 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   /// Return the name of the extension, or `null` if the extension does not have
   /// a name.
   Token? get name;
-
-  /// Return the name of the extension, or `null` if the extension does not have
-  /// a name.
-  @Deprecated('Use name instead')
-  Token? get name2;
 
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;
@@ -6894,10 +6761,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExtensionElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => rightBracket;
 
@@ -6913,10 +6776,6 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
-
-  @Deprecated('Use name instead')
-  @override
-  Token? get name2 => name;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -6970,10 +6829,6 @@ abstract final class ExtensionOverride implements Expression {
   /// Return `null` if the AST structure has not been resolved.
   DartType? get extendedType;
 
-  /// Return the name of the extension being selected.
-  @Deprecated('Use importPrefix, name, and element instead')
-  Identifier get extensionName;
-
   /// The optional import prefix before [name].
   ImportPrefixReference? get importPrefix;
 
@@ -6982,12 +6837,6 @@ abstract final class ExtensionOverride implements Expression {
 
   /// The name of the extension being selected.
   Token get name;
-
-  /// Return the forced extension element.
-  ///
-  /// Return `null` if the AST structure has not been resolved.
-  @Deprecated('Use element instead')
-  ExtensionElement? get staticElement;
 
   /// Return the type arguments to be applied to the extension, or `null` if no
   /// type arguments were provided.
@@ -7010,10 +6859,6 @@ abstract final class ExtensionOverride implements Expression {
 ///        [Identifier] [TypeArgumentList]? [ArgumentList]
 final class ExtensionOverrideImpl extends ExpressionImpl
     implements ExtensionOverride {
-  /// Cache results of `name` invocation. There is existing code that uses it,
-  /// and relies on the fact that the same result is returned every time.
-  static final _nameCache = Expando<IdentifierImpl>();
-
   @override
   final ImportPrefixReferenceImpl? importPrefix;
 
@@ -7063,32 +6908,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   Token get endToken => _argumentList.endToken;
 
-  @Deprecated('Use importPrefix, extensionName2, staticElement instead')
-  @override
-  IdentifierImpl get extensionName {
-    var result = _nameCache[this];
-    if (result != null) {
-      return result;
-    }
-
-    final importPrefix = this.importPrefix;
-    if (importPrefix != null) {
-      result = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(importPrefix.name)
-          ..staticElement = importPrefix.element,
-        period: importPrefix.period,
-        identifier: SimpleIdentifierImpl(name)..staticElement = staticElement,
-      ).._parent = this;
-    } else {
-      result = SimpleIdentifierImpl(name)
-        .._parent = this
-        ..staticElement = staticElement;
-    }
-
-    _nameCache[this] = result;
-    return result;
-  }
-
   @override
   bool get isNullAware {
     var nextType = argumentList.endToken.next!.type;
@@ -7098,10 +6917,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
 
   @override
   Precedence get precedence => Precedence.postfix;
-
-  @Deprecated('Use element instead')
-  @override
-  ExtensionElement get staticElement => element;
 
   @override
   TypeArgumentListImpl? get typeArguments => _typeArguments;
@@ -7130,9 +6945,6 @@ final class ExtensionOverrideImpl extends ExpressionImpl
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
-    // TODO(scheglov) Remove when removing `extensionName`.
-    // ignore: deprecated_member_use_from_same_package
-    extensionName.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
   }
@@ -7237,10 +7049,6 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 
   @override
   Element? get declaredElement => null;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  Element? get declaredElement2 => null;
 
   @override
   Token get endToken => semicolon;
@@ -8502,18 +8310,6 @@ sealed class FunctionBody implements AstNode {
 
   /// If [variable] is a local variable or parameter declared anywhere within
   /// the top level function or method containing this [FunctionBody], return a
-  /// boolean indicating whether [variable] is potentially mutated within a
-  /// local function other than the function in which it is declared.
-  ///
-  /// If [variable] is not a local variable or parameter declared within the top
-  /// level function or method containing this [FunctionBody], return `false`.
-  ///
-  /// Throws an exception if resolution has not yet been performed.
-  @Deprecated('Not used by clients')
-  bool isPotentiallyMutatedInClosure(VariableElement variable);
-
-  /// If [variable] is a local variable or parameter declared anywhere within
-  /// the top level function or method containing this [FunctionBody], return a
   /// boolean indicating whether [variable] is potentially mutated within the
   /// scope of its declaration.
   ///
@@ -8558,15 +8354,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
   @override
   Token? get star => null;
 
-  @Deprecated('Not used by clients')
-  @override
-  bool isPotentiallyMutatedInClosure(VariableElement variable) {
-    if (localVariableInfo == null) {
-      throw StateError('Resolution has not yet been performed');
-    }
-    return localVariableInfo!.potentiallyMutatedInClosure.contains(variable);
-  }
-
   @override
   bool isPotentiallyMutatedInScope(VariableElement variable) {
     if (localVariableInfo == null) {
@@ -8598,10 +8385,6 @@ sealed class FunctionBodyImpl extends AstNodeImpl implements FunctionBody {
 abstract final class FunctionDeclaration implements NamedCompilationUnitMember {
   @override
   ExecutableElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExecutableElement? get declaredElement2;
 
   /// Return the token representing the 'external' keyword, or `null` if this is
   /// not an external function.
@@ -8681,10 +8464,6 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
     _becomeParentOf(_returnType);
     _becomeParentOf(_functionExpression);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExecutableElement? get declaredElement2 => declaredElement;
 
   @override
   Token get endToken => _functionExpression.endToken;
@@ -9112,10 +8891,6 @@ abstract final class FunctionTypeAlias implements TypeAlias {
   @override
   TypeAliasElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  TypeAliasElement? get declaredElement2;
-
   /// Return the parameters associated with the function type.
   FormalParameterList get parameters;
 
@@ -9172,10 +8947,6 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_parameters);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  TypeAliasElement? get declaredElement2 => declaredElement;
 
   @override
   FormalParameterListImpl get parameters => _parameters;
@@ -9591,10 +9362,6 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
     _becomeParentOf(_typeParameters);
     _becomeParentOf(_type);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  Element? get declaredElement2 => declaredElement;
 
   /// The type of function being defined by the alias.
   ///
@@ -10300,12 +10067,6 @@ abstract final class ImportDirective implements NamespaceDirective {
   @override
   LibraryImportElement? get element;
 
-  /// Return the element associated with this directive, or `null` if the AST
-  /// structure has not been resolved.
-  @Deprecated('Use element instead')
-  @override
-  LibraryImportElement? get element2;
-
   /// The token representing the 'import' keyword.
   Token get importKeyword;
 
@@ -10364,10 +10125,6 @@ final class ImportDirectiveImpl extends NamespaceDirectiveImpl
   @override
   LibraryImportElementImpl? get element =>
       super.element as LibraryImportElementImpl?;
-
-  @Deprecated('Use element instead')
-  @override
-  LibraryImportElement? get element2 => element;
 
   @override
   Token get firstTokenAfterCommentAndMetadata => importKeyword;
@@ -11619,10 +11376,6 @@ abstract final class LibraryDirective implements Directive {
   Token get libraryKeyword;
 
   /// Return the name of the library being defined.
-  @Deprecated('Use name2')
-  LibraryIdentifier get name;
-
-  /// Return the name of the library being defined.
   LibraryIdentifier? get name2;
 
   /// Return the semicolon terminating the directive.
@@ -11664,10 +11417,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @override
   Token get firstTokenAfterCommentAndMetadata => libraryKeyword;
-
-  @override
-  @Deprecated('Use name2')
-  LibraryIdentifierImpl get name => _name!;
 
   set name(LibraryIdentifierImpl? name) {
     _name = _becomeParentOf(name);
@@ -11996,12 +11745,6 @@ sealed class LiteralImpl extends ExpressionImpl implements Literal {
 /// Additional information about local variables within a function or method
 /// produced at resolution time.
 class LocalVariableInfo {
-  /// The set of local variables and parameters that are potentially mutated
-  /// within a local function other than the function in which they are
-  /// declared.
-  @Deprecated('Not used by clients')
-  final Set<VariableElement> potentiallyMutatedInClosure = <VariableElement>{};
-
   /// The set of local variables and parameters that are potentially mutated
   /// within the scope of their declarations.
   final Set<VariableElement> potentiallyMutatedInScope = <VariableElement>{};
@@ -12468,10 +12211,6 @@ abstract final class MethodDeclaration implements ClassMember {
   @override
   ExecutableElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExecutableElement? get declaredElement2;
-
   /// Return the token for the 'external' keyword, or `null` if the constructor
   /// is not external.
   Token? get externalKeyword;
@@ -12497,10 +12236,6 @@ abstract final class MethodDeclaration implements ClassMember {
 
   /// Return the name of the method.
   Token get name;
-
-  /// Return the name of the method.
-  @Deprecated('Use name instead')
-  Token get name2;
 
   /// Return the token representing the 'operator' keyword, or `null` if this
   /// method does not declare an operator.
@@ -12620,10 +12355,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
     _body = _becomeParentOf(functionBody);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  ExecutableElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => _body.endToken;
 
@@ -12653,10 +12384,6 @@ final class MethodDeclarationImpl extends ClassMemberImpl
 
   @override
   bool get isStatic => modifierKeyword?.keyword == Keyword.STATIC;
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @override
   FormalParameterListImpl? get parameters => _parameters;
@@ -12938,10 +12665,6 @@ abstract final class MixinAugmentationDeclaration
 
   @override
   MixinAugmentationElement? get declaredElement;
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  MixinAugmentationElement? get declaredElement2;
 }
 
 /// The declaration of a mixin.
@@ -12956,22 +12679,10 @@ abstract final class MixinDeclaration
   @override
   MixinElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  MixinElement? get declaredElement2;
-
-  /// Return the 'final' keyword, or `null` if the keyword was absent.
-  @Deprecated('This feature was removed from the language')
-  Token? get finalKeyword;
-
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
   @override
   ImplementsClause? get implementsClause;
-
-  /// Return the 'interface' keyword, or `null` if the keyword was absent.
-  @Deprecated('This feature was removed from the language')
-  Token? get interfaceKeyword;
 
   /// Returns the left curly bracket.
   @override
@@ -12984,10 +12695,6 @@ abstract final class MixinDeclaration
   /// Returns the right curly bracket.
   @override
   Token get rightBracket;
-
-  /// Return the 'sealed' keyword, or `null` if the keyword was absent.
-  @Deprecated('This feature was removed from the language')
-  Token? get sealedKeyword;
 
   /// Returns the type parameters for the class/mixin, or `null` if the
   /// class/mixin does not have any type parameters.
@@ -13068,16 +12775,8 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _members._initialize(this, members);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  MixinElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken => rightBracket;
-
-  @Deprecated('This feature was removed from the language')
-  @override
-  Token? get finalKeyword => null;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -13091,10 +12790,6 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
     _implementsClause = _becomeParentOf(implementsClause);
   }
 
-  @Deprecated('This feature was removed from the language')
-  @override
-  Token? get interfaceKeyword => null;
-
   @override
   NodeListImpl<ClassMemberImpl> get members => _members;
 
@@ -13104,10 +12799,6 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   set onClause(OnClauseImpl? onClause) {
     _onClause = _becomeParentOf(onClause);
   }
-
-  @Deprecated('This feature was removed from the language')
-  @override
-  Token? get sealedKeyword => null;
 
   @override
   TypeParameterListImpl? get typeParameters => _typeParameters;
@@ -13154,10 +12845,6 @@ abstract final class MixinOrAugmentationDeclaration
   @override
   MixinOrAugmentationElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  MixinOrAugmentationElement? get declaredElement2;
-
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
@@ -13190,10 +12877,6 @@ abstract final class NamedCompilationUnitMember
     implements CompilationUnitMember {
   /// Return the name of the member being declared.
   Token get name;
-
-  /// Return the name of the member being declared.
-  @Deprecated('Use name instead')
-  Token get name2;
 }
 
 /// A node that declares a single name within the scope of a compilation unit.
@@ -13211,10 +12894,6 @@ sealed class NamedCompilationUnitMemberImpl extends CompilationUnitMemberImpl
     required super.metadata,
     required this.name,
   });
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 }
 
 /// An expression that has a name associated with it. They are used in method
@@ -13334,10 +13013,6 @@ abstract final class NamedType implements TypeAnnotation {
   bool get isDeferred;
 
   /// Return the name of the type.
-  @Deprecated('Use importPrefix, name2, and element instead')
-  Identifier get name;
-
-  /// Return the name of the type.
   Token get name2;
 
   /// Return the type arguments associated with the type, or `null` if there are
@@ -13350,10 +13025,6 @@ abstract final class NamedType implements TypeAnnotation {
 ///    typeName ::=
 ///        [Identifier] typeArguments? '?'?
 final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
-  /// Cache results of `name` invocation. There is existing code that uses it,
-  /// and relies on the fact that the same result is returned every time.
-  static final _nameCache = Expando<IdentifierImpl>();
-
   @override
   final ImportPrefixReferenceImpl? importPrefix;
 
@@ -13408,32 +13079,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   bool get isSynthetic => name2.isSynthetic && typeArguments == null;
 
-  @Deprecated('Use importPrefix, name2, and element instead')
-  @override
-  IdentifierImpl get name {
-    var result = _nameCache[this];
-    if (result != null) {
-      return result;
-    }
-
-    final importPrefix = this.importPrefix;
-    if (importPrefix != null) {
-      result = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(importPrefix.name)
-          ..staticElement = importPrefix.element,
-        period: importPrefix.period,
-        identifier: SimpleIdentifierImpl(name2)..staticElement = element,
-      ).._parent = this;
-    } else {
-      result = SimpleIdentifierImpl(name2)
-        .._parent = this
-        ..staticElement = element;
-    }
-
-    _nameCache[this] = result;
-    return result;
-  }
-
   @override
   ChildEntities get _childEntities => ChildEntities()
     ..addNode('importPrefix', importPrefix)
@@ -13447,9 +13092,6 @@ final class NamedTypeImpl extends TypeAnnotationImpl implements NamedType {
   @override
   void visitChildren(AstVisitor visitor) {
     importPrefix?.accept(visitor);
-    // TODO(scheglov) Remove when removing `name`.
-    // ignore: deprecated_member_use_from_same_package
-    name.accept(visitor);
     typeArguments?.accept(visitor);
   }
 }
@@ -14539,10 +14181,6 @@ abstract final class PartDirective implements UriBasedDirective {
   @override
   PartElement? get element;
 
-  @Deprecated('Use element instead')
-  @override
-  PartElement? get element2;
-
   /// Return the token representing the 'part' keyword.
   Token get partKeyword;
 
@@ -14579,10 +14217,6 @@ final class PartDirectiveImpl extends UriBasedDirectiveImpl
   PartElement? get element {
     return super.element as PartElement?;
   }
-
-  @Deprecated('Use element instead')
-  @override
-  PartElement? get element2 => element;
 
   @override
   Token get endToken => semicolon;
@@ -18684,10 +18318,6 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   Element? get declaredElement => null;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  Element? get declaredElement2 => null;
-
   @override
   Token get endToken => semicolon;
 
@@ -19150,20 +18780,12 @@ abstract final class TypeParameter implements Declaration {
   @override
   TypeParameterElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  TypeParameterElement? get declaredElement2;
-
   /// Return the token representing the 'extends' keyword, or `null` if there is
   /// no explicit upper bound.
   Token? get extendsKeyword;
 
   /// Return the name of the type parameter.
   Token get name;
-
-  /// Return the name of the type parameter.
-  @Deprecated('Use name instead')
-  Token get name2;
 }
 
 /// A type parameter.
@@ -19214,10 +18836,6 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
     _bound = _becomeParentOf(type);
   }
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  TypeParameterElement? get declaredElement2 => declaredElement;
-
   @override
   Token get endToken {
     return _bound?.endToken ?? name;
@@ -19225,10 +18843,6 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
 
   @override
   Token get firstTokenAfterCommentAndMetadata => varianceKeyword ?? name;
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities
@@ -19422,10 +19036,6 @@ abstract final class VariableDeclaration implements Declaration {
   @override
   VariableElement? get declaredElement;
 
-  @Deprecated('Use declaredElement instead')
-  @override
-  VariableElement? get declaredElement2;
-
   /// Return the equal sign separating the variable name from the initial value,
   /// or `null` if the initial value was not specified.
   Token? get equals;
@@ -19448,10 +19058,6 @@ abstract final class VariableDeclaration implements Declaration {
 
   /// Return the name of the variable being declared.
   Token get name;
-
-  /// Return the name of the variable being declared.
-  @Deprecated('Use name instead')
-  Token get name2;
 }
 
 /// An identifier that has an initial value associated with it. Instances of
@@ -19497,10 +19103,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
         super(comment: null, metadata: null) {
     _becomeParentOf(_initializer);
   }
-
-  @Deprecated('Use declaredElement instead')
-  @override
-  VariableElement? get declaredElement2 => declaredElement;
 
   /// This overridden implementation of [documentationComment] looks in the
   /// grandparent node for Dartdoc comments if no documentation is specifically
@@ -19552,10 +19154,6 @@ final class VariableDeclarationImpl extends DeclarationImpl
     final parent = this.parent;
     return parent is VariableDeclarationList && parent.isLate;
   }
-
-  @Deprecated('Use name instead')
-  @override
-  Token get name2 => name;
 
   @override
   ChildEntities get _childEntities => super._childEntities

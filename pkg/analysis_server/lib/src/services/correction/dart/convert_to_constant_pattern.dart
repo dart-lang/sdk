@@ -14,8 +14,7 @@ class ConvertToConstantPattern extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    // TODO(scheglov) Update during https://dart-review.googlesource.com/c/sdk/+/303280
-    final namedType = node.parent;
+    final namedType = node;
     if (namedType is! NamedType) {
       return;
     }
