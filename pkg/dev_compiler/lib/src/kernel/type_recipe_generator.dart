@@ -62,7 +62,8 @@ class TypeRecipeGenerator {
   /// it.
   ///
   /// See [_TypeRecipeVisitor.addLiveType] for more information.
-  void addLiveType(InterfaceType type) => _recipeVisitor.addLiveType(type);
+  void addLiveTypeAncestries(InterfaceType type) =>
+      _recipeVisitor.addLiveTypeAncestries(type);
 
   /// Returns a mapping of type hierarchies for all [InterfaceType]s that have
   /// appeared in type recipes.
@@ -250,7 +251,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       return eraseStaticInteropTypesForJSCompilers(_coreTypes, node)
           .accept(this);
     }
-    addLiveType(node);
+    addLiveTypeAncestries(node);
     // Generate the interface type recipe.
     var recipeBuffer = StringBuffer(interfaceTypeRecipe(cls));
     // Generate the recipes for all type arguments.
@@ -448,32 +449,57 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       : List.filled(
           n, '${Recipe.pushAnyExtensionString}${Recipe.extensionOpString}');
 
-  /// Manually record [type] as being "live" without generating a recipe.
+  /// Manually record the transitive type ancestries of [type], and any other
+  /// interface types that appear as instantiated type arguments within as being
+  /// "live".
   ///
   /// "Live" types here refer to the interface types that could potentially flow
   /// into a type operation; meaning the type of the value appearing on the LHS
-  /// and the type appearing on the RHS. Those operations require a type
-  /// hierarchy rule gets encoded for use at runtime.
+  /// and the type appearing on the RHS. Those operations require a type rule
+  /// gets encoded for use at runtime by the dart:_rti library.
   ///
   /// All interface types are automatically marked as "live" when a type recipe
   /// is generated for them. Manually adding a "live" type allows a way to
-  /// guarantee the hierarchy rules will be encoded for the type even if a
-  /// recipe was never compiled.
+  /// guarantee the type rules will be encoded for the type even if a recipe was
+  ///  never compiled.
   ///
   /// For example, if an instance of class `C` was constructed but `C` was never
   /// used as a _type_ in the compilation, a recipe hasn't been generated and
   /// the type will not be automatically recorded as "live". The type should be
   /// manually added in case an instance of `C` appears in a type test like
-  /// `myCInstance is SomeTypeNotC` where the type hierarchy rule for `C` will
-  /// be needed.
-  void addLiveType(InterfaceType type) {
+  /// `myCInstance is SomeTypeNotC` where the rule for `C` will be needed.
+  void addLiveTypeAncestries(InterfaceType type) {
     if (_addLiveInterfaceTypes) {
-      var cls = type.classNode;
-      var typeWithoutNullability =
-          cls.getThisType(_coreTypes, Nullability.nonNullable);
-      hasJSInteropAnnotation(cls)
-          ? _visitedJsInteropTypes.add(typeWithoutNullability)
-          : _visitedInterfaceTypes.add(typeWithoutNullability);
+      var toVisit = ListQueue<InterfaceType>()..add(type);
+      while (toVisit.isNotEmpty) {
+        var currentClass = toVisit.removeFirst().classNode;
+        // Avoid duplicates of an interface that differ only in nullability by
+        // always working with the non-nullable version.
+        var currentType =
+            currentClass.getThisType(_coreTypes, Nullability.nonNullable);
+        if (_visitedInterfaceTypes.contains(currentType) ||
+            _visitedJsInteropTypes.contains(currentType) ||
+            currentClass == _coreTypes.objectClass) {
+          continue;
+        }
+        for (var supertype in currentClass.supers) {
+          // Enqueue all supertypes of the current type.
+          toVisit.add(supertype.asInterfaceType);
+          for (var typeArgument in supertype.typeArguments) {
+            if (typeArgument is TypeParameterType) continue;
+            // Enqueue all interface types embedded within the type arguments of
+            // the supertypes.
+            toVisit.addAll(InterfaceTypeExtractor().extract(typeArgument));
+          }
+        }
+        // No need to mark an anonymous mixin application as live since these
+        // classes are synthetic and their type will never appear in any type
+        // test.
+        if (currentClass.isAnonymousMixin) continue;
+        hasJSInteropAnnotation(currentClass)
+            ? _visitedJsInteropTypes.add(currentType)
+            : _visitedInterfaceTypes.add(currentType);
+      }
     }
   }
 }

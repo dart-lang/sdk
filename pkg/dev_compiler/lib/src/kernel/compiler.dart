@@ -521,7 +521,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       for (var library in libraries) {
         for (var cls in library.classes) {
           var type = cls.getThisType(_coreTypes, Nullability.nonNullable);
-          _typeRecipeGenerator.addLiveType(type);
+          _typeRecipeGenerator.addLiveTypeAncestries(type);
         }
       }
       var universeClass =
