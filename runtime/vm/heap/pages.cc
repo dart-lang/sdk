@@ -1075,7 +1075,6 @@ void PageSpace::CollectGarbageHelper(Thread* thread,
 
   bool can_verify;
   if (compact) {
-    SweepLarge();
     Compact(thread);
     set_phase(kDone);
     can_verify = true;
