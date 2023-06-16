@@ -678,7 +678,8 @@ void Heap::WaitForMarkerTasks(Thread* thread) {
 void Heap::WaitForSweeperTasks(Thread* thread) {
   ASSERT(!thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
-  while (old_space_.tasks() > 0) {
+  while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
+         (old_space_.phase() == PageSpace::kSweepingRegular)) {
     ml.WaitWithSafepointCheck(thread);
   }
 }
@@ -686,7 +687,8 @@ void Heap::WaitForSweeperTasks(Thread* thread) {
 void Heap::WaitForSweeperTasksAtSafepoint(Thread* thread) {
   ASSERT(thread->OwnsGCSafepoint());
   MonitorLocker ml(old_space_.tasks_lock());
-  while (old_space_.tasks() > 0) {
+  while ((old_space_.phase() == PageSpace::kSweepingLarge) ||
+         (old_space_.phase() == PageSpace::kSweepingRegular)) {
     ml.Wait();
   }
 }
