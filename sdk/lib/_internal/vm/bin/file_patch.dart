@@ -137,6 +137,12 @@ abstract class _FileSystemWatcher {
   final StreamController<FileSystemEvent> _broadcastController =
       new StreamController<FileSystemEvent>.broadcast();
 
+  /// Subscription on the stream returned by [_watchPath].
+  ///
+  /// Stored while piping events from that stream into [_broadcastController],
+  /// so it can be cancelled when [_broadcastController] is cancelled.
+  StreamSubscription? _sourceSubscription;
+
   @patch
   static Stream<FileSystemEvent> _watch(
       String path, int events, bool recursive) {
@@ -193,7 +199,9 @@ abstract class _FileSystemWatcher {
     }
     _watcherPath = _idMap[pathId];
     _watcherPath!.count++;
-    _pathWatched().pipe(_broadcastController);
+    _sourceSubscription = _pathWatched().listen(_broadcastController.add,
+        onError: _broadcastController.addError,
+        onDone: _broadcastController.close);
   }
 
   void _cancel() {
@@ -222,6 +230,8 @@ abstract class _FileSystemWatcher {
       _doneWatcher();
       _id = null;
     }
+    _sourceSubscription?.cancel();
+    _sourceSubscription = null;
   }
 
   // Called when (and after) a new watcher instance is created and available.
@@ -229,7 +239,7 @@ abstract class _FileSystemWatcher {
   // Called when a watcher is no longer needed.
   void _doneWatcher() {}
   // Called when a new path is being watched.
-  Stream _pathWatched();
+  Stream<FileSystemEvent> _pathWatched();
   // Called when a path is no longer being watched.
   void _donePathWatched() {}
 
@@ -387,7 +397,7 @@ abstract class _FileSystemWatcher {
 }
 
 class _InotifyFileSystemWatcher extends _FileSystemWatcher {
-  static final Map<int, StreamController> _idMap = {};
+  static final Map<int, StreamController<FileSystemEvent>> _idMap = {};
   static late StreamSubscription _subscription;
 
   _InotifyFileSystemWatcher(path, events, recursive)
@@ -411,7 +421,7 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
     _subscription.cancel();
   }
 
-  Stream _pathWatched() {
+  Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     if (!_idMap.containsKey(pathId)) {
       _idMap[pathId] = new StreamController<FileSystemEvent>.broadcast();
@@ -429,12 +439,12 @@ class _InotifyFileSystemWatcher extends _FileSystemWatcher {
 
 class _Win32FileSystemWatcher extends _FileSystemWatcher {
   late StreamSubscription _subscription;
-  late StreamController _controller;
+  late StreamController<FileSystemEvent> _controller;
 
   _Win32FileSystemWatcher(path, events, recursive)
       : super._(path, events, recursive);
 
-  Stream _pathWatched() {
+  Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     _controller = new StreamController<FileSystemEvent>();
     _subscription =
@@ -457,12 +467,12 @@ class _Win32FileSystemWatcher extends _FileSystemWatcher {
 
 class _FSEventStreamFileSystemWatcher extends _FileSystemWatcher {
   late StreamSubscription _subscription;
-  late StreamController _controller;
+  late StreamController<FileSystemEvent> _controller;
 
   _FSEventStreamFileSystemWatcher(path, events, recursive)
       : super._(path, events, recursive);
 
-  Stream _pathWatched() {
+  Stream<FileSystemEvent> _pathWatched() {
     var pathId = _watcherPath!.pathId;
     var socketId = _FileSystemWatcher._getSocketId(0, pathId);
     _controller = new StreamController<FileSystemEvent>();
