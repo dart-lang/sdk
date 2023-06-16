@@ -580,7 +580,8 @@ class KernelTarget extends TargetImplementation {
   /// component.
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
-      bool verify = false}) async {
+      bool verify = false,
+      bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
       return new BuildResult(macroApplications: macroApplications);
     }
@@ -637,7 +638,8 @@ class KernelTarget extends TargetImplementation {
 
       if (verify) {
         benchmarker?.enterPhase(BenchmarkPhases.body_verify);
-        this.verify();
+        _verify(
+            allowVerificationErrorForTesting: allowVerificationErrorForTesting);
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
@@ -1616,11 +1618,13 @@ class KernelTarget extends TargetImplementation {
     return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
-  void verify() {
+  void _verify({required bool allowVerificationErrorForTesting}) {
     // TODO(ahe): How to handle errors.
-    verifyComponent(context.options.target,
+    List<LocatedMessage> errors = verifyComponent(context.options.target,
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
+    assert(allowVerificationErrorForTesting || errors.isEmpty,
+        "Verification errors found.");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

@@ -2380,7 +2380,8 @@ class Outline extends Step<TestDescription, ComponentResult, FastaContext> {
               macroApplications: buildResult.macroApplications,
               verify: compilationSetup.folderOptions.noVerify
                   ? false
-                  : context.verify);
+                  : context.verify,
+              allowVerificationErrorForTesting: true);
           p = buildResult.component!;
           instrumentation.finish();
           if (instrumentation.hasProblems) {
