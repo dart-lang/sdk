@@ -7,6 +7,7 @@ import 'deferred_lib2.dart' deferred as lib2;
 
 main() async {
   await lib1.loadLibrary();
+  await lib2.loadLibrary();
   print(new lib1.Class1().method());
   print(new lib2.Class2().method());
 }

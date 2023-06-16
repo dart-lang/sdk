@@ -22,12 +22,6 @@ if (Object.keys(\$__dart_deferred_initializers__).length != 4) {
 }
 ''';
 
-const List<String> dataFiles = [
-  'deferred_lib1.dart',
-  'deferred_lib2.dart',
-  'deferred_main.dart'
-];
-
 Future<Directory> createTempDir() {
   return Directory.systemTemp.createTemp('dart2js_bundle_parts_test-');
 }
@@ -46,7 +40,7 @@ Future<void> runTestWithOptions(List<String> options) async {
   await bundledParts.writeAsBytes(await part2.readAsBytes(),
       mode: FileMode.append);
   await bundledParts.writeAsString('\n$verifyParts', mode: FileMode.append);
-  final result = await executeJsWithD8(bundledPartsUri);
+  final result = executeJsWithD8([bundledPartsUri]);
   if (result.exitCode != 0) {
     Expect.fail('Expected exit code 0. D8 results:\n'
         '${(result.stdout as String).trim()}');
