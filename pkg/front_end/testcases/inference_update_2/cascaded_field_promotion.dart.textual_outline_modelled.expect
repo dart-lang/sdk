@@ -1,0 +1,9 @@
+class C {
+  C(this._field);
+  final Object? _field;
+}
+
+main() {}
+void cascadedInvocation(C c) {}
+void cascadedNullAwarePropertyAccess(C? c) {}
+void cascadedPropertyAccess(C c) {}

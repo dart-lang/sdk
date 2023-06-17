@@ -272,7 +272,7 @@ class MiniIrBuilder {
   /// - Call [let] to build the final `let` expression.
   void let(MiniIrTmp tmp, {required String location}) {
     _push(IrNode(
-        ir: 'let(${tmp._name}, ${tmp._value}, ${_pop(Kind.expression)})',
+        ir: 'let(${tmp._name}, ${tmp._value}, ${_pop(Kind.expression).ir})',
         kind: Kind.expression,
         location: location));
   }

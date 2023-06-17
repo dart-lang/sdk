@@ -8,6 +8,18 @@ import '../type_inference/assigned_variables.dart';
 import '../type_inference/promotion_key_store.dart';
 import '../type_inference/type_operations.dart';
 
+/// [PropertyTarget] representing an implicit reference to the target of the
+/// innermost enclosing cascade expression.
+class CascadePropertyTarget extends PropertyTarget<Never> {
+  static const CascadePropertyTarget singleton =
+      const CascadePropertyTarget._();
+
+  const CascadePropertyTarget._() : super._();
+
+  @override
+  String toString() => 'CascadePropertyTarget()';
+}
+
 /// Non-promotion reason describing the situation where a variable was not
 /// promoted due to an explicit write to the variable appearing somewhere in the
 /// source code.
@@ -204,6 +216,32 @@ abstract class FlowAnalysis<Node extends Object, Statement extends Node,
 
   /// Call this method when visiting a boolean literal expression.
   void booleanLiteral(Expression expression, bool value);
+
+  /// Call this method just after visiting the target of a cascade expression.
+  /// [target] is the target expression (the expression before the first `..` or
+  /// `?..`), and [targetType] is its static type. [isNullAware] indicates
+  /// whether the cascade expression is null-aware (meaning its first separator
+  /// is `?..` rather than `..`).
+  ///
+  /// Returns the effective type of the target expression during execution of
+  /// the cascade sections (this is either the same as [targetType], or its
+  /// non-nullable equivalent, if [isNullAware] is `true`).
+  ///
+  /// The order of visiting a cascade expression should be:
+  /// - Visit the target
+  /// - Call [cascadeExpression_afterTarget].
+  /// - If this is a null-aware cascade, call [nullAwareAccess_rightBegin].
+  /// - Visit each cascade section
+  /// - If this is a null-aware cascade, call [nullAwareAccess_end].
+  /// - Call [cascadeExpression_end].
+  Type cascadeExpression_afterTarget(Expression target, Type targetType,
+      {required bool isNullAware});
+
+  /// Call this method just after visiting a cascade expression. See
+  /// [cascadeExpression_afterTarget] for details.
+  ///
+  /// [wholeExpression] should be the whole cascade expression.
+  void cascadeExpression_end(Expression wholeExpression);
 
   /// Call this method just before visiting a conditional expression ("?:").
   void conditional_conditionBegin();
@@ -1151,6 +1189,24 @@ class FlowAnalysisDebug<Node extends Object, Statement extends Node,
   void booleanLiteral(Expression expression, bool value) {
     _wrap('booleanLiteral($expression, $value)',
         () => _wrapped.booleanLiteral(expression, value));
+  }
+
+  @override
+  Type cascadeExpression_afterTarget(Expression target, Type targetType,
+      {required bool isNullAware}) {
+    return _wrap(
+        'cascadeExpression_afterTarget($target, $targetType, '
+        'isNullAware: $isNullAware)',
+        () => _wrapped.cascadeExpression_afterTarget(target, targetType,
+            isNullAware: isNullAware),
+        isQuery: true,
+        isPure: false);
+  }
+
+  @override
+  void cascadeExpression_end(Expression wholeExpression) {
+    _wrap('cascadeExpression_end($wholeExpression)',
+        () => _wrapped.cascadeExpression_end(wholeExpression));
   }
 
   @override
@@ -3806,6 +3862,10 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   /// SSA node representing the implicit variable `this`.
   late final SsaNode<Type> _thisSsaNode = new SsaNode<Type>(null);
 
+  /// Stack of information about the targets of any cascade expressions that are
+  /// currently being visited.
+  final List<_Reference<Type>> _cascadeTargetStack = [];
+
   _FlowAnalysisImpl(this.operations, this._assignedVariables,
       {required this.respectImplicitlyTypedVarInitializers})
       : promotionKeyStore = _assignedVariables.promotionKeyStore {
@@ -3894,6 +3954,54 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
                 after: _current,
                 ifTrue: unreachable,
                 ifFalse: _current));
+  }
+
+  @override
+  Type cascadeExpression_afterTarget(Expression target, Type targetType,
+      {required bool isNullAware}) {
+    // If the cascade is null-aware, then during the cascade sections, the
+    // effective type of the target is promoted to non-null.
+    if (isNullAware) {
+      targetType = operations.promoteToNonNull(targetType);
+    }
+    // Retrieve the SSA node for the cascade target, if one has been created
+    // already, so that field accesses within cascade sections will receive the
+    // benefit of previous field promotions. If an SSA node for the target
+    // hasn't been created yet (e.g. because it's not a read of a local
+    // variable), create a fresh SSA node for it, so that field promotions that
+    // occur during cascade sections will persist in later cascade sections.
+    _Reference<Type>? expressionReference = _getExpressionReference(target);
+    SsaNode<Type> ssaNode = expressionReference?.ssaNode ?? new SsaNode(null);
+    // Create a temporary reference to represent the implicit temporary variable
+    // that holds the cascade target. It is important that this is different
+    // from `expressionReference`, because if the target is a local variable,
+    // and that variable is written during one of the cascade sections, future
+    // cascade sections should still be understood to act on the value the
+    // variable had before the write. (e.g. in
+    // `x.._field!.f(x = g()).._field.h()`, no `!` is needed on the second
+    // access to `_field`, even though `x` has been written to).
+    _cascadeTargetStack.add(_makeTemporaryReference(ssaNode, targetType));
+    // Calling `_getExpressionReference` had the effect of clearing
+    // `_expressionReference` (because normally the caller doesn't pass the same
+    // expression to flow analysis twice, so the expression reference isn't
+    // needed anymore). However, in the case of null-aware cascades, this call
+    // will be followed by a call to [nullAwareAccess_rightBegin], and the
+    // expression reference will be needed again. So store it back.
+    if (expressionReference != null) {
+      _storeExpressionReference(target, expressionReference);
+    }
+    return targetType;
+  }
+
+  @override
+  void cascadeExpression_end(Expression wholeExpression) {
+    // Pop the reference for the temporary variable that holds the target of the
+    // cascade stack, and store it as the reference for `wholeExpression`. This
+    // ensures that field accesses performed on the whole cascade expression
+    // (e.g. `(x..f())._field` will still receive the benefit of field
+    // promotion.
+    _Reference<Type> targetInfo = _cascadeTargetStack.removeLast();
+    _storeExpressionReference(wholeExpression, targetInfo);
   }
 
   @override
@@ -5205,7 +5313,9 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       String propertyName,
       Object? propertyMember,
       Type staticType) {
-    SsaNode<Type>? targetSsaNode;
+    // Find the SSA node for the target of the property access, and figure out
+    // whether the property in question is promotable.
+    SsaNode<Type> targetSsaNode;
     bool isPromotable = propertyMember != null &&
         operations.isPropertyPromotable(propertyMember);
     switch (target) {
@@ -5213,13 +5323,23 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         targetSsaNode = _superSsaNode;
       case ThisPropertyTarget():
         targetSsaNode = _thisSsaNode;
+      case CascadePropertyTarget():
+        targetSsaNode = _cascadeTargetStack.last.ssaNode;
       case ExpressionPropertyTarget(:var expression):
         _Reference<Type>? targetReference = _getExpressionReference(expression);
         if (targetReference == null) return null;
-        targetSsaNode = targetReference.ssaNode;
+        // If `targetReference` refers to a non-promotable property or variable,
+        // then the result of the property access is also non-promotable (e.g.
+        // `x._nonFinalField._finalField` is not promotable, because
+        // `_nonFinalField` might change at any time). Note that even though the
+        // control flow paths for `SuperPropertyTarget` and `ThisPropertyTarget`
+        // skip this code, we still need to check `isThisOrSuper`, because
+        // `ThisPropertyTarget` is only used for property accesses via
+        // *implicit* `this`.
         if (!targetReference.isPromotable && !targetReference.isThisOrSuper) {
           isPromotable = false;
         }
+        targetSsaNode = targetReference.ssaNode;
     }
     _PropertySsaNode<Type> propertySsaNode =
         targetSsaNode.getProperty(propertyName, promotionKeyStore);
@@ -5665,6 +5785,14 @@ class _LegacyTypePromotion<Node extends Object, Statement extends Node,
 
   @override
   void booleanLiteral(Expression expression, bool value) {}
+
+  @override
+  Type cascadeExpression_afterTarget(Expression target, Type targetType,
+          {required bool isNullAware}) =>
+      targetType;
+
+  @override
+  void cascadeExpression_end(Expression wholeExpression) {}
 
   @override
   void conditional_conditionBegin() {}

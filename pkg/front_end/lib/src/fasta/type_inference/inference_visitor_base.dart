@@ -3129,7 +3129,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ..fileOffset = fileOffset;
     calleeType = flowAnalysis.propertyGet(
             originalPropertyGet,
-            new ExpressionPropertyTarget(originalReceiver),
+            computePropertyTarget(originalReceiver),
             originalName.text,
             originalTarget,
             calleeType) ??
@@ -3240,6 +3240,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         invocationResult.expression,
         nullAwareGuards);
   }
+
+  /// Computes an appropriate [PropertyTarget] for use in flow analysis to
+  /// represent the given [target].
+  PropertyTarget<Expression> computePropertyTarget(Expression target);
 
   /// Performs the core type inference algorithm for method invocations.
   ExpressionInferenceResult inferMethodInvocation(

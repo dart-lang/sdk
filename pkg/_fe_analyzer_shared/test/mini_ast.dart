@@ -8,10 +8,12 @@
 /// analysis testing.
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
     show
+        CascadePropertyTarget,
         ExpressionInfo,
         ExpressionPropertyTarget,
         FlowAnalysis,
         Operations,
+        PropertyTarget,
         SuperPropertyTarget,
         ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
@@ -571,6 +573,122 @@ class Break extends Statement {
         ? h.typeAnalyzer._currentBreakTarget
         : target._getBinding());
     h.irBuilder.apply('break', [], Kind.statement, location: location);
+  }
+}
+
+/// Representation of a cascade expression in the pseudo-Dart language used for
+/// flow analysis testing.
+class Cascade extends Expression {
+  /// The expression appearing before the first `..` (or `?..`).
+  final Expression target;
+
+  /// List of the cascade sections. Each cascade section is an ordinary
+  /// expression, built around a [Property] or [InvokeMethod] expression whose
+  /// target is a [CascadePlaceholder]. See [CascadePlaceholder] for more
+  /// information.
+  final List<Expression> sections;
+
+  /// Indicates whether the cascade is null-aware (i.e. its first section is
+  /// preceded by `?..` instead of `..`).
+  final bool isNullAware;
+
+  Cascade._(this.target, this.sections,
+      {required this.isNullAware, required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
+    for (var section in sections) {
+      section.preVisit(visitor);
+    }
+  }
+
+  @override
+  String toString() {
+    return [target, if (isNullAware) '?', ...sections].join('');
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    // Form the IR for evaluating the LHS
+    var targetType =
+        h.typeAnalyzer.dispatchExpression(target, context).resolveShorting();
+    var previousCascadeTargetIr = h.typeAnalyzer._currentCascadeTargetIr;
+    var previousCascadeType = h.typeAnalyzer._currentCascadeTargetType;
+    // Create a let-variable that will be initialized to the value of the LHS
+    var targetTmp =
+        h.typeAnalyzer._currentCascadeTargetIr = h.irBuilder.allocateTmp();
+    h.typeAnalyzer._currentCascadeTargetType = h.flow
+        .cascadeExpression_afterTarget(target, targetType,
+            isNullAware: isNullAware);
+    if (isNullAware) {
+      h.flow.nullAwareAccess_rightBegin(target, targetType);
+      // Push `targetTmp == null` and `targetTmp` on the IR builder stack,
+      // because they'll be needed later to form the conditional expression that
+      // does the null-aware guarding.
+      h.irBuilder.readTmp(targetTmp, location: location);
+      h.irBuilder.atom('null', Kind.expression, location: location);
+      h.irBuilder.apply(
+          '==', [Kind.expression, Kind.expression], Kind.expression,
+          location: location);
+      h.irBuilder.readTmp(targetTmp, location: location);
+    }
+    // Form the IR for evaluating each section
+    List<MiniIrTmp> sectionTmps = [];
+    for (var section in sections) {
+      h.typeAnalyzer.dispatchExpression(section, h.typeAnalyzer.unknownType);
+      // Create a let-variable that will be initialized to the value of the
+      // section (which will be discarded)
+      sectionTmps.add(h.irBuilder.allocateTmp());
+    }
+    // For the final IR, `let targetTmp = target in let section1Tmp = section1
+    // in section2Tmp = section2 ... in targetTmp`, or, for null-aware cascades,
+    // `let targetTmp = target in targetTmp == null ? targetTmp : let
+    // section1Tmp = section1 in section2Tmp = section2 ... in targetTmp`.
+    h.irBuilder.readTmp(targetTmp, location: location);
+    for (int i = sectionTmps.length; i-- > 0;) {
+      h.irBuilder.let(sectionTmps[i], location: location);
+    }
+    if (isNullAware) {
+      h.irBuilder.apply('if',
+          [Kind.expression, Kind.expression, Kind.expression], Kind.expression,
+          location: location);
+      h.flow.nullAwareAccess_end();
+    }
+    h.irBuilder.let(targetTmp, location: location);
+    h.flow.cascadeExpression_end(this);
+    h.typeAnalyzer._currentCascadeTargetIr = previousCascadeTargetIr;
+    h.typeAnalyzer._currentCascadeTargetType = previousCascadeType;
+    return SimpleTypeAnalysisResult(type: targetType);
+  }
+}
+
+/// Representation of the implicit reference to a cascade target in a cascade
+/// section, in the pseudo-Dart language used for flow analysis testing.
+///
+/// For example, in the cascade expression `x..f()`, the cascade section `..f()`
+/// is represented as an [InvokeMethod] expression whose `target` is a
+/// [CascadePlaceholder].
+class CascadePlaceholder extends Expression {
+  CascadePlaceholder._({required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {}
+
+  @override
+  String toString() {
+    // We use an empty string as the string representation of a cascade
+    // placeholder. This ensures that in a cascade expression like `x..f()`, the
+    // cascade section will have the string representation `..f()`.
+    return '.';
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    h.irBuilder
+        .readTmp(h.typeAnalyzer._currentCascadeTargetIr!, location: location);
+    return SimpleTypeAnalysisResult(
+        type: h.typeAnalyzer._currentCascadeTargetType!);
   }
 }
 
@@ -1198,6 +1316,28 @@ abstract class Expression extends Node {
   Expression as_(String typeStr) =>
       new As._(this, Type(typeStr), location: computeLocation());
 
+  /// If `this` is an expression `x`, creates a cascade expression with `x` as
+  /// the target, and [sections] as the cascade sections. [isNullAware]
+  /// indicates whether this is a null-aware cascade.
+  ///
+  /// Since each cascade section needs to implicitly refer to the target of the
+  /// cascade, the caller should pass in a closure for each cascade section; the
+  /// closures will be immediately invoked, passing in a [CascadePlaceholder]
+  /// pseudo-expression representing the implicit reference to the cascade
+  /// target.
+  Expression cascade(List<Expression Function(CascadePlaceholder)> sections,
+      {bool isNullAware = false}) {
+    var location = computeLocation();
+    return Cascade._(
+        this,
+        [
+          for (var section in sections)
+            section(CascadePlaceholder._(location: location))
+        ],
+        isNullAware: isNullAware,
+        location: location);
+  }
+
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the context provided when analyzing the expression matches
   /// [expectedContext].
@@ -1233,6 +1373,12 @@ abstract class Expression extends Node {
   /// a context type of [context].
   Statement inContext(String context) =>
       ExpressionInContext._(this, Type(context), location: computeLocation());
+
+  /// If `this` is an expression `x`, creates a method invocation with `x` as
+  /// the target, [name] as the method name, and [arguments] as the method
+  /// arguments. Named arguments are not supported.
+  Expression invokeMethod(String name, List<Expression> arguments) =>
+      new InvokeMethod._(this, name, arguments, location: computeLocation());
 
   /// If `this` is an expression `x`, creates the expression `x is typeStr`.
   ///
@@ -1519,6 +1665,7 @@ class Harness {
     'int.>': Type('bool Function(num)'),
     'int.>=': Type('bool Function(num)'),
     'num.sign': Type('num'),
+    'Object.toString': Type('String Function()'),
   };
 
   final MiniAstOperations _operations = MiniAstOperations();
@@ -1638,10 +1785,26 @@ class Harness {
   _PropertyElement? getMember(Type type, String memberName) {
     var query = '$type.$memberName';
     var member = _members[query];
-    if (member == null && !_members.containsKey(query)) {
-      fail('Unknown member query: $query');
+    // If an explicit map entry was found for this member, return the associated
+    // value (even if it is `null`; `null` means the test has been explicitly
+    // configured so that the member lookup is supposed to find nothing).
+    if (member != null || _members.containsKey(query)) return member;
+    switch (memberName) {
+      case 'toString':
+        // Assume that all types implement `Object.toString`.
+        return _members['Object.$memberName']!;
+      default:
+        // It's legal to look up any member on the type `dynamic`.
+        if (type.type == 'dynamic') {
+          return null;
+        }
+        // But an attempt to look up an unknown member on any other type
+        // results in a test failure. This is to catch mistakes in unit tests;
+        // if the unit test is deliberately trying to exercise a member lookup
+        // that should find nothing, please use `addMember` to store an
+        // explicit `null` value in the `_members` map.
+        fail('Unknown member query: $query');
     }
-    return member;
   }
 
   /// See [TypeAnalyzer.resolveRelationalPatternOperator].
@@ -1978,6 +2141,40 @@ class IntLiteral extends Expression {
         Kind.expression,
         location: location);
     return result;
+  }
+}
+
+/// Representation of a method invocation in the pseudo-Dart language used for
+/// flow analysis testing.
+class InvokeMethod extends Expression {
+  // The expression appering before the `.`.
+  final Expression target;
+
+  // The name of the method being invoked.
+  final String methodName;
+
+  // The arguments being passed to the invocation.
+  final List<Expression> arguments;
+
+  InvokeMethod._(this.target, this.methodName, this.arguments,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
+    for (var argument in arguments) {
+      argument.preVisit(visitor);
+    }
+  }
+
+  @override
+  String toString() =>
+      '$target.$methodName(${[for (var arg in arguments) arg].join(', ')})';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    return h.typeAnalyzer.analyzeMethodInvocation(this,
+        target is CascadePlaceholder ? null : target, methodName, arguments);
   }
 }
 
@@ -3251,14 +3448,15 @@ class Property extends PromotableLValue {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    return h.typeAnalyzer.analyzePropertyGet(this, target, propertyName);
+    return h.typeAnalyzer.analyzePropertyGet(
+        this, target is CascadePlaceholder ? null : target, propertyName);
   }
 
   @override
   Type? _getPromotedType(Harness h) {
     var receiverType =
         h.typeAnalyzer.analyzeExpression(target, h.typeAnalyzer.unknownType);
-    var member = h.typeAnalyzer._lookupMember(this, receiverType, propertyName);
+    var member = h.typeAnalyzer._lookupMember(receiverType, propertyName);
     return h.flow.promotedPropertyType(
         ExpressionPropertyTarget(target), propertyName, member, member!._type);
   }
@@ -3670,7 +3868,7 @@ class ThisOrSuperProperty extends PromotableLValue {
     var thisOrSuper = isSuperAccess ? 'super' : 'this';
     h.irBuilder.atom('$thisOrSuper.$propertyName', Kind.expression,
         location: location);
-    var member = h.typeAnalyzer._lookupMember(this, h._thisType!, propertyName);
+    var member = h.typeAnalyzer._lookupMember(h._thisType!, propertyName);
     return h.flow.promotedPropertyType(
         isSuperAccess
             ? SuperPropertyTarget.singleton
@@ -4465,6 +4663,16 @@ class _MiniAstTypeAnalyzer
   @override
   final TypeAnalyzerOptions options;
 
+  /// The temporary variable used in the IR to represent the target of the
+  /// innermost enclosing cascade expression, or `null` if no cascade expression
+  /// is currently being visited.
+  MiniIrTmp? _currentCascadeTargetIr;
+
+  /// The type of the target of the innermost enclosing cascade expression
+  /// (promoted to non-nullable, if it's a null-aware cascade), or `null` if no
+  /// cascade expression is currently being visited.
+  Type? _currentCascadeTargetType;
+
   _MiniAstTypeAnalyzer(this._harness, this.options);
 
   @override
@@ -4611,6 +4819,38 @@ class _MiniAstTypeAnalyzer
     return new SimpleTypeAnalysisResult<Type>(type: boolType);
   }
 
+  /// Invokes the appropriate flow analysis methods, and creates the IR
+  /// representation, for a method invocation. [node] is the full method
+  /// invocation expression, [target] is the expression before the `.` (or
+  /// `null` in case of a cascaded method invocation), [methodName] is the name
+  /// of the method being invoked, and [arguments] is the list of argument
+  /// expressions.
+  ///
+  /// Null-aware method invocations are not supported. Named arguments are not
+  /// supported.
+  ExpressionTypeAnalysisResult<Type> analyzeMethodInvocation(Expression node,
+      Expression? target, String methodName, List<Expression> arguments) {
+    // Analyze the target, generate its IR, and look up the method's type.
+    var methodType = _handlePropertyTargetAndMemberLookup(
+        null, target, methodName,
+        location: node.location);
+    // Recursively analyze each argument.
+    var inputKinds = [Kind.expression];
+    for (var i = 0; i < arguments.length; i++) {
+      inputKinds.add(Kind.expression);
+      analyzeExpression(
+          arguments[i],
+          methodType is FunctionType
+              ? methodType.positionalParameters[i]
+              : dynamicType);
+    }
+    // Form the IR for the member invocation.
+    _harness.irBuilder.apply(methodName, inputKinds, Kind.expression,
+        location: node.location);
+    // TODO(paulberry): handle null shorting
+    return new SimpleTypeAnalysisResult<Type>(type: methodType);
+  }
+
   SimpleTypeAnalysisResult<Type> analyzeNonNullAssert(
       Expression node, Expression expression) {
     var type = analyzeExpression(expression, unknownType);
@@ -4631,15 +4871,23 @@ class _MiniAstTypeAnalyzer
     return new SimpleTypeAnalysisResult<Type>(type: type);
   }
 
+  /// Invokes the appropriate flow analysis methods, and creates the IR
+  /// representation, for a property get. [node] is the full property get
+  /// expression, [target] is the expression before the `.` (or `null` in the
+  /// case of a cascaded property get), and [propertyName] is the name of the
+  /// property being accessed.
+  ///
+  /// Null-aware property accesses are not supported.
   ExpressionTypeAnalysisResult<Type> analyzePropertyGet(
-      Expression node, Expression receiver, String propertyName) {
-    var receiverType = analyzeExpression(receiver, unknownType);
-    var member = _lookupMember(node, receiverType, propertyName);
-    var memberType = member?._type ?? dynamicType;
-    var promotedType = flow.propertyGet(node,
-        ExpressionPropertyTarget(receiver), propertyName, member, memberType);
+      Expression node, Expression? target, String propertyName) {
+    // Analyze the target, generate its IR, and look up the property's type.
+    var propertyType = _handlePropertyTargetAndMemberLookup(
+        node, target, propertyName,
+        location: node.location);
+    // Build the property get IR.
+    _harness.irBuilder.propertyGet(propertyName, location: node.location);
     // TODO(paulberry): handle null shorting
-    return new SimpleTypeAnalysisResult<Type>(type: promotedType ?? memberType);
+    return new SimpleTypeAnalysisResult<Type>(type: propertyType);
   }
 
   void analyzeReturnStatement() {
@@ -4655,7 +4903,7 @@ class _MiniAstTypeAnalyzer
   SimpleTypeAnalysisResult<Type> analyzeThisOrSuperPropertyGet(
       Expression node, String propertyName,
       {required bool isSuperAccess}) {
-    var member = _lookupMember(node, thisType, propertyName);
+    var member = _lookupMember(thisType, propertyName);
     var memberType = member?._type ?? dynamicType;
     var promotedType = flow.propertyGet(
         node,
@@ -5077,7 +5325,7 @@ class _MiniAstTypeAnalyzer
   Type listType(Type elementType) => PrimaryType('List', args: [elementType]);
 
   _PropertyElement? lookupInterfaceMember(
-      Node node, Type receiverType, String memberName) {
+      Type receiverType, String memberName) {
     return _harness.getMember(receiverType, memberName);
   }
 
@@ -5144,6 +5392,40 @@ class _MiniAstTypeAnalyzer
     return type.recursivelyDemote(covariant: true) ?? type;
   }
 
+  /// Analyzes the target of a property get or method invocation, looks up the
+  /// member being accessed, and returns its type. [propertyGetNode] is the
+  /// source representation of the property get itself (or `null` if this is a
+  /// method invocation), [target] is the source representation of the target
+  /// (or `null` if this is a cascaded access), and [propertyName] is the name
+  /// of the property being accessed. [location] is the source location (used
+  /// for reporting test failures).
+  ///
+  /// Returns the type of the member, or a representation of the type `dynamic`
+  /// if the member couldn't be found.
+  Type _handlePropertyTargetAndMemberLookup(
+      Expression? propertyGetNode, Expression? target, String propertyName,
+      {required String location}) {
+    // Analyze the target, and generate its IR.
+    PropertyTarget<Expression> propertyTarget;
+    Type targetType;
+    if (target == null) {
+      // This is a cascaded access so the IR we need to generate is an implicit
+      // read of the temporary variable holding the cascade target.
+      propertyTarget = CascadePropertyTarget.singleton;
+      _harness.irBuilder.readTmp(_currentCascadeTargetIr!, location: location);
+      targetType = _currentCascadeTargetType!;
+    } else {
+      propertyTarget = ExpressionPropertyTarget(target);
+      targetType = analyzeExpression(target, unknownType);
+    }
+    // Look up the type of the member, applying type promotion if necessary.
+    var member = _lookupMember(targetType, propertyName);
+    var memberType = member?._type ?? dynamicType;
+    return flow.propertyGet(propertyGetNode, propertyTarget, propertyName,
+            member, memberType) ??
+        memberType;
+  }
+
   void _irVariables(Node node, Iterable<Var> variables) {
     var variableList = variables.toList();
     for (var variable in variableList) {
@@ -5158,9 +5440,8 @@ class _MiniAstTypeAnalyzer
     );
   }
 
-  _PropertyElement? _lookupMember(
-      Expression node, Type receiverType, String memberName) {
-    return lookupInterfaceMember(node, receiverType, memberName);
+  _PropertyElement? _lookupMember(Type receiverType, String memberName) {
+    return lookupInterfaceMember(receiverType, memberName);
   }
 
   void _visitLoopBody(Statement loop, Statement body) {

@@ -2070,11 +2070,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {DartType? contextType}) {
     checkUnreachableNode(node);
     analyzeExpression(node.target, contextType);
+    var targetType = node.target.staticType ?? typeProvider.dynamicType;
     popRewrite();
 
+    flowAnalysis.flow!.cascadeExpression_afterTarget(node.target, targetType,
+        isNullAware: node.isNullAware);
+
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_rightBegin(
-          node.target, node.target.staticType ?? typeProvider.dynamicType);
+      flowAnalysis.flow!.nullAwareAccess_rightBegin(node.target, targetType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
 
@@ -2083,6 +2086,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node, contextType: contextType);
 
     nullShortingTermination(node);
+    flowAnalysis.flow!.cascadeExpression_end(node);
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
   }

@@ -483,7 +483,10 @@ class PropertyElementResolver with ScopeHelpers {
           result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
       getType = _resolver.flowAnalysis.flow?.propertyGet(
               node,
-              ExpressionPropertyTarget(target),
+              isCascaded
+                  ? CascadePropertyTarget.singleton
+                      as PropertyTarget<Expression>
+                  : ExpressionPropertyTarget(target),
               propertyName.name,
               result.getter,
               unpromotedType) ??
