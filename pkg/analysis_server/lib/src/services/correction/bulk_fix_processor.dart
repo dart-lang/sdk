@@ -55,6 +55,9 @@ class BulkFixProcessor {
   /// will almost certainly be invalid code.
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.new,
     ],

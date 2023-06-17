@@ -531,6 +531,22 @@ void main() {
               ArgumentKind.nullable,
               ArgumentKind.bool
             ]),
+            CodeArgument(ExpressionCode.fromParts([
+              '1 + ',
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a')
+            ])),
+            ListArgument([
+              TypeAnnotationArgument(Fixtures.myClassType),
+              TypeAnnotationArgument(Fixtures.myEnumType),
+              TypeAnnotationArgument(NamedTypeAnnotationImpl(
+                  id: RemoteInstance.uniqueId,
+                  isNullable: false,
+                  identifier:
+                      IdentifierImpl(id: RemoteInstance.uniqueId, name: 'List'),
+                  typeArguments: [Fixtures.stringType])),
+            ], [
+              ArgumentKind.typeAnnotation
+            ])
           ], {
             'a': SetArgument([
               MapArgument({

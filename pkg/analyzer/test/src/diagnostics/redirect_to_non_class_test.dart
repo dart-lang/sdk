@@ -15,10 +15,6 @@ main() {
 
 @reflectiveTest
 class RedirectToNonClassTest extends PubPackageResolutionTest {
-  @FailingTest(
-    reason: 'This test should start passing after landing '
-        'https://dart-review.googlesource.com/c/sdk/+/303280',
-  )
   test_notAType() async {
     await assertErrorsInCode('''
 class B {

@@ -1,3 +1,11 @@
+## 6.0.0 (Not yet released - breaking changes)
+* Remove deprecated `declaredElement2` from AST.
+* Remove deprecated `element2` from AST.
+* Remove deprecated `name2` from AST.
+* Remove deprecated `FunctionBody.isPotentiallyMutatedInClosure`.
+* Remove deprecated `extensionName`, `staticElement` from `ExtensionOverride`.
+* Remove deprecated `name` from `NamedType`.
+
 ## 5.14.0-dev
 * Updated SDK constraint to `>=3.0.0 <4.0.0`.
 * Make AST classes `abstract final` or `sealed`.

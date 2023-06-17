@@ -1367,29 +1367,39 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       var mixinName =
           '${getLocalClassName(superclass)}_${getLocalClassName(mixinClass)}';
       var mixinId = _emitTemporaryId('$mixinName\$');
-      // Collect all forwarding stub setters from anonymous mixins classes.
-      // These will contain covariant parameter checks that need to be applied.
+      // Collect all forwarding stub members from anonymous mixins classes.
+      // These can contain covariant parameter checks that need to be applied.
       var savedClassProperties = _classProperties;
       _classProperties =
           ClassPropertyModel.build(_types, _extensionTypes, _virtualFields, m);
-
-      var forwardingSetters = {
+      var forwardingMembers = {
         for (var procedure in m.procedures)
           if (procedure.isForwardingStub && !procedure.isAbstract)
             procedure.name.text: procedure
       };
-
+      // Mixin applications can introduce their own reference to the type
+      // parameters from the class being mixed in and their use can appear in
+      // the forwarding stubs.
+      var savedTypeEnvironment = _currentTypeEnvironment;
+      _currentTypeEnvironment =
+          _currentTypeEnvironment.extend(m.typeParameters);
       var forwardingMethodStubs = <js_ast.Method>[];
-      for (var s in forwardingSetters.values) {
+      for (var s in forwardingMembers.values) {
+        // Members are marked as "forwarding stubs" when they require a type
+        // check of the arguments before calling super. It is assumed here that
+        // no getters will be marked as a "forwarding stub".
+        assert(!s.isGetter);
         var stub = _emitMethodDeclaration(s);
         if (stub != null) forwardingMethodStubs.add(stub);
         // If there are getters matching the setters somewhere above in the
         // class hierarchy we must also generate a forwarding getter due to the
         // representation used in the compiled JavaScript.
-        var getterWrapper = _emitSuperAccessorWrapper(s, {}, forwardingSetters);
-        if (getterWrapper != null) forwardingMethodStubs.add(getterWrapper);
+        if (s.isSetter) {
+          var getterWrapper = _emitSuperAccessorWrapper(s, const {}, const {});
+          if (getterWrapper != null) forwardingMethodStubs.add(getterWrapper);
+        }
       }
-
+      _currentTypeEnvironment = savedTypeEnvironment;
       _classProperties = savedClassProperties;
 
       // Bind the mixin class to a name to workaround a V8 bug with es6 classes

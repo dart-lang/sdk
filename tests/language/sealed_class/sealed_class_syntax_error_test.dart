@@ -8,7 +8,6 @@
 abstract class SealedMembers {
   sealed int foo;
 //^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'sealed' isn't a type.
 //       ^^^

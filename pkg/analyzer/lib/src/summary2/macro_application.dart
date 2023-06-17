@@ -41,6 +41,7 @@ List<macro.ArgumentKind> _dartTypeArgumentKinds(DartType dartType) => [
         DartType(isDartCoreMap: true) => macro.ArgumentKind.map,
         DartType(isDartCoreSet: true) => macro.ArgumentKind.set,
         DynamicType() => macro.ArgumentKind.dynamic,
+        // TODO: Support type annotations and code objects
         _ =>
           throw UnsupportedError('Unsupported macro type argument $dartType'),
       },

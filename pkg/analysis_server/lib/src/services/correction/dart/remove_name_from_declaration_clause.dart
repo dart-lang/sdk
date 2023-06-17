@@ -21,15 +21,6 @@ class RemoveNameFromDeclarationClause extends CorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var type = node;
-
-    // TODO(scheglov) Remove after https://dart-review.googlesource.com/c/sdk/+/303280
-    if (type is! NamedType) {
-      final parent = node.parent;
-      if (parent is NamedType) {
-        type = parent;
-      }
-    }
-
     var clause = type.parent;
 
     if (clause == null) {

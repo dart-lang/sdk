@@ -135,10 +135,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
     return _enclosingElement as CompilationUnitElementImpl;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement3 => enclosingElement;
-
   @override
   List<FieldElementImpl> get fields;
 
@@ -491,12 +487,6 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
     return super.enclosingElement as LibraryOrAugmentationElementImpl;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement3 {
-    return enclosingElement;
-  }
-
   @override
   LibraryAugmentationElementImpl? get importedAugmentation {
     final uri = this.uri;
@@ -810,9 +800,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     assert(!isMixinApplication);
     super.methods = methods;
   }
-
-  @override
-  List<InterfaceType> get superclassConstraints => const [];
 
   @override
   InterfaceType? get supertype {
@@ -1243,10 +1230,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   LibraryOrAugmentationElement get enclosingElement =>
       super.enclosingElement as LibraryOrAugmentationElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement3 => enclosingElement;
-
   @override
   CompilationUnitElementImpl get enclosingUnit {
     return this;
@@ -1263,12 +1246,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       element.enclosingElement = this;
     }
     _enums = enums;
-  }
-
-  @Deprecated('Use enums instead')
-  @override
-  List<EnumElementImpl> get enums2 {
-    return enums;
   }
 
   @override
@@ -1325,12 +1302,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       mixin_.enclosingElement = this;
     }
     _mixins = mixins;
-  }
-
-  @Deprecated('Use mixins instead')
-  @override
-  List<MixinElementImpl> get mixins2 {
-    return mixins;
   }
 
   @override
@@ -1397,12 +1368,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return null;
-  }
-
-  @Deprecated('Use getEnum() instead')
-  @override
-  EnumElement? getEnum2(String name) {
-    return getEnum(name);
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -1513,10 +1478,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   InterfaceElement get enclosingElement =>
       super.enclosingElement as AbstractClassElementImpl;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  InterfaceElement get enclosingElement3 => enclosingElement;
 
   @override
   bool get isConst {
@@ -2370,10 +2331,6 @@ abstract class ElementImpl implements Element {
     _enclosingElement = element as ElementImpl?;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement3 => enclosingElement;
-
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
   CompilationUnitElementImpl get enclosingUnit {
@@ -2843,12 +2800,6 @@ abstract class ElementImpl implements Element {
     return true;
   }
 
-  @Deprecated('Use isAccessibleIn() instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
-  }
-
   void resetMetadataFlags() {
     _metadataFlags = 0;
   }
@@ -3210,10 +3161,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   @override
   Element get enclosingElement => super.enclosingElement!;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
-
   @override
   bool get hasImplicitReturnType {
     return hasModifier(Modifier.IMPLICIT_TYPE);
@@ -3433,12 +3380,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get enclosingElement {
     return super.enclosingElement as CompilationUnitElementImpl;
-  }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement3 {
-    return enclosingElement;
   }
 
   @override
@@ -3953,10 +3894,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   ExecutableElement get enclosingElement =>
       super.enclosingElement as ExecutableElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  ExecutableElement get enclosingElement3 => enclosingElement;
-
   /// Return `true` if this label is associated with a `switch` member (`case
   /// ` or`default`).
   bool get isOnSwitchMember => _onSwitchMember;
@@ -4300,10 +4237,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
     _parts = parts;
   }
-
-  @Deprecated('Use parts instead')
-  @override
-  List<PartElement> get parts2 => parts;
 
   @override
   List<PrefixElementImpl> get prefixes =>
@@ -5209,10 +5142,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   Element? get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement3 => null;
-
   @override
   bool get hasAlwaysThrows => false;
 
@@ -5362,12 +5291,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return false;
   }
 
-  @Deprecated('Use isAccessibleIn() instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
-  }
-
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -5453,10 +5376,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 
   @override
   Element get enclosingElement => super.enclosingElement!;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -5771,21 +5690,11 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   LibraryOrAugmentationElementImpl get enclosingElement =>
       super.enclosingElement as LibraryOrAugmentationElementImpl;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement3 => enclosingElement;
-
   @override
   List<LibraryImportElementImpl> get imports {
     return enclosingElement.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
-  }
-
-  @Deprecated('Use imports instead')
-  @override
-  List<LibraryImportElementImpl> get imports2 {
-    return imports;
   }
 
   @override
@@ -5941,10 +5850,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
   @override
   Element get enclosingElement => variable.enclosingElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
-
   @override
   bool get hasImplicitReturnType => variable.hasImplicitType;
 
@@ -6008,10 +5913,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   Element get enclosingElement => variable.enclosingElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get isSetter => true;
@@ -6377,10 +6278,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElement get enclosingElement3 => enclosingElement;
 
   /// Returns whether this alias is a "proper rename" of [aliasedClass], as
   /// defined in the constructor-tearoffs specification.

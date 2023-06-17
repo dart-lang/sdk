@@ -48,7 +48,7 @@ Future<D8Result> runWithD8(
   CompilationResult compilationResult = await getCompilationResultsForD8(
       mainFile, output,
       options: options, printJs: printJs, printSteps: printSteps);
-  final d8Result = executeJsWithD8(output,
+  final d8Result = executeJsWithD8([output],
       expectedOutput: expectedOutput, printSteps: printSteps);
   return D8Result(compilationResult, d8Result, output.toFilePath());
 }
@@ -79,11 +79,11 @@ Future<CompilationResult> getCompilationResultsForD8(
   return result;
 }
 
-ProcessResult executeJsWithD8(Uri jsFile,
+ProcessResult executeJsWithD8(List<Uri> jsFiles,
     {String? expectedOutput, bool printSteps = false}) {
   List<String> d8Args = [
     '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
-    jsFile.toFilePath()
+    ...jsFiles.map((u) => u.toFilePath())
   ];
   if (printSteps) print('Running: d8 ${d8Args.join(' ')}');
   ProcessResult runResult = Process.runSync(d8executable, d8Args);
