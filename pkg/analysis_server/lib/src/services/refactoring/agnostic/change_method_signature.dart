@@ -669,7 +669,12 @@ class _SignatureUpdater {
           return ChangeStatusFailure();
       }
     }
-    // TODO(scheglov) add back remaining named formal parameters
+
+    // Add back remaining named formal parameters.
+    for (final existing in existingFormalParameters.named.values) {
+      final text = utils.getNodeText(existing);
+      namedWrites.add(text);
+    }
 
     await builder.addDartFileEdit(path, (builder) {
       builder.addReplacement(

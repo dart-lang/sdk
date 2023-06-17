@@ -631,7 +631,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_classMethod_optionalNamed_reorder_notAll() async {
+  Future<void> test_classMethod_optionalNamed_reorder_less() async {
     await _analyzeValidSelection(r'''
 class A {
   void ^test({int? a, int? b, int? c}) {}
@@ -679,6 +679,54 @@ class B extends A {
 void f(A a, B b) {
   a.test(c: 2, b: 1, a: 0);
   b.test(b: 4, a: 3);
+}
+''');
+  }
+
+  Future<void> test_classMethod_optionalNamed_reorder_more() async {
+    await _analyzeValidSelection(r'''
+class A {
+  void ^test({int? a, int? b}) {}
+}
+
+class B extends A {
+  void test({int? a, int? b, int? c, int? d}) {}
+}
+
+void f(A a, B b) {
+  a.test(a: 0, b: 1);
+  b.test(a: 2, b: 3, c: 4, d: 5);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  void test({int? b, int? a}) {}
+}
+
+class B extends A {
+  void test({int? b, int? a, int? c, int? d}) {}
+}
+
+void f(A a, B b) {
+  a.test(b: 1, a: 0);
+  b.test(b: 3, a: 2, c: 4, d: 5);
 }
 ''');
   }

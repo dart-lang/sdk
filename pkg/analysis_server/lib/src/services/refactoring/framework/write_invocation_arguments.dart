@@ -31,7 +31,7 @@ Future<WriteArgumentsStatus> writeArguments({
       case FormalParameterUpdateExisting(:final reference):
         switch (reference) {
           case NamedFormalParameterReference():
-            final argument = namedArguments[reference.name];
+            final argument = namedArguments.remove(reference.name);
             if (argument == null) {
               continue;
             }
@@ -83,6 +83,15 @@ Future<WriteArgumentsStatus> writeArguments({
           ),
         );
     }
+  }
+
+  // Add remaining named arguments.
+  for (final argument in namedArguments.values) {
+    newArguments.add(
+      _ArgumentAsIs(
+        argument: argument,
+      ),
+    );
   }
 
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
