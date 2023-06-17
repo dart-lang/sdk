@@ -193,6 +193,7 @@ caret
 carets
 carriage
 carrying
+cascade's
 cascades
 casing
 cast
@@ -1074,6 +1075,7 @@ perf
 permanently
 permit
 permits
+persist
 pertinent
 physically
 pi

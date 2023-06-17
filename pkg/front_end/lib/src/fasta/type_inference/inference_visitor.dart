@@ -148,6 +148,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       coreTypes: coreTypes,
       isNonNullableByDefault: isNonNullableByDefault);
 
+  /// The innermost cascade whose expressions are currently being visited, or
+  /// `null` if no cascade's expressions are currently being visited.
+  Cascade? _enclosingCascade;
+
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
@@ -900,11 +904,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     node.variable.initializer = result.expression..parent = node.variable;
     node.variable.type = result.inferredType;
+    flowAnalysis.cascadeExpression_afterTarget(
+        result.expression, result.inferredType,
+        isNullAware: node.isNullAware);
     NullAwareGuard? nullAwareGuard;
     if (node.isNullAware) {
       nullAwareGuard = createNullAwareGuard(node.variable);
     }
 
+    Cascade? previousEnclosingCascade = _enclosingCascade;
+    _enclosingCascade = node;
     List<ExpressionInferenceResult> expressionResults =
         <ExpressionInferenceResult>[];
     for (Expression expression in node.expressions) {
@@ -915,6 +924,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     for (int index = 0; index < expressionResults.length; index++) {
       body.add(_createExpressionStatement(expressionResults[index].expression));
     }
+    _enclosingCascade = previousEnclosingCascade;
 
     Expression replacement = _createBlockExpression(node.variable.fileOffset,
         _createBlock(body), createVariableGet(node.variable));
@@ -926,7 +936,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       replacement = new Let(node.variable, replacement)
         ..fileOffset = node.fileOffset;
     }
+    flowAnalysis.cascadeExpression_end(replacement);
     return new ExpressionInferenceResult(result.inferredType, replacement);
+  }
+
+  @override
+  PropertyTarget<Expression> computePropertyTarget(Expression target) {
+    if (_enclosingCascade case Cascade(:var variable)
+        when target is VariableGet && target.variable == variable) {
+      // `target` is an implicit reference to the target of a cascade
+      // expression; flow analysis uses `CascadePropertyTarget` to represent
+      // this situation.
+      return CascadePropertyTarget.singleton;
+    } else {
+      // `target` is an ordinary expression.
+      return new ExpressionPropertyTarget(target);
+    }
   }
 
   Block _createBlock(List<Statement> statements) {
@@ -6635,7 +6660,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType readType = readTarget.getGetterType(this);
     readType = flowAnalysis.propertyGet(
             propertyGetNode,
-            new ExpressionPropertyTarget(receiver),
+            computePropertyTarget(receiver),
             propertyName.text,
             readTarget.member,
             readType) ??
@@ -7651,7 +7676,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     // invocation).
     flowAnalysis.propertyGet(
         node,
-        new ExpressionPropertyTarget(node.receiver),
+        computePropertyTarget(node.receiver),
         node.name.text,
         propertyGetInferenceResult.member,
         readResult.inferredType);

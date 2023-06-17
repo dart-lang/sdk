@@ -6362,6 +6362,177 @@ main() {
         ]),
       ]);
     });
+
+    group('cascades:', () {
+      group('not null-aware:', () {
+        test('cascaded access receives the benefit of promotion', () {
+          h.addMember('C', '_field', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            x.expr.property('_field').as_('int').stmt,
+            checkPromoted(x.expr.property('_field'), 'int'),
+            x.expr.cascade([
+              (v) => v.property('_field').checkType('int'),
+              (v) => v.property('_field').checkType('int'),
+            ]).stmt,
+          ]);
+        });
+
+        test('field access on cascade expression retains promotion', () {
+          h.addMember('C', '_field', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            x.expr.property('_field').as_('int').stmt,
+            checkPromoted(x.expr.property('_field'), 'int'),
+            x.expr
+                .cascade([(v) => v.property('_field').checkType('int')])
+                .property('_field')
+                .checkType('int')
+                .stmt,
+          ]);
+        });
+
+        test('a cascade expression is not promotable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            x.expr
+                .cascade([(v) => v.invokeMethod('toString', [])])
+                .nonNullAssert
+                .stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+
+        test('even a field of an ephemeral object can be promoted', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          h.run([
+            expr('C')
+                .cascade([
+                  (v) => v.property('_field').checkType('int?').nonNullAssert,
+                  (v) => v.property('_field').checkType('int'),
+                ])
+                .property('_field')
+                .checkType('int')
+                .stmt,
+          ]);
+        });
+
+        test('even a field of a write captured variable can be promoted', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            localFunction([
+              x.write(expr('C')).stmt,
+            ]),
+            x.expr
+                .cascade([
+                  (v) => v.property('_field').checkType('int?').nonNullAssert,
+                  (v) => v.property('_field').checkType('int'),
+                ])
+                .property('_field')
+                .checkType('int')
+                .stmt,
+          ]);
+        });
+      });
+
+      group('null-aware:', () {
+        test('cascaded access receives the benefit of promotion', () {
+          h.addMember('C', '_field', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            x.expr.property('_field').as_('int').stmt,
+            checkPromoted(x.expr.property('_field'), 'int'),
+            x.expr.cascade(isNullAware: true, [
+              (v) => v.property('_field').checkType('int'),
+              (v) => v.property('_field').checkType('int'),
+            ]).stmt,
+          ]);
+        });
+
+        test('field access on cascade expression retains promotion', () {
+          h.addMember('C', '_field', 'Object?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            x.expr.property('_field').as_('int').stmt,
+            checkPromoted(x.expr.property('_field'), 'int'),
+            x.expr
+                .cascade(
+                    isNullAware: true,
+                    [(v) => v.property('_field').checkType('int')])
+                .property('_field')
+                .checkType('int')
+                .stmt,
+          ]);
+        });
+
+        test('a cascade expression is not promotable', () {
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('int?')),
+            x.expr
+                .cascade(
+                    isNullAware: true, [(v) => v.invokeMethod('toString', [])])
+                .nonNullAssert
+                .stmt,
+            checkNotPromoted(x),
+          ]);
+        });
+
+        test('even a field of an ephemeral object can be promoted', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          h.addSuperInterfaces('C', (_) => [Type('Object')]);
+          h.run([
+            expr('C?')
+                .cascade(isNullAware: true, [
+                  (v) => v.property('_field').checkType('int?').nonNullAssert,
+                  (v) => v.property('_field').checkType('int'),
+                ])
+                // But the promotion doesn't survive beyond the cascade
+                // expression, because of the implicit control flow join implied
+                // by the null-awareness of the cascade. (In principle it would
+                // be sound to preserve the promotion, but it's extra work to do
+                // so, and it's not clear that there would be enough user
+                // benefit to justify the work).
+                .nonNullAssert
+                .property('_field')
+                .checkType('int?')
+                .stmt,
+          ]);
+        });
+
+        test('even a field of a write captured variable can be promoted', () {
+          h.addMember('C', '_field', 'int?', promotable: true);
+          var x = Var('x');
+          h.run([
+            declare(x, initializer: expr('C')),
+            localFunction([
+              x.write(expr('C')).stmt,
+            ]),
+            x.expr
+                .cascade(isNullAware: true, [
+                  (v) => v.property('_field').checkType('int?').nonNullAssert,
+                  (v) => v.property('_field').checkType('int'),
+                ])
+                // But the promotion doesn't survive beyond the cascade
+                // expression, because of the implicit control flow join implied
+                // by the null-awareness of the cascade. (In principle it would
+                // be sound to preserve the promotion, but it's extra work to do
+                // so, and it's not clear that there would be enough user
+                // benefit to justify the work).
+                .property('_field')
+                .checkType('int?')
+                .stmt,
+          ]);
+        });
+      });
+    });
   });
 
   group('Patterns:', () {

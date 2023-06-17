@@ -241,6 +241,36 @@ main() {
   });
 
   group('Expressions:', () {
+    group('cascade:', () {
+      group('IR:', () {
+        test('not null-aware', () {
+          h.run([
+            expr('dynamic')
+                .cascade([
+                  (t) => t.invokeMethod('f', []),
+                  (t) => t.invokeMethod('g', [])
+                ])
+                .checkIr('let(t0, expr(dynamic), '
+                    'let(t1, f(t0), let(t2, g(t0), t0)))')
+                .stmt,
+          ]);
+        });
+
+        test('null-aware', () {
+          h.run([
+            expr('dynamic')
+                .cascade(isNullAware: true, [
+                  (t) => t.invokeMethod('f', []),
+                  (t) => t.invokeMethod('g', [])
+                ])
+                .checkIr('let(t0, expr(dynamic), '
+                    'if(==(t0, null), t0, let(t1, f(t0), let(t2, g(t0), t0))))')
+                .stmt,
+          ]);
+        });
+      });
+    });
+
     group('integer literal', () {
       test('double context', () {
         h.run([

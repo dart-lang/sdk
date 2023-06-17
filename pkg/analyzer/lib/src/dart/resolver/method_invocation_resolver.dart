@@ -896,7 +896,9 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression = node.methodName;
       targetType = _resolver.flowAnalysis.flow?.propertyGet(
               functionExpression,
-              ThisPropertyTarget.singleton,
+              node.isCascaded
+                  ? CascadePropertyTarget.singleton
+                  : ThisPropertyTarget.singleton,
               node.methodName.name,
               node.methodName.staticElement,
               getterReturnType) ??

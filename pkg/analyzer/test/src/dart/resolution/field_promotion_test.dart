@@ -5,15 +5,116 @@
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(FieldPromotionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
 class FieldPromotionTest extends PubPackageResolutionTest {
+  test_cascaded_invocation() async {
+    await assertNoErrorsInCode('''
+class C {
+  final Object? _field;
+  C(this._field);
+}
+void f(C c) {
+  c._field as int Function();
+  c.._field().toString();
+}
+''');
+    var node = findNode.functionExpressionInvocation('_field()');
+    assertResolvedNodeText(node, r'''
+FunctionExpressionInvocation
+  function: SimpleIdentifier
+    token: _field
+    staticElement: self::@class::C::@getter::_field
+    staticType: int Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticElement: <null>
+  staticInvokeType: int Function()
+  staticType: int
+''');
+  }
+
+  test_cascaded_propertyAccess() async {
+    await assertNoErrorsInCode('''
+class C {
+  final Object? _field;
+  C(this._field);
+}
+void f(C c) {
+  c._field as int;
+  c.._field.toString();
+}
+''');
+    var node = findNode.methodInvocation('_field.toString');
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: PropertyAccess
+    operator: ..
+    propertyName: SimpleIdentifier
+      token: _field
+      staticElement: self::@class::C::@getter::_field
+      staticType: int
+    staticType: int
+  operator: .
+  methodName: SimpleIdentifier
+    token: toString
+    staticElement: dart:core::@class::int::@method::toString
+    staticType: String Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: String Function()
+  staticType: String
+''');
+  }
+
+  test_cascaded_propertyAccess_nullAware() async {
+    await assertNoErrorsInCode('''
+class C {
+  final Object? _field;
+  C(this._field);
+}
+void f(C? c) {
+  c?.._field!.toString().._field.toString();
+  c?._field;
+}
+''');
+    // The `!` in the first statement promotes _field within the cascade
+    assertResolvedNodeText(findNode.propertyAccess('_field.toString'), r'''
+PropertyAccess
+  operator: ..
+  propertyName: SimpleIdentifier
+    token: _field
+    staticElement: self::@class::C::@getter::_field
+    staticType: Object
+  staticType: Object
+''');
+    // But the promotion doesn't last beyond the cascade expression, due to the
+    // implicit control flow join when the `?..` stops taking effect.
+    assertResolvedNodeText(findNode.propertyAccess('c?._field'), r'''
+PropertyAccess
+  target: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C?
+  operator: ?.
+  propertyName: SimpleIdentifier
+    token: _field
+    staticElement: self::@class::C::@getter::_field
+    staticType: Object?
+  staticType: Object?
+''');
+  }
+
   test_class_field_invocation_prefixedIdentifier_nullability() async {
     await assertNoErrorsInCode('''
 class C {
