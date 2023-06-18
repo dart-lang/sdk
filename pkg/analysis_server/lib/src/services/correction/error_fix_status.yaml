@@ -1714,6 +1714,8 @@ FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE:
   status: noFix
 FfiCode.MUST_BE_A_SUBTYPE:
   status: noFix
+FfiCode.MUST_RETURN_VOID:
+  status: noFix
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
 FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
