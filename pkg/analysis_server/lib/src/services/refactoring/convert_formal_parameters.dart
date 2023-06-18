@@ -33,8 +33,15 @@ class ConvertFormalParametersToNamed extends RefactoringProducer {
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
-    final selection = await analyzeSelection(
+    final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
+    );
+    if (availability is! Available) {
+      return;
+    }
+
+    final selection = await analyzeSelection(
+      available: availability,
     );
 
     if (selection is! ValidSelectionState) {
@@ -64,12 +71,10 @@ class ConvertFormalParametersToNamed extends RefactoringProducer {
   }
 
   @override
-  Future<bool> isAvailable() async {
-    final selection = await analyzeSelection(
+  bool isAvailable() {
+    final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
     );
-    // TODO(scheglov) This is bad implementation.
-    // We should not recompute selection.
-    return selection is ValidSelectionState;
+    return availability is Available;
   }
 }
