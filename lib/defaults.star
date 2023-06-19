@@ -13,8 +13,12 @@ _DIMENSIONS = {
     "pool": "luci.dart.try",
 }
 _CACHES = {
-    "Mac": [swarming.cache("osx_sdk", name = "osx_sdk")],
+    "Mac": [swarming.cache("osx_sdk", name = "osx_sdk", wait_for_warm_cache = time.minute)],
 }
+
+# Swarming has an implicit cache named builder and defining it explicitly makes
+# the wait_for_warm_cache field default to zero.
+_NO_CACHES = [swarming.cache("builder")]
 _NO_ANDROID = {"custom_vars": {"download_android_deps": False}}
 _CHROME = {"custom_vars": {"download_chrome": True}}
 _EMSCRIPTEN = {"custom_vars": {"download_emscripten": True}}
@@ -85,3 +89,4 @@ firefox = _FIREFOX
 js_engines = _JS_ENGINES
 no_android = _NO_ANDROID
 slow_shards = _SLOW_SHARDS
+no_caches = _NO_CACHES

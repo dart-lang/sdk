@@ -19,6 +19,7 @@ load(
     "experimental",
     "focal",
     "js_engines",
+    "no_caches",
 )
 
 lucicfg.check_version("1.33.7")
@@ -178,6 +179,7 @@ dart.try_builder("benchmark-linux", on_cq = True, properties = js_engines)
 dart.try_builder(
     "presubmit",
     bucket = "try.shared",
+    caches = no_caches,
     execution_timeout = 10 * time.minute,
     properties = {
         "$depot_tools/presubmit": {

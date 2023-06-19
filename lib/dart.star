@@ -88,6 +88,7 @@ def _try_builder(
         name,
         recipe = "dart/neo",
         bucket = "try",
+        caches = None,
         cq_branches = _BRANCHES,
         dimensions = None,
         executable = None,
@@ -106,6 +107,7 @@ def _try_builder(
         name: The builder name.
         recipe: The recipe to use (defaults to "dart/neo").
         bucket: The bucket to use (defaults to "try").
+        caches: A list of swarming caches.
         cq_branches: Make try builder on these branches (defaults to _BRANCHES).
         dimensions: Extra swarming dimensions required by this builder.
         executable: The Luci executable to use.
@@ -128,11 +130,12 @@ def _try_builder(
     properties = defaults.properties(properties)
     builder_properties = _with_goma(goma, dimensions, properties)
     builder = name + "-try"
+    caches = caches if caches != None else defaults.caches(dimensions["os"])
     luci.builder(
         name = builder,
         build_numbers = True,
         bucket = bucket,
-        caches = defaults.caches(dimensions["os"]),
+        caches = caches,
         dimensions = dimensions,
         executable = executable or _recipe(recipe),
         execution_timeout = execution_timeout,
