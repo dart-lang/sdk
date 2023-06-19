@@ -37,7 +37,7 @@ class RefactoringProcessor {
         continue;
       }
 
-      final isAvailable = await producer.isAvailable();
+      final isAvailable = producer.isAvailable();
       if (!isAvailable) {
         continue;
       }

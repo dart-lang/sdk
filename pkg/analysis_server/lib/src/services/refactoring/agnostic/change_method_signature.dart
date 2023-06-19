@@ -26,12 +26,22 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
 /// Analyzes the selection in [refactoringContext], and either returns
+/// a [Available], or [NotAvailable].
+Availability analyzeAvailability({
+  required AbstractRefactoringContext refactoringContext,
+}) {
+  return _AvailabilityAnalyzer(
+    refactoringContext: refactoringContext,
+  ).analyze();
+}
+
+/// Continues analysis of the selection in [available], and returns either
 /// a [ValidSelectionState], or one of [ErrorSelectionState] subtypes.
 Future<SelectionState> analyzeSelection({
-  required AbstractRefactoringContext refactoringContext,
+  required Available available,
 }) async {
   return _SelectionAnalyzer(
-    refactoringContext: refactoringContext,
+    available: available,
   ).analyze();
 }
 
@@ -51,6 +61,16 @@ Future<ChangeStatus> computeSourceChange({
   ).compute(
     builder: builder,
   );
+}
+
+sealed class Availability {}
+
+sealed class Available extends Availability {
+  final AbstractRefactoringContext refactoringContext;
+
+  Available({
+    required this.refactoringContext,
+  });
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -163,6 +183,8 @@ final class NoExecutableElementSelectionState extends ErrorSelectionState {
   const NoExecutableElementSelectionState();
 }
 
+final class NotAvailable extends Availability {}
+
 /// The supertype for all results of [analyzeSelection].
 sealed class SelectionState {
   const SelectionState();
@@ -209,102 +231,34 @@ final class ValidSelectionState extends SelectionState {
   });
 }
 
-/// The target method declaration.
-class _Declaration {
-  final ExecutableElement element;
-  final AstNode node;
-  final List<FormalParameter> selected;
-
-  _Declaration({
-    required this.element,
-    required this.node,
-    required this.selected,
-  });
-}
-
-/// Formal parameters of a declaration that match the selection.
-final class _DeclarationFormalParameters {
-  final List<FormalParameter> positional;
-  final Map<String, FormalParameter> named;
-
-  _DeclarationFormalParameters({
-    required this.positional,
-    required this.named,
-  });
-}
-
-/// The class that implements [analyzeSelection].
-class _SelectionAnalyzer {
+class _AvailabilityAnalyzer {
   final AbstractRefactoringContext refactoringContext;
 
-  _SelectionAnalyzer({
+  _AvailabilityAnalyzer({
     required this.refactoringContext,
   });
 
-  Future<SelectionState> analyze() async {
-    final declaration = await _declaration();
-    if (declaration == null) {
-      return const NoExecutableElementSelectionState();
-    }
-
-    final parameterNodeList = declaration.node.formalParameterList;
-    if (parameterNodeList == null) {
-      return const NoExecutableElementSelectionState();
-    }
-
-    final formalParameterStateList = <FormalParameterState>[];
-    var formalParameterId = 0;
-    var positionalIndex = 0;
-    for (final parameterNode in parameterNodeList.parameters) {
-      final nameToken = parameterNode.name;
-      if (nameToken == null) {
-        return const UnexpectedSelectionState();
-      }
-
-      FormalParameterKind kind;
-      if (parameterNode.isRequiredPositional) {
-        kind = FormalParameterKind.requiredPositional;
-      } else if (parameterNode.isOptionalPositional) {
-        kind = FormalParameterKind.optionalPositional;
-      } else if (parameterNode.isRequiredNamed) {
-        kind = FormalParameterKind.requiredNamed;
-      } else if (parameterNode.isOptionalNamed) {
-        kind = FormalParameterKind.optionalNamed;
-      } else {
-        // This branch is never reached.
-        return const UnexpectedSelectionState();
-      }
-
-      // TODO(scheglov) Rework this when adding support for constructors.
-      TypeAnnotation? typeNode;
-      final notDefault = parameterNode.notDefault;
-      if (notDefault is SimpleFormalParameter) {
-        typeNode = notDefault.type;
-      }
-      if (typeNode == null) {
-        return const UnexpectedSelectionState();
-      }
-
-      formalParameterStateList.add(
-        FormalParameterState(
-          id: formalParameterId++,
-          kind: kind,
-          positionalIndex: kind.isPositional ? positionalIndex++ : null,
-          name: nameToken.lexeme,
-          typeStr: refactoringContext.utils.getNodeText(typeNode),
-          isSelected: declaration.selected.contains(parameterNode),
-        ),
+  Availability analyze() {
+    final declaration = _declaration();
+    if (declaration != null) {
+      return _AvailableWithDeclaration(
+        refactoringContext: refactoringContext,
+        declaration: declaration,
       );
     }
 
-    return ValidSelectionState(
-      refactoringContext: refactoringContext,
-      element: declaration.element,
-      formalParameters: formalParameterStateList,
-    );
+    final executableElement = _executableElement();
+    if (executableElement != null) {
+      return _AvailableWithExecutableElement(
+        refactoringContext: refactoringContext,
+        element: executableElement,
+      );
+    }
+
+    return NotAvailable();
   }
 
-  Future<_Declaration?> _declaration() async {
+  _Declaration? _declaration() {
     final coveringNode = refactoringContext.coveringNode;
 
     switch (coveringNode) {
@@ -314,38 +268,9 @@ class _SelectionAnalyzer {
         return _declarationFormalParameterList(coveringNode);
     }
 
-    final atExecutable = _declarationExecutable(
+    return _declarationExecutable(
       node: coveringNode,
       anyLocation: false,
-      selected: const [],
-    );
-    if (atExecutable != null) {
-      return atExecutable;
-    }
-
-    Element? element;
-    if (coveringNode is SimpleIdentifier) {
-      final invocation = coveringNode.parent;
-      if (invocation is MethodInvocation &&
-          invocation.methodName == coveringNode) {
-        element = invocation.methodName.staticElement;
-      }
-    }
-    if (element is! ExecutableElement) {
-      return null;
-    }
-
-    // TODO(scheglov) Check that element is in an editable library.
-    final declarationResult =
-        await refactoringContext.sessionHelper.getElementDeclaration(element);
-    final node = declarationResult?.node;
-    if (node == null) {
-      return null;
-    }
-
-    return _Declaration(
-      element: element,
-      node: node,
       selected: const [],
     );
   }
@@ -429,6 +354,169 @@ class _SelectionAnalyzer {
       anyLocation: true,
       selected: selected,
     );
+  }
+
+  ExecutableElement? _executableElement() {
+    final coveringNode = refactoringContext.coveringNode;
+
+    Element? element;
+    if (coveringNode is SimpleIdentifier) {
+      final invocation = coveringNode.parent;
+      if (invocation is MethodInvocation &&
+          invocation.methodName == coveringNode) {
+        element = invocation.methodName.staticElement;
+      }
+    }
+
+    if (element is! ExecutableElement) {
+      return null;
+    }
+
+    // TODO(scheglov) Check that element is in an editable library.
+    return element;
+  }
+}
+
+final class _AvailableWithDeclaration extends Available {
+  final _Declaration declaration;
+
+  _AvailableWithDeclaration({
+    required super.refactoringContext,
+    required this.declaration,
+  });
+}
+
+final class _AvailableWithExecutableElement extends Available {
+  final ExecutableElement element;
+
+  _AvailableWithExecutableElement({
+    required super.refactoringContext,
+    required this.element,
+  });
+}
+
+/// The target method declaration.
+class _Declaration {
+  final ExecutableElement element;
+  final AstNode node;
+  final List<FormalParameter> selected;
+
+  _Declaration({
+    required this.element,
+    required this.node,
+    required this.selected,
+  });
+}
+
+/// Formal parameters of a declaration that match the selection.
+final class _DeclarationFormalParameters {
+  final List<FormalParameter> positional;
+  final Map<String, FormalParameter> named;
+
+  _DeclarationFormalParameters({
+    required this.positional,
+    required this.named,
+  });
+}
+
+/// The class that implements [analyzeSelection].
+class _SelectionAnalyzer {
+  final Available available;
+
+  _SelectionAnalyzer({
+    required this.available,
+  });
+
+  AbstractRefactoringContext get refactoringContext {
+    return available.refactoringContext;
+  }
+
+  Future<SelectionState> analyze() async {
+    final declaration = await _declaration();
+    if (declaration == null) {
+      return const NoExecutableElementSelectionState();
+    }
+
+    final parameterNodeList = declaration.node.formalParameterList;
+    if (parameterNodeList == null) {
+      return const NoExecutableElementSelectionState();
+    }
+
+    final formalParameterStateList = <FormalParameterState>[];
+    var formalParameterId = 0;
+    var positionalIndex = 0;
+    for (final parameterNode in parameterNodeList.parameters) {
+      final nameToken = parameterNode.name;
+      if (nameToken == null) {
+        return const UnexpectedSelectionState();
+      }
+
+      FormalParameterKind kind;
+      if (parameterNode.isRequiredPositional) {
+        kind = FormalParameterKind.requiredPositional;
+      } else if (parameterNode.isOptionalPositional) {
+        kind = FormalParameterKind.optionalPositional;
+      } else if (parameterNode.isRequiredNamed) {
+        kind = FormalParameterKind.requiredNamed;
+      } else if (parameterNode.isOptionalNamed) {
+        kind = FormalParameterKind.optionalNamed;
+      } else {
+        // This branch is never reached.
+        return const UnexpectedSelectionState();
+      }
+
+      // TODO(scheglov) Rework this when adding support for constructors.
+      TypeAnnotation? typeNode;
+      final notDefault = parameterNode.notDefault;
+      if (notDefault is SimpleFormalParameter) {
+        typeNode = notDefault.type;
+      }
+      if (typeNode == null) {
+        return const UnexpectedSelectionState();
+      }
+
+      formalParameterStateList.add(
+        FormalParameterState(
+          id: formalParameterId++,
+          kind: kind,
+          positionalIndex: kind.isPositional ? positionalIndex++ : null,
+          name: nameToken.lexeme,
+          typeStr: refactoringContext.utils.getNodeText(typeNode),
+          isSelected: declaration.selected.contains(parameterNode),
+        ),
+      );
+    }
+
+    return ValidSelectionState(
+      refactoringContext: refactoringContext,
+      element: declaration.element,
+      formalParameters: formalParameterStateList,
+    );
+  }
+
+  /// Converts [available] into a [_Declaration].
+  Future<_Declaration?> _declaration() async {
+    switch (available) {
+      case _AvailableWithDeclaration(:final declaration):
+        return declaration;
+      case _AvailableWithExecutableElement(:final element):
+        final node = await _elementDeclaration(element);
+        if (node == null) {
+          return null;
+        }
+
+        return _Declaration(
+          element: element,
+          node: node,
+          selected: const [],
+        );
+    }
+  }
+
+  Future<AstNode?> _elementDeclaration(ExecutableElement element) async {
+    final helper = refactoringContext.sessionHelper;
+    final nodeResult = await helper.getElementDeclaration(element);
+    return nodeResult?.node;
   }
 }
 
@@ -786,7 +874,7 @@ class _SignatureUpdater {
   /// For example, it is not allowed to have both optional positional, and
   /// any named formal parameters.
   ///
-  /// TODO(scheglov) check no required positional arter optional
+  /// TODO(scheglov) check no required positional after optional
   ChangeStatus validateFormalParameterUpdates() {
     final updates = signatureUpdate.formalParameters;
 

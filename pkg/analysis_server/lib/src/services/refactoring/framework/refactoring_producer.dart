@@ -86,7 +86,7 @@ abstract class RefactoringProducer {
   Future<void> compute(List<Object?> commandArguments, ChangeBuilder builder);
 
   /// Return `true` if this refactoring is available in the given context.
-  Future<bool> isAvailable();
+  bool isAvailable();
 
   /// Return `true` if the selection is inside the given [token].
   bool selectionIsInToken(Token? token) => _context.selectionIsInToken(token);

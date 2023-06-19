@@ -30,6 +30,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
   static const _dartFfiLibraryName = 'dart.ffi';
   static const _finalizableClassName = 'Finalizable';
   static const _isLeafParamName = 'isLeaf';
+  static const _rawVoidCallback = 'RawVoidCallback';
   static const _opaqueClassName = 'Opaque';
 
   static const Set<String> _primitiveIntegerNativeTypesFixedSize = {
@@ -227,6 +228,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         FfiCode.CREATION_OF_STRUCT_OR_UNION,
         node.constructorName,
       );
+    } else if (class_.isRawVoidCallback) {
+      _validateRawVoidCallback(node);
     }
 
     super.visitInstanceCreationExpression(node);
@@ -1181,6 +1184,37 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
+  /// Validate the invocation of the static method `RawVoidCallback<T>(f)`.
+  void _validateRawVoidCallback(InstanceCreationExpression node) {
+    var argCount = node.argumentList.arguments.length;
+    if (argCount != 1) {
+      // There are other diagnostics reported against the invocation and the
+      // diagnostics generated below might be inaccurate, so don't report them.
+      return;
+    }
+
+    var typeArg = (node.staticType as ParameterizedType).typeArguments[0];
+    if (!_isValidFfiNativeFunctionType(typeArg)) {
+      _errorReporter.reportErrorForNode(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE,
+          node.constructorName, [typeArg, _rawVoidCallback]);
+      return;
+    }
+
+    var f = node.argumentList.arguments[0];
+    var funcType = f.typeOrThrow;
+    if (!_validateCompatibleFunctionTypes(funcType, typeArg)) {
+      _errorReporter.reportErrorForNode(
+          FfiCode.MUST_BE_A_SUBTYPE, f, [funcType, typeArg, _rawVoidCallback]);
+      return;
+    }
+
+    // TODO(brianwilkerson) Validate that `f` is a top-level function.
+    var retType = (funcType as FunctionType).returnType;
+    if (retType is! VoidType) {
+      _errorReporter.reportErrorForNode(FfiCode.MUST_RETURN_VOID, f, [retType]);
+    }
+  }
+
   void _validateRefIndexed(IndexExpression node) {
     var targetType = node.realTarget.staticType;
     if (!_isValidFfiNativeType(targetType,
@@ -1467,6 +1501,14 @@ extension on Element? {
         element.isFfiClass;
   }
 
+  /// Return `true` if this represents the class `RawVoidCallback`.
+  bool get isRawVoidCallback {
+    final element = this;
+    return element is ClassElement &&
+        element.name == FfiVerifier._rawVoidCallback &&
+        element.isFfiClass;
+  }
+
   /// Return `true` if this represents the class `Struct`.
   bool get isStruct {
     final element = this;
@@ -1489,7 +1531,7 @@ extension on Element? {
         element.isFfiClass;
   }
 
-  /// Return `true` if this represents a subclass of the class `Struct`.
+  /// Return `true` if this represents a subclass of the class `Union`.
   bool get isUnionSubclass {
     final element = this;
     return element is ClassElement && element.supertype.isUnion;

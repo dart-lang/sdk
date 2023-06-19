@@ -46,8 +46,16 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
       testCode: testCode,
     );
 
-    selectionState = await analyzeSelection(
+    final availability = analyzeAvailability(
       refactoringContext: refactoringContext,
+    );
+    if (availability is! Available) {
+      selectionState = NoExecutableElementSelectionState();
+      return;
+    }
+
+    selectionState = await analyzeSelection(
+      available: availability,
     );
   }
 

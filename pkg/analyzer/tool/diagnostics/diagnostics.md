@@ -13434,6 +13434,52 @@ class B extends A {
 }
 {% endprettify %}
 
+### must_return_void
+
+_The return type of the function passed to 'RawVoidCallback' must be 'void'
+rather than '{0}'._
+
+#### Description
+
+The analyzer produces this diagnostic when you pass a function
+that doesn't return `void` to the `RawVoidCallback` constructor.
+
+`RawVoidCallback` creates a native callback that can be invoked
+from any thread. The native code that invokes the callback sends a message
+back to the isolate that created the callback, and doesn't wait for a
+response. So it isn't possible to return a result from the callback.
+
+For more information about FFI, see [C interop using dart:ffi][ffi].
+
+#### Example
+
+The following code produces this diagnostic because the function
+`f` returns `int` rather than `void`.
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+int f(int i) => i * 2;
+
+void g() {
+  RawVoidCallback<Int32 Function(Int32)>([!f!]);
+}
+{% endprettify %}
+
+#### Common fixes
+
+Change the return type of the function to `void`.
+
+{% prettify dart tag=pre+code %}
+import 'dart:ffi';
+
+void f(int i) => print(i * 2);
+
+void g() {
+  RawVoidCallback<Void Function(Int32)>(f);
+}
+{% endprettify %}
+
 ### name_not_string
 
 _The value of the 'name' field is required to be a string._
