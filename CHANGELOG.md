@@ -4,6 +4,15 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- **Breaking change** [#52334][]:
+  - Added `interface` modifier to purely abstract classes:
+    `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+    `StreamTransformer`.
+
+[#52334]: https://dartbug.com/52334
+
 #### `dart:core`
 
 - `Uri.base` on native platforms now respectes `IOOverrides` overriding
@@ -61,36 +70,89 @@
   calling `external void foo([int a, int b])` as `foo(0)` will now result in
   `foo(0)`, and not `foo(0, null)`.
 
-### Tools
+## 3.0.4 - 2023-06-07
 
-## 3.0.3
+This is a patch release that:
 
-### Libraries
+- Handles formatting nullable record types with no fields (dart_style issue [#1224]).
+- Fixes error when using records when targeting the web in development mode
+(issue [#52480]).
+- Fixes a bad cast in the frontend which can manifest as a crash in the dart2js
+`ListFactorySpecializer` during Flutter web builds (issue [#52403]).
 
-#### `dart:async`
+[#1224]: https://github.com/dart-lang/dart_style/issues/1224
+[#52403]: https://github.com/dart-lang/sdk/issues/52403
+[#52480]: https://github.com/dart-lang/sdk/issues/52480
 
-- **Breaking change** [#52334][]:
-  - Added `interface` modifier to purely abstract classes:
-    `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
-    `StreamTransformer`.
+## 3.0.3 - 2023-02-07
 
-[#52334]: https://dartbug.com/52334
+This is a patch release that:
 
-### Tools
+- Fixes an AOT compiler crash when generating an implicit getter returning an unboxed record (issue [#52449]).
+- Fixes a situation in which variables appearing in multiple branches of an or-pattern might be erroneously reported as being mismatched (issue [#52373]).
+- Adds missing `interface` modifiers on the purely abstract classes
+  `MultiStreamController`, `StreamConsumer`, `StreamIterator` and
+  `StreamTransformer` ([#52334]).
+- Fixes an error during debugging when `InternetAddress.tryParse` is
+used (issue [#52423]).
+- Fixes a VM issue causing crashes on hot reload (issue [#126884]).
+- Improves linter support (issue [#4195]).
+- Fixes an issue in variable patterns preventing users from expressing
+  a pattern match using a variable or wildcard pattern with a nullable
+  record type (issue [#52439]).
+- Updates warnings and provide instructions for updating the Dart pub
+  cache on Windows (issue [#52386]).
 
-#### Formatter
+[#52373]: https://github.com/dart-lang/sdk/issues/52373
+[#52334]: https://github.com/dart-lang/sdk/issues/52334
+[#52423]: https://github.com/dart-lang/sdk/issues/52423
+[#126884]: https://github.com/flutter/flutter/issues/126884
+[#4195]: https://github.com/dart-lang/linter/issues/4195
+[#52439]: https://github.com/dart-lang/sdk/issues/52439
+[#52449]: https://github.com/dart-lang/sdk/issues/52449
+[#52386]: https://github.com/dart-lang/sdk/issues/52386
 
-- Correctly handle nullable empty record types (`()?`).
+## 3.0.2 - 2023-05-24
 
-## 3.0.1
+This is a patch release that:
 
-### Tools
+- Fixes a dart2js crash when using a switch case expression on a record where the fields don't match the cases. (issue [#52438]).
+- Add chips for class and mixin pages on dartdoc generated pages. (issue [#3392]).
+- Fixes a situation causing the parser to fail resulting in an infinite loop
+leading to higher memory usage. (issue [#52352]).
+- Add clear errors when mixing inheritence in pre and post Dart 3 libraries.
+(issue: [#52078]).
 
-#### Formatter
+[#52438]: https://github.com/dart-lang/sdk/issues/52438
+[#3392]: https://github.com/dart-lang/dartdoc/issues/3392
+[#52352]: https://github.com/dart-lang/sdk/issues/52352
+[#52078]: https://github.com/dart-lang/sdk/issues/52078
 
-- Don't indent parameters with metadata annotations.
-- Don't split before `.` following a record literal.
-- Don't split unnecessarily in switch expression cases following comments.
+## 3.0.1 - 2023-05-17
+
+This is a patch release that:
+
+- Fixes a compiler crash involving redirecting factories and FFI
+  (issue [#124369]).
+- Fixes a dart2js crash when using a combination of local functions, generics,
+  and records (issue [#51899]).
+- Fixes incorrect error using a `void` in a switch case expression
+  (issue [#52191]).
+- Fixes a false error when using in switch case expressions when the switch
+  refers to a private getter (issue [#52041]).
+- Prevent the use of `when` and `as` as variable names in patterns
+  (issue [#52260]).
+- Fixes an inconsistency in type promotion between the analuzer and VM
+  (issue [#52241]).
+- Improve performance on functions with many parameters (issue [#1212]).
+
+[#124369]: https://github.com/flutter/flutter/issues/124369
+[#51899]: https://github.com/dart-lang/sdk/issues/51899
+[#52191]: https://github.com/dart-lang/sdk/issues/52191
+[#52041]: https://github.com/dart-lang/sdk/issues/52041
+[#52260]: https://github.com/dart-lang/sdk/issues/52260
+[#52241]: https://github.com/dart-lang/sdk/issues/52241
+[#1212]: https://github.com/dart-lang/dart_style/issues/1212
 
 ## 3.0.0 - 2023-05-10
 
