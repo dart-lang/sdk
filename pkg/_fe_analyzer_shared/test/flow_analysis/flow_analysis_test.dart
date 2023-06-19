@@ -9201,7 +9201,7 @@ main() {
             wildcard().then([
               intLiteral(1).stmt,
             ]),
-          ]).checkIr('switch(expr(Object), '
+          ]).checkIR('switch(expr(Object), '
               'case(heads(head(wildcardPattern(matchedType: Object), true, '
               'variables()), variables()), block(stmt(0), synthetic-break())), '
               'case(heads(head(wildcardPattern(matchedType: Object), true, '
