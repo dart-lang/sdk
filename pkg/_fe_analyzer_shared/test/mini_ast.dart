@@ -613,11 +613,11 @@ class Cascade extends Expression {
     // Form the IR for evaluating the LHS
     var targetType =
         h.typeAnalyzer.dispatchExpression(target, context).resolveShorting();
-    var previousCascadeTargetIr = h.typeAnalyzer._currentCascadeTargetIr;
+    var previousCascadeTargetIR = h.typeAnalyzer._currentCascadeTargetIR;
     var previousCascadeType = h.typeAnalyzer._currentCascadeTargetType;
     // Create a let-variable that will be initialized to the value of the LHS
     var targetTmp =
-        h.typeAnalyzer._currentCascadeTargetIr = h.irBuilder.allocateTmp();
+        h.typeAnalyzer._currentCascadeTargetIR = h.irBuilder.allocateTmp();
     h.typeAnalyzer._currentCascadeTargetType = h.flow
         .cascadeExpression_afterTarget(target, targetType,
             isNullAware: isNullAware);
@@ -634,7 +634,7 @@ class Cascade extends Expression {
       h.irBuilder.readTmp(targetTmp, location: location);
     }
     // Form the IR for evaluating each section
-    List<MiniIrTmp> sectionTmps = [];
+    List<MiniIRTmp> sectionTmps = [];
     for (var section in sections) {
       h.typeAnalyzer.dispatchExpression(section, h.typeAnalyzer.unknownType);
       // Create a let-variable that will be initialized to the value of the
@@ -657,7 +657,7 @@ class Cascade extends Expression {
     }
     h.irBuilder.let(targetTmp, location: location);
     h.flow.cascadeExpression_end(this);
-    h.typeAnalyzer._currentCascadeTargetIr = previousCascadeTargetIr;
+    h.typeAnalyzer._currentCascadeTargetIR = previousCascadeTargetIR;
     h.typeAnalyzer._currentCascadeTargetType = previousCascadeType;
     return SimpleTypeAnalysisResult(type: targetType);
   }
@@ -686,7 +686,7 @@ class CascadePlaceholder extends Expression {
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     h.irBuilder
-        .readTmp(h.typeAnalyzer._currentCascadeTargetIr!, location: location);
+        .readTmp(h.typeAnalyzer._currentCascadeTargetIR!, location: location);
     return SimpleTypeAnalysisResult(
         type: h.typeAnalyzer._currentCascadeTargetType!);
   }
@@ -781,12 +781,12 @@ class CheckAssigned extends Statement {
   }
 }
 
-class CheckCollectionElementIr extends CollectionElement {
+class CheckCollectionElementIR extends CollectionElement {
   final CollectionElement inner;
 
-  final String expectedIr;
+  final String expectedIR;
 
-  CheckCollectionElementIr._(this.inner, this.expectedIr,
+  CheckCollectionElementIR._(this.inner, this.expectedIR,
       {required super.location});
 
   @override
@@ -795,12 +795,12 @@ class CheckCollectionElementIr extends CollectionElement {
   }
 
   @override
-  String toString() => '$inner (should produce IR $expectedIr)';
+  String toString() => '$inner (should produce IR $expectedIR)';
 
   @override
   void visit(Harness h, CollectionElementContext context) {
     h.typeAnalyzer.dispatchCollectionElement(inner, context);
-    h.irBuilder.check(expectedIr, Kind.collectionElement, location: location);
+    h.irBuilder.check(expectedIR, Kind.collectionElement, location: location);
   }
 }
 
@@ -829,12 +829,12 @@ class CheckExpressionContext extends Expression {
   }
 }
 
-class CheckExpressionIr extends Expression {
+class CheckExpressionIR extends Expression {
   final Expression inner;
 
-  final String expectedIr;
+  final String expectedIR;
 
-  CheckExpressionIr._(this.inner, this.expectedIr, {required super.location});
+  CheckExpressionIR._(this.inner, this.expectedIR, {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -842,13 +842,13 @@ class CheckExpressionIr extends Expression {
   }
 
   @override
-  String toString() => '$inner (should produce IR $expectedIr)';
+  String toString() => '$inner (should produce IR $expectedIR)';
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     var result =
         h.typeAnalyzer.analyzeParenthesizedExpression(this, inner, context);
-    h.irBuilder.check(expectedIr, Kind.expression, location: location);
+    h.irBuilder.check(expectedIR, Kind.expression, location: location);
     return result;
   }
 }
@@ -924,12 +924,12 @@ class CheckReachable extends Statement {
   }
 }
 
-class CheckStatementIr extends Statement {
+class CheckStatementIR extends Statement {
   final Statement inner;
 
-  final String expectedIr;
+  final String expectedIR;
 
-  CheckStatementIr._(this.inner, this.expectedIr, {required super.location});
+  CheckStatementIR._(this.inner, this.expectedIR, {required super.location});
 
   @override
   void preVisit(PreVisitor visitor) {
@@ -937,12 +937,12 @@ class CheckStatementIr extends Statement {
   }
 
   @override
-  String toString() => '$inner (should produce IR $expectedIr)';
+  String toString() => '$inner (should produce IR $expectedIR)';
 
   @override
   void visit(Harness h) {
     h.typeAnalyzer.dispatchStatement(inner);
-    h.irBuilder.check(expectedIr, Kind.statement, location: location);
+    h.irBuilder.check(expectedIR, Kind.statement, location: location);
   }
 }
 
@@ -976,9 +976,9 @@ abstract class CollectionElement extends Node {
   CollectionElement({required super.location}) : super._();
 
   /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIr].
-  CollectionElement checkIr(String expectedIr) =>
-      CheckCollectionElementIr._(this, expectedIr, location: computeLocation());
+  /// the IR produced matches [expectedIR].
+  CollectionElement checkIR(String expectedIR) =>
+      CheckCollectionElementIR._(this, expectedIR, location: computeLocation());
 
   /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
   /// [type] as the context (for `List` and `Set` literals).
@@ -1346,9 +1346,9 @@ abstract class Expression extends Node {
           location: computeLocation());
 
   /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIr].
-  Expression checkIr(String expectedIr) =>
-      CheckExpressionIr._(this, expectedIr, location: computeLocation());
+  /// the IR produced matches [expectedIR].
+  Expression checkIR(String expectedIR) =>
+      CheckExpressionIR._(this, expectedIR, location: computeLocation());
 
   /// Creates an [Expression] that, when analyzed, will behave the same as
   /// `this`, but after visiting it, will verify that the type of the expression
@@ -1696,7 +1696,7 @@ class Harness {
   /// analyzing old language versions).
   bool _respectImplicitlyTypedVarInitializers = true;
 
-  MiniIrBuilder get irBuilder => typeAnalyzer._irBuilder;
+  MiniIRBuilder get irBuilder => typeAnalyzer._irBuilder;
 
   set legacy(bool value) {
     assert(!_started);
@@ -3609,9 +3609,9 @@ abstract class Statement extends Node {
   Statement({required super.location}) : super._();
 
   /// Wraps `this` in such a way that, when the test is run, it will verify that
-  /// the IR produced matches [expectedIr].
-  Statement checkIr(String expectedIr) =>
-      CheckStatementIr._(this, expectedIr, location: computeLocation());
+  /// the IR produced matches [expectedIR].
+  Statement checkIR(String expectedIR) =>
+      CheckStatementIR._(this, expectedIR, location: computeLocation());
 
   void preVisit(PreVisitor visitor);
 
@@ -4281,7 +4281,7 @@ class WrappedExpression extends Expression {
 
   @override
   ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
-    late MiniIrTmp beforeTmp;
+    late MiniIRTmp beforeTmp;
     if (before != null) {
       h.typeAnalyzer.dispatchStatement(before!);
       h.irBuilder
@@ -4635,7 +4635,7 @@ class _MiniAstTypeAnalyzer
 
   Statement? _currentContinueTarget;
 
-  final _irBuilder = MiniIrBuilder();
+  final _irBuilder = MiniIRBuilder();
 
   @override
   late final Type boolType = Type('bool');
@@ -4666,7 +4666,7 @@ class _MiniAstTypeAnalyzer
   /// The temporary variable used in the IR to represent the target of the
   /// innermost enclosing cascade expression, or `null` if no cascade expression
   /// is currently being visited.
-  MiniIrTmp? _currentCascadeTargetIr;
+  MiniIRTmp? _currentCascadeTargetIR;
 
   /// The type of the target of the innermost enclosing cascade expression
   /// (promoted to non-nullable, if it's a null-aware cascade), or `null` if no
@@ -5412,7 +5412,7 @@ class _MiniAstTypeAnalyzer
       // This is a cascaded access so the IR we need to generate is an implicit
       // read of the temporary variable holding the cascade target.
       propertyTarget = CascadePropertyTarget.singleton;
-      _harness.irBuilder.readTmp(_currentCascadeTargetIr!, location: location);
+      _harness.irBuilder.readTmp(_currentCascadeTargetIR!, location: location);
       targetType = _currentCascadeTargetType!;
     } else {
       propertyTarget = ExpressionPropertyTarget(target);

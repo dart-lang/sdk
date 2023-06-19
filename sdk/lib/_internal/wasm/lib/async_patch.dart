@@ -1,4 +1,6 @@
-import 'dart:_internal' show scheduleCallback, patch, _AsyncCompleter;
+import 'dart:_internal' show _AsyncCompleter, patch;
+
+import 'dart:_js_helper' show JS;
 
 import 'dart:_wasm';
 

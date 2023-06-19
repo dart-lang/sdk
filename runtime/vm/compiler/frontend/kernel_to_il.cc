@@ -2048,7 +2048,7 @@ void FlowGraphBuilder::BuildArgumentTypeChecks(
 
     *checks += LoadLocal(param);
     *checks += AssertAssignableLoadTypeArguments(
-        TokenPosition::kNoSource, *target_type, name,
+        param->token_pos(), *target_type, name,
         AssertAssignableInstr::kParameterCheck);
     *checks += StoreLocal(param);
     *checks += Drop();
