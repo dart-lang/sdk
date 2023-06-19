@@ -37,6 +37,9 @@ int Process::global_exit_code_ = 0;
 Mutex* Process::global_exit_code_mutex_ = nullptr;
 Process::ExitHook Process::exit_hook_ = nullptr;
 
+// Spawning new processes isn't supported on iOS.
+#if !defined(DART_HOST_OS_IOS)
+
 // ProcessInfo is used to map a process id to the file descriptor for
 // the pipe used to communicate the exit code of the process to Dart.
 // ProcessInfo objects are kept in the static singly-linked
@@ -468,14 +471,12 @@ class ProcessStarter {
       ReportChildError();
     }
 
-#if !DART_HOST_OS_IOS
     if (program_environment_ != nullptr) {
       // On MacOS you have to do a bit of magic to get to the
       // environment strings.
       char*** environ = _NSGetEnviron();
       *environ = program_environment_;
     }
-#endif
 
     execvp(path_, const_cast<char* const*>(program_arguments_));
     ReportChildError();
@@ -521,14 +522,13 @@ class ProcessStarter {
               (TEMP_FAILURE_RETRY(chdir(working_directory_)) == -1)) {
             ReportChildError();
           }
-#if !DART_HOST_OS_IOS
+
           if (program_environment_ != nullptr) {
             // On MacOS you have to do a bit of magic to get to the
             // environment strings.
             char*** environ = _NSGetEnviron();
             *environ = program_environment_;
           }
-#endif
 
           // Report the final PID and do the exec.
           ReportPid(getpid());  // getpid cannot fail.
@@ -760,6 +760,7 @@ class ProcessStarter {
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(ProcessStarter);
 };
+#endif  // !defined(DART_HOST_OS_IOS)
 
 int Process::Start(Namespace* namespc,
                    const char* path,
@@ -775,12 +776,17 @@ int Process::Start(Namespace* namespc,
                    intptr_t* id,
                    intptr_t* exit_event,
                    char** os_error_message) {
+#if defined(DART_HOST_OS_IOS)
+  return EPERM;
+#else   // defined(DART_HOST_OS_IOS)
   ProcessStarter starter(path, arguments, arguments_length, working_directory,
                          environment, environment_length, mode, in, out, err,
                          id, exit_event, os_error_message);
   return starter.Start();
+#endif  // defined(DART_HOST_OS_IOS)
 }
 
+#if !defined(DART_HOST_OS_IOS)
 static bool CloseProcessBuffers(struct pollfd* fds, int alive) {
   int e = errno;
   for (int i = 0; i < alive; i++) {
@@ -789,6 +795,7 @@ static bool CloseProcessBuffers(struct pollfd* fds, int alive) {
   errno = e;
   return false;
 }
+#endif  // !defined(DART_HOST_OS_IOS)
 
 bool Process::Wait(intptr_t pid,
                    intptr_t in,
@@ -796,6 +803,9 @@ bool Process::Wait(intptr_t pid,
                    intptr_t err,
                    intptr_t exit_event,
                    ProcessResult* result) {
+#if defined(DART_HOST_OS_IOS)
+  return false;
+#else   // defined(DART_HOST_OS_IOS)
   // Close input to the process right away.
   close(in);
 
@@ -887,6 +897,7 @@ bool Process::Wait(intptr_t pid,
   result->set_exit_code(exit_code);
 
   return true;
+#endif  // defined(DART_HOST_OS_IOS)
 }
 
 static int SignalMap(intptr_t id) {
@@ -954,11 +965,17 @@ static int SignalMap(intptr_t id) {
 }
 
 bool Process::Kill(intptr_t id, int signal) {
+#if defined(DART_HOST_OS_IOS)
+  return false;
+#else   // defined(DART_HOST_OS_IOS)
   return (TEMP_FAILURE_RETRY(kill(id, SignalMap(signal))) != -1);
+#endif  // defined(DART_HOST_OS_IOS)
 }
 
 void Process::TerminateExitCodeHandler() {
+#if !defined(DART_HOST_OS_IOS)
   ExitCodeHandler::TerminateExitCodeThread();
+#endif  // !defined(DART_HOST_OS_IOS)
 }
 
 intptr_t Process::CurrentProcessId() {
@@ -1143,6 +1160,7 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
   }
 }
 
+#if !defined(DART_HOST_OS_IOS)
 void ProcessInfoList::Init() {
   active_processes_ = nullptr;
   ASSERT(ProcessInfoList::mutex_ == nullptr);
@@ -1168,10 +1186,13 @@ void ExitCodeHandler::Cleanup() {
   delete ExitCodeHandler::monitor_;
   ExitCodeHandler::monitor_ = nullptr;
 }
+#endif  // !defined(DART_HOST_OS_IOS)
 
 void Process::Init() {
+#if !defined(DART_HOST_OS_IOS)
   ExitCodeHandler::Init();
   ProcessInfoList::Init();
+#endif  // !defined(DART_HOST_OS_IOS)
 
   ASSERT(signal_mutex == nullptr);
   signal_mutex = new Mutex();
@@ -1192,8 +1213,10 @@ void Process::Cleanup() {
   delete Process::global_exit_code_mutex_;
   Process::global_exit_code_mutex_ = nullptr;
 
+#if !defined(DART_HOST_OS_IOS)
   ProcessInfoList::Cleanup();
   ExitCodeHandler::Cleanup();
+#endif  // !defined(DART_HOST_OS_IOS)
 }
 
 }  // namespace bin
