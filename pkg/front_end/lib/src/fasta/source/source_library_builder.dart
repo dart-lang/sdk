@@ -466,6 +466,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   @override
   bool get isPart => partOfName != null || partOfUri != null;
 
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberIterator<T>(this, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberNameIterator<T>(this,
+          includeDuplicates: false);
+
   // TODO(johnniwinther): Can avoid using this from outside this class?
   Iterable<SourceLibraryBuilder>? get patchLibraries => _patchLibraries;
 
@@ -5774,4 +5783,105 @@ class LibraryAccess {
   final int length;
 
   LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
+}
+
+class SourceLibraryBuilderMemberIterator<T extends Builder>
+    implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+}
+
+class SourceLibraryBuilderMemberNameIterator<T extends Builder>
+    implements NameIterator<T> {
+  NameIterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberNameIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberNameIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberNameIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredNameIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredNameIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+
+  @override
+  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

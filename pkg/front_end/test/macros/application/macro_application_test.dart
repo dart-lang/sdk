@@ -125,6 +125,9 @@ class MacroDataComputer extends DataComputer<String> {
   const MacroDataComputer();
 
   @override
+  bool get supportsErrors => true;
+
+  @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();
 
   @override

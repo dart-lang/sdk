@@ -317,6 +317,10 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     return "${flattenName(classBuilder.name, charOffset, fileUri)}"
         "${name.isEmpty ? '' : '.$name'}";
   }
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [_procedure];
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {

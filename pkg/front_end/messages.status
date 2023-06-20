@@ -1018,6 +1018,8 @@ Unspecified/analyzerCode: Fail
 Unspecified/example: Fail
 UnsupportedDartExt/analyzerCode: Fail
 UnsupportedDartExt/part_wrapped_script: Fail # Example uses import declaration.
+UnsupportedMacroApplication/analyzerCode: Fail
+UnsupportedMacroApplication/example: Fail
 UnterminatedString/part_wrapped_script2: Fail
 UnterminatedString/part_wrapped_script4: Fail
 UnterminatedString/part_wrapped_script5: Fail

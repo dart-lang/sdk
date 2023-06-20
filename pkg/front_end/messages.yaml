@@ -7021,3 +7021,6 @@ JointPatternVariableWithLabelDefault:
   analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
+
+UnsupportedMacroApplication:
+  problemMessage: "This macro application didn't apply correctly."

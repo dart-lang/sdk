@@ -403,11 +403,14 @@ class SourceFieldBuilder extends SourceMemberBuilderImpl
       new FieldBodyBuilderContext(this);
 
   @override
+  Iterable<Annotatable> get annotatables => _fieldEncoding.annotatables;
+
+  @override
   void buildOutlineExpressions(
       ClassHierarchy classHierarchy,
       List<DelayedActionPerformer> delayedActionPerformers,
       List<DelayedDefaultValueCloner> delayedDefaultValueCloners) {
-    for (Annotatable annotatable in _fieldEncoding.annotatables) {
+    for (Annotatable annotatable in annotatables) {
       MetadataBuilder.buildAnnotations(
           annotatable,
           metadata,

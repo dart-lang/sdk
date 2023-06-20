@@ -477,8 +477,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
               : null;
       Scope parentScope =
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
-      MetadataBuilder.buildAnnotations(member, metadata, bodyBuilderContext,
-          libraryBuilder, fileUri, parentScope);
+      for (Annotatable annotatable in annotatables) {
+        MetadataBuilder.buildAnnotations(annotatable, metadata,
+            bodyBuilderContext, libraryBuilder, fileUri, parentScope);
+      }
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {
           typeVariables![i].buildOutlineExpressions(

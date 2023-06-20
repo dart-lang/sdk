@@ -636,6 +636,11 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
+      if (loader.macroClass != null) {
+        checkMacroApplications(loader.hierarchy, loader.macroClass!,
+            loader.sourceLibraryBuilders, macroApplications);
+      }
+
       if (verify) {
         benchmarker?.enterPhase(BenchmarkPhases.body_verify);
         _verify(

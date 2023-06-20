@@ -1673,6 +1673,8 @@ severity: $severity
     return null;
   }
 
+  Class? get macroClass => _macroClassBuilder?.cls;
+
   Future<MacroApplications?> computeMacroApplications() async {
     if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
       return null;

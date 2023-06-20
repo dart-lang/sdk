@@ -195,7 +195,8 @@ class _MacroListener implements Listener {
             macroClass,
             constructorName,
             new macro.Arguments(argumentsNode.positionalArguments,
-                argumentsNode.namedArguments))));
+                argumentsNode.namedArguments),
+            fileOffset: beginToken.next!.charOffset)));
         return;
       }
     }

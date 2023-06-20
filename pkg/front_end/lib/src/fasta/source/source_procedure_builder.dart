@@ -636,6 +636,10 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new ProcedureBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [procedure];
 }
 
 class SourceProcedureMember extends BuilderClassMember {
