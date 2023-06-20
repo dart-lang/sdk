@@ -421,6 +421,29 @@ main() {
       }
     });
 
+    test('can pause', () async {
+      final testFile = dap.createTestFile(infiniteRunningProgram);
+
+      // Start a program and hit a breakpoint.
+      final client = dap.client;
+      final threadFuture = client.threadEvents.first;
+
+      // Start the app and wait for it to start printing output.
+      await Future.wait([
+        client.initialize(),
+        client.launch(testFile.path),
+        dap.client.outputEvents
+            .firstWhere((event) => event.output.contains('Looping'))
+      ]);
+
+      // Ensure we can pause.
+      final thread = await threadFuture;
+      await Future.wait([
+        client.expectStop('pause'),
+        client.pause(thread.threadId),
+      ], eagerError: true);
+    });
+
     test('forwards tool events to client', () async {
       final testFile = dap.createTestFile(simpleToolEventProgram);
 

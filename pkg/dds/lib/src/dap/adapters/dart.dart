@@ -1207,6 +1207,17 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     sendResponse();
   }
 
+  /// Handles the clients "pause" request for the thread in [args.threadId].
+  @override
+  Future<void> pauseRequest(
+    Request request,
+    PauseArguments args,
+    void Function(PauseResponseBody) sendResponse,
+  ) async {
+    await isolateManager.pauseThread(args.threadId);
+    sendResponse(PauseResponseBody());
+  }
+
   /// restart is called by the client when the user invokes a restart (for
   /// example with the button on the debug toolbar).
   ///

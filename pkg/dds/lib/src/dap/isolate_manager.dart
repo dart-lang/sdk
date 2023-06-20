@@ -305,6 +305,32 @@ class IsolateManager {
     }
   }
 
+  /// Pauses an isolate using its client [threadId].
+  ///
+  /// This is simply a _request_ to pause. It does not change any state by
+  /// itself - we will handle the pause via an event if the pause request
+  /// succeeds.
+  Future<void> pauseThread(int threadId) async {
+    final thread = _threadsByThreadId[threadId];
+    if (thread == null) {
+      if (isInvalidThreadId(threadId)) {
+        throw DebugAdapterException('Thread $threadId was not found');
+      } else {
+        // Otherwise, this thread has recently exited so we cannot attempt
+        // to pause it.
+        return;
+      }
+    }
+
+    try {
+      await _adapter.vmService?.pause(thread.isolate.id!);
+    } on vm.SentinelException {
+      // It's possible during these async requests that the isolate went away
+      // (for example a shutdown/restart) and we no longer care about
+      // pausing it.
+    }
+  }
+
   /// Checks whether [threadId] is invalid and has never been used.
   ///
   /// Returns `false` is [threadId] corresponds to either a live, or previously
