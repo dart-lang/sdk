@@ -1356,6 +1356,13 @@ void main(int argc, char** argv) {
 #else
   init_params.start_kernel_isolate = false;
 #endif
+#if defined(DART_HOST_OS_FUCHSIA)
+#if defined(DART_PRECOMPILED_RUNTIME)
+  init_params.vmex_resource = ZX_HANDLE_INVALID;
+#else
+  init_params.vmex_resource = Platform::GetVMEXResource();
+#endif
+#endif
 
   error = Dart_Initialize(&init_params);
   if (error != nullptr) {

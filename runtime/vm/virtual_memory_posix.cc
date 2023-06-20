@@ -250,6 +250,8 @@ void VirtualMemory::Init() {
 }
 
 void VirtualMemory::Cleanup() {
+  page_size_ = 0;
+
 #if defined(DART_COMPRESSED_POINTERS)
   delete compressed_heap_;
   compressed_heap_ = nullptr;

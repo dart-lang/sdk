@@ -7,6 +7,9 @@
 
 #include "bin/platform.h"
 
+#include <fuchsia/kernel/cpp/fidl.h>
+#include <lib/fdio/directory.h>
+#include <lib/zx/resource.h>
 #include <string.h>
 #include <sys/utsname.h>
 #include <unistd.h>
@@ -159,6 +162,18 @@ void Platform::Exit(int exit_code) {
 
 void Platform::SetCoreDumpResourceLimit(int value) {
   // Not supported.
+}
+
+zx_handle_t Platform::GetVMEXResource() {
+  zx::resource vmex_resource;
+  fuchsia::kernel::VmexResourceSyncPtr vmex_resource_svc;
+  zx_status_t status = fdio_service_connect(
+      "/svc/fuchsia.kernel.VmexResource",
+      vmex_resource_svc.NewRequest().TakeChannel().release());
+  ASSERT(status == ZX_OK);
+  status = vmex_resource_svc->Get(&vmex_resource);
+  ASSERT(status == ZX_OK);
+  return vmex_resource.release();
 }
 
 }  // namespace bin

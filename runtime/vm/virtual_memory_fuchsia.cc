@@ -43,6 +43,7 @@ uword VirtualMemory::page_size_ = 0;
 static zx_handle_t compressed_heap_vmar_ = ZX_HANDLE_INVALID;
 static uword compressed_heap_base_ = 0;
 #endif  // defined(DART_COMPRESSED_POINTERS)
+static zx_handle_t vmex_resource_ = ZX_HANDLE_INVALID;
 
 intptr_t VirtualMemory::CalculatePageSize() {
   const intptr_t page_size = getpagesize();
@@ -51,7 +52,7 @@ intptr_t VirtualMemory::CalculatePageSize() {
   return page_size;
 }
 
-void VirtualMemory::Init() {
+void VirtualMemory::Init(zx_handle_t vmex_resource) {
   if (FLAG_old_gen_heap_size < 0 || FLAG_old_gen_heap_size > kMaxAddrSpaceMB) {
     OS::PrintErr(
         "warning: value specified for --old_gen_heap_size %d is larger than"
@@ -89,9 +90,13 @@ void VirtualMemory::Init() {
 #endif  // defined(DART_COMPRESSED_POINTERS)
 
   page_size_ = CalculatePageSize();
+  vmex_resource_ = vmex_resource;
 }
 
 void VirtualMemory::Cleanup() {
+  vmex_resource_ = ZX_HANDLE_INVALID;
+  page_size_ = 0;
+
 #if defined(DART_COMPRESSED_POINTERS)
   zx_vmar_destroy(compressed_heap_vmar_);
   compressed_heap_vmar_ = ZX_HANDLE_INVALID;
@@ -176,7 +181,7 @@ VirtualMemory* VirtualMemory::AllocateAligned(intptr_t size,
   if (is_executable) {
     // Add ZX_RIGHT_EXECUTE permission to VMO, so it can be mapped
     // into memory as executable (now or later).
-    status = zx_vmo_replace_as_executable(vmo, ZX_HANDLE_INVALID, &vmo);
+    status = zx_vmo_replace_as_executable(vmo, vmex_resource_, &vmo);
     if (status != ZX_OK) {
       LOG_ERR("zx_vmo_replace_as_executable() failed: %s\n",
               zx_status_get_string(status));
