@@ -294,4 +294,19 @@ class ConstantToTextVisitor
     typeToText.visitList(constant.typeArguments, sb);
     sb.write('>)');
   }
+
+  @override
+  void visitJavaScriptObject(
+      JavaScriptObjectConstantValue constant, StringBuffer sb) {
+    sb.write('JavaScriptObject({');
+    for (int index = 0; index < constant.keys.length; index++) {
+      if (index > 0) {
+        sb.write(',');
+      }
+      visit(constant.keys[index], sb);
+      sb.write(':');
+      visit(constant.values[index], sb);
+    }
+    sb.write('})');
+  }
 }

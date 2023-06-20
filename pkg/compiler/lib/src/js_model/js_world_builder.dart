@@ -783,27 +783,34 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
   ConstantValue visitSet(
       covariant constant_system.JavaScriptSetConstant constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
-    MapConstantValue? entries = constant.entries.accept(this, null);
-    if (identical(entries, constant.entries) && type == constant.type) {
+    List<ConstantValue> values = _handleValues(constant.values);
+    JavaScriptObjectConstantValue? indexObject =
+        constant.indexObject?.accept(this, null);
+    if (identical(values, constant.values) &&
+        identical(indexObject, constant.indexObject) &&
+        type == constant.type) {
       return constant;
     }
     return constant_system.JavaScriptSetConstant(
-        type as InterfaceType, entries!);
+        type as InterfaceType, values, indexObject);
   }
 
   @override
   ConstantValue visitMap(
       covariant constant_system.JavaScriptMapConstant constant, _) {
     DartType type = typeConverter.visit(constant.type, toBackendEntity);
-    ListConstantValue keys = constant.keyList.accept(this, null);
-    List<ConstantValue> values = _handleValues(constant.values);
-    if (identical(keys, constant.keys) &&
-        identical(values, constant.values) &&
+    ListConstantValue keyList = constant.keyList.accept(this, null);
+    ListConstantValue valueList = constant.valueList.accept(this, null);
+    JavaScriptObjectConstantValue? indexObject =
+        constant.indexObject?.accept(this, null);
+    if (identical(keyList, constant.keyList) &&
+        identical(valueList, constant.valueList) &&
+        identical(indexObject, constant.indexObject) &&
         type == constant.type) {
       return constant;
     }
-    return constant_system.JavaScriptMapConstant(
-        type as InterfaceType, keys, values, constant.onlyStringKeys);
+    return constant_system.JavaScriptMapConstant(type as InterfaceType, keyList,
+        valueList, constant.onlyStringKeys, indexObject);
   }
 
   @override
@@ -827,6 +834,17 @@ class _ConstantConverter implements ConstantValueVisitor<ConstantValue, Null> {
     List<ConstantValue> values = _handleValues(constant.values);
     if (identical(values, constant.values)) return constant;
     return RecordConstantValue(constant.shape, values);
+  }
+
+  @override
+  ConstantValue visitJavaScriptObject(
+      JavaScriptObjectConstantValue constant, _) {
+    List<ConstantValue> keys = _handleValues(constant.keys);
+    List<ConstantValue> values = _handleValues(constant.values);
+    if (identical(keys, constant.keys) && identical(values, constant.values)) {
+      return constant;
+    }
+    return JavaScriptObjectConstantValue(keys, values);
   }
 
   @override

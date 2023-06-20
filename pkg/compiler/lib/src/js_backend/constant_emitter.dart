@@ -210,6 +210,12 @@ class ModularConstantEmitter
 
   @override
   jsAst.Expression? visitRecord(RecordConstantValue constant, [_]) => null;
+
+  @override
+  jsAst.Expression? visitJavaScriptObject(
+          JavaScriptObjectConstantValue constant,
+          [_]) =>
+      null;
 }
 
 /// Generates the JavaScript expressions for constants.
@@ -265,21 +271,36 @@ class ConstantEmitter extends ModularConstantEmitter {
     InterfaceType sourceType = constant.type;
     ClassEntity classElement = sourceType.element;
     String className = classElement.name;
-    if (!identical(classElement, _commonElements.constSetLiteralClass)) {
-      failedAt(
-          classElement, "Compiler encountered unexpected set class $className");
+
+    if (constant.indexObject != null) {
+      if (!identical(classElement, _commonElements.constantStringSetClass)) {
+        failedAt(classElement,
+            "Compiler encountered unexpected set class $className");
+      }
+      List<jsAst.Expression> arguments = [
+        _constantReferenceGenerator(constant.indexObject!),
+        js.number(constant.length),
+        if (_rtiNeed.classNeedsTypeArguments(classElement))
+          _reifiedTypeNewRti(sourceType),
+      ];
+      jsAst.Expression constructor = _emitter.constructorAccess(classElement);
+      return jsAst.New(constructor, arguments);
+    } else {
+      if (!identical(classElement, _commonElements.generalConstantSetClass)) {
+        failedAt(classElement,
+            "Compiler encountered unexpected set class $className");
+      }
+      List<jsAst.Expression> arguments = [
+        jsAst.ArrayInitializer([
+          for (final value in constant.values)
+            _constantReferenceGenerator(value)
+        ]),
+        if (_rtiNeed.classNeedsTypeArguments(classElement))
+          _reifiedTypeNewRti(sourceType),
+      ];
+      jsAst.Expression constructor = _emitter.constructorAccess(classElement);
+      return jsAst.New(constructor, arguments);
     }
-
-    List<jsAst.Expression> arguments = [
-      _constantReferenceGenerator(constant.entries),
-    ];
-
-    if (_rtiNeed.classNeedsTypeArguments(classElement)) {
-      arguments.add(_reifiedTypeNewRti(sourceType));
-    }
-
-    jsAst.Expression constructor = _emitter.constructorAccess(classElement);
-    return jsAst.New(constructor, arguments);
   }
 
   @override
@@ -316,6 +337,12 @@ class ConstantEmitter extends ModularConstantEmitter {
       return jsAst.ArrayInitializer(data);
     }
 
+    jsAst.Expression jsValuesArray() {
+      return jsAst.ArrayInitializer([
+        for (final value in constant.values) _constantReferenceGenerator(value)
+      ]);
+    }
+
     ClassEntity classElement = constant.type.element;
     String className = classElement.name;
 
@@ -327,18 +354,20 @@ class ConstantEmitter extends ModularConstantEmitter {
     _elementEnvironment.forEachInstanceField(classElement,
         (ClassEntity enclosing, FieldEntity field) {
       if (_fieldAnalysis.getFieldData(field as JField).isElided) return;
-      if (field.name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
+      final name = field.name;
+      if (name == constant_system.JavaScriptMapConstant.LENGTH_NAME) {
         arguments
             .add(jsAst.LiteralNumber('${constant.keyList.entries.length}'));
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.JS_OBJECT_NAME) {
+      } else if (name == constant_system.JavaScriptMapConstant.JS_OBJECT_NAME) {
         arguments.add(jsMap());
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.KEYS_NAME) {
+      } else if (name == constant_system.JavaScriptMapConstant.KEYS_NAME) {
         arguments.add(_constantReferenceGenerator(constant.keyList));
-      } else if (field.name ==
-          constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
+      } else if (name == constant_system.JavaScriptMapConstant.JS_DATA_NAME) {
         arguments.add(jsGeneralMap());
+      } else if (name == constant_system.JavaScriptMapConstant.VALUES_NAME) {
+        arguments.add(jsValuesArray());
+      } else if (name == constant_system.JavaScriptMapConstant.JS_INDEX_NAME) {
+        arguments.add(_constantReferenceGenerator(constant.indexObject!));
       } else {
         failedAt(field,
             "Compiler has unexpected field ${field.name} for ${className}.");
@@ -346,7 +375,7 @@ class ConstantEmitter extends ModularConstantEmitter {
       emittedArgumentCount++;
     });
     if ((className == constant_system.JavaScriptMapConstant.DART_STRING_CLASS &&
-            emittedArgumentCount != 3) ||
+            emittedArgumentCount != 2) ||
         (className ==
                 constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS &&
             emittedArgumentCount != 1)) {
@@ -365,6 +394,18 @@ class ConstantEmitter extends ModularConstantEmitter {
 
   jsAst.PropertyAccess getHelperProperty(FunctionEntity helper) {
     return _emitter.staticFunctionAccess(helper) as jsAst.PropertyAccess;
+  }
+
+  @override
+  jsAst.Expression visitJavaScriptObject(JavaScriptObjectConstantValue constant,
+      [_]) {
+    final List<jsAst.Property> properties = [];
+    for (int i = 0; i < constant.keys.length; i++) {
+      properties.add(jsAst.Property(
+          _constantReferenceGenerator(constant.keys[i]),
+          _constantReferenceGenerator(constant.values[i])));
+    }
+    return jsAst.ObjectInitializer(properties);
   }
 
   @override

@@ -1411,9 +1411,12 @@ class Printer implements NodeVisitor<void> {
     } else if (name is LiteralNumber) {
       out(name.value);
     } else {
-      // TODO(sra): Handle StringConcatenation.
-      // TODO(sra): Handle general expressions, .e.g. `{[x]: 1}`.
-      throw StateError('Unexpected Property name: $name');
+      // Handle general expressions, .e.g. `{[x]: 1}`.
+      // String concatenation could be better.
+      out('[');
+      visitNestedExpression(node.name, EXPRESSION,
+          newInForInit: false, newAtStatementBegin: false);
+      out(']');
     }
     endNode(node.name);
   }

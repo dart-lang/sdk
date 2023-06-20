@@ -1318,6 +1318,24 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    addRoot('Object');
+    int length = constant.length;
+    if (constant.length == 0) {
+      add('empty');
+    } else if (length * 2 > MAX_FRAGMENTS) {
+      failed = true;
+    } else {
+      for (int i = 0; i < length; i++) {
+        _visit(constant.keys[i]);
+        if (failed) break;
+        _visit(constant.values[i]);
+        if (failed) break;
+      }
+    }
+  }
+
+  @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
 
@@ -1443,6 +1461,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const int _seedList = 10;
   static const int _seedSet = 11;
   static const int _seedMap = 12;
+  static const int _seedJavaScriptObject = 13;
 
   ConstantCanonicalHasher(this._namer, this._closedWorld);
 
@@ -1544,6 +1563,14 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.cls.name;
     return _hashString(_seedInterceptor, typeName);
+  }
+
+  @override
+  int visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    int hash = _seedJavaScriptObject;
+    hash = _hashList(hash, constant.keys);
+    hash = _hashList(hash, constant.values);
+    return hash;
   }
 
   @override
