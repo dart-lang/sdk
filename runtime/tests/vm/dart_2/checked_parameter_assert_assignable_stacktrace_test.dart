@@ -29,8 +29,8 @@ void main() {
     trace = st;
   }
   assertStack(const <String>[
-    r'^#0      B.takesA \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:14(:27)?\)$',
-    r'^#1      main \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:25(:7)?\)$',
+    r'^#0      B.takesA \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:16(:27)?\)$',
+    r'^#1      main \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:27(:7)?\)$',
     IGNORE_REMAINING_STACK,
   ], trace);
 }
