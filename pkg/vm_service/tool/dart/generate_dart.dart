@@ -268,46 +268,53 @@ typedef DisposeHandler = Future Function();
 // vmservice.dart.
 enum RPCErrorKind {
   /// Application specific error code.
-  kServerError,
+  kServerError(code: -32000, message: 'Application error'),
 
   /// The JSON sent is not a valid Request object.
-  kInvalidRequest,
+  kInvalidRequest(code: -32600, message: 'Invalid request object'),
 
   /// The method does not exist or is not available.
-  kMethodNotFound,
+  kMethodNotFound(code: -32601, message: 'Method not found'),
 
   /// Invalid method parameter(s), such as a mismatched type.
-  kInvalidParams,
+  kInvalidParams(code: -32602, message: 'Invalid method parameters'),
 
   /// Internal JSON-RPC error.
-  kInternalError,
+  kInternalError(code: -32603, message: 'Internal JSON-RPC error'),
 
   /// The requested feature is disabled.
-  kFeatureDisabled,
+  kFeatureDisabled(code: 100, message: 'Feature is disabled'),
 
   /// The stream has already been subscribed to.
-  kStreamAlreadySubscribed,
+  kStreamAlreadySubscribed(code: 103, message: 'Stream already subscribed'),
 
   /// The stream has not been subscribed to.
-  kStreamNotSubscribed,
+  kStreamNotSubscribed(code: 104, message: 'Stream not subscribed'),
 
   /// Isolate must first be paused.
-  kIsolateMustBePaused,
+  kIsolateMustBePaused(code: 106, message: 'Isolate must be paused'),
 
   /// The service has already been registered.
-  kServiceAlreadyRegistered,
+  kServiceAlreadyRegistered(code: 111, message: 'Service already registered'),
 
   /// The service no longer exists.
-  kServiceDisappeared,
+  kServiceDisappeared(code: 112, message: 'Service has disappeared'),
 
   /// There was an error in the expression compiler.
-  kExpressionCompilationError,
+  kExpressionCompilationError(
+      code: 113, message: 'Expression compilation error'),
 
   /// The custom stream does not exist.
-  kCustomStreamDoesNotExist,
+  kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),
 
   /// The core stream is not allowed.
-  kCoreStreamNotAllowed;
+  kCoreStreamNotAllowed(code: 131, message: 'Core streams are not allowed');
+
+  const RPCErrorKind({required this.code, required this.message});
+
+  final int code;
+
+  final String message;
 
   static final _codeToErrorMap =
       RPCErrorKind.values.fold(<int, RPCErrorKind>{}, (map, error) {
@@ -317,72 +324,6 @@ enum RPCErrorKind {
 
   static RPCErrorKind? fromCode(int code) {
     return _codeToErrorMap[code];
-  }
-
-  String get message {
-    switch (this) {
-      case kServerError:
-        return 'Application error';
-      case kInvalidRequest:
-        return 'Invalid request object';
-      case kMethodNotFound:
-        return 'Method not found';
-      case kInvalidParams:
-        return 'Invalid method parameters';
-      case kInternalError:
-        return 'Internal JSON-RPC error';
-      case kFeatureDisabled:
-        return 'Feature is disabled';
-      case kStreamAlreadySubscribed:
-        return 'Stream already subscribed';
-      case kStreamNotSubscribed:
-        return 'Stream not subscribed';
-      case kIsolateMustBePaused:
-        return 'Isolate must be paused';
-      case kServiceAlreadyRegistered:
-        return 'Service already registered';
-      case kServiceDisappeared:
-        return 'Service has disappeared';
-      case kExpressionCompilationError:
-        return 'Expression compilation error';
-      case kCustomStreamDoesNotExist:
-        return 'Custom stream does not exist';
-      case kCoreStreamNotAllowed:
-        return 'Core streams are not allowed';
-    }
-  }
-
-  int get code {
-    switch (this) {
-      case kServerError:
-        return -32000;
-      case kInvalidRequest:
-        return -32600;
-      case kMethodNotFound:
-        return -32601;
-      case kInvalidParams:
-        return -32602;
-      case kInternalError:
-        return -32603;
-      case kFeatureDisabled:
-        return 100;
-      case kStreamAlreadySubscribed:
-        return 103;
-      case kStreamNotSubscribed:
-        return 104;
-      case kIsolateMustBePaused:
-        return 106;
-      case kServiceAlreadyRegistered:
-        return 111;
-      case kServiceDisappeared:
-        return 112;
-      case kExpressionCompilationError:
-        return 113;
-      case kCustomStreamDoesNotExist:
-        return 130;
-      case kCoreStreamNotAllowed:
-        return 131;
-    }
   }
 }
 
