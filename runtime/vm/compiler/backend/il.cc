@@ -7303,7 +7303,7 @@ const Code& ReturnInstr::GetReturnStub(FlowGraphCompiler* compiler) const {
   const Function& function = compiler->parsed_function().function();
   ASSERT(function.IsSuspendableFunction());
   if (function.IsAsyncFunction()) {
-    if (!value()->Type()->CanBeFuture()) {
+    if (compiler->is_optimizing() && !value()->Type()->CanBeFuture()) {
       return Code::ZoneHandle(compiler->zone(),
                               compiler->isolate_group()
                                   ->object_store()

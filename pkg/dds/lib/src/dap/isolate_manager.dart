@@ -282,6 +282,10 @@ class IsolateManager {
       resumeType = vm.StepOption.kOverAsyncSuspension;
     }
 
+    // Finally, when we're resuming, all stored objects become invalid and
+    // we can drop them to save memory.
+    thread.clearStoredData();
+
     thread.hasPendingResume = true;
     try {
       await _adapter.vmService?.resume(thread.isolate.id!, step: resumeType);
@@ -867,6 +871,13 @@ class IsolateManager {
 
     return results.any((result) => result);
   }
+
+  /// Clears all data stored for [thread].
+  ///
+  /// References to stored data become invalid when a thread is resumed.
+  void clearStoredData(ThreadInfo thread) {
+    _storedData.removeWhere((_, value) => value.thread == thread);
+  }
 }
 
 /// Holds state for a single Isolate/Thread.
@@ -1169,6 +1180,13 @@ class ThreadInfo {
     return fileUri
         .replace(pathSegments: fileUri.pathSegments.sublist(0, keepSegments))
         .toFilePath();
+  }
+
+  /// Clears all data stored for this thread.
+  ///
+  /// References to stored data become invalid when the thread is resumed.
+  void clearStoredData() {
+    _manager.clearStoredData(this);
   }
 }
 

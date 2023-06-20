@@ -978,7 +978,8 @@ bool CompileType::CanBeFuture() {
       (type_class_id == kNeverCid)) {
     return false;
   }
-  return Class::Handle(zone, type.type_class()).can_be_future();
+  const auto& cls = Class::Handle(zone, type.type_class());
+  return CHA::ClassCanBeFuture(cls);
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {
@@ -1219,9 +1220,10 @@ CompileType ParameterInstr::ComputeType() const {
                     type_class.ToCString());
               }
               if (FLAG_use_cha_deopt) {
-                thread->compiler_state().cha().AddToGuardedClasses(
-                    type_class,
-                    /*subclass_count=*/0);
+                thread->compiler_state()
+                    .cha()
+                    .AddToGuardedClassesForSubclassCount(type_class,
+                                                         /*subclass_count=*/0);
               }
               cid = type_class.id();
             }
