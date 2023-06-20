@@ -1242,8 +1242,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Locals',
         presentationHint: 'locals',
-        variablesReference: isolateManager.storeData(
-          thread,
+        variablesReference: thread.storeData(
           FrameScopeData(frameData, FrameScopeDataKind.locals),
         ),
         expensive: false,
@@ -1252,8 +1251,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       scopes.add(Scope(
         name: 'Globals',
         presentationHint: 'globals',
-        variablesReference: isolateManager.storeData(
-          thread,
+        variablesReference: thread.storeData(
           FrameScopeData(frameData, FrameScopeDataKind.globals),
         ),
         expensive: false,
