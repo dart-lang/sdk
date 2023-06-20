@@ -91,7 +91,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "4ec79ce9826d96225d33dec77dfc344adab92606",
+  "binaryen_rev" : "b9b5f162ca8bf5b899ff0f0351491d7d403d7ed9",
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
@@ -175,7 +175,7 @@ vars = {
   "string_scanner_rev": "6bb314f2176598a5ecc4770a3bbd42626e18b576",
   "sync_http_rev": "c3d6ad48ec997c56b7f076bc9f8b4134c4a9225c",
   "term_glyph_rev": "4daa34eea4bd6d9780aaeadbf6665af3ebb402fd",
-  "test_rev": "e7ae6139b85312b5229a6b139a14554992fe6e85",
+  "test_rev": "3d5afedce6fe9643cafbeb89af45ebe9754233c2",
   "test_descriptor_rev": "be7ce0751d85abd1ef605d14d359f499e1ba8fe2",
   "test_process_rev": "5ff212250f6cc5f850b26295e7c8123bd5238ea3",
   "test_reflective_loader_rev": "40d61b16647cd61b02d806fea46362ef07e7c502",
