@@ -152,6 +152,202 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 @reflectiveTest
 class ChangeMethodSignatureTest_analyzeSelection
     extends AbstractChangeMethodSignatureTest {
+  Future<void> test_classConstructor_fieldFormal_explicitType() async {
+    await _analyzeSelection(r'''
+class A {
+  final num a;
+  ^A(int this.a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::new
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_fieldFormal_implicitType() async {
+    await _analyzeSelection(r'''
+class A {
+  final int a;
+  ^A(this.a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::new
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_named_className() async {
+    await _analyzeSelection(r'''
+class A {
+  A^.named(int a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::named
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_named_constructorName() async {
+    await _analyzeSelection(r'''
+class A {
+  A.^named(int a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::named
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_named_constructorName2() async {
+    await _analyzeSelection(r'''
+class A {
+  A.named^(int a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::named
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_superFormal_optionalNamed() async {
+    await _analyzeSelection(r'''
+class A {
+  final int a;
+  A({this.a});
+}
+
+class B extends A {
+  ^B({super.a});
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::B::@constructor::new
+formalParameters
+  id: 0
+    kind: optionalNamed
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_superFormal_optionalPositional() async {
+    await _analyzeSelection(r'''
+class A {
+  final int? a;
+  A([this.a]);
+}
+
+class B extends A {
+  ^B([super.a]);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::B::@constructor::new
+formalParameters
+  id: 0
+    kind: optionalPositional
+    name: a
+    typeStr: int?
+''');
+  }
+
+  Future<void> test_classConstructor_superFormal_requiredNamed() async {
+    await _analyzeSelection(r'''
+class A {
+  final int a;
+  A({
+    required this.a,
+  });
+}
+
+class B extends A {
+  ^B({
+    required super.a,
+  });
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::B::@constructor::new
+formalParameters
+  id: 0
+    kind: requiredNamed
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_superFormal_requiredPositional() async {
+    await _analyzeSelection(r'''
+class A {
+  final int a;
+  A(this.a);
+}
+
+class B extends A {
+  ^B(super.a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::B::@constructor::new
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
+  Future<void> test_classConstructor_unnamed_className() async {
+    await _analyzeSelection(r'''
+class A {
+  ^A(int a);
+}
+''');
+
+    _assertSelectionState(selectionState, r'''
+element: self::@class::A::@constructor::new
+formalParameters
+  id: 0
+    kind: requiredPositional
+    name: a
+    typeStr: int
+''');
+  }
+
   Future<void> test_classMethodDeclaration_atName() async {
     await _analyzeSelection(r'''
 class A {
@@ -389,7 +585,7 @@ formalParameters
 ''');
   }
 
-  Future<void> test_kind_requiredPositional2() async {
+  Future<void> test_kind_requiredPositional() async {
     await _analyzeSelection(r'''
 void ^test(int a, String b) {}
 ''');
@@ -639,6 +835,274 @@ void f() {
 ''');
   }
 
+  Future<void>
+      test_classConstructor_optionalNamed_toRequiredPositional() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  final int b;
+  ^A({
+    this.a = 0,
+    this.b = 1,
+  });
+}
+
+class B extends A {
+  B() : super(a: 2, b: 3);
+}
+
+void f() {
+  A(a: 4, b: 5);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  final int b;
+  A(this.a, this.b);
+}
+
+class B extends A {
+  B() : super(2, 3);
+}
+
+void f() {
+  A(4, 5);
+}
+''');
+  }
+
+  Future<void> test_classConstructor_requiredNamed_reorder() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  final int b;
+  ^A({
+    required this.a,
+    required this.b,
+  });
+}
+
+class B extends A {
+  B() : super(a: 0, b: 1);
+}
+
+void f() {
+  A(a: 2, b: 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  final int b;
+  A({
+    required this.b,
+    required this.a,
+  });
+}
+
+class B extends A {
+  B() : super(b: 1, a: 0);
+}
+
+void f() {
+  A(b: 3, a: 2);
+}
+''');
+  }
+
+  Future<void>
+      test_classConstructor_requiredNamed_toRequiredPositional() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  final int b;
+  ^A({
+    required this.a,
+    required this.b,
+  });
+}
+
+class B extends A {
+  B() : super(a: 0, b: 1);
+}
+
+void f() {
+  A(a: 2, b: 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  final int b;
+  A(this.a, this.b);
+}
+
+class B extends A {
+  B() : super(0, 1);
+}
+
+void f() {
+  A(2, 3);
+}
+''');
+  }
+
+  Future<void> test_classConstructor_requiredPositional_reorder() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  final int b;
+  ^A(this.a, this.b);
+}
+
+class B extends A {
+  B() : super(0, 1);
+}
+
+void f() {
+  A(2, 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  final int b;
+  A(this.b, this.a);
+}
+
+class B extends A {
+  B() : super(1, 0);
+}
+
+void f() {
+  A(3, 2);
+}
+''');
+  }
+
+  Future<void>
+      test_classConstructor_requiredPositional_toRequiredNamed() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  final int b;
+  ^A(this.a, this.b);
+}
+
+class B extends A {
+  B() : super(0, 1);
+}
+
+void f() {
+  A(2, 3);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  final int b;
+  A({
+    required this.a,
+    required this.b,
+  });
+}
+
+class B extends A {
+  B() : super(a: 0, b: 1);
+}
+
+void f() {
+  A(a: 2, b: 3);
+}
+''');
+  }
+
   Future<void> test_classMethod_optionalNamed_reorder_less() async {
     await _analyzeValidSelection(r'''
 class A {
@@ -881,7 +1345,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_fail_noSuchId_greater() async {
+  Future<void> test_topFunction_fail_noSuchId_greater() async {
     await _analyzeValidSelection(r'''
 void ^test(int a) {}
 ''');
@@ -902,7 +1366,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_fail_noSuchId_negative() async {
+  Future<void> test_topFunction_fail_noSuchId_negative() async {
     await _analyzeValidSelection(r'''
 void ^test(int a) {}
 ''');
@@ -923,7 +1387,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_fail_optionalPositional_optionalNamed() async {
+  Future<void> test_topFunction_fail_optionalPositional_optionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, int b) {}
 
@@ -952,7 +1416,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_optionalNamed_reorder() async {
+  Future<void> test_topFunction_optionalNamed_reorder() async {
     await _analyzeValidSelection(r'''
 void ^test({
   int a = 0,
@@ -992,7 +1456,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalNamed_reorder_notAll() async {
+  Future<void> test_topFunction_optionalNamed_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test({int? a, int? b}) {}
 
@@ -1026,7 +1490,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalNamed_toOptionalPositional() async {
+  Future<void> test_topFunction_optionalNamed_toOptionalPositional() async {
     await _analyzeValidSelection(r'''
 void ^test({
   int a = 0,
@@ -1063,7 +1527,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalNamed_toRequiredNamed() async {
+  Future<void> test_topFunction_optionalNamed_toRequiredNamed() async {
     await _analyzeValidSelection(r'''
 void ^test({
   int a = 0,
@@ -1103,7 +1567,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalNamed_toRequiredNamed_notAll() async {
+  Future<void> test_topFunction_optionalNamed_toRequiredNamed_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test({int? a, double? b}) {}
 
@@ -1140,7 +1604,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalNamed_toRequiredPositional() async {
+  Future<void> test_topFunction_optionalNamed_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 void ^test({
   int a = 0,
@@ -1177,7 +1641,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalPositional_reorder() async {
+  Future<void> test_topFunction_optionalPositional_reorder() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -1211,7 +1675,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalPositional_reorder_notAll() async {
+  Future<void> test_topFunction_optionalPositional_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test([int? a, int? b]) {}
 
@@ -1240,7 +1704,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_optionalPositional_toOptionalNamed() async {
+  Future<void> test_topFunction_optionalPositional_toOptionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -1274,7 +1738,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalPositional_toRequiredNamed() async {
+  Future<void> test_topFunction_optionalPositional_toRequiredNamed() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -1311,7 +1775,8 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalPositional_toRequiredPositional() async {
+  Future<void>
+      test_topFunction_optionalPositional_toRequiredPositional() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -1345,7 +1810,8 @@ void f() {
 ''');
   }
 
-  Future<void> test_optionalPositional_toRequiredPositional_notAll() async {
+  Future<void>
+      test_topFunction_optionalPositional_toRequiredPositional_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test([int a, double b]) {}
 
@@ -1374,7 +1840,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_requiredNamed_reorder() async {
+  Future<void> test_topFunction_requiredNamed_reorder() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int a,
@@ -1414,7 +1880,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredNamed_reorder_hasTrailingComma() async {
+  Future<void> test_topFunction_requiredNamed_reorder_hasTrailingComma() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int a,
@@ -1460,7 +1926,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredNamed_reorder_notAll() async {
+  Future<void> test_topFunction_requiredNamed_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test({required int a, required int b}) {}
 
@@ -1494,7 +1960,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredNamed_toOptionalNamed() async {
+  Future<void> test_topFunction_requiredNamed_toOptionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int a,
@@ -1531,7 +1997,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredNamed_toOptionalPositional() async {
+  Future<void> test_topFunction_requiredNamed_toOptionalPositional() async {
     await _analyzeValidSelection(r'''
 void ^test({
   required int a,
@@ -1568,7 +2034,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_reorder() async {
+  Future<void> test_topFunction_requiredPositional_reorder() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -1602,7 +2068,8 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_reorder_hasNamedArgumentMiddle() async {
+  Future<void>
+      test_topFunction_requiredPositional_reorder_hasNamedArgumentMiddle() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b, {int? c}) {}
 
@@ -1640,7 +2107,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_reorder_notAll() async {
+  Future<void> test_topFunction_requiredPositional_reorder_notAll() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, int b) {}
 
@@ -1669,7 +2136,7 @@ ChangeStatusFailure
 ''');
   }
 
-  Future<void> test_requiredPositional_toOptionalNamed() async {
+  Future<void> test_topFunction_requiredPositional_toOptionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -1703,7 +2170,8 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_toOptionalPositional() async {
+  Future<void>
+      test_topFunction_requiredPositional_toOptionalPositional() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -1737,7 +2205,8 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_toOptionalPositional1() async {
+  Future<void>
+      test_topFunction_requiredPositional_toOptionalPositional1() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 
@@ -1771,7 +2240,7 @@ void f() {
 ''');
   }
 
-  Future<void> test_requiredPositional_toRequiredNamed() async {
+  Future<void> test_topFunction_requiredPositional_toRequiredNamed() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, double b) {}
 

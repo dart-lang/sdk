@@ -11,7 +11,6 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
     as framework;
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -82,6 +81,19 @@ sealed class ChangeStatus {}
 /// necessary, with pieces of data (e.g. nodes, names, etc), such subtypes
 /// can be added.
 final class ChangeStatusFailure extends ChangeStatus {}
+
+/// The signal that the [ConstructorDeclaration] with a super formal parameter
+/// was found. This is not supported by the refactoring.
+///
+/// TODO(scheglov) Make [ChangeStatusFailure] sealed.
+final class ChangeStatusFailureSuperFormalParameter
+    extends ChangeStatusFailure {
+  final ConstructorDeclaration constructorDeclaration;
+
+  ChangeStatusFailureSuperFormalParameter({
+    required this.constructorDeclaration,
+  });
+}
 
 /// The result that signals the success.
 final class ChangeStatusSuccess extends ChangeStatus {}
@@ -275,6 +287,8 @@ class _AvailabilityAnalyzer {
     );
   }
 
+  /// [node] is either an executable declaration itself, or a node that is
+  /// unambiguously associated with one.
   _Declaration? _declarationExecutable({
     required AstNode? node,
     required bool anyLocation,
@@ -296,14 +310,17 @@ class _AvailabilityAnalyzer {
       return null;
     }
 
-    if (node is FunctionExpression) {
-      final functionDeclaration = node.parent;
-      if (functionDeclaration is FunctionDeclaration) {
-        node = functionDeclaration;
-      }
-    }
-
+    node = node?.declaration;
     switch (node) {
+      case ConstructorDeclaration():
+        final nameRange = range.startEnd(
+          node.returnType,
+          node.name ?? node.returnType,
+        );
+        final selectionRange = refactoringContext.selectionRange;
+        if (anyLocation || nameRange.covers(selectionRange)) {
+          return buildDeclaration(node);
+        }
       case FunctionDeclaration():
         if (hasGoodLocation(node.name)) {
           return buildDeclaration(node);
@@ -465,15 +482,14 @@ class _SelectionAnalyzer {
         return const UnexpectedSelectionState();
       }
 
-      // TODO(scheglov) Rework this when adding support for constructors.
-      TypeAnnotation? typeNode;
-      final notDefault = parameterNode.notDefault;
-      if (notDefault is SimpleFormalParameter) {
-        typeNode = notDefault.type;
-      }
-      if (typeNode == null) {
+      final parameterElement = parameterNode.declaredElement;
+      if (parameterElement == null) {
         return const UnexpectedSelectionState();
       }
+
+      final typeStr = parameterElement.type.getDisplayString(
+        withNullability: true,
+      );
 
       formalParameterStateList.add(
         FormalParameterState(
@@ -481,7 +497,7 @@ class _SelectionAnalyzer {
           kind: kind,
           positionalIndex: kind.isPositional ? positionalIndex++ : null,
           name: nameToken.lexeme,
-          typeStr: refactoringContext.utils.getNodeText(typeNode),
+          typeStr: typeStr,
           isSelected: declaration.selected.contains(parameterNode),
         ),
       );
@@ -741,7 +757,7 @@ class _SignatureUpdater {
         case NormalFormalParameter():
           switch (update.kind) {
             case FormalParameterKind.requiredPositional:
-              final text = utils.getNodeText(notDefault);
+              final text = withoutRequired(notDefault);
               requiredPositionalWrites.add(text);
             case FormalParameterKind.optionalPositional:
               final text = withoutRequired(existing);
@@ -845,20 +861,26 @@ class _SignatureUpdater {
         return ChangeStatusFailure();
       }
 
-      MethodInvocation? invocation;
-      final coveringNode = selection.coveringNode;
-      if (coveringNode is MethodInvocation) {
-        invocation = coveringNode;
-      } else if (coveringNode is SimpleIdentifier) {
-        invocation = coveringNode.parent.ifTypeOrNull();
-      }
-      if (invocation == null) {
-        return ChangeStatusFailure();
+      ArgumentList argumentList;
+      final invocation = selection.coveringNode.invocation;
+      switch (invocation) {
+        case ConstructorDeclaration constructor:
+          return ChangeStatusFailureSuperFormalParameter(
+            constructorDeclaration: constructor,
+          );
+        case InstanceCreationExpression instanceCreation:
+          argumentList = instanceCreation.argumentList;
+        case MethodInvocation invocation:
+          argumentList = invocation.argumentList;
+        case SuperConstructorInvocation invocation:
+          argumentList = invocation.argumentList;
+        default:
+          return ChangeStatusFailure();
       }
 
       final result = await updateArguments(
         resolvedUnit: unitResult,
-        argumentList: invocation.argumentList,
+        argumentList: argumentList,
         builder: builder,
       );
       if (result is! ChangeStatusSuccess) {
@@ -973,13 +995,61 @@ extension on FormalParameterList {
 }
 
 extension on AstNode {
+  AstNode? get declaration {
+    final self = this;
+    if (self is FunctionExpression) {
+      final functionDeclaration = self.parent;
+      if (functionDeclaration is FunctionDeclaration) {
+        return functionDeclaration;
+      }
+    }
+
+    if (self is SimpleIdentifier) {
+      final constructorDeclaration = self.parent;
+      if (constructorDeclaration is ConstructorDeclaration) {
+        if (constructorDeclaration.returnType == self) {
+          return constructorDeclaration;
+        }
+      }
+    }
+
+    switch (self) {
+      case ConstructorDeclaration():
+      case FunctionDeclaration():
+      case MethodDeclaration():
+        return self;
+    }
+
+    return null;
+  }
+
   FormalParameterList? get formalParameterList {
     final self = this;
     switch (self) {
+      case ConstructorDeclaration():
+        return self.parameters;
       case FunctionDeclaration():
         return self.functionExpression.parameters;
       case MethodDeclaration():
         return self.parameters;
+    }
+    return null;
+  }
+
+  AstNode? get invocation {
+    final self = this;
+    switch (self) {
+      case SimpleIdentifier():
+        final parent = self.parent;
+        if (parent is ConstructorDeclaration) {
+          return parent;
+        } else if (parent is MethodInvocation) {
+          return parent;
+        }
+      case InstanceCreationExpression():
+      case MethodInvocation():
+      case SuperConstructorInvocation():
+        return self;
     }
     return null;
   }
