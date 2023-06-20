@@ -1051,6 +1051,11 @@ mixin ErroneousMemberBuilderMixin implements SourceMemberBuilder {
     throw new UnsupportedError(
         '$runtimeType.bodyBuilderContextForAnnotations}');
   }
+
+  @override
+  Iterable<Annotatable> get annotatables {
+    throw new UnsupportedError('$runtimeType.annotatables}');
+  }
 }
 
 class AmbiguousMemberBuilder extends AmbiguousBuilder

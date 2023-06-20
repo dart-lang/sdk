@@ -84,6 +84,10 @@ abstract class MemberBuilder implements ModifierBuilder {
 
   /// The builder for the enclosing class, if any.
   ClassBuilder? get classBuilder;
+
+  /// Returns the [Annotatable] nodes that hold the annotations declared on this
+  /// member.
+  Iterable<Annotatable> get annotatables;
 }
 
 abstract class MemberBuilderImpl extends ModifierBuilderImpl

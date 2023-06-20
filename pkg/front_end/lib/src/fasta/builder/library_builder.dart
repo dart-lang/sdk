@@ -93,6 +93,18 @@ abstract class LibraryBuilder implements ModifierBuilder {
   /// that the builders are mapped to.
   NameIterator<Builder> get localMembersNameIterator;
 
+  /// [Iterator] for all declarations declared in this library or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  Iterator<T> fullMemberIterator<T extends Builder>();
+
+  /// [NameIterator] for all declarations declared in this class or any of its
+  /// augmentations.
+  ///
+  /// Duplicates and augmenting members are _not_ included.
+  NameIterator<T> fullMemberNameIterator<T extends Builder>();
+
   void addExporter(LibraryBuilder exporter,
       List<CombinatorBuilder>? combinators, int charOffset);
 

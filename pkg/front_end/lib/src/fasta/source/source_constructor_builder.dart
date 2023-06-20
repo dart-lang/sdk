@@ -928,6 +928,10 @@ class DeclaredSourceConstructorBuilder
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new ConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [constructor];
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1285,6 +1289,10 @@ class SourceInlineClassConstructorBuilder
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new InlineClassConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [_constructor];
 }
 
 class InlineClassInitializerToStatementConverter

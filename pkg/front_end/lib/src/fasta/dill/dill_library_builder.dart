@@ -16,6 +16,7 @@ import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/modifier_builder.dart';
+import '../builder/name_iterator.dart';
 import '../builder/never_type_declaration_builder.dart';
 import '../builder/type_alias_builder.dart';
 import '../fasta_codes.dart'
@@ -401,5 +402,17 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
           "Unexpected declaration ${declaration} (${declaration.runtimeType}) "
           "for node ${node} (${node.runtimeType}).");
     }
+  }
+
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() {
+    return scope.filteredIterator<T>(
+        includeDuplicates: false, includeAugmentations: false);
+  }
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() {
+    return scope.filteredNameIterator(
+        includeDuplicates: false, includeAugmentations: false);
   }
 }

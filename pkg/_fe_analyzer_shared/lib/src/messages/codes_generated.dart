@@ -13571,6 +13571,15 @@ const MessageCode messageUnsupportedDartExt = const MessageCode(
         r"""Migrate to using FFI instead (https://dart.dev/guides/libraries/c-interop)""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeUnsupportedMacroApplication =
+    messageUnsupportedMacroApplication;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageUnsupportedMacroApplication = const MessageCode(
+    "UnsupportedMacroApplication",
+    problemMessage: r"""This macro application didn't apply correctly.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Token token)> templateUnsupportedOperator =
     const Template<Message Function(Token token)>(
         problemMessageTemplate: r"""The '#lexeme' operator is not supported.""",
