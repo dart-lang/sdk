@@ -11,6 +11,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
@@ -66,6 +67,10 @@ class AbstractRefactoringContext {
 
   /// Return the offset of the first character after the selection range.
   int get selectionEnd => selectionOffset + selectionLength;
+
+  /// Returns the selection range.
+  SourceRange get selectionRange =>
+      SourceRange(selectionOffset, selectionLength);
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;
