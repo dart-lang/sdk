@@ -2040,6 +2040,7 @@ class Class : public Object {
 
   void set_is_future_subtype(bool value) const;
   bool is_future_subtype() const {
+    ASSERT(is_type_finalized());
     return IsFutureSubtypeBit::decode(state_bits());
   }
 

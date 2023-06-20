@@ -588,7 +588,7 @@ FlowGraph::ToCheck FlowGraph::CheckForInstanceCall(
           method_name.ToCString(), receiver_class.ToCString());
     }
     if (FLAG_use_cha_deopt) {
-      cha.AddToGuardedClasses(receiver_class, subclass_count);
+      cha.AddToGuardedClassesForSubclassCount(receiver_class, subclass_count);
     }
     return receiver_maybe_null ? ToCheck::kCheckNull : ToCheck::kNoCheck;
   }
