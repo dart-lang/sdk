@@ -78,6 +78,8 @@ class DartObjectPrinter {
         });
       } else if (state is RecordState) {
         _writeRecord(type, state);
+      } else if (state is FunctionState) {
+        _writeFunction(type, state);
       } else {
         throw UnimplementedError();
       }
@@ -120,6 +122,20 @@ class DartObjectPrinter {
     final reference = element.reference!;
     final referenceStr = _referenceToString(reference);
     _writelnWithIndent('$name: $referenceStr');
+  }
+
+  void _writeFunction(DartType type, FunctionState state) {
+    final typeStr = type.getDisplayString(withNullability: true);
+    sink.writeln(typeStr);
+
+    _withIndent(() {
+      _writeElementReference('element', state.element);
+    });
+
+    final typeArguments = state.typeArguments;
+    if (typeArguments != null) {
+      _writeTypeArguments(typeArguments);
+    }
   }
 
   void _writelnType(DartType type) {

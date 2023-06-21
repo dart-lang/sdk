@@ -29,6 +29,7 @@ import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
+import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ConstantEvaluationConfiguration {
   final Map<AstNode, AstNode> _errorNodes = {};
@@ -754,10 +755,16 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }
 
+    final constructorElement = node.constructorName.staticElement?.declaration
+        .ifTypeOrNull<ConstructorElementImpl>();
+    if (constructorElement == null) {
+      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+    }
+
     return DartObjectImpl(
       typeSystem,
       node.typeOrThrow,
-      FunctionState(node.constructorName.staticElement,
+      FunctionState(constructorElement,
           typeArguments: typeArguments, viaTypeAlias: viaTypeAlias),
     );
   }
@@ -772,10 +779,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitFunctionReference(FunctionReference node) {
-    var functionResult = node.function.accept(this);
-    if (functionResult == null || functionResult is! DartObjectImpl) {
-      return null;
+  Constant visitFunctionReference(FunctionReference node) {
+    var functionResult = _getConstant(node.function);
+    if (functionResult is! DartObjectImpl) {
+      return functionResult;
     }
 
     // Report an error if any of the _inferred_ type argument types refer to a
@@ -793,7 +800,12 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           }
         });
         if (instantiatedTypeArgumentTypes.any(hasTypeParameterReference)) {
-          _error(node, null);
+          // TODO(kallentu): Don't report error here.
+          _errorReporter.reportErrorForNode(
+              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+              node);
+          return InvalidConstant(node,
+              CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF);
         }
       }
     }
@@ -805,20 +817,22 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
     var typeArguments = <DartType>[];
     for (var typeArgument in typeArgumentList.arguments) {
-      var object = typeArgument.accept(this);
-      if (object == null || object is! DartObjectImpl) {
-        return null;
+      var object = _getConstant(typeArgument);
+      if (object is! DartObjectImpl) {
+        return object;
       }
       var typeArgumentType = object.toTypeValue();
       if (typeArgumentType == null) {
-        return null;
+        return InvalidConstant(
+            typeArgument, CompileTimeErrorCode.INVALID_CONSTANT);
       }
       // TODO(srawlins): Test type alias types (`typedef i = int`) used as
       // type arguments. Possibly change implementation based on
       // canonicalization rules.
       typeArguments.add(typeArgumentType);
     }
-    return _dartObjectComputer.typeInstantiate(functionResult, typeArguments);
+    return _dartObjectComputer.typeInstantiate(
+        functionResult, typeArguments, node.function);
   }
 
   @override
@@ -1493,19 +1507,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
       }
-    } else if (variableElement is ConstructorElement && expression != null) {
+    } else if (variableElement is ConstructorElementImpl &&
+        expression != null) {
       return DartObjectImpl(
         typeSystem,
         expression.typeOrThrow,
         FunctionState(variableElement),
       );
-    } else if (variableElement is ExecutableElement) {
-      var function = element as ExecutableElement;
-      if (function.isStatic) {
+    } else if (variableElement is ExecutableElementImpl) {
+      if (variableElement.isStatic) {
         var rawType = DartObjectImpl(
           typeSystem,
-          function.type,
-          FunctionState(function),
+          variableElement.type,
+          FunctionState(variableElement),
         );
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
@@ -1570,7 +1584,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   /// If the type of [value] is a generic [FunctionType], and [node] has type
   /// argument types, returns [value] type-instantiated with those [node]'s
   /// type argument types, otherwise returns [value].
-  DartObjectImpl? _instantiateFunctionType(
+  DartObjectImpl _instantiateFunctionType(
       FunctionReference node, DartObjectImpl value) {
     var functionElement = value.toFunctionValue();
     if (functionElement is! ExecutableElement) {
@@ -2100,19 +2114,21 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl? typeInstantiate(
+  Constant typeInstantiate(
     DartObjectImpl function,
     List<DartType> typeArguments,
+    Expression node,
   ) {
     var rawType = function.type;
     if (rawType is FunctionType) {
       if (typeArguments.length != rawType.typeFormals.length) {
-        return null;
+        return InvalidConstant(
+            node, CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION);
       }
       var type = rawType.instantiate(typeArguments);
       return function.typeInstantiate(_typeSystem, type, typeArguments);
     } else {
-      return null;
+      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
   }
 
