@@ -24,6 +24,72 @@ class EnumTest1 extends AbstractCompletionDriverTest with EnumTestCases {
 class EnumTest2 extends AbstractCompletionDriverTest with EnumTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @failingTest
+  Future<void> test_inside_implicitThis_constants() async {
+    await computeSuggestions('''
+enum E {
+  a1, a2;
+
+  void f() {
+    a^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a1
+    kind: enumConstant
+  a2
+    kind: enumConstant
+''');
+  }
+
+  @failingTest
+  Future<void> test_inside_implicitThis_getter() async {
+    await computeSuggestions('''
+enum E {
+  v;
+
+  int get a1 => 0;
+
+  void f() {
+    a^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a1
+    kind: getter
+''');
+  }
+
+  @failingTest
+  Future<void> test_inside_implicitThis_method() async {
+    await computeSuggestions('''
+enum E {
+  v;
+
+  void a1() {}
+
+  void f() {
+    a^;
+  }
+}
+''');
+    assertResponse(r'''
+replacement
+  left: 1
+suggestions
+  a1
+    kind: methodInvocation
+''');
+  }
 }
 
 mixin EnumTestCases on AbstractCompletionDriverTest {
