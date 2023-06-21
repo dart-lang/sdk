@@ -223,9 +223,9 @@ class BackendImpacts {
 
   late final BackendImpact constantSetLiteral = BackendImpact(
     instantiatedClasses: [
-      _commonElements.constSetLiteralClass,
+      _commonElements.constantStringSetClass,
+      _commonElements.generalConstantSetClass,
     ],
-    otherImpacts: [constantMapLiteral],
   );
 
   late final BackendImpact constSymbol = BackendImpact(

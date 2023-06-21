@@ -1011,14 +1011,16 @@ class DataSinkWriter {
       case ConstantValueKind.SET:
         final constant = value as constant_system.JavaScriptSetConstant;
         writeDartType(constant.type);
-        writeConstant(constant.entries);
+        writeConstants(constant.values);
+        writeConstantOrNull(constant.indexObject);
         break;
       case ConstantValueKind.MAP:
         final constant = value as constant_system.JavaScriptMapConstant;
         writeDartType(constant.type);
         writeConstant(constant.keyList);
-        writeConstants(constant.values);
+        writeConstant(constant.valueList);
         writeBool(constant.onlyStringKeys);
+        if (constant.onlyStringKeys) writeConstant(constant.indexObject!);
         break;
       case ConstantValueKind.CONSTRUCTED:
         final constant = value as ConstructedConstantValue;
@@ -1046,6 +1048,11 @@ class DataSinkWriter {
       case ConstantValueKind.INTERCEPTOR:
         final constant = value as InterceptorConstantValue;
         writeClass(constant.cls);
+        break;
+      case ConstantValueKind.JAVASCRIPT_OBJECT:
+        final constant = value as JavaScriptObjectConstantValue;
+        writeConstants(constant.keys);
+        writeConstants(constant.values);
         break;
       case ConstantValueKind.DEFERRED_GLOBAL:
         final constant = value as DeferredGlobalConstantValue;

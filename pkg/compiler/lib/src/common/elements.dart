@@ -384,10 +384,12 @@ abstract class CommonElements {
     return _env.createInterfaceType(classElement, sourceType.typeArguments);
   }
 
-  InterfaceType getConstantSetTypeFor(InterfaceType sourceType) {
+  InterfaceType getConstantSetTypeFor(InterfaceType sourceType,
+      {bool onlyStringKeys = false}) {
     // TODO(51534): Use CONST_CANONICAL_TYPE(T_i) for arguments.
-    return _env.createInterfaceType(
-        constSetLiteralClass, sourceType.typeArguments);
+    ClassEntity classElement =
+        onlyStringKeys ? constantStringSetClass : generalConstantSetClass;
+    return _env.createInterfaceType(classElement, sourceType.typeArguments);
   }
 
   /// Returns the field that holds the internal name in the implementation class
@@ -641,9 +643,7 @@ abstract class CommonElements {
 
   late final ClassEntity constMapLiteralClass = _findHelperClass('ConstantMap');
 
-  // TODO(fishythefish): Implement a `ConstantSet` class and update the backend
-  // impacts + constant emitter accordingly.
-  late final ClassEntity constSetLiteralClass = unmodifiableSetClass;
+  late final ClassEntity constSetLiteralClass = _findHelperClass('ConstantSet');
 
   /// Base class for all records.
   late final ClassEntity recordBaseClass = _findHelperClass('_Record');
@@ -693,6 +693,12 @@ abstract class CommonElements {
 
   late final ClassEntity generalConstantMapClass = _findHelperClass(
       constant_system.JavaScriptMapConstant.DART_GENERAL_CLASS);
+
+  late final ClassEntity constantStringSetClass =
+      _findHelperClass(constant_system.JavaScriptSetConstant.DART_STRING_CLASS);
+
+  late final ClassEntity generalConstantSetClass = _findHelperClass(
+      constant_system.JavaScriptSetConstant.DART_GENERAL_CLASS);
 
   late final ClassEntity annotationCreatesClass = _findHelperClass('Creates');
 
