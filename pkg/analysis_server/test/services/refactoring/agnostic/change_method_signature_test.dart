@@ -16,6 +16,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/reference.dart';
+import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:path/path.dart';
@@ -36,8 +37,8 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   late final SelectionState selectionState;
   late final ValidSelectionState validSelectionState;
 
-  /// Create [testFile] with [rawCode], analyze selection in it.
-  Future<void> _analyzeSelection(String rawCode) async {
+  /// Create [testFile] with [rawCode], analyze availability in it.
+  Future<Availability> _analyzeAvailability(String rawCode) async {
     final testCode = TestCode.parse(rawCode);
     newFile(testFile.path, testCode.code);
 
@@ -46,13 +47,15 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
       testCode: testCode,
     );
 
-    final availability = analyzeAvailability(
+    return analyzeAvailability(
       refactoringContext: refactoringContext,
     );
-    if (availability is! Available) {
-      selectionState = NoExecutableElementSelectionState();
-      return;
-    }
+  }
+
+  /// Create [testFile] with [rawCode], analyze selection in it.
+  Future<void> _analyzeSelection(String rawCode) async {
+    final availability = await _analyzeAvailability(rawCode);
+    availability as Available;
 
     selectionState = await analyzeSelection(
       available: availability,
@@ -604,6 +607,43 @@ formalParameters
 ''');
   }
 
+  Future<void> test_methodInvocation_notAvailable_externalPackage() async {
+    newFile('$packagesRootPath/foo/lib/foo.dart', r'''
+void test(int a, int b) {}
+''');
+
+    writeTestPackageConfig(
+      config: PackageConfigFileBuilder()
+        ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
+    );
+
+    final availability = await _analyzeAvailability(r'''
+import 'package:foo/foo.dart';
+
+void f() {
+  ^test(0, 1);
+}
+''');
+
+    _assertAvailability(availability, r'''
+NotAvailableExternalElement
+''');
+  }
+
+  Future<void> test_methodInvocation_notAvailable_sdk() async {
+    final availability = await _analyzeAvailability(r'''
+import 'dart:math';
+
+void f() {
+  ^min(0, 1);
+}
+''');
+
+    _assertAvailability(availability, r'''
+NotAvailableExternalElement
+''');
+  }
+
   Future<void> test_methodInvocation_topFunction() async {
     await _analyzeSelection(r'''
 void f() {
@@ -624,12 +664,12 @@ formalParameters
   }
 
   Future<void> test_topFunctionDeclaration_afterParameterList() async {
-    await _analyzeSelection(r'''
+    final availability = await _analyzeAvailability(r'''
 void test()^ {}
 ''');
 
-    _assertSelectionState(selectionState, r'''
-NoExecutableElementSelectionState
+    _assertAvailability(availability, r'''
+NotAvailableNoExecutableElement
 ''');
   }
 
@@ -649,13 +689,27 @@ formalParameters
   }
 
   Future<void> test_topFunctionDeclaration_beforeName() async {
-    await _analyzeSelection(r'''
+    final availability = await _analyzeAvailability(r'''
 void ^ test() {}
 ''');
 
-    _assertSelectionState(selectionState, r'''
-NoExecutableElementSelectionState
+    _assertAvailability(availability, r'''
+NotAvailableNoExecutableElement
 ''');
+  }
+
+  void _assertAvailability(Availability availability, String expected) {
+    final buffer = StringBuffer();
+    switch (availability) {
+      case Available():
+        buffer.writeln('Available');
+      case NotAvailableExternalElement():
+        buffer.writeln('NotAvailableExternalElement');
+      case NotAvailableNoExecutableElement():
+        buffer.writeln('NotAvailableNoExecutableElement');
+    }
+
+    _assertTextExpectation(buffer.toString(), expected);
   }
 
   void _assertSelectionState(SelectionState selectionState, String expected) {

@@ -191,11 +191,13 @@ class MethodSignatureUpdate {
 /// The error of [analyzeSelection] returned when:
 /// 1. The selection does not correspond to a method declaration.
 /// 2. The method does not have formal parameters.
-final class NoExecutableElementSelectionState extends ErrorSelectionState {
-  const NoExecutableElementSelectionState();
-}
+final class NoExecutableElementSelectionState extends ErrorSelectionState {}
 
-final class NotAvailable extends Availability {}
+sealed class NotAvailable extends Availability {}
+
+final class NotAvailableExternalElement extends NotAvailable {}
+
+final class NotAvailableNoExecutableElement extends NotAvailable {}
 
 /// The supertype for all results of [analyzeSelection].
 sealed class SelectionState {
@@ -259,15 +261,7 @@ class _AvailabilityAnalyzer {
       );
     }
 
-    final executableElement = _executableElement();
-    if (executableElement != null) {
-      return _AvailableWithExecutableElement(
-        refactoringContext: refactoringContext,
-        element: executableElement,
-      );
-    }
-
-    return NotAvailable();
+    return _executableElement();
   }
 
   _Declaration? _declaration() {
@@ -373,7 +367,7 @@ class _AvailabilityAnalyzer {
     );
   }
 
-  ExecutableElement? _executableElement() {
+  Availability _executableElement() {
     final coveringNode = refactoringContext.coveringNode;
 
     Element? element;
@@ -386,11 +380,18 @@ class _AvailabilityAnalyzer {
     }
 
     if (element is! ExecutableElement) {
-      return null;
+      return NotAvailableNoExecutableElement();
     }
 
-    // TODO(scheglov) Check that element is in an editable library.
-    return element;
+    final libraryFilePath = element.librarySource.fullName;
+    if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
+      return NotAvailableExternalElement();
+    }
+
+    return _AvailableWithExecutableElement(
+      refactoringContext: refactoringContext,
+      element: element,
+    );
   }
 }
 
@@ -451,12 +452,12 @@ class _SelectionAnalyzer {
   Future<SelectionState> analyze() async {
     final declaration = await _declaration();
     if (declaration == null) {
-      return const NoExecutableElementSelectionState();
+      return NoExecutableElementSelectionState();
     }
 
     final parameterNodeList = declaration.node.formalParameterList;
     if (parameterNodeList == null) {
-      return const NoExecutableElementSelectionState();
+      return NoExecutableElementSelectionState();
     }
 
     final formalParameterStateList = <FormalParameterState>[];
