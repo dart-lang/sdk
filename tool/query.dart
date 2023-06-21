@@ -33,7 +33,9 @@ Future<void> main(List<String> args) async {
       Uri.parse('https://dart-lang.github.io/linter/lints/machine/rules.json'));
 
   var token = options['token'];
-  var auth = token is String ? Authentication.withToken(token) : null;
+  var auth = token is String
+      ? Authentication.withToken(token)
+      : const Authentication.anonymous();
 
   var machine = json.decode(req.body) as Iterable;
 

@@ -5,8 +5,11 @@
 import 'package:github/github.dart';
 import 'package:linter/src/utils.dart';
 
-Future<List<IssueLabel>> getLabels(
-    {required String owner, required String name, Authentication? auth}) async {
+Future<List<IssueLabel>> getLabels({
+  required String owner,
+  required String name,
+  required Authentication auth,
+}) async {
   var github = GitHub(auth: auth);
   var slug = RepositorySlug(owner, name);
   try {
@@ -19,7 +22,7 @@ Future<List<IssueLabel>> getLabels(
   }
 }
 
-Future<List<Issue>> getLinterIssues({Authentication? auth}) async {
+Future<List<Issue>> getLinterIssues({required Authentication auth}) async {
   var github = GitHub(auth: auth);
   var slug = RepositorySlug('dart-lang', 'linter');
   try {
