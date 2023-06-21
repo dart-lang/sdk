@@ -37,7 +37,9 @@ Future<Component> compileTestCaseToKernelProgram(Uri sourceUri,
   Directory? tempDirectory;
   try {
     final platformFileName = (target is WasmTarget)
-        ? 'dart2wasm_platform.dill'
+        ? target.useStringref
+            ? 'dart2wasm_stringref_platform.dill'
+            : 'dart2wasm_platform.dill'
         : 'vm_platform_strong.dill';
     final platformKernel =
         computePlatformBinariesLocation().resolve(platformFileName);

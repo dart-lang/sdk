@@ -75,6 +75,17 @@ String? computePlatformDillName(
           break;
       }
       break;
+    case 'wasm_stringref':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'dart2wasm_stringref_outline.dill';
+        //TODO(johnniwinther): Support using the full dill.
+        //return 'dart2wasm_stringref_platform.dill';
+        case NnbdMode.Weak:
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
     default:
       break;
   }

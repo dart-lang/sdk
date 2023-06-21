@@ -39,6 +39,9 @@ class TranslatorOptions {
   bool polymorphicSpecialization = false;
   bool printKernel = false;
   bool printWasm = false;
+  // If the default value for [useStringref] is changed, also update the
+  // `sdk/bin/dart2wasm` script.
+  bool useStringref = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int>? watchPoints = null;

@@ -66,8 +66,10 @@ declare_args() {
 # ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
 # ........dart2js_server_platform_unsound.dill
-# ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_outline.dill (if not on ia32)
+# ........dart2wasm_platform.dill (if not on ia32)
+# ........dart2wasm_stringref_outline.dill (if not on ia32)
+# ........dart2wasm_stringref_platform.dill (if not on ia32)
 # ........ddc_outline.dill
 # ........ddc_platform.dill
 # ........vm_platform_strong.dill
@@ -473,10 +475,13 @@ copy("copy_dart2wasm_platform") {
     ":copy_libraries",
     "../:dart2wasm_platform",
     "../utils/dart2wasm:compile_dart2wasm_platform",
+    "../utils/dart2wasm:compile_dart2wasm_stringref_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_outline.dill",
     "$root_out_dir/dart2wasm_platform.dill",
+    "$root_out_dir/dart2wasm_stringref_outline.dill",
+    "$root_out_dir/dart2wasm_stringref_platform.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]
