@@ -2397,19 +2397,23 @@ const List<String> reservedPropertySymbols = [
 /// This set is so [DeferredHolderFinalizer] can use names like:
 /// [A-Z][_0-9a-zA-Z]* without collisions
 const Set<String> reservedCapitalizedGlobalSymbols = {
-  // Section references are from Ecma-262
+  // Section references are from Ecma-262, 13th Ed.
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
-  // 15.1.1 Value Properties of the Global Object
+  // 19.1 Value Properties of the Global Object
   "NaN", "Infinity",
 
-  // 15.1.4 Constructor Properties of the Global Object
-  "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
-  "RegExp", "Symbol", "Error", "EvalError", "RangeError", "ReferenceError",
-  "SyntaxError", "TypeError", "URIError",
+  // 19.3 Constructor Properties of the Global Object
+  "AggregateError", "Array", "ArrayBuffer", "BigInt", "BigInt64Array",
+  "BigUint64Array", "Boolean", "DataView", "Date", "Error", "EvalError",
+  "FinalizationRegistry", "Float32Array", "Float64Array", "Function",
+  "Int8Array", "Int16Array", "Int32Array", "Map", "Number", "Object", "Promise",
+  "Proxy", "RangeError", "ReferenceError", "RegExp", "Set", "SharedArrayBuffer",
+  "String", "Symbol", "SyntaxError", "Uint8Array", "Uint8ClampedArray",
+  "Uint16Array", "Uint32Array", "URIError", "WeakMap", "WeakRef", "WeakSet",
 
-  // 15.1.5 Other Properties of the Global Object
-  "Math",
+  // 19.4 Other Properties of the Global Object
+  "Atomics", "JSON", "Math", "Reflect",
 
   // Window props (https://developer.mozilla.org/en/DOM/window)
   "Components",
@@ -2442,9 +2446,6 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
   "Packages", "JavaObject", "JavaClass",
   "JavaArray", "JavaMember",
 
-  // ES6 collections.
-  "Map", "Set",
-
   // Some additional names
   "Isolate",
 };
@@ -2456,7 +2457,7 @@ const List<String> reservedGlobalSymbols = [
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
   // 15.1.1 Value Properties of the Global Object
-  "undefined",
+  "globalThis", "undefined",
 
   // 15.1.2 Function Properties of the Global Object
   "eval", "parseInt", "parseFloat", "isNaN", "isFinite",
