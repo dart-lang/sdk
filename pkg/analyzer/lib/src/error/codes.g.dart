@@ -795,6 +795,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_FOR_ELEMENT =
+      CompileTimeErrorCode(
+    'CONST_EVAL_FOR_ELEMENT',
+    "Constant expressions don't support 'for' elements.",
+    correctionMessage:
+        "Try replacing the 'for' element with a spread, or removing 'const'.",
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =

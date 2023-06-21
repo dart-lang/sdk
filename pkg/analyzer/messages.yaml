@@ -2568,6 +2568,9 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_FOR_ELEMENT:
+    problemMessage: "Constant expressions don't support 'for' elements."
+    correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     comment: |-

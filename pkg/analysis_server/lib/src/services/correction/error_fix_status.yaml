@@ -380,6 +380,8 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:

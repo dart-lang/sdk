@@ -925,19 +925,20 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitListLiteral(ListLiteral node) {
+  Constant visitListLiteral(ListLiteral node) {
     if (!node.isConst) {
+      // TODO(kallentu): Don't report the error here.
       _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL, node);
-      return null;
+      return InvalidConstant(
+          node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
-    bool errorOccurred = false;
     List<DartObjectImpl> list = [];
     for (CollectionElement element in node.elements) {
-      errorOccurred = errorOccurred | _addElementsToList(list, element);
-    }
-    if (errorOccurred) {
-      return null;
+      var result = _addElementsToList(list, element);
+      if (result is InvalidConstant) {
+        return result;
+      }
     }
     var nodeType = node.staticType;
     DartType elementType =
@@ -1260,42 +1261,64 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   /// Add the entries produced by evaluating the given collection [element] to
-  /// the given [list]. Return `true` if the evaluation of one or more of the
-  /// elements failed.
-  bool _addElementsToList(List<DartObject> list, CollectionElement element) {
-    if (element is ForElement) {
-      _error(element, null);
-    } else if (element is IfElement) {
-      var conditionValue = _evaluateCondition(element.expression);
-      if (conditionValue == null) {
-        return true;
-      } else if (conditionValue) {
-        return _addElementsToList(list, element.thenElement);
-      } else if (element.elseElement != null) {
-        return _addElementsToList(list, element.elseElement!);
-      }
-      return false;
-    } else if (element is Expression) {
-      var value = element.accept(this);
-      if (value == null || value is! DartObjectImpl) {
-        return true;
-      }
-      list.add(value);
-      return false;
-    } else if (element is SpreadElement) {
-      // TODO(kallentu): Remove constant unwrapping.
-      var elementConstant = element.expression.accept(this);
-      var elementResult =
-          elementConstant is DartObjectImpl ? elementConstant : null;
-      var value = elementResult?.toListValue();
-      if (value == null) {
-        return true;
-      }
-      list.addAll(value);
-      return false;
+  /// the given [list]. Return an [InvalidConstant] if the evaluation of one or
+  /// more of the elements failed.
+  InvalidConstant? _addElementsToList(
+      List<DartObject> list, CollectionElement element) {
+    switch (element) {
+      case Expression():
+        var expression = _getConstant(element);
+        switch (expression) {
+          case InvalidConstant():
+            return expression;
+          case DartObjectImpl():
+            list.add(expression);
+            return null;
+        }
+      case ForElement():
+        // TODO(kallentu): Don't report error here.
+        _errorReporter.reportErrorForNode(
+            CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
+        return InvalidConstant(
+            element, CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT);
+      case IfElement():
+        var condition = _getConstant(element.expression);
+        switch (condition) {
+          case InvalidConstant():
+            return condition;
+          case DartObjectImpl():
+            var conditionValue = condition.toBoolValue();
+            if (conditionValue == null) {
+              // TODO(kallentu): Don't report error here.
+              _errorReporter.reportErrorForNode(
+                  CompileTimeErrorCode.NON_BOOL_CONDITION, element.expression);
+              return InvalidConstant(
+                  element.expression, CompileTimeErrorCode.NON_BOOL_CONDITION);
+            } else if (conditionValue) {
+              return _addElementsToList(list, element.thenElement);
+            } else if (element.elseElement != null) {
+              return _addElementsToList(list, element.elseElement!);
+            }
+            // There's no else element, but the condition value is false.
+            return null;
+        }
+      case MapLiteralEntry():
+        return InvalidConstant(element, CompileTimeErrorCode.INVALID_CONSTANT);
+      case SpreadElement():
+        var spread = _getConstant(element.expression);
+        switch (spread) {
+          case InvalidConstant():
+            return spread;
+          case DartObjectImpl():
+            var listValue = spread.toListValue();
+            if (listValue == null) {
+              return InvalidConstant(element.expression,
+                  CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET);
+            }
+            list.addAll(listValue);
+            return null;
+        }
     }
-    // This error should have been reported elsewhere.
-    return true;
   }
 
   /// Add the entries produced by evaluating the given map [element] to the
@@ -1435,6 +1458,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   /// Evaluate the given [condition] with the assumption that it must be a
   /// `bool`.
+  ///
+  /// TODO(kallentu): Remove once all methods that call [_evaluateCondition] now
+  /// uses [_getInvalidConstantForConditionTypeMismatch]
   bool? _evaluateCondition(Expression condition) {
     // TODO(kallentu): Remove constant unwrapping.
     var conditionConstant = condition.accept(this);

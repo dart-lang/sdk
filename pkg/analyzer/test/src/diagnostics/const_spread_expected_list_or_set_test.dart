@@ -27,6 +27,15 @@ var b = const <int>[...a];
     ]);
   }
 
+  test_const_listInt_constVariable() async {
+    await assertErrorsInCode('''
+const dynamic a = 5;
+const x = <int>[...a];
+''', [
+      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
+    ]);
+  }
+
   test_const_listList() async {
     await assertNoErrorsInCode('''
 const dynamic a = [5];

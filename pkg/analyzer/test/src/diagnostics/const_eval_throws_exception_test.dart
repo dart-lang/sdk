@@ -255,15 +255,6 @@ const c = [if (1 < 0) nil + 1];
 ''');
   }
 
-  test_ifElement_nonBoolCondition_list() async {
-    await assertErrorsInCode('''
-const dynamic nonBool = 3;
-const c = const [if (nonBool) 'a'];
-''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 48, 7),
-    ]);
-  }
-
   test_ifElement_nonBoolCondition_map() async {
     await assertErrorsInCode('''
 const dynamic nonBool = null;
