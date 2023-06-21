@@ -405,7 +405,11 @@ main() {
           .firstWhere((event) => event.output.trim() == originalText);
 
       // Update the file and hot reload.
-      testFile.writeAsStringSync(stringPrintingProgram(newText));
+      testFile.writeAsStringSync(stringPrintingProgram(newText), flush: true);
+      // Set a future date to ensure hot reload detects it as being modified.
+      testFile.setLastModifiedSync(
+        DateTime.now().add(const Duration(seconds: 2)),
+      );
       await dap.client.hotReload();
 
       // Expect the new text.
