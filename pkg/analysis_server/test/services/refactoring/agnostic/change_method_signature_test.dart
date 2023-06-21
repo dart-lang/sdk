@@ -1387,6 +1387,64 @@ ChangeStatusFailure
 ''');
   }
 
+  Future<void> test_topFunction_fail_optionalNamed_optionalPositional() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.optionalPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_topFunction_fail_optionalNamed_requiredPositional() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
   Future<void> test_topFunction_fail_optionalPositional_optionalNamed() async {
     await _analyzeValidSelection(r'''
 void ^test(int a, int b) {}
@@ -1408,6 +1466,65 @@ void f() {
         ),
       ],
       formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void>
+      test_topFunction_fail_optionalPositional_requiredPositional() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.optionalPositional,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_topFunction_fail_requiredNamed_requiredPositional() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+
+void f() {
+  test(0, 1);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
       argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
     );
 

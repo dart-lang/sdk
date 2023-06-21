@@ -895,21 +895,29 @@ class _SignatureUpdater {
   ///
   /// For example, it is not allowed to have both optional positional, and
   /// any named formal parameters.
-  ///
-  /// TODO(scheglov) check no required positional after optional
   ChangeStatus validateFormalParameterUpdates() {
     final updates = signatureUpdate.formalParameters;
 
-    final optionalPositional = updates.where((e) {
-      return e.kind.isOptionalPositional;
-    }).toList();
-
-    final named = updates.where((e) {
-      return e.kind.isNamed;
-    }).toList();
-
-    if (optionalPositional.isNotEmpty && named.isNotEmpty) {
-      return ChangeStatusFailure();
+    var optionalPositionalCount = 0;
+    var namedCount = 0;
+    for (final update in updates) {
+      switch (update.kind) {
+        case FormalParameterKind.requiredPositional:
+          if (optionalPositionalCount > 0 || namedCount > 0) {
+            return ChangeStatusFailure();
+          }
+        case FormalParameterKind.optionalPositional:
+          if (namedCount > 0) {
+            return ChangeStatusFailure();
+          }
+          optionalPositionalCount++;
+        case FormalParameterKind.requiredNamed:
+        case FormalParameterKind.optionalNamed:
+          if (optionalPositionalCount > 0) {
+            return ChangeStatusFailure();
+          }
+          namedCount++;
+      }
     }
 
     return ChangeStatusSuccess();
