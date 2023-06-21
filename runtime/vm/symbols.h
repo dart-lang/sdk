@@ -41,7 +41,6 @@ class ObjectPointerVisitor;
   V(Code, "Code")                                                              \
   V(CodeSourceMap, "CodeSourceMap")                                            \
   V(ColonMatcher, ":matcher")                                                  \
-  V(Completer, "Completer")                                                    \
   V(Compound, "_Compound")                                                     \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
