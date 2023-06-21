@@ -28,7 +28,34 @@ if [[ `uname` == 'Darwin' ]]; then
 else
   OUT_DIR="$SDK_DIR/out"
 fi
-DART_CONFIGURATION=${DART_CONFIGURATION:-ReleaseX64}
+
+# Set DART_CONFIGURATION. Code copied from `dart` script in the same directory.
+if [ -z "$DART_CONFIGURATION" ];
+then
+  DIRS=$( ls "$OUT_DIR" )
+  # List of possible configurations in decreasing desirability.
+  CONFIGS=("ReleaseX64" "ReleaseARM64" "ReleaseIA32" "DebugX64" "DebugIA32"
+    "ReleaseARM" "DebugARM" "DebugARM64" )
+  DART_CONFIGURATION="None"
+  for CONFIG in ${CONFIGS[*]}
+  do
+    for DIR in $DIRS;
+    do
+      if [ "$CONFIG" = "$DIR" ];
+      then
+        # Choose most desirable configuration that is available and break.
+        DART_CONFIGURATION="$DIR"
+        break 2
+      fi
+    done
+  done
+  if [ "$DART_CONFIGURATION" = "None" ]
+  then
+    echo "No valid dart configuration found in $OUT_DIR"
+    exit 1
+  fi
+fi
+
 BIN_DIR="$OUT_DIR/$DART_CONFIGURATION"
 
 DART_PRECOMPILED_RUNTIME="$BIN_DIR/dart_precompiled_runtime"
