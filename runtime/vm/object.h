@@ -7420,28 +7420,14 @@ class SubtypeTestCache : public Object {
   // probed by using a hash value derived from the inputs.
 
   enum Header {
-    // A single Smi that is a bitfield containing two values:
-    // - The number of occupied entries in the cache for all cache types.
-    // - For hash-based caches, the upper bits contain log2(N) where N
-    //   is the number of total entries in the cache, so this information can
-    //   be quickly retrieved by stubs.
+    // The number of occupied entries in the cache as a Smi.
     //
     // Note: accesses outside of the subtype test cache mutex must have acquire
     // semantics. In C++ code, use NumOccupied to retrieve the number of
     // occupied entries.
-    kMetadataIndex = 0,
+    kNumOccupiedIndex = 0,
     kHeaderSize,
   };
-
-  using NumOccupiedBits =
-      BitField<intptr_t,
-               intptr_t,
-               0,
-               compiler::target::kSmiBits - compiler::target::kBitsPerWordLog2>;
-  using EntryCountLog2Bits = BitField<intptr_t,
-                                      intptr_t,
-                                      NumOccupiedBits::kNextBit,
-                                      compiler::target::kBitsPerWordLog2>;
 
   // The tuple of values stored in a given entry.
   //
@@ -7449,6 +7435,11 @@ class SubtypeTestCache : public Object {
   // non-null instance cid or signature means the rest of the entry can be
   // loaded without worrying about concurrent modification. Thus, we always set
   // the instance cid or signature last when making an occupied entry.
+  //
+  // Also note that each STC, when created, has a set number of used inputs.
+  // The value of any unused input is unspecified, so for example, if the
+  // STC only uses 3 inputs, then no assumptions can be made about the value
+  // stored in the instantiator type arguments slot.
   enum Entries {
     kInstanceCidOrSignature = 0,
     kDestinationType = 1,
@@ -7460,6 +7451,13 @@ class SubtypeTestCache : public Object {
     kTestResult = 7,
     kTestEntryLength = 8,
   };
+
+  // Assumes only one non-input entry in the array, kTestResult.
+  static_assert(kInstanceCidOrSignature == 0 &&
+                    kInstanceDelayedFunctionTypeArguments + 1 == kTestResult &&
+                    kTestResult + 1 == kTestEntryLength,
+                "Need to adjust number of max inputs");
+  static constexpr intptr_t kMaxInputs = kTestResult;
 
   // Returns the number of occupied entries stored in the cache.
   intptr_t NumberOfChecks() const;
@@ -7559,20 +7557,24 @@ class SubtypeTestCache : public Object {
   // Creates a separate copy of the current STC contents.
   SubtypeTestCachePtr Copy(Thread* thread) const;
 
-  static SubtypeTestCachePtr New();
+  static SubtypeTestCachePtr New(intptr_t num_inputs);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedSubtypeTestCache));
   }
 
-  static intptr_t cache_offset() {
-    return OFFSET_OF(UntaggedSubtypeTestCache, cache_);
-  }
-
   static void Init();
   static void Cleanup();
 
+  static intptr_t cache_offset() {
+    return OFFSET_OF(UntaggedSubtypeTestCache, cache_);
+  }
   ArrayPtr cache() const;
+
+  static intptr_t num_inputs_offset() {
+    return OFFSET_OF(UntaggedSubtypeTestCache, num_inputs_);
+  }
+  intptr_t num_inputs() const { return untag()->num_inputs_; }
 
   // The maximum number of occupied entries for a linear subtype test cache
   // before swapping to a hash table-based cache. Exposed publicly for tests.
@@ -7585,6 +7587,13 @@ class SubtypeTestCache : public Object {
   // other architectures, so use 100 like IA32. Update this to 10 once we do.
   static constexpr intptr_t kMaxLinearCacheEntries = 100;
 #endif
+
+  // Whether the entry at the given index in the cache is occupied. Exposed
+  // publicly for tests.
+  bool IsOccupied(intptr_t index) const;
+
+  // Returns the number of inputs needed to cache entries for the given type.
+  static intptr_t UsedInputsForType(const AbstractType& type);
 
  private:
   static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {
@@ -7622,6 +7631,7 @@ class SubtypeTestCache : public Object {
   //   concurrently.
   static KeyLocation FindKeyOrUnused(
       const Array& array,
+      intptr_t num_inputs,
       const Object& instance_class_id_or_signature,
       const AbstractType& destination_type,
       const TypeArguments& instance_type_arguments,
@@ -7640,9 +7650,6 @@ class SubtypeTestCache : public Object {
                           const Array& array,
                           intptr_t new_capacity,
                           bool* was_grown) const;
-
-  // Whether the entry at the given index in the cache is occupied.
-  bool IsOccupied(intptr_t index) const;
 
  public:  // Used in the StubCodeCompiler.
   // The maximum size of the array backing a linear cache. All hash based
@@ -7663,6 +7670,20 @@ class SubtypeTestCache : public Object {
 
   void set_cache(const Array& value) const;
 
+  // Like GetCurrentCheck, but takes the backing storage array.
+  static void GetCheckFromArray(
+      const Array& array,
+      intptr_t num_inputs,
+      intptr_t ix,
+      Object* instance_class_id_or_signature,
+      AbstractType* destination_type,
+      TypeArguments* instance_type_arguments,
+      TypeArguments* instantiator_type_arguments,
+      TypeArguments* function_type_arguments,
+      TypeArguments* instance_parent_function_type_arguments,
+      TypeArguments* instance_delayed_type_arguments,
+      Bool* test_result);
+
   // Like WriteEntryToBuffer(), but does not require the subtype test cache
   // mutex and so may see an incorrect view of the cache if there are concurrent
   // modifications.
@@ -7678,7 +7699,8 @@ class SubtypeTestCache : public Object {
                              BaseTextBuffer* buffer,
                              const char* line_prefix = nullptr) const;
 
-  // A VM heap allocated preinitialized empty subtype entry array.
+  // An array where each entry is an array that is a VM heap allocated
+  // preinitialized empty subtype entry array.
   static ArrayPtr cached_array_;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);

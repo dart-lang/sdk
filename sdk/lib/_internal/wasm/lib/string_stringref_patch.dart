@@ -1,6 +1,12 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+
+// TODO: Implementation of strings for the stringref target.
+// For now, this file is identical to string_patch.dart.
+// When we implement the stringref strings here, we'll likely also need to
+// restructure some other patch files to make code dependent on the string
+// implementation live in separate patch files for the two targets.
 
 import "dart:_internal"
     show

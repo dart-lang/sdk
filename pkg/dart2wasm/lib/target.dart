@@ -35,9 +35,10 @@ import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true});
+  WasmTarget({this.removeAsserts = true, this.useStringref = false});
 
   bool removeAsserts;
+  bool useStringref;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -58,7 +59,7 @@ class WasmTarget extends Target {
   Verification get verification => const WasmVerification();
 
   @override
-  String get name => 'wasm';
+  String get name => useStringref ? 'wasm_stringref' : 'wasm';
 
   @override
   TargetFlags get flags => TargetFlags();

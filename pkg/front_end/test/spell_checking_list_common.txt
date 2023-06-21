@@ -736,6 +736,7 @@ cyclic
 dart
 dart2js
 dart2wasm
+dart2wasm_stringref
 dartdevc
 data
 date
@@ -2917,6 +2918,7 @@ stray
 stream
 strictly
 string
+stringref
 strings
 stripped
 strong

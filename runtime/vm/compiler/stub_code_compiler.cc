@@ -1093,41 +1093,49 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
 
-  // If this is not a [Type] object, we'll use wider SubtypeTestCache.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ CompareImmediate(TypeTestABI::kScratchReg, kTypeCid);
-  __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
+  // Use the number of inputs used by the STC to determine which stub to call.
+  Label call_3, call_5;
+  __ Comment("Check number of STC inputs");
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, 3);
+  __ BranchIf(EQUAL, &call_3, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 5);
+  __ BranchIf(EQUAL, &call_5, Assembler::kNearJump);
+#if defined(DEBUG)
+  // Verify we have the all inputs case.
+  Label perform_check;
+  __ CompareImmediate(TypeTestABI::kScratchReg,
+                      target::SubtypeTestCache::kMaxInputs);
+  __ BranchIf(EQUAL, &perform_check, Assembler::kNearJump);
+  __ Breakpoint();
+  __ Bind(&perform_check);
+#endif
+  // Fall through to the all inputs case.
 
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                  Slot::AbstractType_flags());
-  __ AndImmediate(
-      TypeTestABI::kScratchReg,
-      Utils::NBitMask<int32_t>(target::UntaggedAbstractType::kTypeStateBits)
-          << target::UntaggedAbstractType::kTypeStateShift);
-  __ CompareImmediate(
-      TypeTestABI::kScratchReg,
-      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated
-          << target::UntaggedAbstractType::kTypeStateShift);
-  __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-  __ Bind(&is_simple_case);
   {
-    __ Call(StubCodeSubtype3TestCache());
+    __ Comment("Call 7 input STC check");
+    __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
-  __ Bind(&is_complex_case);
+  __ Bind(&call_5);
   {
-    __ Call(StubCodeSubtype7TestCache());
+    __ Comment("Call 5 input STC check");
+    __ Call(StubCodeSubtype5TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_3);
+  {
+    __ Comment("Call 3 input STC check");
+    __ Call(StubCodeSubtype3TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -1135,10 +1143,12 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   }
 
   __ Bind(&call_runtime);
+  __ Comment("Call runtime");
 
   InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
 
   __ Bind(&done);
+  __ Comment("Done");
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -2610,7 +2620,7 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   __ AddImmediate(
       cache_entry_reg,
       target::Array::data_offset() - kHeapObjectTag +
-          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
+          target::kCompressedWordSize * target::SubtypeTestCache::kHeaderSize);
 
   Label not_closure;
   if (n >= 5) {

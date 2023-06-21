@@ -66,7 +66,6 @@ part "record_patch.dart";
 part "regexp_patch.dart";
 part "stack_trace_patch.dart";
 part "stopwatch_patch.dart";
-part "string_patch.dart";
 part "type.dart";
 part "uri_patch.dart";
 

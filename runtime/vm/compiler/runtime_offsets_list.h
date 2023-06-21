@@ -94,6 +94,7 @@
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
   CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
+  CONSTANT(SubtypeTestCache, kHeaderSize)                                      \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \
@@ -102,6 +103,7 @@
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
+  CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, flags_offset)                                            \
@@ -225,6 +227,7 @@
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
+  FIELD(SubtypeTestCache, num_inputs_offset)                                   \
   FIELD(SuspendState, FrameSizeGrowthGap)                                      \
   FIELD(SuspendState, error_callback_offset)                                   \
   FIELD(SuspendState, frame_size_offset)                                       \

@@ -19,6 +19,7 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         DartAttachRequestArguments>
     with PidTracker, VmServiceInfoFileUtils, PackageConfigUtils, TestAdapter {
   Uri? ddsUri;
+  void Function(Event)? eventHandler;
 
   @override
   final parseLaunchArgs = DartLaunchRequestArguments.fromJson;
@@ -120,5 +121,18 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     } catch (e) {
       throw potentialException;
     }
+  }
+
+  @override
+  void sendEventToChannel(Event event) {
+    if (eventHandler == null) {
+      throw Exception("No event handler for DDS hosted adapter");
+    } else {
+      eventHandler!(event);
+    }
+  }
+
+  void setEventHandler(void Function(Event) eventHandler) {
+    this.eventHandler = eventHandler;
   }
 }

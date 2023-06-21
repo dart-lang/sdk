@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:test/test.dart';
@@ -366,100 +367,6 @@ const v = #foo.bar;
 const v = int;
 ''');
     _assertHasPrimitiveEqualityTrue('v');
-  }
-
-  test_identical_functionReference_explicitTypeArgs_differentElements() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-void bar<T>(T a) {}
-const g = identical(foo<int>, bar<int>);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(false),
-    );
-  }
-
-  test_identical_functionReference_explicitTypeArgs_differentTypeArgs() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const g = identical(foo<int>, foo<String>);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(false),
-    );
-  }
-
-  test_identical_functionReference_explicitTypeArgs_onlyOneHasTypeArgs() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const g = identical(foo<int>, foo);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(false),
-    );
-  }
-
-  test_identical_functionReference_explicitTypeArgs_sameElement() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const g = identical(foo<int>, foo<int>);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(true),
-    );
-  }
-
-  test_identical_functionReference_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
-    await resolveTestCode('''
-import 'dart:async';
-void foo<T>(T a) {}
-const g = identical(foo<Object>, foo<FutureOr<Object>>);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(true),
-    );
-  }
-
-  test_identical_functionReference_implicitTypeArgs_differentTypes() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const void Function(int) f = foo;
-const void Function(String) g = foo;
-const c = identical(f, g);
-''');
-    expect(
-      _evaluateConstant('c'),
-      _boolValue(false),
-    );
-  }
-
-  test_identical_functionReference_implicitTypeArgs_sameTypes() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const void Function(int) f = foo;
-const void Function(int) g = foo;
-const c = identical(f, g);
-''');
-    expect(
-      _evaluateConstant('c'),
-      _boolValue(true),
-    );
-  }
-
-  test_identical_functionReference_uninstantiated_sameElement() async {
-    await resolveTestCode('''
-void foo<T>(T a) {}
-const g = identical(foo, foo);
-''');
-    expect(
-      _evaluateConstant('g'),
-      _boolValue(true),
-    );
   }
 
   test_identical_typeLiteral_explicitTypeArgs_differentTypeArgs() async {
@@ -995,98 +902,135 @@ bool false
 ''');
   }
 
+  test_visitFunctionReference_defaultConstructorValue() async {
+    await assertErrorsInCode(r'''
+void f<T>(T t) => t;
+
+class C<T> {
+  final void Function(T) p;
+  const C({this.p = f});
+}
+''', [
+      error(CompileTimeErrorCode.NON_CONSTANT_DEFAULT_VALUE, 83, 1),
+    ]);
+  }
+
   test_visitFunctionReference_explicitTypeArgs_complexExpression() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function(int)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
-    _assertTypeArguments(result, ['int']);
+    _assertValue('g', r'''
+void Function(int)
+  element: self::@function::foo
+  typeArguments
+    int
+  variable: self::@variable::g
+''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_complexExpression_differentTypes() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode(r'''
 const b = true;
 void foo<T>(String a, T b) {}
 void bar<T>(T a, String b) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function(String, int)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
-    _assertTypeArguments(result, ['int']);
+    _assertValue('g', r'''
+void Function(String, int)
+  element: self::@function::foo
+  typeArguments
+    int
+  variable: self::@variable::g
+''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_constantType() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {}
 const g = f<int>;
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function(int)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, ['int']);
+    _assertValue('g', r'''
+void Function(int)
+  element: self::@function::f
+  typeArguments
+    int
+  variable: self::@variable::g
+''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_notMatchingBound() async {
-    await resolveTestCode('''
+    await assertErrorsInCode(r'''
 void f<T extends num>(T a) {}
 const g = f<String>;
+''', [
+      error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 6),
+    ]);
+    _assertValue('g', r'''
+void Function(String)
+  element: self::@function::f
+  typeArguments
+    String
+  variable: self::@variable::g
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function(String)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, ['String']);
   }
 
-  test_visitFunctionReference_functionName_explicitTypeArgs_notType() async {
-    await resolveTestCode('''
+  test_visitFunctionReference_explicitTypeArgs_functionName_notType() async {
+    await assertErrorsInCode(r'''
 void foo<T>(T a) {}
 const g = foo<true>;
-''');
-    var result = _evaluateConstantOrNull('g', errorCodes: [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_NUM,
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_NUM, 30, 8),
+      error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 33, 1),
+      error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 38, 1),
+      error(ParserErrorCode.MISSING_IDENTIFIER, 39, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 39,
+          0),
     ]);
-    expect(result, isNull);
+    _assertNull('g');
   }
 
-  test_visitFunctionReference_functionName_explicitTypeArgs_tooFew() async {
-    await resolveTestCode('''
+  test_visitFunctionReference_explicitTypeArgs_functionName_tooFew() async {
+    await assertErrorsInCode(r'''
 void foo<T, U>(T a, U b) {}
 const g = foo<int>;
-''');
-    var result = _evaluateConstantOrNull('g');
-    // The wrong number of arguments is reported elsewhere. Here, the result is
-    // simply `null`.
-    expect(result, isNull);
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 41, 5),
+    ]);
+    _assertNull('g');
   }
 
-  test_visitFunctionReference_functionName_explicitTypeArgs_tooMany() async {
-    await resolveTestCode('''
+  test_visitFunctionReference_explicitTypeArgs_functionName_tooMany() async {
+    await assertErrorsInCode(r'''
 void foo<T>(T a) {}
 const g = foo<int, String>;
-''');
-    var result = _evaluateConstantOrNull('g');
-    // The wrong number of arguments is reported elsewhere. Here, the result is
-    // simply `null`.
-    expect(result, isNull);
+''', [
+      error(
+          CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 13),
+    ]);
+    _assertNull('g');
   }
 
-  test_visitFunctionReference_functionName_explicitTypeArgs_typeParameter() async {
-    await resolveTestCode('''
+  test_visitFunctionReference_explicitTypeArgs_functionName_typeParameter() async {
+    await assertErrorsInCode(r'''
 void f<T>(T a) {}
 
 class C<U> {
   void m() {
-    static const g = f<U>;
+    const g = f<U>;
   }
 }
-''');
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 55, 1),
+      error(CompileTimeErrorCode.CONST_WITH_TYPE_PARAMETERS_FUNCTION_TEAROFF,
+          61, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 61,
+          1),
+    ]);
+    // TODO(kallentu): Assert constant value of 'g' in new style.
     var result = _evaluateConstantLocal('g', errorCodes: [
       CompileTimeErrorCode.INVALID_CONSTANT,
     ])!;
@@ -1095,28 +1039,218 @@ class C<U> {
     _assertTypeArguments(result, ['U']);
   }
 
+  test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+void bar<T>(T a) {}
+const g = identical(foo<int>, bar<int>);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_identical_differentTypeArgs() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<String>);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_identical_onlyOneHasTypeArgs() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_identical_sameElement() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<int>);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_explicitTypeArgs_identical_sameElement_runtimeTypeEquality() async {
+    await resolveTestCode(r'''
+import 'dart:async';
+void foo<T>(T a) {}
+const g = identical(foo<Object>, foo<FutureOr<Object>>);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_explicitTypeArgs_differentElements() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+void bar<T>(T a) {}
+const g = identical(foo<int>, bar<int>);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_explicitTypeArgs_differentTypeArgs() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<String>);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_explicitTypeArgs_onlyOneHasTypeArgs() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo);
+''');
+    _assertValue('g', r'''
+bool false
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_explicitTypeArgs_sameElement() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo<int>, foo<int>);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_explicitTypeArgs_sameElement_runtimeTypeEquality() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:async';
+void foo<T>(T a) {}
+const g = identical(foo<Object>, foo<FutureOr<Object>>);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_identical_implicitTypeArgs_differentTypes() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(String) g = foo;
+const c = identical(f, g);
+''');
+    _assertValue('c', r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitFunctionReference_identical_implicitTypeArgs_sameTypes() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(int) g = foo;
+const c = identical(f, g);
+''');
+    _assertValue('c', r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitFunctionReference_identical_uninstantiated_sameElement() async {
+    await assertNoErrorsInCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo, foo);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_implicitTypeArgs_identical_differentTypes() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(String) g = foo;
+const c = identical(f, g);
+''');
+    _assertValue('c', r'''
+bool false
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitFunctionReference_implicitTypeArgs_identical_sameTypes() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const void Function(int) f = foo;
+const void Function(int) g = foo;
+const c = identical(f, g);
+''');
+    _assertValue('c', r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
   test_visitFunctionReference_uninstantiated_complexExpression() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode(r'''
 const b = true;
 void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = b ? foo : bar;
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function<T>(T)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('foo'));
-    _assertTypeArguments(result, null);
+    _assertValue('g', r'''
+void Function<T>(T)
+  element: self::@function::foo
+  variable: self::@variable::g
+''');
   }
 
   test_visitFunctionReference_uninstantiated_functionName() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode(r'''
 void f<T>(T a) {}
 const g = f;
 ''');
-    var result = _evaluateConstant('g');
-    assertType(result.type, 'void Function<T>(T)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, null);
+    _assertValue('g', r'''
+void Function<T>(T)
+  element: self::@function::f
+  variable: self::@variable::g
+''');
+  }
+
+  test_visitFunctionReference_uninstantiated_identical_sameElement() async {
+    await resolveTestCode(r'''
+void foo<T>(T a) {}
+const g = identical(foo, foo);
+''');
+    _assertValue('g', r'''
+bool true
+  variable: self::@variable::g
+''');
   }
 
   test_visitInterpolationExpression_list() async {

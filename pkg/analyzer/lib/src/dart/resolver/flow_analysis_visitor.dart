@@ -533,6 +533,14 @@ class _AssignedVariablesVisitor extends RecursiveAstVisitor<void> {
   _AssignedVariablesVisitor(this.assignedVariables);
 
   @override
+  void visitAssignedVariablePattern(AssignedVariablePattern node) {
+    var element = node.element;
+    if (element is PromotableElement) {
+      assignedVariables.write(element);
+    }
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var left = node.leftHandSide;
 

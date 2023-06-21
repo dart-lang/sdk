@@ -297,6 +297,10 @@ const Code& StubCodeSubtype3TestCache() {
   return dart::StubCode::Subtype3TestCache();
 }
 
+const Code& StubCodeSubtype5TestCache() {
+  return dart::StubCode::Subtype5TestCache();
+}
+
 const Code& StubCodeSubtype7TestCache() {
   return dart::StubCode::Subtype7TestCache();
 }
