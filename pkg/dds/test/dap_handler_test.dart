@@ -7,7 +7,7 @@ import 'dart:io';
 
 import 'package:dap/dap.dart';
 import 'package:dds/dds.dart';
-import 'package:dds_service_extensions/dap.dart';
+import 'package:dds_service_extensions/src/dap.dart';
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service_io.dart';
 

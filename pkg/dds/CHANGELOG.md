@@ -1,6 +1,3 @@
-# 2.9.2
-- Added notifications for DAP events.
-
 # 2.9.1
 - [DAP] `runInTerminal` requests are now sent after first responding to the `launchRequest`.
 - [DAP] Skipped tests are now marked with `!` instead of `✓` in `Output` events.
