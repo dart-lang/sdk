@@ -9401,8 +9401,10 @@ class BodyBuilder extends StackListenerImpl
     String name = variable.lexeme;
     Expression variableUse = toValue(scopeLookup(scope, name, variable));
     if (variableUse is VariableGet) {
+      VariableDeclaration variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
-          variable.charOffset, variableUse.variable);
+          variable.charOffset, variableDeclaration);
+      registerVariableAssignment(variableDeclaration);
     } else {
       addProblem(fasta.messagePatternAssignmentNotLocalVariable,
           variable.charOffset, variable.charCount);
