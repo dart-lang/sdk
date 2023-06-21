@@ -253,6 +253,34 @@ class A {}
 ''');
   }
 
+  test_class_reachable_referencedInTypeAnnotation_externalFieldDeclaration() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D().c;
+}
+
+class C {}
+
+class D {
+  external C? c;
+}
+''');
+  }
+
+  test_class_reachable_referencedInTypeAnnotation_externalMethodDeclaration() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D().f;
+}
+
+class C {}
+
+class D {
+  external C f();
+}
+''');
+  }
+
   test_class_reachableViaAnnotation() async {
     await assertNoDiagnostics(r'''
 void main() {

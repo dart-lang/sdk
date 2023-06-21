@@ -271,9 +271,13 @@ class _ReferenceVisitor extends RecursiveAstVisitor {
       return;
     }
 
-    if (node.type?.alias != null) {
-      // Any reference to a typedef counts as "reachable", since structural
-      // typing is used to match against objects.
+    // Any reference to a typedef is reachable, since structural typing is used
+    // to match against objects.
+    //
+    // The return type of an external variable declaration is reachable, since
+    // the external implementation can instantiate it.
+    if (node.type?.alias != null ||
+        node.isInExternalVariableTypeOrFunctionReturnType) {
       _addDeclaration(element);
     }
 
@@ -583,5 +587,24 @@ extension on Declaration {
 
     assert(false, 'Uncovered Declaration subtype: ${self.runtimeType}');
     return '';
+  }
+}
+
+extension on AstNode {
+  bool get isInExternalVariableTypeOrFunctionReturnType {
+    var ancestorTypeAnnotation = thisOrAncestorOfType<TypeAnnotation>();
+    if (ancestorTypeAnnotation == null) return false;
+    switch (parent) {
+      case MethodDeclaration(:var externalKeyword, :var returnType):
+        return externalKeyword != null && returnType == ancestorTypeAnnotation;
+      case VariableDeclarationList(
+          parent: FieldDeclaration(:var externalKeyword),
+        ):
+      case VariableDeclarationList(
+          parent: TopLevelVariableDeclaration(:var externalKeyword),
+        ):
+        return externalKeyword != null;
+    }
+    return false;
   }
 }
