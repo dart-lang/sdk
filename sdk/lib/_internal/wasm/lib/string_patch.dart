@@ -2,7 +2,31 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "core_patch.dart";
+import "dart:_internal"
+    show
+        allocateOneByteString,
+        allocateTwoByteString,
+        CodeUnits,
+        ClassID,
+        copyRangeFromUint8ListToOneByteString,
+        doubleToIntBits,
+        EfficientLengthIterable,
+        intBitsToDouble,
+        IterableElementError,
+        jsonEncode,
+        Lists,
+        mix64,
+        makeListFixedLength,
+        patch,
+        unsafeCast,
+        writeIntoOneByteString,
+        writeIntoTwoByteString;
+
+import 'dart:_js_helper' show JS;
+
+import "dart:typed_data" show Uint8List, Uint16List;
+
+import 'dart:_wasm';
 
 // Much of this patch file is similar to the VM `string_patch.dart`. It may make
 // sense to share some of the code when the patching mechanism supports patching
