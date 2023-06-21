@@ -7,7 +7,6 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
-import 'package:analysis_server/src/services/correction/dart/add_not_null_assert.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -91,7 +90,6 @@ class AssistProcessor extends BaseProcessor {
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> generators = [
     AddDiagnosticPropertyReference.new,
-    AddNotNullAssert.new,
     AddReturnType.new,
     AddTypeAnnotation.bulkFixable,
     AssignToLocalVariable.new,
