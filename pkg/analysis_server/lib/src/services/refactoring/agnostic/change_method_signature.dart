@@ -1037,7 +1037,12 @@ extension on AstNode {
   }
 
   AstNode? get invocation {
-    final self = this;
+    AstNode? self = this;
+    if (self is ArgumentList) {
+      self = self.parent;
+    } else if (self is NamedType && self.parent is ConstructorName) {
+      self = self.parent?.parent;
+    }
     switch (self) {
       case SimpleIdentifier():
         final parent = self.parent;
