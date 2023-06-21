@@ -309,7 +309,11 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     NOT_IN_PRODUCT(CodeObservers::RegisterExternal(*params->code_observer));
   }
   start_time_micros_ = OS::GetCurrentMonotonicMicros();
+#if defined(DART_HOST_OS_FUCHSIA)
+  VirtualMemory::Init(params->vmex_resource);
+#else
   VirtualMemory::Init();
+#endif
 
 #if defined(DART_PRECOMPILED_RUNTIME) && defined(DART_TARGET_OS_LINUX)
   if (VirtualMemory::PageSize() > kElfPageSize) {

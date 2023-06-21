@@ -392,6 +392,9 @@ static int Main(int argc, const char** argv) {
   init_params.file_write = dart::bin::DartUtils::WriteFile;
   init_params.file_close = dart::bin::DartUtils::CloseFile;
   init_params.start_kernel_isolate = start_kernel_isolate;
+#if defined(DART_HOST_OS_FUCHSIA)
+  init_params.vmex_resource = dart::bin::Platform::GetVMEXResource();
+#endif
   error = Dart::Init(&init_params);
   if (error != nullptr) {
     Syslog::PrintErr("Failed to initialize VM: %s\n", error);

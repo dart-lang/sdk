@@ -25,6 +25,10 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
+#if defined(__Fuchsia__)
+#include <zircon/types.h>
+#endif
+
 #ifdef __cplusplus
 #define DART_EXTERN_C extern "C"
 #else
@@ -849,7 +853,7 @@ typedef Dart_Handle (*Dart_GetVMServiceAssetsArchive)(void);
  * The current version of the Dart_InitializeFlags. Should be incremented every
  * time Dart_InitializeFlags changes in a binary incompatible way.
  */
-#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000007)
+#define DART_INITIALIZE_PARAMS_CURRENT_VERSION (0x00000008)
 
 /** Forward declaration */
 struct Dart_CodeObserver;
@@ -992,6 +996,15 @@ typedef struct {
    * Kernel blob unregistration callback function. See Dart_UnregisterKernelBlobCallback.
    */
   Dart_UnregisterKernelBlobCallback unregister_kernel_blob;
+
+#if defined(__Fuchsia__)
+  /**
+   * The resource needed to use zx_vmo_replace_as_executable. Can be
+   * ZX_HANDLE_INVALID if the process has ambient-replace-as-executable or if
+   * executable memory is not needed (e.g., this is an AOT runtime).
+   */
+  zx_handle_t vmex_resource;
+#endif
 } Dart_InitializeParams;
 
 /**

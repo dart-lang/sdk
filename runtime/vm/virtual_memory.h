@@ -10,6 +10,10 @@
 #include "vm/globals.h"
 #include "vm/memory_region.h"
 
+#if defined(DART_HOST_OS_FUCHSIA)
+#include <zircon/types.h>
+#endif
+
 namespace dart {
 
 class VirtualMemory {
@@ -31,7 +35,11 @@ class VirtualMemory {
   intptr_t size() const { return region_.size(); }
   intptr_t AliasOffset() const { return alias_.start() - region_.start(); }
 
+#if defined(DART_HOST_OS_FUCHSIA)
+  static void Init(zx_handle_t vmex_resource);
+#else
   static void Init();
+#endif
   static void Cleanup();
 
   // Returns true if dual mapping is enabled.
