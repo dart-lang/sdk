@@ -200,36 +200,31 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
+  // Used for registers that may not have GC-safe values to push. Pushes
+  // the null object if the condition is not met.
+  auto conditional_push = [&](Register reg, bool condition) {
+    if (condition) {
+      __ pushl(reg);
+    } else {
+      __ PushObject(Object::null_object());
+    }
+  };
+  const intptr_t num_inputs = UsedInputsForTTSKind(test_kind);
   const SubtypeTestCache& type_test_cache =
-      SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New());
+      SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New(num_inputs));
+  const auto& stub_entry =
+      StubCode::SubtypeTestCacheStubForUsedInputs(num_inputs);
   __ LoadObject(TypeTestABI::kSubtypeTestCacheReg, type_test_cache);
   __ pushl(TypeTestABI::kSubtypeTestCacheReg);
   __ pushl(TypeTestABI::kInstanceReg);
-  if (test_kind == kTestTypeOneArg) {
-    __ PushObject(Object::null_object());
-    __ PushObject(Object::null_object());
-    __ PushObject(Object::null_object());
-    __ Call(StubCode::Subtype1TestCache());
-  } else if (test_kind == kTestTypeThreeArgs) {
-    __ pushl(TypeTestABI::kDstTypeReg);
-    __ PushObject(Object::null_object());
-    __ PushObject(Object::null_object());
-    __ Call(StubCode::Subtype3TestCache());
-  } else if (test_kind == kTestTypeFiveArgs) {
-    __ pushl(TypeTestABI::kDstTypeReg);
-    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
-    __ Call(StubCode::Subtype5TestCache());
-  } else if (test_kind == kTestTypeSevenArgs) {
-    __ pushl(TypeTestABI::kDstTypeReg);
-    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
-    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
-    __ Call(StubCode::Subtype7TestCache());
-  } else {
-    UNREACHABLE();
-  }
+  conditional_push(TypeTestABI::kDstTypeReg, num_inputs >= 3);
+  conditional_push(TypeTestABI::kInstantiatorTypeArgumentsReg, num_inputs >= 4);
+  conditional_push(TypeTestABI::kFunctionTypeArgumentsReg, num_inputs >= 5);
+  __ Call(stub_entry);
   // Restore all but kSubtypeTestCacheReg (since it is the same as
-  // kSubtypeTestCacheResultReg).
+  // kSubtypeTestCacheResultReg). Since the generated code is documented as
+  // clobbering all on-kInstanceReg TypeTestABI registers, it's okay to pop
+  // null into the registers that didn't have guaranteed GC-safe values prior.
   static_assert(TypeTestABI::kSubtypeTestCacheReg ==
                     TypeTestABI::kSubtypeTestCacheResultReg,
                 "Code assumes cache and result register are the same");
@@ -304,7 +299,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(
                     compiler::Assembler::kNearJump);
 
     // Use the full-arg version of the cache.
-    test_cache = GenerateCallSubtypeTestStub(kTestTypeSevenArgs, &is_assignable,
+    test_cache = GenerateCallSubtypeTestStub(kTestTypeMaxArgs, &is_assignable,
                                              &runtime_call);
   } else {
     __ Comment("AssertAssignable for compile-time type");

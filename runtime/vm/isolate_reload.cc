@@ -2416,15 +2416,17 @@ class FieldInvalidator {
 
     cache_ = field.type_test_cache();
     if (cache_.IsNull()) {
-      cache_ = SubtypeTestCache::New();
+      // Use a cache that will check all inputs.
+      cache_ = SubtypeTestCache::New(SubtypeTestCache::kMaxInputs);
       field.set_type_test_cache(cache_);
     }
     entries_ = cache_.cache();
     SubtypeTestCacheTable table(entries_);
     const auto& keyloc = SubtypeTestCache::FindKeyOrUnused(
-        entries_, instance_cid_or_signature_, type, instance_type_arguments_,
-        instantiator_type_arguments_, function_type_arguments_,
-        parent_function_type_arguments_, delayed_function_type_arguments_);
+        entries_, cache_.num_inputs(), instance_cid_or_signature_, type,
+        instance_type_arguments_, instantiator_type_arguments_,
+        function_type_arguments_, parent_function_type_arguments_,
+        delayed_function_type_arguments_);
     if (keyloc.present) {
       return table.At(keyloc.entry).Get<SubtypeTestCache::kTestResult>() ==
              Bool::True().ptr();

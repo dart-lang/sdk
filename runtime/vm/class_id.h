@@ -324,6 +324,14 @@ inline bool IsErrorClassId(intptr_t index) {
   return (index >= kFirstErrorCid && index <= kLastErrorCid);
 }
 
+inline bool IsConcreteTypeClassId(intptr_t index) {
+  // Make sure to update when new AbstractType subclasses are added.
+  COMPILE_ASSERT(kFunctionTypeCid == kTypeCid + 1 &&
+                 kRecordTypeCid == kTypeCid + 2 &&
+                 kTypeParameterCid == kTypeCid + 3);
+  return (index >= kTypeCid && index <= kTypeParameterCid);
+}
+
 inline bool IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
   COMPILE_ASSERT(kIntegerCid == kNumberCid + 1 && kSmiCid == kNumberCid + 2 &&

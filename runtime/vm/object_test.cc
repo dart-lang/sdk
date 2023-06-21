@@ -16,6 +16,7 @@
 #include "vm/closure_functions_cache.h"
 #include "vm/code_descriptors.h"
 #include "vm/compiler/assembler/assembler.h"
+#include "vm/compiler/backend/il_test_helper.h"
 #include "vm/compiler/compiler_state.h"
 #include "vm/compiler/runtime_api.h"
 #include "vm/dart_api_impl.h"
@@ -32,6 +33,7 @@
 #include "vm/symbols.h"
 #include "vm/tagged_pointer.h"
 #include "vm/unit_test.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -3255,7 +3257,8 @@ ISOLATE_UNIT_TEST_CASE(SubtypeTestCache) {
   String& class2_name = String::Handle(Symbols::New(thread, "EmptyClass2"));
   const Class& empty_class2 =
       Class::Handle(CreateDummyClass(class2_name, script));
-  SubtypeTestCache& cache = SubtypeTestCache::Handle(SubtypeTestCache::New());
+  SubtypeTestCache& cache = SubtypeTestCache::Handle(
+      SubtypeTestCache::New(SubtypeTestCache::kMaxInputs));
   EXPECT(!cache.IsNull());
   EXPECT_EQ(0, cache.NumberOfChecks());
   const Object& class_id_or_fun = Object::Handle(Smi::New(empty_class1.id()));
@@ -5433,13 +5436,6 @@ REPEAT_512(FINALIZER_NATIVE_CROSS_GEN_TEST_CASE)
 
 #undef REPEAT_512
 
-static ClassPtr GetClass(const Library& lib, const char* name) {
-  const Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(Symbols::New(Thread::Current(), name))));
-  EXPECT(!cls.IsNull());  // No ambiguity error expected.
-  return cls.ptr();
-}
-
 TEST_CASE(IsIsolateUnsendable) {
   Zone* const zone = Thread::Current()->zone();
 
@@ -5592,13 +5588,6 @@ static FunctionPtr GetFunction(const Class& cls, const char* name) {
   EXPECT(error == Error::null());
   const Function& result = Function::Handle(Resolver::ResolveDynamicFunction(
       Z, cls, String::Handle(String::New(name))));
-  EXPECT(!result.IsNull());
-  return result.ptr();
-}
-
-static FunctionPtr GetFunction(const Library& lib, const char* name) {
-  const Function& result = Function::Handle(
-      lib.LookupLocalFunction(String::Handle(String::New(name))));
   EXPECT(!result.IsNull());
   return result.ptr();
 }
@@ -8407,5 +8396,335 @@ TEST_CASE(TypeArguments_Cache_ManyInstantiations) {
 #endif
 
 #undef EXPECT_TYPES_SYNTACTICALLY_EQUIVALENT
+
+static void SubtypeTestCacheCheckContents(Zone* zone,
+                                          const SubtypeTestCache& cache) {
+  const intptr_t used_inputs = cache.num_inputs();
+  if (used_inputs < 1 || used_inputs > SubtypeTestCache::kMaxInputs) {
+    FAIL("Invalid number of used inputs: %" Pd "", used_inputs);
+    return;
+  }
+  const auto& array = Array::Handle(zone, cache.cache());
+  for (intptr_t i = 0; i < cache.NumEntries(); i++) {
+    if (!cache.IsOccupied(i)) continue;
+    const intptr_t entry_start =
+        SubtypeTestCache::kHeaderSize + i * SubtypeTestCache::kTestEntryLength;
+    {
+      const intptr_t cid =
+          array.At(entry_start + SubtypeTestCache::kTestResult)
+              ->GetClassIdMayBeSmi();
+      EXPECT(cid == kNullCid || cid == kBoolCid);
+    }
+
+    // Used to make sure all the cases are in the correct order below.
+    int check_ordering = used_inputs;
+    // Input: the value of SubtypeTestCache::Entries for this input
+    // ExpectedCids is an expression where [cid] is bound to the contents cid.
+#define USED_INPUT_CASE(Input, ExpectedCids)                                   \
+  case (Input) + 1: {                                                          \
+    RELEASE_ASSERT((Input) + 1 == check_ordering);                             \
+    const intptr_t cid =                                                       \
+        array.At(entry_start + (Input))->GetClassIdMayBeSmi();                 \
+    if (!(ExpectedCids)) {                                                     \
+      FAIL("expected: " #ExpectedCids ", got: cid %" Pd "", cid);              \
+    }                                                                          \
+    --check_ordering;                                                          \
+  }
+
+    switch (used_inputs) {
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceDelayedFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceParentFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kFunctionTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstantiatorTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceTypeArguments,
+                      cid == kNullCid || cid == kTypeArgumentsCid);
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kDestinationType,
+                      IsConcreteTypeClassId(cid));
+      FALL_THROUGH;
+      USED_INPUT_CASE(SubtypeTestCache::kInstanceCidOrSignature,
+                      cid == kSmiCid || cid == kFunctionTypeCid);
+      break;
+      default:
+        UNREACHABLE();
+    }
+
+#undef USED_INPUT_CASE
+    RELEASE_ASSERT(0 == check_ordering);
+
+    // Check that unused inputs have never been set.
+    for (intptr_t i = used_inputs; i < SubtypeTestCache::kMaxInputs; i++) {
+      // Since we sometimes use Array::NewUninitialized() for allocations of
+      // STCs and never set unused inputs, the only thing we know is that the
+      // entry is GC-safe. Since we don't expect valid values for unused inputs,
+      // we just check if it's either a Smi or null.
+      const intptr_t cid = array.At(entry_start + i)->GetClassIdMayBeSmi();
+      EXPECT(cid == kSmiCid || cid == kNullCid);
+    }
+  }
+}
+
+static void SubtypeTestCacheEntryTest(
+    Thread* thread,
+    const SubtypeTestCache& cache,
+    const Object& instance_class_id_or_signature,
+    const AbstractType& destination_type,
+    const TypeArguments& instance_type_arguments,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const TypeArguments& parent_function_type_arguments,
+    const TypeArguments& delayed_type_arguments,
+    const Bool& expected_result,
+    Bool* got_result) {
+  const auto& tav_null = TypeArguments::null_type_arguments();
+  const intptr_t num_inputs = cache.num_inputs();
+  const bool was_hash = cache.IsHash();
+  const intptr_t old_count = cache.NumberOfChecks();
+  intptr_t expected_index, got_index;
+
+  EXPECT(!cache.HasCheck(
+      instance_class_id_or_signature, destination_type, instance_type_arguments,
+      instantiator_type_arguments, function_type_arguments,
+      parent_function_type_arguments, delayed_type_arguments, /*index=*/nullptr,
+      /*result=*/nullptr));
+  {
+    SafepointMutexLocker ml(
+        thread->isolate_group()->subtype_test_cache_mutex());
+    expected_index =
+        cache.AddCheck(instance_class_id_or_signature, destination_type,
+                       instance_type_arguments, instantiator_type_arguments,
+                       function_type_arguments, parent_function_type_arguments,
+                       delayed_type_arguments, expected_result);
+    EXPECT(expected_index >= 0);
+  }
+  EXPECT_EQ(old_count + 1, cache.NumberOfChecks());
+  EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                        instance_type_arguments, instantiator_type_arguments,
+                        function_type_arguments, parent_function_type_arguments,
+                        delayed_type_arguments, &got_index, got_result));
+  EXPECT_EQ(expected_index, got_index);
+  EXPECT(got_result->ptr() == expected_result.ptr());
+  if (num_inputs < (SubtypeTestCache::kInstantiatorTypeArguments + 1)) {
+    // Match replacing unused instantiator type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, tav_null,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used instantiator type arguments with null.
+    EXPECT(!cache.HasCheck(
+        instance_class_id_or_signature, destination_type,
+        instance_type_arguments, tav_null, function_type_arguments,
+        parent_function_type_arguments, delayed_type_arguments,
+        /*index=*/nullptr, /*result=*/nullptr));
+  }
+  if (num_inputs < (SubtypeTestCache::kFunctionTypeArguments + 1)) {
+    // Match replacing unused function type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          tav_null, parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used function type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           tav_null, parent_function_type_arguments,
+                           delayed_type_arguments,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
+  if (num_inputs <
+      (SubtypeTestCache::kInstanceParentFunctionTypeArguments + 1)) {
+    // Match replacing unused parent function type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments, tav_null,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used parent function type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments, tav_null,
+                           delayed_type_arguments, /*index=*/nullptr,
+                           /*result=*/nullptr));
+  }
+  if (num_inputs <
+      (SubtypeTestCache::kInstanceDelayedFunctionTypeArguments + 1)) {
+    // Match replacing unused delayed type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments, tav_null, &got_index,
+                          got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used delayed type arguments with null.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, destination_type,
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments,
+                           parent_function_type_arguments, tav_null,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
+  // Once hash-based, should stay a hash-based cache.
+  EXPECT(!was_hash || cache.IsHash());
+}
+
+static void SubtypeTestCacheTest(Thread* thread,
+                                 intptr_t num_classes,
+                                 bool expect_hash) {
+  TextBuffer buffer(MB);
+  buffer.AddString("class D<S> {}\n");
+  buffer.AddString("D<int> createInstanceD() => D<int>();");
+  buffer.AddString("D<int> Function() createClosureD() => () => D<int>();\n");
+  for (intptr_t i = 0; i < num_classes; i++) {
+    buffer.Printf(R"(class C%)" Pd R"(<S> extends D<S> {}
+)"
+                  R"(C%)" Pd R"(<int> createInstanceC%)" Pd R"(() => C%)" Pd
+                  R"(<int>();
+)"
+                  R"(C%)" Pd R"(<int> Function() createClosureC%)" Pd
+                  R"(() => () => C%)" Pd
+                  R"(<int>();
+)",
+                  i, i, i, i, i, i, i);
+  }
+
+  Dart_Handle api_lib = TestCase::LoadTestScript(buffer.buffer(), nullptr);
+  EXPECT_VALID(api_lib);
+
+  // D + C0...CN, where N = kNumClasses - 1
+  EXPECT(IsolateGroup::Current()->class_table()->NumCids() > num_classes);
+
+  TransitionNativeToVM transition(thread);
+  Zone* const zone = thread->zone();
+
+  const auto& root_lib =
+      Library::CheckedHandle(zone, Api::UnwrapHandle(api_lib));
+  EXPECT(!root_lib.IsNull());
+
+  const auto& class_d = Class::Handle(zone, GetClass(root_lib, "D"));
+  ASSERT(!class_d.IsNull());
+  {
+    SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
+    ClassFinalizer::FinalizeClass(class_d);
+  }
+  const auto& instance_d =
+      Instance::CheckedHandle(zone, Invoke(root_lib, "createInstanceD"));
+  auto& type_instance_d_int =
+      Type::CheckedHandle(zone, instance_d.GetType(Heap::kNew));
+  const auto& closure_d =
+      Instance::CheckedHandle(zone, Invoke(root_lib, "createClosureD"));
+  ASSERT(!closure_d.IsNull());
+  auto& type_closure_d_int =
+      FunctionType::CheckedHandle(zone, closure_d.GetType(Heap::kNew));
+
+  const auto& stc3 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(3));
+  const auto& stc5 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(5));
+  const auto& stc7 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(7));
+
+  auto& class_c = Class::Handle(zone);
+  auto& instance_c = Instance::Handle(zone);
+  auto& closure_c = Closure::Handle(zone);
+  auto& instance_class_id_or_signature = Object::Handle(zone);
+  // Set up unique tavs for each of the TAV inputs.
+  auto& instance_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  instance_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::SmiType()));
+  instance_type_arguments = instance_type_arguments.Canonicalize(thread);
+  auto& instantiator_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  instantiator_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::IntType()));
+  instantiator_type_arguments =
+      instantiator_type_arguments.Canonicalize(thread);
+  auto& function_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  function_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::Double()));
+  function_type_arguments = function_type_arguments.Canonicalize(thread);
+  auto& parent_function_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  parent_function_type_arguments.SetTypeAt(
+      0, Type::Handle(zone, Type::StringType()));
+  parent_function_type_arguments =
+      parent_function_type_arguments.Canonicalize(thread);
+  auto& delayed_type_arguments =
+      TypeArguments::Handle(zone, TypeArguments::New(1));
+  delayed_type_arguments.SetTypeAt(0, Type::Handle(zone, Type::BoolType()));
+  delayed_type_arguments = delayed_type_arguments.Canonicalize(thread);
+  auto& got_result = Bool::Handle(zone);
+  for (intptr_t i = 0; i < num_classes; ++i) {
+    // Just so we're testing both true and false values, as we're not actually
+    // using the results to determine subtype/assignability.
+    const auto& expected_result = (i % 2 == 0) ? Bool::True() : Bool::False();
+
+    auto const class_name = OS::SCreate(zone, "C%" Pd "", i);
+    class_c = GetClass(root_lib, class_name);
+    ASSERT(!class_c.IsNull());
+    {
+      SafepointWriteRwLocker ml(thread,
+                                thread->isolate_group()->program_lock());
+      ClassFinalizer::FinalizeClass(class_c);
+    }
+    auto const instance_name = OS::SCreate(zone, "createInstanceC%" Pd "", i);
+    instance_c ^= Invoke(root_lib, instance_name);
+    EXPECT(!instance_c.IsClosure());
+    instance_class_id_or_signature = Smi::New(instance_c.GetClassId());
+
+    SubtypeTestCacheEntryTest(
+        thread, stc3, instance_class_id_or_signature, type_instance_d_int,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, parent_function_type_arguments,
+        delayed_type_arguments, expected_result, &got_result);
+
+    SubtypeTestCacheEntryTest(
+        thread, stc5, instance_class_id_or_signature, type_instance_d_int,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, parent_function_type_arguments,
+        delayed_type_arguments, expected_result, &got_result);
+
+    auto const function_name = OS::SCreate(zone, "createClosureC%" Pd "", i);
+    closure_c ^= Invoke(root_lib, function_name);
+
+    instance_class_id_or_signature = closure_c.function();
+    instance_class_id_or_signature =
+        Function::Cast(instance_class_id_or_signature).signature();
+
+    SubtypeTestCacheEntryTest(
+        thread, stc7, instance_class_id_or_signature, type_closure_d_int,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, parent_function_type_arguments,
+        delayed_type_arguments, expected_result, &got_result);
+  }
+  SubtypeTestCacheCheckContents(zone, stc3);
+  SubtypeTestCacheCheckContents(zone, stc5);
+  SubtypeTestCacheCheckContents(zone, stc7);
+  EXPECT_EQ(expect_hash, stc3.IsHash());
+  EXPECT_EQ(expect_hash, stc5.IsHash());
+  EXPECT_EQ(expect_hash, stc7.IsHash());
+}
+
+TEST_CASE(STC_LinearLookup) {
+  SubtypeTestCacheTest(thread, SubtypeTestCache::kMaxLinearCacheEntries,
+                       /*expect_hash=*/false);
+}
+
+TEST_CASE(STC_HashLookup) {
+  SubtypeTestCacheTest(thread, 2 * SubtypeTestCache::kMaxLinearCacheEntries,
+                       /*expect_hash=*/true);
+}
 
 }  // namespace dart

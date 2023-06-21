@@ -2497,6 +2497,7 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   POINTER_FIELD(ArrayPtr, cache)
   VISIT_FROM(cache)
   VISIT_TO(cache)
+  uint32_t num_inputs_;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {

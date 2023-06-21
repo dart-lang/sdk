@@ -2391,7 +2391,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ AddImmediate(
       kCacheArrayReg,
       target::Array::data_offset() - kHeapObjectTag +
-          target::kCompressedWordSize * SubtypeTestCache::kHeaderSize);
+          target::kCompressedWordSize * target::SubtypeTestCache::kHeaderSize);
 
   Label loop, not_closure;
   if (n >= 5) {

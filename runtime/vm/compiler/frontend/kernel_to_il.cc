@@ -3039,10 +3039,12 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeChecks(
 
   for (intptr_t i = 0; i < info.descriptor.NamedCount(); i++) {
     const intptr_t arg_index = info.descriptor.PositionAt(i);
-    const auto& arg_name = String::ZoneHandle(Z, info.descriptor.NameAt(i));
     auto const param_index = info.vars->named_argument_parameter_indices.At(i);
-    instructions += BuildClosureCallArgumentTypeCheck(info, param_index,
-                                                      arg_index, arg_name);
+    // We have a compile-time name available, but we still want the runtime to
+    // detect that the generated AssertAssignable instruction is dynamic.
+    instructions += BuildClosureCallArgumentTypeCheck(
+        info, param_index, arg_index,
+        Symbols::dynamic_assert_assignable_stc_check());
   }
 
   return instructions;

@@ -5,6 +5,7 @@
 #ifndef RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 #define RUNTIME_VM_COMPILER_BACKEND_FLOW_GRAPH_COMPILER_H_
 
+#include "vm/compiler/runtime_api.h"
 #if defined(DART_PRECOMPILED_RUNTIME)
 #error "AOT runtime should not use compiler sources (including header files)"
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
@@ -1021,12 +1022,23 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_instance_lbl,
       compiler::Label* is_not_instance_lbl);
 
-  enum TypeTestStubKind {
-    kTestTypeOneArg,
-    kTestTypeThreeArgs,
-    kTestTypeFiveArgs,
-    kTestTypeSevenArgs,
+  enum class TypeTestStubKind {
+    kTestTypeOneArg = 1,
+    kTestTypeThreeArgs = 3,
+    kTestTypeFiveArgs = 5,
+    kTestTypeSevenArgs = 7,
   };
+
+  static_assert(static_cast<intptr_t>(TypeTestStubKind::kTestTypeSevenArgs) ==
+                    SubtypeTestCache::kMaxInputs,
+                "Need to adjust kTestTypeMaxArgs");
+  static constexpr TypeTestStubKind kTestTypeMaxArgs =
+      TypeTestStubKind::kTestTypeSevenArgs;
+
+  // Returns the number of used inputs for a given type test stub kind.
+  intptr_t UsedInputsForTTSKind(TypeTestStubKind kind) {
+    return static_cast<intptr_t>(kind);
+  }
 
   // Returns type test stub kind for a type test against type parameter type.
   TypeTestStubKind GetTypeTestStubKindForTypeParameter(

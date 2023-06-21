@@ -1164,30 +1164,36 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
                    instantiator_type_arguments, function_type_arguments,
                    Bool::Get(is_instance_of));
   }
-  if (!is_instance_of) {
-    if (dst_name.IsNull()) {
+
+  // Most paths through this runtime entry don't need to know what the
+  // destination name was or if this was a dynamic assert assignable call,
+  // so only walk the stack to find the stored destination name when necessary.
+  auto resolve_dst_name = [&]() {
+    if (!dst_name.IsNull()) return;
 #if !defined(TARGET_ARCH_IA32)
-      // Can only come here from type testing stub.
-      ASSERT(mode != kTypeCheckFromInline);
+    // Can only come here from type testing stub.
+    ASSERT(mode != kTypeCheckFromInline);
 
-      // Grab the [dst_name] from the pool.  It's stored at one pool slot after
-      // the subtype-test-cache.
-      DartFrameIterator iterator(thread,
-                                 StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* caller_frame = iterator.NextFrame();
-      const Code& caller_code =
-          Code::Handle(zone, caller_frame->LookupDartCode());
-      const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.GetObjectPool());
-      TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
-      const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
-      const intptr_t dst_name_idx = stc_pool_idx + 1;
-      dst_name ^= pool.ObjectAt(dst_name_idx);
+    // Grab the [dst_name] from the pool.  It's stored at one pool slot after
+    // the subtype-test-cache.
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* caller_frame = iterator.NextFrame();
+    const Code& caller_code =
+        Code::Handle(zone, caller_frame->LookupDartCode());
+    const ObjectPool& pool =
+        ObjectPool::Handle(zone, caller_code.GetObjectPool());
+    TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
+    const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
+    const intptr_t dst_name_idx = stc_pool_idx + 1;
+    dst_name ^= pool.ObjectAt(dst_name_idx);
 #else
-      UNREACHABLE();
+    UNREACHABLE();
 #endif
-    }
+  };
 
+  if (!is_instance_of) {
+    resolve_dst_name();
     if (dst_name.ptr() ==
         Symbols::dynamic_assert_assignable_stc_check().ptr()) {
 #if !defined(TARGET_ARCH_IA32)
@@ -1344,12 +1350,20 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         SafepointMutexLocker ml(isolate->group()->subtype_test_cache_mutex());
         cache ^= pool.ObjectAt<std::memory_order_acquire>(stc_pool_idx);
         if (cache.IsNull()) {
-          cache = SubtypeTestCache::New();
+          resolve_dst_name();
+          // If this is a dynamic AssertAssignable check, then we must assume
+          // all inputs may be needed, as the type may vary from call to call.
+          const intptr_t num_inputs =
+              dst_name.ptr() ==
+                      Symbols::dynamic_assert_assignable_stc_check().ptr()
+                  ? SubtypeTestCache::kMaxInputs
+                  : SubtypeTestCache::UsedInputsForType(dst_type);
+          cache = SubtypeTestCache::New(num_inputs);
           pool.SetObjectAt<std::memory_order_release>(stc_pool_idx, cache);
           if (FLAG_trace_type_checks) {
-            THR_Print("  Installed new subtype test cache %#" Px
-                      " at index %" Pd " of pool for %s\n",
-                      static_cast<uword>(cache.ptr()), stc_pool_idx,
+            THR_Print("  Installed new subtype test cache %#" Px " with %" Pd
+                      " inputs at index %" Pd " of pool for %s\n",
+                      static_cast<uword>(cache.ptr()), num_inputs, stc_pool_idx,
                       caller_code.ToCString());
           }
         }
