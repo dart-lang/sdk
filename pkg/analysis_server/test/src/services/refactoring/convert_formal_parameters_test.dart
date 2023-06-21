@@ -95,7 +95,8 @@ void f() {
 
   Future<void> test_multiple_files() async {
     // TODO(scheglov) Unify behind `testPackageLibPath`
-    addSource(getFile('$projectFolderPath/lib/a.dart').path, r'''
+    final a = getFile('$projectFolderPath/lib/a.dart');
+    addSource(a.path, r'''
 import 'main.dart';
 
 void f2() {
@@ -111,12 +112,32 @@ void f() {
 }
 ''');
 
-    // TODO(scheglov) check changes to all files.
     await _executeRefactoring(r'''
 void test({required int a}) {}
 
 void f() {
   test(a: 0);
+}
+''');
+
+    // TODO(scheglov) Ask me, if you want more of this opinion.
+    // This is bad code.
+    // I don't like using content for verifying refactoring results.
+    // We need to check all changes, without a way to check only some portion.
+    // See how _writeSourceChangeToBuffer is done.
+    //
+    // And addSource() above is another hack that we rely on to support these
+    // checks here.
+    // I don't like these too.
+    // We have newFile() already, this should be enough.
+    // Don't invent more way to add files.
+    // I worked hard in DAS legacy tests to get away from it.
+    // Don't add them back.
+    _assertTextExpectation(content[a.path]!, r'''
+import 'main.dart';
+
+void f2() {
+  test(a: 1);
 }
 ''');
   }
