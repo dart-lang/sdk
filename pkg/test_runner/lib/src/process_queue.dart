@@ -666,6 +666,7 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand([
           'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+              'export TEST_COMPILATION_DIR=$deviceTestDir;'
               '$devicedir/dart_precompiled_runtime',
           '--android-log-to-stderr',
           ...arguments,
