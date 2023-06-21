@@ -70,6 +70,8 @@ sealed class Available extends Availability {
   Available({
     required this.refactoringContext,
   });
+
+  bool get hasSelectedFormalParametersToConvertToNamed => false;
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -402,6 +404,36 @@ final class _AvailableWithDeclaration extends Available {
     required super.refactoringContext,
     required this.declaration,
   });
+
+  @override
+  bool get hasSelectedFormalParametersToConvertToNamed {
+    final selected = declaration.selected;
+    if (selected.isEmpty) {
+      return false;
+    }
+
+    // If all selected are already required named, nothing to do.
+    if (selected.every((e) => e.isRequiredNamed)) {
+      return false;
+    }
+
+    final formalParameterList = declaration.node.formalParameterList;
+    if (formalParameterList == null) {
+      return false;
+    }
+
+    final others = formalParameterList.parameters.toSet();
+    others.removeAll(selected);
+
+    // We cannot convert, if there are remaining optional positional.
+    for (final other in others) {
+      if (other.isOptionalPositional) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 final class _AvailableWithExecutableElement extends Available {
