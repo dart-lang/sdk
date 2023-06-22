@@ -28,6 +28,70 @@ class SwitchStatementTest2 extends AbstractCompletionDriverTest
 }
 
 mixin SwitchStatementTestCases on AbstractCompletionDriverTest {
+  @FailingTest(reason: 'Not suggesting the local variable `length`')
+  Future<void> test_afterCaseBody_beforeCase() async {
+    allowedIdentifiers = {'length'};
+    await computeSuggestions('''
+void f(Object? x) {
+  switch (x) {
+    case String(: final length):
+      len^
+    case int():
+      break;
+  }
+}
+''');
+    if (isProtocolVersion2) {
+      assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  length:
+    kind: identifier
+''');
+    } else {
+      assertResponse(r'''
+replacement
+  left: 3
+suggestions
+  assert
+    kind: keyword
+  break
+    kind: keyword
+  const
+    kind: keyword
+  do
+    kind: keyword
+  dynamic
+    kind: keyword
+  final
+    kind: keyword
+  for
+    kind: keyword
+  if
+    kind: keyword
+  late
+    kind: keyword
+  length:
+    kind: identifier
+  return
+    kind: keyword
+  switch
+    kind: keyword
+  throw
+    kind: keyword
+  try
+    kind: keyword
+  var
+    kind: keyword
+  void
+    kind: keyword
+  while
+    kind: keyword
+''');
+    }
+  }
+
   Future<void> test_afterLeftBrace_beforeCase() async {
     await computeSuggestions('''
 void f() {switch(1) {^ case 1:}}
