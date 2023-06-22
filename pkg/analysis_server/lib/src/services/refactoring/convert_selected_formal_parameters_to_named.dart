@@ -11,75 +11,6 @@ import 'package:analysis_server/src/services/refactoring/framework/write_invocat
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-/// The refactoring that converts all formal parameters into required named.
-class ConvertAllFormalParametersToNamed extends RefactoringProducer {
-  static const String commandName =
-      'dart.refactor.convert_all_formal_parameters_to_named';
-
-  static const String constTitle = 'Convert all formal parameters to named';
-
-  ConvertAllFormalParametersToNamed(super.context);
-
-  @override
-  bool get isExperimental => true;
-
-  @override
-  List<CommandParameter> get parameters => const <CommandParameter>[];
-
-  @override
-  String get title => constTitle;
-
-  @override
-  Future<void> compute(
-    List<Object?> commandArguments,
-    ChangeBuilder builder,
-  ) async {
-    final availability = analyzeAvailability(
-      refactoringContext: refactoringContext,
-    );
-    if (availability is! Available) {
-      return;
-    }
-
-    final selection = await analyzeSelection(
-      available: availability,
-    );
-
-    if (selection is! ValidSelectionState) {
-      return;
-    }
-
-    final formalParameterUpdates = selection.formalParameters.map(
-      (formalParameter) {
-        return FormalParameterUpdate(
-          id: formalParameter.id,
-          kind: FormalParameterKind.requiredNamed,
-        );
-      },
-    ).toList();
-
-    final signatureUpdate = MethodSignatureUpdate(
-      formalParameters: formalParameterUpdates,
-      formalParametersTrailingComma: TrailingComma.ifPresent,
-      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
-    );
-
-    await computeSourceChange(
-      selectionState: selection,
-      signatureUpdate: signatureUpdate,
-      builder: builder,
-    );
-  }
-
-  @override
-  bool isAvailable() {
-    final availability = analyzeAvailability(
-      refactoringContext: refactoringContext,
-    );
-    return availability is Available;
-  }
-}
-
 /// The refactoring that converts selected formal parameters into required
 /// named.
 class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
@@ -120,18 +51,18 @@ class ConvertSelectedFormalParametersToNamed extends RefactoringProducer {
       return;
     }
 
-    final List<FormalParameterState> reOrdered;
+    final List<FormalParameterState> reordered;
     final formalParameters = selection.formalParameters;
     final allSelectedNamed = formalParameters
         .where((e) => e.isSelected)
         .every((e) => e.kind.isNamed);
     if (allSelectedNamed) {
-      reOrdered = formalParameters;
+      reordered = formalParameters;
     } else {
-      reOrdered = formalParameters.stablePartition((e) => !e.isSelected);
+      reordered = formalParameters.stablePartition((e) => !e.isSelected);
     }
 
-    final formalParameterUpdates = reOrdered.map(
+    final formalParameterUpdates = reordered.map(
       (formalParameter) {
         if (formalParameter.isSelected) {
           return FormalParameterUpdate(

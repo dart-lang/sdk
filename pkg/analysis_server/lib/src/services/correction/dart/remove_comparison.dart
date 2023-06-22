@@ -117,28 +117,23 @@ class RemoveComparison extends CorrectionProducer {
 
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      var nodeRange = utils.getLinesRangeStatements([node]);
-
-      String bodyCode;
-      var body = node.thenStatement;
+      final body = node.thenStatement;
       if (body is Block) {
-        var statements = body.statements;
-        if (statements.isEmpty) {
-          builder.addDeletion(nodeRange);
-          return;
-        } else {
-          bodyCode = utils.getRangeText(
-            utils.getLinesRangeStatements(statements),
-          );
-        }
-      } else {
-        bodyCode = utils.getRangeText(
-          utils.getLinesRangeStatements([body]),
+        final text = utils.getRangeText(
+          utils.getLinesRange(
+            range.endStart(body.leftBracket, body.rightBracket),
+          ),
         );
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(
+          utils.getLinesRangeStatements([node]),
+          unIndented,
+        );
+      } else {
+        final text = _textWithLeadingComments(body);
+        final unIndented = utils.indentLeft(text);
+        builder.addSimpleReplacement(range.node(node), unIndented);
       }
-
-      bodyCode = utils.indentSourceLeftRight(bodyCode);
-      builder.addSimpleReplacement(nodeRange, bodyCode);
     });
   }
 

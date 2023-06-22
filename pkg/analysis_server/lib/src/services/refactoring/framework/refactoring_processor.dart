@@ -4,7 +4,8 @@
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/services/refactoring/convert_formal_parameters.dart';
+import 'package:analysis_server/src/services/refactoring/convert_all_formal_parameters_to_named.dart';
+import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';

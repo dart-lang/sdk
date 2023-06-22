@@ -36,11 +36,6 @@ class DartAssistKind {
     DartAssistKindPriority.DEFAULT,
     'Add a debug reference to this property',
   );
-  static const ADD_NOT_NULL_ASSERT = AssistKind(
-    'dart.assist.add.notNullAssert',
-    DartAssistKindPriority.DEFAULT,
-    'Add a not-null assertion',
-  );
   static const ADD_RETURN_TYPE = AssistKind(
     'dart.assist.add.returnType',
     DartAssistKindPriority.DEFAULT,
