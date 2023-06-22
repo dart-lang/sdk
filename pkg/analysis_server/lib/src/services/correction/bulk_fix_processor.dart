@@ -249,8 +249,7 @@ class BulkFixProcessor {
   }
 
   Future<void> _applyProducer(
-      CorrectionProducerContext<ResolvedUnitResult> context,
-      CorrectionProducer producer) async {
+      CorrectionProducerContext context, CorrectionProducer producer) async {
     producer.configure(context);
     try {
       var localBuilder = builder.copy();
@@ -512,10 +511,8 @@ class BulkFixProcessor {
     }
   }
 
-  Future<void> _generateFix(
-      CorrectionProducerContext<ResolvedUnitResult> context,
-      CorrectionProducer producer,
-      String code) async {
+  Future<void> _generateFix(CorrectionProducerContext context,
+      CorrectionProducer producer, String code) async {
     int computeChangeHash() => (builder as ChangeBuilderImpl).changeHash;
 
     var oldHash = computeChangeHash();

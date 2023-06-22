@@ -46,6 +46,16 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
+  Future<ParsedUnitResult> getParsedUnit(File file) async {
+    var result = await super.getParsedUnit(file);
+    testCode = result.content;
+    testUnit = result.unit;
+    findNode = FindNode(testCode, testUnit);
+    findElement = FindElement(testUnit);
+    return result;
+  }
+
+  @override
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
     var result = await super.getResolvedUnit(file);
     testAnalysisResult = result;

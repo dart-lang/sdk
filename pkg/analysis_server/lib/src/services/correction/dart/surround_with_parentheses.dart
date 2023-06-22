@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class SurroundWithParentheses extends CorrectionProducer {
+class SurroundWithParentheses extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => false;
 

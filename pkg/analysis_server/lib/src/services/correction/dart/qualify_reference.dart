@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class QualifyReference extends CorrectionProducer {
+class QualifyReference extends ResolvedCorrectionProducer {
   String _qualifiedName = '';
 
   @override

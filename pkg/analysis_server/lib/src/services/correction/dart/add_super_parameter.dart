@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class AddSuperParameter extends CorrectionProducer {
+class AddSuperParameter extends ResolvedCorrectionProducer {
   int _missingCount = 0;
 
   @override

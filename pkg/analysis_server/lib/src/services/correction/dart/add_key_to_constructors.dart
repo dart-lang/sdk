@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class AddKeyToConstructors extends CorrectionProducer {
+class AddKeyToConstructors extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 

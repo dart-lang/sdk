@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ConvertToWildcardPattern extends CorrectionProducer {
+class ConvertToWildcardPattern extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
 

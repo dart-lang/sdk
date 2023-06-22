@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ChangeToNearestPreciseValue extends CorrectionProducer {
+class ChangeToNearestPreciseValue extends ResolvedCorrectionProducer {
   /// The value to which the code will be changed.
   String _correction = '';
 

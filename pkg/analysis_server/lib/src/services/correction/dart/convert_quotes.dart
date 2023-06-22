@@ -99,7 +99,7 @@ class ConvertToSingleQuotes extends _ConvertQuotes {
   bool get _fromDouble => true;
 }
 
-abstract class _ConvertQuotes extends CorrectionProducer {
+abstract class _ConvertQuotes extends ResolvedCorrectionProducer {
   /// Return `true` if this producer is converting from double quotes to single
   /// quotes, or `false` if it's converting from single quotes to double quotes.
   bool get _fromDouble;

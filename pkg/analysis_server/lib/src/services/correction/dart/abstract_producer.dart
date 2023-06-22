@@ -35,8 +35,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// An object that can compute a correction (fix or assist) in a Dart file.
-abstract class CorrectionProducer
-    extends _AbstractCorrectionProducer<ResolvedUnitResult> {
+abstract class CorrectionProducer<T extends ParsedUnitResult>
+    extends _AbstractCorrectionProducer<T> {
   /// Return the arguments that should be used when composing the message for an
   /// assist, or `null` if the assist message has no parameters or if this
   /// producer doesn't support assists.
@@ -67,9 +67,6 @@ abstract class CorrectionProducer
   /// [multiFixKind] and [multiFixArguments].
   bool get canBeAppliedToFile => false;
 
-  /// Return the type for the class `bool` from `dart:core`.
-  DartType get coreTypeBool => unitResult.typeProvider.boolType;
-
   /// Return the length of the error message being fixed, or `null` if there is
   /// no diagnostic.
   int? get errorLength => diagnostic?.problemMessage.length;
@@ -92,6 +89,186 @@ abstract class CorrectionProducer
   /// producer doesn't support fixes.
   FixKind? get fixKind => null;
 
+  /// Return the arguments that should be used when composing the message for a
+  /// multi-fix, or `null` if the fix message has no parameters or if this
+  /// producer doesn't support multi-fixes.
+  List<Object>? get multiFixArguments => null;
+
+  /// Return the fix kind that should be used to build a multi-fix, or `null` if
+  /// this producer doesn't support multi-fixes.
+  FixKind? get multiFixKind => null;
+
+  Future<void> compute(ChangeBuilder builder);
+}
+
+class CorrectionProducerContext<T extends ParsedUnitResult> {
+  final int selectionOffset;
+  final int selectionLength;
+  final int selectionEnd;
+
+  final CompilationUnit unit;
+  final CorrectionUtils utils;
+  final String file;
+
+  final AnalysisSession session;
+  final AnalysisSessionHelper sessionHelper;
+  final T unitResult;
+  final ChangeWorkspace workspace;
+
+  /// TODO(migration) Make it non-nullable, specialize "fix" context?
+  final DartFixContext? dartFixContext;
+
+  /// A flag indicating whether the correction producers will be run in the
+  /// context of applying bulk fixes.
+  final bool applyingBulkFixes;
+
+  final Diagnostic? diagnostic;
+
+  final TransformOverrideSet? overrideSet;
+
+  final AstNode node;
+
+  final Token token;
+  final TypeProvider? typeProvider;
+
+  CorrectionProducerContext._({
+    required this.unitResult,
+    required this.workspace,
+    this.applyingBulkFixes = false,
+    this.dartFixContext,
+    this.diagnostic,
+    required this.node,
+    required this.token,
+    this.overrideSet,
+    this.selectionOffset = -1,
+    this.selectionLength = 0,
+  })  : file = unitResult.path,
+        session = unitResult.session,
+        sessionHelper = AnalysisSessionHelper(unitResult.session),
+        selectionEnd = selectionOffset + selectionLength,
+        unit = unitResult.unit,
+        utils = CorrectionUtils(unitResult),
+        typeProvider =
+            unitResult is ResolvedUnitResult ? unitResult.typeProvider : null;
+
+  bool get isNonNullableByDefault =>
+      unit.featureSet.isEnabled(Feature.non_nullable);
+
+  static CorrectionProducerContext<ParsedUnitResult> createParsed({
+    required ParsedUnitResult resolvedResult,
+    required ChangeWorkspace workspace,
+    bool applyingBulkFixes = false,
+    DartFixContext? dartFixContext,
+    Diagnostic? diagnostic,
+    TransformOverrideSet? overrideSet,
+    int selectionOffset = -1,
+    int selectionLength = 0,
+  }) {
+    var selectionEnd = selectionOffset + selectionLength;
+    var locator = NodeLocator(selectionOffset, selectionEnd);
+    var node = locator.searchWithin(resolvedResult.unit);
+    node ??= resolvedResult.unit;
+
+    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+
+    return CorrectionProducerContext._(
+      unitResult: resolvedResult,
+      workspace: workspace,
+      node: node,
+      token: token,
+      applyingBulkFixes: applyingBulkFixes,
+      dartFixContext: dartFixContext,
+      diagnostic: diagnostic,
+      overrideSet: overrideSet,
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+    );
+  }
+
+  static CorrectionProducerContext<ResolvedUnitResult>? createResolved({
+    required ResolvedUnitResult resolvedResult,
+    required ChangeWorkspace workspace,
+    bool applyingBulkFixes = false,
+    DartFixContext? dartFixContext,
+    Diagnostic? diagnostic,
+    TransformOverrideSet? overrideSet,
+    int selectionOffset = -1,
+    int selectionLength = 0,
+  }) {
+    var selectionEnd = selectionOffset + selectionLength;
+    var locator = NodeLocator(selectionOffset, selectionEnd);
+    var node = locator.searchWithin(resolvedResult.unit);
+    node ??= resolvedResult.unit;
+
+    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
+
+    return CorrectionProducerContext._(
+      unitResult: resolvedResult,
+      workspace: workspace,
+      node: node,
+      token: token,
+      applyingBulkFixes: applyingBulkFixes,
+      dartFixContext: dartFixContext,
+      diagnostic: diagnostic,
+      overrideSet: overrideSet,
+      selectionOffset: selectionOffset,
+      selectionLength: selectionLength,
+    );
+  }
+
+  static Token? _tokenAt(AstNode node, int offset) {
+    for (final entity in node.childEntities) {
+      if (entity is AstNode) {
+        if (entity.offset <= offset && offset <= entity.end) {
+          return _tokenAt(entity, offset);
+        }
+      } else if (entity is Token) {
+        if (entity.offset <= offset && offset <= entity.end) {
+          return entity;
+        }
+      }
+    }
+    return null;
+  }
+}
+
+abstract class CorrectionProducerWithDiagnostic
+    extends ResolvedCorrectionProducer {
+  /// TODO(migration) Consider providing it via constructor.
+  @override
+  Diagnostic get diagnostic => super.diagnostic!;
+}
+
+/// An object that can dynamically compute multiple corrections (fixes or
+/// assists).
+abstract class MultiCorrectionProducer
+    extends _AbstractCorrectionProducer<ResolvedUnitResult> {
+  /// Return the library element for the library in which a correction is being
+  /// produced.
+  LibraryElement get libraryElement => unitResult.libraryElement;
+
+  /// Return the individual producers generated by this producer.
+  Future<List<ResolvedCorrectionProducer>> get producers;
+
+  TypeProvider get typeProvider => unitResult.typeProvider;
+
+  /// Return the type system appropriate to the library in which the correction
+  /// was requested.
+  TypeSystem get typeSystem => unitResult.typeSystem;
+}
+
+/// An object that can compute a correction (fix or assist) in a Dart file using
+/// the parsed AST.
+abstract class ParsedCorrectionProducer
+    extends CorrectionProducer<ParsedUnitResult> {}
+
+/// An object that can compute a correction (fix or assist) in a Dart file using
+/// the resolved AST.
+abstract class ResolvedCorrectionProducer
+    extends CorrectionProducer<ResolvedUnitResult> {
+  /// Return the type for the class `bool` from `dart:core`.
+  DartType get coreTypeBool => unitResult.typeProvider.boolType;
+
   /// Returns `true` if [node] is in a static context.
   bool get inStaticContext {
     // constructor initializer cannot reference "this"
@@ -112,22 +289,11 @@ abstract class CorrectionProducer
   /// produced.
   LibraryElement get libraryElement => unitResult.libraryElement;
 
-  /// Return the arguments that should be used when composing the message for a
-  /// multi-fix, or `null` if the fix message has no parameters or if this
-  /// producer doesn't support multi-fixes.
-  List<Object>? get multiFixArguments => null;
-
-  /// Return the fix kind that should be used to build a multi-fix, or `null` if
-  /// this producer doesn't support multi-fixes.
-  FixKind? get multiFixKind => null;
-
   TypeProvider get typeProvider => unitResult.typeProvider;
 
   /// Return the type system appropriate to the library in which the correction
   /// was requested.
   TypeSystem get typeSystem => unitResult.typeSystem;
-
-  Future<void> compute(ChangeBuilder builder);
 
   /// Return the class for the given [element].
   Future<ClassDeclaration?> getClassDeclaration(ClassElement element) async {
@@ -308,162 +474,7 @@ abstract class CorrectionProducer
   }
 }
 
-class CorrectionProducerContext<T extends ParsedUnitResult> {
-  final int selectionOffset;
-  final int selectionLength;
-  final int selectionEnd;
-
-  final CompilationUnit unit;
-  final CorrectionUtils utils;
-  final String file;
-
-  final AnalysisSession session;
-  final AnalysisSessionHelper sessionHelper;
-  final T unitResult;
-  final ChangeWorkspace workspace;
-
-  /// TODO(migration) Make it non-nullable, specialize "fix" context?
-  final DartFixContext? dartFixContext;
-
-  /// A flag indicating whether the correction producers will be run in the
-  /// context of applying bulk fixes.
-  final bool applyingBulkFixes;
-
-  final Diagnostic? diagnostic;
-
-  final TransformOverrideSet? overrideSet;
-
-  final AstNode node;
-
-  final Token token;
-  final TypeProvider? typeProvider;
-
-  CorrectionProducerContext._({
-    required this.unitResult,
-    required this.workspace,
-    this.applyingBulkFixes = false,
-    this.dartFixContext,
-    this.diagnostic,
-    required this.node,
-    required this.token,
-    this.overrideSet,
-    this.selectionOffset = -1,
-    this.selectionLength = 0,
-  })  : file = unitResult.path,
-        session = unitResult.session,
-        sessionHelper = AnalysisSessionHelper(unitResult.session),
-        selectionEnd = selectionOffset + selectionLength,
-        unit = unitResult.unit,
-        utils = CorrectionUtils(unitResult),
-        typeProvider =
-            unitResult is ResolvedUnitResult ? unitResult.typeProvider : null;
-
-  bool get isNonNullableByDefault =>
-      unit.featureSet.isEnabled(Feature.non_nullable);
-
-  static CorrectionProducerContext<ParsedUnitResult> createParsed({
-    required ParsedUnitResult resolvedResult,
-    required ChangeWorkspace workspace,
-    bool applyingBulkFixes = false,
-    DartFixContext? dartFixContext,
-    Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
-    int selectionOffset = -1,
-    int selectionLength = 0,
-  }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(resolvedResult.unit);
-    node ??= resolvedResult.unit;
-
-    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
-
-    return CorrectionProducerContext._(
-      unitResult: resolvedResult,
-      workspace: workspace,
-      node: node,
-      token: token,
-      applyingBulkFixes: applyingBulkFixes,
-      dartFixContext: dartFixContext,
-      diagnostic: diagnostic,
-      overrideSet: overrideSet,
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-    );
-  }
-
-  static CorrectionProducerContext<ResolvedUnitResult>? createResolved({
-    required ResolvedUnitResult resolvedResult,
-    required ChangeWorkspace workspace,
-    bool applyingBulkFixes = false,
-    DartFixContext? dartFixContext,
-    Diagnostic? diagnostic,
-    TransformOverrideSet? overrideSet,
-    int selectionOffset = -1,
-    int selectionLength = 0,
-  }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(resolvedResult.unit);
-    node ??= resolvedResult.unit;
-
-    final token = _tokenAt(node, selectionOffset) ?? node.beginToken;
-
-    return CorrectionProducerContext._(
-      unitResult: resolvedResult,
-      workspace: workspace,
-      node: node,
-      token: token,
-      applyingBulkFixes: applyingBulkFixes,
-      dartFixContext: dartFixContext,
-      diagnostic: diagnostic,
-      overrideSet: overrideSet,
-      selectionOffset: selectionOffset,
-      selectionLength: selectionLength,
-    );
-  }
-
-  static Token? _tokenAt(AstNode node, int offset) {
-    for (final entity in node.childEntities) {
-      if (entity is AstNode) {
-        if (entity.offset <= offset && offset <= entity.end) {
-          return _tokenAt(entity, offset);
-        }
-      } else if (entity is Token) {
-        if (entity.offset <= offset && offset <= entity.end) {
-          return entity;
-        }
-      }
-    }
-    return null;
-  }
-}
-
-abstract class CorrectionProducerWithDiagnostic extends CorrectionProducer {
-  /// TODO(migration) Consider providing it via constructor.
-  @override
-  Diagnostic get diagnostic => super.diagnostic!;
-}
-
-/// An object that can dynamically compute multiple corrections (fixes or
-/// assists).
-abstract class MultiCorrectionProducer
-    extends _AbstractCorrectionProducer<ResolvedUnitResult> {
-  /// Return the library element for the library in which a correction is being
-  /// produced.
-  LibraryElement get libraryElement => unitResult.libraryElement;
-
-  /// Return the individual producers generated by this producer.
-  Future<List<CorrectionProducer>> get producers;
-
-  TypeProvider get typeProvider => unitResult.typeProvider;
-
-  /// Return the type system appropriate to the library in which the correction
-  /// was requested.
-  TypeSystem get typeSystem => unitResult.typeSystem;
-}
-
-/// The behavior shared by [CorrectionProducer] and [MultiCorrectionProducer].
+/// The behavior shared by [ResolvedCorrectionProducer] and [MultiCorrectionProducer].
 abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   /// The context used to produce corrections.
   /// TODO(migration) Make it not `late`, require in constructor.

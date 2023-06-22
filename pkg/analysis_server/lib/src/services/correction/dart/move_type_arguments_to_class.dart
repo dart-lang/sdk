@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class MoveTypeArgumentsToClass extends CorrectionProducer {
+class MoveTypeArgumentsToClass extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.MOVE_TYPE_ARGUMENTS_TO_CLASS;
 

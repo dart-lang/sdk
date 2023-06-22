@@ -29,7 +29,7 @@ class RemoveUnnecessaryConst extends _RemoveConst {
   FixKind get multiFixKind => DartFixKind.REMOVE_UNNECESSARY_CONST_MULTI;
 }
 
-abstract class _RemoveConst extends CorrectionProducer {
+abstract class _RemoveConst extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     final expression = node;

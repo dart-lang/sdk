@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddReturnType extends CorrectionProducer {
+class AddReturnType extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
 

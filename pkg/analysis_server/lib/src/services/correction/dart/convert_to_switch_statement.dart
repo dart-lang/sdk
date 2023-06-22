@@ -14,7 +14,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
+class ConvertIfStatementToSwitchStatement extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 
@@ -164,7 +164,8 @@ class ConvertIfStatementToSwitchStatement extends CorrectionProducer {
   }
 }
 
-class ConvertSwitchExpressionToSwitchStatement extends CorrectionProducer {
+class ConvertSwitchExpressionToSwitchStatement
+    extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_SWITCH_STATEMENT;
 

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddEnumConstant extends CorrectionProducer {
+class AddEnumConstant extends ResolvedCorrectionProducer {
   /// The name of the constant to be created.
   String _constantName = '';
 

@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class InvertIfStatement extends CorrectionProducer {
+class InvertIfStatement extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.INVERT_IF_STATEMENT;
 

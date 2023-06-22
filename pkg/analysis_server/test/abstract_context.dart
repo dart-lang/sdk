@@ -173,6 +173,13 @@ class AbstractContextTest with ResourceProviderMixin {
     return _contextFor(file).driver;
   }
 
+  Future<ParsedUnitResult> getParsedUnit(File file) async {
+    final path = file.path;
+    final session = await sessionFor(fileForContextSelection ?? file);
+    final result = session.getParsedUnit(path);
+    return result as ParsedUnitResult;
+  }
+
   Future<ResolvedUnitResult> getResolvedUnit(File file) async {
     final path = file.path;
     final session = await sessionFor(fileForContextSelection ?? file);

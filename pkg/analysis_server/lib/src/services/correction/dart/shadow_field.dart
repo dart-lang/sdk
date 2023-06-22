@@ -12,7 +12,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-class ShadowField extends CorrectionProducer {
+class ShadowField extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.SHADOW_FIELD;
 

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class MakeClassAbstract extends CorrectionProducer {
+class MakeClassAbstract extends ResolvedCorrectionProducer {
   String _className = '';
 
   @override

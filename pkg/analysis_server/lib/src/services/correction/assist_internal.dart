@@ -83,7 +83,7 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
   /// A map that can be used to look up the names of the lints for which a given
-  /// [CorrectionProducer] will be used.
+  /// [ResolvedCorrectionProducer] will be used.
   static final Map<ProducerGenerator, Set<String>> lintRuleMap =
       createLintRuleMap();
 
