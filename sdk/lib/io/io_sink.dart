@@ -34,7 +34,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// The [encoding] does not apply to this method, and the [data] list is passed
   /// directly to the target consumer as a stream event.
   ///
-  /// This function must not be called when a stream is currently being added
+  /// This method must not be called when a stream is currently being added
   /// using [addStream].
   ///
   /// This operation is non-blocking. See [flush] or [done] for how to get any
@@ -78,7 +78,7 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
 
   /// Passes the error to the target consumer as an error event.
   ///
-  /// This function must not be called when a stream is currently being added
+  /// This method must not be called when a stream is currently being added
   /// using [addStream].
   ///
   /// This operation is non-blocking. See [flush] or [done] for how to get any
@@ -93,8 +93,8 @@ abstract interface class IOSink implements StreamSink<List<int>>, StringSink {
   /// If the stream contains an error, the `addStream` ends at the error,
   /// and the returned future completes with that error.
   ///
-  /// This function must not be called when a stream is currently being added
-  /// using this function.
+  /// This method must not be called when a stream is currently being added
+  /// using this method.
   Future addStream(Stream<List<int>> stream);
 
   /// Returns a [Future] that completes once all buffered data is accepted by the
