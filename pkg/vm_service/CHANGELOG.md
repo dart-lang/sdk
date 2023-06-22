@@ -1,3 +1,6 @@
+## 11.7.2
+- Make Event classes abstract to permit `dap` event stream extensions.
+
 ## 11.7.1
 - Expose RPC error codes that were defined in `package:dds`.
 
