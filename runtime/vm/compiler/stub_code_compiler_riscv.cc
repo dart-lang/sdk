@@ -2801,15 +2801,16 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 // Inputs (all preserved, mostly from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against.
-//   - kDstTypeReg: destination type (for n>=3).
-//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
-//   - kFunctionTypeArgumentsReg: function type arguments (for n=5).
+//   - kDstTypeReg: destination type (for n>=7).
+//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n>=3).
+//   - kFunctionTypeArgumentsReg: function type arguments (for n>=4).
 //   - RA: return address.
 //
 // Outputs (from TypeTestABI struct):
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
 
   // We could initialize kSubtypeTestCacheResultReg with null and use that as
   // the null register up until exit, which means we'd just need to return
@@ -2825,7 +2826,7 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheResultReg;
 
   Label not_found;
-  StubCodeCompiler::GenerateSubtypeTestCacheSearch(
+  GenerateSubtypeTestCacheSearch(
       assembler, n, NULL_REG, kCacheArrayReg,
       STCInternalRegs::kInstanceCidOrSignatureReg,
       STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
@@ -2843,26 +2844,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ Comment("Not found");
   __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, NULL_REG);
   __ Ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 void StubCodeCompiler::GenerateGetCStackPointerStub() {

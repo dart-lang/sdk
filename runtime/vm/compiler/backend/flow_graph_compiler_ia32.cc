@@ -188,11 +188,11 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 
 // Input registers (from TypeTestABI):
 // - kInstanceReg: instance.
-// - kDstTypeReg: destination type (for test_kind != kTestTypeOneArg).
+// - kDstTypeReg: destination type (for test_kind == kTestTypeSevenArg).
 // - kInstantiatorTypeArgumentsReg: instantiator type arguments
-//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+//   (for test_kind == kTestTypeFourArg, kTestTypeSixArg, or kTestTypeSevenArg).
 // - kFunctionTypeArgumentsReg: function type arguments
-//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+//   (for test_kind == kTestTypeFourArg, kTestTypeSixArg, or kTestTypeSevenArg).
 //
 // Only preserves kInstanceReg from TypeTestABI, all other TypeTestABI
 // registers may be used and thus must be saved by the caller.
@@ -200,15 +200,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     compiler::Label* is_instance_lbl,
     compiler::Label* is_not_instance_lbl) {
-  // Used for registers that may not have GC-safe values to push. Pushes
-  // the null object if the condition is not met.
-  auto conditional_push = [&](Register reg, bool condition) {
-    if (condition) {
-      __ pushl(reg);
-    } else {
-      __ PushObject(Object::null_object());
-    }
-  };
   const intptr_t num_inputs = UsedInputsForTTSKind(test_kind);
   const SubtypeTestCache& type_test_cache =
       SubtypeTestCache::ZoneHandle(zone(), SubtypeTestCache::New(num_inputs));
@@ -217,9 +208,23 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateCallSubtypeTestStub(
   __ LoadObject(TypeTestABI::kSubtypeTestCacheReg, type_test_cache);
   __ pushl(TypeTestABI::kSubtypeTestCacheReg);
   __ pushl(TypeTestABI::kInstanceReg);
-  conditional_push(TypeTestABI::kDstTypeReg, num_inputs >= 3);
-  conditional_push(TypeTestABI::kInstantiatorTypeArgumentsReg, num_inputs >= 4);
-  conditional_push(TypeTestABI::kFunctionTypeArgumentsReg, num_inputs >= 5);
+  // Registers for unused inputs may not have GC-safe values to push, so push
+  // the null object if the input is unused instead.
+  if (num_inputs >= 7) {
+    __ pushl(TypeTestABI::kDstTypeReg);
+  } else {
+    __ PushObject(Object::null_object());
+  }
+  if (num_inputs >= 3) {
+    __ pushl(TypeTestABI::kInstantiatorTypeArgumentsReg);
+  } else {
+    __ PushObject(Object::null_object());
+  }
+  if (num_inputs >= 4) {
+    __ pushl(TypeTestABI::kFunctionTypeArgumentsReg);
+  } else {
+    __ PushObject(Object::null_object());
+  }
   __ Call(stub_entry);
   // Restore all but kSubtypeTestCacheReg (since it is the same as
   // kSubtypeTestCacheResultReg). Since the generated code is documented as

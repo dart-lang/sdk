@@ -119,6 +119,7 @@ class StubCodeCompiler {
   // `StubCode::*<stub-name>Shared{With,Without}FpuRegsStub()`
   static intptr_t WordOffsetFromFpToCpuRegister(Register cpu_register);
 
+ private:
 #if !defined(TARGET_ARCH_IA32)
   // Generates the code for searching a subtype test cache for an entry that
   // matches the contents of the TypeTestABI registers. If no matching
@@ -126,29 +127,31 @@ class StubCodeCompiler {
   // continues immediately after the loop and [cache_entry_reg] points to
   // the start of the matching cache entry.
   //
-  // The following registers must be provided, that is, they cannot be
-  // kNoRegister for any [n]:
-  // - null_reg
-  // - cache_entry_reg
-  // - instance_cid_or_sig_reg
+  // The following registers from TypeTestABI are inputs under the following
+  // conditions:
+  // - kScratchReg: always
+  // - kInstanceReg: always
+  // - kDstTypeReg: [n] >= 3
+  // - kInstantiatorTypeArgumentsReg: [n] >= 4
+  // - kFunctionTypeArgumentsReg: [n] >= 5
   //
-  // The following registers must be provided for [n] >= 3:
-  // - instance_type_args_reg
+  // Has the following input registers in addition to those in TypeTestABI:
+  // - null_reg: contains the ObjectPtr for Object::null()
+  // - cache_entry_reg: contains the ArrayPtr for the backing array of the STC
   //
-  // The following registers must be provided for [n] >= 7:
-  // - parent_fun_type_args_reg
-  // - delayed_type_args_reg
+  // The following registers must be provided for the given conditions and
+  // are clobbered:
+  // - instance_cid_or_sig_reg: always
+  // - instance_type_args_reg: [n] >= 2
+  // - parent_fun_type_args_reg: [n] >= 6
+  // - delayed_type_args_reg: [n] >= 7
   //
-  // All provided registers must be distinct, and in addition, all provided
-  // registers must be distinct from the following TypeTestABI registers:
-  // - kScratchReg
-  // - kDstTypeReg
-  // - kInstantiatorTypeArgumentsReg
-  // - kFunctionTypeArgumentsReg
+  // Note that all input registers must be distinct, except for the case
+  // of kInstanceReg and [delayed_type_args_reg], which are allowed to overlap.
   //
-  // and all but [delayed_type_args_reg] must be distinct from the following
-  // TypeTestABI register:
-  // - kInstanceReg
+  // Also note that if any non-TypeTestABI registers overlap with any
+  // non-scratch TypeTestABI registers, the original value of the TypeTestABI
+  // register must be restored afterwards.
   static void GenerateSubtypeTestCacheSearch(Assembler* assembler,
                                              int n,
                                              Register null_reg,
@@ -160,7 +163,10 @@ class StubCodeCompiler {
                                              Label* not_found);
 #endif
 
- private:
+  // Common function for generating the different SubtypeTestCache search
+  // stubs. Check architecture-specific version for inputs/outputs.
+  static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n);
+
   // Common function for generating InitLateStaticField and
   // InitLateFinalStaticField stubs.
   void GenerateInitLateStaticFieldStub(bool is_final);

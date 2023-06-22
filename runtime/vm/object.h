@@ -7406,9 +7406,8 @@ class MegamorphicCache : public CallSiteData {
 
 class SubtypeTestCache : public Object {
  public:
-  // The contents of the backing array storage is a header followed by
-  // a number of entry tuples. Any entry that is unoccupied has the null value
-  // as its first component.
+  // The contents of the backing array storage is a number of entry tuples.
+  // Any entry that is unoccupied has the null value as its first component.
   //
   // If the cache is linear, the entries can be accessed in a linear fashion:
   // all occupied entries come first, followed by at least one unoccupied
@@ -7418,16 +7417,6 @@ class SubtypeTestCache : public Object {
   //
   // If the cache is hash-based, the array is instead treated as a hash table
   // probed by using a hash value derived from the inputs.
-
-  enum Header {
-    // The number of occupied entries in the cache as a Smi.
-    //
-    // Note: accesses outside of the subtype test cache mutex must have acquire
-    // semantics. In C++ code, use NumOccupied to retrieve the number of
-    // occupied entries.
-    kNumOccupiedIndex = 0,
-    kHeaderSize,
-  };
 
   // The tuple of values stored in a given entry.
   //
@@ -7442,19 +7431,19 @@ class SubtypeTestCache : public Object {
   // stored in the instantiator type arguments slot.
   enum Entries {
     kInstanceCidOrSignature = 0,
-    kDestinationType = 1,
-    kInstanceTypeArguments = 2,
-    kInstantiatorTypeArguments = 3,
-    kFunctionTypeArguments = 4,
-    kInstanceParentFunctionTypeArguments = 5,
-    kInstanceDelayedFunctionTypeArguments = 6,
+    kInstanceTypeArguments = 1,
+    kInstantiatorTypeArguments = 2,
+    kFunctionTypeArguments = 3,
+    kInstanceParentFunctionTypeArguments = 4,
+    kInstanceDelayedFunctionTypeArguments = 5,
+    kDestinationType = 6,
     kTestResult = 7,
     kTestEntryLength = 8,
   };
 
   // Assumes only one non-input entry in the array, kTestResult.
   static_assert(kInstanceCidOrSignature == 0 &&
-                    kInstanceDelayedFunctionTypeArguments + 1 == kTestResult &&
+                    kDestinationType + 1 == kTestResult &&
                     kTestResult + 1 == kTestEntryLength,
                 "Need to adjust number of max inputs");
   static constexpr intptr_t kMaxInputs = kTestResult;
@@ -7576,6 +7565,8 @@ class SubtypeTestCache : public Object {
   }
   intptr_t num_inputs() const { return untag()->num_inputs_; }
 
+  intptr_t num_occupied() const { return untag()->num_occupied_; }
+
   // The maximum number of occupied entries for a linear subtype test cache
   // before swapping to a hash table-based cache. Exposed publicly for tests.
 #if defined(TARGET_ARCH_IA32)
@@ -7599,10 +7590,6 @@ class SubtypeTestCache : public Object {
   static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {
     return occupied / static_cast<double>(capacity);
   }
-
-  // Retrieves the number of occupied entries in a cache backed by the given
-  // array.
-  static intptr_t NumberOfChecks(const Array& array);
 
   // Retrieves the number of entries (occupied or unoccupied) in a cache
   // backed by the given array.
@@ -7655,7 +7642,7 @@ class SubtypeTestCache : public Object {
   // The maximum size of the array backing a linear cache. All hash based
   // caches are guaranteed to have sizes larger than this.
   static constexpr intptr_t kMaxLinearCacheSize =
-      kHeaderSize + (kMaxLinearCacheEntries + 1) * kTestEntryLength;
+      (kMaxLinearCacheEntries + 1) * kTestEntryLength;
 
  private:
   // The initial number of entries used when converting from a linear to
@@ -7669,6 +7656,7 @@ class SubtypeTestCache : public Object {
   static constexpr double kMaxLoadFactor = 0.71;
 
   void set_cache(const Array& value) const;
+  void set_num_occupied(intptr_t value) const;
 
   // Like GetCurrentCheck, but takes the backing storage array.
   static void GetCheckFromArray(
@@ -13454,14 +13442,13 @@ using StaticCallsTableEntry = StaticCallsTable::TupleView;
 
 using SubtypeTestCacheTable = ArrayOfTuplesView<SubtypeTestCache::Entries,
                                                 std::tuple<Object,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
+                                                           TypeArguments,
                                                            AbstractType,
-                                                           TypeArguments,
-                                                           TypeArguments,
-                                                           TypeArguments,
-                                                           TypeArguments,
-                                                           TypeArguments,
-                                                           Bool>,
-                                                SubtypeTestCache::kHeaderSize>;
+                                                           Bool>>;
 
 using MegamorphicCacheEntries =
     ArrayOfTuplesView<MegamorphicCache::EntryType, std::tuple<Smi, Object>>;

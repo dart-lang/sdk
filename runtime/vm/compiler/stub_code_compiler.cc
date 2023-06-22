@@ -1094,14 +1094,16 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
 
   // Use the number of inputs used by the STC to determine which stub to call.
-  Label call_3, call_5;
+  Label call_2, call_4, call_6;
   __ Comment("Check number of STC inputs");
   __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
                   Slot::SubtypeTestCache_num_inputs());
-  __ CompareImmediate(TypeTestABI::kScratchReg, 3);
-  __ BranchIf(EQUAL, &call_3, Assembler::kNearJump);
-  __ CompareImmediate(TypeTestABI::kScratchReg, 5);
-  __ BranchIf(EQUAL, &call_5, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 2);
+  __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 4);
+  __ BranchIf(EQUAL, &call_4, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 6);
+  __ BranchIf(EQUAL, &call_6, Assembler::kNearJump);
 #if defined(DEBUG)
   // Verify we have the all inputs case.
   Label perform_check;
@@ -1122,20 +1124,30 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
-  __ Bind(&call_5);
+  __ Bind(&call_6);
   {
-    __ Comment("Call 5 input STC check");
-    __ Call(StubCodeSubtype5TestCache());
+    __ Comment("Call 6 input STC check");
+    __ Call(StubCodeSubtype6TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
-  __ Bind(&call_3);
+  __ Bind(&call_4);
   {
-    __ Comment("Call 3 input STC check");
-    __ Call(StubCodeSubtype3TestCache());
+    __ Comment("Call 4 input STC check");
+    __ Call(StubCodeSubtype4TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_2);
+  {
+    __ Comment("Call 2 input STC check");
+    __ Call(StubCodeSubtype2TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -2559,6 +2571,107 @@ void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
 }
 
 #if !defined(TARGET_ARCH_IA32)
+static void GenerateSubtypeTestCacheLoop(Assembler* assembler,
+                                         int n,
+                                         Register null_reg,
+                                         Register cache_entry_reg,
+                                         Register instance_cid_or_sig_reg,
+                                         Register instance_type_args_reg,
+                                         Register parent_fun_type_args_reg,
+                                         Register delayed_type_args_reg,
+                                         Label* found,
+                                         Label* not_found,
+                                         Label* next_iteration) {
+  __ Comment("Loop");
+  // LoadAcquireCompressed assumes the loaded value is a heap object and
+  // extends it with the heap bits if compressed. However, the entry may be
+  // a Smi.
+  //
+  // Instead, just use LoadAcquire to load the lower bits when compressed and
+  // only compare the low bits of the loaded value using CompareObjectRegisters.
+  __ LoadAcquire(TypeTestABI::kScratchReg, cache_entry_reg,
+                 target::kCompressedWordSize *
+                     target::SubtypeTestCache::kInstanceCidOrSignature,
+                 kObjectBytes);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, null_reg);
+  __ BranchIf(EQUAL, not_found, Assembler::kNearJump);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
+  if (n == 1) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      instance_type_args_reg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kInstanceTypeArguments),
+      kObjectBytes);
+  if (n == 2) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kInstantiatorTypeArgumentsReg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kInstantiatorTypeArguments),
+      kObjectBytes);
+  if (n == 3) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kFunctionTypeArgumentsReg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 4) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      parent_fun_type_args_reg,
+      Address(
+          cache_entry_reg,
+          target::kCompressedWordSize *
+              target::SubtypeTestCache::kInstanceParentFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 5) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      delayed_type_args_reg,
+      Address(
+          cache_entry_reg,
+          target::kCompressedWordSize *
+              target::SubtypeTestCache::kInstanceDelayedFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 6) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kDstTypeReg,
+      Address(cache_entry_reg, target::kCompressedWordSize *
+                                   target::SubtypeTestCache::kDestinationType),
+      kObjectBytes);
+  __ BranchIf(EQUAL, found, Assembler::kNearJump);
+}
+
 void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
     Assembler* assembler,
     int n,
@@ -2579,15 +2692,17 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   ASSERT(instance_cid_or_sig_reg != kNoRegister);
   ASSERT(!input_regs.ContainsRegister(instance_cid_or_sig_reg));
   input_regs.AddRegister(instance_cid_or_sig_reg);
-  if (n >= 3) {
+  if (n >= 2) {
     ASSERT(instance_type_args_reg != kNoRegister);
     ASSERT(!input_regs.ContainsRegister(instance_type_args_reg));
     input_regs.AddRegister(instance_type_args_reg);
   }
-  if (n >= 7) {
+  if (n >= 5) {
     ASSERT(parent_fun_type_args_reg != kNoRegister);
     ASSERT(!input_regs.ContainsRegister(parent_fun_type_args_reg));
     input_regs.AddRegister(parent_fun_type_args_reg);
+  }
+  if (n >= 6) {
     ASSERT(!input_regs.ContainsRegister(TypeTestABI::kInstanceReg));
     ASSERT(delayed_type_args_reg != kNoRegister);
     ASSERT(!input_regs.ContainsRegister(delayed_type_args_reg));
@@ -2595,11 +2710,21 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   } else {
     ASSERT(!input_regs.ContainsRegister(TypeTestABI::kInstanceReg));
   }
+  // We can allow the use of the registers below only if we're not expecting
+  // them as an inspected input.
+  if (n >= 3) {
+    ASSERT(!input_regs.ContainsRegister(
+        TypeTestABI::kInstantiatorTypeArgumentsReg));
+  }
+  if (n >= 4) {
+    ASSERT(
+        !input_regs.ContainsRegister(TypeTestABI::kFunctionTypeArgumentsReg));
+  }
+  if (n >= 7) {
+    ASSERT(!input_regs.ContainsRegister(TypeTestABI::kDstTypeReg));
+  }
+  // We use this as a scratch, so it has to be distinct from the others.
   ASSERT(!input_regs.ContainsRegister(TypeTestABI::kScratchReg));
-  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kDstTypeReg));
-  ASSERT(
-      !input_regs.ContainsRegister(TypeTestABI::kInstantiatorTypeArgumentsReg));
-  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kFunctionTypeArgumentsReg));
 #endif
   Label loop;
 
@@ -2617,15 +2742,24 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   // TODO(sstrickl): Handle hash-based tables in the stub and load the first
   // entry to check here instead of generating a false negative.
   __ BranchIf(GREATER, not_found);
-  __ AddImmediate(
-      cache_entry_reg,
-      target::Array::data_offset() - kHeapObjectTag +
-          target::kCompressedWordSize * target::SubtypeTestCache::kHeaderSize);
+  __ AddImmediate(cache_entry_reg,
+                  target::Array::data_offset() - kHeapObjectTag);
 
   Label not_closure;
-  if (n >= 5) {
+  if (n >= 4) {
     __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   } else {
+    // If the type is fully instantiated, then it can be determined at compile
+    // time whether Smi is a subtype of the type or not. Thus, this code should
+    // never be called with a Smi instance.
+#if defined(DEBUG)
+    // Double-check this in DEBUG mode, instead of getting a segfault.
+    Label not_smi;
+    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &not_smi,
+                      Assembler::kNearJump);
+    __ Breakpoint();
+    __ Bind(&not_smi);
+#endif
     __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   }
   __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);
@@ -2640,22 +2774,25 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
     __ LoadCompressed(instance_cid_or_sig_reg,
                       FieldAddress(instance_cid_or_sig_reg,
                                    target::Function::signature_offset()));
-    if (n >= 3) {
+    if (n >= 2) {
       __ LoadCompressed(
           instance_type_args_reg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ LoadCompressed(
-            parent_fun_type_args_reg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset()));
-        __ LoadCompressed(
-            delayed_type_args_reg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset()));
-      }
     }
+    if (n >= 5) {
+      __ LoadCompressed(
+          parent_fun_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::function_type_arguments_offset()));
+    }
+    if (n >= 6) {
+      __ LoadCompressed(
+          delayed_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::delayed_type_arguments_offset()));
+    }
+
     __ Jump(&loop, Assembler::kNearJump);
   }
 
@@ -2663,7 +2800,7 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   {
     __ Comment("Non-Closure");
     __ Bind(&not_closure);
-    if (n >= 3) {
+    if (n >= 2) {
       Label has_no_type_arguments;
       __ LoadClassById(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
       __ MoveRegister(instance_type_args_reg, null_reg);
@@ -2679,92 +2816,22 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
                                TypeTestABI::kScratchReg);
       __ Bind(&has_no_type_arguments);
       __ Comment("No type arguments");
-
-      if (n >= 7) {
-        __ MoveRegister(parent_fun_type_args_reg, null_reg);
-        __ MoveRegister(delayed_type_args_reg, null_reg);
-      }
     }
     __ SmiTag(instance_cid_or_sig_reg);
+    if (n >= 5) {
+      __ MoveRegister(parent_fun_type_args_reg, null_reg);
+    }
+    if (n >= 6) {
+      __ MoveRegister(delayed_type_args_reg, null_reg);
+    }
   }
 
   Label next_iteration, found;
   __ Bind(&loop);
-  __ Comment("Loop");
-  // LoadAcquireCompressed assumes the loaded value is a heap object and
-  // extends it with the heap bits if compressed. However, the entry may be
-  // a Smi.
-  //
-  // Instead, just use LoadAcquire to load the lower bits when compressed and
-  // only compare the low bits of the loaded value using CompareObjectRegisters.
-  __ LoadAcquire(TypeTestABI::kScratchReg, cache_entry_reg,
-                 target::kCompressedWordSize *
-                     target::SubtypeTestCache::kInstanceCidOrSignature,
-                 kObjectBytes);
-  __ CompareObjectRegisters(TypeTestABI::kScratchReg, null_reg);
-  __ BranchIf(EQUAL, not_found, Assembler::kNearJump);
-  __ CompareObjectRegisters(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
-  if (n == 1) {
-    __ BranchIf(EQUAL, &found, Assembler::kNearJump);
-  } else {
-    __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ CompareWithMemoryValue(
-        TypeTestABI::kDstTypeReg,
-        Address(cache_entry_reg,
-                target::kCompressedWordSize *
-                    target::SubtypeTestCache::kDestinationType),
-        kObjectBytes);
-    __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ CompareWithMemoryValue(
-        instance_type_args_reg,
-        Address(cache_entry_reg,
-                target::kCompressedWordSize *
-                    target::SubtypeTestCache::kInstanceTypeArguments),
-        kObjectBytes);
-    if (n == 3) {
-      __ BranchIf(EQUAL, &found, Assembler::kNearJump);
-    } else {
-      __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ CompareWithMemoryValue(
-          TypeTestABI::kInstantiatorTypeArgumentsReg,
-          Address(cache_entry_reg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments),
-          kObjectBytes);
-      __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ CompareWithMemoryValue(
-          TypeTestABI::kFunctionTypeArgumentsReg,
-          Address(cache_entry_reg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kFunctionTypeArguments),
-          kObjectBytes);
-
-      if (n == 5) {
-        __ BranchIf(EQUAL, &found, Assembler::kNearJump);
-      } else {
-        ASSERT(n == 7);
-        __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-
-        __ CompareWithMemoryValue(
-            parent_fun_type_args_reg,
-            Address(cache_entry_reg,
-                    target::kCompressedWordSize *
-                        target::SubtypeTestCache::
-                            kInstanceParentFunctionTypeArguments),
-            kObjectBytes);
-        __ BranchIf(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ CompareWithMemoryValue(
-            delayed_type_args_reg,
-            Address(cache_entry_reg,
-                    target::kCompressedWordSize *
-                        target::SubtypeTestCache::
-                            kInstanceDelayedFunctionTypeArguments),
-            kObjectBytes);
-        __ BranchIf(EQUAL, &found, Assembler::kNearJump);
-      }
-    }
-  }
-
+  GenerateSubtypeTestCacheLoop(assembler, n, null_reg, cache_entry_reg,
+                               instance_cid_or_sig_reg, instance_type_args_reg,
+                               parent_fun_type_args_reg, delayed_type_args_reg,
+                               &found, not_found, &next_iteration);
   __ Bind(&next_iteration);
   __ Comment("Next iteration");
   __ AddImmediate(
@@ -2775,6 +2842,31 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   __ Bind(&found);
 }
 #endif
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 1);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype2TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 2);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype4TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype6TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 6);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
+}
 
 }  // namespace compiler
 

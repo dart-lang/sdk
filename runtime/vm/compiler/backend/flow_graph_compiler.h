@@ -1024,8 +1024,9 @@ class FlowGraphCompiler : public ValueObject {
 
   enum class TypeTestStubKind {
     kTestTypeOneArg = 1,
-    kTestTypeThreeArgs = 3,
-    kTestTypeFiveArgs = 5,
+    kTestTypeTwoArgs = 2,
+    kTestTypeFourArgs = 4,
+    kTestTypeSixArgs = 6,
     kTestTypeSevenArgs = 7,
   };
 

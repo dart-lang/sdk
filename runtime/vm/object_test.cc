@@ -8407,8 +8407,7 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
   const auto& array = Array::Handle(zone, cache.cache());
   for (intptr_t i = 0; i < cache.NumEntries(); i++) {
     if (!cache.IsOccupied(i)) continue;
-    const intptr_t entry_start =
-        SubtypeTestCache::kHeaderSize + i * SubtypeTestCache::kTestEntryLength;
+    const intptr_t entry_start = i * SubtypeTestCache::kTestEntryLength;
     {
       const intptr_t cid =
           array.At(entry_start + SubtypeTestCache::kTestResult)
@@ -8432,6 +8431,9 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
   }
 
     switch (used_inputs) {
+      USED_INPUT_CASE(SubtypeTestCache::kDestinationType,
+                      IsConcreteTypeClassId(cid));
+      FALL_THROUGH;
       USED_INPUT_CASE(SubtypeTestCache::kInstanceDelayedFunctionTypeArguments,
                       cid == kNullCid || cid == kTypeArgumentsCid);
       FALL_THROUGH;
@@ -8446,9 +8448,6 @@ static void SubtypeTestCacheCheckContents(Zone* zone,
       FALL_THROUGH;
       USED_INPUT_CASE(SubtypeTestCache::kInstanceTypeArguments,
                       cid == kNullCid || cid == kTypeArgumentsCid);
-      FALL_THROUGH;
-      USED_INPUT_CASE(SubtypeTestCache::kDestinationType,
-                      IsConcreteTypeClassId(cid));
       FALL_THROUGH;
       USED_INPUT_CASE(SubtypeTestCache::kInstanceCidOrSignature,
                       cid == kSmiCid || cid == kFunctionTypeCid);
@@ -8512,6 +8511,23 @@ static void SubtypeTestCacheEntryTest(
                         delayed_type_arguments, &got_index, got_result));
   EXPECT_EQ(expected_index, got_index);
   EXPECT(got_result->ptr() == expected_result.ptr());
+  if (num_inputs < (SubtypeTestCache::kInstanceTypeArguments + 1)) {
+    // Match replacing unused instance type arguments with null.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
+                          tav_null, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used instance type arguments with null.
+    EXPECT(!cache.HasCheck(
+        instance_class_id_or_signature, destination_type, tav_null,
+        instantiator_type_arguments, function_type_arguments,
+        parent_function_type_arguments, delayed_type_arguments,
+        /*index=*/nullptr, /*result=*/nullptr));
+  }
   if (num_inputs < (SubtypeTestCache::kInstantiatorTypeArguments + 1)) {
     // Match replacing unused instantiator type arguments with null.
     EXPECT(cache.HasCheck(instance_class_id_or_signature, destination_type,
@@ -8580,6 +8596,26 @@ static void SubtypeTestCacheEntryTest(
                            parent_function_type_arguments, tav_null,
                            /*index=*/nullptr, /*result=*/nullptr));
   }
+  // Make sure we're not accidentally using the same type as the input below.
+  RELEASE_ASSERT(destination_type.ptr() != Type::VoidType());
+  if (num_inputs < (SubtypeTestCache::kDestinationType + 1)) {
+    // Match replacing unused destination type argument with the null type.
+    EXPECT(cache.HasCheck(instance_class_id_or_signature, Object::void_type(),
+                          instance_type_arguments, instantiator_type_arguments,
+                          function_type_arguments,
+                          parent_function_type_arguments,
+                          delayed_type_arguments, &got_index, got_result));
+    EXPECT_EQ(expected_index, got_index);
+    EXPECT(got_result->ptr() == expected_result.ptr());
+  } else {
+    // No match replacing used destination type argument with the null type.
+    EXPECT(!cache.HasCheck(instance_class_id_or_signature, Object::void_type(),
+                           instance_type_arguments, instantiator_type_arguments,
+                           function_type_arguments,
+                           parent_function_type_arguments,
+                           delayed_type_arguments,
+                           /*index=*/nullptr, /*result=*/nullptr));
+  }
   // Once hash-based, should stay a hash-based cache.
   EXPECT(!was_hash || cache.IsHash());
 }
@@ -8588,18 +8624,18 @@ static void SubtypeTestCacheTest(Thread* thread,
                                  intptr_t num_classes,
                                  bool expect_hash) {
   TextBuffer buffer(MB);
-  buffer.AddString("class D<S> {}\n");
-  buffer.AddString("D<int> createInstanceD() => D<int>();");
-  buffer.AddString("D<int> Function() createClosureD() => () => D<int>();\n");
+  buffer.AddString("class D {}\n");
+  buffer.AddString("D createInstanceD() => D();");
+  buffer.AddString("D Function() createClosureD() => () => D();\n");
   for (intptr_t i = 0; i < num_classes; i++) {
-    buffer.Printf(R"(class C%)" Pd R"(<S> extends D<S> {}
+    buffer.Printf(R"(class C%)" Pd R"( extends D {}
 )"
-                  R"(C%)" Pd R"(<int> createInstanceC%)" Pd R"(() => C%)" Pd
-                  R"(<int>();
+                  R"(C%)" Pd R"( createInstanceC%)" Pd R"(() => C%)" Pd
+                  R"(();
 )"
-                  R"(C%)" Pd R"(<int> Function() createClosureC%)" Pd
+                  R"(C%)" Pd R"( Function() createClosureC%)" Pd
                   R"(() => () => C%)" Pd
-                  R"(<int>();
+                  R"(();
 )",
                   i, i, i, i, i, i, i);
   }
@@ -8633,9 +8669,11 @@ static void SubtypeTestCacheTest(Thread* thread,
   auto& type_closure_d_int =
       FunctionType::CheckedHandle(zone, closure_d.GetType(Heap::kNew));
 
-  const auto& stc3 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(3));
-  const auto& stc5 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(5));
-  const auto& stc7 = SubtypeTestCache::Handle(zone, SubtypeTestCache::New(7));
+  // Test all the possible input values.
+  const SubtypeTestCache* stcs[SubtypeTestCache::kMaxInputs];
+  for (intptr_t i = 0; i < SubtypeTestCache::kMaxInputs; i++) {
+    stcs[i] = &SubtypeTestCache::Handle(zone, SubtypeTestCache::New(i + 1));
+  }
 
   auto& class_c = Class::Handle(zone);
   auto& instance_c = Instance::Handle(zone);
@@ -8684,17 +8722,13 @@ static void SubtypeTestCacheTest(Thread* thread,
     EXPECT(!instance_c.IsClosure());
     instance_class_id_or_signature = Smi::New(instance_c.GetClassId());
 
-    SubtypeTestCacheEntryTest(
-        thread, stc3, instance_class_id_or_signature, type_instance_d_int,
-        instance_type_arguments, instantiator_type_arguments,
-        function_type_arguments, parent_function_type_arguments,
-        delayed_type_arguments, expected_result, &got_result);
-
-    SubtypeTestCacheEntryTest(
-        thread, stc5, instance_class_id_or_signature, type_instance_d_int,
-        instance_type_arguments, instantiator_type_arguments,
-        function_type_arguments, parent_function_type_arguments,
-        delayed_type_arguments, expected_result, &got_result);
+    for (intptr_t i = 0; i < 5; i++) {
+      SubtypeTestCacheEntryTest(
+          thread, *stcs[i], instance_class_id_or_signature, type_instance_d_int,
+          instance_type_arguments, instantiator_type_arguments,
+          function_type_arguments, parent_function_type_arguments,
+          delayed_type_arguments, expected_result, &got_result);
+    }
 
     auto const function_name = OS::SCreate(zone, "createClosureC%" Pd "", i);
     closure_c ^= Invoke(root_lib, function_name);
@@ -8703,18 +8737,18 @@ static void SubtypeTestCacheTest(Thread* thread,
     instance_class_id_or_signature =
         Function::Cast(instance_class_id_or_signature).signature();
 
-    SubtypeTestCacheEntryTest(
-        thread, stc7, instance_class_id_or_signature, type_closure_d_int,
-        instance_type_arguments, instantiator_type_arguments,
-        function_type_arguments, parent_function_type_arguments,
-        delayed_type_arguments, expected_result, &got_result);
+    for (intptr_t i = 5; i < SubtypeTestCache::kMaxInputs; i++) {
+      SubtypeTestCacheEntryTest(
+          thread, *stcs[i], instance_class_id_or_signature, type_closure_d_int,
+          instance_type_arguments, instantiator_type_arguments,
+          function_type_arguments, parent_function_type_arguments,
+          delayed_type_arguments, expected_result, &got_result);
+    }
   }
-  SubtypeTestCacheCheckContents(zone, stc3);
-  SubtypeTestCacheCheckContents(zone, stc5);
-  SubtypeTestCacheCheckContents(zone, stc7);
-  EXPECT_EQ(expect_hash, stc3.IsHash());
-  EXPECT_EQ(expect_hash, stc5.IsHash());
-  EXPECT_EQ(expect_hash, stc7.IsHash());
+  for (intptr_t i = 0; i < SubtypeTestCache::kMaxInputs; i++) {
+    SubtypeTestCacheCheckContents(zone, *stcs[i]);
+    EXPECT_EQ(expect_hash, stcs[i]->IsHash());
+  }
 }
 
 TEST_CASE(STC_LinearLookup) {

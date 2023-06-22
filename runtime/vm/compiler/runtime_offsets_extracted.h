@@ -96,22 +96,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -703,7 +701,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -808,22 +806,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -1522,22 +1518,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -2128,7 +2122,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -2233,22 +2227,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -2950,22 +2942,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -3664,22 +3654,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -4379,22 +4367,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -4987,7 +4973,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -5092,22 +5078,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -5806,22 +5790,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -6408,7 +6390,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -6510,22 +6492,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -7216,22 +7196,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -7817,7 +7795,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -7919,22 +7897,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -8628,22 +8604,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -9334,22 +9308,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -10041,22 +10013,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -10644,7 +10614,7 @@ static constexpr dart::compiler::target::word StackTrace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word SuspendState_HeaderSize = 0x1c;
 static constexpr dart::compiler::target::word String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word SubtypeTestCache_InstanceSize =
-    0xc;
+    0x10;
 static constexpr dart::compiler::target::word LoadingUnit_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word
     TransferableTypedData_InstanceSize = 0x4;
@@ -10746,22 +10716,20 @@ static constexpr dart::compiler::target::word
     OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kDestinationType = 0x1;
+    SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word SubtypeTestCache_kMaxInputs = 0x7;
@@ -11463,22 +11431,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -12140,7 +12106,7 @@ static constexpr dart::compiler::target::word AOT_SuspendState_HeaderSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_InstanceSize = 0xc;
+    AOT_SubtypeTestCache_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word
@@ -12252,22 +12218,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -13044,22 +13008,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -13835,22 +13797,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -14626,22 +14586,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -15419,22 +15377,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -16097,7 +16053,7 @@ static constexpr dart::compiler::target::word AOT_SuspendState_HeaderSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_InstanceSize = 0xc;
+    AOT_SubtypeTestCache_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word
@@ -16209,22 +16165,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -16998,22 +16952,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -17669,7 +17621,7 @@ static constexpr dart::compiler::target::word AOT_SuspendState_HeaderSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_InstanceSize = 0xc;
+    AOT_SubtypeTestCache_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word
@@ -17778,22 +17730,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -18561,22 +18511,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -19343,22 +19291,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -20125,22 +20071,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -20909,22 +20853,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff4;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fffa;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =
@@ -21581,7 +21523,7 @@ static constexpr dart::compiler::target::word AOT_SuspendState_HeaderSize =
     0x18;
 static constexpr dart::compiler::target::word AOT_String_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_InstanceSize = 0xc;
+    AOT_SubtypeTestCache_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word AOT_LoadingUnit_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word
@@ -21690,22 +21632,20 @@ static constexpr dart::compiler::target::word
     AOT_OneByteString_kMaxNewSpaceElements = 0x3fff0;
 static constexpr dart::compiler::target::word
     AOT_TwoByteString_kMaxNewSpaceElements = 0x1fff8;
-static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kHeaderSize =
-    0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x4;
+    AOT_SubtypeTestCache_kFunctionTypeArguments = 0x3;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kInstanceCidOrSignature = 0x0;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kDestinationType = 0x1;
+    AOT_SubtypeTestCache_kDestinationType = 0x6;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x6;
+    AOT_SubtypeTestCache_kInstanceDelayedFunctionTypeArguments = 0x5;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x5;
+    AOT_SubtypeTestCache_kInstanceParentFunctionTypeArguments = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x2;
+    AOT_SubtypeTestCache_kInstanceTypeArguments = 0x1;
 static constexpr dart::compiler::target::word
-    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x3;
+    AOT_SubtypeTestCache_kInstantiatorTypeArguments = 0x2;
 static constexpr dart::compiler::target::word
     AOT_SubtypeTestCache_kTestEntryLength = 0x8;
 static constexpr dart::compiler::target::word AOT_SubtypeTestCache_kMaxInputs =

@@ -67,10 +67,12 @@ class StubCode : public AllStatic {
     switch (i) {
       case 1:
         return StubCode::Subtype1TestCache();
-      case 3:
-        return StubCode::Subtype3TestCache();
-      case 5:
-        return StubCode::Subtype5TestCache();
+      case 2:
+        return StubCode::Subtype2TestCache();
+      case 4:
+        return StubCode::Subtype4TestCache();
+      case 6:
+        return StubCode::Subtype6TestCache();
       case 7:
         return StubCode::Subtype7TestCache();
       default:
