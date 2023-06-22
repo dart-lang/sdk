@@ -24,6 +24,9 @@ class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
     if (node is! Expression) {
       return;
     }
+    if (node is SimpleIdentifier && node.isSynthetic) {
+      return;
+    }
 
     final type = node.staticType;
     if (type == null) {

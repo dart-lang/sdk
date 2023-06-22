@@ -41,6 +41,11 @@ class ConvertToIfNull extends ResolvedCorrectionProducer {
         defaultExpression = node.elseExpression;
       }
 
+      if (defaultExpression is SimpleIdentifier &&
+          defaultExpression.isSynthetic) {
+        return;
+      }
+
       var parentheses = defaultExpression.precedence <
           Precedence.forTokenType(TokenType.QUESTION_QUESTION);
 

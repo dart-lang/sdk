@@ -30,6 +30,9 @@ class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
     if (statement is! SwitchStatement) {
       return;
     }
+    if (statement.rightParenthesis.isSynthetic) {
+      return;
+    }
 
     String? enumName;
     var prefix = '';
