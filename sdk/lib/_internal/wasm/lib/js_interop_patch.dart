@@ -71,18 +71,27 @@ extension FunctionToJSExportedDartFunction on Function {
   JSExportedDartFunction get toJS => throw UnimplementedError();
 }
 
-/// [JSExportedDartObject], [JSOpaqueDartObject] <-> [Object]
+/// [JSBoxedDartObject] <-> [Object]
 @patch
-extension JSExportedDartObjectToObject on JSExportedDartObject {
+extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   Object get toDart => jsObjectToDartObject(toExternRef);
 }
 
 @patch
-extension ObjectToJSExportedDartObject on Object {
+extension ObjectToJSBoxedDartObject on Object {
+  // TODO(srujzs): Remove.
   @patch
-  JSExportedDartObject get toJS =>
-      _box<JSExportedDartObject>(jsObjectFromDartObject(this));
+  JSBoxedDartObject get toJS =>
+      _box<JSBoxedDartObject>(jsObjectFromDartObject(this));
+
+  @patch
+  JSBoxedDartObject get toJSBox {
+    if (this is JSValue) {
+      throw 'Attempting to box non-Dart object.';
+    }
+    return _box<JSBoxedDartObject>(jsObjectFromDartObject(this));
+  }
 }
 
 /// [JSPromise] -> [Future<JSAny?>].
@@ -276,11 +285,26 @@ extension ListToJSArray on List<JSAny?> {
   JSArray get toJS => toJSArray(this);
 }
 
-/// [JSNumber] <-> [double]
+/// [JSNumber] -> [double] or [int].
 @patch
-extension JSNumberToDouble on JSNumber {
+extension JSNumberToNumber on JSNumber {
+  // TODO(srujzs): Remove.
   @patch
-  double get toDart => toDartNumber(toExternRef);
+  double get toDart => toDartDouble;
+
+  @patch
+  double get toDartDouble => toDartNumber(toExternRef);
+
+  @patch
+  int get toDartInt {
+    final number = toDartNumber(toExternRef);
+    final intVal = number.toInt();
+    if (number == intVal) {
+      return intVal;
+    } else {
+      throw 'Expected integer value, but was not integer.';
+    }
+  }
 }
 
 @patch

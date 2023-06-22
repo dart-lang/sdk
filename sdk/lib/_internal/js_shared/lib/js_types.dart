@@ -30,7 +30,6 @@
 library _js_types;
 
 import 'dart:_js_annotations';
-import 'dart:typed_data';
 
 @JS()
 @staticInterop
@@ -57,7 +56,7 @@ class JSArray implements JSObject {
 
 @JS()
 @staticInterop
-class JSExportedDartObject implements JSObject {}
+class JSBoxedDartObject implements JSObject {}
 
 @JS()
 @staticInterop

@@ -113,22 +113,21 @@ class CoreTypesUtil {
         // TODO(joshualitt): Expose boxed `JSNull` and `JSUndefined` to Dart
         // code after migrating existing users of js interop on Dart2Wasm.
         // expression = _createJSValue(invocation);
+        // Casts are expensive, so we stick to a null-assertion if needed. If
+        // there are static interop types that are not boxed as JSValue, we
+        // might need a proper cast then.
         expression = invokeOneArg(jsValueBoxTarget, invocation);
+        if (returnType.isPotentiallyNonNullable) {
+          expression = NullCheck(expression);
+        }
       } else {
         // Because we simply don't have enough information, we leave all JS
         // numbers as doubles. However, in cases where we know the user expects
-        // an `int` we insert a cast. We also let static interop types flow
-        // through without conversion, both as arguments, and as the return
-        // type.
-        final returnTypeOverride = returnType == coreTypes.intNullableRawType
-            ? coreTypes.doubleNullableRawType
-            : returnType == coreTypes.intNonNullableRawType
-                ? coreTypes.doubleNonNullableRawType
-                : returnType;
-        expression = AsExpression(
-            convertReturnType(returnType, returnTypeOverride,
-                invokeOneArg(dartifyRawTarget, invocation)),
-            returnType);
+        // an `int` we check that the double is an integer, and then insert a
+        // cast. We also let static interop types flow through without
+        // conversion, both as arguments, and as the return type.
+        expression = convertReturnType(
+            returnType, invokeOneArg(dartifyRawTarget, invocation));
       }
       return expression;
     }
@@ -137,24 +136,46 @@ class CoreTypesUtil {
   // Handles any necessary return type conversions. Today this is just for
   // handling the case where a user wants us to coerce a JS number to an int
   // instead of a double.
-  Expression convertReturnType(
-      DartType returnType, DartType returnTypeOverride, Expression expression) {
+  Expression convertReturnType(DartType returnType, Expression expression) {
+    Expression returnExpression = expression;
     if (returnType == coreTypes.intNullableRawType ||
         returnType == coreTypes.intNonNullableRawType) {
-      VariableDeclaration v = VariableDeclaration('#var',
-          initializer: expression,
-          type: returnTypeOverride,
+      // let v = [expression] as double? in
+      //  if (v == null) {
+      //    return null;
+      //  } else {
+      //    let v2 = v.toInt() in
+      //      if (v == v2) {
+      //        return v2;
+      //      } else {
+      //        throw;
+      //      }
+      VariableDeclaration v = VariableDeclaration('#vardouble',
+          initializer:
+              AsExpression(expression, coreTypes.doubleNullableRawType),
+          type: coreTypes.doubleNullableRawType,
           isSynthesized: true);
-      return Let(
+      VariableDeclaration v2 = VariableDeclaration('#varint',
+          initializer: invokeMethod(v, numToIntTarget),
+          type: coreTypes.intNonNullableRawType,
+          isSynthesized: true);
+      returnExpression = Let(
           v,
           ConditionalExpression(
               variableCheckConstant(v, NullConstant()),
               ConstantExpression(NullConstant()),
-              invokeMethod(v, numToIntTarget),
-              returnType));
-    } else {
-      return expression;
+              Let(
+                  v2,
+                  ConditionalExpression(
+                      invokeMethod(v, coreTypes.objectEquals,
+                          Arguments([VariableGet(v2)])),
+                      VariableGet(v2),
+                      Throw(StringLiteral(
+                          'Expected integer value, but was not integer.')),
+                      coreTypes.intNonNullableRawType)),
+              coreTypes.intNullableRawType));
     }
+    return AsExpression(returnExpression, returnType);
   }
 }
 
@@ -170,10 +191,10 @@ extension DartTypeExtension on DartType {
 StaticInvocation invokeOneArg(Procedure target, Expression arg) =>
     StaticInvocation(target, Arguments([arg]));
 
-InstanceInvocation invokeMethod(
-        VariableDeclaration receiver, Procedure target) =>
+InstanceInvocation invokeMethod(VariableDeclaration receiver, Procedure target,
+        [Arguments? arguments]) =>
     InstanceInvocation(InstanceAccessKind.Instance, VariableGet(receiver),
-        target.name, Arguments([]),
+        target.name, arguments ?? Arguments([]),
         interfaceTarget: target,
         functionType:
             target.function.computeFunctionType(Nullability.nonNullable));

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:_foreign_helper' as foreign_helper;
+import 'dart:_interceptors' show JavaScriptObject;
 import 'dart:_internal' show patch;
 import 'dart:_js_types';
 import 'dart:js_util' as js_util;
@@ -56,6 +57,8 @@ extension JSObjectUtilExtension on JSObject {
 /// [JSExportedDartFunction] <-> [Function]
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
+  // TODO(srujzs): We should unwrap rather than allow arbitrary JS functions
+  // to be called in Dart.
   @patch
   @pragma('dart2js:prefer-inline')
   Function get toDart => this as Function;
@@ -69,19 +72,47 @@ extension FunctionToJSExportedDartFunction on Function {
       js_util.allowInterop(this) as JSExportedDartFunction;
 }
 
-/// [JSExportedDartObject] <-> [Object]
+const _jsBoxedDartObjectProperty = "'_\$jsBoxedDartObject'";
+
+/// [JSBoxedDartObject] <-> [Object]
 @patch
-extension JSExportedDartObjectToObject on JSExportedDartObject {
+extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
-  Object get toDart => this;
+  Object get toDart {
+    if (this is JavaScriptObject) {
+      final val = foreign_helper.JS(
+          'Object|Null', '#[$_jsBoxedDartObjectProperty]', this);
+      if (val == null) {
+        throw 'Expected a wrapped Dart object, but got a JS object instead.';
+      }
+      return val as Object;
+    }
+    // TODO(srujzs): Currently we have to still support Dart objects being
+    // returned from JS until `Object.toJS` is removed. Once that is removed,
+    // and the runtime type of this type is changed, we can get rid of this and
+    // the type check above.
+    return this;
+  }
 }
 
 @patch
-extension ObjectToJSExportedDartObject on Object {
+extension ObjectToJSBoxedDartObject on Object {
+  // TODO(srujzs): Remove.
   @patch
   @pragma('dart2js:prefer-inline')
-  JSExportedDartObject get toJS => this as JSExportedDartObject;
+  JSBoxedDartObject get toJS => this as JSBoxedDartObject;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSBoxedDartObject get toJSBox {
+    if (this is JavaScriptObject) {
+      throw 'Attempting to box non-Dart object.';
+    }
+    final box =
+        foreign_helper.JS('=Object', '{$_jsBoxedDartObjectProperty: #}', this);
+    return box as JSBoxedDartObject;
+  }
 }
 
 /// [JSPromise] -> [Future<JSAny?>].
@@ -272,14 +303,24 @@ extension ListToJSArray on List<JSAny?> {
   JSArray get toJS => this as JSArray;
 }
 
-/// [JSNumber] <-> [double]
+/// [JSNumber] -> [double] or [int].
 @patch
-extension JSNumberToDouble on JSNumber {
+extension JSNumberToNumber on JSNumber {
+  // TODO(srujzs): Remove.
   @patch
   @pragma('dart2js:prefer-inline')
   double get toDart => this as double;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  double get toDartDouble => this as double;
+
+  @patch
+  @pragma('dart2js:prefer-inline')
+  int get toDartInt => this as int;
 }
 
+/// [double] -> [JSNumber].
 @patch
 extension DoubleToJSNumber on double {
   @patch

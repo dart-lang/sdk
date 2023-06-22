@@ -76,7 +76,7 @@ class JSArray implements JSObject {
 
 @JS()
 @staticInterop
-class JSExportedDartObject implements JSObject {}
+class JSBoxedDartObject implements JSObject {}
 
 @JS()
 @staticInterop

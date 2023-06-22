@@ -54,23 +54,23 @@ void main() {
   {
     final obj = indexableObj;
     obj[3.0.toJS] = 4.0.toJS;
-    expect((obj[3.0.toJS] as JSNumber).toDart, 4.0);
+    expect((obj[3.0.toJS] as JSNumber).toDartDouble, 4.0);
   }
   {
     final obj = indexableObj2;
     obj[4.0.toJS] = 5.0.toJS;
-    expect((obj[4.0.toJS] as JSNumber).toDart, 5.0);
+    expect((obj[4.0.toJS] as JSNumber).toDartDouble, 5.0);
   }
 
   // [JSArray] should be indexable.
   {
     final arr = indexableArr;
     arr[5.0.toJS] = 6.0.toJS;
-    expect((arr[5.0.toJS] as JSNumber).toDart, 6.0);
+    expect((arr[5.0.toJS] as JSNumber).toDartDouble, 6.0);
   }
   {
     final arr = indexableArr2;
     arr[6.0.toJS] = 7.0.toJS;
-    expect((arr[6.0.toJS] as JSNumber).toDart, 7.0);
+    expect((arr[6.0.toJS] as JSNumber).toDartDouble, 7.0);
   }
 }

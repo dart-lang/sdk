@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// TODO(srujzs): Break this test up into multiple tests, delete redundant tests,
+// and move them to a shared library.
+
 import 'dart:js_util';
 import 'package:expect/expect.dart';
 import 'package:js/js.dart';
@@ -22,7 +25,6 @@ class StaticJSClass {
 extension StaticJSClassMethods on StaticJSClass {
   external String foo;
   external String sum(String a, String? b, String c);
-  external void doublifyNumbers();
   external set nonNullableInt(int d);
   external int get nonNullableInt;
   external set nullableInt(int? d);
@@ -66,10 +68,6 @@ void createClassTest() {
       this.sum = function(a, b, c) {
         if (b == null) b = ' ';
         return a + b + c;
-      }
-      this.doublifyNumbers = function() {
-        this.nonNullableInt = 60.5;
-        this.nullableInt = 100.5;
       }
       this.doSum1Or2 = function(a, b) {
         return a + (b ?? 'bar');
@@ -129,9 +127,6 @@ void createClassTest() {
   Expect.equals(7, foo.nonNullableIntReturnMethod());
   Expect.equals(8, foo.nullableIntReturnMethod(false));
   Expect.equals(null, foo.nullableIntReturnMethod(true));
-  foo.doublifyNumbers();
-  Expect.equals(100, foo.nullableInt);
-  Expect.equals(60, foo.nonNullableInt);
 
   Expect.equals('foobar', foo.doSum1Or2('foo'));
   Expect.equals('foobar', foo.doSum1Or2('foo', 'bar'));
