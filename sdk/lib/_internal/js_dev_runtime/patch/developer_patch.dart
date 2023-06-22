@@ -234,6 +234,9 @@ UserTag getCurrentTag() => _currentTag;
 @patch
 abstract final class NativeRuntime {
   @patch
+  static String? get buildId => null;
+
+  @patch
   static void writeHeapSnapshotToFile(String filepath) =>
       throw UnsupportedError(
           "Generating heap snapshots is not supported on the web.");

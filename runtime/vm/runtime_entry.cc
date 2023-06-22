@@ -1068,6 +1068,22 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!cache.IsNull());
+  // Handle cases where currently the SubtypeNTestCache stubs return a false
+  // negative and the information is already in the cache.
+  //
+  // TODO(sstrickl): Remove this check and the associated helper function when
+  // the SubtypeNTestCache stubs have been updated to handle hash-based caches.
+  if (cache.IsHash()) {
+    const auto& result = Bool::Handle(
+        zone, ResultForExistingTypeTestCacheEntry(
+                  zone, thread, instance, type, instantiator_type_arguments,
+                  function_type_arguments, cache));
+    if (!result.IsNull()) {
+      // Early exit because an entry already exists in the cache.
+      arguments.SetReturn(result);
+      return;
+    }
+  }
   const Bool& result = Bool::Get(instance.IsInstanceOf(
       type, instantiator_type_arguments, function_type_arguments));
   if (FLAG_trace_type_checks) {
