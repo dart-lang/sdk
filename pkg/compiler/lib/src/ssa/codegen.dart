@@ -817,9 +817,18 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // omit the code for it.
       if (successor.isLive) {
         do {
-          visit(inputs[inputIndex]);
+          final input = inputs[inputIndex];
+          visit(input);
           currentContainer = js.Block.empty();
           cases.add(js.Case(pop(), currentContainer));
+          if (input is HConstant && input.constant is NullConstantValue) {
+            // JavaScript case expressions match on `===`, which means that the
+            // just emitted `case null:` will not catch `undefined`.
+            // Add `case void 0:` to catch `undefined`.
+            currentContainer = js.Block.empty();
+            cases.add(
+                js.Case(js.Prefix('void', js.number(0)), currentContainer));
+          }
           inputIndex++;
         } while ((successors[inputIndex - 1] == successor) &&
             (inputIndex < inputs.length));
