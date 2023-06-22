@@ -1,4 +1,4 @@
-## 6.0.0 (Not yet released - breaking changes)
+## 6.0.0
 * Remove deprecated `declaredElement2` from AST.
 * Remove deprecated `element2` from AST.
 * Remove deprecated `name2` from AST.
