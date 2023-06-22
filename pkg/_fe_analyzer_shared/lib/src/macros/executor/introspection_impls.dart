@@ -165,6 +165,7 @@ class RecordFieldDeclarationImpl extends DeclarationImpl
   RecordFieldDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.name,
     required this.type,
   });
@@ -262,13 +263,23 @@ class OmittedTypeAnnotationImpl extends TypeAnnotationImpl
 
   @override
   RemoteInstanceKind get kind => RemoteInstanceKind.omittedTypeAnnotation;
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   @override
   final IdentifierImpl identifier;
 
-  DeclarationImpl({required int id, required this.identifier}) : super(id);
+  @override
+  final LibraryImpl library;
+
+  DeclarationImpl({
+    required int id,
+    required this.identifier,
+    required this.library,
+  }) : super(id);
 
   @override
   void serialize(Serializer serializer) {
@@ -277,6 +288,7 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
     if (serializationMode.isClient) return;
 
     identifier.serialize(serializer);
+    library.serialize(serializer);
   }
 }
 
@@ -297,6 +309,7 @@ class ParameterDeclarationImpl extends DeclarationImpl
   ParameterDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isNamed,
     required this.isRequired,
     required this.type,
@@ -375,6 +388,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   TypeParameterDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.bound,
   });
 
@@ -432,6 +446,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
   FunctionDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isAbstract,
     required this.isExternal,
     required this.isGetter,
@@ -490,6 +505,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -528,6 +544,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -576,6 +593,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   VariableDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isExternal,
     required this.isFinal,
     required this.isLate,
@@ -608,6 +626,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Variable fields.
     required super.isExternal,
     required super.isFinal,
@@ -640,6 +659,7 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   ParameterizedTypeDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.typeParameters,
   });
 
@@ -660,6 +680,7 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
 /// TODO: remove this https://github.com/dart-lang/language/issues/3120
 mixin _IntrospectableType implements IntrospectableType {}
 
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
     with _IntrospectableType
     implements IntrospectableClassDeclaration;
@@ -705,6 +726,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // ClassDeclaration fields.
@@ -751,6 +773,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
 /// TODO: remove this https://github.com/dart-lang/language/issues/3120
 mixin _IntrospectableEnum implements IntrospectableEnum {}
 
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
     with _IntrospectableEnum
     implements IntrospectableEnumDeclaration;
@@ -772,6 +795,7 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // EnumDeclaration fields.
@@ -810,6 +834,7 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   EnumValueDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.definingEnum,
   });
 
@@ -823,6 +848,7 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   }
 }
 
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
     with _IntrospectableType
     implements IntrospectableMixinDeclaration;
@@ -847,6 +873,7 @@ class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // MixinDeclaration fields.
@@ -890,6 +917,7 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // TypeAlias fields.
@@ -903,5 +931,46 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     if (serializationMode.isClient) return;
 
     aliasedType.serialize(serializer);
+  }
+}
+
+class LibraryImpl extends RemoteInstance implements Library {
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.library;
+
+  @override
+  final LanguageVersionImpl languageVersion;
+
+  @override
+  final Uri uri;
+
+  LibraryImpl(
+      {required int id, required this.languageVersion, required this.uri})
+      : super(id);
+
+  @override
+  void serialize(Serializer serializer) {
+    super.serialize(serializer);
+    languageVersion.serialize(serializer);
+    serializer.addString(uri.toString());
+  }
+}
+
+/// This class doesn't implement [RemoteInstance] as it is always attached to a
+/// [Library] and doesn't need its own kind or ID.
+class LanguageVersionImpl implements LanguageVersion, Serializable {
+  @override
+  final int major;
+
+  @override
+  final int minor;
+
+  LanguageVersionImpl(this.major, this.minor);
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer
+      ..addInt(major)
+      ..addInt(minor);
   }
 }

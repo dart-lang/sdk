@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart' as macro;
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart'
     as macro;
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:kernel/ast.dart';
 
 import '../../builder/class_builder.dart';
@@ -68,6 +69,9 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
           new ArgumentError('Unable to resolve identifier $this'));
     }
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 class TypeBuilderIdentifier extends IdentifierImpl {
@@ -106,6 +110,9 @@ class TypeBuilderIdentifier extends IdentifierImpl {
       MacroApplications macroApplications) {
     return _resolveTypeDeclaration(macroApplications, typeBuilder.declaration);
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
@@ -144,6 +151,9 @@ class TypeDeclarationBuilderIdentifier extends IdentifierImpl {
         TreeNode.noOffset,
         hasExplicitTypeArguments: true);
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 class MemberBuilderIdentifier extends IdentifierImpl {
@@ -185,6 +195,9 @@ class MemberBuilderIdentifier extends IdentifierImpl {
     return new Future.error(
         new ArgumentError('Cannot resolve type declaration from member.'));
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 class FormalParameterBuilderIdentifier extends IdentifierImpl {
@@ -219,6 +232,9 @@ class FormalParameterBuilderIdentifier extends IdentifierImpl {
     throw new ArgumentError(
         'Cannot resolve type declaration from formal parameter.');
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 class OmittedTypeIdentifier extends IdentifierImpl {
@@ -245,4 +261,7 @@ class OmittedTypeIdentifier extends IdentifierImpl {
     return new Future.error(new ArgumentError(
         'Cannot resolve type declaration from omitted type.'));
   }
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }

@@ -12,12 +12,14 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
+// ignore: missing_override_of_must_be_overridden
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
 
   ClassDeclarationImpl._({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -67,6 +69,7 @@ class DeclarationBuilder {
 
 class DeclarationBuilderFromElement {
   final Map<Element, IdentifierImpl> _identifierMap = Map.identity();
+  final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   final Map<ClassElement, IntrospectableClassDeclarationImpl> _classMap =
       Map.identity();
@@ -90,6 +93,21 @@ class DeclarationBuilderFromElement {
       name: element.name!,
       element: element,
     );
+  }
+
+  macro.LibraryImpl library(Element element) {
+    var library = _libraryMap[element.library];
+    if (library == null) {
+      final version = element.library!.languageVersion.effective;
+      library = LibraryImplFromElement(
+          id: macro.RemoteInstance.uniqueId,
+          languageVersion:
+              macro.LanguageVersionImpl(version.major, version.minor),
+          uri: element.library!.source.uri,
+          element: element);
+      _libraryMap[element.library!] = library;
+    }
+    return library;
   }
 
   macro.TypeParameterDeclarationImpl typeParameter(
@@ -125,6 +143,7 @@ class DeclarationBuilderFromElement {
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       isExternal: element.isExternal,
       isFinal: element.isFinal,
       isLate: element.isLate,
@@ -140,6 +159,7 @@ class DeclarationBuilderFromElement {
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
       interfaces: element.interfaces
           .map(_dartType)
@@ -167,6 +187,7 @@ class DeclarationBuilderFromElement {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
+      library: library(element),
       bound: element.bound.mapOrNull(_dartType),
     );
   }
@@ -176,6 +197,7 @@ class DeclarationBuilderFromNode {
   final Map<ast.NamedType, IdentifierImpl> _namedTypeMap = Map.identity();
 
   final Map<Element, IdentifierImpl> _declaredIdentifierMap = Map.identity();
+  final Map<Element, LibraryImpl> _libraryMap = Map.identity();
 
   final Map<ast.ClassDeclaration, IntrospectableClassDeclarationImpl>
       _classMap = Map.identity();
@@ -184,6 +206,21 @@ class DeclarationBuilderFromNode {
     ast.ClassDeclaration node,
   ) {
     return _classMap[node] ??= _introspectableClassDeclaration(node);
+  }
+
+  macro.LibraryImpl library(Element element) {
+    var library = _libraryMap[element.library];
+    if (library == null) {
+      final version = element.library!.languageVersion.effective;
+      library = LibraryImplFromElement(
+          id: macro.RemoteInstance.uniqueId,
+          languageVersion:
+              macro.LanguageVersionImpl(version.major, version.minor),
+          uri: element.library!.source.uri,
+          element: element);
+      _libraryMap[element.library!] = library;
+    }
+    return library;
   }
 
   macro.IdentifierImpl _declaredIdentifier(Token name, Element element) {
@@ -224,6 +261,7 @@ class DeclarationBuilderFromNode {
     return IntrospectableClassDeclarationImpl._(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
+      library: library(node.declaredElement!),
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       hasAbstract: node.abstractKeyword != null,
@@ -298,6 +336,7 @@ class DeclarationBuilderFromNode {
     return macro.TypeParameterDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
+      library: library(node.declaredElement!),
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
@@ -313,10 +352,12 @@ class DeclarationBuilderFromNode {
   }
 }
 
+// ignore: missing_override_of_must_be_overridden
 class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   FieldDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.isExternal,
     required super.isFinal,
     required super.isLate,
@@ -326,6 +367,7 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   });
 }
 
+// ignore: missing_override_of_must_be_overridden
 abstract class IdentifierImpl extends macro.IdentifierImpl {
   IdentifierImpl({
     required super.id,
@@ -335,6 +377,7 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   Element? get element;
 }
 
+// ignore: missing_override_of_must_be_overridden
 class IdentifierImplFromElement extends IdentifierImpl {
   @override
   final Element element;
@@ -346,6 +389,7 @@ class IdentifierImplFromElement extends IdentifierImpl {
   });
 }
 
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableClassDeclarationImpl
     extends macro.IntrospectableClassDeclarationImpl {
   late final ClassElement element;
@@ -353,6 +397,7 @@ class IntrospectableClassDeclarationImpl
   IntrospectableClassDeclarationImpl._({
     required super.id,
     required super.identifier,
+    required super.library,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -367,6 +412,31 @@ class IntrospectableClassDeclarationImpl
   });
 }
 
+// ignore: missing_override_of_must_be_overridden
+abstract class LibraryImpl extends macro.LibraryImpl {
+  LibraryImpl({
+    required super.id,
+    required super.languageVersion,
+    required super.uri,
+  });
+
+  Element? get element;
+}
+
+// ignore: missing_override_of_must_be_overridden
+class LibraryImplFromElement extends LibraryImpl {
+  @override
+  final Element element;
+
+  LibraryImplFromElement({
+    required super.id,
+    required super.languageVersion,
+    required super.uri,
+    required this.element,
+  });
+}
+
+// ignore: missing_override_of_must_be_overridden
 class _DeclaredIdentifierImpl extends IdentifierImpl {
   @override
   final Element element;
@@ -378,6 +448,7 @@ class _DeclaredIdentifierImpl extends IdentifierImpl {
   });
 }
 
+// ignore: missing_override_of_must_be_overridden
 class _NamedTypeIdentifierImpl extends IdentifierImpl {
   final ast.NamedType node;
 

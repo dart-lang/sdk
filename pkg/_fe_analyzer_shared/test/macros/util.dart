@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
@@ -122,6 +123,9 @@ class TestOmittedTypeAnnotation extends OmittedTypeAnnotationImpl {
 
   TestOmittedTypeAnnotation([this.inferredType])
       : super(id: RemoteInstance.uniqueId);
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 /// An identifier that knows the resolved version of itself.
@@ -136,6 +140,8 @@ class TestIdentifier extends IdentifierImpl {
     required String? staticScope,
   }) : resolved = ResolvedIdentifier(
             kind: kind, name: name, staticScope: staticScope, uri: uri);
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 extension DebugCodeString on Code {
@@ -265,6 +271,10 @@ class _DeepEqualityMatcher extends Matcher {
 }
 
 class Fixtures {
+  static final library = LibraryImpl(
+      id: RemoteInstance.uniqueId,
+      languageVersion: LanguageVersionImpl(3, 0),
+      uri: Uri.parse('package:foo/bar.dart'));
   static final nullableBoolType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bool'),
@@ -289,6 +299,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'world'),
+            library: Fixtures.library,
             name: 'world',
             type: stringType),
       ],
@@ -297,12 +308,14 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+            library: Fixtures.library,
             name: null,
             type: stringType),
         RecordFieldDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$2'),
+            library: Fixtures.library,
             name: 'hello',
             type: nullableBoolType),
       ]);
@@ -312,6 +325,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myFunction'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -325,6 +339,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
+      library: Fixtures.library,
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -333,6 +348,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: true,
@@ -346,6 +362,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -357,6 +374,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
+            library: Fixtures.library,
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -390,6 +408,7 @@ class Fixtures {
   static final myClass = IntrospectableClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myClassType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [myInterfaceType],
       hasAbstract: false,
@@ -405,6 +424,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -416,6 +436,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
             isNamed: false,
             isRequired: true,
             type: TestOmittedTypeAnnotation(myField.type))
@@ -427,6 +448,7 @@ class Fixtures {
   static final myField = FieldDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+      library: Fixtures.library,
       isExternal: false,
       isFinal: false,
       isLate: false,
@@ -436,6 +458,7 @@ class Fixtures {
   static final myInterface = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -450,6 +473,7 @@ class Fixtures {
   static final myMethod = MethodDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMethod'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -464,6 +488,7 @@ class Fixtures {
   static final mySuperclass = ClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -487,6 +512,7 @@ class Fixtures {
   static final myEnum = IntrospectableEnumDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myEnumType.identifier,
+      library: Fixtures.library,
       typeParameters: [],
       interfaces: [],
       mixins: []);
@@ -494,6 +520,7 @@ class Fixtures {
     EnumValueDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+      library: Fixtures.library,
       definingEnum: myEnum.identifier,
     ),
   ];
@@ -501,6 +528,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(
           id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -512,6 +540,7 @@ class Fixtures {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
+            library: Fixtures.library,
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -524,6 +553,7 @@ class Fixtures {
   static final myMixin = IntrospectableMixinDeclarationImpl(
     id: RemoteInstance.uniqueId,
     identifier: myMixinType.identifier,
+    library: Fixtures.library,
     typeParameters: [],
     hasBase: false,
     interfaces: [],
@@ -533,6 +563,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
+      library: Fixtures.library,
       isAbstract: false,
       isExternal: false,
       isGetter: false,

@@ -56,6 +56,7 @@ abstract class RemoteInstance implements Serializable {
   /// They should then return immediately if [serializationMode] is
   /// [SerializationMode.client], so that only an ID is sent.
   @override
+  @mustBeOverridden
   @mustCallSuper
   void serialize(Serializer serializer) {
     serializer.addInt(id);
@@ -86,6 +87,9 @@ class RemoteInstanceImpl extends RemoteInstance {
     this.instance,
     required this.kind,
   }) : super(id);
+
+  @override
+  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 // The kinds of instances.
@@ -103,6 +107,7 @@ enum RemoteInstanceKind {
   introspectableClassDeclaration,
   introspectableEnumDeclaration,
   introspectableMixinDeclaration,
+  library,
   methodDeclaration,
   mixinDeclaration,
   namedStaticType,
