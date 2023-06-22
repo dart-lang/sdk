@@ -428,8 +428,6 @@ method<T>(o) {
 
   switch (o) {
     case ++o: // Error
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.
@@ -437,8 +435,6 @@ method<T>(o) {
 
   switch (o) {
     case --o: // Error
-    //   ^^^
-    // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     //     ^
     // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
     // [cfe] Not a constant expression.

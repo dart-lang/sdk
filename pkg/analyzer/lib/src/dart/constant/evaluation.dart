@@ -985,8 +985,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitNamedExpression(NamedExpression node) =>
-      node.expression.accept(this);
+  Constant visitNamedExpression(NamedExpression node) =>
+      _getConstant(node.expression);
 
   @override
   Constant? visitNamedType(NamedType node) {
@@ -1037,8 +1037,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitParenthesizedExpression(ParenthesizedExpression node) =>
-      node.expression.accept(this);
+  Constant visitParenthesizedExpression(ParenthesizedExpression node) =>
+      _getConstant(node.expression);
 
   @override
   Constant? visitPrefixedIdentifier(PrefixedIdentifier node) {
@@ -1078,13 +1078,10 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitPrefixExpression(PrefixExpression node) {
-    // TODO(kallentu): Remove unwrapping of Constant.
-    var operandConstant = node.operand.accept(this);
-    var operand = operandConstant is DartObjectImpl ? operandConstant : null;
-    if (operand != null && operand.isNull) {
-      _error(node, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
-      return null;
+  Constant visitPrefixExpression(PrefixExpression node) {
+    var operand = _getConstant(node.operand);
+    if (operand is! DartObjectImpl) {
+      return operand;
     }
     if (node.staticElement?.enclosingElement is ExtensionElement) {
       // TODO(kallentu): Don't report error here.
@@ -1103,7 +1100,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
       // error code.
       _error(node, null);
-      return null;
+      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
   }
 
@@ -1800,15 +1797,14 @@ class DartObjectComputer {
     }
   }
 
-  DartObjectImpl? bitNot(Expression node, DartObjectImpl? evaluationResult) {
-    if (evaluationResult != null) {
-      try {
-        return evaluationResult.bitNot(_typeSystem);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant bitNot(Expression node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.bitNot(_typeSystem);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   Constant castToType(
@@ -2013,16 +2009,14 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl? logicalNot(
-      Expression node, DartObjectImpl? evaluationResult) {
-    if (evaluationResult != null) {
-      try {
-        return evaluationResult.logicalNot(_typeSystem);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant logicalNot(Expression node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.logicalNot(_typeSystem);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   DartObjectImpl? logicalShiftRight(BinaryExpression node,
@@ -2049,15 +2043,14 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl? negated(Expression node, DartObjectImpl? evaluationResult) {
-    if (evaluationResult != null) {
-      try {
-        return evaluationResult.negated(_typeSystem);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant negated(Expression node, DartObjectImpl evaluationResult) {
+    try {
+      return evaluationResult.negated(_typeSystem);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   DartObjectImpl? notEqual(BinaryExpression node, DartObjectImpl? leftOperand,

@@ -44,7 +44,6 @@ class Class {
       case super(): // Error
       //   ^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-      //   ^^^^^^^
       // [cfe] Method invocation is not a constant expression.
     }
 
@@ -198,8 +197,6 @@ class Class {
 
     switch (o) {
       case ++variable: // Error
-      //   ^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       //     ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] Not a constant expression.
@@ -355,8 +352,6 @@ class Class {
 
     switch (o) {
       case const ++variable: // Error
-      //         ^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       //           ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] Not a constant expression.
