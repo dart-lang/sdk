@@ -215,8 +215,9 @@ uword SymbolsPredefinedAddress();
 #endif
 
 const Code& StubCodeAllocateArray();
-const Code& StubCodeSubtype3TestCache();
-const Code& StubCodeSubtype5TestCache();
+const Code& StubCodeSubtype2TestCache();
+const Code& StubCodeSubtype4TestCache();
+const Code& StubCodeSubtype6TestCache();
 const Code& StubCodeSubtype7TestCache();
 
 class RuntimeEntry : public ValueObject {
@@ -1433,7 +1434,6 @@ class SubtypeTestCache : public AllStatic {
   static word cache_offset();
   static word num_inputs_offset();
 
-  static const word kHeaderSize;
   static const word kMaxInputs;
   static const word kTestEntryLength;
   static const word kInstanceCidOrSignature;

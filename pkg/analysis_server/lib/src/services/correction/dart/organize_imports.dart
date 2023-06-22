@@ -9,7 +9,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class OrganizeImports extends CorrectionProducer {
+class OrganizeImports extends ResolvedCorrectionProducer {
   @override
   // Bulk application is supported by a distinct import cleanup fix phase.
   bool get canBeAppliedInBulk => false;

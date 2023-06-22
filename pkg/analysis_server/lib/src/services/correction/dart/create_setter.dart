@@ -12,7 +12,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class CreateSetter extends CorrectionProducer {
+class CreateSetter extends ResolvedCorrectionProducer {
   String _setterName = '';
 
   @override

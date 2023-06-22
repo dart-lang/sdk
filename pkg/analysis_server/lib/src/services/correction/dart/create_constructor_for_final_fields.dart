@@ -17,7 +17,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-class CreateConstructorForFinalFields extends CorrectionProducer {
+class CreateConstructorForFinalFields extends ResolvedCorrectionProducer {
   final _Style _style;
 
   CreateConstructorForFinalFields.requiredNamed()

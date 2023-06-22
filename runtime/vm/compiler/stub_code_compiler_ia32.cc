@@ -2310,11 +2310,132 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #endif  // defined(PRODUCT)
 }
 
+// Constants used for generating subtype test cache lookup stubs.
+// We represent the depth of as a depth from the top of the stack at the
+// start of the stub. That is, depths for input values are non-negative and
+// depths for values pushed during the stub are negative.
+
+struct STCInternal : AllStatic {
+  // Used to initialize depths for conditionally-pushed values.
+  static constexpr intptr_t kNoDepth = kIntptrMin;
+
+  // These inputs are always on the stack when the SubtypeNTestCacheStub is
+  // called. These absolute depths will be converted to relative depths within
+  // the stub to compensate for additional pushed values.
+  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
+  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
+  static constexpr intptr_t kDestinationTypeDepth = 3;
+  static constexpr intptr_t kInstanceDepth = 4;
+  static constexpr intptr_t kCacheDepth = 5;
+
+  // Non-stack values are stored in non-kInstanceReg registers from TypeTestABI.
+  static constexpr Register kCacheArrayReg =
+      TypeTestABI::kInstantiatorTypeArgumentsReg;
+  static constexpr Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+  static constexpr Register kInstanceCidOrSignatureReg =
+      TypeTestABI::kFunctionTypeArgumentsReg;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg =
+      TypeTestABI::kDstTypeReg;
+};
+
+static void GenerateSubtypeTestCacheLoop(
+    Assembler* assembler,
+    int n,
+    intptr_t original_tos_offset,
+    intptr_t parent_function_type_args_depth,
+    intptr_t delayed_type_args_depth,
+    Label* found,
+    Label* not_found,
+    Label* next_iteration) {
+  const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
+
+  // Compares a value at the given depth from the stack to the value in src.
+  auto compare_to_stack = [&](Register src, intptr_t depth) {
+    ASSERT(original_tos_offset + depth >= 0);
+    __ CompareToStack(src, original_tos_offset + depth);
+  };
+
+  __ LoadAcquireCompressed(
+      STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature);
+  __ cmpl(STCInternal::kScratchReg, raw_null);
+  __ j(EQUAL, not_found, Assembler::kNearJump);
+  __ cmpl(STCInternal::kScratchReg, STCInternal::kInstanceCidOrSignatureReg);
+  if (n == 1) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ cmpl(STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstanceTypeArguments));
+  if (n == 2) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(STCInternal::kScratchReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstantiatorTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kInstantiatorTypeArgumentsDepth);
+  if (n == 3) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(STCInternal::kScratchReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kFunctionTypeArgumentsDepth);
+  if (n == 4) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(
+          STCInternal::kCacheArrayReg,
+          target::kWordSize *
+              target::SubtypeTestCache::kInstanceParentFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg, parent_function_type_args_depth);
+  if (n == 5) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(
+          STCInternal::kCacheArrayReg,
+          target::kWordSize *
+              target::SubtypeTestCache::kInstanceDelayedFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg, delayed_type_args_depth);
+  if (n == 6) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(STCInternal::kCacheArrayReg,
+              target::kWordSize * target::SubtypeTestCache::kDestinationType));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kDestinationTypeDepth);
+  __ j(EQUAL, found, Assembler::kNearJump);
+}
+
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: function type arguments (only if n == 4, can be raw_null).
-// TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: destination_type (only used if n >= 3).
+// TOS + 1: function type arguments (only used if n >= 4, can be raw_null).
+// TOS + 2: instantiator type arguments (only used if n >= 3, can be raw_null).
+// TOS + 3: destination_type (only used if n >= 7).
 // TOS + 4: instance.
 // TOS + 5: SubtypeTestCache.
 //
@@ -2322,107 +2443,73 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 //
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
-
-  // We represent the depth of as a depth from the top of the stack at the
-  // start of the stub. That is, depths for input values are non-negative and
-  // depths for values pushed during the stub are negative.
-
-  // Used to initialize depths for conditionally-pushed values.
-  const intptr_t kNoDepth = kIntptrMin;
-  // Offset of the original top of the stack from the current top of stack.
-  intptr_t original_tos_offset = 0;
-
-  // Inputs use relative depths.
-  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
-  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
-  static constexpr intptr_t kDestinationTypeDepth = 3;
-  static constexpr intptr_t kInstanceDepth = 4;
-  static constexpr intptr_t kCacheDepth = 5;
-  // Others use absolute depths. We initialize conditionally pushed values to
-  // kNoInput for extra checking.
-  intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
-  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = kNoDepth;
-
-  // Other values are stored in non-kInstanceReg registers from TypeTestABI.
-  const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
-  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
-  const Register kInstanceCidOrSignature =
-      TypeTestABI::kFunctionTypeArgumentsReg;
-  const Register kInstanceInstantiatorTypeArgumentsReg =
-      TypeTestABI::kDstTypeReg;
-
-  // Loads a value at the given depth from the stack into dst.
-  auto load_from_stack = [&](Register dst, intptr_t depth) {
-    ASSERT(depth != kNoDepth);
-    __ LoadFromStack(dst, original_tos_offset + depth);
-  };
-
-  // Compares a value at the given depth from the stack to the value in src.
-  auto compare_to_stack = [&](Register src, intptr_t depth) {
-    ASSERT(depth != kNoDepth);
-    __ CompareToStack(src, original_tos_offset + depth);
-  };
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
-  load_from_stack(TypeTestABI::kInstanceReg, kInstanceDepth);
+  __ LoadFromStack(TypeTestABI::kInstanceReg, STCInternal::kInstanceDepth);
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
-  load_from_stack(kCacheArrayReg, kCacheDepth);
+  __ LoadFromStack(STCInternal::kCacheArrayReg, STCInternal::kCacheDepth);
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ movl(
-      kCacheArrayReg,
-      FieldAddress(kCacheArrayReg, target::SubtypeTestCache::cache_offset()));
+  __ movl(STCInternal::kCacheArrayReg,
+          FieldAddress(STCInternal::kCacheArrayReg,
+                       target::SubtypeTestCache::cache_offset()));
 
   // There is a maximum size for linear caches that is smaller than the size
   // of any hash-based cache, so we check the size of the backing array to
   // determine if this is a linear or hash-based cache.
-  __ LoadFromSlot(kScratchReg, kCacheArrayReg, Slot::Array_length());
-  __ CompareImmediate(kScratchReg,
+  __ LoadFromSlot(STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+                  Slot::Array_length());
+  __ CompareImmediate(STCInternal::kScratchReg,
                       target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
-  Label not_found_before_push;
   // For IA32, we never handle hash caches in the stub, as there's too much
   // register pressure.
-  __ BranchIf(GREATER, &not_found_before_push);
-  __ AddImmediate(
-      kCacheArrayReg,
-      target::Array::data_offset() - kHeapObjectTag +
-          target::kCompressedWordSize * target::SubtypeTestCache::kHeaderSize);
+  Label is_linear;
+  __ BranchIf(LESS_EQUAL, &is_linear, Assembler::kNearJump);
+  // Return null so that we'll continue to the runtime for hash-based caches.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
+  __ ret();
+  __ Bind(&is_linear);
+  __ AddImmediate(STCInternal::kCacheArrayReg,
+                  target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(STCInternal::kInstanceCidOrSignatureReg,
+                           TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternal::kInstanceCidOrSignatureReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ cmpl(kInstanceCidOrSignature, Immediate(kClosureCid));
+  __ cmpl(STCInternal::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movl(kInstanceCidOrSignature,
+    __ movl(STCInternal::kInstanceCidOrSignatureReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    __ movl(kInstanceCidOrSignature,
-            FieldAddress(kInstanceCidOrSignature,
+    __ movl(STCInternal::kInstanceCidOrSignatureReg,
+            FieldAddress(STCInternal::kInstanceCidOrSignatureReg,
                          target::Function::signature_offset()));
-    if (n >= 3) {
+    if (n >= 2) {
       __ movl(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternal::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ pushl(
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset()));
-        __ pushl(
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset()));
-      }
+    }
+    if (n >= 5) {
+      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                            target::Closure::function_type_arguments_offset()));
+    }
+    if (n >= 6) {
+      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                            target::Closure::delayed_type_arguments_offset()));
     }
     __ jmp(&loop, Assembler::kNearJump);
   }
@@ -2430,153 +2517,88 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 3) {
+    if (n >= 2) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrSignature);
-      __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
+      __ LoadClassById(STCInternal::kScratchReg,
+                       STCInternal::kInstanceCidOrSignatureReg);
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg, raw_null);
       __ movl(
-          kScratchReg,
-          FieldAddress(kScratchReg,
+          STCInternal::kScratchReg,
+          FieldAddress(STCInternal::kScratchReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
+      __ cmpl(STCInternal::kScratchReg,
+              Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-      __ movl(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(TypeTestABI::kInstanceReg, STCInternal::kScratchReg,
+                           TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
-
-      if (n >= 7) {
-        __ pushl(raw_null);  // delayed.
-        __ pushl(raw_null);  // function.
-      }
     }
-    __ SmiTag(kInstanceCidOrSignature);
+    __ SmiTag(STCInternal::kInstanceCidOrSignatureReg);
+    if (n >= 5) {
+      __ pushl(raw_null);  // parent function.
+    }
+    if (n >= 6) {
+      __ pushl(raw_null);  // delayed.
+    }
   }
 
-  if (n >= 7) {
-    // Now that instance handling is done, both the delayed and parent function
-    // type arguments stack slots have been set, so any input uses must be
-    // offset by the new values and the new values can now be accessed in
-    // the following code without issue when n >= 6.
-    original_tos_offset = 2;
-    kInstanceDelayedFunctionTypeArgumentsDepth = -1;
-    kInstanceParentFunctionTypeArgumentsDepth = -2;
+  // Offset of the original top of the stack from the current top of stack.
+  intptr_t original_tos_offset = 0;
+
+  // Additional data conditionally stored on the stack use negative depths
+  // that will be non-negative when adjusted for original_tos_offset. We
+  // initialize conditionally pushed values to kNoInput for extra checking.
+  intptr_t kInstanceParentFunctionTypeArgumentsDepth = STCInternal::kNoDepth;
+  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = STCInternal::kNoDepth;
+
+  // Now that instance handling is done, both the delayed and parent function
+  // type arguments stack slots have been set, so any input uses must be
+  // offset by the new values and the new values can now be accessed in
+  // the following code without issue when n >= 6.
+  if (n >= 5) {
+    original_tos_offset++;
+    kInstanceParentFunctionTypeArgumentsDepth = -original_tos_offset;
+  }
+  if (n >= 6) {
+    original_tos_offset++;
+    kInstanceDelayedFunctionTypeArgumentsDepth = -original_tos_offset;
   }
 
   Label found, not_found, done, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ LoadAcquireCompressed(
-      kScratchReg, kCacheArrayReg,
-      target::kCompressedWordSize *
-          target::SubtypeTestCache::kInstanceCidOrSignature);
-  __ cmpl(kScratchReg, raw_null);
-  __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ cmpl(kScratchReg, kInstanceCidOrSignature);
-  if (n == 1) {
-    __ j(EQUAL, &found, Assembler::kNearJump);
-  } else {
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ movl(kScratchReg,
-            Address(kCacheArrayReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kDestinationType));
-    compare_to_stack(kScratchReg, kDestinationTypeDepth);
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
-            Address(kCacheArrayReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 3) {
-      __ j(EQUAL, &found, Assembler::kNearJump);
-    } else {
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(
-          kScratchReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments));
-      compare_to_stack(kScratchReg, kInstantiatorTypeArgumentsDepth);
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(kScratchReg,
-              Address(kCacheArrayReg,
-                      target::kWordSize *
-                          target::SubtypeTestCache::kFunctionTypeArguments));
-      compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
-      if (n == 5) {
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      } else {
-        ASSERT(n == 7);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-
-        __ movl(kScratchReg,
-                Address(kCacheArrayReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceParentFunctionTypeArguments));
-        compare_to_stack(kScratchReg,
-                         kInstanceParentFunctionTypeArgumentsDepth);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ movl(kScratchReg,
-                Address(kCacheArrayReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceDelayedFunctionTypeArguments));
-        compare_to_stack(kScratchReg,
-                         kInstanceDelayedFunctionTypeArgumentsDepth);
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      }
-    }
-  }
+  GenerateSubtypeTestCacheLoop(assembler, n, original_tos_offset,
+                               kInstanceParentFunctionTypeArgumentsDepth,
+                               kInstanceDelayedFunctionTypeArgumentsDepth,
+                               &found, &not_found, &next_iteration);
   __ Bind(&next_iteration);
-  __ addl(kCacheArrayReg,
+  __ addl(STCInternal::kCacheArrayReg,
           Immediate(target::kWordSize *
                     target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
   __ Bind(&found);
-  if (n >= 7) {
-    __ Drop(2);
-    original_tos_offset = 0;  // In case we add any input uses after this point.
+  if (n >= 5) {
+    __ Drop(original_tos_offset);
   }
   __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
-          Address(kCacheArrayReg,
+          Address(STCInternal::kCacheArrayReg,
                   target::kWordSize * target::SubtypeTestCache::kTestResult));
   __ ret();
 
   __ Bind(&not_found);
-  if (n >= 7) {
-    __ Drop(2);
-    original_tos_offset = 0;  // In case we add any input uses after this point.
+  if (n >= 5) {
+    __ Drop(original_tos_offset);
   }
-  __ Bind(&not_found_before_push);
   // In the not found case, even though the field that determines occupancy was
   // null, another thread might be updating the cache and in the middle of
   // filling in the entry. Thus, we load the null object explicitly instead of
   // just using the (possibly mid-update) test result field.
   __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
   __ ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

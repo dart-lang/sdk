@@ -289,7 +289,7 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
   }
 }
 
-abstract class _RemoveUnused extends CorrectionProducer {
+abstract class _RemoveUnused extends ResolvedCorrectionProducer {
   List<AstNode> _findAllReferences(AstNode root, Element element) {
     var collector = _ElementReferenceCollector(element);
     root.accept(collector);

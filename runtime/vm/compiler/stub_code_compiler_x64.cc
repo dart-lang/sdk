@@ -2964,16 +2964,17 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 // Input registers (all preserved, from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against (must be preserved).
-//   - kDstTypeReg: destination type (for n>=3).
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=5).
-//   - kFunctionTypeArgumentsReg : function type arguments (for n>=5).
+//   - kDstTypeReg: destination type (for n>=7).
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=3).
+//   - kFunctionTypeArgumentsReg : function type arguments (for n>=4).
 // Inputs from stack:
 //   - TOS + 0: return address.
 //
 // Outputs (from TypeTestABI struct):
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
   RegisterSet saved_registers;
 
   // Until we have the result, we use the result register to store the null
@@ -2982,21 +2983,22 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
   __ LoadObject(kNullReg, NullObject());
 
-  // Only used for n >= 7, so set conditionally in that case to catch misuse.
+  // Free up additional registers needed for checks in the loop. Initially
+  // define them as kNoRegister so any unexpected uses are caught.
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
-  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
-
-  // Free up these 2 registers to be used for 7-value test.
-  if (n >= 7) {
+  if (n >= 5) {
     kInstanceParentFunctionTypeArgumentsReg = PP;
     saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
+  }
+  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
+  if (n >= 6) {
     kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
     saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
   __ PushRegisters(saved_registers);
 
   Label done;
-  StubCodeCompiler::GenerateSubtypeTestCacheSearch(
+  GenerateSubtypeTestCacheSearch(
       assembler, n, kNullReg, STCInternalRegs::kCacheEntryReg,
       STCInternalRegs::kInstanceCidOrSignatureReg,
       STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
@@ -3016,26 +3018,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // and so popping and exiting can be shared between both branches.
   __ PopRegisters(saved_registers);
   __ Ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to stack alignment

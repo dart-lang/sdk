@@ -2329,12 +2329,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateFunctionTypeTest(
   __ Comment("FunctionTypeTest");
 
   __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
-  // Load the type into the right register for the subtype test cache check.
-  __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
   // Uninstantiated type class is known at compile time, but the type
   // arguments are determined at runtime by the instantiator(s).
-
-  return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeSevenArgs,
+  return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeSixArgs,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -2407,14 +2404,14 @@ FlowGraphCompiler::TypeTestStubKind
 FlowGraphCompiler::GetTypeTestStubKindForTypeParameter(
     const TypeParameter& type_param) {
   // If it's guaranteed, by type-parameter bound, that the type parameter will
-  // never have a value of a function type, then we can safely do a 5-type
-  // test instead of a 7-type test.
+  // never have a value of a function type, then we can safely do a 4-type
+  // test instead of a 6-type test.
   AbstractType& bound = AbstractType::Handle(zone(), type_param.bound());
   bound = bound.UnwrapFutureOr();
   return !bound.IsTopTypeForSubtyping() && !bound.IsObjectType() &&
                  !bound.IsDartFunctionType() && bound.IsType()
-             ? TypeTestStubKind::kTestTypeFiveArgs
-             : TypeTestStubKind::kTestTypeSevenArgs;
+             ? TypeTestStubKind::kTestTypeFourArgs
+             : TypeTestStubKind::kTestTypeSixArgs;
 }
 
 // Generates quick and subtype cache tests when only the instance need be
@@ -2533,10 +2530,8 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     }
   }
 
-  // Load the type into the right register for the subtype test cache check.
-  __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
   // Regular subtype test cache involving instance's type arguments.
-  return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeThreeArgs,
+  return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeTwoArgs,
                                      is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -2664,8 +2659,6 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Smi can be handled by type test cache.
     __ Bind(&not_smi);
 
-    // Load the type into the right register for the subtype test cache check.
-    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     const auto test_kind = GetTypeTestStubKindForTypeParameter(type_param);
     return GenerateCallSubtypeTestStub(test_kind, is_instance_lbl,
                                        is_not_instance_lbl);
@@ -2676,11 +2669,9 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     if (!type.IsFutureOrType()) {
       __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
     }
-    // Load the type into the right register for the subtype test cache check.
-    __ LoadUniqueObject(TypeTestABI::kDstTypeReg, type);
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeFiveArgs,
+    return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeFourArgs,
                                        is_instance_lbl, is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
@@ -2752,11 +2743,10 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
 #if !defined(TARGET_ARCH_IA32)
 // Expected inputs (from TypeTestABI):
 // - kInstanceReg: instance (preserved).
-// - kDstTypeReg: destination type (for test_kind != kTestTypeOneArg).
 // - kInstantiatorTypeArgumentsReg: instantiator type arguments
-//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
 // - kFunctionTypeArgumentsReg: function type arguments
-//   (for test_kind == kTestTypeFiveArg or test_kind == kTestTypeSevenArg).
+//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
 //
 // See the arch-specific GenerateSubtypeNTestCacheStub method to see which
 // registers may need saving across this call.

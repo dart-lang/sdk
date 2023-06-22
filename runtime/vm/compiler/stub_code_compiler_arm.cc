@@ -2689,15 +2689,16 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 // Inputs (all preserved, mostly from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
 //   - kInstanceReg: instance to test against.
-//   - kDstTypeReg: destination type (for n>=3).
-//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
-//   - kFunctionTypeArgumentsReg: function type arguments (for n=5).
+//   - kDstTypeReg: destination type (for n>=7).
+//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n>=3).
+//   - kFunctionTypeArgumentsReg: function type arguments (for n>=4).
 //   - LR: return address.
 //
 // Outputs (from TypeTestABI struct):
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
   RegisterSet saved_registers;
 
   // Safe as the original value of TypeTestABI::kSubtypeTestCacheReg is only
@@ -2705,28 +2706,28 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
   saved_registers.AddRegister(kCacheArrayReg);
 
-  // Registers that are only used for n >= 3 and must be preserved if used.
-  Register kInstanceInstantiatorTypeArgumentsReg = kNoRegister;
-  // Registers that are only used for n >= 7 and must be preserved if used.
-  Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
-  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
-
   // NOTFP must be preserved for bare payloads, otherwise CODE_REG.
   const bool use_bare_payloads = FLAG_precompiled_mode;
   // For this, we choose the register that need not be preserved of the pair.
   const Register kNullReg = use_bare_payloads ? CODE_REG : NOTFP;
   __ LoadObject(kNullReg, NullObject());
 
-  // Free up registers to be used to store values checked in the loop.
-  if (n >= 3) {
+  // Free up additional registers needed for checks in the loop. Initially
+  // define them as kNoRegister so any unexpected uses are caught.
+  Register kInstanceInstantiatorTypeArgumentsReg = kNoRegister;
+  if (n >= 2) {
     kInstanceInstantiatorTypeArgumentsReg = PP;
     saved_registers.AddRegister(kInstanceInstantiatorTypeArgumentsReg);
   }
-  if (n >= 7) {
+  Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
+  if (n >= 5) {
     // For this, we choose the register that must be preserved of the pair.
     kInstanceParentFunctionTypeArgumentsReg =
         use_bare_payloads ? NOTFP : CODE_REG;
     saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
+  }
+  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
+  if (n >= 6) {
     // We retrieve all the needed fields from the instance during loop
     // initialization and store them in registers, so we don't need the value
     // of kInstanceReg during the loop and just need to save and restore it.
@@ -2738,12 +2739,12 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ PushRegisters(saved_registers);
 
   Label not_found;
-  StubCodeCompiler::GenerateSubtypeTestCacheSearch(
-      assembler, n, kNullReg, kCacheArrayReg,
-      STCInternalRegs::kInstanceCidOrSignatureReg,
-      kInstanceInstantiatorTypeArgumentsReg,
-      kInstanceParentFunctionTypeArgumentsReg,
-      kInstanceDelayedFunctionTypeArgumentsReg, &not_found);
+  GenerateSubtypeTestCacheSearch(assembler, n, kNullReg, kCacheArrayReg,
+                                 STCInternalRegs::kInstanceCidOrSignatureReg,
+                                 kInstanceInstantiatorTypeArgumentsReg,
+                                 kInstanceParentFunctionTypeArgumentsReg,
+                                 kInstanceDelayedFunctionTypeArgumentsReg,
+                                 &not_found);
 
   __ Comment("Found");
   __ LoadCompressed(
@@ -2758,26 +2759,6 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, kNullReg);
   __ PopRegisters(saved_registers);
   __ Ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on[GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

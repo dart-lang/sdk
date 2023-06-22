@@ -16,7 +16,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToSwitchExpression extends CorrectionProducer {
+class ConvertToSwitchExpression extends ResolvedCorrectionProducer {
   /// Local variable reference used in assignment switch expression generation.
   LocalVariableElement? writeElement;
 

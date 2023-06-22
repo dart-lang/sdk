@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:collection/collection.dart';
 
-class AddSwitchCaseBreak extends CorrectionProducer {
+class AddSwitchCaseBreak extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedToFile => true;
 

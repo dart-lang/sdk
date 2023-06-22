@@ -171,9 +171,13 @@ class MethodSignatureUpdate {
   /// class hierarchy, will be updated. The new formal parameters will be
   /// written in the order [formalParameters] field, with new kinds.
   ///
-  /// TODO(scheglov) Test removing.
   /// TODO(scheglov) Consider adding.
   final List<FormalParameterUpdate> formalParameters;
+
+  /// Normally, after writing formal parameters in the order specified by
+  /// [formalParameters], we write any remaining named formal parameters.
+  /// So, here we record names that are explicitly removed.
+  final Set<String> removedNamedFormalParameters;
 
   /// Specifies whether to add the trailing comma after formal parameters.
   ///
@@ -185,6 +189,7 @@ class MethodSignatureUpdate {
 
   MethodSignatureUpdate({
     required this.formalParameters,
+    this.removedNamedFormalParameters = const {},
     required this.formalParametersTrailingComma,
     required this.argumentsTrailingComma,
   });
@@ -684,6 +689,8 @@ class _SignatureUpdater {
             );
         }
       }).toList(),
+      removedNamedFormalParameters:
+          signatureUpdate.removedNamedFormalParameters,
       trailingComma: signatureUpdate.argumentsTrailingComma,
       resolvedUnit: resolvedUnit,
       argumentList: argumentList,
@@ -778,8 +785,8 @@ class _SignatureUpdater {
           return ChangeStatusFailure();
         }
       } else {
-        existing =
-            existingFormalParameters.named.remove(formalParameterState.name);
+        final name = formalParameterState.name;
+        existing = existingFormalParameters.named.remove(name);
         if (existing == null) {
           continue;
         }
@@ -808,10 +815,14 @@ class _SignatureUpdater {
     }
 
     // Add back remaining named formal parameters.
-    for (final existing in existingFormalParameters.named.values) {
-      final text = utils.getNodeText(existing);
+    final removedNamed = signatureUpdate.removedNamedFormalParameters;
+    existingFormalParameters.named.forEach((name, node) {
+      if (removedNamed.contains(name)) {
+        return;
+      }
+      final text = utils.getNodeText(node);
       namedWrites.add(text);
-    }
+    });
 
     await builder.addDartFileEdit(path, (builder) {
       builder.addReplacement(
@@ -895,7 +906,7 @@ class _SignatureUpdater {
       }
 
       ArgumentList argumentList;
-      final invocation = selection.coveringNode.invocation;
+      final invocation = selection.invocation;
       switch (invocation) {
         case ConstructorDeclaration constructor:
           return ChangeStatusFailureSuperFormalParameter(
@@ -904,6 +915,8 @@ class _SignatureUpdater {
         case InstanceCreationExpression instanceCreation:
           argumentList = instanceCreation.argumentList;
         case MethodInvocation invocation:
+          argumentList = invocation.argumentList;
+        case RedirectingConstructorInvocation invocation:
           argumentList = invocation.argumentList;
         case SuperConstructorInvocation invocation:
           argumentList = invocation.argumentList;
@@ -1027,15 +1040,7 @@ class _SignatureUpdater {
   }
 }
 
-extension on FormalParameterList {
-  bool get hasTrailingComma {
-    final last = parameters.lastOrNull;
-    final nextToken = last?.endToken.next;
-    return nextToken != null && nextToken.type == TokenType.COMMA;
-  }
-}
-
-extension on AstNode {
+extension _AstNodeExtension on AstNode {
   AstNode? get declaration {
     final self = this;
     if (self is FunctionExpression) {
@@ -1076,27 +1081,49 @@ extension on AstNode {
     }
     return null;
   }
+}
 
+extension _FormalParameterListExtension on FormalParameterList {
+  bool get hasTrailingComma {
+    final last = parameters.lastOrNull;
+    final nextToken = last?.endToken.next;
+    return nextToken != null && nextToken.type == TokenType.COMMA;
+  }
+}
+
+extension _SelectionExtension on Selection {
   AstNode? get invocation {
-    AstNode? self = this;
-    if (self is ArgumentList) {
-      self = self.parent;
-    } else if (self is NamedType && self.parent is ConstructorName) {
-      self = self.parent?.parent;
+    final node = coveringNode;
+    switch (node) {
+      case RedirectingConstructorInvocation():
+      case SuperConstructorInvocation():
+        return node;
     }
-    switch (self) {
-      case SimpleIdentifier():
-        final parent = self.parent;
-        if (parent is ConstructorDeclaration) {
-          return parent;
-        } else if (parent is MethodInvocation) {
+
+    final parent = node.parent;
+    switch (parent) {
+      case MethodInvocation():
+        if (isCoveredByNode(parent.methodName)) {
           return parent;
         }
-      case InstanceCreationExpression():
-      case MethodInvocation():
+      case RedirectingConstructorInvocation():
+        if (isCoveredByToken(parent.thisKeyword)) {
+          return parent;
+        }
       case SuperConstructorInvocation():
-        return self;
+        if (isCoveredByToken(parent.superKeyword)) {
+          return parent;
+        }
     }
+
+    final parent2 = parent?.parent;
+    switch (parent2) {
+      case InstanceCreationExpression():
+        if (isCoveredByNode(parent2.constructorName)) {
+          return parent2;
+        }
+    }
+
     return null;
   }
 }

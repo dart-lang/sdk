@@ -986,12 +986,12 @@ static void UpdateTypeTestCache(
         "    raw entry: [ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
         ", %#" Px ", %#" Px ", %#" Px " ]\n",
         static_cast<uword>(instance_class_id_or_signature.ptr()),
-        static_cast<uword>(destination_type.ptr()),
         static_cast<uword>(instance_type_arguments.ptr()),
         static_cast<uword>(instantiator_type_arguments.ptr()),
         static_cast<uword>(function_type_arguments.ptr()),
         static_cast<uword>(instance_parent_function_type_arguments.ptr()),
         static_cast<uword>(instance_delayed_type_arguments.ptr()),
+        static_cast<uword>(destination_type.ptr()),
         static_cast<uword>(result.ptr()));
     THR_Print("%s", buffer.buffer());
   }

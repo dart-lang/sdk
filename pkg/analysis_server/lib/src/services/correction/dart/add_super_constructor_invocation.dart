@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
 class AddSuperConstructorInvocation extends MultiCorrectionProducer {
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     var targetConstructor = node.parent;
     if (targetConstructor is! ConstructorDeclaration) {
       return const [];
@@ -41,7 +41,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
       insertOffset = lastInitializer.end;
       prefix = ', ';
     }
-    var producers = <CorrectionProducer>[];
+    var producers = <ResolvedCorrectionProducer>[];
     for (var constructor in superType.constructors) {
       // Only propose public constructors.
       if (!Identifier.isPrivateName(constructor.name)) {
@@ -54,7 +54,7 @@ class AddSuperConstructorInvocation extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [AddSuperConstructorInvocation] producer.
-class _AddInvocation extends CorrectionProducer {
+class _AddInvocation extends ResolvedCorrectionProducer {
   /// The constructor to be invoked.
   final ConstructorElement _constructor;
 

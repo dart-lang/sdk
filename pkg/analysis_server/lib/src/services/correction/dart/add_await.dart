@@ -9,7 +9,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddAwait extends CorrectionProducer {
+class AddAwait extends ResolvedCorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 

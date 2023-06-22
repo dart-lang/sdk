@@ -3560,6 +3560,7 @@ class SubtypeTestCacheSerializationCluster : public SerializationCluster {
       AutoTraceObject(cache);
       WriteField(cache, cache_);
       s->Write<uint32_t>(cache->untag()->num_inputs_);
+      s->Write<uint32_t>(cache->untag()->num_occupied_);
     }
   }
 
@@ -3588,6 +3589,7 @@ class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
                                      SubtypeTestCache::InstanceSize());
       cache->untag()->cache_ = static_cast<ArrayPtr>(d.ReadRef());
       cache->untag()->num_inputs_ = d.Read<uint32_t>();
+      cache->untag()->num_occupied_ = d.Read<uint32_t>();
     }
   }
 };

@@ -17,7 +17,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
   static const _maxDistance = 4;
 
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     var namedContext = _getNamedParameterNames();
     if (namedContext == null) {
       return const [];
@@ -31,7 +31,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
     var currentNameNode = namedContext.identifier;
     var currentName = currentNameNode.name;
 
-    var producers = <CorrectionProducer>[];
+    var producers = <ResolvedCorrectionProducer>[];
     for (var proposedName in names) {
       var distance = _computeDistance(currentName, proposedName);
       if (distance <= _maxDistance) {
@@ -75,7 +75,7 @@ class ChangeArgumentName extends MultiCorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [ChangeArgumentName] producer.
-class _ChangeName extends CorrectionProducer {
+class _ChangeName extends ResolvedCorrectionProducer {
   /// The name of the argument being changed.
   final SimpleIdentifier _argumentName;
 

@@ -9,7 +9,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ReplaceWithNullAware extends CorrectionProducer {
+class ReplaceWithNullAware extends ResolvedCorrectionProducer {
   /// The kind of correction to be made.
   final _CorrectionKind _correctionKind;
 

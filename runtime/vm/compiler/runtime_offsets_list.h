@@ -94,7 +94,6 @@
   CONSTANT(String, kMaxElements)                                               \
   CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
   CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
-  CONSTANT(SubtypeTestCache, kHeaderSize)                                      \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \

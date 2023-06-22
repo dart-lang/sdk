@@ -48,9 +48,9 @@ class ImportLibrary extends MultiCorrectionProducer {
   ImportLibrary.forType() : _importKind = _ImportKind.forType;
 
   @override
-  Future<List<CorrectionProducer>> get producers async {
+  Future<List<ResolvedCorrectionProducer>> get producers async {
     final node = this.node;
-    var producers = <CorrectionProducer>[];
+    var producers = <ResolvedCorrectionProducer>[];
     if (_importKind == _ImportKind.dartAsync) {
       _importLibrary(
           producers, DartFixKind.IMPORT_ASYNC, Uri.parse('dart:async'));
@@ -164,7 +164,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   void _importExtensionInLibrary(
-    List<CorrectionProducer> producers,
+    List<ResolvedCorrectionProducer> producers,
     LibraryElement libraryToImport,
     DartType targetType,
     String memberName,
@@ -222,7 +222,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   /// `prefer_relative_imports` lint rule is enabled, the relative path is
   /// returned first.
   void _importLibrary(
-    List<CorrectionProducer> producers,
+    List<ResolvedCorrectionProducer> producers,
     FixKind fixKind,
     Uri library, {
     bool includeRelativeFix = false,
@@ -239,7 +239,7 @@ class ImportLibrary extends MultiCorrectionProducer {
   }
 
   Future<void> _importLibraryForElement(
-    List<CorrectionProducer> producers,
+    List<ResolvedCorrectionProducer> producers,
     String name,
     List<ElementKind> kinds,
   ) async {
@@ -393,7 +393,7 @@ class ImportLibrary extends MultiCorrectionProducer {
 }
 
 /// A correction processor that can add an import using an absolute URI.
-class _ImportAbsoluteLibrary extends CorrectionProducer {
+class _ImportAbsoluteLibrary extends ResolvedCorrectionProducer {
   final FixKind _fixKind;
 
   final Uri _library;
@@ -429,7 +429,7 @@ enum _ImportKind {
 
 /// A correction processor that can add an import of a library containing an
 /// extension, but which does so only if the extension applies to a given type.
-class _ImportLibraryContainingExtension extends CorrectionProducer {
+class _ImportLibraryContainingExtension extends ResolvedCorrectionProducer {
   /// The library defining the extension.
   LibraryElement library;
 
@@ -472,7 +472,7 @@ class _ImportLibraryContainingExtension extends CorrectionProducer {
 
 /// A correction processor that can add a prefix to an identifier defined in a
 /// library that is already imported but that is imported with a prefix.
-class _ImportLibraryPrefix extends CorrectionProducer {
+class _ImportLibraryPrefix extends ResolvedCorrectionProducer {
   final LibraryElement _importedLibrary;
   final PrefixElement _importPrefix;
 
@@ -499,7 +499,7 @@ class _ImportLibraryPrefix extends CorrectionProducer {
 
 /// A correction processor that can add a name to the show combinator of an
 /// existing import.
-class _ImportLibraryShow extends CorrectionProducer {
+class _ImportLibraryShow extends ResolvedCorrectionProducer {
   final String _libraryName;
 
   final ShowElementCombinator _showCombinator;
@@ -530,7 +530,7 @@ class _ImportLibraryShow extends CorrectionProducer {
 }
 
 /// A correction processor that can add an import using a relative URI.
-class _ImportRelativeLibrary extends CorrectionProducer {
+class _ImportRelativeLibrary extends ResolvedCorrectionProducer {
   final FixKind _fixKind;
 
   final Uri _library;

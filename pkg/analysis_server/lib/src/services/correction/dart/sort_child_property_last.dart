@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class SortChildPropertyLast extends CorrectionProducer {
+class SortChildPropertyLast extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.SORT_CHILD_PROPERTY_LAST;
 

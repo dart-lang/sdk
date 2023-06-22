@@ -255,39 +255,36 @@ class ProtocolConverter {
         },
       ));
 
-      // Also evaluate the getters if evaluateGettersInDebugViews=true enabled.
+      // 'evaluateGettersInDebugViews' implies 'showGettersInDebugViews' so
+      // either being `true` will cause getters to be included.
+      final includeGetters = (_adapter.args.showGettersInDebugViews ?? false) ||
+          (_adapter.args.evaluateGettersInDebugViews ?? false);
+      final lazyGetters = !(_adapter.args.evaluateGettersInDebugViews ?? false);
       final service = _adapter.vmService;
-      if (service != null &&
-          (_adapter.args.evaluateGettersInDebugViews ?? false)) {
-        // Collect getter names for this instances class and its supers.
-        final getterNames =
-            await _getterNamesForClassHierarchy(thread, instance.classRef);
-
-        /// Helper to evaluate each getter and convert the response to a
-        /// variable.
-        Future<dap.Variable> evaluate(int index, String getterName) async {
+      if (service != null && includeGetters) {
+        /// Helper to create a Variable for a getter.
+        Future<dap.Variable> createVariable(
+            int index, String getterName) async {
           try {
-            final response = await service.evaluate(
-              thread.isolate.id!,
-              instance.id!,
-              getterName,
-            );
-            final fieldEvaluateName =
-                _adapter.combineEvaluateName(evaluateName, '.$getterName');
-            if (response is vm.InstanceRef) {
-              _adapter.storeEvaluateName(response, fieldEvaluateName);
-            }
-            // Convert results to variables.
-            return convertVmResponseToVariable(
-              thread,
-              response,
-              name: getterName,
-              evaluateName:
-                  _adapter.combineEvaluateName(evaluateName, '.$getterName'),
-              allowCallingToString:
-                  allowCallingToString && index <= maxToStringsPerEvaluation,
-              format: format,
-            );
+            return lazyGetters
+                ? createVariableForLazyGetter(
+                    thread,
+                    instance,
+                    getterName,
+                    evaluateName,
+                    allowCallingToString,
+                    format,
+                  )
+                : await createVariableForGetter(
+                    service,
+                    thread,
+                    instance,
+                    getterName: getterName,
+                    evaluateName: evaluateName,
+                    allowCallingToString: allowCallingToString &&
+                        index <= maxToStringsPerEvaluation,
+                    format: format,
+                  );
           } catch (e) {
             return dap.Variable(
               name: getterName,
@@ -297,7 +294,12 @@ class ProtocolConverter {
           }
         }
 
-        variables.addAll(await Future.wait(getterNames.mapIndexed(evaluate)));
+        // Collect getter names for this instances class and its supers.
+        final getterNames =
+            await _getterNamesForClassHierarchy(thread, instance.classRef);
+
+        final getterVariables = getterNames.mapIndexed(createVariable);
+        variables.addAll(await Future.wait(getterVariables));
       }
 
       // Sort the fields/getters by name.
@@ -309,6 +311,74 @@ class ProtocolConverter {
       // list.
       return [];
     }
+  }
+
+  /// Creates a Variable for a getter after eagerly fetching its value.
+  Future<Variable> createVariableForGetter(
+    vm.VmServiceInterface service,
+    ThreadInfo thread,
+    vm.Instance instance, {
+    String? variableName,
+    required String getterName,
+    required String? evaluateName,
+    required bool allowCallingToString,
+    required VariableFormat? format,
+  }) async {
+    final response = await service.evaluate(
+      thread.isolate.id!,
+      instance.id!,
+      getterName,
+    );
+    final fieldEvaluateName =
+        _adapter.combineEvaluateName(evaluateName, '.$getterName');
+    if (response is vm.InstanceRef) {
+      _adapter.storeEvaluateName(response, fieldEvaluateName);
+    }
+    // Convert results to variables.
+    return convertVmResponseToVariable(
+      thread,
+      response,
+      name: variableName ?? getterName,
+      evaluateName: _adapter.combineEvaluateName(evaluateName, '.$getterName'),
+      allowCallingToString: allowCallingToString,
+      format: format,
+    );
+  }
+
+  /// Creates a Variable for a getter that will be lazily evaluated.
+  ///
+  /// This stores any data required to call [createVariableForGetter] later.
+  ///
+  /// Lazy getters are implemented by inserting wrapper values and setting
+  /// their presentation hint to "lazy". This will instruct clients like VS Code
+  /// that they can show the value as "..." and fetch the child value into the
+  /// placeholder when clicked.
+  Variable createVariableForLazyGetter(
+    ThreadInfo thread,
+    vm.Instance instance,
+    String getterName,
+    String? evaluateName,
+    bool allowCallingToString,
+    VariableFormat? format,
+  ) {
+    final variablesReference = thread.storeData(
+      VariableData(
+        VariableGetter(
+          instance: instance,
+          getterName: getterName,
+          parentEvaluateName: evaluateName,
+          allowCallingToString: allowCallingToString,
+        ),
+        format,
+      ),
+    );
+
+    return dap.Variable(
+      name: getterName,
+      value: '',
+      variablesReference: variablesReference,
+      presentationHint: dap.VariablePresentationHint(lazy: true),
+    );
   }
 
   /// Decodes the bytes of a list from the base64 encoded string

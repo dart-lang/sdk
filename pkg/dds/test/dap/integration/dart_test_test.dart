@@ -136,7 +136,7 @@ main() {
         cwd: dap.testAppDir.path,
       );
 
-      // Send a single terinate, and expect a clean exit (with a `terminated`
+      // Send a single terminate, and expect a clean exit (with a `terminated`
       // event).
       await Future.wait([
         dap.client.event('terminated'),

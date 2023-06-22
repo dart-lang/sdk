@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class MakeReturnTypeNullable extends CorrectionProducer {
+class MakeReturnTypeNullable extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.MAKE_RETURN_TYPE_NULLABLE;
 

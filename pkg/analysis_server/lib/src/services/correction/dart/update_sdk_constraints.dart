@@ -11,7 +11,7 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class UpdateSdkConstraints extends CorrectionProducer {
+class UpdateSdkConstraints extends ResolvedCorrectionProducer {
   /// The minimum version to which the SDK constraints should be updated.
   final String _minimumVersion;
 

@@ -140,6 +140,20 @@ const simpleBreakpointProgram = '''
   }
 ''';
 
+/// A simple Dart script that prints the numbers from 1 to 5.
+///
+/// A breakpoint marker is on the line that prints '1' and the subsequent 4
+/// lines are valid targets for breakpoints.
+const simpleMultiBreakpointProgram = '''
+  void main(List<String> args) async {
+    print('1'); $breakpointMarker
+    print('2');
+    print('3');
+    print('4');
+    print('5');
+  }
+''';
+
 /// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
 /// a `debugger()` call after the isolate completes to ensure the app does not
 /// immediately exit.

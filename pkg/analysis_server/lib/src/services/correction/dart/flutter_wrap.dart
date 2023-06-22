@@ -15,8 +15,8 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class FlutterWrap extends MultiCorrectionProducer {
   @override
-  Future<List<CorrectionProducer>> get producers async {
-    var producers = <CorrectionProducer>[];
+  Future<List<ResolvedCorrectionProducer>> get producers async {
+    var producers = <ResolvedCorrectionProducer>[];
     var widgetExpr = flutter.identifyWidgetExpression(node);
     if (widgetExpr != null) {
       var widgetType = widgetExpr.typeOrThrow;
@@ -38,7 +38,8 @@ class FlutterWrap extends MultiCorrectionProducer {
     return producers;
   }
 
-  Future<void> _wrapMultipleWidgets(List<CorrectionProducer> producers) async {
+  Future<void> _wrapMultipleWidgets(
+      List<ResolvedCorrectionProducer> producers) async {
     var selectionRange = SourceRange(selectionOffset, selectionLength);
     var analyzer = SelectionAnalyzer(selectionRange);
     unitResult.unit.accept(analyzer);
@@ -192,7 +193,7 @@ class _FlutterWrapSizedBox extends _WrapSingleWidget {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
-abstract class _WrapMultipleWidgets extends CorrectionProducer {
+abstract class _WrapMultipleWidgets extends ResolvedCorrectionProducer {
   final Expression firstWidget;
 
   final Expression lastWidget;
@@ -249,7 +250,7 @@ abstract class _WrapMultipleWidgets extends CorrectionProducer {
 
 /// A correction processor that can make one of the possible changes computed by
 /// the [FlutterWrap] producer.
-abstract class _WrapSingleWidget extends CorrectionProducer {
+abstract class _WrapSingleWidget extends ResolvedCorrectionProducer {
   final Expression widgetExpr;
 
   _WrapSingleWidget(this.widgetExpr);

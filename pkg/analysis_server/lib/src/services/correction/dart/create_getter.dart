@@ -16,7 +16,7 @@ import 'package:meta/meta.dart';
 
 /// Shared implementation that identifies what getter should be added,
 /// but delegates to the subtypes to produce the fix code.
-abstract class CreateFieldOrGetter extends CorrectionProducer {
+abstract class CreateFieldOrGetter extends ResolvedCorrectionProducer {
   /// Adds the declaration that makes a [fieldName] available.
   Future<void> addForObjectPattern({
     required ChangeBuilder builder,

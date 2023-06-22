@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class MakeConditionalOnDebugMode extends CorrectionProducer {
+class MakeConditionalOnDebugMode extends ResolvedCorrectionProducer {
   /// The URI of the library in which kDebugMode is declared.
   static final Uri _foundationUri =
       Uri.parse('package:flutter/foundation.dart');

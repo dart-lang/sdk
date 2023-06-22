@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ConvertToNormalParameter extends CorrectionProducer {
+class ConvertToNormalParameter extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_NORMAL_PARAMETER;
 

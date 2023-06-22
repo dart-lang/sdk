@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class AddCallSuper extends CorrectionProducer {
+class AddCallSuper extends ResolvedCorrectionProducer {
   var _addition = '';
 
   @override

@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddMissingSwitchCases extends CorrectionProducer {
+class AddMissingSwitchCases extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => false;
 

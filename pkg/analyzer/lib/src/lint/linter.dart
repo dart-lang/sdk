@@ -648,6 +648,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     this.hasDocumentation = false,
   }) : state = state ?? _toState(maturity);
 
+  /// Indicates whether the lint rule can work with just the parsed information
+  /// or if it requires a resolved unit.
+  bool get canUseParsedResult => false;
+
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 

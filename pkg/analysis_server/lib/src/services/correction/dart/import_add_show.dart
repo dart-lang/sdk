@@ -15,7 +15,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
-class ImportAddShow extends CorrectionProducer {
+class ImportAddShow extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.IMPORT_ADD_SHOW;
 

@@ -64,6 +64,45 @@ main() {
       expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
     });
 
+    test('resolves modified breakpoints', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleMultiBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start the app and hit the initial breakpoint.
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Collect IDs of all breakpoints that get resolved.
+      final resolvedBreakpoints = <int>{};
+      final breakpointResolveSubscription =
+          client.breakpointChangeEvents.listen((event) {
+        if (event.breakpoint.verified) {
+          resolvedBreakpoints.add(event.breakpoint.id!);
+        } else {
+          resolvedBreakpoints.remove(event.breakpoint.id!);
+        }
+      });
+
+      // Add breakpoints to the 4 lines after the current one, one at a time.
+      // Capture the IDs of all breakpoints added.
+      final breakpointLinesToSend = <int>[breakpointLine];
+      final addedBreakpoints = <int>{};
+      for (var i = 1; i <= 4; i++) {
+        breakpointLinesToSend.add(breakpointLine + i);
+        final response =
+            await client.setBreakpoints(testFile, breakpointLinesToSend);
+        for (final breakpoint in response.breakpoints) {
+          addedBreakpoints.add(breakpoint.id!);
+        }
+      }
+
+      await pumpEventQueue(times: 5000);
+      await breakpointResolveSubscription.cancel();
+
+      // Ensure every breakpoint that was added was also resolved.
+      expect(resolvedBreakpoints, addedBreakpoints);
+    });
+
     test('responds to setBreakpoints before any breakpoint events', () async {
       final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);

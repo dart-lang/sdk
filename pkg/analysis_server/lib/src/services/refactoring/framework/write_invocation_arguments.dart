@@ -15,6 +15,7 @@ import 'package:collection/collection.dart';
 /// by the formal parameter updates, reordering, changing kind, etc.
 Future<WriteArgumentsStatus> writeArguments({
   required List<FormalParameterUpdate> formalParameterUpdates,
+  required Set<String> removedNamedFormalParameters,
   required ArgumentsTrailingComma trailingComma,
   required ResolvedUnitResult resolvedUnit,
   required ArgumentList argumentList,
@@ -31,7 +32,8 @@ Future<WriteArgumentsStatus> writeArguments({
       case FormalParameterUpdateExisting(:final reference):
         switch (reference) {
           case NamedFormalParameterReference():
-            final argument = namedArguments.remove(reference.name);
+            final name = reference.name;
+            final argument = namedArguments.remove(name);
             if (argument == null) {
               continue;
             }
@@ -86,13 +88,16 @@ Future<WriteArgumentsStatus> writeArguments({
   }
 
   // Add remaining named arguments.
-  for (final argument in namedArguments.values) {
+  namedArguments.forEach((name, argument) {
+    if (removedNamedFormalParameters.contains(name)) {
+      return;
+    }
     newArguments.add(
       _ArgumentAsIs(
         argument: argument,
       ),
     );
-  }
+  });
 
   await builder.addDartFileEdit(resolvedUnit.path, (builder) {
     builder.addReplacement(range.node(argumentList), (builder) {

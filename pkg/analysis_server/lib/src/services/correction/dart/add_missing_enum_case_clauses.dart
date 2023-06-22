@@ -10,7 +10,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddMissingEnumCaseClauses extends CorrectionProducer {
+class AddMissingEnumCaseClauses extends ResolvedCorrectionProducer {
   @override
   // Adding the missing case is not a sufficient fix (user logic needs adding
   // too).

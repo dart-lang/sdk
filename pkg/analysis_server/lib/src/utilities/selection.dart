@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
@@ -24,6 +25,14 @@ class Selection {
   /// the [coveringNode].
   Selection(
       {required this.offset, required this.length, required this.coveringNode});
+
+  bool isCoveredByNode(AstNode node) {
+    return node.offset <= offset && offset + length <= node.end;
+  }
+
+  bool isCoveredByToken(Token token) {
+    return token.offset <= offset && offset + length <= token.end;
+  }
 
   /// Returns the contiguous subset of [coveringNode] children that are at
   /// least partially covered by the selection. Touching is not enough.

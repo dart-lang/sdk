@@ -154,7 +154,7 @@ void main(List<String> args) {
       );
     });
 
-    test('includes public getters when evaluateGettersInDebugViews=true',
+    test('includes eager public getters when evaluateGettersInDebugViews=true',
         () async {
       final client = dap.client;
       final testFile = dap.createTestFile('''
@@ -163,8 +163,8 @@ void main(List<String> args) {
   print('Hello!'); $breakpointMarker
 }
 class A {
-  String get publicString => '';
-  String get _privateString => '';
+  String get publicString => '111';
+  String get _privateString => '222';
 }
     ''');
       final breakpointLine = lineWith(testFile, breakpointMarker);
@@ -182,10 +182,59 @@ class A {
         expectedName: 'myVariable',
         expectedDisplayString: 'A',
         expectedVariables: '''
-            publicString: "", eval: myVariable.publicString
+            publicString: "111", eval: myVariable.publicString
             runtimeType: Type (A), eval: myVariable.runtimeType
         ''',
         ignorePrivate: false,
+      );
+    });
+
+    test('includes lazy public getters when showGettersInDebugViews=true',
+        () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile('''
+void main(List<String> args) {
+  final myVariable = A();
+  print('Hello!'); $breakpointMarker
+}
+class A {
+  String get publicString => '111';
+  String get _privateString => '222';
+}
+    ''');
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      final stop = await client.hitBreakpoint(
+        testFile,
+        breakpointLine,
+        launch: () => client.launch(
+          testFile.path,
+          showGettersInDebugViews: true,
+        ),
+      );
+
+      // Check the first level of variables are flagged as lazy with no values.
+      final variables = await client.expectLocalVariable(
+        stop.threadId!,
+        expectedName: 'myVariable',
+        expectedDisplayString: 'A',
+        expectedVariables: '''
+            publicString: , lazy: true
+            runtimeType: , lazy: true
+        ''',
+        ignorePrivate: false,
+      );
+
+      // "Expand" publicString to ensure it resolve correctly to a single-field
+      // variable with no name and the correct value/eval information.
+      final namedRecordVariable = variables.variables
+          .singleWhere((variable) => variable.name == 'publicString');
+      expect(namedRecordVariable.variablesReference, isPositive);
+      await client.expectVariables(
+        namedRecordVariable.variablesReference,
+        r'''
+            : "111", eval: myVariable.publicString
+        ''',
       );
     });
 

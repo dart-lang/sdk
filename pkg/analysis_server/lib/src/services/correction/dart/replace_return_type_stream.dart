@@ -10,7 +10,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class ReplaceReturnTypeStream extends CorrectionProducer {
+class ReplaceReturnTypeStream extends ResolvedCorrectionProducer {
   /// The text for the type argument to 'Stream'.
   String _typeArgument = '';
 

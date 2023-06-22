@@ -21,7 +21,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:collection/collection.dart';
 
-class ConvertClassToEnum extends CorrectionProducer {
+class ConvertClassToEnum extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_CLASS_TO_ENUM;
 

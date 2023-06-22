@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// A predicate is a one-argument function that returns a boolean value.
 typedef _ElementPredicate = bool Function(Element argument);
 
-class ChangeTo extends CorrectionProducer {
+class ChangeTo extends ResolvedCorrectionProducer {
   /// The kind of elements that should be proposed.
   final _ReplacementKind _kind;
 
