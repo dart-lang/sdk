@@ -4853,6 +4853,10 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         expressions.isNotEmpty && !node.isDefault ? expressions.last : null;
     for (var e in expressions) {
       var jsExpr = _visitExpression(e);
+      if (e is ConstantExpression && e.constant is NullConstant) {
+        // Coerce null and undefined by adding an extra case.
+        cases.add(js_ast.Case(js_ast.Prefix('void', js.number(0)), emptyBlock));
+      }
       cases.add(js_ast.Case(jsExpr, e == lastExpr ? body : emptyBlock));
     }
     if (node.isDefault) {
