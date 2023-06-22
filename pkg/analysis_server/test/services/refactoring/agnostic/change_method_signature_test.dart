@@ -19,6 +19,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:collection/collection.dart';
 import 'package:path/path.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1587,6 +1588,52 @@ ChangeStatusFailure
 ''');
   }
 
+  Future<void> test_topFunction_multipleFiles() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+import 'test.dart';
+
+void f() {
+  test(0);
+}
+''');
+
+    await _analyzeValidSelection(r'''
+void ^test(int a) {}
+
+void f() {
+  test(1);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/a.dart
+import 'test.dart';
+
+void f() {
+  test(a: 0);
+}
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int a,
+}) {}
+
+void f() {
+  test(a: 1);
+}
+''');
+  }
+
   Future<void> test_topFunction_optionalNamed_reorder() async {
     await _analyzeValidSelection(r'''
 void ^test({
@@ -2494,7 +2541,8 @@ void f() {
     required StringBuffer buffer,
     required SourceChange sourceChange,
   }) {
-    for (final fileEdit in sourceChange.edits) {
+    final fileEdits = sourceChange.edits.sortedBy((e) => e.file);
+    for (final fileEdit in fileEdits) {
       final file = getFile(fileEdit.file);
       buffer.writeln('>>>>>>> ${_posixPath(file)}');
       final current = file.readAsStringSync();

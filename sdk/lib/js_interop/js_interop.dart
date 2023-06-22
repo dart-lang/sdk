@@ -97,10 +97,11 @@ typedef JSPromise = js_types.JSPromise;
 /// The type of all JS arrays, [JSArray] <: [JSObject].
 typedef JSArray = js_types.JSArray;
 
-/// The type of all Dart objects exported to JS. If a Dart type is not
-/// explicitly marked with `@JSExport`, then no guarantees are made about its
-/// representation in JS. [JSExportedDartObject] <: [JSObject].
-typedef JSExportedDartObject = js_types.JSExportedDartObject;
+/// The type of the boxed Dart object that can be passed to JS safely. There is
+/// no interface specified of this boxed object, and you may get a new box each
+/// time you box the same Dart object.
+/// [JSBoxedDartObject] <: [JSObject].
+typedef JSBoxedDartObject = js_types.JSBoxedDartObject;
 
 /// The type of JS array buffers, [JSArrayBuffer] <: [JSObject].
 typedef JSArrayBuffer = js_types.JSArrayBuffer;
@@ -190,13 +191,16 @@ extension FunctionToJSExportedDartFunction on Function {
   external JSExportedDartFunction get toJS;
 }
 
-/// [JSExportedDartObject] <-> [Object]
-extension JSExportedDartObjectToObject on JSExportedDartObject {
+/// [JSBoxedDartObject] <-> [Object]
+extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   external Object get toDart;
 }
 
-extension ObjectToJSExportedDartObject on Object {
-  external JSExportedDartObject get toJS;
+extension ObjectToJSBoxedDartObject on Object {
+  // TODO(srujzs): Remove. Prefer toJSBox.
+  external JSBoxedDartObject get toJS;
+
+  external JSBoxedDartObject get toJSBox;
 }
 
 /// [JSPromise] -> [Future<JSAny?>].
@@ -315,11 +319,21 @@ extension ListToJSArray on List<JSAny?> {
   external JSArray get toJS;
 }
 
-/// [JSNumber] <-> [double].
-extension JSNumberToDouble on JSNumber {
+/// [JSNumber] -> [double] or [int].
+extension JSNumberToNumber on JSNumber {
+  // TODO(srujzs): Remove. Prefer toDartDouble or toDartInt.
   external double get toDart;
+
+  /// Returns a Dart [double] for the given [JSNumber].
+  external double get toDartDouble;
+
+  /// Returns a Dart [int] for the given [JSNumber].
+  ///
+  /// If the [JSNumber] is not an integer value, throws.
+  external int get toDartInt;
 }
 
+/// [double] -> [JSNumber].
 extension DoubleToJSNumber on double {
   external JSNumber get toJS;
 }

@@ -276,7 +276,7 @@ void deepConversionsTest() {
           .getProperty<JSArray>('c'.toJS)
           .toDart
           .map((JSAny? o) => (o as JSString).toDart));
-  Expect.equals(2.5, gt.getProperty<JSNumber>('d'.toJS).toDart);
+  Expect.equals(2.5, gt.getProperty<JSNumber>('d'.toJS).toDartDouble);
   Expect.equals(true, gt.getProperty<JSBoolean>('e'.toJS).toDart);
   _expectRecEquals({
     'null': 'foo',

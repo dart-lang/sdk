@@ -40,11 +40,11 @@ void main() {
   //                                        ^
   // [web] The argument type 'Function' can't be assigned to the parameter type 'JSExportedDartFunction'.
 
-  // [JSExportedDartObject] != [Object]
-  ((JSExportedDartObject jsObj) {})(DartObject());
-  //                                ^
-  // [web] The argument type 'DartObject' can't be assigned to the parameter type 'JSExportedDartObject'.
-  //                                ^^^^^^^^^^^^
+  // [JSBoxedDartObject] != [Object]
+  ((JSBoxedDartObject jsObj) {})(DartObject());
+  //                             ^
+  // [web] The argument type 'DartObject' can't be assigned to the parameter type 'JSBoxedDartObject'.
+  //                             ^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
 
   // [JSArray] != [List<JSAny?>]
