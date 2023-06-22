@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/refactoring/convert_all_formal_para
 import 'package:analysis_server/src/services/refactoring/convert_selected_formal_parameters_to_named.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_context.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
+import 'package:analysis_server/src/services/refactoring/move_selected_formal_parameters_left.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 
 /// A function that can be executed to create a refactoring producer.
@@ -20,6 +21,8 @@ class RefactoringProcessor {
         ConvertAllFormalParametersToNamed.new,
     ConvertSelectedFormalParametersToNamed.commandName:
         ConvertSelectedFormalParametersToNamed.new,
+    MoveSelectedFormalParametersLeft.commandName:
+        MoveSelectedFormalParametersLeft.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
   };
 

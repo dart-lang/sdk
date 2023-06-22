@@ -72,6 +72,8 @@ sealed class Available extends Availability {
   });
 
   bool get hasSelectedFormalParametersToConvertToNamed => false;
+
+  bool get hasSelectedFormalParametersToMoveLeft => false;
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -435,6 +437,36 @@ final class _AvailableWithDeclaration extends Available {
       if (other.isOptionalPositional) {
         return false;
       }
+    }
+
+    return true;
+  }
+
+  @override
+  bool get hasSelectedFormalParametersToMoveLeft {
+    final selected = declaration.selected;
+    final firstSelected = selected.firstOrNull;
+    if (firstSelected == null) {
+      return false;
+    }
+
+    final formalParameterList = declaration.node.formalParameterList;
+    if (formalParameterList == null) {
+      return false;
+    }
+
+    final all = formalParameterList.parameters.toList();
+    final firstSelectedIndex = all.indexOf(firstSelected);
+    if (firstSelectedIndex < 1) {
+      return false;
+    }
+
+    final previous = all[firstSelectedIndex - 1];
+    if (firstSelected.isOptionalPositional && !previous.isOptionalPositional) {
+      return false;
+    }
+    if (firstSelected.isNamed && !previous.isNamed) {
+      return false;
     }
 
     return true;
