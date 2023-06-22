@@ -944,6 +944,68 @@ void f() {
 ''');
   }
 
+  Future<void>
+      test_classConstructor_redirectingConstructorInvocation_named() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  ^A.named(int a);
+  A() : this.named(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  A.named({required int a});
+  A() : this.named(a: 0);
+}
+''');
+  }
+
+  Future<void>
+      test_classConstructor_redirectingConstructorInvocation_unnamed() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  ^A(int a);
+  A.named() : this(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  A({required int a});
+  A.named() : this(a: 0);
+}
+''');
+  }
+
   Future<void> test_classConstructor_requiredNamed_reorder() async {
     await _analyzeValidSelection(r'''
 class A {
@@ -1154,6 +1216,79 @@ class B extends A {
 
 void f() {
   A(a: 2, b: 3);
+}
+''');
+  }
+
+  Future<void> test_classConstructor_superConstructorInvocation_named() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  ^A.named(int a);
+}
+
+class B extends A {
+  B() : super.named(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  A.named({required int a});
+}
+
+class B extends A {
+  B() : super.named(a: 0);
+}
+''');
+  }
+
+  Future<void>
+      test_classConstructor_superConstructorInvocation_unnamed() async {
+    await _analyzeValidSelection(r'''
+class A {
+  final int a;
+  ^A(int a);
+}
+
+class B extends A {
+  B() : super(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+class A {
+  final int a;
+  A({required int a});
+}
+
+class B extends A {
+  B() : super(a: 0);
 }
 ''');
   }

@@ -198,6 +198,12 @@ class RangeFactory {
     return SourceRange(startOffset, length);
   }
 
+  /// Return a source range that starts at the given [startOffset], and has
+  /// the given [length].
+  SourceRange startOffsetLength(int startOffset, int length) {
+    return SourceRange(startOffset, length);
+  }
+
   /// Return a source range that starts at the start of [leftEntity] and ends at
   /// the start of [rightEntity].
   SourceRange startStart(

@@ -895,7 +895,7 @@ class _SignatureUpdater {
       }
 
       ArgumentList argumentList;
-      final invocation = selection.coveringNode.invocation;
+      final invocation = selection.invocation;
       switch (invocation) {
         case ConstructorDeclaration constructor:
           return ChangeStatusFailureSuperFormalParameter(
@@ -904,6 +904,8 @@ class _SignatureUpdater {
         case InstanceCreationExpression instanceCreation:
           argumentList = instanceCreation.argumentList;
         case MethodInvocation invocation:
+          argumentList = invocation.argumentList;
+        case RedirectingConstructorInvocation invocation:
           argumentList = invocation.argumentList;
         case SuperConstructorInvocation invocation:
           argumentList = invocation.argumentList;
@@ -1027,15 +1029,7 @@ class _SignatureUpdater {
   }
 }
 
-extension on FormalParameterList {
-  bool get hasTrailingComma {
-    final last = parameters.lastOrNull;
-    final nextToken = last?.endToken.next;
-    return nextToken != null && nextToken.type == TokenType.COMMA;
-  }
-}
-
-extension on AstNode {
+extension _AstNodeExtension on AstNode {
   AstNode? get declaration {
     final self = this;
     if (self is FunctionExpression) {
@@ -1076,27 +1070,49 @@ extension on AstNode {
     }
     return null;
   }
+}
 
+extension _FormalParameterListExtension on FormalParameterList {
+  bool get hasTrailingComma {
+    final last = parameters.lastOrNull;
+    final nextToken = last?.endToken.next;
+    return nextToken != null && nextToken.type == TokenType.COMMA;
+  }
+}
+
+extension _SelectionExtension on Selection {
   AstNode? get invocation {
-    AstNode? self = this;
-    if (self is ArgumentList) {
-      self = self.parent;
-    } else if (self is NamedType && self.parent is ConstructorName) {
-      self = self.parent?.parent;
+    final node = coveringNode;
+    switch (node) {
+      case RedirectingConstructorInvocation():
+      case SuperConstructorInvocation():
+        return node;
     }
-    switch (self) {
-      case SimpleIdentifier():
-        final parent = self.parent;
-        if (parent is ConstructorDeclaration) {
-          return parent;
-        } else if (parent is MethodInvocation) {
+
+    final parent = node.parent;
+    switch (parent) {
+      case MethodInvocation():
+        if (isCoveredByNode(parent.methodName)) {
           return parent;
         }
-      case InstanceCreationExpression():
-      case MethodInvocation():
+      case RedirectingConstructorInvocation():
+        if (isCoveredByToken(parent.thisKeyword)) {
+          return parent;
+        }
       case SuperConstructorInvocation():
-        return self;
+        if (isCoveredByToken(parent.superKeyword)) {
+          return parent;
+        }
     }
+
+    final parent2 = parent?.parent;
+    switch (parent2) {
+      case InstanceCreationExpression():
+        if (isCoveredByNode(parent2.constructorName)) {
+          return parent2;
+        }
+    }
+
     return null;
   }
 }
