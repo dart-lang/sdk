@@ -593,8 +593,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   @override
   Constant? visitBinaryExpression(BinaryExpression node) {
     if (node.staticElement?.enclosingElement is ExtensionElement) {
-      _error(node, null);
-      return null;
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, node);
+      return InvalidConstant(
+          node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
 
     TokenType operatorType = node.operator.type;
@@ -1084,8 +1087,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return null;
     }
     if (node.staticElement?.enclosingElement is ExtensionElement) {
-      _error(node, null);
-      return null;
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, node);
+      return InvalidConstant(
+          node, CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD);
     }
     if (node.operator.type == TokenType.BANG) {
       return _dartObjectComputer.logicalNot(node, operand);

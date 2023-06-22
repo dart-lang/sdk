@@ -2568,6 +2568,8 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_EXTENSION_METHOD:
+    problemMessage: "Extension methods can't be used in constant expressions."
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
