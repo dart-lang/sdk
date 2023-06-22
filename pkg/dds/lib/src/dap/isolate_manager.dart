@@ -71,7 +71,19 @@ class IsolateManager {
 
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
+  ///
+  /// When an item is added to this map, any pending events in
+  /// [_pendingBreakpointEvents] MUST be processed immediately.
   final Map<String, ClientBreakpoint> _clientBreakpointsByVmId = {};
+
+  /// Tracks breakpoints for which we have received `BreakpointAdded` or
+  /// `BreakpointResolved` events, but whose `addBreakpointWithScriptUri`
+  /// requests have not yet completed.
+  ///
+  /// We cannot process these events until after we get the breakpoint ID
+  /// back from the VM. This queue MUST be processed immediately any time a
+  /// breakpoint is added to [_clientBreakpointsByVmId].
+  final Map<String, PendingBreakpointActions> _pendingBreakpointEvents = {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -624,9 +636,24 @@ class IsolateManager {
     final existingBreakpoint = _clientBreakpointsByVmId[breakpointId];
     if (existingBreakpoint == null) {
       // If we can't match this breakpoint up, we cannot get its ID or send
-      // events for it. This can happen if a breakpoint is being resolved just
-      // as a user changes breakpoints, so we have replaced our collection with
-      // a new set before we processed this event.
+      // events for it. This can happen if:
+      //
+      // 1. A breakpoint is being resolved just as a user changes breakpoints,
+      //    so we have replaced our collection with a new set before we
+      //    processed this event.
+      // 2. We got a `BreakpointAdded`/`BreakpointUpdated` event prior to the
+      //    response to `addBreakpointWithScriptUri`. In this case, we need to
+      //    process this once that has completed and we can match up the IDs.
+      //
+      // It's important we don't miss any events for (2), so queue them up so
+      // they can be handled if/when the breakpoint is handled in a
+      // `setBreakpointWithScriptUri` response.
+      final queue = _pendingBreakpointEvents.putIfAbsent(
+        breakpointId,
+        PendingBreakpointActions.new,
+      );
+      // Queue another call back to this function later.
+      queue.queueAction(() => _handleBreakpointAddedOrResolved(event));
       return;
     }
 
@@ -791,8 +818,20 @@ class IsolateManager {
           final vmBp = await service.addBreakpointWithScriptUri(
               isolateId, vmUri.toString(), bp.breakpoint.line,
               column: bp.breakpoint.column);
-          existingBreakpointsForIsolateAndUri[vmBp.id!] = vmBp;
-          _clientBreakpointsByVmId[vmBp.id!] = bp;
+          final vmBpId = vmBp.id!;
+          existingBreakpointsForIsolateAndUri[vmBpId] = vmBp;
+          _clientBreakpointsByVmId[vmBpId] = bp;
+
+          // Now we have the ID of this breakpoint, append an action that
+          // processes any pending events.
+          final pendingEvents = _pendingBreakpointEvents[vmBpId];
+          if (pendingEvents != null) {
+            bp.queueAction(() {
+              pendingEvents.completer.complete();
+              return pendingEvents._lastActionFuture;
+            });
+            _pendingBreakpointEvents.remove(vmBpId);
+          }
         } catch (e) {
           // Swallow errors setting breakpoints rather than failing the whole
           // request as it's very easy for editors to send us breakpoints that
@@ -1247,6 +1286,30 @@ class ClientBreakpoint {
 
   /// Queues an action to run after all previous actions that sent breakpoint
   /// information to the client.
+  FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
+    final actionFuture = _lastActionFuture.then((_) => action());
+    _lastActionFuture = actionFuture;
+    return actionFuture;
+  }
+}
+
+/// Tracks actions resulting from `BreakpointAdded`/`BreakpointResolved` events
+/// that arrive before the `addBreakpointWithScriptUri` request completes.
+///
+/// These events need to be chained into the end of the [ClientBreakpoint] once
+/// that request completes.
+class PendingBreakpointActions {
+  /// A completer that will trigger processing of the queue.
+  final completer = Completer<void>();
+
+  /// A [Future] that completes with the last action in the queue.
+  late Future<void> _lastActionFuture;
+
+  PendingBreakpointActions() {
+    _lastActionFuture = completer.future;
+  }
+
+  /// Queues an action to run after all previous actions.
   FutureOr<T> queueAction<T>(FutureOr<T> Function() action) {
     final actionFuture = _lastActionFuture.then((_) => action());
     _lastActionFuture = actionFuture;

@@ -668,12 +668,17 @@ extension DapTestClientExtension on DapTestClient {
   }
 
   /// Sets breakpoints at [lines] in [file].
-  Future<void> setBreakpoints(File file, List<int> lines) async {
-    await sendRequest(
+  Future<SetBreakpointsResponseBody> setBreakpoints(
+      File file, List<int> lines) async {
+    final response = await sendRequest(
       SetBreakpointsArguments(
         source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
+    );
+
+    return SetBreakpointsResponseBody.fromJson(
+      response.body as Map<String, Object?>,
     );
   }
 
