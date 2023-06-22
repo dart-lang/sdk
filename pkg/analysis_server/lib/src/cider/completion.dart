@@ -52,7 +52,7 @@ class CiderCompletionComputer {
     required int line,
     required int column,
     @visibleForTesting
-        void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
+    void Function(ResolvedForCompletionResultImpl)? testResolvedUnit,
   }) async {
     return _performanceRoot.runAsync('completion', (performance) async {
       final resolvedUnit = await performance.runAsync(
@@ -84,6 +84,7 @@ class CiderCompletionComputer {
         unitElement: resolvedUnit.unitElement,
         enclosingNode: enclosingNode,
         offset: offset,
+        unit: resolvedUnit.parsedUnit,
         dartdocDirectiveInfo: null,
       );
 
