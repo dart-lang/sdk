@@ -205,10 +205,6 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       event: eventType ?? eventTypes[body.runtimeType]!,
       body: body,
     );
-    sendEventToChannel(event);
-  }
-
-  void sendEventToChannel(Event event) {
     _channel.sendEvent(event);
   }
 

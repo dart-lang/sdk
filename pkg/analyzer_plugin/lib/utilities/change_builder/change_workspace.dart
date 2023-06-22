@@ -11,7 +11,7 @@ abstract class ChangeWorkspace {
   ResourceProvider get resourceProvider;
 
   /// Return `true` if the file with the given [path] is in a context root.
-  bool? containsFile(String path);
+  bool containsFile(String path);
 
   /// Return the session that should analyze the given [path], or throw
   /// [StateError] if the [path] does not belong to a context root.

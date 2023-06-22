@@ -15,8 +15,10 @@ typedef ProducerGenerator = RefactoringProducer Function(RefactoringContext);
 class RefactoringProcessor {
   /// A list of the generators used to produce refactorings.
   static const Map<String, ProducerGenerator> generators = {
-    ConvertFormalParametersToNamed.commandName:
-        ConvertFormalParametersToNamed.new,
+    ConvertAllFormalParametersToNamed.commandName:
+        ConvertAllFormalParametersToNamed.new,
+    ConvertSelectedFormalParametersToNamed.commandName:
+        ConvertSelectedFormalParametersToNamed.new,
     MoveTopLevelToFile.commandName: MoveTopLevelToFile.new,
   };
 

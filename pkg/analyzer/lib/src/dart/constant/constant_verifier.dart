@@ -570,6 +570,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
+          identical(dataErrorCode, CompileTimeErrorCode.NON_BOOL_CONDITION) ||
           identical(
               dataErrorCode,
               CompileTimeErrorCode
@@ -1043,7 +1044,8 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._errorReporter.reportErrorForNode(errorCode, element);
+      verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
       return false;
     } else if (element is IfElement) {
       var conditionValue = verifier._validate(element.expression, errorCode);
@@ -1151,6 +1153,9 @@ class _ConstLiteralVerifier {
       if (value.isNull && element.isNullAware) {
         return true;
       }
+      // TODO(kallentu): Consolidate this with
+      // [ConstantVisitor._addElementsToList] and the other similar
+      // _addElementsTo methods..
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
         element.expression,

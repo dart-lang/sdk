@@ -12,7 +12,15 @@ enum FormalParameterKind {
   optionalNamed;
 
   bool get isNamed {
-    return this == requiredNamed || this == optionalNamed;
+    return isRequiredNamed || isOptionalNamed;
+  }
+
+  bool get isOptional {
+    return isNamed || isOptionalPositional;
+  }
+
+  bool get isOptionalNamed {
+    return this == optionalNamed;
   }
 
   bool get isOptionalPositional {
@@ -20,7 +28,15 @@ enum FormalParameterKind {
   }
 
   bool get isPositional {
-    return this == requiredPositional || this == optionalPositional;
+    return isRequiredPositional || isOptionalPositional;
+  }
+
+  bool get isRequiredNamed {
+    return this == requiredNamed;
+  }
+
+  bool get isRequiredPositional {
+    return this == requiredPositional;
   }
 }
 

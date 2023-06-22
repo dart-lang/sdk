@@ -2834,7 +2834,9 @@ class ErrorKind {
 }
 
 /// An enum of available event streams.
-abstract class EventStreams {
+class EventStreams {
+  EventStreams._();
+
   static const String kVM = 'VM';
   static const String kIsolate = 'Isolate';
   static const String kDebug = 'Debug';
@@ -2851,7 +2853,9 @@ abstract class EventStreams {
 
 /// Adding new values to `EventKind` is considered a backwards compatible
 /// change. Clients should ignore unrecognized events.
-abstract class EventKind {
+class EventKind {
+  EventKind._();
+
   /// Notification that VM identifying information has changed. Currently used
   /// to notify of changes to the VM debugging name via setVMName.
   static const String kVMUpdate = 'VMUpdate';

@@ -70,6 +70,8 @@ sealed class Available extends Availability {
   Available({
     required this.refactoringContext,
   });
+
+  bool get hasSelectedFormalParametersToConvertToNamed => false;
 }
 
 /// The supertype return types from [computeSourceChange].
@@ -191,11 +193,13 @@ class MethodSignatureUpdate {
 /// The error of [analyzeSelection] returned when:
 /// 1. The selection does not correspond to a method declaration.
 /// 2. The method does not have formal parameters.
-final class NoExecutableElementSelectionState extends ErrorSelectionState {
-  const NoExecutableElementSelectionState();
-}
+final class NoExecutableElementSelectionState extends ErrorSelectionState {}
 
-final class NotAvailable extends Availability {}
+sealed class NotAvailable extends Availability {}
+
+final class NotAvailableExternalElement extends NotAvailable {}
+
+final class NotAvailableNoExecutableElement extends NotAvailable {}
 
 /// The supertype for all results of [analyzeSelection].
 sealed class SelectionState {
@@ -259,15 +263,7 @@ class _AvailabilityAnalyzer {
       );
     }
 
-    final executableElement = _executableElement();
-    if (executableElement != null) {
-      return _AvailableWithExecutableElement(
-        refactoringContext: refactoringContext,
-        element: executableElement,
-      );
-    }
-
-    return NotAvailable();
+    return _executableElement();
   }
 
   _Declaration? _declaration() {
@@ -373,7 +369,7 @@ class _AvailabilityAnalyzer {
     );
   }
 
-  ExecutableElement? _executableElement() {
+  Availability _executableElement() {
     final coveringNode = refactoringContext.coveringNode;
 
     Element? element;
@@ -386,11 +382,18 @@ class _AvailabilityAnalyzer {
     }
 
     if (element is! ExecutableElement) {
-      return null;
+      return NotAvailableNoExecutableElement();
     }
 
-    // TODO(scheglov) Check that element is in an editable library.
-    return element;
+    final libraryFilePath = element.librarySource.fullName;
+    if (!refactoringContext.workspace.containsFile(libraryFilePath)) {
+      return NotAvailableExternalElement();
+    }
+
+    return _AvailableWithExecutableElement(
+      refactoringContext: refactoringContext,
+      element: element,
+    );
   }
 }
 
@@ -401,6 +404,36 @@ final class _AvailableWithDeclaration extends Available {
     required super.refactoringContext,
     required this.declaration,
   });
+
+  @override
+  bool get hasSelectedFormalParametersToConvertToNamed {
+    final selected = declaration.selected;
+    if (selected.isEmpty) {
+      return false;
+    }
+
+    // If all selected are already required named, nothing to do.
+    if (selected.every((e) => e.isRequiredNamed)) {
+      return false;
+    }
+
+    final formalParameterList = declaration.node.formalParameterList;
+    if (formalParameterList == null) {
+      return false;
+    }
+
+    final others = formalParameterList.parameters.toSet();
+    others.removeAll(selected);
+
+    // We cannot convert, if there are remaining optional positional.
+    for (final other in others) {
+      if (other.isOptionalPositional) {
+        return false;
+      }
+    }
+
+    return true;
+  }
 }
 
 final class _AvailableWithExecutableElement extends Available {
@@ -451,12 +484,12 @@ class _SelectionAnalyzer {
   Future<SelectionState> analyze() async {
     final declaration = await _declaration();
     if (declaration == null) {
-      return const NoExecutableElementSelectionState();
+      return NoExecutableElementSelectionState();
     }
 
     final parameterNodeList = declaration.node.formalParameterList;
     if (parameterNodeList == null) {
-      return const NoExecutableElementSelectionState();
+      return NoExecutableElementSelectionState();
     }
 
     final formalParameterStateList = <FormalParameterState>[];
@@ -895,21 +928,29 @@ class _SignatureUpdater {
   ///
   /// For example, it is not allowed to have both optional positional, and
   /// any named formal parameters.
-  ///
-  /// TODO(scheglov) check no required positional after optional
   ChangeStatus validateFormalParameterUpdates() {
     final updates = signatureUpdate.formalParameters;
 
-    final optionalPositional = updates.where((e) {
-      return e.kind.isOptionalPositional;
-    }).toList();
-
-    final named = updates.where((e) {
-      return e.kind.isNamed;
-    }).toList();
-
-    if (optionalPositional.isNotEmpty && named.isNotEmpty) {
-      return ChangeStatusFailure();
+    var optionalPositionalCount = 0;
+    var namedCount = 0;
+    for (final update in updates) {
+      switch (update.kind) {
+        case FormalParameterKind.requiredPositional:
+          if (optionalPositionalCount > 0 || namedCount > 0) {
+            return ChangeStatusFailure();
+          }
+        case FormalParameterKind.optionalPositional:
+          if (namedCount > 0) {
+            return ChangeStatusFailure();
+          }
+          optionalPositionalCount++;
+        case FormalParameterKind.requiredNamed:
+        case FormalParameterKind.optionalNamed:
+          if (optionalPositionalCount > 0) {
+            return ChangeStatusFailure();
+          }
+          namedCount++;
+      }
     }
 
     return ChangeStatusSuccess();
@@ -1037,7 +1078,12 @@ extension on AstNode {
   }
 
   AstNode? get invocation {
-    final self = this;
+    AstNode? self = this;
+    if (self is ArgumentList) {
+      self = self.parent;
+    } else if (self is NamedType && self.parent is ConstructorName) {
+      self = self.parent?.parent;
+    }
     switch (self) {
       case SimpleIdentifier():
         final parent = self.parent;

@@ -19,6 +19,23 @@ main() {
 
 @reflectiveTest
 class NonBoolConditionTest extends PubPackageResolutionTest {
+  test_const_list_ifElement() async {
+    await assertErrorsInCode(r'''
+const dynamic c = 2;
+const x = [1, if (c) 2 else 3, 4];
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1),
+    ]);
+  }
+
+  test_const_list_ifElement_static() async {
+    await assertErrorsInCode(r'''
+const x = [1, if (1) 2 else 3, 4];
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1),
+    ]);
+  }
+
   test_guardedPattern_whenClause() async {
     await assertErrorsInCode(r'''
 void f() {

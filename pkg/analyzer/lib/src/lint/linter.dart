@@ -907,6 +907,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
         case CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:

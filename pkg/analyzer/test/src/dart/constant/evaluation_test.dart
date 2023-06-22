@@ -1304,6 +1304,46 @@ class A {}
     expect(result.toBoolValue(), true);
   }
 
+  test_visitListLiteral_forElement() async {
+    await assertErrorsInCode(r'''
+const x = [for (int i = 0; i < 3; i++) i];
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          31),
+      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
+    ]);
+    _assertNull('x');
+  }
+
+  test_visitListLiteral_ifElement_nonBoolCondition() async {
+    await assertErrorsInCode(r'''
+const dynamic c = 2;
+const x = [1, if (c) 2 else 3, 4];
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1),
+    ]);
+    _assertNull('x');
+  }
+
+  test_visitListLiteral_ifElement_nonBoolCondition_static() async {
+    await assertErrorsInCode(r'''
+const x = [1, if (1) 2 else 3, 4];
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1),
+    ]);
+    _assertNull('x');
+  }
+
+  test_visitListLiteral_spreadElement() async {
+    await assertErrorsInCode(r'''
+const dynamic a = 5;
+const x = <int>[...a];
+''', [
+      error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
+    ]);
+    _assertNull('x');
+  }
+
   test_visitPrefixedIdentifier_genericFunction_instantiated() async {
     await resolveTestCode('''
 import '' as self;
@@ -1389,6 +1429,40 @@ Record(int, String, {bool c})
   namedFields
     c: bool false
 ''');
+  }
+
+  test_visitSetOrMapLiteral_map_forElement() async {
+    await assertErrorsInCode(r'''
+const x = {1: null, for (final i in const []) i: null};
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          44),
+      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 20, 33),
+    ]);
+    _assertNull('x');
+  }
+
+  test_visitSetOrMapLiteral_map_forElement_nested() async {
+    await assertErrorsInCode(r'''
+const x = {1: null, if (true) for (final i in const []) i: null};
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 10,
+          54),
+      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 30, 33),
+    ]);
+    _assertNull('x');
+  }
+
+  test_visitSetOrMapLiteral_set_forElement() async {
+    await assertErrorsInCode(r'''
+const Set set = {};
+const x = {for (final i in set) i};
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 30,
+          24),
+      error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
+    ]);
+    _assertNull('x');
   }
 
   test_visitSimpleIdentifier_className() async {

@@ -244,9 +244,6 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);
-  cls = async_lib.LookupClass(Symbols::Completer());
-  ASSERT(!cls.IsNull());
-  set_completer_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
