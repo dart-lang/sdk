@@ -171,9 +171,13 @@ class MethodSignatureUpdate {
   /// class hierarchy, will be updated. The new formal parameters will be
   /// written in the order [formalParameters] field, with new kinds.
   ///
-  /// TODO(scheglov) Test removing.
   /// TODO(scheglov) Consider adding.
   final List<FormalParameterUpdate> formalParameters;
+
+  /// Normally, after writing formal parameters in the order specified by
+  /// [formalParameters], we write any remaining named formal parameters.
+  /// So, here we record names that are explicitly removed.
+  final Set<String> removedNamedFormalParameters;
 
   /// Specifies whether to add the trailing comma after formal parameters.
   ///
@@ -185,6 +189,7 @@ class MethodSignatureUpdate {
 
   MethodSignatureUpdate({
     required this.formalParameters,
+    this.removedNamedFormalParameters = const {},
     required this.formalParametersTrailingComma,
     required this.argumentsTrailingComma,
   });
@@ -684,6 +689,8 @@ class _SignatureUpdater {
             );
         }
       }).toList(),
+      removedNamedFormalParameters:
+          signatureUpdate.removedNamedFormalParameters,
       trailingComma: signatureUpdate.argumentsTrailingComma,
       resolvedUnit: resolvedUnit,
       argumentList: argumentList,
@@ -778,8 +785,8 @@ class _SignatureUpdater {
           return ChangeStatusFailure();
         }
       } else {
-        existing =
-            existingFormalParameters.named.remove(formalParameterState.name);
+        final name = formalParameterState.name;
+        existing = existingFormalParameters.named.remove(name);
         if (existing == null) {
           continue;
         }
@@ -808,10 +815,14 @@ class _SignatureUpdater {
     }
 
     // Add back remaining named formal parameters.
-    for (final existing in existingFormalParameters.named.values) {
-      final text = utils.getNodeText(existing);
+    final removedNamed = signatureUpdate.removedNamedFormalParameters;
+    existingFormalParameters.named.forEach((name, node) {
+      if (removedNamed.contains(name)) {
+        return;
+      }
+      final text = utils.getNodeText(node);
       namedWrites.add(text);
-    }
+    });
 
     await builder.addDartFileEdit(path, (builder) {
       builder.addReplacement(
