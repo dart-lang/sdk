@@ -126,7 +126,9 @@ class ModifyParameters extends Change<_Data> {
           // that the parameter was absent.
           var index = reference is PositionalFormalParameterReference
               ? reference.index
-              : remainingArguments.last + 1;
+              : remainingArguments.isNotEmpty
+                  ? remainingArguments.last + 1
+                  : 0;
           remainingArguments.add(index);
           indexToNewArgumentMap[index] = modification;
           argumentsToInsert.add(index);
@@ -229,11 +231,13 @@ class ModifyParameters extends Change<_Data> {
               offset = arguments[remainingIndex - 1].end;
               needsInitialComma = true;
             } else {
-              offset = arguments[remainingIndex].offset;
+              offset = arguments.isNotEmpty
+                  ? arguments[remainingIndex].offset
+                  : argumentList.leftParenthesis.end;
             }
             builder.addInsertion(offset, (builder) {
               writeInsertionRange(builder, insertionRange, needsInitialComma);
-              if (insertionIndex == 0) {
+              if (insertionIndex == 0 && arguments.isNotEmpty) {
                 builder.write(', ');
               }
             });

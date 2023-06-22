@@ -2322,6 +2322,51 @@ void f() {
       test_services_ClipboardData_changeParameterNonNullAbsent() async {
     setPackageContent('''
 class ClipboardData {
+  const ClipboardData({required String this.text});
+
+  final String? text;
+}
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to empty 'text' string"
+    date: 2023-04-19
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ClipboardData'
+    changes:
+      - kind: 'changeParameterType'
+        name: 'text'
+        nullability: non_null
+        argumentValue:
+          expression: "''"
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData();
+  print(c);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData(text: '');
+  print(c);
+}
+''');
+  }
+
+  Future<void>
+      test_services_ClipboardData_changeParameterNonNullAdditional() async {
+    setPackageContent('''
+class ClipboardData {
   const ClipboardData({required String this.text, String? this.p});
 
   final String? text;
@@ -2350,7 +2395,7 @@ transforms:
 import '$importUri';
 
 void f() {
-  var c = ClipboardData(p: 'hello', text: null);
+  var c = ClipboardData(text: null, p: 'hello');
   print(c);
 }
 ''');
@@ -2358,7 +2403,7 @@ void f() {
 import '$importUri';
 
 void f() {
-  var c = ClipboardData(p: 'hello', text: '');
+  var c = ClipboardData(text: '', p: 'hello');
   print(c);
 }
 ''');
