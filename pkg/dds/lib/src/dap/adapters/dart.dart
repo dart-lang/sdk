@@ -114,6 +114,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -127,6 +128,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
+          showGettersInDebugViews: showGettersInDebugViews,
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
@@ -194,13 +196,19 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// packages as block boxes.
   final bool? debugExternalPackageLibraries;
 
-  /// Whether to evaluate getters in debug views like hovers and the variables
+  /// Whether to show getters in debug views like hovers and the variables
   /// list.
+  final bool? showGettersInDebugViews;
+
+  /// Whether to eagerly evaluate getters in debug views like hovers and the
+  /// variables list.
   ///
-  /// Invoking getters has a performance cost and may introduce side-effects,
-  /// although users may expected this functionality. null is treated like false
-  /// although clients may have their own defaults (for example Dart-Code sends
-  /// true by default at the time of writing).
+  /// If `true`, getters will be invoked automatically and included inline with
+  /// other  fields (implies [showGettersInDebugViews]).
+  ///
+  /// If `false`, getters will not be included unless [showGettersInDebugViews]
+  /// is `true`, in which case they will be wrapped and only evaluated when the
+  /// user expands them.
   final bool? evaluateGettersInDebugViews;
 
   /// Whether to call toString() on objects in debug views like hovers and the
@@ -226,6 +234,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     required this.additionalProjectPaths,
     required this.debugSdkLibraries,
     required this.debugExternalPackageLibraries,
+    // TODO(dantup): Make this 'required' after Flutter subclasses have been
+    //  updated.
+    this.showGettersInDebugViews,
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
@@ -242,6 +253,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         debugSdkLibraries = arg.read<bool?>(obj, 'debugSdkLibraries'),
         debugExternalPackageLibraries =
             arg.read<bool?>(obj, 'debugExternalPackageLibraries'),
+        showGettersInDebugViews =
+            arg.read<bool?>(obj, 'showGettersInDebugViews'),
         evaluateGettersInDebugViews =
             arg.read<bool?>(obj, 'evaluateGettersInDebugViews'),
         evaluateToStringInDebugViews =
@@ -260,6 +273,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (debugSdkLibraries != null) 'debugSdkLibraries': debugSdkLibraries,
         if (debugExternalPackageLibraries != null)
           'debugExternalPackageLibraries': debugExternalPackageLibraries,
+        if (showGettersInDebugViews != null)
+          'showGettersInDebugViews': showGettersInDebugViews,
         if (evaluateGettersInDebugViews != null)
           'evaluateGettersInDebugViews': evaluateGettersInDebugViews,
         if (evaluateToStringInDebugViews != null)
@@ -1745,6 +1760,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     VariablesArguments args,
     void Function(VariablesResponseBody) sendResponse,
   ) async {
+    final service = vmService;
     final childStart = args.start;
     final childCount = args.count;
     final storedData = isolateManager.getStoredData(args.variablesReference);
@@ -1883,6 +1899,20 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
           variablesReference: 0,
         ));
       }
+    } else if (data is VariableGetter && service != null) {
+      final variable = await _converter.createVariableForGetter(
+        service,
+        thread,
+        data.instance,
+        // Empty names for lazy variable values because they were already shown
+        // in the parent object.
+        variableName: '',
+        getterName: data.getterName,
+        evaluateName: data.parentEvaluateName,
+        allowCallingToString: data.allowCallingToString,
+        format: format,
+      );
+      variables.add(variable);
     }
 
     sendResponse(VariablesResponseBody(variables: variables));
@@ -2558,6 +2588,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -2570,6 +2601,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           additionalProjectPaths: additionalProjectPaths,
           debugSdkLibraries: debugSdkLibraries,
           debugExternalPackageLibraries: debugExternalPackageLibraries,
+          showGettersInDebugViews: showGettersInDebugViews,
           evaluateGettersInDebugViews: evaluateGettersInDebugViews,
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,

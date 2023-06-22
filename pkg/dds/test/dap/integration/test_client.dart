@@ -127,6 +127,7 @@ class DapTestClient {
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
   }) async {
@@ -150,6 +151,7 @@ class DapTestClient {
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -290,6 +292,7 @@ class DapTestClient {
     String? console,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -307,6 +310,7 @@ class DapTestClient {
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -1111,7 +1115,19 @@ extension DapTestClientExtension on DapTestClient {
         buffer.write(', $type');
       }
       if (presentationHint != null) {
-        buffer.write(', $presentationHint');
+        if (presentationHint.lazy != null) {
+          buffer.write(', lazy: ${presentationHint.lazy}');
+        }
+        if (presentationHint.kind != null) {
+          buffer.write(', kind: ${presentationHint.kind}');
+        }
+        if (presentationHint.visibility != null) {
+          buffer.write(', visibility: ${presentationHint.visibility}');
+        }
+        if (presentationHint.attributes != null) {
+          buffer.write(
+              ', attributes: ${presentationHint.attributes!.join(", ")}');
+        }
       }
 
       return buffer.toString();

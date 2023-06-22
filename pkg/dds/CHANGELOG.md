@@ -1,4 +1,5 @@
 # 2.9.1
+- [DAP] A new configuration option `bool? showGettersInDebugViews` allows getters to be shown wrapped in Variables/Evaluation responses so that they can be lazily expanded by the user. `evaluateGettersInDebugViews` must be `false` for this behaviour.
 - [DAP] `runInTerminal` requests are now sent after first responding to the `launchRequest`.
 - [DAP] Skipped tests are now marked with `!` instead of `✓` in `Output` events.
 - [DAP] Implemented `pause` request.

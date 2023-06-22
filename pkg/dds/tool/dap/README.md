@@ -23,7 +23,8 @@ Arguments common to both `launchRequest` and `attachRequest` are:
 
 - `bool? debugExternalPackageLibraries` - whether to enable debugging for packages that are not inside the current workspace
 - `bool? debugSdkLibraries` - whether to enable debugging for SDK libraries
-- `bool? evaluateGettersInDebugViews` - whether to evaluate getters in expression evaluation requests (inc. hovers/watch windows)
+- `bool? showGettersInDebugViews` - whether to include getters in Variables and Evaluation responses (inc. hovers/watch windows)
+- `bool? evaluateGettersInDebugViews` - whether to eagerly evaluate getters in Variables and Evaluation responses (inc. hovers/watch windows) without needing user action. Implies `showGettersInDebugViews=true`.
 - `bool? evaluateToStringInDebugViews` - whether to invoke `toString()` in expression evaluation requests (inc. hovers/watch windows)
 - `bool? sendLogsToClient` - used to proxy all VM Service traffic back to the client in custom `dart.log` events (has performance implications, intended for troubleshooting)
 - `int? vmServicePort` - the port to bind the VM Service too
@@ -46,8 +47,8 @@ Arguments specific to `launchRequest` are:
 
 Arguments specific to `attachRequest` are:
 
-- `String vmServiceInfoFile` - the file to read the VM Service info from \*
-- `String vmServiceUri` - the VM Service URI to attach to \*
+- `String? vmServiceInfoFile` - the file to read the VM Service info from \*
+- `String? vmServiceUri` - the VM Service URI to attach to \*
 
 \* Exactly one of `vmServiceInfoFile` or `vmServiceUri` should be supplied.
 
