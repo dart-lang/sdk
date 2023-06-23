@@ -737,6 +737,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
+  bool get isInline {
+    return hasModifier(Modifier.INLINE);
+  }
+
+  set isInline(bool isInline) {
+    setModifier(Modifier.INLINE, isInline);
+  }
+
+  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -5001,53 +5010,56 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
 
+  /// Indicates that the modifier 'inline' was applied to the element.
+  static const Modifier INLINE = Modifier('INLINE', 19);
+
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 19);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 20);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 20);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 21);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 21);
+  static const Modifier LATE = Modifier('LATE', 22);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 22);
+  static const Modifier MACRO = Modifier('MACRO', 23);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 23);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 24);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 24);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 25);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 25);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 26);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 26);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 27);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 27);
+  static const Modifier SEALED = Modifier('SEALED', 28);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 28);
+  static const Modifier SETTER = Modifier('SETTER', 29);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 29);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 30);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 30);
+  static const Modifier STATIC = Modifier('STATIC', 31);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 31);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 32);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 32);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 33);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5069,6 +5081,7 @@ class Modifier implements Comparable<Modifier> {
     HAS_SINCE_SDK_VERSION_COMPUTED,
     HAS_SINCE_SDK_VERSION_VALUE,
     IMPLICIT_TYPE,
+    INLINE,
     INTERFACE,
     INVOKES_SUPER_SELF,
     LATE,

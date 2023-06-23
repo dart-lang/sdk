@@ -97,6 +97,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isBase = node.baseKeyword != null;
     element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
+    element.isInline = node.inlineKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
