@@ -115,6 +115,7 @@ void SignalHandler::Install(SignalAction action) {
   act.sa_handler = nullptr;
   act.sa_sigaction = action;
   sigemptyset(&act.sa_mask);
+  sigaddset(&act.sa_mask, SIGPROF);  // Prevent nested signals.
   act.sa_flags = SA_RESTART | SA_SIGINFO;
   int r = sigaction(SIGPROF, &act, nullptr);
   ASSERT(r == 0);
