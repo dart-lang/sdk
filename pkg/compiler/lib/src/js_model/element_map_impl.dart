@@ -270,18 +270,17 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         final cls = oldTypeVariable.typeDeclaration as IndexedClass;
         newTypeDeclaration = classes.getEntity(cls.classIndex);
         // TODO(johnniwinther): Skip type variables of unused classes.
-      } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
+      } else {
+        assert(oldTypeVariable.typeDeclaration is MemberEntity);
         final member = oldTypeVariable.typeDeclaration as IndexedMember;
         newTypeDeclaration = members.getEntity(member.memberIndex);
         if (newTypeDeclaration == null) {
           typeVariables.skipIndex(typeVariableIndex);
           continue;
         }
-      } else {
-        assert(oldTypeVariable.typeDeclaration is Local);
       }
       IndexedTypeVariable newTypeVariable = createTypeVariable(
-              newTypeDeclaration, oldTypeVariable.name!, oldTypeVariable.index)
+              newTypeDeclaration!, oldTypeVariable.name!, oldTypeVariable.index)
           as IndexedTypeVariable;
       typeVariableMap[oldTypeVariableData.node] =
           typeVariables.register<IndexedTypeVariable, JTypeVariableData>(
@@ -1552,7 +1551,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   TypeVariableEntity createTypeVariable(
-      Entity? typeDeclaration, String name, int index) {
+      Entity typeDeclaration, String name, int index) {
     return JTypeVariable(typeDeclaration, name, index);
   }
 

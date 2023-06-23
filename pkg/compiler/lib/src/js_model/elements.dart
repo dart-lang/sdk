@@ -753,7 +753,11 @@ class JSignatureMethod extends JMethod {
 }
 
 /// Enum used for identifying [JTypeVariable] variants in serialization.
-enum JTypeVariableKind { cls, member, local }
+///
+/// [JLocalTypeVariable] in the K-world can contain a [Local] as its
+/// `typeDeclaration` but those are never serialized. When converted to the
+/// J-world they use a [JClosureCallMethod] as [JTypeVariable.typeDeclaration].
+enum JTypeVariableKind { cls, member }
 
 class JTypeVariable extends IndexedTypeVariable {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
@@ -761,13 +765,15 @@ class JTypeVariable extends IndexedTypeVariable {
   static const String tag = 'type-variable';
 
   @override
-  final Entity? typeDeclaration;
+  final Entity typeDeclaration;
   @override
   final String name;
   @override
   final int index;
 
-  JTypeVariable(this.typeDeclaration, this.name, this.index);
+  JTypeVariable(this.typeDeclaration, this.name, this.index) {
+    assert(typeDeclaration is ClassEntity || typeDeclaration is MemberEntity);
+  }
 
   /// Deserializes a [JTypeVariable] object from [source].
   factory JTypeVariable.readFromDataSource(DataSourceReader source) {
@@ -780,12 +786,6 @@ class JTypeVariable extends IndexedTypeVariable {
         break;
       case JTypeVariableKind.member:
         typeDeclaration = source.readMember();
-        break;
-      case JTypeVariableKind.local:
-        // Type variables declared by local functions don't point to their
-        // declaration, since the corresponding closure call methods is created
-        // after the type variable.
-        // TODO(johnniwinther): Fix this.
         break;
     }
     String name = source.readString();
@@ -804,8 +804,6 @@ class JTypeVariable extends IndexedTypeVariable {
     } else if (declaration is MemberEntity) {
       sink.writeEnum(JTypeVariableKind.member);
       sink.writeMember(declaration);
-    } else if (declaration == null) {
-      sink.writeEnum(JTypeVariableKind.local);
     } else {
       throw UnsupportedError(
           "Unexpected type variable declarer $typeDeclaration.");
@@ -817,7 +815,7 @@ class JTypeVariable extends IndexedTypeVariable {
 
   @override
   String toString() =>
-      '${jsElementPrefix}type_variable(${typeDeclaration?.name}.$name)';
+      '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
 }
 
 class JLocalFunction implements Local {
