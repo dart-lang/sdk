@@ -1967,6 +1967,38 @@ ChangeStatusFailure
 ''');
   }
 
+  Future<void> test_topFunction_functionTypedFormalParameter() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a()) {}
+
+void f() {
+  test(() => 0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int a(),
+}) {}
+
+void f() {
+  test(a: () => 0);
+}
+''');
+  }
+
   Future<void> test_topFunction_multipleFiles() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'test.dart';
