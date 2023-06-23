@@ -904,6 +904,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
       switch (errorCode) {
         case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:

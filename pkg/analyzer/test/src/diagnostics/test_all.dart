@@ -103,6 +103,7 @@ import 'const_constructor_with_non_const_super_test.dart'
 import 'const_constructor_with_non_final_field_test.dart'
     as const_constructor_with_non_final_field;
 import 'const_deferred_class_test.dart' as const_deferred_class;
+import 'const_eval_extension_method_test.dart' as const_eval_extension_method;
 import 'const_eval_for_element_test.dart' as const_eval_for_element;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
@@ -951,6 +952,7 @@ main() {
     const_constructor_with_non_const_super.main();
     const_constructor_with_non_final_field.main();
     const_deferred_class.main();
+    const_eval_extension_method.main();
     const_eval_for_element.main();
     const_eval_throws_exception.main();
     const_eval_throws_idbze.main();

@@ -552,6 +552,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       AnalysisError data = errors[i];
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+          identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||

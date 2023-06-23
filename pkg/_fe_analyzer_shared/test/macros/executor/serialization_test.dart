@@ -166,6 +166,7 @@ void main() {
             isRequired: true,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
+            library: Fixtures.library,
             type: fooType);
         final fooNamedFunctionTypeParam = FunctionTypeParameterImpl(
             id: RemoteInstance.uniqueId,
@@ -180,6 +181,7 @@ void main() {
             isRequired: false,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
+            library: Fixtures.library,
             type: barType);
         final barPositionalFunctionTypeParam = FunctionTypeParameterImpl(
             id: RemoteInstance.uniqueId,
@@ -199,6 +201,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Zap'),
+            library: Fixtures.library,
             bound: barType);
 
         // Transitively tests `TypeParameterDeclaration` and
@@ -224,6 +227,7 @@ void main() {
               id: RemoteInstance.uniqueId,
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
+              library: Fixtures.library,
               isAbstract: true,
               isExternal: false,
               isGetter: true,
@@ -242,6 +246,7 @@ void main() {
               id: RemoteInstance.uniqueId,
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
+              library: Fixtures.library,
               isAbstract: false,
               isExternal: false,
               isGetter: false,
@@ -262,6 +267,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
+            library: Fixtures.library,
             isAbstract: false,
             isExternal: false,
             isGetter: false,
@@ -283,6 +289,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
+            library: Fixtures.library,
             isExternal: true,
             isFinal: false,
             isLate: true,
@@ -297,6 +304,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
+            library: Fixtures.library,
             isExternal: false,
             isFinal: true,
             isLate: false,
@@ -329,6 +337,7 @@ void main() {
               id: RemoteInstance.uniqueId,
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
+              library: Fixtures.library,
               interfaces: [barType],
               hasAbstract: boolValue,
               hasBase: boolValue,
@@ -351,6 +360,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
+            library: Fixtures.library,
             interfaces: [barType],
             mixins: [serializableType],
             typeParameters: [zapTypeParam],
@@ -363,6 +373,7 @@ void main() {
           var entry = EnumValueDeclarationImpl(
             id: RemoteInstance.uniqueId,
             identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
+            library: Fixtures.library,
             definingEnum:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
           );
@@ -376,6 +387,7 @@ void main() {
               id: RemoteInstance.uniqueId,
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
+              library: Fixtures.library,
               hasBase: base,
               interfaces: [barType],
               superclassConstraints: [serializableType],
@@ -391,6 +403,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'FooOfBar'),
+            library: Fixtures.library,
             typeParameters: [zapTypeParam],
             aliasedType: NamedTypeAnnotationImpl(
                 id: RemoteInstance.uniqueId,
@@ -413,6 +426,7 @@ void main() {
                 id: RemoteInstance.uniqueId,
                 identifier:
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
+                library: Fixtures.library,
                 name: 'hello',
                 type: barType,
               ),
@@ -422,6 +436,7 @@ void main() {
                 id: RemoteInstance.uniqueId,
                 identifier:
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
+                library: Fixtures.library,
                 name: null,
                 type: fooType,
               ),

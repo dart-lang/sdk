@@ -383,6 +383,7 @@ class MacroApplications {
   Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
+  Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
 
   // TODO(johnniwinther): Support all members.
   macro.Declaration? _getMemberDeclaration(MemberBuilder memberBuilder) {
@@ -790,6 +791,17 @@ class MacroApplications {
             .toList();
   }
 
+  macro.LibraryImpl _libraryFor(LibraryBuilder builder) {
+    return _libraries[builder] ??= () {
+      final Version version = builder.library.languageVersion;
+      return new macro.LibraryImpl(
+          id: macro.RemoteInstance.uniqueId,
+          uri: builder.importUri,
+          languageVersion:
+              new macro.LanguageVersionImpl(version.major, version.minor));
+    }();
+  }
+
   macro.ParameterizedTypeDeclaration _createClassDeclaration(
       ClassBuilder builder) {
     assert(
@@ -822,6 +834,8 @@ class MacroApplications {
     final List<macro.NamedTypeAnnotationImpl> interfaces =
         _typeBuildersToAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+
     macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
         // TODO: These shouldn't always be introspectable. In the declarations
         // phase we need to limit the introspectable declarations to those that
@@ -829,6 +843,7 @@ class MacroApplications {
         ? new macro.IntrospectableMixinDeclarationImpl(
                 id: macro.RemoteInstance.uniqueId,
                 identifier: identifier,
+                library: library,
                 typeParameters: typeParameters,
                 hasBase: builder.isBase,
                 interfaces: interfaces,
@@ -840,6 +855,7 @@ class MacroApplications {
         : new macro.IntrospectableClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             typeParameters: typeParameters,
             interfaces: interfaces,
             hasAbstract: builder.isAbstract,
@@ -861,6 +877,7 @@ class MacroApplications {
 
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
@@ -868,6 +885,7 @@ class MacroApplications {
             libraryBuilder: builder.libraryBuilder,
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
+        library: library,
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
         aliasedType:
@@ -884,6 +902,7 @@ class MacroApplications {
     } else {
       positionalParameters = [];
       namedParameters = [];
+      final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
             computeTypeAnnotation(builder.libraryBuilder, formal.type);
@@ -896,6 +915,7 @@ class MacroApplications {
           namedParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
@@ -904,6 +924,7 @@ class MacroApplications {
           positionalParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
@@ -931,6 +952,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
+      library: _libraryFor(builder.libraryBuilder),
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -960,6 +982,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
+      library: _libraryFor(builder.libraryBuilder),
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -986,6 +1009,7 @@ class MacroApplications {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
@@ -995,6 +1019,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
@@ -1015,6 +1040,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -1036,6 +1062,7 @@ class MacroApplications {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
@@ -1045,6 +1072,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
@@ -1058,6 +1086,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
@@ -1371,6 +1400,7 @@ extension on macro.MacroExecutionResult {
       typeAugmentations.isNotEmpty;
 }
 
+// ignore: missing_override_of_must_be_overridden
 class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
   final OmittedTypeBuilder typeBuilder;
 

@@ -96,6 +96,9 @@ abstract interface class NamedStaticType implements StaticType {}
 
 /// The interface for all declarations.
 abstract interface class Declaration {
+  /// The library in which this declaration is defined.
+  Library get library;
+
   ///  An identifier pointing to this named declaration.
   Identifier get identifier;
 }
@@ -345,4 +348,21 @@ abstract interface class RecordFieldDeclaration implements Declaration {
 
   /// The type of this field.
   TypeAnnotation get type;
+}
+
+/// Introspection information for a Library.
+abstract interface class Library {
+  /// The language version of this library.
+  LanguageVersion get languageVersion;
+
+  /// The uri identifying this library.
+  Uri get uri;
+}
+
+/// The language version of a library, see
+/// https://dart.dev/guides/language/evolution#language-version-numbers.
+abstract interface class LanguageVersion {
+  int get major;
+
+  int get minor;
 }

@@ -6,6 +6,7 @@
 - [DAP] Fixed an issue that could leave breakpoints unresolved when adding/removing other breakpoints in a file.
 - Fixed a bug that was preventing clients from receiving `IsolateReload` events
   (see https://dartbug.com/49491).
+- Added notifications for DAP events.
 
 # 2.9.0
 - Updated DDS protocol to version 1.6.

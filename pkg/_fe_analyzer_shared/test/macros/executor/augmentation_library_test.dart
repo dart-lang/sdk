@@ -32,6 +32,7 @@ void main() {
           classes[identifier] = ClassDeclarationImpl(
               id: RemoteInstance.uniqueId,
               identifier: identifier,
+              library: Fixtures.library,
               typeParameters: [],
               interfaces: [],
               hasAbstract: false,
@@ -329,6 +330,7 @@ void main() {
             kind: IdentifierKind.topLevelMember,
             uri: Uri.parse('a.dart'),
             staticScope: null),
+        library: Fixtures.library,
         typeParameters: [],
         interfaces: [],
         mixins: [],
@@ -341,6 +343,7 @@ void main() {
               kind: IdentifierKind.instanceMember,
               uri: Uri.parse('a.dart'),
               staticScope: null),
+          library: Fixtures.library,
           definingType: myEnum.identifier,
           isExternal: false,
           isFinal: true,
@@ -391,6 +394,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyClass'),
+            library: Fixtures.library,
             typeParameters: [],
             interfaces: [],
             hasAbstract: hasKeywords,

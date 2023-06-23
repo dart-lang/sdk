@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+
+import 'package:dds_service_extensions/dap.dart';
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 
 import '../dap.dart';
@@ -41,8 +43,20 @@ class DapHandler {
     };
   }
 
+  _handleEvent(Event event) {
+    dds.streamManager.streamNotify(DapEventStreams.kDAP, {
+      'streamId': DapEventStreams.kDAP,
+      'event': {
+        'kind': DapEventKind.kDAPEvent,
+        'timestamp': DateTime.now().millisecondsSinceEpoch,
+        'dapData': event,
+      },
+    });
+  }
+
   Future<void> _startAdapter(DdsHostedAdapter adapter) async {
     adapter.ddsUri = dds.uri;
+    adapter.setEventHandler(_handleEvent);
 
     // TODO(helin24): Most likely we'll want the client to do these
     // initialization steps so that clients can differentiate capabilities. This

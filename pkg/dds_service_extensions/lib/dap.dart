@@ -29,6 +29,8 @@ extension DapExtension on vm.VmService {
     vm.addTypeFactory('DapResponse', DapResponse.parse);
     _factoriesRegistered = true;
   }
+
+  Stream<vm.Event> get onDAPEvent => onEvent(DapEventStreams.kDAP);
 }
 
 class DapResponse extends vm.Response {
@@ -49,4 +51,20 @@ class DapResponse extends vm.Response {
   String toString() => '[DapResponse]';
 
   final dap.Response dapResponse;
+}
+
+extension DapEvents on vm.Event {
+  dap.Event get dapData {
+    assert(json != null);
+    return dap.Event.fromJson(json!['dapData']);
+  }
+}
+
+abstract class DapEventStreams extends vm.EventStreams {
+  static const String kDAP = 'DAP';
+}
+
+abstract class DapEventKind extends vm.EventKind {
+  /// Notification that a DAP event occurred.
+  static const String kDAPEvent = 'DAPEvent';
 }

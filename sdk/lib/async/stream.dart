@@ -1661,10 +1661,12 @@ abstract mixin class Stream<T> {
   /// Returns a future that is completed with the first element of this stream
   /// for which [test] returns `true`.
   ///
+  /// {@template stream_where_or_else}
   /// If no such element is found before this stream is done, and an
   /// [orElse] function is provided, the result of calling [orElse]
   /// becomes the value of the future. If [orElse] throws, the returned
   /// future is completed with that error.
+  /// {@endtemplate}
   ///
   /// If this stream emits an error before the first matching element,
   /// the returned future is completed with that error, and processing stops.
@@ -1718,13 +1720,18 @@ abstract mixin class Stream<T> {
 
   /// Finds the last element in this stream matching [test].
   ///
-  /// If this stream emits an error, the returned future is completed with that
-  /// error, and processing stops.
+  /// Returns a future that is completed with the last element of this stream
+  /// for which [test] returns `true`.
   ///
-  /// Otherwise as [firstWhere], except that the last matching element is found
+  /// {@macro stream_where_or_else}
+  ///
+  /// If this stream emits an error at any point, the returned future is
+  /// completed with that error, and the subscription is canceled.
+  ///
+  /// A non-error result cannot be provided before this stream is done.
+  ///
+  /// Similar too [firstWhere], except that the last matching element is found
   /// instead of the first.
-  /// That means that a non-error result cannot be provided before this stream
-  /// is done.
   ///
   /// Example:
   /// ```dart
@@ -1770,7 +1777,20 @@ abstract mixin class Stream<T> {
 
   /// Finds the single element in this stream matching [test].
   ///
-  /// Like [lastWhere], except that it is an error if more than one
+  /// Returns a future that is completed with the single element of this stream
+  /// for which [test] returns `true`.
+  ///
+  /// {@macro stream_where_or_else}
+  ///
+  /// Only one element may match. If more than one matching element is found an
+  /// error is thrown, regardless of whether [orElse] was passed.
+  ///
+  /// If this stream emits an error at any point, the returned future is
+  /// completed with that error, and the subscription is canceled.
+  ///
+  /// A non-error result cannot be provided before this stream is done.
+  ///
+  /// Similar to [lastWhere], except that it is an error if more than one
   /// matching element occurs in this stream.
   ///
   /// Example:

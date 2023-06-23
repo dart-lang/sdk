@@ -894,8 +894,8 @@ class JsInteropChecks extends RecursiveVisitor {
   ///   - inside a JS interop class
   ///   - inside an extension on a JS interop or @Native annotatable
   ///   - inside a JS interop inline class
-  ///   - a top level member that is JS interop annotated or in a JS interop
-  ///     library
+  ///   - a top level member that is JS interop annotated or in a package:js JS
+  ///     interop library
   bool _isJSInteropMember(Member member) {
     if (member.isExternal) {
       if (_classHasJSAnnotation) return true;
@@ -906,7 +906,13 @@ class JsInteropChecks extends RecursiveVisitor {
         return _inlineExtensionIndex.getInlineClass(member) != null;
       }
       if (member.enclosingClass == null) {
-        return hasJSInteropAnnotation(member) || _libraryHasJSAnnotation;
+        // dart:js_interop requires top-levels to be @JS-annotated. package:js
+        // historically does not have this restriction. We add this restriction
+        // to refuse confusion on what an external member does now that we can
+        // have dart:ffi and dart:js_interop in the same code via dart2wasm.
+        final libraryHasPkgJSAnnotation =
+            _libraryHasJSAnnotation && !_libraryHasDartJSInteropAnnotation;
+        return hasJSInteropAnnotation(member) || libraryHasPkgJSAnnotation;
       }
     }
 

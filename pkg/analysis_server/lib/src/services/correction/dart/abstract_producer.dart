@@ -9,6 +9,7 @@ import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_override_set.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/flutter.dart';
+import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -164,9 +165,11 @@ class CorrectionProducerContext<T extends ParsedUnitResult> {
     int selectionOffset = -1,
     int selectionLength = 0,
   }) {
-    var selectionEnd = selectionOffset + selectionLength;
-    var locator = NodeLocator(selectionOffset, selectionEnd);
-    var node = locator.searchWithin(resolvedResult.unit);
+    final selection = resolvedResult.unit.select(
+      offset: selectionOffset,
+      length: selectionLength,
+    );
+    var node = selection?.coveringNode;
     node ??= resolvedResult.unit;
 
     final token = _tokenAt(node, selectionOffset) ?? node.beginToken;

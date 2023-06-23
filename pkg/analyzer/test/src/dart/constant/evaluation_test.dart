@@ -483,6 +483,20 @@ const c = identical(int, int);
     );
   }
 
+  test_visitBinaryExpression_extensionMethod() async {
+    await assertErrorsInCode('''
+extension on Object {
+  int operator +(Object other) => 0;
+}
+
+const Object v1 = 0;
+const v2 = v1 + v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7),
+    ]);
+    _assertNull('v2');
+  }
+
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
     await resolveTestCode('''
 const c = 0xFFFFFFFF >>> 8;
@@ -1381,6 +1395,20 @@ const void Function(int) h = self.g;
     assertType(result.type, 'void Function(int)');
     assertElement(result.toFunctionValue(), findElement.topFunction('f'));
     _assertTypeArguments(result, ['int']);
+  }
+
+  test_visitPrefixExpression_extensionMethod() async {
+    await assertErrorsInCode('''
+extension on Object {
+  int operator -() => 0;
+}
+
+const Object v1 = 1;
+const v2 = -v1;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3),
+    ]);
+    _assertNull('v2');
   }
 
   test_visitPropertyAccess_genericFunction_instantiated() async {

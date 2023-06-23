@@ -45,6 +45,8 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
   @override
   bool get terminateOnVmServiceClose => true;
 
+  final _dapEventsController = StreamController<Event>();
+
   @override
   Future<void> debuggerConnected(vm.VM vmInfo) async {}
 
@@ -120,5 +122,14 @@ class DdsHostedAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     } catch (e) {
       throw potentialException;
     }
+  }
+
+  @override
+  void sendEventToChannel(Event event) {
+    _dapEventsController.add(event);
+  }
+
+  void setEventHandler(void Function(Event) eventHandler) {
+    _dapEventsController.stream.listen(eventHandler);
   }
 }
