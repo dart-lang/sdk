@@ -430,7 +430,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     PushMarked(raw_obj);
   }
 
-  Thread* thread_;
   PageSpace* page_space_;
   MarkerWorkList work_list_;
   MarkerWorkList deferred_work_list_;
