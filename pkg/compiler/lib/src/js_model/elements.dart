@@ -779,7 +779,7 @@ class JTypeVariable extends IndexedTypeVariable {
   factory JTypeVariable.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JTypeVariableKind kind = source.readEnum(JTypeVariableKind.values);
-    Entity? typeDeclaration;
+    Entity typeDeclaration;
     switch (kind) {
       case JTypeVariableKind.cls:
         typeDeclaration = source.readClass();
