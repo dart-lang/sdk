@@ -17,12 +17,11 @@ class Foo {
 }
 
 void test() {
+  final l = <Object>[];
   debugger();
   // Toggled on.
-  debugger();
-  debugger();
   // Allocation.
-  new Foo();
+  l.add(new Foo());
   debugger();
 }
 
@@ -42,10 +41,6 @@ var tests = <IsolateTest>[
     expect(fooClass.traceAllocations, isTrue);
   },
 
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
   resumeIsolate,
   hasStoppedAtBreakpoint,
 

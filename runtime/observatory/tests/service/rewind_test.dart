@@ -8,10 +8,12 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-int LINE_A = 31;
-int LINE_B = 36;
-int LINE_C = 39;
-int LINE_D = 43;
+int LINE_A = 33;
+int LINE_B = 38;
+int LINE_C = 41;
+int LINE_D = 45;
+
+int LINE_0 = 31;
 
 int global = 0;
 
@@ -26,7 +28,7 @@ b3(int x) {
     print("caught $e");
   }
   if (global >= 100) {
-    debugger();
+    debugger(); // LINE_0.
   }
   global = global + 1; // Line A
   return sum;
@@ -45,6 +47,9 @@ test() {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
@@ -91,6 +96,9 @@ var tests = <IsolateTest>[
     expect(result['type'], equals('Success'));
   },
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     // global still is equal to 100.  We did not execute "global++".
@@ -116,6 +124,9 @@ var tests = <IsolateTest>[
     var result2 = await isolate.resume();
     expect(result2['type'], equals('Success'));
   },
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
