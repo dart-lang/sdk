@@ -5,8 +5,17 @@ import "package:test_core/scaffolding.dart" as sca;
 import "package:matcher/src/expect/expect.dart" as exp;
 import "dart:core" as core;
 
-import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
+import "package:matcher/src/expect/expect.dart";
+import "package:test_api/hooks.dart";
+import "package:test_core/scaffolding.dart";
+import "package:matcher/src/core_matchers.dart";
+import "package:matcher/src/description.dart";
+import "package:matcher/src/equals_matcher.dart";
+import "package:matcher/src/interfaces.dart";
+import "package:matcher/src/operator_matchers.dart";
+import "package:matcher/src/type_matcher.dart";
+import "package:matcher/src/util.dart";
 
 [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>]static field core::List<core::int> buffer = <core::int>[10, 4, 8, 5, 16, 4, 26, 9, 10, 3, 102, 111, 111, 18, 2, 8, 42, 34, 9, 10, 3, 122, 111, 112, 18, 2, 8, 3, 40, 43, 50, 0, 58, 0];
 static method main() → dynamic {
