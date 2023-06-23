@@ -135,7 +135,6 @@ luci.notifier(
 
 exec("//sdk.star")
 exec("//cfe.star")
-exec("//flutter.star")
 exec("//dart2wasm.star")
 vm = exec("//vm.star")
 exec("//pkg.star")

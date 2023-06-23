@@ -55,10 +55,3 @@ cron.weekly_builder(
     channels = [],
     execution_timeout = 12 * time.hour,
 )
-
-luci.console_view_entry(
-    builder = "flutter-frontend",
-    short_name = "fl",
-    category = "fasta",
-    console_view = "flutter",
-)

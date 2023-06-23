@@ -44,10 +44,3 @@ dart.ci_sandbox_builder(
     dimensions = windows,
     experiments = {"dart.use_update_script": 100},
 )
-
-luci.console_view_entry(
-    builder = "flutter-analyze",
-    short_name = "fa",
-    category = "analyzer",
-    console_view = "flutter",
-)
