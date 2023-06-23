@@ -203,6 +203,23 @@ void foo(BuildContext context) async {
     expect(conditional.asyncStateFor(reference), isNull);
   }
 
+  test_extensionOverride_referenceAfter_awaitInArgument() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  E(await Future.value(false)).f();
+  context /* ref */;
+}
+
+extension E on int {
+  void f() {}
+}
+''');
+    var extensionOverride = findNode.expressionStatement('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(extensionOverride.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
   test_forElementWithDeclaration_referenceAfter_awaitInPartCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -1034,6 +1051,65 @@ void foo(BuildContext context) async {
     expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
+  test_switchExpression_referenceInExpression_awaitInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (switch (await Future.value()) {
+    _ => context /* ref */,
+  });
+}
+''');
+    var switchExpression = findNode.switchExpression('switch');
+    var reference = findNode.switchExpressionCase('context /* ref */');
+    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchExpression_referenceInExpression_awaitInWhenClause() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (switch (1) {
+    _ when await Future.value(true) => context /* ref */,
+    _ => null,
+  });
+}
+''');
+    var switchExpression = findNode.switchExpressionCase('await');
+    var reference = findNode.simple('context /* ref */');
+    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchExpression_referenceInExpression_mountedGuardInWhenClause() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  (switch (1) {
+    _ when context.mounted => context /* ref */,
+    _ => null,
+  });
+}
+''');
+    var switchExpression = findNode.switchExpressionCase('when');
+    var reference = findNode.simple('context /* ref */');
+    expect(switchExpression.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_switchExpression_referenceInWhenClause_awaitInExpression() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context, bool Function(BuildContext) condition) async {
+  (switch (1) {
+    _ when condition(context /* ref */) => await Future.value(),
+    _ => null,
+  });
+}
+''');
+    var switchExpression = findNode.switchExpressionCase('await');
+    var reference = findNode.whenClause('context /* ref */').parent!;
+    expect(switchExpression.asyncStateFor(reference), isNull);
+  }
+
   test_switchStatement_referenceAfter_awaitInCaseBody() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -1124,6 +1200,39 @@ void foo(BuildContext context) async {
     var switchCase = findNode.switchPatternCase('case');
     var reference = findNode.expressionStatement('context /* ref */');
     expect(switchCase.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_switchStatement_referenceInDefault_awaitInDefault() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    default:
+      await Future.value();
+      context /* ref */;
+  }
+}
+''');
+    var switchStatement = findNode.switchDefault('await');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceInDefault_mountedGuardInDefault() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    default:
+      if (!context.mounted) return;
+      context /* ref */;
+  }
+}
+''');
+    var switchStatement = findNode.switchDefault('context.mounted');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(
+        switchStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
   test_tryStatement_referenceAfter_awaitInBody() async {

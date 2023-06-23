@@ -300,7 +300,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitExtensionOverride(ExtensionOverride node) =>
-      // TODO(srawlins): The target? Like `E(await foo).m()`.
       _asynchronousIfAnyIsAsync(node.argumentList.arguments);
 
   @override
@@ -487,17 +486,30 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitSwitchDefault(SwitchDefault node) =>
-      // TODO(srawlins): Handle when `reference` is in one of the statements.
-      _asynchronousIfAnyIsAsync(node.statements);
+      _inOrderAsyncStateGuardable(node.statements);
 
   @override
   AsyncState? visitSwitchExpression(SwitchExpression node) =>
-      // TODO(srawlins): Support mounted guard checks in case patterns.
       _asynchronousIfAnyIsAsync([node.expression, ...node.cases]);
 
   @override
-  AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) =>
-      node.expression.accept(this)?.asynchronousOrNull;
+  AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) {
+    // TODO(srawlins): Handle async and mounted checks in fallthrough case when
+    // clauses.
+    if (reference == node.guardedPattern) {
+      return null;
+    }
+    var whenClauseState = node.guardedPattern.whenClause?.accept(this);
+    if (reference == node.expression) {
+      if (whenClauseState == AsyncState.asynchronous ||
+          whenClauseState == AsyncState.mountedCheck) {
+        return whenClauseState;
+      }
+      return null;
+    }
+    return whenClauseState?.asynchronousOrNull ??
+        node.expression.accept(this)?.asynchronousOrNull;
+  }
 
   @override
   AsyncState? visitSwitchStatement(SwitchStatement node) =>
