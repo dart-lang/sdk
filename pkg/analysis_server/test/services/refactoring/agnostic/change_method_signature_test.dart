@@ -104,6 +104,7 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
 
     refactoringContext = AbstractRefactoringContext(
       searchEngine: SearchEngineImpl(allDrivers),
+      startSessions: [resolvedLibraryResult.session],
       resolvedLibraryResult: resolvedLibraryResult,
       resolvedUnitResult: unitResult,
       selectionOffset: selectionRange.offset,

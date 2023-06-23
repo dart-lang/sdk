@@ -62,6 +62,7 @@ class RefactorCommandHandler extends SimpleEditCommandHandler {
       }
       var context = RefactoringContext(
         server: server,
+        startSessions: await server.currentSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
         selectionOffset: offset,

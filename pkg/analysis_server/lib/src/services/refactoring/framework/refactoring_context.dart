@@ -20,6 +20,9 @@ class AbstractRefactoringContext {
   /// Return the search engine used to search outside the resolved library.
   final SearchEngine searchEngine;
 
+  /// The sessions at the start of the refactoring.
+  final List<AnalysisSession> startSessions;
+
   /// The result of resolving the library in which a refactoring was requested.
   final ResolvedLibraryResult resolvedLibraryResult;
 
@@ -49,11 +52,12 @@ class AbstractRefactoringContext {
       AnalysisSessionHelper(session);
 
   /// The change workspace associated with this refactoring.
-  late final ChangeWorkspace workspace = DartChangeWorkspace([session]);
+  late final ChangeWorkspace workspace = DartChangeWorkspace(startSessions);
 
   /// Initialize a newly created refactoring context.
   AbstractRefactoringContext({
     required this.searchEngine,
+    required this.startSessions,
     required this.resolvedLibraryResult,
     required this.resolvedUnitResult,
     required this.selectionOffset,
@@ -89,6 +93,7 @@ class RefactoringContext extends AbstractRefactoringContext {
   /// Initialize a newly created refactoring context.
   RefactoringContext({
     required this.server,
+    required super.startSessions,
     required super.resolvedLibraryResult,
     required super.resolvedUnitResult,
     required super.selectionOffset,

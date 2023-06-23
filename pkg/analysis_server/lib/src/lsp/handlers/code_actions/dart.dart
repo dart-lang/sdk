@@ -204,6 +204,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       // New interactive refactors.
       final context = RefactoringContext(
         server: server,
+        startSessions: await server.currentSessions,
         resolvedLibraryResult: library,
         resolvedUnitResult: unit,
         selectionOffset: offset,
