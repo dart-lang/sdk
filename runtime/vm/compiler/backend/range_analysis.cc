@@ -2766,6 +2766,7 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       *range = Range(RangeBoundary::FromConstant(0), RangeBoundary::MaxSmi());
       break;
 
+    case Slot::Kind::kAbstractType_hash:
     case Slot::Kind::kTypeArguments_hash:
       *range = Range(RangeBoundary::MinSmi(), RangeBoundary::MaxSmi());
       break;

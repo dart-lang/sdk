@@ -215,12 +215,6 @@ enum TTSTestResult {
   // The TTS invocation should enter the runtime and add a new entry to the
   // STC, creating a new STC if necessary.
   kNewSTCEntry,
-  // The TTS invocation should enter the runtime but return early after
-  // checking the STC. The STC prior to the invocation must be hash-based.
-  //
-  // TODO(sstrickl): Remove this possibility when the SubtypeNTestCache stubs
-  // have been updated to handle hash-based caches.
-  kRuntimeHash,
   // The TTS invocation should enter the runtime and return a successful check
   // but without adding an entry to the STC. This should only happen when the
   // STC has hit the limit described by FLAG_max_subtype_cache_entries prior
@@ -241,6 +235,8 @@ enum TTSTestResult {
   //
   // Used only when calling TTSTestState::InvokeExistingStub.
   kRespecialize,
+  // Used for static assert below only.
+  kNumTestResults,
 };
 
 static const char* kTestResultStrings[] = {
@@ -248,11 +244,18 @@ static const char* kTestResultStrings[] = {
     "passes in TTS",
     "passes in STC stub",
     "passes in runtime, adding new STC entry",
-    "passes in runtime, checking hash-based STC entry",
     "passes in runtime, no changes to max size STC",
     "passes in runtime, initial TTS stub specialization",
     "passes in runtime, TTS stub respecialized",
 };
+
+// Just to make sure the above are kept in sync.
+static_assert(sizeof(kTestResultStrings) >=
+                  kNumTestResults * sizeof(*kTestResultStrings),
+              "kTestResultStrings has too few entries");
+static_assert(sizeof(kTestResultStrings) <=
+                  kNumTestResults * sizeof(*kTestResultStrings),
+              "kTestResultStrings has extra entries");
 
 struct TTSTestCase {
   const Object& instance;
@@ -276,7 +279,6 @@ struct TTSTestCase {
         return false;
       case kFail:
       case kNewSTCEntry:
-      case kRuntimeHash:
       case kRuntimeCheck:
       case kSpecialize:
       case kRespecialize:
@@ -375,16 +377,6 @@ static TTSTestCase STCCheck(const TTSTestCase& original) {
 static TTSTestCase FalseNegative(const TTSTestCase& original) {
   return TTSTestCase(original.instance, original.instantiator_tav,
                      original.function_tav, kNewSTCEntry);
-}
-
-// Takes an existing test case and creates a test case that should go to the
-// runtime but find the entry in the hash-based STC.
-//
-// TODO(sstrickl): Remove this and its uses when the SubtypeNTestCache stubs can
-// find entries in hash-based caches.
-static TTSTestCase HashCheck(const TTSTestCase& original) {
-  return TTSTestCase(original.instance, original.instantiator_tav,
-                     original.function_tav, kRuntimeHash);
 }
 
 // Takes an existing test case and creates a test case that should go to the
@@ -592,9 +584,8 @@ class TTSTestState : public ValueObject {
       previous_stc_ = previous_stc_.Copy(thread_);
     }
 #if defined(TESTING)
-    // Clear the runtime entered and hash cache hit flags prior to invocation.
+    // Clear the runtime entered flag prior to invocation.
     TESTING_runtime_entered_on_TTS_invocation = false;
-    TESTING_found_hash_STC_entry = false;
 #endif
     {
       TraceStubInvocationScope scope;
@@ -604,8 +595,6 @@ class TTSTestState : public ValueObject {
 #if defined(TESTING)
     EXPECT_EQ(test_case.ShouldEnterRuntime(),
               TESTING_runtime_entered_on_TTS_invocation);
-    EXPECT_EQ(test_case.expected_result == kRuntimeHash,
-              TESTING_found_hash_STC_entry);
 #endif
     new_tts_stub_ = last_tested_type_.type_test_stub();
     last_stc_ = current_stc();
@@ -742,8 +731,7 @@ class TTSTestState : public ValueObject {
     // We also expect an entry if we expect an STC hit in the STC stub or in
     // the runtime.
     const bool expects_stc_entry =
-        should_update_cache || test_case.expected_result == kExistingSTCEntry ||
-        test_case.expected_result == kRuntimeHash;
+        should_update_cache || test_case.expected_result == kExistingSTCEntry;
     if ((!expects_stc_entry && has_stc_entry) ||
         (expects_stc_entry && !has_stc_entry)) {
       ZoneTextBuffer buffer(zone());
@@ -799,7 +787,6 @@ static void RunTTSTest(const AbstractType& dst_type,
   EXPECT_NE(kRespecialize, test_case.expected_result);
   // We're creating a new STC so it _can't_ use an existing entry.
   EXPECT_NE(kExistingSTCEntry, test_case.expected_result);
-  EXPECT_NE(kRuntimeHash, test_case.expected_result);
 
   bool null_should_fail = !Instance::NullIsAssignableTo(
       dst_type, test_case.instantiator_tav, test_case.function_tav);
@@ -2618,7 +2605,13 @@ ISOLATE_UNIT_TEST_CASE(TTS_Regress_CidRangeChecks) {
   state.InvokeEagerlySpecializedStub(Failure({obj_i, tav_null, tav_null}));
 }
 
-static void SubtypeTestCacheHashTest(Thread* thread, intptr_t num_classes) {
+struct STCTestResults {
+  bool became_hash_cache = false;
+  bool cache_capped = false;
+};
+
+static STCTestResults SubtypeTestCacheTest(Thread* thread,
+                                           intptr_t num_classes) {
   TextBuffer buffer(MB);
   buffer.AddString("class D<S> {}\n");
   buffer.AddString("D<int> Function() createClosureD() => () => D<int>();\n");
@@ -2654,14 +2647,18 @@ static void SubtypeTestCacheHashTest(Thread* thread, intptr_t num_classes) {
   ASSERT(!object_d.IsNull());
   auto& type_closure_d_int =
       AbstractType::Handle(zone, object_d.GetType(Heap::kNew));
+  const bool can_be_null = Instance::NullIsAssignableTo(type_closure_d_int);
 
   const auto& tav_null = Object::null_type_arguments();
 
   TTSTestState state(thread, type_closure_d_int);
+  // Prime the stub before the loop with the null object.
+  state.InvokeEagerlySpecializedStub(
+      {Object::null_object(), tav_null, tav_null, can_be_null ? kTTS : kFail});
 
   auto& class_c = Class::Handle(zone);
   auto& object_c = Object::Handle(zone);
-  bool became_hash_cache = false;
+  STCTestResults results;
   for (intptr_t i = 0; i < num_classes; ++i) {
     auto const class_name = OS::SCreate(zone, "C%" Pd "", i);
     class_c = GetClass(root_lib, class_name);
@@ -2682,55 +2679,59 @@ static void SubtypeTestCacheHashTest(Thread* thread, intptr_t num_classes) {
       state.InvokeExistingStub(RuntimeCheck(base_case));
       // Rerunning the test doesn't change the fact we can't add to the STC.
       state.InvokeExistingStub(RuntimeCheck(base_case));
+      results.cache_capped = true;
     } else {
+      const bool was_hash = state.last_stc().IsHash();
       // All the rest of the tests should create or modify an STC.
+      state.InvokeExistingStub(FalseNegative(base_case));
       if (i == 0) {
-        state.InvokeEagerlySpecializedStub(FalseNegative(base_case));
         // We should get a linear cache the first time.
         EXPECT(!state.last_stc().IsHash());
-      } else {
-        const bool was_hash = state.last_stc().IsHash();
-        state.InvokeExistingStub(FalseNegative(base_case));
-        if (was_hash) {
-          // We should never change from hash back to linear.
-          EXPECT(state.last_stc().IsHash());
-        } else if (state.last_stc().IsHash()) {
-          became_hash_cache = true;
-        }
+      } else if (was_hash) {
+        // We should never change from hash back to linear.
+        EXPECT(state.last_stc().IsHash());
+      } else if (state.last_stc().IsHash()) {
+        results.became_hash_cache = true;
       }
-      if (became_hash_cache) {
-        // TODO(sstrickl): Remove this special case when the STC stubs are
-        // updated.
-        state.InvokeExistingStub(HashCheck(base_case));
-      } else {
-        state.InvokeExistingStub(STCCheck(base_case));
-      }
+      state.InvokeExistingStub(STCCheck(base_case));
     }
   }
 
-  // Ensure we're actually testing hash caches at some point.
-  EXPECT(became_hash_cache);
+  return results;
 }
 
-// A smaller version of the following test case, just to ensure some coverage
-// on slower builds.
-TEST_CASE(TTS_STC_SomeAsserts) {
-  SubtypeTestCacheHashTest(thread,
-                           2 * SubtypeTestCache::kMaxLinearCacheEntries);
+// The smallest test that just checks linear caches.
+TEST_CASE(TTS_STC_LinearOnly) {
+  const intptr_t num_classes =
+      Utils::Minimum(static_cast<intptr_t>(FLAG_max_subtype_cache_entries),
+                     SubtypeTestCache::kMaxLinearCacheEntries);
+  EXPECT(num_classes > 0);
+  const auto& results = SubtypeTestCacheTest(thread, num_classes);
+  EXPECT(!results.became_hash_cache);
+  EXPECT(!results.cache_capped);
 }
 
-// Too slow in debug mode. Also avoid the sanitizers and simulators for similar
-// reasons. Any core issues will likely be found by TTS_STC_SomeAsserts.
-#if !defined(DEBUG) && !defined(USING_MEMORY_SANITIZER) &&                     \
-    !defined(USING_THREAD_SANITIZER) && !defined(USING_LEAK_SANITIZER) &&      \
-    !defined(USING_UNDEFINED_BEHAVIOR_SANITIZER) && !defined(USING_SIMULATOR)
-TEST_CASE(TTS_STC_ManyAsserts) {
-  const intptr_t kNumClasses = 5000;
-  static_assert(kNumClasses > SubtypeTestCache::kMaxLinearCacheEntries,
-                "too few classes to trigger change to a hash-based cache");
-  SubtypeTestCacheHashTest(thread, kNumClasses);
+// A larger test that ensures we convert to a hash table at some point.
+TEST_CASE(TTS_STC_Hash) {
+  const intptr_t num_classes =
+      Utils::Minimum(static_cast<intptr_t>(FLAG_max_subtype_cache_entries),
+                     2 * SubtypeTestCache::kMaxLinearCacheEntries);
+  EXPECT(num_classes > SubtypeTestCache::kMaxLinearCacheEntries);
+  const auto& results = SubtypeTestCacheTest(thread, num_classes);
+  EXPECT(results.became_hash_cache);
+  EXPECT(!results.cache_capped);
 }
-#endif
+
+// A larger test that ensures that we use enough entries to hit the max STC
+// size and test what happens when we go above it.
+TEST_CASE(TTS_STC_Capped) {
+  const intptr_t num_classes = 1.1 * FLAG_max_subtype_cache_entries;
+  EXPECT(num_classes > 0);
+  const auto& results = SubtypeTestCacheTest(thread, num_classes);
+  EXPECT_EQ(SubtypeTestCache::kMaxLinearCacheEntries < num_classes,
+            results.became_hash_cache);
+  EXPECT(results.cache_capped);
+}
 
 }  // namespace dart
 

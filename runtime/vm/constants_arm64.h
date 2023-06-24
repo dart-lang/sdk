@@ -220,12 +220,17 @@ struct STCInternalRegs {
   static constexpr Register kInstanceInstantiatorTypeArgumentsReg = R5;
   static constexpr Register kInstanceParentFunctionTypeArgumentsReg = R9;
   static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
+  static constexpr Register kCacheEntriesEndReg = R11;
+  static constexpr Register kCacheContentsSizeReg = R12;
+  static constexpr Register kProbeDistanceReg = R13;
 
   static constexpr intptr_t kInternalRegisters =
       (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg) |
       (1 << kInstanceParentFunctionTypeArgumentsReg) |
-      (1 << kInstanceDelayedFunctionTypeArgumentsReg);
+      (1 << kInstanceDelayedFunctionTypeArgumentsReg) |
+      (1 << kCacheEntriesEndReg) | (1 << kCacheContentsSizeReg) |
+      (1 << kProbeDistanceReg);
 };
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.

@@ -3241,13 +3241,13 @@ void Assembler::LoadDFromOffset(FRegister dest, Register base, int32_t offset) {
 }
 
 void Assembler::LoadFromStack(Register dst, intptr_t depth) {
-  UNIMPLEMENTED();
+  LoadFromOffset(dst, SPREG, target::kWordSize * depth);
 }
 void Assembler::StoreToStack(Register src, intptr_t depth) {
-  UNIMPLEMENTED();
+  StoreToOffset(src, SPREG, target::kWordSize * depth);
 }
 void Assembler::CompareToStack(Register src, intptr_t depth) {
-  UNIMPLEMENTED();
+  CompareWithMemoryValue(src, Address(SPREG, target::kWordSize * depth));
 }
 
 void Assembler::StoreToOffset(Register src,

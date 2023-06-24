@@ -129,6 +129,7 @@ class ParsedFunction;
   V(Record, UntaggedRecord, shape, Smi, FINAL)                                 \
   V(TypeArguments, UntaggedTypeArguments, hash, Smi, VAR)                      \
   V(TypeArguments, UntaggedTypeArguments, length, Smi, FINAL)                  \
+  V(AbstractType, UntaggedTypeArguments, hash, Smi, VAR)                       \
   V(TypeParameters, UntaggedTypeParameters, names, Array, FINAL)               \
   V(UnhandledException, UntaggedUnhandledException, exception, Dynamic, FINAL) \
   V(UnhandledException, UntaggedUnhandledException, stacktrace, Dynamic, FINAL)

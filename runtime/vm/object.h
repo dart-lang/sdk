@@ -7574,9 +7574,7 @@ class SubtypeTestCache : public Object {
   // force runtime checks.
   static constexpr intptr_t kMaxLinearCacheEntries = 100;
 #else
-  // TODO(sstrickl): Currently we don't generate hash cache probing in the
-  // other architectures, so use 100 like IA32. Update this to 10 once we do.
-  static constexpr intptr_t kMaxLinearCacheEntries = 100;
+  static constexpr intptr_t kMaxLinearCacheEntries = 30;
 #endif
 
   // Whether the entry at the given index in the cache is occupied. Exposed

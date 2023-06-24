@@ -2831,19 +2831,21 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       STCInternalRegs::kInstanceCidOrSignatureReg,
       STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
       STCInternalRegs::kInstanceParentFunctionTypeArgumentsReg,
-      STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg, &not_found);
-
-  __ Comment("Found");
-  __ LoadCompressed(
-      TypeTestABI::kSubtypeTestCacheResultReg,
-      Address(kCacheArrayReg, target::kCompressedWordSize *
-                                  target::SubtypeTestCache::kTestResult));
-  __ Ret();
-
-  __ Bind(&not_found);
-  __ Comment("Not found");
-  __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, NULL_REG);
-  __ Ret();
+      STCInternalRegs::kInstanceDelayedFunctionTypeArgumentsReg,
+      STCInternalRegs::kCacheEntriesEndReg,
+      STCInternalRegs::kCacheContentsSizeReg,
+      STCInternalRegs::kProbeDistanceReg,
+      [](Assembler* assembler, int n) {
+        __ LoadCompressed(
+            TypeTestABI::kSubtypeTestCacheResultReg,
+            Address(kCacheArrayReg, target::kCompressedWordSize *
+                                        target::SubtypeTestCache::kTestResult));
+        __ Ret();
+      },
+      [](Assembler* assembler, int n) {
+        __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, NULL_REG);
+        __ Ret();
+      });
 }
 
 void StubCodeCompiler::GenerateGetCStackPointerStub() {

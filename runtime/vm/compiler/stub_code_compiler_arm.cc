@@ -2706,10 +2706,11 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
   saved_registers.AddRegister(kCacheArrayReg);
 
-  // NOTFP must be preserved for bare payloads, otherwise CODE_REG.
-  const bool use_bare_payloads = FLAG_precompiled_mode;
-  // For this, we choose the register that need not be preserved of the pair.
-  const Register kNullReg = use_bare_payloads ? CODE_REG : NOTFP;
+  // CODE_REG is used only in JIT mode, and the dispatch table only exists in
+  // AOT mode, so we can use the corresponding register for the mode we're not
+  // in without having to preserve it.
+  const Register kNullReg =
+      FLAG_precompiled_mode ? CODE_REG : DISPATCH_TABLE_REG;
   __ LoadObject(kNullReg, NullObject());
 
   // Free up additional registers needed for checks in the loop. Initially
@@ -2721,9 +2722,10 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   }
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
   if (n >= 5) {
-    // For this, we choose the register that must be preserved of the pair.
+    // For this, we look at the pair of Registers we considered for kNullReg
+    // and use the one that must be preserved instead.
     kInstanceParentFunctionTypeArgumentsReg =
-        use_bare_payloads ? NOTFP : CODE_REG;
+        FLAG_precompiled_mode ? DISPATCH_TABLE_REG : CODE_REG;
     saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
   }
   Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
@@ -2736,29 +2738,55 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
     kInstanceDelayedFunctionTypeArgumentsReg = TypeTestABI::kInstanceReg;
     saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
+
+  // We'll replace these with actual registers if possible, but fall back to
+  // the stack if register pressure is too great. The last two values are
+  // used in every loop iteration, and so are more important to put in
+  // registers if possible, whereas the first is used only when we go off
+  // the end of the backing array (usually at most once per check).
+  Register kCacheContentsSizeReg = kNoRegister;
+  if (n < 5) {
+    // Use the register we would have used for the parent function type args.
+    kCacheContentsSizeReg =
+        FLAG_precompiled_mode ? DISPATCH_TABLE_REG : CODE_REG;
+    saved_registers.AddRegister(kCacheContentsSizeReg);
+  }
+  Register kProbeDistanceReg = kNoRegister;
+  if (n < 6) {
+    // Use the register we would have used for the delayed type args.
+    kProbeDistanceReg = TypeTestABI::kInstanceReg;
+    saved_registers.AddRegister(kProbeDistanceReg);
+  }
+  Register kCacheEntryEndReg = kNoRegister;
+  if (n < 7) {
+    // Use the destination type, as that is the last input that might be unused.
+    kCacheEntryEndReg = TypeTestABI::kDstTypeReg;
+    saved_registers.AddRegister(TypeTestABI::kDstTypeReg);
+  }
+
   __ PushRegisters(saved_registers);
 
   Label not_found;
-  GenerateSubtypeTestCacheSearch(assembler, n, kNullReg, kCacheArrayReg,
-                                 STCInternalRegs::kInstanceCidOrSignatureReg,
-                                 kInstanceInstantiatorTypeArgumentsReg,
-                                 kInstanceParentFunctionTypeArgumentsReg,
-                                 kInstanceDelayedFunctionTypeArgumentsReg,
-                                 &not_found);
-
-  __ Comment("Found");
-  __ LoadCompressed(
-      TypeTestABI::kSubtypeTestCacheResultReg,
-      Address(kCacheArrayReg, target::kCompressedWordSize *
-                                  target::SubtypeTestCache::kTestResult));
-  __ PopRegisters(saved_registers);
-  __ Ret();
-
-  __ Bind(&not_found);
-  __ Comment("Not found");
-  __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, kNullReg);
-  __ PopRegisters(saved_registers);
-  __ Ret();
+  GenerateSubtypeTestCacheSearch(
+      assembler, n, kNullReg, kCacheArrayReg,
+      STCInternalRegs::kInstanceCidOrSignatureReg,
+      kInstanceInstantiatorTypeArgumentsReg,
+      kInstanceParentFunctionTypeArgumentsReg,
+      kInstanceDelayedFunctionTypeArgumentsReg, kCacheEntryEndReg,
+      kCacheContentsSizeReg, kProbeDistanceReg,
+      [&](Assembler* assembler, int n) {
+        __ LoadCompressed(
+            TypeTestABI::kSubtypeTestCacheResultReg,
+            Address(kCacheArrayReg, target::kCompressedWordSize *
+                                        target::SubtypeTestCache::kTestResult));
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      },
+      [&](Assembler* assembler, int n) {
+        __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, kNullReg);
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      });
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

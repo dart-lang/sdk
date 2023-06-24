@@ -19220,7 +19220,8 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 }
 
 intptr_t SubtypeTestCache::NumEntries() const {
-  return NumEntries(Array::Handle(cache()));
+  ASSERT(!IsNull());
+  return Array::LengthOf(cache()) / kTestEntryLength;
 }
 
 intptr_t SubtypeTestCache::NumEntries(const Array& array) {
@@ -19526,6 +19527,12 @@ ArrayPtr SubtypeTestCache::EnsureCapacity(Zone* zone,
   // find an empty slot).  This is described in Knuth's The Art of Computer
   // Programming Volume 2, Chapter 6.4, exercise 20 (solution in the
   // appendix, 2nd edition).
+  //
+  // This is also important because when we do hash probing, we take the
+  // calculated hash from the inputs and then calculate (hash % capacity) to get
+  // the initial probe index. To ensure this is a fast calculation in the stubs,
+  // we ensure the capacity is a power of 2, which allows (hash % capacity) to
+  // be calculated as (hash & (capacity - 1)).
   ASSERT(Utils::IsPowerOfTwo(new_capacity));
   ASSERT(LoadFactor(new_occupied, new_capacity) < kMaxLoadFactor);
   const intptr_t new_size = new_capacity * kTestEntryLength;
@@ -19911,6 +19918,7 @@ SubtypeTestCachePtr SubtypeTestCache::Copy(Thread* thread) const {
 
 bool SubtypeTestCache::IsOccupied(intptr_t index) const {
   ASSERT(!IsNull());
+  ASSERT(index < NumEntries());
   const intptr_t cache_index =
       index * kTestEntryLength + kInstanceCidOrSignature;
   NoSafepointScope no_safepoint;
