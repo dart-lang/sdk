@@ -12,12 +12,15 @@ main() {
     expect(window.scrollY, 0);
   });
   test('open', () {
-    window.open('', 'blank');
+    final valid = window.open('', 'blank');
+    valid.closed;
+    // A blank page with no access to the original window (noopener) should
+    // result in null.
+    final invalid = window.open('', 'invalid', 'noopener=true');
     try {
-      // A blank page with no access to the original window (noopener) should
-      // result in null.
-      window.open('', 'invalid', 'noopener=true');
-      fail('Expected Window.open to throw.');
+      // Should result in an exception since the underlying window is null.
+      invalid.closed;
+      fail('Expected invalid.closed to throw.');
     } on NullWindowException {}
   });
 }

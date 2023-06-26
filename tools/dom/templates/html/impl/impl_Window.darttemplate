@@ -50,8 +50,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   /**
    * Opens a new window.
    *
-   * Throws a NullWindowException if the opened window is null.
-   *
    * ## Other resources
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
@@ -60,7 +58,6 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
   WindowBase open(String url, String name, [String$NULLABLE options]) {
     final win =
         options == null ? _open2(url, name) : _open3(url, name, options);
-    if (win == null) throw new NullWindowException();
     return _DOMWindowCrossFrame._createSafe(win);
   }
 
@@ -259,6 +256,6 @@ $!MEMBERS
 class NullWindowException implements Exception {
   @override
   String toString() {
-    return 'Attempted to call Window.open with a null window.';
+    return 'Attempting to use a null window opened in Window.open.';
   }
 }

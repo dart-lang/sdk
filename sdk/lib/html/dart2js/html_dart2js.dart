@@ -32154,8 +32154,6 @@ class Window extends EventTarget
   /**
    * Opens a new window.
    *
-   * Throws a NullWindowException if the opened window is null.
-   *
    * ## Other resources
    *
    * * [Window.open](https://developer.mozilla.org/en-US/docs/Web/API/Window.open)
@@ -32164,7 +32162,6 @@ class Window extends EventTarget
   WindowBase open(String url, String name, [String? options]) {
     final win =
         options == null ? _open2(url, name) : _open3(url, name, options);
-    if (win == null) throw new NullWindowException();
     return _DOMWindowCrossFrame._createSafe(win);
   }
 
@@ -33782,7 +33779,7 @@ class Window extends EventTarget
 class NullWindowException implements Exception {
   @override
   String toString() {
-    return 'Attempted to call Window.open with a null window.';
+    return 'Attempting to use a null window opened in Window.open.';
   }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -40124,7 +40121,12 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final Object _window;
+  final Object? __window;
+
+  Object get _window {
+    if (__window == null) throw new NullWindowException();
+    return __window!;
+  }
 
   // Fields.
   HistoryBase get history =>
@@ -40161,7 +40163,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrame(this._window);
+  _DOMWindowCrossFrame(this.__window);
 
   static WindowBase _createSafe(w) {
     if (identical(w, window)) {
