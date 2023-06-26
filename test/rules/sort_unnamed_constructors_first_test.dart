@@ -17,7 +17,31 @@ class SortUnnamedConstructorsFirstTest extends LintRuleTest {
   @override
   String get lintRule => 'sort_unnamed_constructors_first';
 
-  test_ok() async {
+  test_class_sorted() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C(); 
+  C.named();
+  // ignore: unused_element
+  C._();
+}
+''');
+  }
+
+  test_class_unsorted() async {
+    await assertDiagnostics(r'''
+class C {
+  C.named();
+  C();
+  // ignore: unused_element
+  C._();
+}
+''', [
+      lint(25, 1),
+    ]);
+  }
+
+  test_enum_sorted() async {
     await assertNoDiagnostics(r'''
 enum A {
   a,b,c.aa();
@@ -27,7 +51,7 @@ enum A {
 ''');
   }
 
-  test_unsorted() async {
+  test_enum_unsorted() async {
     await assertDiagnostics(r'''
 enum A {
   a,b,c.aa();
