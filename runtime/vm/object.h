@@ -4591,13 +4591,6 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
   static bool IsInitName(const String& function_name);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  SubtypeTestCachePtr type_test_cache() const {
-    return untag()->type_test_cache();
-  }
-  void set_type_test_cache(const SubtypeTestCache& cache) const;
-#endif
-
  private:
   static void InitializeNew(const Field& result,
                             const String& name,

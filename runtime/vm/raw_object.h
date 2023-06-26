@@ -1453,6 +1453,7 @@ class UntaggedField : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
+  VISIT_TO(dependent_code);
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1467,13 +1468,6 @@ class UntaggedField : public UntaggedObject {
     UNREACHABLE();
     return nullptr;
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(dependent_code);
-#else
-  // For type test in implicit setter.
-  COMPRESSED_POINTER_FIELD(SubtypeTestCachePtr, type_test_cache);
-  VISIT_TO(type_test_cache);
-#endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   ClassIdTagType guarded_cid_;

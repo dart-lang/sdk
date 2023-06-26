@@ -12788,12 +12788,6 @@ void Field::ForceDynamicGuardedCidAndLength() const {
   DeoptimizeDependentCode();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-void Field::set_type_test_cache(const SubtypeTestCache& cache) const {
-  untag()->set_type_test_cache(cache.ptr());
-}
-#endif
-
 StringPtr Script::resolved_url() const {
 #if defined(DART_PRECOMPILER)
   return String::RawCast(
