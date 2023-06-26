@@ -37,6 +37,12 @@ f() {
 ''');
   }
 
+  test_nonNullableType() async {
+    await assertNoDiagnostics(r'''
+final int i = 1;
+''');
+  }
+
   test_record() async {
     await assertDiagnostics(r'''
 f() {
