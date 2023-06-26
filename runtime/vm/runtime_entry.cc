@@ -40,10 +40,12 @@
 
 namespace dart {
 
+static constexpr intptr_t kDefaultMaxSubtypeCacheEntries =
+    SubtypeTestCache::MaxEntriesForCacheAllocatedFor(1000);
 DEFINE_FLAG(
     int,
     max_subtype_cache_entries,
-    1000,
+    kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(
     int,
