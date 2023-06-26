@@ -5,6 +5,7 @@
 import 'dart:_internal' show patch;
 import 'dart:_js_helper' hide JS;
 import 'dart:_js_helper' as js_helper;
+import 'dart:_js_types' as js_types;
 import 'dart:_wasm';
 import 'dart:async' show Completer;
 import 'dart:js_interop';
@@ -330,11 +331,20 @@ extension BoolToJSBoolean on bool {
 @patch
 extension JSStringToString on JSString {
   @patch
-  String get toDart => jsStringToDartString(toExternRef);
+  String get toDart => js_types.JSStringImpl(toExternRef);
 }
 
 @patch
 extension StringToJSString on String {
   @patch
-  JSString get toJS => _box<JSString>(jsStringFromDartString(this));
+  JSString get toJS {
+    final t = this;
+    WasmExternRef? ref;
+    if (t is js_types.JSStringImpl) {
+      ref = t.toExternRef;
+    } else {
+      ref = jsStringFromDartString(this);
+    }
+    return _box<JSString>(ref);
+  }
 }

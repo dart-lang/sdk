@@ -10,12 +10,14 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 19;
-const LINE_B = 20;
-const LINE_C = 21;
+const LINE_A = 21;
+const LINE_B = 22;
+const LINE_C = 23;
+
+const LINE_0 = 20;
 
 testMain() async {
-  debugger();
+  debugger(); // LINE_0.
   print('hi'); // LINE_A.
   print('yep'); // LINE_B.
   print('zoo'); // LINE_C.
@@ -32,6 +34,8 @@ var tests = <IsolateTest>[
     expect(dartCore.debuggable, equals(true));
   },
   stoppedInFunction('testMain'),
+  stoppedAtLine(LINE_0),
+  stepOver,
   stoppedAtLine(LINE_A),
   stepInto,
   stoppedInFunction('print'),

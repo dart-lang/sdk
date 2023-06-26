@@ -7,17 +7,19 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const int LINE_A = 18;
-const int LINE_B = 19;
-const int LINE_C = 20;
+const int LINE_A = 20;
+const int LINE_B = 21;
+const int LINE_C = 22;
+
+const int LINE_0 = 19;
 
 foo() async {}
 
 doAsync(stop) async {
-  if (stop) debugger();
-  await foo(); // Line A.
-  await foo(); // Line B.
-  await foo(); // Line C.
+  if (stop) debugger(); // LINE_0.
+  await foo(); // LINE_A.
+  await foo(); // LINE_B.
+  await foo(); // LINE_C.
   return null;
 }
 
@@ -29,6 +31,9 @@ testMain() {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver, // debugger()
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // foo()

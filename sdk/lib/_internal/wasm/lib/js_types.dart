@@ -6,9 +6,15 @@
 /// facing JS interop libraries and backend specific internal representations of
 /// JS types. For consistency, all of the web backends have a version of this
 /// library.
-library _js_types;
+library dart._js_types;
 
-import 'dart:_js_annotations';
+import 'dart:_internal' show CodeUnits;
+import 'dart:_js_helper' as js;
+import 'dart:_string_helper';
+import 'dart:_wasm';
+import 'dart:js_interop';
+
+part 'js_string.dart';
 
 /// Note that the semantics of JS types on Wasm backends are slightly different
 /// from the JS backends. They all use `@staticInterop` currently, but Wasm

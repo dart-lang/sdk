@@ -102,7 +102,7 @@ abstract class CorrectionProducer<T extends ParsedUnitResult>
   Future<void> compute(ChangeBuilder builder);
 }
 
-class CorrectionProducerContext<T extends ParsedUnitResult> {
+class CorrectionProducerContext<UnitResult extends ParsedUnitResult> {
   final int selectionOffset;
   final int selectionLength;
   final int selectionEnd;
@@ -113,7 +113,7 @@ class CorrectionProducerContext<T extends ParsedUnitResult> {
 
   final AnalysisSession session;
   final AnalysisSessionHelper sessionHelper;
-  final T unitResult;
+  final UnitResult unitResult;
   final ChangeWorkspace workspace;
 
   /// TODO(migration) Make it non-nullable, specialize "fix" context?
