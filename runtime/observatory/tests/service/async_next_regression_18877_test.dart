@@ -22,9 +22,9 @@ doAsync(stop) async {
   // of the async_op, resulting in the debugger falling through.
   final baz = () => print('doAsync($stop) done!');
   if (stop) debugger(); // LINE_0.
-  await foo(); // Line A.
-  await foo(); // Line B.
-  await foo(); // Line C.
+  await foo(); // LINE_A.
+  await foo(); // LINE_B.
+  await foo(); // LINE_C.
   baz();
   return null;
 }
@@ -39,8 +39,8 @@ testMain() {
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_0),
-  hasStoppedAtBreakpoint,
   stepOver, // debugger()
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   stepOver, // foo()
   stoppedAtLine(LINE_A),

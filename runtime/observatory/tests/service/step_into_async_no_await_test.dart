@@ -18,8 +18,8 @@ asyncWithoutAwait() async {
 }
 
 testMain() {
-  debugger();
-  asyncWithoutAwait(); // Line A.
+  debugger(); // LINE_0.
+  asyncWithoutAwait(); // LINE_A.
 }
 
 var tests = <IsolateTest>[

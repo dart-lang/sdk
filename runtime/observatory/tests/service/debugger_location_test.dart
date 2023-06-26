@@ -17,7 +17,7 @@ const int LINE_C = 11;
 void testFunction() {
   int i = 0;
   while (i == 0) {
-    debugger(); // Line A
+    debugger(); // LINE_A.
     print('loop');
     print('loop');
   }

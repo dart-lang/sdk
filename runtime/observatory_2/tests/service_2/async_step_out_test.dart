@@ -8,12 +8,14 @@ import 'dart:developer';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 19;
-const LINE_B = 20;
-const LINE_C = 21;
-const LINE_D = 26;
-const LINE_E = 27;
-const LINE_F = 28;
+const LINE_A = 21;
+const LINE_B = 22;
+const LINE_C = 23;
+const LINE_D = 28;
+const LINE_E = 29;
+const LINE_F = 30;
+
+const LINE_0 = 27;
 
 helper() async {
   await null; // LINE_A.
@@ -22,13 +24,17 @@ helper() async {
 }
 
 testMain() async {
-  debugger();
+  debugger(); // LINE_0.
   print('mmmmm'); // LINE_D.
   await helper(); // LINE_E.
   print('z'); // LINE_F.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver, // debugger.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
   stepOver, // print.

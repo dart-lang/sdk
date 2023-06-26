@@ -20,6 +20,9 @@ testMain() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(17),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(18),
   stepInto,
   (Isolate isolate) async {
