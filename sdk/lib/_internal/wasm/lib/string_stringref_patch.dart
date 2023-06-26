@@ -28,7 +28,11 @@ import "dart:_internal"
         writeIntoOneByteString,
         writeIntoTwoByteString;
 
+import 'dart:_string_helper';
+
 import 'dart:_js_helper' show JS;
+
+import 'dart:_js_types' show JSStringImpl;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
@@ -81,9 +85,10 @@ class String {
   @patch
   external const factory String.fromEnvironment(String name,
       {String defaultValue = ""});
+}
 
-  bool get _isOneByte;
-  String _substringUnchecked(int startIndex, int endIndex);
+extension _StringExtension on String {
+  bool get _isOneByte => this is _OneByteString;
 }
 
 /**
@@ -134,11 +139,6 @@ abstract final class _StringBase implements String {
   }
 
   int _computeHashCode();
-
-  bool get _isOneByte {
-    // Alternatively return false and override it on one-byte string classes.
-    return this is _OneByteString;
-  }
 
   /**
    * Create the most efficient string representation for specified
@@ -869,7 +869,7 @@ abstract final class _StringBase implements String {
     int i = 0;
     buffer.write(onNonMatch(""));
     while (i < length) {
-      buffer.write(onMatch(new _StringMatch(i, this, "")));
+      buffer.write(onMatch(new StringMatch(i, this, "")));
       // Special case to avoid splitting a surrogate pair.
       int code = this.codeUnitAt(i);
       if ((code & ~0x3FF) == 0xD800 && length > i + 1) {
@@ -885,7 +885,7 @@ abstract final class _StringBase implements String {
       buffer.write(onNonMatch(this[i]));
       i++;
     }
-    buffer.write(onMatch(new _StringMatch(i, this, "")));
+    buffer.write(onMatch(new StringMatch(i, this, "")));
     buffer.write(onNonMatch(""));
     return buffer.toString();
   }
@@ -917,7 +917,7 @@ abstract final class _StringBase implements String {
    * Modifies the input list if it contains non-`String` values.
    */
   @pragma("wasm:entry-point", "call")
-  static String _interpolate(final List values) {
+  static String _interpolate(final List<Object?> values) {
     final numValues = values.length;
     int totalLength = 0;
     int i = 0;
@@ -951,7 +951,7 @@ abstract final class _StringBase implements String {
     if (start < 0 || start > string.length) {
       throw new RangeError.range(start, 0, string.length, "start");
     }
-    return new _StringAllMatchesIterable(string, this, start);
+    return new StringAllMatchesIterable(string, this, start);
   }
 
   Match? matchAsPrefix(String string, [int start = 0]) {
@@ -964,7 +964,7 @@ abstract final class _StringBase implements String {
         return null;
       }
     }
-    return new _StringMatch(start, string, this);
+    return new StringMatch(start, string, this);
   }
 
   List<String> split(Pattern pattern) {
@@ -1023,36 +1023,35 @@ abstract final class _StringBase implements String {
 
   // Call this method if all elements of [strings] are known to be strings
   // but not all are known to be OneByteString(s).
-  static String _concatRangeNative(List strings, int start, int end) {
+  static String _concatRangeNative(List<Object?> strings, int start, int end) {
     int totalLength = 0;
     for (int i = start; i < end; i++) {
-      totalLength += unsafeCast<_StringBase>(strings[i]).length;
+      final str = strings[i];
+      if (str is JSStringImpl) {
+        totalLength += str.length;
+      } else {
+        totalLength += unsafeCast<_StringBase>(str).length;
+      }
     }
     _TwoByteString result = _TwoByteString._allocate(totalLength);
     int offset = 0;
     for (int i = start; i < end; i++) {
-      _StringBase s = unsafeCast<_StringBase>(strings[i]);
-      offset = s._copyIntoTwoByteString(result, offset);
+      final str = strings[i];
+      if (str is JSStringImpl) {
+        final length = str.length;
+        final to = result._array;
+        for (int j = 0; j < length; j++) {
+          to.write(offset++, str.codeUnitAt(j));
+        }
+      } else {
+        _StringBase s = unsafeCast<_StringBase>(strings[i]);
+        offset = s._copyIntoTwoByteString(result, offset);
+      }
     }
     return result;
   }
 
   int _copyIntoTwoByteString(_TwoByteString result, int offset);
-
-  static int _combineHashes(int hash, int other_hash) {
-    hash += other_hash;
-    hash += hash << 10;
-    hash ^= (hash & 0xFFFFFFFF) >>> 6;
-    return hash;
-  }
-
-  static int _finalizeHash(int hash) {
-    hash += hash << 3;
-    hash ^= (hash & 0xFFFFFFFF) >>> 11;
-    hash += hash << 15;
-    hash &= 0x3FFFFFFF;
-    return hash == 0 ? 1 : hash;
-  }
 }
 
 @pragma("wasm:entry-point")
@@ -1071,9 +1070,9 @@ final class _OneByteString extends _StringBase {
     int length = array.length;
     int hash = 0;
     for (int i = 0; i < length; i++) {
-      hash = _StringBase._combineHashes(hash, array.readUnsigned(i));
+      hash = stringCombineHashes(hash, array.readUnsigned(i));
     }
-    return _StringBase._finalizeHash(hash);
+    return stringFinalizeHash(hash);
   }
 
   @override
@@ -1407,9 +1406,9 @@ final class _TwoByteString extends _StringBase {
     int length = array.length;
     int hash = 0;
     for (int i = 0; i < length; i++) {
-      hash = _StringBase._combineHashes(hash, array.readUnsigned(i));
+      hash = stringCombineHashes(hash, array.readUnsigned(i));
     }
-    return _StringBase._finalizeHash(hash);
+    return stringFinalizeHash(hash);
   }
 
   // Allocates a string of given length, expecting its content to be
@@ -1475,80 +1474,4 @@ final class _TwoByteString extends _StringBase {
     }
     return j;
   }
-}
-
-class _StringMatch implements Match {
-  const _StringMatch(this.start, this.input, this.pattern);
-
-  int get end => start + pattern.length;
-  String operator [](int g) => group(g);
-  int get groupCount => 0;
-
-  String group(int group) {
-    if (group != 0) {
-      throw new RangeError.value(group);
-    }
-    return pattern;
-  }
-
-  List<String> groups(List<int> groups) {
-    List<String> result = <String>[];
-    for (int g in groups) {
-      result.add(group(g));
-    }
-    return result;
-  }
-
-  final int start;
-  final String input;
-  final String pattern;
-}
-
-class _StringAllMatchesIterable extends Iterable<Match> {
-  final String _input;
-  final String _pattern;
-  final int _index;
-
-  _StringAllMatchesIterable(this._input, this._pattern, this._index);
-
-  Iterator<Match> get iterator =>
-      new _StringAllMatchesIterator(_input, _pattern, _index);
-
-  Match get first {
-    int index = _input.indexOf(_pattern, _index);
-    if (index >= 0) {
-      return new _StringMatch(index, _input, _pattern);
-    }
-    throw IterableElementError.noElement();
-  }
-}
-
-class _StringAllMatchesIterator implements Iterator<Match> {
-  final String _input;
-  final String _pattern;
-  int _index;
-  Match? _current;
-
-  _StringAllMatchesIterator(this._input, this._pattern, this._index);
-
-  bool moveNext() {
-    if (_index + _pattern.length > _input.length) {
-      _current = null;
-      return false;
-    }
-    var index = _input.indexOf(_pattern, _index);
-    if (index < 0) {
-      _index = _input.length + 1;
-      _current = null;
-      return false;
-    }
-    int end = index + _pattern.length;
-    _current = new _StringMatch(index, _input, _pattern);
-    // Empty match, don't start at same location again.
-    if (end == _index) end++;
-    _index = end;
-    return true;
-  }
-
-  Match get current => _current as Match;
 }

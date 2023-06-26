@@ -32,6 +32,8 @@ import "dart:_internal" as _internal show Symbol;
 
 import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
+import 'dart:_js_types' show JSStringImpl;
+
 import "dart:collection"
     show
         HashMap,
@@ -49,6 +51,8 @@ import 'dart:convert' show Encoding, utf8;
 import 'dart:math' show Random;
 
 import "dart:typed_data" show Uint8List, Uint16List;
+
+import 'dart:_string_helper';
 
 import 'dart:_wasm';
 

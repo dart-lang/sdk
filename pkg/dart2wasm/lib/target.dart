@@ -71,6 +71,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
@@ -85,6 +86,7 @@ class WasmTarget extends Target {
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:collection',
         'dart:typed_data',
         'dart:js_interop',
@@ -92,6 +94,14 @@ class WasmTarget extends Target {
         'dart:_wasm',
       ];
 
+  @override
+  bool mayDefineRestrictedType(Uri uri) =>
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_js_types');
+
+  @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||

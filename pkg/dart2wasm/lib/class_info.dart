@@ -242,6 +242,10 @@ class ClassInfoCollector {
       cls: cls
   };
 
+  late final Set<Class> _neverMasquerades = {
+    translator.jsStringImplClass,
+  };
+
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.
   ///
@@ -350,6 +354,9 @@ class ClassInfoCollector {
     translator.classForHeapType.putIfAbsent(info.struct, () => info!);
 
     ClassInfo? computeMasquerade() {
+      if (_neverMasquerades.contains(cls)) {
+        return null;
+      }
       if (info!.superInfo?.masquerade != null) {
         return info.superInfo!.masquerade;
       }

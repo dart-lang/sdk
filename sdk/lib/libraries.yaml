@@ -170,6 +170,8 @@ wasm_common:
       uri: _internal/wasm/lib/js_helper.dart
     _js_types:
       uri: _internal/wasm/lib/js_types.dart
+    _string_helper:
+      uri: _internal/wasm/lib/string_helper.dart
     _wasm:
       uri: _wasm/wasm_types.dart
     async:
