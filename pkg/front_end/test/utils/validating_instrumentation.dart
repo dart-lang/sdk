@@ -6,6 +6,8 @@ import 'dart:convert' show utf8;
 
 import 'dart:io' show File;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
 import 'package:_fe_analyzer_shared/src/scanner/io.dart' show readBytesFromFile;
@@ -126,7 +128,7 @@ class ValidatingInstrumentation implements Instrumentation {
   /// Should be called before [finish].
   Future<Null> loadExpectations(Uri uri) async {
     uri = Uri.base.resolveUri(uri);
-    List<int> bytes = await readBytesFromFile(uri);
+    Uint8List bytes = await readBytesFromFile(uri);
     Map<int, List<_Expectation>> expectations =
         _unsatisfiedExpectations.putIfAbsent(uri, () => {});
     Map<int, Set<String>> testedFeaturesState =

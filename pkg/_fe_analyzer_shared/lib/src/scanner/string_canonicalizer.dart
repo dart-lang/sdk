@@ -5,6 +5,7 @@
 library _fe_analyzer_shared.scanner.string_canonicalizer;
 
 import 'dart:convert';
+import 'dart:typed_data' show Uint8List;
 
 final _StringCanonicalizer _canonicalizer = new _StringCanonicalizer();
 
@@ -54,7 +55,7 @@ String canonicalizeSubString(String string, int start, int end) {
 /// It may avoid the overhead of UTF-8 decoding if the string is already in the
 /// cache.
 String canonicalizeUtf8SubString(
-    List<int> bytes, int start, int end, bool isAscii) {
+    Uint8List bytes, int start, int end, bool isAscii) {
   return _canonicalizer.canonicalizeBytes(bytes, start, end, isAscii);
 }
 
@@ -73,7 +74,7 @@ void pruneStringCanonicalizationCache([int allowGrowthTo = 5 * 1024 * 1024]) {
 }
 
 /// Decode UTF-8 without canonicalizing it.
-String decodeString(List<int> bytes, int start, int end, bool isAscii) {
+String decodeString(Uint8List bytes, int start, int end, bool isAscii) {
   return isAscii
       ? new String.fromCharCodes(bytes, start, end)
       : const Utf8Decoder(allowMalformed: true).convert(bytes, start, end);
@@ -108,7 +109,7 @@ class _StringNode extends _Node {
 }
 
 class _Utf8Node extends _Node {
-  final List<int> data;
+  final Uint8List data;
   final int start;
   final int end;
 
@@ -150,7 +151,7 @@ class _StringCanonicalizer {
   List<_Node?> _nodes =
       new List<_Node?>.filled(INITIAL_SIZE, /* fill = */ null);
 
-  static int hashBytes(List<int> data, int start, int end) {
+  static int hashBytes(Uint8List data, int start, int end) {
     int h = 5381;
     for (int i = start; i < end; i++) {
       h = ((h << 5) + h + data[i]) & MASK;
@@ -184,7 +185,7 @@ class _StringCanonicalizer {
     _nodes = newNodes;
   }
 
-  String canonicalizeBytes(List<int> data, int start, int end, bool asciiOnly) {
+  String canonicalizeBytes(Uint8List data, int start, int end, bool asciiOnly) {
     if (_count > _size) rehash();
     final int index = hashBytes(data, start, end) & (_size - 1);
     _Node? s = _nodes[index];
@@ -192,7 +193,7 @@ class _StringCanonicalizer {
     int len = end - start;
     while (t != null) {
       if (t is _Utf8Node) {
-        final List<int> tData = t.data;
+        final Uint8List tData = t.data;
         if (t.end - t.start == len) {
           int i = start, j = t.start;
           while (i < end && data[i] == tData[j]) {
@@ -260,7 +261,7 @@ class _StringCanonicalizer {
     return value;
   }
 
-  String insertUtf8Node(int index, _Node? next, List<int> buffer, int start,
+  String insertUtf8Node(int index, _Node? next, Uint8List buffer, int start,
       int end, String value) {
     final _Utf8Node newNode = new _Utf8Node(buffer, start, end, value, next);
     _nodes[index] = newNode;

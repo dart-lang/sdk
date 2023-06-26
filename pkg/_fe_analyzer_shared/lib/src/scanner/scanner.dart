@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.scanner;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
 
 import 'token.dart' show Token;
@@ -66,7 +68,7 @@ class ScannerResult {
 }
 
 /// Scan/tokenize the given UTF8 [bytes].
-ScannerResult scan(List<int> bytes,
+ScannerResult scan(Uint8List bytes,
     {ScannerConfiguration? configuration,
     bool includeComments = false,
     LanguageVersionChanged? languageVersionChanged}) {
