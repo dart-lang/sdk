@@ -1329,21 +1329,11 @@ class CallSiteInliner : public ValueObject {
 
         // Parse the callee function.
         bool in_cache;
-        ParsedFunction* parsed_function;
-        {
-          parsed_function = GetParsedFunction(function, &in_cache);
-          if (!function.CanBeInlined()) {
-            // As a side effect of parsing the function, it may be marked
-            // as not inlinable. This happens for async and async* functions
-            // when causal stack traces are being tracked.
-            TRACE_INLINING(
-                THR_Print("     Bailout: not inlinable due to "
-                          "!function.CanBeInlined()\n"));
-            PRINT_INLINING_TREE("Not inlinable", &call_data->caller, &function,
-                                call_data->call);
-            return false;
-          }
-        }
+        ParsedFunction* parsed_function =
+            GetParsedFunction(function, &in_cache);
+
+        // Building flow graph of a function should not change its inlinability.
+        ASSERT(function.CanBeInlined());
 
         // Build the callee graph.
         InlineExitCollector* exit_collector =
