@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:linter/src/rules/use_build_context_synchronously.dart';
 import 'package:test/test.dart';
@@ -36,9 +37,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var adjacentStrings = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(adjacentStrings.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_adjacentStrings_referenceInSecondString_awaitInFirstString() async {
@@ -57,11 +58,11 @@ void foo(BuildContext context) async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
 void foo(BuildContext context) async {
-  await context /* ref */;
+  await Future.value(context /* ref */);
 }
 ''');
-    var await_ = findNode.awaitExpression('context /* ref */');
-    var reference = findNode.simple('context /* ref */');
+    var await_ = findNode.awaitExpression('await');
+    var reference = findNode.instanceCreation('context /* ref */');
     expect(await_.asyncStateFor(reference), isNull);
   }
 
@@ -86,9 +87,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var cascade = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(cascade.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_cascade_referenceAfterTarget_awaitAfterTarget() async {
@@ -135,9 +136,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var conditional = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(conditional.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_conditional_referenceAfter_awaitInThen() async {
@@ -148,9 +149,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var conditional = findNode.expressionStatement('false');
+    var block = findNode.block('false');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(conditional.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_conditional_referenceInElse_mountedCheckInCondition() async {
@@ -215,9 +216,9 @@ extension E on int {
   void f() {}
 }
 ''');
-    var extensionOverride = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(extensionOverride.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithDeclaration_referenceAfter_awaitInPartCondition() async {
@@ -230,9 +231,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithDeclaration_referenceAfter_awaitInPartInitialization() async {
@@ -245,9 +246,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithDeclaration_referenceAfter_awaitInPartUpdaters() async {
@@ -260,9 +261,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithDeclaration_referenceInExpression_mountedCheckInPartCondition() async {
@@ -289,9 +290,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithEach_referenceAfter_awaitInPartExpression() async {
@@ -304,9 +305,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithExpression_referenceAfter_awaitInPartCondition() async {
@@ -319,9 +320,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithExpression_referenceAfter_awaitInPartInitialization() async {
@@ -334,9 +335,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithExpression_referenceAfter_awaitInPartUpdaters() async {
@@ -349,9 +350,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var listLiteral = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(listLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forElementWithExpression_referenceAfter_mountedCheckInPartCondition() async {
@@ -376,9 +377,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithDeclaration_referenceAfter_awaitInPartInitialization() async {
@@ -389,9 +390,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithDeclaration_referenceAfter_awaitInPartUpdaters() async {
@@ -402,9 +403,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithDeclaration_referenceInBody_mountedCheckInPartCondition() async {
@@ -427,9 +428,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithExpression_referenceAfter_awaitInPartCondition() async {
@@ -440,9 +441,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithExpression_referenceAfter_awaitInPartInitialization() async {
@@ -453,9 +454,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithExpression_referenceAfter_awaitInPartUpdaters() async {
@@ -466,9 +467,9 @@ void foo(BuildContext context, int i) async {
   context /* ref */;
 }
 ''');
-    var forStatement = findNode.forStatement('await');
+    var block = findNode.forStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(forStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithExpression_referenceAfter_mountedCheckInPartCondition() async {
@@ -491,10 +492,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var functionExpressionInvocation = findNode.expressionStatement('await');
+    var block = findNode.block('await');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(functionExpressionInvocation.asyncStateFor(reference),
-        AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_ifElement_referenceAfter_asyncInCondition() async {
@@ -578,9 +578,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if (');
+    var block = findNode.ifStatement('if (').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_ifStatement_referenceAfter_asyncInThen_notMountedGuardInElse() async {
@@ -595,9 +595,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if (1');
+    var block = findNode.ifStatement('if (1').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_ifStatement_referenceAfter_awaitThenExitInElse() async {
@@ -612,9 +612,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if ');
+    var block = findNode.ifStatement('if ').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), isNull);
+    expect(block.asyncStateFor(reference), isNull);
   }
 
   test_ifStatement_referenceAfter_awaitThenExitInThen() async {
@@ -628,9 +628,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if ');
+    var block = findNode.ifStatement('if ').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), isNull);
+    expect(block.asyncStateFor(reference), isNull);
   }
 
   test_ifStatement_referenceAfter_notMountedCheckInCondition_break() async {
@@ -644,9 +644,9 @@ void foo(BuildContext context) async {
   }
 }
 ''');
-    var ifStatement = findNode.ifStatement('if ');
+    var block = findNode.ifStatement('if ').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+    expect(block.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
   test_ifStatement_referenceAfter_notMountedCheckInCondition_exit() async {
@@ -657,9 +657,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if ');
+    var block = findNode.ifStatement('if ').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+    expect(block.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
   test_ifStatement_referenceAfter_notMountedGuardInCondition_exitInThen_awaitInElse() async {
@@ -674,9 +674,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if (');
+    var block = findNode.ifStatement('if (').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_ifStatement_referenceAfter_notMountedGuardsInThenAndElse() async {
@@ -691,9 +691,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var ifStatement = findNode.ifStatement('if (1');
+    var block = findNode.ifStatement('if (1').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+    expect(block.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
   test_ifStatement_referenceInElse_asyncInCondition() async {
@@ -885,9 +885,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var isExpression = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(isExpression.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_methodInvocation_referenceAfter_asyncInTarget() async {
@@ -898,9 +898,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var await_ = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(await_.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_methodInvocation_referenceAfter_awaitInParameters() async {
@@ -911,9 +911,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var methodInvocation = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(methodInvocation.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_methodInvocation_referenceAfter_awaitInTarget() async {
@@ -924,9 +924,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var methodInvocation = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(methodInvocation.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_methodInvocation_referenceInParameters_awaitInParameters() async {
@@ -950,9 +950,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var postfix = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(postfix.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_propertyAccess_referenceAfter_awaitInTarget() async {
@@ -963,9 +963,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var propertyAccess = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(propertyAccess.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_recordLiteral_referenceAfter_awaitInField() async {
@@ -976,9 +976,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var recordLiteral = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(recordLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_recordLiteral_referenceAfter_awaitInNamedField() async {
@@ -989,9 +989,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var recordLiteral = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(recordLiteral.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_spread_referenceAfter_awaitInSpread() async {
@@ -1002,9 +1002,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var spread = findNode.expressionStatement('await');
+    var block = findNode.expressionStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(spread.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_stringInterpolation_referenceAfter_awaitInStringInterpolation() async {
@@ -1015,10 +1015,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var stringInterpolation = findNode.expressionStatement('await');
+    var block = findNode.stringInterpolation('await').parent!.parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(
-        stringInterpolation.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchExpression_referenceAfter_awaitInCaseBody() async {
@@ -1031,9 +1030,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchExpression = findNode.expressionStatement('switch');
+    var block = findNode.expressionStatement('switch').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchExpression_referenceAfter_awaitInCondition() async {
@@ -1046,9 +1045,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchExpression = findNode.expressionStatement('switch');
+    var block = findNode.expressionStatement('switch').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchExpression.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchExpression_referenceInExpression_awaitInCondition() async {
@@ -1121,9 +1120,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchStatement = findNode.switchStatement('switch');
+    var block = findNode.switchStatement('switch').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchStatement_referenceAfter_awaitInCaseWhen() async {
@@ -1136,9 +1135,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchStatement = findNode.switchStatement('case');
+    var block = findNode.switchStatement('case').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchStatement_referenceAfter_awaitInDefault() async {
@@ -1152,9 +1151,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchStatement = findNode.switchStatement('switch');
+    var block = findNode.switchStatement('switch').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_switchStatement_referenceAfter_mountedCheckInCaseWhen() async {
@@ -1167,9 +1166,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var switchStatement = findNode.switchStatement('case');
+    var block = findNode.switchStatement('case').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchStatement.asyncStateFor(reference), isNull);
+    expect(block.asyncStateFor(reference), isNull);
   }
 
   test_switchStatement_referenceInCaseBody_awaitInCaseWhen() async {
@@ -1246,9 +1245,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_tryStatement_referenceAfter_awaitInCatch() async {
@@ -1263,9 +1262,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_tryStatement_referenceAfter_awaitInFinally() async {
@@ -1280,9 +1279,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_tryStatement_referenceAfter_notMountedCheckInCatch() async {
@@ -1297,9 +1296,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), isNull);
+    expect(block.asyncStateFor(reference), isNull);
   }
 
   test_tryStatement_referenceAfter_notMountedCheckInTry() async {
@@ -1313,9 +1312,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), isNull);
+    expect(block.asyncStateFor(reference), isNull);
   }
 
   test_tryStatement_referenceAfter_notMountedGuardInFinally() async {
@@ -1330,9 +1329,9 @@ void foo(BuildContext context) async {
 }
 Future<void> c() async {}
 ''');
-    var tryStatement = findNode.tryStatement('try');
+    var block = findNode.tryStatement('try').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(tryStatement.asyncStateFor(reference), AsyncState.notMountedCheck);
+    expect(block.asyncStateFor(reference), AsyncState.notMountedCheck);
   }
 
   test_tryStatement_referenceInCatch_awaitInBody() async {
@@ -1381,9 +1380,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var whileStatement = findNode.whileStatement('while (');
+    var block = findNode.whileStatement('while (').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(whileStatement.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_whileStatement_referenceInBody_asyncInBody() async {
@@ -1424,9 +1423,9 @@ void foo(BuildContext context) async {
   context /* ref */;
 }
 ''');
-    var yield_ = findNode.yieldStatement('await');
+    var block = findNode.yieldStatement('await').parent!;
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(yield_.asyncStateFor(reference), AsyncState.asynchronous);
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 }
 
@@ -1783,5 +1782,35 @@ Future<void> f(BuildContext context) async {
 ''', [
       lint(162, 11),
     ]);
+  }
+
+  test_referenceToContextInAwait() async {
+    // An assignment expression, with an await, and use of BuildContext inside
+    // the await expression, is OK.
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  final x = await Future.value(context);
+}
+
+''');
+  }
+}
+
+extension on AstNode {
+  AsyncState? asyncStateFor(AstNode reference) {
+    assert(
+      () {
+        if (reference.parent == this) return true;
+        return false;
+      }(),
+      "'reference' ($reference) (a ${reference.runtimeType}) (parent: "
+      '${reference.parent.runtimeType}) must be a '
+      "direct child of 'this' ($this) (a $runtimeType), or a sibling in a "
+      'list of AstNodes',
+    );
+    var asyncStateTracker = AsyncStateTracker();
+    return asyncStateTracker.asyncStateFor(reference);
   }
 }

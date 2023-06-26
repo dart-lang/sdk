@@ -108,10 +108,30 @@ enum AsyncState {
       this == asynchronous ? asynchronous : null;
 }
 
+/// A class that reuses a single [AsyncStateVisitor] to calculate and cache the
+/// async state between parent and child nodes.
+class AsyncStateTracker {
+  final _asyncStateVisitor = AsyncStateVisitor();
+
+  /// Returns the asynchronous state that exists between `this` and [reference].
+  ///
+  /// [reference] must be a direct child of `this`, or a sibling of `this`
+  /// in a List of [AstNode]s.
+  AsyncState? asyncStateFor(AstNode reference) {
+    _asyncStateVisitor.reference = reference;
+    var parent = reference.parent;
+    if (parent == null) return null;
+
+    var state = parent.accept(_asyncStateVisitor);
+    _asyncStateVisitor.cacheState(parent, state);
+    return state;
+  }
+}
+
 /// A visitor whose `visit*` methods return the async state between a given node
 /// and [reference].
 ///
-/// The entrypoint for this visitor is [AstNodeExtension.asyncStateFor].
+/// The entrypoint for this visitor is [AsyncStateTracker.asyncStateFor].
 ///
 /// Each `visit*` method can return one of three values:
 /// * `null` means there is no interesting asynchrony between node and
@@ -160,9 +180,25 @@ enum AsyncState {
 class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   static const mountedName = 'mounted';
 
-  final AstNode reference;
+  late AstNode reference;
 
-  AsyncStateVisitor({required this.reference});
+  final Map<AstNode, AsyncState?> _stateCache = {};
+
+  AsyncStateVisitor();
+
+  /// Cache the async state between [node] and some reference node.
+  ///
+  /// Caching an async state is only valid when [node] is the parent of the
+  /// reference node, and later visitations are performed using ancestors of the
+  /// reference node as [reference].
+  /// That is, if the async state between a parent node and a reference node,
+  /// `R` is `A`, then the async state between any other node and a direct
+  /// child, which is an ancestor of `R`, is also `A`.
+  // TODO(srawlins): Checking the cache in every visit method could improve
+  // performance. Just need to do the legwork.
+  void cacheState(AstNode node, AsyncState? state) {
+    _stateCache[node] = state;
+  }
 
   @override
   AsyncState? visitAdjacentStrings(AdjacentStrings node) =>
@@ -180,10 +216,15 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       ]);
 
   @override
-  AsyncState? visitAwaitExpression(AwaitExpression node) =>
-      // An expression _inside_ an await is executed before the await, and so is
-      // safe; otherwise asynchronous.
-      reference == node.expression ? null : AsyncState.asynchronous;
+  AsyncState? visitAwaitExpression(AwaitExpression node) {
+    if (_stateCache.containsKey(node)) {
+      return _stateCache[node];
+    }
+
+    // An expression _inside_ an await is executed before the await, and so is
+    // safe; otherwise asynchronous.
+    return reference == node.expression ? null : AsyncState.asynchronous;
+  }
 
   @override
   AsyncState? visitBinaryExpression(BinaryExpression node) {
@@ -736,11 +777,12 @@ class _Visitor extends SimpleAstVisitor {
     // Walk back and look for an async gap that is not guarded by a mounted
     // property check.
     AstNode? child = node;
+    var asyncStateTracker = AsyncStateTracker();
     while (child != null && child is! FunctionBody) {
       var parent = child.parent;
       if (parent == null) break;
 
-      var asyncState = parent.asyncStateFor(child);
+      var asyncState = asyncStateTracker.asyncStateFor(child);
       if (asyncState == AsyncState.asynchronous) {
         rule.reportLint(node);
         return;
@@ -795,7 +837,7 @@ extension on AsyncState? {
       this == AsyncState.mountedCheck || this == AsyncState.notMountedCheck;
 }
 
-extension AstNodeExtension on AstNode {
+extension on AstNode {
   bool get terminatesControl {
     var self = this;
     if (self is Block) {
@@ -811,30 +853,6 @@ extension AstNodeExtension on AstNode {
       return true;
     }
     return accept(ExitDetector()) ?? false;
-  }
-
-  /// Returns the asynchronous state that exists between `this` and [reference].
-  ///
-  /// [reference] must be a direct child of `this`, or a sibling of `this`
-  /// in a List of [AstNode]s.
-  AsyncState? asyncStateFor(AstNode reference) {
-    assert(
-      () {
-        if (reference.parent == this) return true;
-        switch (reference.parent) {
-          case Block(:var statements):
-          case SwitchCase(:var statements):
-          case SwitchPatternCase(:var statements):
-            return statements.contains(this);
-        }
-        return false;
-      }(),
-      "'reference' ($reference) (a ${reference.runtimeType}) (parent: "
-      '${reference.parent.runtimeType}) must be a '
-      "direct child of 'this' ($this) (a $runtimeType), or a sibling in a "
-      'list of AstNodes',
-    );
-    return accept(AsyncStateVisitor(reference: reference));
   }
 }
 
