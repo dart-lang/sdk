@@ -195,9 +195,6 @@ void Breakpoint::PrintJSON(JSONStream* stream) {
   jsobj.AddFixedServiceId("breakpoints/%" Pd "", id());
   jsobj.AddProperty("enabled", enabled_);
   jsobj.AddProperty("breakpointNumber", id());
-  if (is_synthetic_async()) {
-    jsobj.AddProperty("isSyntheticAsyncContinuation", is_synthetic_async());
-  }
   jsobj.AddProperty("resolved", bpt_location_->IsResolved());
   if (bpt_location_->IsResolved()) {
     jsobj.AddLocation(bpt_location_);
@@ -354,51 +351,26 @@ void BreakpointLocation::AddBreakpoint(Breakpoint* bpt, Debugger* dbg) {
 }
 
 Breakpoint* BreakpointLocation::AddRepeated(Debugger* dbg) {
-  Breakpoint* bpt = breakpoints();
-  while (bpt != nullptr) {
-    if (bpt->IsRepeated()) break;
-    bpt = bpt->next();
-  }
-  if (bpt == nullptr) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsRepeated();
-    AddBreakpoint(bpt, dbg);
-  }
-  return bpt;
+  return AddBreakpoint(dbg, Closure::Handle(), /*single_shot=*/false);
 }
 
 Breakpoint* BreakpointLocation::AddSingleShot(Debugger* dbg) {
+  return AddBreakpoint(dbg, Closure::Handle(), /*single_shot=*/true);
+}
+
+Breakpoint* BreakpointLocation::AddBreakpoint(Debugger* dbg,
+                                              const Closure& closure,
+                                              bool single_shot) {
   Breakpoint* bpt = breakpoints();
   while (bpt != nullptr) {
-    if (bpt->IsSingleShot()) break;
+    if ((bpt->closure() == closure.ptr()) &&
+        (bpt->is_single_shot() == single_shot)) {
+      break;
+    }
     bpt = bpt->next();
   }
   if (bpt == nullptr) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsSingleShot();
-    AddBreakpoint(bpt, dbg);
-  }
-  return bpt;
-}
-
-Breakpoint* BreakpointLocation::AddPerClosure(Debugger* dbg,
-                                              const Instance& closure,
-                                              bool for_over_await) {
-  Breakpoint* bpt = nullptr;
-  // Do not reuse existing breakpoints for stepping over await clauses.
-  // A second async step-over command will set a new breakpoint before
-  // the existing one gets deleted when first async step-over resumes.
-  if (!for_over_await) {
-    bpt = breakpoints();
-    while (bpt != nullptr) {
-      if (bpt->IsPerClosure() && (bpt->closure() == closure.ptr())) break;
-      bpt = bpt->next();
-    }
-  }
-  if (bpt == nullptr) {
-    bpt = new Breakpoint(dbg->nextId(), this);
-    bpt->SetIsPerClosure(closure);
-    bpt->set_is_synthetic_async(for_over_await);
+    bpt = new Breakpoint(dbg->nextId(), this, single_shot, closure);
     AddBreakpoint(bpt, dbg);
   }
   return bpt;
@@ -1468,7 +1440,6 @@ Debugger::Debugger(Isolate* isolate)
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
       skip_next_step_(false),
-      synthetic_async_breakpoint_(nullptr),
       exc_pause_info_(kNoPauseOnExceptions) {}
 
 Debugger::~Debugger() {
@@ -1477,7 +1448,6 @@ Debugger::~Debugger() {
   ASSERT(breakpoint_locations_ == nullptr);
   ASSERT(stack_trace_ == nullptr);
   ASSERT(async_causal_stack_trace_ == nullptr);
-  ASSERT(synthetic_async_breakpoint_ == nullptr);
 }
 
 void Debugger::Shutdown() {
@@ -2737,7 +2707,7 @@ Breakpoint* Debugger::SetBreakpointAtEntry(const Function& target_function,
 }
 
 Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
-                                                bool for_over_await) {
+                                                bool single_shot) {
   if (!closure.IsClosure()) {
     return nullptr;
   }
@@ -2746,7 +2716,7 @@ Breakpoint* Debugger::SetBreakpointAtActivation(const Instance& closure,
   BreakpointLocation* bpt_location =
       SetBreakpoint(script, func.token_pos(), func.end_token_pos(), -1,
                     -1 /* no line/col */, func);
-  return bpt_location->AddPerClosure(this, closure, for_over_await);
+  return bpt_location->AddBreakpoint(this, Closure::Cast(closure), single_shot);
 }
 
 Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
@@ -2758,10 +2728,8 @@ Breakpoint* Debugger::BreakpointAtActivation(const Instance& closure) {
   while (loc != nullptr) {
     Breakpoint* bpt = loc->breakpoints();
     while (bpt != nullptr) {
-      if (bpt->IsPerClosure()) {
-        if (closure.ptr() == bpt->closure()) {
-          return bpt;
-        }
+      if (closure.ptr() == bpt->closure()) {
+        return bpt;
       }
       bpt = bpt->next();
     }
@@ -3096,17 +3064,6 @@ void Debugger::EnterSingleStepMode() {
 
 void Debugger::ResetSteppingFramePointer() {
   stepping_fp_ = 0;
-}
-
-bool Debugger::SteppedForSyntheticAsyncBreakpoint() const {
-  return synthetic_async_breakpoint_ != nullptr;
-}
-
-void Debugger::CleanupSyntheticAsyncBreakpoint() {
-  if (synthetic_async_breakpoint_ != nullptr) {
-    RemoveBreakpoint(synthetic_async_breakpoint_->id());
-    synthetic_async_breakpoint_ = nullptr;
-  }
 }
 
 void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
@@ -3518,7 +3475,7 @@ void Debugger::SignalPausedEvent(ActivationFrame* top_frame, Breakpoint* bpt) {
   ResetSteppingFramePointer();
   NotifySingleStepping(false);
   ASSERT(!IsPaused());
-  if ((bpt != nullptr) && bpt->IsSingleShot()) {
+  if ((bpt != nullptr) && bpt->is_single_shot()) {
     RemoveBreakpoint(bpt->id());
     bpt = nullptr;
   }
@@ -3630,9 +3587,6 @@ ErrorPtr Debugger::PauseStepping() {
 
   CacheStackTraces(DebuggerStackTrace::Collect(),
                    DebuggerStackTrace::CollectAsyncCausal());
-  if (SteppedForSyntheticAsyncBreakpoint()) {
-    CleanupSyntheticAsyncBreakpoint();
-  }
   SignalPausedEvent(frame, nullptr);
   HandleSteppingRequest(stack_trace_);
   ClearCachedStackTraces();
@@ -3679,34 +3633,6 @@ ErrorPtr Debugger::PauseBreakpoint() {
     return Error::null();
   }
 
-  if (bpt_hit->is_synthetic_async()) {
-    CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
-
-    // Hit a synthetic async breakpoint.
-    if (FLAG_verbose_debug) {
-      OS::PrintErr(
-          ">>> hit synthetic %s"
-          " (func %s token %s address %#" Px " offset %#" Px ")\n",
-          cbpt_tostring,
-          String::Handle(top_frame->QualifiedFunctionName()).ToCString(),
-          bpt_location->token_pos().ToCString(), top_frame->pc(),
-          top_frame->pc() - top_frame->code().PayloadStart());
-    }
-
-    ASSERT(synthetic_async_breakpoint_ == nullptr);
-    synthetic_async_breakpoint_ = bpt_hit;
-    bpt_hit = nullptr;
-
-    // We are at the entry of an async function.
-    // We issue a step over to resume at the point after the await statement.
-    SetResumeAction(kStepOver);
-    // When we single step from a user breakpoint, our next stepping
-    // point will be at the exact same pc.  Skip it.
-    HandleSteppingRequest(stack_trace_, true /* skip next step */);
-    ClearCachedStackTraces();
-    return Error::null();
-  }
-
   if (FLAG_verbose_debug) {
     OS::PrintErr(">>> hit %" Pd
                  " %s"
@@ -3736,7 +3662,7 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
   // First check for a single-shot breakpoint.
   Breakpoint* bpt = breakpoints();
   while (bpt != nullptr) {
-    if (bpt->IsSingleShot()) {
+    if (bpt->is_single_shot() && bpt->closure() == Instance::null()) {
       return bpt;
     }
     bpt = bpt->next();
@@ -3745,11 +3671,9 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
   // Now check for a closure-specific breakpoint.
   bpt = breakpoints();
   while (bpt != nullptr) {
-    if (bpt->IsPerClosure()) {
-      Closure& closure = Closure::Handle(top_frame->GetClosure());
-      if (closure.ptr() == bpt->closure()) {
-        return bpt;
-      }
+    if (bpt->closure() != Instance::null() &&
+        bpt->closure() == top_frame->GetClosure()) {
+      return bpt;
     }
     bpt = bpt->next();
   }
@@ -3757,7 +3681,7 @@ Breakpoint* BreakpointLocation::FindHitBreakpoint(ActivationFrame* top_frame) {
   // Finally, check for a general breakpoint.
   bpt = breakpoints();
   while (bpt != nullptr) {
-    if (bpt->IsRepeated()) {
+    if (!bpt->is_single_shot() && bpt->closure() == Instance::null()) {
       return bpt;
     }
     bpt = bpt->next();
@@ -4041,9 +3965,6 @@ bool Debugger::RemoveBreakpointFromTheList(intptr_t bp_id,
         if (pause_event_ != nullptr && pause_event_->breakpoint() == curr_bpt) {
           pause_event_->set_breakpoint(nullptr);
         }
-        if (synthetic_async_breakpoint_ == curr_bpt) {
-          synthetic_async_breakpoint_ = nullptr;
-        }
         delete curr_bpt;
         curr_bpt = nullptr;
 
@@ -4211,18 +4132,18 @@ void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
   }
 }
 
-void Debugger::AsyncStepInto(const Closure& async_op) {
+void Debugger::AsyncStepInto(const Closure& awaiter) {
   Zone* zone = Thread::Current()->zone();
   CallerClosureFinder caller_closure_finder(zone);
   if (caller_closure_finder.IsAsyncCallback(
-          Function::Handle(zone, async_op.function()))) {
+          Function::Handle(zone, awaiter.function()))) {
     const auto& suspend_state = SuspendState::Handle(
-        zone, caller_closure_finder.GetSuspendStateFromAsyncCallback(async_op));
+        zone, caller_closure_finder.GetSuspendStateFromAsyncCallback(awaiter));
     const auto& function_data =
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
   } else {
-    SetBreakpointAtActivation(async_op, true);
+    SetBreakpointAtActivation(awaiter, /*single_shot=*/true);
   }
   Continue();
 }

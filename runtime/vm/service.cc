@@ -3974,8 +3974,8 @@ static void AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
     return;
   }
   const Instance& closure = Instance::Cast(obj);
-  Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtActivation(closure, false);
+  Breakpoint* bpt = thread->isolate()->debugger()->SetBreakpointAtActivation(
+      closure, /*single_shot=*/false);
   if (bpt == nullptr) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation", js->method());

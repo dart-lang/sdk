@@ -1,4 +1,4 @@
-# Dart VM Service Protocol 4.9
+# Dart VM Service Protocol 4.10
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
@@ -1927,8 +1927,7 @@ class Breakpoint extends Object {
   // Has this breakpoint been assigned to a specific program location?
   bool resolved;
 
-  // Is this a breakpoint that was added synthetically as part of a step
-  // OverAsyncSuspension resume command?
+  // Note: this property is deprecated and is always absent from the response.
   bool isSyntheticAsyncContinuation [optional];
 
   // SourceLocation when breakpoint is resolved, UnresolvedSourceLocation
@@ -4700,5 +4699,6 @@ version | comments
 4.7 | Added a deprecation notice to `Stack.awaiterFrames` field. Added a deprecation notice to `FrameKind.AsyncActivation`.
 4.8 | Added `getIsolatePauseEvent` RPC.
 4.9 | Added `isolateGroup` property to `Event`.
+4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

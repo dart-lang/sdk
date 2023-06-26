@@ -41,17 +41,20 @@ class ObjectPointerVisitor;
 class BreakpointLocation;
 class StackFrame;
 
-// A user-defined breakpoint, which either fires once, for a particular closure,
-// or always. The API's notion of a breakpoint corresponds to this object.
+// A user-defined breakpoint, which can be set for a particular closure
+// (if |closure| is not |null|) and can fire one (|is_single_shot| is |true|)
+// or many times.
 class Breakpoint {
  public:
-  Breakpoint(intptr_t id, BreakpointLocation* bpt_location)
+  Breakpoint(intptr_t id,
+             BreakpointLocation* bpt_location,
+             bool is_single_shot,
+             const Closure& closure)
       : id_(id),
-        kind_(Breakpoint::kNone),
         next_(nullptr),
-        closure_(Instance::null()),
+        closure_(closure.ptr()),
         bpt_location_(bpt_location),
-        is_synthetic_async_(false) {}
+        is_single_shot_(is_single_shot) {}
 
   intptr_t id() const { return id_; }
   Breakpoint* next() const { return next_; }
@@ -60,26 +63,8 @@ class Breakpoint {
   BreakpointLocation* bpt_location() const { return bpt_location_; }
   void set_bpt_location(BreakpointLocation* new_bpt_location);
 
-  bool IsRepeated() const { return kind_ == kRepeated; }
-  bool IsSingleShot() const { return kind_ == kSingleShot; }
-  bool IsPerClosure() const { return kind_ == kPerClosure; }
-  InstancePtr closure() const { return closure_; }
-
-  void SetIsRepeated() {
-    ASSERT(kind_ == kNone);
-    kind_ = kRepeated;
-  }
-
-  void SetIsSingleShot() {
-    ASSERT(kind_ == kNone);
-    kind_ = kSingleShot;
-  }
-
-  void SetIsPerClosure(const Instance& closure) {
-    ASSERT(kind_ == kNone);
-    kind_ = kPerClosure;
-    closure_ = closure.ptr();
-  }
+  bool is_single_shot() const { return is_single_shot_; }
+  ClosurePtr closure() const { return closure_; }
 
   void Enable() {
     ASSERT(!enabled_);
@@ -93,30 +78,16 @@ class Breakpoint {
 
   bool is_enabled() const { return enabled_; }
 
-  // Mark that this breakpoint is a result of a step OverAwait request.
-  void set_is_synthetic_async(bool is_synthetic_async) {
-    is_synthetic_async_ = is_synthetic_async;
-  }
-  bool is_synthetic_async() const { return is_synthetic_async_; }
-
   void PrintJSON(JSONStream* stream);
 
  private:
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  enum ConditionKind {
-    kNone,
-    kRepeated,
-    kSingleShot,
-    kPerClosure,
-  };
-
   intptr_t id_;
-  ConditionKind kind_;
   Breakpoint* next_;
-  InstancePtr closure_;
+  ClosurePtr closure_;
   BreakpointLocation* bpt_location_;
-  bool is_synthetic_async_;
+  bool is_single_shot_;
   bool enabled_ = false;
 
   friend class BreakpointLocation;
@@ -170,9 +141,9 @@ class BreakpointLocation {
 
   Breakpoint* AddRepeated(Debugger* dbg);
   Breakpoint* AddSingleShot(Debugger* dbg);
-  Breakpoint* AddPerClosure(Debugger* dbg,
-                            const Instance& closure,
-                            bool for_over_await);
+  Breakpoint* AddBreakpoint(Debugger* dbg,
+                            const Closure& closure,
+                            bool single_shot);
 
   bool AnyEnabled() const;
   bool IsResolved() const { return code_token_pos_.IsReal(); }
@@ -705,7 +676,7 @@ class Debugger {
   Breakpoint* SetBreakpointAtEntry(const Function& target_function,
                                    bool single_shot);
   Breakpoint* SetBreakpointAtActivation(const Instance& closure,
-                                        bool for_over_await);
+                                        bool single_shot);
   Breakpoint* BreakpointAtActivation(const Instance& closure);
 
   // TODO(turnidge): script_url may no longer be specific enough.
@@ -726,7 +697,7 @@ class Debugger {
   Breakpoint* GetBreakpointById(intptr_t id);
 
   void MaybeAsyncStepInto(const Closure& async_op);
-  void AsyncStepInto(const Closure& async_op);
+  void AsyncStepInto(const Closure& awaiter);
 
   void Continue();
 
@@ -895,8 +866,6 @@ class Debugger {
                               intptr_t post_deopt_frame_index);
 
   void ResetSteppingFramePointer();
-  bool SteppedForSyntheticAsyncBreakpoint() const;
-  void CleanupSyntheticAsyncBreakpoint();
   void SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace);
 
   GroupDebugger* group_debugger() { return isolate_->group()->debugger(); }
@@ -944,11 +913,6 @@ class Debugger {
   // We use this field to let us skip the next single-step after a
   // breakpoint.
   bool skip_next_step_;
-
-  // We keep this breakpoint alive until after the debugger does the step over
-  // async continuation machinery so that we can report that we've stopped
-  // at the breakpoint.
-  Breakpoint* synthetic_async_breakpoint_;
 
   Dart_ExceptionPauseInfo exc_pause_info_;
 

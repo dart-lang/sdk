@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.9.0';
+const String vmServiceVersion = '4.10.0';
 
 /// @optional
 const String optional = 'optional';
@@ -3347,8 +3347,7 @@ class Breakpoint extends Obj {
   /// Has this breakpoint been assigned to a specific program location?
   bool? resolved;
 
-  /// Is this a breakpoint that was added synthetically as part of a step
-  /// OverAsyncSuspension resume command?
+  /// Note: this property is deprecated and is always absent from the response.
   @optional
   bool? isSyntheticAsyncContinuation;
 
