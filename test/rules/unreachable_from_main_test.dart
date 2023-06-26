@@ -253,6 +253,32 @@ class A {}
 ''');
   }
 
+  test_class_reachable_referencedDeepInTypeAnnotation_externalMethodDeclaration() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  D().f;
+}
+
+class C {}
+
+class D {
+  external C Function() f();
+}
+''');
+  }
+
+  test_class_reachable_referencedDeepInTypeArgument() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C<D Function()>();
+}
+
+class C<T> {}
+
+class D {}
+''');
+  }
+
   test_class_reachable_referencedInTypeAnnotation_externalFieldDeclaration() async {
     await assertNoDiagnostics(r'''
 void main() {
@@ -278,6 +304,18 @@ class C {}
 class D {
   external C f();
 }
+''');
+  }
+
+  test_class_reachable_referencedInTypeArgument() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  C<D>();
+}
+
+class C<T> {}
+
+class D {}
 ''');
   }
 
@@ -422,6 +460,22 @@ part 'part.dart';
 class A {}
 ''', [
       lint(25, 1),
+    ]);
+  }
+
+  test_class_unreachable_referencedInParameter_externalMethodDeclaration() async {
+    await assertDiagnostics(r'''
+void main() {
+  D().f;
+}
+
+class C {}
+
+class D {
+  external f(C c);
+}
+''', [
+      lint(32, 1),
     ]);
   }
 
