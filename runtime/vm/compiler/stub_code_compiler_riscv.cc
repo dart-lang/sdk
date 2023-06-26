@@ -2835,14 +2835,14 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       STCInternalRegs::kCacheEntriesEndReg,
       STCInternalRegs::kCacheContentsSizeReg,
       STCInternalRegs::kProbeDistanceReg,
-      [](Assembler* assembler, int n) {
+      [&](Assembler* assembler, int n) {
         __ LoadCompressed(
             TypeTestABI::kSubtypeTestCacheResultReg,
             Address(kCacheArrayReg, target::kCompressedWordSize *
                                         target::SubtypeTestCache::kTestResult));
         __ Ret();
       },
-      [](Assembler* assembler, int n) {
+      [&](Assembler* assembler, int n) {
         __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, NULL_REG);
         __ Ret();
       });
