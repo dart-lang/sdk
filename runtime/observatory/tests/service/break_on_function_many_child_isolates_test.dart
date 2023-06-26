@@ -52,6 +52,9 @@ final tests = <IsolateTest>[
   hasPausedAtStart,
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_B),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B + 1),
   (Isolate isolate) async {
     // Set up a listener to wait for child isolate launch and breakpoint events.
@@ -110,6 +113,9 @@ final tests = <IsolateTest>[
   (Isolate isolate) async {
     await Future.wait(completerAtFoo.map((c) => c.future));
   },
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_C),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C + 1),
   resumeIsolate,

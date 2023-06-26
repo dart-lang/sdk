@@ -1599,6 +1599,186 @@ ChangeStatusFailure
 ''');
   }
 
+  Future<void>
+      test_formalParametersTrailingComma_requiredNamed_always_add() async {
+    await _analyzeValidSelection(r'''
+void ^test({required int a, required int b}) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int b,
+  required int a,
+}) {}
+''');
+  }
+
+  Future<void>
+      test_formalParametersTrailingComma_requiredNamed_ifPresent_false() async {
+    await _analyzeValidSelection(r'''
+void ^test({required int a, required int b}) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({required int b, required int a}) {}
+''');
+  }
+
+  Future<void>
+      test_formalParametersTrailingComma_requiredNamed_ifPresent_true() async {
+    await _analyzeValidSelection(r'''
+void ^test({
+  required int a,
+  required int b,
+}) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.ifPresent,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int b,
+  required int a,
+}) {}
+''');
+  }
+
+  Future<void>
+      test_formalParametersTrailingComma_requiredNamed_never_remove() async {
+    await _analyzeValidSelection(r'''
+void ^test({
+  required int b,
+  required int a,
+}) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({required int a, required int b}) {}
+''');
+  }
+
+  Future<void>
+      test_formalParametersTrailingComma_requiredPositional_always_add() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a, int b) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(
+  int b,
+  int a,
+) {}
+''');
+  }
+
+  Future<void>
+      test_formalParametersTrailingComma_requiredPositional_never_remove() async {
+    await _analyzeValidSelection(r'''
+void ^test(
+  int a,
+  int b,
+) {}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 1,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredPositional,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.never,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test(int b, int a) {}
+''');
+  }
+
   Future<void> test_topFunction_fail_noSuchId_greater() async {
     await _analyzeValidSelection(r'''
 void ^test(int a) {}
@@ -1784,6 +1964,38 @@ void f() {
 
     await _assertUpdate(signatureUpdate, r'''
 ChangeStatusFailure
+''');
+  }
+
+  Future<void> test_topFunction_functionTypedFormalParameter() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a()) {}
+
+void f() {
+  test(() => 0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [
+        FormalParameterUpdate(
+          id: 0,
+          kind: FormalParameterKind.requiredNamed,
+        ),
+      ],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.ifPresent,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test({
+  required int a(),
+}) {}
+
+void f() {
+  test(a: () => 0);
+}
 ''');
   }
 
@@ -2326,6 +2538,34 @@ ChangeStatusFailure
 ''');
   }
 
+  Future<void> test_topFunction_requiredNamed_remove_all() async {
+    await _analyzeValidSelection(r'''
+void ^test({
+  required int a,
+}) {}
+
+void f() {
+  test(a: 0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [],
+      removedNamedFormalParameters: {'a'},
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.always,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test() {}
+
+void f() {
+  test();
+}
+''');
+  }
+
   Future<void> test_topFunction_requiredNamed_remove_first() async {
     await _analyzeValidSelection(r'''
 void ^test({
@@ -2642,6 +2882,31 @@ void test([int a, double b]) {}
 
 void f() {
   test(0, 1.2);
+}
+''');
+  }
+
+  Future<void> test_topFunction_requiredPositional_remove_all() async {
+    await _analyzeValidSelection(r'''
+void ^test(int a) {}
+
+void f() {
+  test(0);
+}
+''');
+
+    final signatureUpdate = MethodSignatureUpdate(
+      formalParameters: [],
+      formalParametersTrailingComma: TrailingComma.always,
+      argumentsTrailingComma: ArgumentsTrailingComma.always,
+    );
+
+    await _assertUpdate(signatureUpdate, r'''
+>>>>>>> /home/test/lib/test.dart
+void test() {}
+
+void f() {
+  test();
 }
 ''');
   }

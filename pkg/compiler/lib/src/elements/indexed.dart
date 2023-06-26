@@ -132,14 +132,20 @@ class EntityDataMap<E extends _Indexed, D> extends EntityDataMapBase<E, D> {
   ///
   /// The index of [entity] is set to match its index in the entity and data
   /// lists in this map.
-  E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data) {
+  E0 register<E0 extends E, D0 extends D>(E0 entity, D0 data,
+      {bool setEntityIndex = true}) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
     assert(
         _list.length == _data.length,
         'Data list length ${_data.length} inconsistent '
         'with entity list length ${_list.length}.');
-    entity._index = _list.length;
+    if (setEntityIndex) {
+      entity._index = _list.length;
+    } else {
+      assert(entity._index == _list.length,
+          'Trying to register entity with in incorrect order. ');
+    }
     _list.add(entity);
     _size++;
     assert(data != null);
@@ -197,7 +203,8 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
   /// The index of [entity] is set to match its index in the entity, data and
   /// environment lists in this map.
   E0 register<E0 extends E, D0 extends D, V0 extends V>(
-      E0 entity, D0 data, V0 env) {
+      E0 entity, D0 data, V0 env,
+      {bool setEntityIndex = true}) {
     assert(
         !_closed, "Trying to register $entity @ ${_list.length} when closed.");
     assert(
@@ -208,7 +215,12 @@ class EntityDataEnvMap<E extends _Indexed, D, V>
         _list.length == _env.length,
         'Env list length ${_env.length} inconsistent '
         'with entity list length ${_list.length}.');
-    entity._index = _list.length;
+    if (setEntityIndex) {
+      entity._index = _list.length;
+    } else {
+      assert(entity._index == _list.length,
+          'Trying to register entity with in incorrect order. ');
+    }
     _list.add(entity);
     _size++;
     assert(data != null);

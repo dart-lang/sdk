@@ -40,10 +40,12 @@
 
 namespace dart {
 
+static constexpr intptr_t kDefaultMaxSubtypeCacheEntries =
+    SubtypeTestCache::MaxEntriesForCacheAllocatedFor(1000);
 DEFINE_FLAG(
     int,
     max_subtype_cache_entries,
-    1000,
+    kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(
     int,
@@ -840,9 +842,8 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
-// Checks for false negatives in the SubtypeNTestCache stubs and returns the
-// result found if any, otherwise null.
-static BoolPtr ResultForExistingTypeTestCacheEntry(
+#if defined(TARGET_ARCH_IA32)
+static BoolPtr CheckHashBasedSubtypeTestCache(
     Zone* zone,
     Thread* thread,
     const Instance& instance,
@@ -850,10 +851,7 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
     const TypeArguments& instantiator_type_arguments,
     const TypeArguments& function_type_arguments,
     const SubtypeTestCache& cache) {
-  ASSERT(destination_type.IsCanonical());
-  ASSERT(instantiator_type_arguments.IsCanonical());
-  ASSERT(function_type_arguments.IsCanonical());
-  if (cache.IsNull()) return Bool::null();
+  ASSERT(cache.IsHash());
   // Record instances are not added to the cache as they don't have a valid
   // key (type of a record depends on types of all its fields).
   if (instance.IsRecord()) return Bool::null();
@@ -874,19 +872,13 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
     const auto& closure = Closure::Cast(instance);
     const auto& function = Function::Handle(zone, closure.function());
     instance_class_id_or_signature = function.signature();
-    ASSERT(instance_class_id_or_signature.IsFunctionType());
     instance_type_arguments = closure.instantiator_type_arguments();
     instance_parent_function_type_arguments = closure.function_type_arguments();
     instance_delayed_type_arguments = closure.delayed_type_arguments();
-    ASSERT(instance_class_id_or_signature.IsCanonical());
-    ASSERT(instance_type_arguments.IsCanonical());
-    ASSERT(instance_parent_function_type_arguments.IsCanonical());
-    ASSERT(instance_delayed_type_arguments.IsCanonical());
   } else {
     instance_class_id_or_signature = Smi::New(instance_class.id());
     if (instance_class.NumTypeArguments() > 0) {
       instance_type_arguments = instance.GetTypeArguments();
-      ASSERT(instance_type_arguments.IsCanonical());
     }
   }
 
@@ -902,6 +894,7 @@ static BoolPtr ResultForExistingTypeTestCacheEntry(
 
   return Bool::null();
 }
+#endif  // defined(TARGET_ARCH_IA32)
 
 // This updates the type test cache, an array containing 8 elements:
 // - instance class (or function if the instance is a closure)
@@ -1068,22 +1061,20 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!cache.IsNull());
-  // Handle cases where currently the SubtypeNTestCache stubs return a false
-  // negative and the information is already in the cache.
-  //
-  // TODO(sstrickl): Remove this check and the associated helper function when
-  // the SubtypeNTestCache stubs have been updated to handle hash-based caches.
+#if defined(TARGET_ARCH_IA32)
+  // Hash-based caches are still not handled by the stubs on IA32.
   if (cache.IsHash()) {
     const auto& result = Bool::Handle(
-        zone, ResultForExistingTypeTestCacheEntry(
-                  zone, thread, instance, type, instantiator_type_arguments,
-                  function_type_arguments, cache));
+        zone, CheckHashBasedSubtypeTestCache(zone, thread, instance, type,
+                                             instantiator_type_arguments,
+                                             function_type_arguments, cache));
     if (!result.IsNull()) {
       // Early exit because an entry already exists in the cache.
       arguments.SetReturn(result);
       return;
     }
   }
+#endif  // defined(TARGET_ARCH_IA32)
   const Bool& result = Bool::Get(instance.IsInstanceOf(
       type, instantiator_type_arguments, function_type_arguments));
   if (FLAG_trace_type_checks) {
@@ -1099,12 +1090,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
 // Used only in type_testing_stubs_test.cc. If DRT_TypeCheck is entered, then
 // this flag is set to true.
 bool TESTING_runtime_entered_on_TTS_invocation = false;
-// Used only in type_testing_stubs_test.cc. Set to true if we got a hit in
-// the hash-based STC.
-//
-// TODO(sstrickl): Remove this when the SubtypeNTestCache stubs handle
-// hash-based caches.
-bool TESTING_found_hash_STC_entry = false;
 #endif
 
 // Check that the type of the given instance is a subtype of the given type and
@@ -1142,30 +1127,21 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   TESTING_runtime_entered_on_TTS_invocation = true;
 #endif
 
-  // Handle cases where currently the SubtypeNTestCache stubs return a false
-  // negative and the information is already in the cache.
-  //
-  // TODO(sstrickl): Remove this check and the associated helper function when
-  // the SubtypeNTestCache stubs have been updated to handle hash-based caches.
+#if defined(TARGET_ARCH_IA32)
+  ASSERT(mode == kTypeCheckFromInline);
+  // Hash-based caches are still not handled by the stubs on IA32.
   if (cache.IsHash()) {
     const auto& result = Bool::Handle(
-        zone, ResultForExistingTypeTestCacheEntry(
+        zone, CheckHashBasedSubtypeTestCache(
                   zone, thread, src_instance, dst_type,
                   instantiator_type_arguments, function_type_arguments, cache));
-    if (!result.IsNull() && result.value()) {
-      // Early exit because a positive entry already exists in the cache.
-      // (Negative entries should fall through to generating an exception.)
-      arguments.SetReturn(src_instance);
-#if defined(TESTING)
-      TESTING_found_hash_STC_entry = true;
-#endif
+    if (!result.IsNull()) {
+      // Early exit because an entry already exists in the cache.
+      arguments.SetReturn(result);
       return;
     }
   }
-
-#if defined(TARGET_ARCH_IA32)
-  ASSERT(mode == kTypeCheckFromInline);
-#endif
+#endif  // defined(TARGET_ARCH_IA32)
 
   // These are guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());

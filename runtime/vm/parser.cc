@@ -21,8 +21,6 @@
 #include "vm/growable_array.h"
 #include "vm/handles.h"
 #include "vm/hash_table.h"
-#include "vm/heap/heap.h"
-#include "vm/heap/safepoint.h"
 #include "vm/isolate.h"
 #include "vm/longjump.h"
 #include "vm/native_arguments.h"

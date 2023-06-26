@@ -182,8 +182,6 @@ class MethodSignatureUpdate {
   final Set<String> removedNamedFormalParameters;
 
   /// Specifies whether to add the trailing comma after formal parameters.
-  ///
-  /// TODO(scheglov) Test for empty formal parameter lists.
   final TrailingComma formalParametersTrailingComma;
 
   /// Specifies whether to add the trailing comma after arguments.
@@ -896,6 +894,16 @@ class _SignatureUpdater {
             }
             builder.write(writeParameter);
             hasParameterWritten = true;
+          }
+
+          // Maybe write the trailing comma.
+          if (requiredPositionalWrites.isNotEmpty &&
+              optionalPositionalWrites.isEmpty &&
+              namedWrites.isEmpty) {
+            writeFormalParametersTrailingComma(
+              formalParameterList: formalParameterList,
+              builder: builder,
+            );
           }
 
           // Write optional positional parameters.

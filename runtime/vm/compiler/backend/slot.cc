@@ -197,6 +197,7 @@ bool Slot::IsImmutableLengthSlot() const {
     case Slot::Kind::kSuspendState_then_callback:
     case Slot::Kind::kSuspendState_error_callback:
     case Slot::Kind::kTypeArgumentsIndex:
+    case Slot::Kind::kAbstractType_hash:
     case Slot::Kind::kTypeParameters_names:
     case Slot::Kind::kTypeParameters_flags:
     case Slot::Kind::kTypeParameters_bounds:

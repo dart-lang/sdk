@@ -5,7 +5,7 @@
 library fasta.source_loader;
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show utf8;
+import 'dart:convert' show Utf8Encoder;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
@@ -112,7 +112,7 @@ class SourceLoader extends Loader {
   /// Whether comments should be scanned and parsed.
   final bool includeComments;
 
-  final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+  final Map<Uri, Uint8List> sourceBytes = <Uri, Uint8List>{};
 
   ClassHierarchyBuilder? _hierarchyBuilder;
 
@@ -834,7 +834,7 @@ severity: $severity
     Uri fileUri = libraryBuilder.fileUri;
 
     // Lookup the file URI in the cache.
-    List<int>? bytes = sourceBytes[fileUri];
+    Uint8List? bytes = sourceBytes[fileUri];
 
     if (bytes == null) {
       // Error recovery.
@@ -956,27 +956,15 @@ severity: $severity
     return token;
   }
 
-  List<int> synthesizeSourceForMissingFile(Uri uri, Message? message) {
-    switch ("$uri") {
-      case "dart:core":
-        return utf8.encode(defaultDartCoreSource);
-
-      case "dart:async":
-        return utf8.encode(defaultDartAsyncSource);
-
-      case "dart:collection":
-        return utf8.encode(defaultDartCollectionSource);
-
-      case "dart:_internal":
-        return utf8.encode(defaultDartInternalSource);
-
-      case "dart:typed_data":
-        return utf8.encode(defaultDartTypedDataSource);
-
-      default:
-        return utf8
-            .encode(message == null ? "" : "/* ${message.problemMessage} */");
-    }
+  Uint8List synthesizeSourceForMissingFile(Uri uri, Message? message) {
+    return const Utf8Encoder().convert(switch ("$uri") {
+      "dart:core" => defaultDartCoreSource,
+      "dart:async" => defaultDartAsyncSource,
+      "dart:collection" => defaultDartCollectionSource,
+      "dart:_internal" => defaultDartInternalSource,
+      "dart:typed_data" => defaultDartTypedDataSource,
+      _ => message == null ? "" : "/* ${message.problemMessage} */",
+    });
   }
 
   Set<LibraryBuilder>? _strongOptOutLibraries;

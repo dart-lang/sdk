@@ -13,7 +13,7 @@
 #endif
 
 #include "vm/dart_api_state.h"
-#include "vm/heap/scavenger.h"
+#include "vm/heap/heap.h"
 #include "vm/log.h"
 #include "vm/message_handler.h"
 #include "vm/object.h"

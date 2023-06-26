@@ -10,19 +10,23 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 26;
-const LINE_B = 19;
-const LINE_C = 21;
+const LINE_A = 30;
+const LINE_B = 23;
+const LINE_C = 25;
+
+const LINE_0 = 22;
+const LINE_1 = 24;
+const LINE_2 = 29;
 
 foobar() async* {
-  debugger();
+  debugger(); // LINE_0.
   yield 1; // LINE_B.
-  debugger();
+  debugger(); // LINE_1.
   yield 2; // LINE_C.
 }
 
 helper() async {
-  debugger();
+  debugger(); // LINE_2.
   print('helper'); // LINE_A.
   await for (var i in foobar()) {
     print('helper $i');
@@ -35,6 +39,9 @@ testMain() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_2),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolateRef) async {
     Stack stack = await service.getStack(isolateRef.id!);
@@ -43,6 +50,9 @@ var tests = <IsolateTest>[
   },
   resumeIsolate,
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (VmService service, IsolateRef isolateRef) async {
     Stack stack = await service.getStack(isolateRef.id!);
@@ -50,6 +60,9 @@ var tests = <IsolateTest>[
     expect(stack.asyncCausalFrames, isNotNull);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (VmService service, IsolateRef isolateRef) async {

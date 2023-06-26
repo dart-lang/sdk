@@ -1130,7 +1130,8 @@ void Assembler::StoreToStack(Register src, intptr_t depth) {
 }
 
 void Assembler::CompareToStack(Register src, intptr_t depth) {
-  cmpq(Address(SPREG, depth * target::kWordSize), src);
+  ASSERT(depth >= 0);
+  cmpq(src, Address(SPREG, depth * target::kWordSize));
 }
 
 void Assembler::ExtendValue(Register to, Register from, OperandSize sz) {

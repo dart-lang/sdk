@@ -5,8 +5,17 @@ import "dart:core" as core;
 import "package:test_core/scaffolding.dart" as sca;
 import "package:matcher/src/expect/expect.dart" as exp;
 
-import "package:test/test.dart";
 import "file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart";
+import "package:matcher/src/expect/expect.dart";
+import "package:test_api/hooks.dart";
+import "package:test_core/scaffolding.dart";
+import "package:matcher/src/core_matchers.dart";
+import "package:matcher/src/description.dart";
+import "package:matcher/src/equals_matcher.dart";
+import "package:matcher/src/interfaces.dart";
+import "package:matcher/src/operator_matchers.dart";
+import "package:matcher/src/type_matcher.dart";
+import "package:matcher/src/util.dart";
 
 static method main() → dynamic {
   pb::FooKeep foo = let final pb::FooKeep #t1 = [@vm.inferred-type.metadata=library file:pkg/vm/testcases/transformations/type_flow/transformer/protobuf_handler/lib/generated/foo.pb.dart::FooKeep] pb::FooKeep::•() in block {

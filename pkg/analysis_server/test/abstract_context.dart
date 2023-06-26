@@ -55,11 +55,8 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
-        EnableString.class_modifiers,
+        EnableString.inline_class,
         EnableString.macros,
-        EnableString.patterns,
-        EnableString.records,
-        EnableString.sealed_class,
       ];
 
   String get latestLanguageVersion =>

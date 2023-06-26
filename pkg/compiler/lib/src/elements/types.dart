@@ -1660,7 +1660,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, _) {
-    _identifier(type.element.typeDeclaration!.name!);
+    _identifier(type.element.typeDeclaration.name!);
     _token('.');
     _identifier(type.element.name!);
   }

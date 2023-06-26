@@ -18,6 +18,7 @@ part "profiler.dart";
 part "timeline.dart";
 
 @patch
+@pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Developer_debugger")
 external bool debugger({bool when = true, String? message});
 

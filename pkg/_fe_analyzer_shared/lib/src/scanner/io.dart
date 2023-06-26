@@ -8,7 +8,7 @@ import 'dart:io' show File, RandomAccessFile;
 
 import 'dart:typed_data' show Uint8List;
 
-List<int> readBytesFromFileSync(Uri uri) {
+Uint8List readBytesFromFileSync(Uri uri) {
   RandomAccessFile file = new File.fromUri(uri).openSync();
   Uint8List list;
   try {
@@ -22,7 +22,7 @@ List<int> readBytesFromFileSync(Uri uri) {
   return list;
 }
 
-Future<List<int>> readBytesFromFile(Uri uri,
+Future<Uint8List> readBytesFromFile(Uri uri,
     {bool ensureZeroTermination = true}) async {
   RandomAccessFile file = await new File.fromUri(uri).open();
   Uint8List list;

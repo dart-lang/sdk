@@ -228,6 +228,12 @@ abstract class ClassElement
   /// or mixed in.
   bool get isFinal;
 
+  /// Returns `true` if this class is an inline class.
+  ///
+  /// A class is an inline class if it has an explicit `inline` modifier.
+  @experimental
+  bool get isInline;
+
   /// Return `true` if this class is an interface class.
   ///
   /// A class is an interface class if it has an explicit `interface` modifier,

@@ -4,6 +4,8 @@
 
 library _fe_analyzer_shared.scanner.utf8_bytes_scanner;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'dart:convert' show unicodeBomCharacterRune, utf8;
 
 import 'token.dart' show LanguageVersionToken, SyntheticStringToken, TokenType;
@@ -35,7 +37,7 @@ class Utf8BytesScanner extends AbstractScanner {
    *
    * The content is zero-terminated.
    */
-  final List<int> bytes;
+  final Uint8List bytes;
 
   /**
    * Points to the offset of the last byte returned by [advance].

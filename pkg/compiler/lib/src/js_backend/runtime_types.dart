@@ -533,7 +533,7 @@ class RuntimeTypesImpl
             .classInstantiationsOf(declaration)
             .map((InterfaceType interface) => interface.typeArguments[index]);
       } else {
-        return typeVariableTests.instantiationsOf(declaration!).map(
+        return typeVariableTests.instantiationsOf(declaration).map(
             (GenericInstantiation instantiation) =>
                 instantiation.typeArguments[index]);
       }

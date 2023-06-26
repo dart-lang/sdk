@@ -16,7 +16,7 @@ group("kernel-service") {
   }
 }
 
-kernel_application_snapshot("kernel-service_snapshot") {
+application_snapshot("kernel-service_snapshot") {
   main_dart = "../../pkg/vm/bin/kernel_service.dart"
   training_args = [
     "--train",

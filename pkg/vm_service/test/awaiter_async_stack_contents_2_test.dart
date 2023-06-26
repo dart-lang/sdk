@@ -11,9 +11,11 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 28;
-const LINE_B = 34;
-const LINE_C = 38;
+const LINE_A = 30;
+const LINE_B = 36;
+const LINE_C = 40;
+
+const LINE_0 = 29;
 
 notCalled() async {
   await null;
@@ -24,7 +26,7 @@ notCalled() async {
 
 foobar() async {
   await null;
-  debugger();
+  debugger(); // LINE_0.
   print('foobar'); // LINE_A.
 }
 
@@ -39,6 +41,9 @@ testMain() async {
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolate) async {

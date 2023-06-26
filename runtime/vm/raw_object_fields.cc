@@ -257,8 +257,7 @@ namespace dart {
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
   F(Function, positional_parameter_names_)                                     \
-  F(Function, unoptimized_code_)                                               \
-  F(Field, type_test_cache_)
+  F(Function, unoptimized_code_)
 
 #define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
   F(Script, constant_coverage_)

@@ -4591,13 +4591,6 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
   static bool IsInitName(const String& function_name);
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  SubtypeTestCachePtr type_test_cache() const {
-    return untag()->type_test_cache();
-  }
-  void set_type_test_cache(const SubtypeTestCache& cache) const;
-#endif
-
  private:
   static void InitializeNew(const Field& result,
                             const String& name,
@@ -7574,9 +7567,7 @@ class SubtypeTestCache : public Object {
   // force runtime checks.
   static constexpr intptr_t kMaxLinearCacheEntries = 100;
 #else
-  // TODO(sstrickl): Currently we don't generate hash cache probing in the
-  // other architectures, so use 100 like IA32. Update this to 10 once we do.
-  static constexpr intptr_t kMaxLinearCacheEntries = 100;
+  static constexpr intptr_t kMaxLinearCacheEntries = 30;
 #endif
 
   // Whether the entry at the given index in the cache is occupied. Exposed
@@ -7585,6 +7576,23 @@ class SubtypeTestCache : public Object {
 
   // Returns the number of inputs needed to cache entries for the given type.
   static intptr_t UsedInputsForType(const AbstractType& type);
+
+  // Given a minimum entry count, calculates an entry count that won't force
+  // additional allocation but minimizes the number of unoccupied entries.
+  // Used to calculate an appropriate value for FLAG_max_subtype_cache_entries.
+  static constexpr intptr_t MaxEntriesForCacheAllocatedFor(intptr_t count) {
+    // If the cache would be linear, just return the count unchanged.
+    if (count <= kMaxLinearCacheEntries) return count;
+    intptr_t allocated_entries = Utils::RoundUpToPowerOfTwo(count);
+    if (LoadFactor(count, allocated_entries) >= kMaxLoadFactor) {
+      allocated_entries *= 2;
+    }
+    const intptr_t max_entries =
+        static_cast<intptr_t>(kMaxLoadFactor * allocated_entries);
+    assert(LoadFactor(max_entries, allocated_entries) < kMaxLoadFactor);
+    assert(max_entries >= count);
+    return max_entries;
+  }
 
  private:
   static constexpr double LoadFactor(intptr_t occupied, intptr_t capacity) {

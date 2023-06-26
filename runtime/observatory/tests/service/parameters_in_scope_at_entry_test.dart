@@ -10,8 +10,11 @@ import 'package:test/test.dart';
 
 import 'service_test_common.dart';
 
-const int LINE_A = 30;
-const int LINE_B = 34;
+const int LINE_A = 33;
+const int LINE_B = 37;
+
+const int LINE_0 = 32;
+const int LINE_1 = 36;
 
 foo(param) {
   return param;
@@ -26,15 +29,18 @@ fooClosure() {
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_0.
   foo("in-scope"); // Line A.
 
   var f = fooClosure();
-  debugger();
+  debugger(); // LINE_1.
   f("in-scope"); // Line B.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (isolate) => isolate.stepInto(),
@@ -51,6 +57,9 @@ var tests = <IsolateTest>[
     expect(param['value'].valueAsString, equals("in-scope"));
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (isolate) => isolate.stepInto(),

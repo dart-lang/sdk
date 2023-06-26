@@ -2995,6 +2995,34 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
     kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
     saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
+
+  // We'll replace these with actual registers if possible, but fall back to
+  // the stack if register pressure is too great. The last two values are
+  // used in every loop iteration, and so are more important to put in
+  // registers if possible, whereas the first is used only when we go off
+  // the end of the backing array (usually at most once per check).
+  Register kCacheContentsSizeReg = kNoRegister;
+  if (n < 5) {
+    // Use the register we would have used for the parent function type args.
+    kCacheContentsSizeReg = PP;
+    saved_registers.AddRegister(kCacheContentsSizeReg);
+  }
+  Register kProbeDistanceReg = kNoRegister;
+  if (n < 6) {
+    // Use the register we would have used for the delayed type args.
+    kProbeDistanceReg = CODE_REG;
+    saved_registers.AddRegister(kProbeDistanceReg);
+  }
+  Register kCacheEntryEndReg = kNoRegister;
+  if (n < 2) {
+    // This register isn't in use and doesn't require saving/restoring.
+    kCacheEntryEndReg = STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg;
+  } else if (n < 7) {
+    // Use the destination type, as that is the last input that might be unused.
+    kCacheEntryEndReg = TypeTestABI::kDstTypeReg;
+    saved_registers.AddRegister(TypeTestABI::kDstTypeReg);
+  }
+
   __ PushRegisters(saved_registers);
 
   Label done;
@@ -3003,21 +3031,22 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       STCInternalRegs::kInstanceCidOrSignatureReg,
       STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
       kInstanceParentFunctionTypeArgumentsReg,
-      kInstanceDelayedFunctionTypeArgumentsReg, &done);
-
-  __ Comment("Found");
-  __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::kTestResult));
-
-  __ Bind(&done);
-  __ Comment("Done");
-  // We initialize kSubtypeTestCacheResultReg to null so it can be used for
-  // null checks, so the result value is already correct in the not found case
-  // and so popping and exiting can be shared between both branches.
-  __ PopRegisters(saved_registers);
-  __ Ret();
+      kInstanceDelayedFunctionTypeArgumentsReg, kCacheEntryEndReg,
+      kCacheContentsSizeReg, kProbeDistanceReg,
+      [&](Assembler* assembler, int n) {
+        __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
+                          Address(STCInternalRegs::kCacheEntryReg,
+                                  target::kCompressedWordSize *
+                                      target::SubtypeTestCache::kTestResult));
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      },
+      [&](Assembler* assembler, int n) {
+        // We initialize kSubtypeTestCacheResultReg to null so it can be used
+        // for null checks, so the result value is already set.
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      });
 }
 
 // Return the current stack pointer address, used to stack alignment

@@ -3461,6 +3461,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       // on top-of-stack.
       instructions += Drop();
     }
+
+    // After reaching debugger(), we automatically do one single-step.
+    // Ensure this doesn't cause us to exit the current scope.
+    if (recognized_kind == MethodRecognizer::kDebugger) {
+      instructions += DebugStepCheck(position);
+    }
   }
 
   return instructions;

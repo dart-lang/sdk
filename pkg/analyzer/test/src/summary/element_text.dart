@@ -301,6 +301,7 @@ class _ElementWriter {
         _writeIf(e.isBase, 'base ');
         _writeIf(e.isInterface, 'interface ');
         _writeIf(e.isFinal, 'final ');
+        _writeIf(e.isInline, 'inline ');
         _writeIf(e.isMixinClass, 'mixin ');
       }
       _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');

@@ -701,6 +701,7 @@ class AnnotateKernel extends RecursiveVisitor {
 class TreeShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
   final bool treeShakeWriteOnlyFields;
+  final Set<Library> _usedLibraries = new Set<Library>();
   final Set<Class> _usedClasses = new Set<Class>();
   final Set<Class> _classesUsedInType = new Set<Class>();
   final Set<Member> _usedMembers = new Set<Member>();
@@ -734,6 +735,7 @@ class TreeShaker {
     _pass2.transformComponent(component);
   }
 
+  bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
@@ -772,6 +774,7 @@ class TreeShaker {
         debugPrint('Class ${c.name} used in type');
       }
       _usedClasses.add(c);
+      _usedLibraries.add(c.enclosingLibrary);
       visitIterable(c.supers, typeVisitor);
       _pass1.transformTypeParameterList(c.typeParameters, c);
       _pass1.transformExpressionList(c.annotations, c);
@@ -794,6 +797,7 @@ class TreeShaker {
         }
         _usedClasses.add(enclosingClass);
       }
+      _usedLibraries.add(m.enclosingLibrary);
 
       FunctionNode? func = null;
       if (m is Field) {
@@ -891,6 +895,7 @@ class TreeShaker {
 
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
+      _usedLibraries.add(typedef.enclosingLibrary);
       typedef.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
       typedef.type?.accept(typeVisitor);
@@ -1214,6 +1219,19 @@ class _TreeShakerPass1 extends RemovingTransformer {
       fieldMorpher.adjustInstanceCallTarget(node, isSetter: true);
     }
     currentMember = null;
+    return node;
+  }
+
+  @override
+  TreeNode visitLoadLibrary(LoadLibrary node, TreeNode? removalSentinel) {
+    shaker._usedLibraries.add(node.import.targetLibrary);
+    return node;
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, TreeNode? removalSentinel) {
+    shaker._usedLibraries.add(node.import.targetLibrary);
     return node;
   }
 
@@ -1727,8 +1745,44 @@ class _TreeShakerPass2 extends RemovingTransformer {
     }
   }
 
+  final _libraryExportDeps = <Library, Set<Library>>{};
+  final _additionalDeps = <Library>{};
+
+  // Returns set of export dependencies of given library.
+  Set<Library> getLibraryExportDeps(Library node) =>
+      _libraryExportDeps[node] ??= calculateLibraryExportDeps(node);
+
+  Set<Library> calculateLibraryExportDeps(Library node) {
+    final processed = <Library>{};
+    final worklist = <Library>[];
+    final deps = <Library>{};
+    worklist.add(node);
+    processed.add(node);
+    while (worklist.isNotEmpty) {
+      final lib = worklist.removeLast();
+      for (final dep in lib.dependencies) {
+        if (!dep.isExport) {
+          continue;
+        }
+        final targetLibrary = dep.targetLibrary;
+        if (processed.add(targetLibrary)) {
+          if (shaker.isLibraryUsed(targetLibrary)) {
+            deps.add(targetLibrary);
+          } else {
+            worklist.add(targetLibrary);
+          }
+        }
+      }
+    }
+    return deps;
+  }
+
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
+    if (!shaker.isLibraryUsed(node) && node.importUri.scheme != 'dart') {
+      return removalSentinel!;
+    }
+    _additionalDeps.clear();
     node.transformOrRemoveChildren(this);
     // The transformer API does not iterate over `Library.additionalExports`,
     // so we manually delete the references to shaken nodes.
@@ -1746,6 +1800,29 @@ class _TreeShakerPass2 extends RemovingTransformer {
         return !shaker.isMemberUsed(node as Member);
       }
     });
+    // Add transitive export dependencies of the removed imported libraries.
+    // This is needed to maintain connected library graph
+    // which is critical for calculation of the deferred loading units.
+    if (_additionalDeps.isNotEmpty) {
+      for (final dep in node.dependencies) {
+        _additionalDeps.remove(dep.targetLibrary);
+      }
+      for (final lib in _additionalDeps) {
+        node.addDependency(LibraryDependency.import(lib));
+      }
+      _additionalDeps.clear();
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitLibraryDependency(
+      LibraryDependency node, TreeNode? removalSentinel) {
+    final targetLibrary = node.targetLibrary;
+    if (!shaker.isLibraryUsed(targetLibrary)) {
+      _additionalDeps.addAll(getLibraryExportDeps(targetLibrary));
+      return removalSentinel!;
+    }
     return node;
   }
 
@@ -1991,6 +2068,10 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
 
   @override
   visitSymbolConstant(SymbolConstant constant) {
+    final libraryRef = constant.libraryReference;
+    if (libraryRef != null) {
+      shaker._usedLibraries.add(libraryRef.asLibrary);
+    }
     // The Symbol class and it's _name field are always retained.
   }
 

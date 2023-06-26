@@ -6574,6 +6574,34 @@ library
 ''');
   }
 
+  test_class_inline() async {
+    var library = await buildLibrary(r'''
+inline class A {
+  final int value;
+  A(this.value);
+}
+''');
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      inline class A @13
+        fields
+          final value @29
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @38
+            parameters
+              requiredPositional final this.value @45
+                type: int
+                field: self::@class::A::@field::value
+        accessors
+          synthetic get value @-1
+            returnType: int
+''');
+  }
+
   test_class_interface() async {
     var library = await buildLibrary('interface class C {}');
     checkElementText(library, r'''
