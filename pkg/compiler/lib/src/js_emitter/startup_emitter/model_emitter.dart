@@ -381,7 +381,7 @@ class ModelEmitter {
       {js.Expression? code}) {
     return js.js.statement(
         '((s,d,e) => {s[d] = s[d] || {}; s[d][e] = s[d][e] || [];'
-        's[d][e].push({part:#part,event:"beginLoadPart"});})'
+        's[d][e].push({p:#part,e:"beginPart"});})'
         '(self,#deferredInitializers, #eventLog)',
         {
           'deferredInitializers': js.string(deferredInitializersGlobal),
@@ -605,7 +605,7 @@ var ${startupMetricsGlobal} =
     // Now we copy the deferredInitializer.current into its correct hash.
     final epilogue = js.js.statement(
         '((d,h)=>{d[h]=d.current; '
-        'd.#eventLog.push({hash:h,event:"endPartLoad",part:#part})})'
+        'd.#eventLog.push({p:#part,e:"endPart",h:h})})'
         '(#deferredInitializers,#hash)',
         {
           'deferredInitializers': deferredInitializersGlobal,

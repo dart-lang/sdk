@@ -2794,14 +2794,13 @@ DeferredLoadCallback? deferredLoadHook;
 void _addEvent(
     {required String part,
     required String event,
-    String? hash,
-    String? uri,
-    String? context}) {
+    String? loadId,
+    String? hash}) {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
-  var dataObj = JS('=Object', '{part: #, event: #}', part, event);
-  if (hash != null) JS('', '#.hash = #', dataObj, hash);
-  if (uri != null) JS('', '#.uri = #', dataObj, uri);
-  if (context != null) JS('', '#.context = #', dataObj, context);
+  var dataObj = JS('=Object', '{p: #, e: #}', part, event);
+  if (hash != null) JS('', '#.h = #', dataObj, hash);
+  if (loadId != null) JS('', '#.l = #', dataObj, loadId);
+  JS('', '#.s = #', dataObj, thisScript);
   JS('', '#.push(#)', initializationEventLog, dataObj);
 }
 
@@ -2811,16 +2810,17 @@ void _addEvent(
 /// truncated, the newest events are retained.
 String _getEventLog() {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
-  final log = JS(
-      'String',
-      'Array.from(#)'
-          '.map(((s) => '
-          '(e, i) => { e.index = i; e.s = s; return e; })(#))'
-          '.reverse()'
-          '.map((e) => JSON.stringify(e)).join("\\n")',
-      initializationEventLog,
-      thisScript);
-  return log;
+  final o = JS('', 'Array.from(#).reverse()', initializationEventLog);
+  JS(
+      '',
+      '#.reduce((p, e, i, a) => {e.i = a.length - i; '
+          'if (p == null) return e.s; '
+          'if (e.s == null) return p; '
+          'if (e.s === p) { delete e.s; return p; }'
+          'return e.s;}'
+          ', null)',
+      o);
+  return JS('String', '#.map((e) => JSON.stringify(e)).join("\\n")', o);
 }
 
 /// Loads a deferred library. The compiler generates a call to this method to
@@ -2877,16 +2877,17 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
       var uri = uris[i];
       var hash = hashes[i];
       if (JS('bool', '#(#)', isHunkInitialized, hash)) {
-        _addEvent(part: uri, hash: hash, event: 'alreadyInitialized');
+        _addEvent(
+            part: uri, hash: hash, event: 'alreadyInitialized', loadId: loadId);
         continue;
       }
       // On strange scenarios, e.g. if js encounters parse errors, we might get
       // an "success" callback on the script load but the hunk will be null.
       if (JS('bool', '#(#)', isHunkLoaded, hash)) {
-        _addEvent(part: uri, hash: hash, event: 'initilize');
+        _addEvent(part: uri, hash: hash, event: 'initialize', loadId: loadId);
         JS('void', '#(#)', initializer, hash);
       } else {
-        _addEvent(part: uri, hash: hash, event: 'missing');
+        _addEvent(part: uri, hash: hash, event: 'missing', loadId: loadId);
 
         throw new DeferredLoadException("Loading ${uris[i]} failed: "
             "the code with hash '${hash}' was not loaded.\n"
@@ -3060,9 +3061,9 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
 
   var future = _loadingLibraries[hunkName];
-  _addEvent(part: hunkName, event: 'startLoad');
+  _addEvent(part: hunkName, event: 'startLoad', loadId: loadId);
   if (future != null) {
-    _addEvent(part: hunkName, event: 'reuse');
+    _addEvent(part: hunkName, event: 'reuse', loadId: loadId);
     return future.then((Null _) => null);
   }
 
@@ -3072,22 +3073,23 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   // sanitized URL.
   String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
-  _addEvent(part: hunkName, uri: uriAsString, event: 'download');
+  _addEvent(part: hunkName, event: 'download', loadId: loadId);
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
   Completer<Null> completer = Completer();
 
   void success() {
-    _addEvent(part: hunkName, event: 'downloadSuccess');
+    _addEvent(part: hunkName, event: 'downloadSuccess', loadId: loadId);
     completer.complete(null);
   }
 
   void failure(error, String context, StackTrace? stackTrace) {
-    _addEvent(part: hunkName, context: context, event: 'downloadFailure');
+    _addEvent(part: hunkName, event: 'downloadFailure', loadId: loadId);
     _loadingLibraries[hunkName] = null;
     stackTrace ??= StackTrace.current;
     completer.completeError(
         DeferredLoadException('Loading $uriAsString failed: $error\n'
+            'Context: $context\n'
             'event log:\n${_getEventLog()}\n'),
         stackTrace);
   }
