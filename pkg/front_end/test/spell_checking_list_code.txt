@@ -441,6 +441,7 @@ downloading
 dq
 dquote
 drawn
+ds
 dsdk
 dst
 dummy
@@ -584,6 +585,7 @@ foo
 foobar
 footer
 forcefully
+forcibly
 forcing
 foreign
 formed
@@ -755,6 +757,7 @@ integrate
 intends
 intention
 intentionally
+interacts
 interested
 interfere
 interim
@@ -850,6 +853,7 @@ lf
 lhs
 lib
 libs
+lifecycle
 lifetime
 lift
 lifted
@@ -1094,6 +1098,7 @@ pointwise
 polluted
 polymorphism
 pool
+poorly
 popped
 pos
 possibility
@@ -1782,6 +1787,7 @@ wiki
 wikipedia
 wind
 winds
+wire
 wise
 wiser
 wishes

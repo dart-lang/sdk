@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
-import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 import 'package:test/fake.dart';
 import 'package:test/test.dart';
@@ -123,9 +122,6 @@ class TestOmittedTypeAnnotation extends OmittedTypeAnnotationImpl {
 
   TestOmittedTypeAnnotation([this.inferredType])
       : super(id: RemoteInstance.uniqueId);
-
-  @override
-  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 /// An identifier that knows the resolved version of itself.
@@ -140,8 +136,6 @@ class TestIdentifier extends IdentifierImpl {
     required String? staticScope,
   }) : resolved = ResolvedIdentifier(
             kind: kind, name: name, staticScope: staticScope, uri: uri);
-  @override
-  void serialize(Serializer serializer) => super.serialize(serializer);
 }
 
 extension DebugCodeString on Code {

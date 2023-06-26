@@ -374,10 +374,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     SerializationMode serializationMode;
     switch (parsedArgs['macro-serialization-mode']) {
       case 'json':
-        serializationMode = SerializationMode.jsonServer;
+        serializationMode = SerializationMode.json;
         break;
       case 'bytedata':
-        serializationMode = SerializationMode.byteDataServer;
+        serializationMode = SerializationMode.byteData;
         break;
       default:
         throw ArgumentError('Unrecognized macro serialization mode '

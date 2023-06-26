@@ -12,12 +12,7 @@ import 'package:test/test.dart';
 import '../util.dart';
 
 void main() {
-  for (var mode in [
-    SerializationMode.jsonClient,
-    SerializationMode.jsonServer,
-    SerializationMode.byteDataClient,
-    SerializationMode.byteDataServer,
-  ]) {
+  for (var mode in [SerializationMode.json, SerializationMode.byteData]) {
     test('$mode can serialize and deserialize basic data', () {
       withSerializationMode(mode, () {
         var serializer = serializerFactory();
@@ -110,10 +105,7 @@ void main() {
     });
   }
 
-  for (var mode in [
-    SerializationMode.byteDataServer,
-    SerializationMode.jsonServer
-  ]) {
+  for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
     test('remote instances in $mode', () async {
       var string = NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
@@ -128,12 +120,17 @@ void main() {
           typeArguments: [string]);
 
       withSerializationMode(mode, () {
-        var serializer = serializerFactory();
-        foo.serialize(serializer);
-        var response = roundTrip(serializer.result);
-        var deserializer = deserializerFactory(response);
-        var instance = RemoteInstance.deserialize(deserializer);
-        expect(instance, foo);
+        final int zoneId = newRemoteInstanceZone();
+        withRemoteInstanceZone(zoneId, () {
+          var serializer = serializerFactory();
+          foo.serialize(serializer);
+          // This is a fake client, we don't want to actually share the cache,
+          // so we negate the zone id and use that.
+          var response = roundTrip(serializer.result, -zoneId);
+          var deserializer = deserializerFactory(response);
+          var instance = RemoteInstance.deserialize(deserializer);
+          expect(instance, foo);
+        });
       });
     });
   }
@@ -150,10 +147,7 @@ void main() {
         identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
         typeArguments: [barType]);
 
-    for (var mode in [
-      SerializationMode.byteDataServer,
-      SerializationMode.jsonServer
-    ]) {
+    for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
       group('with mode $mode', () {
         test('NamedTypeAnnotation', () {
           expectSerializationEquality<TypeAnnotationImpl>(
@@ -451,7 +445,7 @@ void main() {
 
   group('Arguments', () {
     test('can create properly typed collections', () {
-      withSerializationMode(SerializationMode.jsonClient, () {
+      withSerializationMode(SerializationMode.json, () {
         final parsed = Arguments.deserialize(deserializerFactory([
           // positional args
           [
@@ -530,10 +524,7 @@ void main() {
     });
 
     group('can be serialized and deserialized', () {
-      for (var mode in [
-        SerializationMode.byteDataServer,
-        SerializationMode.jsonServer
-      ]) {
+      for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
         test('with mode $mode', () {
           final arguments = Arguments([
             MapArgument({
@@ -586,48 +577,44 @@ void main() {
 /// Serializes [serializable] in server mode, then deserializes it in client
 /// mode, and checks that all the fields are the same.
 void expectSerializationEquality<T extends Serializable>(T serializable,
-    SerializationMode serverMode, T deserialize(Deserializer deserializer)) {
-  late Object? serialized;
-  withSerializationMode(serverMode, () {
-    var serializer = serializerFactory();
-    serializable.serialize(serializer);
-    serialized = serializer.result;
-  });
-  withSerializationMode(_clientModeForServerMode(serverMode), () {
-    var deserializer = deserializerFactory(serialized);
-    var deserialized = deserialize(deserializer);
+    SerializationMode mode, T deserialize(Deserializer deserializer)) {
+  withSerializationMode(mode, () {
+    late Object? serialized;
+    final int zoneId = newRemoteInstanceZone();
+    withRemoteInstanceZone(zoneId, () {
+      var serializer = serializerFactory();
+      serializable.serialize(serializer);
+      serialized = serializer.result;
+    });
 
-    expect(
-        serializable,
-        (switch (deserialized) {
-          Declaration() => deepEqualsDeclaration(deserialized as Declaration),
-          TypeAnnotation() =>
-            deepEqualsTypeAnnotation(deserialized as TypeAnnotation),
-          Arguments() => deepEqualsArguments(deserialized),
-          _ =>
-            throw new UnsupportedError('Unsupported object type $deserialized'),
-        }));
+    // This is a fake client, we don't want to actually share the cache,
+    // so we negate the zone id and use that.
+    withRemoteInstanceZone(-zoneId, () {
+      var deserializer = deserializerFactory(serialized);
+      var deserialized = deserialize(deserializer);
+
+      expect(
+          serializable,
+          switch (deserialized) {
+            Declaration() => deepEqualsDeclaration(deserialized as Declaration),
+            TypeAnnotation() =>
+              deepEqualsTypeAnnotation(deserialized as TypeAnnotation),
+            Arguments() => deepEqualsArguments(deserialized),
+            _ => throw new UnsupportedError(
+                'Unsupported object type $deserialized'),
+          });
+    }, createIfMissing: true);
   });
 }
 
-/// Deserializes [serialized] in client mode and sends it back.
-Object? roundTrip<Declaration>(Object? serialized) {
-  return withSerializationMode(_clientModeForServerMode(serializationMode), () {
+/// Deserializes [serialized] in its own remote instance cache and sends it
+/// back.
+Object? roundTrip<Declaration>(Object? serialized, int zoneId) {
+  return withRemoteInstanceZone(zoneId, () {
     var deserializer = deserializerFactory(serialized);
-    var instance = RemoteInstance.deserialize(deserializer);
+    var instance = RemoteInstance.deserialize(deserializer) as Serializable;
     var serializer = serializerFactory();
     instance.serialize(serializer);
     return serializer.result;
-  });
-}
-
-SerializationMode _clientModeForServerMode(SerializationMode serverMode) {
-  switch (serverMode) {
-    case SerializationMode.byteDataServer:
-      return SerializationMode.byteDataClient;
-    case SerializationMode.jsonServer:
-      return SerializationMode.jsonClient;
-    default:
-      throw StateError('Expected to be running in a server mode');
-  }
+  }, createIfMissing: true);
 }
