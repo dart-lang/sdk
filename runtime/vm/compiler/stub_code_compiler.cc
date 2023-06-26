@@ -1104,15 +1104,6 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ BranchIf(EQUAL, &call_4, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 6);
   __ BranchIf(EQUAL, &call_6, Assembler::kNearJump);
-#if defined(DEBUG)
-  // Verify we have the all inputs case.
-  Label perform_check;
-  __ CompareImmediate(TypeTestABI::kScratchReg,
-                      target::SubtypeTestCache::kMaxInputs);
-  __ BranchIf(EQUAL, &perform_check, Assembler::kNearJump);
-  __ Breakpoint();
-  __ Bind(&perform_check);
-#endif
   // Fall through to the all inputs case.
 
   {
@@ -3102,6 +3093,15 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
   }
   // We use this as a scratch, so it has to be distinct from the others.
   ASSERT(!input_regs.ContainsRegister(TypeTestABI::kScratchReg));
+
+  // Verify the STC we received has exactly as many inputs as this stub expects.
+  Label search_stc;
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, n);
+  __ BranchIf(EQUAL, &search_stc, Assembler::kNearJump);
+  __ Breakpoint();
+  __ Bind(&search_stc);
 #endif
 
   __ LoadAcquireCompressed(

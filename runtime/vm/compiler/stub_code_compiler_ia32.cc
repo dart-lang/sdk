@@ -2454,6 +2454,16 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
   __ LoadFromStack(STCInternal::kCacheArrayReg, STCInternal::kCacheDepth);
+#if defined(DEBUG)
+  // Verify the STC we received has exactly as many inputs as this stub expects.
+  Label search_stc;
+  __ LoadFromSlot(STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(STCInternal::kScratchReg, n);
+  __ BranchIf(EQUAL, &search_stc, Assembler::kNearJump);
+  __ Breakpoint();
+  __ Bind(&search_stc);
+#endif
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
   __ movl(STCInternal::kCacheArrayReg,
