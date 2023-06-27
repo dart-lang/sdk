@@ -203,6 +203,8 @@ ArgParser argParser = ArgParser(allowTrailingOptions: true)
   ..addOption('dartdevc-module-format',
       help: 'The module format to use on for the dartdevc compiler',
       defaultsTo: 'amd')
+  ..addFlag('dartdevc-canary',
+      help: 'Enable canary features in dartdevc compiler', defaultsTo: false)
   ..addFlag('flutter-widget-cache',
       help: 'Enable the widget cache to track changes to Widget subtypes',
       defaultsTo: false)
@@ -371,15 +373,17 @@ class BinaryPrinterFactory {
 }
 
 class FrontendCompiler implements CompilerInterface {
-  FrontendCompiler(StringSink? outputStream,
-      {BinaryPrinterFactory? printerFactory,
-      this.transformer,
-      this.unsafePackageSerialization,
-      this.incrementalSerialization = true,
-      this.useDebuggerModuleNames = false,
-      this.emitDebugMetadata = false,
-      this.emitDebugSymbols = false})
-      : _outputStream = outputStream ?? stdout,
+  FrontendCompiler(
+    StringSink? outputStream, {
+    BinaryPrinterFactory? printerFactory,
+    this.transformer,
+    this.unsafePackageSerialization,
+    this.incrementalSerialization = true,
+    this.useDebuggerModuleNames = false,
+    this.emitDebugMetadata = false,
+    this.emitDebugSymbols = false,
+    this.canaryFeatures = false,
+  })  : _outputStream = outputStream ?? stdout,
         printerFactory = printerFactory ?? BinaryPrinterFactory();
 
   /// Fields with initializers
@@ -393,6 +397,7 @@ class FrontendCompiler implements CompilerInterface {
   final StringSink _outputStream;
   BinaryPrinterFactory printerFactory;
   bool useDebuggerModuleNames;
+  bool canaryFeatures;
 
   /// Initialized in [compile].
   late List<Uri> _additionalSources;
@@ -750,6 +755,7 @@ class FrontendCompiler implements CompilerInterface {
       emitDebugMetadata: emitDebugMetadata,
       moduleFormat: moduleFormat,
       soundNullSafety: soundNullSafety,
+      canaryFeatures: canaryFeatures,
     );
     if (fullComponent) {
       await bundler.initialize(component, _mainSource, packageConfig);

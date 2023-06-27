@@ -87,13 +87,16 @@ Future<int> starter(
     return 0;
   }
 
-  compiler ??= FrontendCompiler(output,
-      printerFactory: binaryPrinterFactory,
-      unsafePackageSerialization: options["unsafe-package-serialization"],
-      incrementalSerialization: options["incremental-serialization"],
-      useDebuggerModuleNames: options['debugger-module-names'],
-      emitDebugMetadata: options['experimental-emit-debug-metadata'],
-      emitDebugSymbols: options['emit-debug-symbols']);
+  compiler ??= FrontendCompiler(
+    output,
+    printerFactory: binaryPrinterFactory,
+    unsafePackageSerialization: options["unsafe-package-serialization"],
+    incrementalSerialization: options["incremental-serialization"],
+    useDebuggerModuleNames: options['debugger-module-names'],
+    emitDebugMetadata: options['experimental-emit-debug-metadata'],
+    emitDebugSymbols: options['emit-debug-symbols'],
+    canaryFeatures: options['dartdevc-canary'],
+  );
 
   if (options.rest.isNotEmpty) {
     return await compiler.compile(options.rest[0], options,
