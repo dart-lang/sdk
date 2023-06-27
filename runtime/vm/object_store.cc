@@ -214,15 +214,6 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void DisableDebuggingAndInlining(const Function& function) {
-  if (FLAG_async_debugger) {
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
-}
-#endif  // DART_PRECOMPILED_RUNTIME
-
 void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -267,18 +258,19 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!field.IsNull());
   set_async_star_stream_controller_async_star_body(field);
 
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining of all functions on the
-    // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.current_functions());
-    for (intptr_t i = 0; i < functions.Length(); i++) {
-      function ^= functions.At(i);
-      if (function.IsNull()) {
-        break;
-      }
-      DisableDebuggingAndInlining(function);
+#if !defined(PRODUCT)
+  // Disable debugging and inlining of all functions on the
+  // _AsyncStarStreamController class.
+  const Array& functions = Array::Handle(zone, cls.current_functions());
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    function ^= functions.At(i);
+    if (function.IsNull()) {
+      break;
     }
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
   }
+#endif
 
   cls = async_lib.LookupClassAllowPrivate(Symbols::Stream());
   ASSERT(!cls.IsNull());

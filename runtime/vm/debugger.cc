@@ -3098,26 +3098,25 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
       OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
-    if (FLAG_async_debugger) {
-      if (stack_trace->FrameAt(0)->function().IsAsyncFunction() ||
-          stack_trace->FrameAt(0)->function().IsAsyncGenerator()) {
-        CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-        // Request to step out of an async/async* closure.
-        const Object& async_op = Object::Handle(
-            stack_trace->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
-        if (!async_op.IsNull()) {
-          // Step out to the awaiter.
-          ASSERT(async_op.IsClosure());
-          AsyncStepInto(Closure::Cast(async_op));
-          if (FLAG_verbose_debug) {
-            OS::PrintErr("HandleSteppingRequest- kContinue to async_op %s\n",
-                         Function::Handle(Closure::Cast(async_op).function())
-                             .ToFullyQualifiedCString());
-          }
-          return;
+    if (stack_trace->FrameAt(0)->function().IsAsyncFunction() ||
+        stack_trace->FrameAt(0)->function().IsAsyncGenerator()) {
+      CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
+      // Request to step out of an async/async* closure.
+      const Object& async_op = Object::Handle(
+          stack_trace->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
+      if (!async_op.IsNull()) {
+        // Step out to the awaiter.
+        ASSERT(async_op.IsClosure());
+        AsyncStepInto(Closure::Cast(async_op));
+        if (FLAG_verbose_debug) {
+          OS::PrintErr("HandleSteppingRequest- kContinue to async_op %s\n",
+                       Function::Handle(Closure::Cast(async_op).function())
+                           .ToFullyQualifiedCString());
         }
+        return;
       }
     }
+
     // Fall through to synchronous stepping.
     DeoptimizeWorld();
     NotifySingleStepping(true);
@@ -4122,14 +4121,6 @@ Breakpoint* Debugger::GetBreakpointByIdInTheList(intptr_t id,
     loc = loc->next();
   }
   return nullptr;
-}
-
-void Debugger::MaybeAsyncStepInto(const Closure& async_op) {
-  if (FLAG_async_debugger && IsSingleStepping()) {
-    // We are single stepping, set a breakpoint on the closure activation
-    // and resume execution so we can hit the breakpoint.
-    AsyncStepInto(async_op);
-  }
 }
 
 void Debugger::AsyncStepInto(const Closure& awaiter) {
