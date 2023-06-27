@@ -29,6 +29,7 @@ LibTest/collection/ListMixin/ListMixin_class_A01_t03: SkipSlow # Very slow compi
 LibTest/collection/ListMixin/ListMixin_class_A01_t04: SkipSlow # Very slow compilation in debug mode.
 LibTest/collection/ListMixin/ListMixin_class_A01_t05: SkipSlow # Very slow compilation in debug mode.
 LibTest/collection/ListMixin/ListMixin_class_A01_t06: SkipSlow # Very slow compilation in debug mode.
+LibTest/core/List/List_all_t02: SkipSlow # Very slow compilation in debug mode.
 LibTest/core/List/List_all_t03: SkipSlow # Very slow compilation in debug mode.
 LibTest/core/List/List_all_t04: SkipSlow # Very slow compilation in debug mode.
 LibTest/core/List/List_all_t05: SkipSlow # Very slow compilation in debug mode.
