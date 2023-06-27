@@ -128,6 +128,7 @@ import 'type_init_formals_test.dart' as type_init_formals;
 import 'type_literal_in_constant_pattern_test.dart'
     as type_literal_in_constant_pattern;
 import 'unawaited_futures_test.dart' as unawaited_futures;
+import 'unnecessary_await_in_return_test.dart' as unnecessary_await_in_return;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
 import 'unnecessary_breaks_test.dart' as unnecessary_breaks;
@@ -256,6 +257,7 @@ void main() {
   type_init_formals.main();
   type_literal_in_constant_pattern.main();
   unawaited_futures.main();
+  unnecessary_await_in_return.main();
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();
   unnecessary_const.main();
