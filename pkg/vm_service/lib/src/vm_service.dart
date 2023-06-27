@@ -8464,6 +8464,12 @@ class Stack extends Response {
   /// other and synchronous prefix via frames of kind
   /// FrameKind.kAsyncSuspensionMarker.
   ///
+  /// The name is historic and misleading: despite what *causal* implies, this
+  /// stack does not reflect the stack at the moment when asynchronous operation
+  /// was started (i.e. the stack that *caused* it), but instead reflects the
+  /// chain of listeners which will run when asynchronous operation is completed
+  /// (i.e. its *awaiters*).
+  ///
   /// This field is absent if currently running code does not have an
   /// asynchronous continuation.
   @optional

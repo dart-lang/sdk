@@ -229,54 +229,36 @@ ActivationFrame::ActivationFrame(uword pc,
                                  uword sp,
                                  const Code& code,
                                  const Array& deopt_frame,
-                                 intptr_t deopt_frame_offset,
-                                 ActivationFrame::Kind kind)
+                                 intptr_t deopt_frame_offset)
     : pc_(pc),
       fp_(fp),
       sp_(sp),
-      ctx_(Context::ZoneHandle()),
       code_(Code::ZoneHandle(code.ptr())),
       function_(Function::ZoneHandle(code.function())),
-      live_frame_(kind == kRegular),
-      token_pos_initialized_(false),
-      token_pos_(TokenPosition::kNoSource),
-      try_index_(-1),
-      deopt_id_(DeoptId::kNone),
-      line_number_(-1),
-      column_number_(-1),
-      context_level_(-1),
       deopt_frame_(Array::ZoneHandle(deopt_frame.ptr())),
       deopt_frame_offset_(deopt_frame_offset),
-      kind_(kind),
-      vars_initialized_(false),
-      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
+      kind_(kRegular),
       desc_indices_(8),
       pc_desc_(PcDescriptors::ZoneHandle()) {
   ASSERT(!function_.IsNull());
 }
 
-ActivationFrame::ActivationFrame(Kind kind)
-    : pc_(0),
-      fp_(0),
-      sp_(0),
-      ctx_(Context::ZoneHandle()),
-      code_(Code::ZoneHandle()),
-      function_(Function::ZoneHandle()),
-      live_frame_(kind == kRegular),
-      token_pos_initialized_(false),
-      token_pos_(TokenPosition::kNoSource),
-      try_index_(-1),
-      deopt_id_(DeoptId::kNone),
-      line_number_(-1),
-      column_number_(-1),
-      context_level_(-1),
-      deopt_frame_(Array::ZoneHandle()),
+ActivationFrame::ActivationFrame(uword pc, const Code& code)
+    : pc_(pc),
+      code_(Code::ZoneHandle(code.ptr())),
+      function_(Function::ZoneHandle(code.function())),
+      deopt_frame_(Array::empty_array()),
       deopt_frame_offset_(0),
-      kind_(kind),
-      vars_initialized_(false),
-      var_descriptors_(LocalVarDescriptors::ZoneHandle()),
-      desc_indices_(8),
-      pc_desc_(PcDescriptors::ZoneHandle()) {}
+      kind_(kAsyncAwaiter) {}
+
+ActivationFrame::ActivationFrame(Kind kind)
+    : code_(Code::ZoneHandle()),
+      function_(Function::null_function()),
+      deopt_frame_(Array::empty_array()),
+      deopt_frame_offset_(0),
+      kind_(kind) {
+  ASSERT(kind == kAsyncSuspensionMarker);
+}
 
 bool Debugger::NeedsIsolateEvents() {
   ASSERT(isolate_ == Isolate::Current());
@@ -318,7 +300,7 @@ ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   if (trace->Length() > 0) {
     event.set_top_frame(trace->FrameAt(0));
   }
-  CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal());
+  CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncAwaiters());
   set_resume_action(kContinue);
   Pause(&event);
   HandleSteppingRequest();
@@ -622,7 +604,7 @@ void ActivationFrame::PrintDescriptorsError(const char* message) {
 
 // Calculate the context level at the current pc of the frame.
 intptr_t ActivationFrame::ContextLevel() {
-  ASSERT(live_frame_);
+  ASSERT(kind_ == kRegular);
   const Context& ctx = GetSavedCurrentContext();
   if (context_level_ < 0 && !ctx.IsNull()) {
     ASSERT(!code_.is_optimized());
@@ -786,7 +768,7 @@ void ActivationFrame::GetDescIndices() {
   GetVarDescriptors();
 
   TokenPosition activation_token_pos = TokenPos();
-  if (!activation_token_pos.IsDebugPause() || !live_frame_) {
+  if (!activation_token_pos.IsDebugPause() || kind_ != kRegular) {
     // We don't have a token position for this frame, so can't determine
     // which variables are visible.
     vars_initialized_ = true;
@@ -1221,7 +1203,7 @@ const char* ActivationFrame::ToCString() {
   const String& url = String::Handle(SourceUrl());
   intptr_t line = LineNumber();
   const char* func_name = function().ToFullyQualifiedCString();
-  if (live_frame_) {
+  if (kind_ == kRegular) {
     return Thread::Current()->zone()->PrintToString(
         "[ Frame pc(0x%" Px " code offset:0x%" Px ") fp(0x%" Px ") sp(0x%" Px
         ")\n"
@@ -1247,8 +1229,8 @@ const char* ActivationFrame::ToCString() {
 void ActivationFrame::PrintToJSONObject(JSONObject* jsobj) {
   if (kind_ == kRegular) {
     PrintToJSONObjectRegular(jsobj);
-  } else if (kind_ == kAsyncCausal) {
-    PrintToJSONObjectAsyncCausal(jsobj);
+  } else if (kind_ == kAsyncAwaiter) {
+    PrintToJSONObjectAsyncAwaiter(jsobj);
   } else if (kind_ == kAsyncSuspensionMarker) {
     PrintToJSONObjectAsyncSuspensionMarker(jsobj);
   } else {
@@ -1292,7 +1274,7 @@ void ActivationFrame::PrintToJSONObjectRegular(JSONObject* jsobj) {
   }
 }
 
-void ActivationFrame::PrintToJSONObjectAsyncCausal(JSONObject* jsobj) {
+void ActivationFrame::PrintToJSONObjectAsyncAwaiter(JSONObject* jsobj) {
   jsobj->AddProperty("type", "Frame");
   jsobj->AddProperty("kind", KindToCString(kind_));
   const Script& script = Script::Handle(SourceScript());
@@ -1319,14 +1301,19 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   }
 }
 
-void DebuggerStackTrace::AddMarker(ActivationFrame::Kind marker) {
-  ASSERT(marker == ActivationFrame::kAsyncSuspensionMarker);
-  trace_.Add(new ActivationFrame(marker));
+void DebuggerStackTrace::AddAsyncSuspension() {
+  // We might start asynchronous unwinding in one of the internal
+  // dart:async functions which would make synchronous part of the
+  // stack empty. This would not happen normally but might happen
+  // with stress flags.
+  if (trace_.is_empty() ||
+      trace_.Last()->kind() != ActivationFrame::kAsyncSuspensionMarker) {
+    trace_.Add(new ActivationFrame(ActivationFrame::kAsyncSuspensionMarker));
+  }
 }
 
-void DebuggerStackTrace::AddAsyncCausalFrame(uword pc, const Code& code) {
-  trace_.Add(new ActivationFrame(pc, 0, 0, code, Array::Handle(), 0,
-                                 ActivationFrame::kAsyncCausal));
+void DebuggerStackTrace::AddAsyncAwaiterFrame(uword pc, const Code& code) {
+  trace_.Add(new ActivationFrame(pc, code));
 }
 
 const uint8_t kSafepointKind = UntaggedPcDescriptors::kIcCall |
@@ -1435,7 +1422,7 @@ Debugger::Debugger(Isolate* isolate)
       ignore_breakpoints_(false),
       pause_event_(nullptr),
       stack_trace_(nullptr),
-      async_causal_stack_trace_(nullptr),
+      async_awaiter_stack_trace_(nullptr),
       stepping_fp_(0),
       last_stepping_fp_(0),
       last_stepping_pos_(TokenPosition::kNoSource),
@@ -1447,7 +1434,7 @@ Debugger::~Debugger() {
   ASSERT(latent_locations_ == nullptr);
   ASSERT(breakpoint_locations_ == nullptr);
   ASSERT(stack_trace_ == nullptr);
-  ASSERT(async_causal_stack_trace_ == nullptr);
+  ASSERT(async_awaiter_stack_trace_ == nullptr);
 }
 
 void Debugger::Shutdown() {
@@ -1624,18 +1611,14 @@ void Debugger::NotifySingleStepping(bool value) const {
   isolate_->set_single_step(value);
 }
 
-static ActivationFrame* CollectDartFrame(
-    Isolate* isolate,
-    uword pc,
-    StackFrame* frame,
-    const Code& code,
-    const Array& deopt_frame,
-    intptr_t deopt_frame_offset,
-    ActivationFrame::Kind kind = ActivationFrame::kRegular) {
+static ActivationFrame* CollectDartFrame(uword pc,
+                                         StackFrame* frame,
+                                         const Code& code,
+                                         const Array& deopt_frame,
+                                         intptr_t deopt_frame_offset) {
   ASSERT(code.ContainsInstructionAt(pc));
-  ActivationFrame* activation =
-      new ActivationFrame(pc, frame->fp(), frame->sp(), code, deopt_frame,
-                          deopt_frame_offset, kind);
+  ActivationFrame* activation = new ActivationFrame(
+      pc, frame->fp(), frame->sp(), code, deopt_frame, deopt_frame_offset);
   if (FLAG_trace_debugger_stacktrace) {
     const Context& ctx = activation->GetSavedCurrentContext();
     OS::PrintErr("\tUsing saved context: %s\n", ctx.ToCString());
@@ -1671,15 +1654,12 @@ static ArrayPtr DeoptimizeToArray(Thread* thread,
 DebuggerStackTrace* DebuggerStackTrace::Collect() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
-  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
-  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames,
-                              Thread::Current(),
-                              StackFrameIterator::kNoCrossThreadIteration);
-  Code& code = Code::Handle(zone);
-  Code& inlined_code = Code::Handle(zone);
-  Array& deopt_frame = Array::Handle(zone);
 
+  Code& code = Code::Handle(zone);
+  DebuggerStackTrace* stack_trace = new DebuggerStackTrace(8);
+
+  StackFrameIterator iterator(ValidationPolicy::kDontValidateFrames, thread,
+                              StackFrameIterator::kNoCrossThreadIteration);
   for (StackFrame* frame = iterator.NextFrame(); frame != nullptr;
        frame = iterator.NextFrame()) {
     ASSERT(frame->IsValid());
@@ -1689,8 +1669,7 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
     }
     if (frame->IsDartFrame()) {
       code = frame->LookupDartCode();
-      stack_trace->AppendCodeFrames(thread, isolate, zone, frame, &code,
-                                    &inlined_code, &deopt_frame);
+      stack_trace->AppendCodeFrames(frame, code);
     }
   }
   return stack_trace;
@@ -1698,18 +1677,12 @@ DebuggerStackTrace* DebuggerStackTrace::Collect() {
 
 // Appends at least one stack frame. Multiple frames will be appended
 // if |code| at the frame's pc contains inlined functions.
-void DebuggerStackTrace::AppendCodeFrames(Thread* thread,
-                                          Isolate* isolate,
-                                          Zone* zone,
-                                          StackFrame* frame,
-                                          Code* code,
-                                          Code* inlined_code,
-                                          Array* deopt_frame) {
+void DebuggerStackTrace::AppendCodeFrames(StackFrame* frame, const Code& code) {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  if (code->is_optimized()) {
-    if (code->is_force_optimized()) {
+  if (code.is_optimized()) {
+    if (code.is_force_optimized()) {
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function = Function::Handle(zone, code->function());
+        const Function& function = Function::Handle(zone_, code.function());
         ASSERT(!function.IsNull());
         OS::PrintErr(
             "CollectStackTrace: skipping force-optimized function: %s\n",
@@ -1718,35 +1691,32 @@ void DebuggerStackTrace::AppendCodeFrames(Thread* thread,
       return;  // Skip frame of force-optimized (and non-debuggable) function.
     }
     // TODO(rmacnak): Use CodeSourceMap
-    *deopt_frame = DeoptimizeToArray(thread, frame, *code);
-    for (InlinedFunctionsIterator it(*code, frame->pc()); !it.Done();
+    deopt_frame_ = DeoptimizeToArray(thread_, frame, code);
+    for (InlinedFunctionsIterator it(code, frame->pc()); !it.Done();
          it.Advance()) {
-      *inlined_code = it.code();
+      inlined_code_ = it.code();
       if (FLAG_trace_debugger_stacktrace) {
-        const Function& function = Function::Handle(zone, it.function());
+        const Function& function = Function::Handle(zone_, it.function());
         ASSERT(!function.IsNull());
         OS::PrintErr("CollectStackTrace: visiting inlined function: %s\n",
                      function.ToFullyQualifiedCString());
       }
       intptr_t deopt_frame_offset = it.GetDeoptFpOffset();
-      AddActivation(CollectDartFrame(isolate, it.pc(), frame, *inlined_code,
-                                     *deopt_frame, deopt_frame_offset));
+      AddActivation(CollectDartFrame(it.pc(), frame, inlined_code_,
+                                     deopt_frame_, deopt_frame_offset));
     }
     return;
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  AddActivation(CollectDartFrame(isolate, frame->pc(), frame, *code,
-                                 Object::null_array(), 0));
+  AddActivation(
+      CollectDartFrame(frame->pc(), frame, code, Object::null_array(), 0));
 }
 
-DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
+DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  Isolate* isolate = thread->isolate();
 
   Code& code = Code::Handle(zone);
-  Code& inlined_code = Code::Handle(zone);
-  Array& deopt_frame = Array::Handle(zone);
   Function& function = Function::Handle(zone);
 
   constexpr intptr_t kDefaultStackAllocation = 8;
@@ -1759,8 +1729,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
 
   std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
     code = frame->LookupDartCode();
-    stack_trace->AppendCodeFrames(thread, isolate, zone, frame, &code,
-                                  &inlined_code, &deopt_frame);
+    stack_trace->AppendCodeFrames(frame, code);
   };
 
   StackTraceUtils::CollectFrames(thread, code_array, &pc_offset_array,
@@ -1778,7 +1747,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
     code ^= code_array.At(i);
     if (code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
       if (!skip_next_gap_marker) {
-        stack_trace->AddMarker(ActivationFrame::kAsyncSuspensionMarker);
+        stack_trace->AddAsyncSuspension();
       }
       skip_next_gap_marker = false;
 
@@ -1805,7 +1774,7 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncCausal() {
 
     const uword pc_offset = pc_offset_array[i];
     const uword absolute_pc = code.PayloadStart() + pc_offset;
-    stack_trace->AddAsyncCausalFrame(absolute_pc, code);
+    stack_trace->AddAsyncAwaiterFrame(absolute_pc, code);
   }
 
   return stack_trace;
@@ -1834,10 +1803,10 @@ DebuggerStackTrace* Debugger::StackTrace() {
                                    : DebuggerStackTrace::Collect();
 }
 
-DebuggerStackTrace* Debugger::AsyncCausalStackTrace() {
-  return (async_causal_stack_trace_ != nullptr)
-             ? async_causal_stack_trace_
-             : DebuggerStackTrace::CollectAsyncCausal();
+DebuggerStackTrace* Debugger::AsyncAwaiterStackTrace() {
+  return (async_awaiter_stack_trace_ != nullptr)
+             ? async_awaiter_stack_trace_
+             : DebuggerStackTrace::CollectAsyncAwaiters();
 }
 
 DebuggerStackTrace* DebuggerStackTrace::From(const class StackTrace& ex_trace) {
@@ -1942,7 +1911,7 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 void Debugger::PauseException(const Instance& exc) {
   if (FLAG_stress_async_stacks) {
-    DebuggerStackTrace::CollectAsyncCausal();
+    DebuggerStackTrace::CollectAsyncAwaiters();
   }
   // We ignore this exception event when the VM is executing code invoked
   // by the debugger to evaluate variables values, when we see a nested
@@ -1952,11 +1921,11 @@ void Debugger::PauseException(const Instance& exc) {
       (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
-  DebuggerStackTrace* async_causal_stack_trace =
-      DebuggerStackTrace::CollectAsyncCausal();
+  DebuggerStackTrace* async_awaiter_stack_trace =
+      DebuggerStackTrace::CollectAsyncAwaiters();
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
-  if (async_causal_stack_trace != nullptr) {
-    if (!ShouldPauseOnException(async_causal_stack_trace, exc)) {
+  if (async_awaiter_stack_trace != nullptr) {
+    if (!ShouldPauseOnException(async_awaiter_stack_trace, exc)) {
       return;
     }
   } else {
@@ -1969,7 +1938,7 @@ void Debugger::PauseException(const Instance& exc) {
   if (stack_trace->Length() > 0) {
     event.set_top_frame(stack_trace->FrameAt(0));
   }
-  CacheStackTraces(stack_trace, async_causal_stack_trace);
+  CacheStackTraces(stack_trace, async_awaiter_stack_trace);
   Pause(&event);
   HandleSteppingRequest();  // we may get a rewind request
   ClearCachedStackTraces();
@@ -3153,16 +3122,16 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
 }
 
 void Debugger::CacheStackTraces(DebuggerStackTrace* stack_trace,
-                                DebuggerStackTrace* async_causal_stack_trace) {
+                                DebuggerStackTrace* async_awaiter_stack_trace) {
   ASSERT(stack_trace_ == nullptr);
   stack_trace_ = stack_trace;
-  ASSERT(async_causal_stack_trace_ == nullptr);
-  async_causal_stack_trace_ = async_causal_stack_trace;
+  ASSERT(async_awaiter_stack_trace_ == nullptr);
+  async_awaiter_stack_trace_ = async_awaiter_stack_trace;
 }
 
 void Debugger::ClearCachedStackTraces() {
   stack_trace_ = nullptr;
-  async_causal_stack_trace_ = nullptr;
+  async_awaiter_stack_trace_ = nullptr;
 }
 
 static intptr_t FindNextRewindFrameIndex(DebuggerStackTrace* stack,
@@ -3585,7 +3554,7 @@ ErrorPtr Debugger::PauseStepping() {
   }
 
   CacheStackTraces(DebuggerStackTrace::Collect(),
-                   DebuggerStackTrace::CollectAsyncCausal());
+                   DebuggerStackTrace::CollectAsyncAwaiters());
   SignalPausedEvent(frame, nullptr);
   HandleSteppingRequest();
   ClearCachedStackTraces();
@@ -3642,7 +3611,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
                  top_frame->pc() - top_frame->code().PayloadStart());
   }
 
-  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
   SignalPausedEvent(top_frame, bpt_hit);
   // When we single step from a user breakpoint, our next stepping
   // point will be at the exact same pc.  Skip it.
@@ -3699,7 +3668,7 @@ void Debugger::PauseDeveloper(const String& msg) {
 
   DebuggerStackTrace* stack_trace = DebuggerStackTrace::Collect();
   ASSERT(stack_trace->Length() > 0);
-  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncCausal());
+  CacheStackTraces(stack_trace, DebuggerStackTrace::CollectAsyncAwaiters());
   // TODO(johnmccutchan): Send |msg| to Observatory.
 
   // We are in the native call to Developer_debugger.  the developer
