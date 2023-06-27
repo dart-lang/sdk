@@ -321,7 +321,7 @@ ErrorPtr Debugger::PauseRequest(ServiceEvent::EventKind kind) {
   CacheStackTraces(trace, DebuggerStackTrace::CollectAsyncCausal());
   set_resume_action(kContinue);
   Pause(&event);
-  HandleSteppingRequest(trace);
+  HandleSteppingRequest();
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
@@ -1971,7 +1971,7 @@ void Debugger::PauseException(const Instance& exc) {
   }
   CacheStackTraces(stack_trace, async_causal_stack_trace);
   Pause(&event);
-  HandleSteppingRequest(stack_trace_);  // we may get a rewind request
+  HandleSteppingRequest();  // we may get a rewind request
   ClearCachedStackTraces();
 }
 
@@ -3074,8 +3074,7 @@ void Debugger::SetSyncSteppingFramePointer(DebuggerStackTrace* stack_trace) {
   }
 }
 
-void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
-                                     bool skip_next_step) {
+void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
   ResetSteppingFramePointer();
   if (resume_action_ == kStepInto) {
     // When single stepping, we need to deoptimize because we might be
@@ -3087,23 +3086,24 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
     if (FLAG_verbose_debug) {
-      OS::PrintErr("HandleSteppingRequest- kStepInto\n");
+      OS::PrintErr("HandleSteppingRequest - kStepInto\n");
     }
   } else if (resume_action_ == kStepOver) {
     DeoptimizeWorld();
     NotifySingleStepping(true);
     skip_next_step_ = skip_next_step;
-    SetSyncSteppingFramePointer(stack_trace);
+    SetSyncSteppingFramePointer(stack_trace_);
     if (FLAG_verbose_debug) {
-      OS::PrintErr("HandleSteppingRequest- kStepOver %" Px "\n", stepping_fp_);
+      OS::PrintErr("HandleSteppingRequest - kStepOver stepping_fp=%" Px "\n",
+                   stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace->FrameAt(0)->function().IsAsyncFunction() ||
-        stack_trace->FrameAt(0)->function().IsAsyncGenerator()) {
+    if (stack_trace_->FrameAt(0)->function().IsAsyncFunction() ||
+        stack_trace_->FrameAt(0)->function().IsAsyncGenerator()) {
       CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
       // Request to step out of an async/async* closure.
       const Object& async_op = Object::Handle(
-          stack_trace->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
+          stack_trace_->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
       if (!async_op.IsNull()) {
         // Step out to the awaiter.
         ASSERT(async_op.IsClosure());
@@ -3121,8 +3121,8 @@ void Debugger::HandleSteppingRequest(DebuggerStackTrace* stack_trace,
     DeoptimizeWorld();
     NotifySingleStepping(true);
     // Find topmost caller that is debuggable.
-    for (intptr_t i = 1; i < stack_trace->Length(); i++) {
-      ActivationFrame* frame = stack_trace->FrameAt(i);
+    for (intptr_t i = 1; i < stack_trace_->Length(); i++) {
+      ActivationFrame* frame = stack_trace_->FrameAt(i);
       if (frame->IsDebuggable()) {
         stepping_fp_ = frame->fp();
         break;
@@ -3587,7 +3587,7 @@ ErrorPtr Debugger::PauseStepping() {
   CacheStackTraces(DebuggerStackTrace::Collect(),
                    DebuggerStackTrace::CollectAsyncCausal());
   SignalPausedEvent(frame, nullptr);
-  HandleSteppingRequest(stack_trace_);
+  HandleSteppingRequest();
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
@@ -3646,7 +3646,7 @@ ErrorPtr Debugger::PauseBreakpoint() {
   SignalPausedEvent(top_frame, bpt_hit);
   // When we single step from a user breakpoint, our next stepping
   // point will be at the exact same pc.  Skip it.
-  HandleSteppingRequest(stack_trace_, true /* skip next step */);
+  HandleSteppingRequest(/*skip_next_step=*/true);
   ClearCachedStackTraces();
 
   // If any error occurred while in the debug message loop, return it here.
@@ -3706,7 +3706,7 @@ void Debugger::PauseDeveloper(const String& msg) {
   // gets a better experience by not seeing this call. To accomplish
   // this, we continue execution until the call exits (step out).
   SetResumeAction(kStepOut);
-  HandleSteppingRequest(stack_trace_);
+  HandleSteppingRequest();
   ClearCachedStackTraces();
 }
 

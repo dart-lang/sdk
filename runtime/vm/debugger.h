@@ -851,8 +851,7 @@ class Debugger {
   // interrupts, etc.
   void Pause(ServiceEvent* event);
 
-  void HandleSteppingRequest(DebuggerStackTrace* stack_trace,
-                             bool skip_next_step = false);
+  void HandleSteppingRequest(bool skip_next_step = false);
 
   void CacheStackTraces(DebuggerStackTrace* stack_trace,
                         DebuggerStackTrace* async_causal_stack_trace);
