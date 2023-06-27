@@ -133,6 +133,7 @@ import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
 import 'unnecessary_breaks_test.dart' as unnecessary_breaks;
 import 'unnecessary_const_test.dart' as unnecessary_const;
+import 'unnecessary_constructor_name_test.dart' as unnecessary_constructor_name;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
 import 'unnecessary_library_directive_test.dart'
@@ -261,6 +262,7 @@ void main() {
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();
   unnecessary_const.main();
+  unnecessary_constructor_name.main();
   unnecessary_final.main();
   unnecessary_lambdas.main();
   unnecessary_library_directive.main();
