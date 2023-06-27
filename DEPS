@@ -138,8 +138,8 @@ vars = {
   #
   # For more details, see https://github.com/dart-lang/sdk/issues/30164.
   "dart_style_rev": "2956b1a705953f880a5dae9d3a0969df0fc45e99", # disable rev_sdk_deps.dart
-  "dartdoc_rev": "475733910b8429e93fd41272be59ff1531440028",
-  "ecosystem_rev": "a2dac18e19a8587c7918a2a7d54d115a2872fc9e",
+  "dartdoc_rev": "e04a6b309a28498e9221ea45c878beae2aaa7dac",
+  "ecosystem_rev": "b1056e60213c87619d1a488856d3a262dc745fb7",
   "ffi_rev": "f582ca022042323af061f35ccd24b6c4d38f7bd1",
   "file_rev": "5d9a6027756b5846e8f5380f983390f61f564a75",
   "fixnum_rev": "d9b9a2a288d5eb467fb1597e80beb063b05cd4f6",
@@ -150,7 +150,7 @@ vars = {
   "http_parser_rev": "19466c0daf9138ab20877f34dbcf4479b31d33d6",
   "intl_rev": "5d65e3808ce40e6282e40881492607df4e35669f",
   "json_rpc_2_rev": "73467f3651669af4870260fea4e99d7ba6ccb7ec",
-  "leak_tracker_rev": "2149e5c0b7a1a5ceaba24f55ccabb2f6567fc3ff",
+  "leak_tracker_rev": "c75b0a71bb1b92abf2c692459a7cb2df5f2af083",
   "linter_rev": "f83b00f1185d6f8d22c7bf206ae7822c423f13d3", # disable rev_sdk_deps.dart
   "lints_rev": "4b79906085d48fc4eee241a80e1a1b177dbdaf23",
   "logging_rev": "f2fe2ac2a61a269b2e0ce65be330f7af1bc67428",
@@ -185,7 +185,7 @@ vars = {
   "vector_math_rev": "c14703830d47818a82ce8a9fcb70029e5e8e6a16",
   "watcher_rev": "3f17faa2d09dca3e23bc07a01f2045ec0cd2837d",
   "web_socket_channel_rev": "7fb82f2f542400f8ba49546552d6f272fc554694",
-  "webdev_rev": "6fe17fe80a3580edd41d6d839504c4d90fbce0ea",
+  "webdev_rev": "8360d50ff889f3c0f817d4d48d3aebd71345cf5d",
   "webdriver_rev": "d0f78d004a5ea7bfc8c492639248b0a1b04c1d62",
   "webkit_inspection_protocol_rev": "39a3c297ff573635e7936b015ce4f3466e4739d6",
   "yaml_rev": "0b9041de94b00bc54e8d38daecfe9075b5623996",
