@@ -15,7 +15,7 @@ main() {
   js.context.callMethod("eval", [
     """
     retryCount = 0;
-    if (self.document) {
+    if (self.document && self.document.body) {
       oldAppendChild = document.body.appendChild;
       replacement = function(element) {
         element.src = "non_existing.js";
