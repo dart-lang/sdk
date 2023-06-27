@@ -935,7 +935,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
-      if (obj->IsSmiOrNewObject()) continue;
+      if (obj->IsImmediateOrNewObject()) continue;
 
       // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier

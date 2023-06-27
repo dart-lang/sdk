@@ -642,7 +642,7 @@ void GCCompactor::SetupImagePageBoundaries() {
 DART_FORCE_INLINE
 void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   ObjectPtr old_target = *ptr;
-  if (old_target->IsSmiOrNewObject()) {
+  if (old_target->IsImmediateOrNewObject()) {
     return;  // Not moved.
   }
 
@@ -670,7 +670,7 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
 
   ObjectPtr new_target =
       UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
-  ASSERT(!new_target->IsSmiOrNewObject());
+  ASSERT(!new_target->IsImmediateOrNewObject());
   *ptr = new_target;
 }
 
@@ -678,7 +678,7 @@ DART_FORCE_INLINE
 void GCCompactor::ForwardCompressedPointer(uword heap_base,
                                            CompressedObjectPtr* ptr) {
   ObjectPtr old_target = ptr->Decompress(heap_base);
-  if (old_target->IsSmiOrNewObject()) {
+  if (old_target->IsImmediateOrNewObject()) {
     return;  // Not moved.
   }
 
@@ -706,7 +706,7 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
 
   ObjectPtr new_target =
       UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
-  ASSERT(!new_target->IsSmiOrNewObject());
+  ASSERT(!new_target->IsImmediateOrNewObject());
   *ptr = new_target;
 }
 

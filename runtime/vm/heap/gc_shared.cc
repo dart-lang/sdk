@@ -38,8 +38,8 @@ void GCLinkedLists::FlushInto(GCLinkedLists* to) {
 
 Heap::Space SpaceForExternal(FinalizerEntryPtr raw_entry) {
   // As with WeakTables, Smis are "old".
-  return raw_entry->untag()->value()->IsSmiOrOldObject() ? Heap::kOld
-                                                         : Heap::kNew;
+  return raw_entry->untag()->value()->IsImmediateOrOldObject() ? Heap::kOld
+                                                               : Heap::kNew;
 }
 
 }  // namespace dart

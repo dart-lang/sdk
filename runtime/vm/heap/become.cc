@@ -288,10 +288,10 @@ void Become::Forward() {
     if (before == after) {
       InvalidForwarding(before, after, "Cannot self-forward");
     }
-    if (!before->IsHeapObject()) {
+    if (before->IsImmediateObject()) {
       InvalidForwarding(before, after, "Cannot forward immediates");
     }
-    if (!after->IsHeapObject()) {
+    if (after->IsImmediateObject()) {
       InvalidForwarding(before, after, "Cannot target immediates");
     }
     if (before->untag()->InVMIsolateHeap()) {
