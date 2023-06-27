@@ -3521,7 +3521,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3546,7 +3546,7 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
   }
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3597,7 +3597,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;

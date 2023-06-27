@@ -267,8 +267,8 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void FinalizeMarking() {
     work_list_.Finalize();
     deferred_work_list_.Finalize();
-    MournFinalized(this);
-    // MournFinalized inserts newly discovered dead entries into the
+    MournFinalizerEntries();
+    // MournFinalizerEntries inserts newly discovered dead entries into the
     // linked list attached to the Finalizer. This might create
     // cross-generational references which might be added to the store
     // buffer. Release the store buffer to satisfy the invariant that
@@ -278,47 +278,48 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   }
 
   void MournWeakProperties() {
-    WeakPropertyPtr cur_weak = delayed_.weak_properties.Release();
-    while (cur_weak != WeakProperty::null()) {
-      WeakPropertyPtr next_weak =
-          cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
-      cur_weak->untag()->next_seen_by_gc_ = WeakProperty::null();
-      RELEASE_ASSERT(!cur_weak->untag()->key()->untag()->IsMarked());
-      WeakProperty::Clear(cur_weak);
-      cur_weak = next_weak;
+    WeakPropertyPtr current = delayed_.weak_properties.Release();
+    while (current != WeakProperty::null()) {
+      WeakPropertyPtr next = current->untag()->next_seen_by_gc();
+      current->untag()->next_seen_by_gc_ = WeakProperty::null();
+      current->untag()->key_ = Object::null();
+      current->untag()->value_ = Object::null();
+      current = next;
     }
   }
 
   void MournWeakReferences() {
-    WeakReferencePtr cur_weak = delayed_.weak_references.Release();
-    while (cur_weak != WeakReference::null()) {
-      WeakReferencePtr next_weak =
-          cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
-      cur_weak->untag()->next_seen_by_gc_ = WeakReference::null();
-
-      // If we did not mark the target through a weak property in a later round,
-      // then the target is dead and we should clear it.
-      ForwardOrSetNullIfCollected(cur_weak->heap_base(),
-                                  &cur_weak->untag()->target_);
-
-      cur_weak = next_weak;
+    WeakReferencePtr current = delayed_.weak_references.Release();
+    while (current != WeakReference::null()) {
+      WeakReferencePtr next = current->untag()->next_seen_by_gc();
+      current->untag()->next_seen_by_gc_ = WeakReference::null();
+      ForwardOrSetNullIfCollected(current->heap_base(),
+                                  &current->untag()->target_);
+      current = next;
     }
   }
 
   void MournWeakArrays() {
-    WeakArrayPtr cur_weak = delayed_.weak_arrays.Release();
-    while (cur_weak != WeakArray::null()) {
-      WeakArrayPtr next_weak =
-          cur_weak->untag()->next_seen_by_gc_.Decompress(cur_weak->heap_base());
-      cur_weak->untag()->next_seen_by_gc_ = WeakArray::null();
-
-      intptr_t length = Smi::Value(cur_weak->untag()->length());
+    WeakArrayPtr current = delayed_.weak_arrays.Release();
+    while (current != WeakArray::null()) {
+      WeakArrayPtr next = current->untag()->next_seen_by_gc();
+      current->untag()->next_seen_by_gc_ = WeakArray::null();
+      intptr_t length = Smi::Value(current->untag()->length());
       for (intptr_t i = 0; i < length; i++) {
-        ForwardOrSetNullIfCollected(cur_weak->heap_base(),
-                                    &cur_weak->untag()->data()[i]);
+        ForwardOrSetNullIfCollected(current->heap_base(),
+                                    &current->untag()->data()[i]);
       }
+      current = next;
+    }
+  }
 
-      cur_weak = next_weak;
+  void MournFinalizerEntries() {
+    FinalizerEntryPtr current = delayed_.finalizer_entries.Release();
+    while (current != FinalizerEntry::null()) {
+      FinalizerEntryPtr next = current->untag()->next_seen_by_gc();
+      current->untag()->next_seen_by_gc_ = FinalizerEntry::null();
+      MournFinalizerEntry(this, current);
+      current = next;
     }
   }
 
@@ -437,9 +438,6 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   GCLinkedLists delayed_;
   uintptr_t marked_bytes_;
   int64_t marked_micros_;
-
-  template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitorBase);
 };
@@ -761,8 +759,8 @@ class ParallelMarkTask : public ThreadPool::Task {
       visitor_->MournWeakProperties();
       visitor_->MournWeakReferences();
       visitor_->MournWeakArrays();
-      // Don't MournFinalized here, do it on main thread, so that we don't have
-      // to coordinate workers.
+      // Don't MournFinalizerEntries here, do it on main thread, so that we
+      // don't have to coordinate workers.
 
       marker_->IterateWeakRoots(thread);
       int64_t stop = OS::GetCurrentMonotonicMicros();
@@ -1066,7 +1064,7 @@ void GCMarker::MarkObjects(PageSpace* page_space) {
       visitor.MournWeakProperties();
       visitor.MournWeakReferences();
       visitor.MournWeakArrays();
-      MournFinalized(&visitor);
+      visitor.MournFinalizerEntries();
       IterateWeakRoots(thread);
       // All marking done; detach code, etc.
       int64_t stop = OS::GetCurrentMonotonicMicros();

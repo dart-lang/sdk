@@ -12820,14 +12820,6 @@ class WeakProperty : public Instance {
     return RoundedAllocationSize(sizeof(UntaggedWeakProperty));
   }
 
-  static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
-           CompressedWeakPropertyPtr(WeakProperty::null()));
-    // This action is performed by the GC. No barrier.
-    raw_weak->untag()->key_ = Object::null();
-    raw_weak->untag()->value_ = Object::null();
-  }
-
  private:
   FINAL_HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
   friend class Class;
