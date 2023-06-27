@@ -21,6 +21,7 @@ import 'package:linter/src/rules.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+import 'package:unified_analytics/src/enums.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 void main() {
@@ -38,6 +39,9 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 
   String get testPackageRootPath => testPackageRoot.path;
 
+  DateTime get _startUpTime => DateTime.fromMillisecondsSinceEpoch(
+      DateTime.now().millisecondsSinceEpoch - 5);
+
   Future<void> test_createAnalysisContexts_lints() async {
     _createAnalysisOptionsFile(lints: [
       'avoid_dynamic_calls',
@@ -50,9 +54,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     await manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(),
-      _ExpectedEvent.lintUsageCounts(eventData: {
-        'usageCounts':
-            '{"avoid_dynamic_calls":1,"await_only_futures":1,"unawaited_futures":1}',
+      _ExpectedEvent.lintUsageCount(eventData: {
+        'count': 1,
+        'name': 'avoid_dynamic_calls',
+      }),
+      _ExpectedEvent.lintUsageCount(eventData: {
+        'count': 1,
+        'name': 'await_only_futures',
+      }),
+      _ExpectedEvent.lintUsageCount(eventData: {
+        'count': 1,
+        'name': 'unawaited_futures',
       }),
     ]);
   }
@@ -68,9 +80,13 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     await manager.shutdown();
     analytics.assertEvents([
       _ExpectedEvent.session(),
-      _ExpectedEvent.severityAdjustments(eventData: {
-        'adjustmentCounts':
-            '{"AVOID_DYNAMIC_CALLS":{"ERROR":1},"AWAIT_ONLY_FUTURES":{"ignore":1}}',
+      _ExpectedEvent.severityAdjustment(eventData: {
+        'diagnostic': 'AVOID_DYNAMIC_CALLS',
+        'adjustments': '{"ERROR":1}',
+      }),
+      _ExpectedEvent.severityAdjustment(eventData: {
+        'diagnostic': 'AWAIT_ONLY_FUTURES',
+        'adjustments': '{"ignore":1}',
       }),
     ]);
   }
@@ -183,6 +199,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     ]);
   }
 
+  @FailingTest(reason: 'We are currently unable to send refactoring events')
   Future<void> test_server_request_editGetRefactoring() async {
     _defaultStartup();
     var params =
@@ -282,7 +299,10 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'latency': _IsPercentiles(),
         'method': Method.workspace_executeCommand.toString(),
         'duration': _IsPercentiles(),
-        'command': '{"doIt":2}'
+      }),
+      _ExpectedEvent.commandExecuted(eventData: {
+        'name': 'doIt',
+        'count': 2,
       }),
     ]);
   }
@@ -296,7 +316,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var arguments = ['a', 'b'];
     var clientId = 'clientId';
     manager.startUp(
-        time: DateTime.now(),
+        time: _startUpTime,
         arguments: arguments,
         clientId: clientId,
         clientVersion: null);
@@ -306,7 +326,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'flags': arguments.join(','),
         'clientId': clientId,
         'clientVersion': '',
-        'duration': _IsStringEncodedPositiveInt(),
+        'duration': _IsPositiveInt(),
       }),
     ]);
   }
@@ -318,10 +338,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
       _pluginInfo('b'),
     ]));
     await manager.shutdown();
-    var counts = '{"count":1,"percentiles":[0,0,0,0,0]}';
     analytics.assertEvents([
-      _ExpectedEvent.session(eventData: {
-        'plugins': '{"recordCount":1,"rootCounts":{"a":$counts,"b":$counts}}'
+      _ExpectedEvent.session(eventData: {}),
+      _ExpectedEvent.pluginUse(eventData: {
+        'count': 1,
+        'pluginId': 'a',
+        'enabled': _IsPercentiles(),
+      }),
+      _ExpectedEvent.pluginUse(eventData: {
+        'count': 1,
+        'pluginId': 'b',
+        'enabled': _IsPercentiles(),
       }),
     ]);
   }
@@ -331,7 +358,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
     var clientId = 'clientId';
     var clientVersion = 'clientVersion';
     manager.startUp(
-        time: DateTime.now(),
+        time: _startUpTime,
         arguments: arguments,
         clientId: clientId,
         clientVersion: clientVersion);
@@ -341,8 +368,7 @@ class AnalyticsManagerTest with ResourceProviderMixin {
         'flags': arguments.join(','),
         'clientId': clientId,
         'clientVersion': clientVersion,
-        '': isNull,
-        'duration': _IsStringEncodedPositiveInt(),
+        'duration': _IsPositiveInt(),
       }),
     ]);
   }
@@ -414,22 +440,17 @@ class AnalyticsManagerTest with ResourceProviderMixin {
 }
 
 /// A record of an event that was reported to analytics.
-class _Event {
-  final DashEvent eventName;
-  final Map<String, Object?> eventData;
-
-  _Event(this.eventName, this.eventData);
-}
-
-/// A record of an event that was reported to analytics.
 class _ExpectedEvent {
   final DashEvent eventName;
   final Map<String, Object?>? eventData;
 
   _ExpectedEvent(this.eventName, this.eventData);
 
-  _ExpectedEvent.lintUsageCounts({Map<String, Object?>? eventData})
-      : this(DashEvent.lintUsageCounts, eventData);
+  _ExpectedEvent.commandExecuted({Map<String, Object?>? eventData})
+      : this(DashEvent.commandExecuted, eventData);
+
+  _ExpectedEvent.lintUsageCount({Map<String, Object?>? eventData})
+      : this(DashEvent.lintUsageCount, eventData);
 
   _ExpectedEvent.notification({Map<String, Object?>? eventData})
       : this(DashEvent.clientNotification, eventData);
@@ -437,18 +458,21 @@ class _ExpectedEvent {
   _ExpectedEvent.pluginRequest({Map<String, Object?>? eventData})
       : this(DashEvent.pluginRequest, eventData);
 
+  _ExpectedEvent.pluginUse({Map<String, Object?>? eventData})
+      : this(DashEvent.pluginUse, eventData);
+
   _ExpectedEvent.request({Map<String, Object?>? eventData})
       : this(DashEvent.clientRequest, eventData);
 
   _ExpectedEvent.session({Map<String, Object?>? eventData})
       : this(DashEvent.serverSession, eventData);
 
-  _ExpectedEvent.severityAdjustments({Map<String, Object?>? eventData})
-      : this(DashEvent.severityAdjustments, eventData);
+  _ExpectedEvent.severityAdjustment({Map<String, Object?>? eventData})
+      : this(DashEvent.severityAdjustment, eventData);
 
   /// Compare the expected event with the [actual] event, failing if the actual
   /// doesn't match the expected.
-  void matches(_Event actual) {
+  void matches(Event actual) {
     expect(actual.eventName, eventName);
     final actualData = actual.eventData;
     final expectedData = eventData;
@@ -456,6 +480,17 @@ class _ExpectedEvent {
       for (var expectedKey in expectedData.keys) {
         var actualValue = actualData[expectedKey];
         var expectedValue = expectedData[expectedKey];
+        if (!(actualValue == expectedValue ||
+            (expectedValue is Matcher &&
+                expectedValue.matches(actualValue, {})))) {
+          var buffer = StringBuffer();
+          buffer.writeln('Incorrect event data.');
+          buffer.writeln('Expected:');
+          writeMap(buffer, expectedData);
+          buffer.writeln('Actual:');
+          writeMap(buffer, actualData);
+          fail(buffer.toString());
+        }
         expect(actualValue, expectedValue, reason: 'For key $expectedKey');
       }
     }
@@ -474,6 +509,15 @@ class _ExpectedEvent {
       }
     }
     return buffer.toString();
+  }
+
+  void writeMap(StringBuffer buffer, Map<String, Object?> map) {
+    for (var entry in map.entries) {
+      buffer.write('  ');
+      buffer.write(entry.key);
+      buffer.write(': ');
+      buffer.writeln(entry.value);
+    }
   }
 }
 
@@ -506,30 +550,22 @@ class _IsPercentiles extends Matcher {
 }
 
 /// A matcher for strings containing positive integer values.
-class _IsStringEncodedPositiveInt extends Matcher {
-  const _IsStringEncodedPositiveInt();
+class _IsPositiveInt extends Matcher {
+  const _IsPositiveInt();
 
   @override
   Description describe(Description description) =>
-      description.add('a string encoded positive integer');
+      description.add('a positive integer');
 
   @override
   bool matches(Object? item, Map<Object?, Object?> matchState) {
-    if (item is! String) {
-      return false;
-    }
-    try {
-      var value = int.parse(item);
-      return value >= 0;
-    } catch (exception) {
-      return false;
-    }
+    return item is int && item >= 0;
   }
 }
 
 /// An implementation of [Analytics] specialized for testing.
 class _MockAnalytics implements NoopAnalytics {
-  List<_Event> events = [];
+  List<Event> events = [];
 
   _MockAnalytics();
 
@@ -568,11 +604,9 @@ class _MockAnalytics implements NoopAnalytics {
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @override
-  Future<http.Response>? sendEvent(
-      {required DashEvent eventName,
-      Map<String, Object?> eventData = const {}}) {
-    events.add(_Event(eventName, eventData));
-    return null;
+  Future<http.Response>? send(Event event) async {
+    events.add(event);
+    return http.Response('', 200);
   }
 }
 
