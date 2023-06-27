@@ -30,9 +30,6 @@ class InterfaceTypeEnvironment {
 
   void _add(InterfaceType type) {
     Class cls = type.classNode;
-    if (_typeOffsets.containsKey(cls)) {
-      return;
-    }
     int i = 0;
     for (TypeParameter typeParameter in cls.typeParameters) {
       _typeOffsets[typeParameter] = i++;

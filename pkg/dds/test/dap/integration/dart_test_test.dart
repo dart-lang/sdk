@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
 import 'test_client.dart';
@@ -142,6 +143,118 @@ main() {
         dap.client.event('terminated'),
         dap.client.terminate(),
       ], eagerError: true);
+    });
+
+    test('resolves and updates breakpoints', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleTestBreakpointResolutionProgram);
+      final setBreakpointLine = lineWith(testFile, breakpointMarker);
+      final expectedResolvedBreakpointLine = setBreakpointLine + 1;
+
+      // Collect any breakpoint changes during the run.
+      final breakpointChangesFuture = client.breakpointChangeEvents.toList();
+
+      Future<SetBreakpointsResponseBody> setBreakpointFuture;
+      await Future.wait([
+        client
+            .expectStop('breakpoint',
+                file: testFile, line: expectedResolvedBreakpointLine)
+            .then((_) => client.terminate()),
+        client.initialize(),
+        setBreakpointFuture = client.setBreakpoint(testFile, setBreakpointLine),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // The initial setBreakpointResponse should always return unverified
+      // because we verify using the BreakpointAdded/BreakpointResolved events.
+      final setBreakpointResponse = await setBreakpointFuture;
+      expect(setBreakpointResponse.breakpoints, hasLength(1));
+      final setBreakpoint = setBreakpointResponse.breakpoints.single;
+      expect(setBreakpoint.verified, isFalse);
+
+      // The last breakpoint change we had should be verified and also update
+      // the line to [expectedResolvedBreakpointLine] since the breakpoint was
+      // on a blank line.
+      final breakpointChanges = await breakpointChangesFuture;
+      final updatedBreakpoint = breakpointChanges.last.breakpoint;
+      expect(updatedBreakpoint.verified, isTrue);
+      expect(updatedBreakpoint.line, expectedResolvedBreakpointLine);
+    });
+
+    test('resolves modified breakpoints', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleTestMultiBreakpointProgram);
+      final breakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Start the app and hit the initial breakpoint.
+      await client.hitBreakpoint(testFile, breakpointLine);
+
+      // Collect IDs of all breakpoints that get resolved.
+      final resolvedBreakpoints = <int>{};
+      final breakpointResolveSubscription =
+          client.breakpointChangeEvents.listen((event) {
+        if (event.breakpoint.verified) {
+          resolvedBreakpoints.add(event.breakpoint.id!);
+        } else {
+          resolvedBreakpoints.remove(event.breakpoint.id!);
+        }
+      });
+
+      // Add breakpoints to the 4 lines after the current one, one at a time.
+      // Capture the IDs of all breakpoints added.
+      final breakpointLinesToSend = <int>[breakpointLine];
+      final addedBreakpoints = <int>{};
+      for (var i = 1; i <= 4; i++) {
+        breakpointLinesToSend.add(breakpointLine + i);
+        final response =
+            await client.setBreakpoints(testFile, breakpointLinesToSend);
+        for (final breakpoint in response.breakpoints) {
+          addedBreakpoints.add(breakpoint.id!);
+        }
+      }
+
+      await pumpEventQueue(times: 5000);
+      await breakpointResolveSubscription.cancel();
+
+      // Ensure every breakpoint that was added was also resolved.
+      expect(resolvedBreakpoints, addedBreakpoints);
+    });
+
+    test('responds to setBreakpoints before any breakpoint events', () async {
+      final client = dap.client;
+      final testFile =
+          dap.createTestFile(simpleTestBreakpointResolutionProgram);
+      final setBreakpointLine = lineWith(testFile, breakpointMarker);
+
+      // Run the app and get to a breakpoint. This will allow us to add new
+      // breakpoints in the same file that are _immediately_ resolved.
+      await Future.wait([
+        client.initialize(),
+        client.expectStop('breakpoint'),
+        client.setBreakpoint(testFile, setBreakpointLine),
+        client.launch(testFile.path),
+      ], eagerError: true);
+
+      // Call setBreakpoint again, and ensure it response before we get any
+      // breakpoint change events because we require their IDs before the change
+      // events are sent.
+      var setBreakpointsResponded = false;
+      await Future.wait([
+        client.breakpointChangeEvents.first.then((_) {
+          if (!setBreakpointsResponded) {
+            throw 'breakpoint change event arrived before '
+                'setBreakpoints completed';
+          }
+        }),
+        client
+            // Send 50 breakpoints for lines 1-50 to ensure we spend some time
+            // sending requests to the VM to allow events to start coming back
+            // from the VM before we complete. Without this, the test can pass
+            // even without the fix.
+            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            .then((_) => setBreakpointsResponded = true),
+      ]);
     });
 
     test('rejects attaching', () async {

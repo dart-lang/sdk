@@ -154,6 +154,13 @@ const simpleMultiBreakpointProgram = '''
   }
 ''';
 
+final simpleBreakpointProgramWith50ExtraLines = '''
+  void main(List<String> args) async {
+    print('Hello!'); $breakpointMarker
+    ${'await null;\n' * 50}
+  }
+''';
+
 /// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
 /// a `debugger()` call after the isolate completes to ensure the app does not
 /// immediately exit.
@@ -227,6 +234,43 @@ const simpleTestProgram = '''
       test('skipped test', () {
         expect(1, equals(2));
       }, skip: true);
+    });
+  }
+''';
+
+/// A simple test that should pass and contains a comment marker
+/// '// BREAKPOINT' on a blank line where a breakpoint should be resolved
+/// to the next line.
+const simpleTestBreakpointResolutionProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    group('group 1', () {
+      test('passing test', () {
+        $breakpointMarker
+        expect(1, equals(1));
+      });
+    });
+  }
+''';
+
+/// A simple test that prints the numbers from 1 to 5.
+///
+/// A breakpoint marker is on the line that prints '1' and the subsequent 4
+/// lines are valid targets for breakpoints.
+const simpleTestMultiBreakpointProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    group('group 1', () {
+      test('passing test', () {
+        print('1'); $breakpointMarker
+        print('2');
+        print('3');
+        print('4');
+        print('5');
+        expect(1, equals(1));
+      });
     });
   }
 ''';

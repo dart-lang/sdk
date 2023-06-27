@@ -2820,24 +2820,6 @@ static void GenerateSubtypeTestCacheHashSearch(
     ASSERT(dst != kNoRegister);
     ASSERT(src != kNoRegister);
     __ Comment("Loading %s type hash", name);
-#if defined(DEBUG)
-    // Verify the object in the given register is not null and break if not.
-    // Can't use EnsureHasClassIdInDEBUG here, as it could be an instance of
-    // any concrete subclass of AbstractType.
-    Label is_not_null, is_abstract_type;
-    __ CompareRegisters(src, null_reg);
-    __ BranchIf(NOT_EQUAL, &is_not_null, Assembler::kNearJump);
-    __ Comment("Stop: Expected non-null");
-    __ Breakpoint();
-    __ Bind(&is_not_null);
-    __ LoadClassIdMayBeSmi(TMP, src);
-    __ AddImmediate(TMP, -kTypeCid);
-    __ CompareImmediate(TMP, kTypeParameterCid - kTypeCid);
-    __ BranchIf(UNSIGNED_LESS_EQUAL, &is_abstract_type, Assembler::kNearJump);
-    __ Comment("Stop: Expected AbstractType");
-    __ Breakpoint();
-    __ Bind(&is_abstract_type);
-#endif
     __ LoadFromSlot(dst, src, Slot::AbstractType_hash());
     __ SmiUntag(dst);
     __ CompareImmediate(dst, 0);
@@ -2854,8 +2836,6 @@ static void GenerateSubtypeTestCacheHashSearch(
     __ LoadImmediate(dst, TypeArguments::kAllDynamicHash);
     __ CompareRegisters(src, null_reg);
     __ BranchIf(EQUAL, &done, Assembler::kNearJump);
-    __ EnsureHasClassIdInDEBUG(kTypeArgumentsCid, src, TMP,
-                               /*can_be_null=*/false);
     __ LoadFromSlot(dst, src, Slot::TypeArguments_hash());
     __ SmiUntag(dst);
     __ CompareImmediate(dst, 0);
@@ -3116,14 +3096,6 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
     // If the type is fully instantiated, then it can be determined at compile
     // time whether Smi is a subtype of the type or not. Thus, this code should
     // never be called with a Smi instance.
-#if defined(DEBUG)
-    // Double-check this in DEBUG mode, instead of getting a segfault.
-    Label not_smi;
-    __ BranchIfNotSmi(TypeTestABI::kInstanceReg, &not_smi,
-                      Assembler::kNearJump);
-    __ Breakpoint();
-    __ Bind(&not_smi);
-#endif
     __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   }
   __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);

@@ -105,17 +105,13 @@ main() {
 
     test('responds to setBreakpoints before any breakpoint events', () async {
       final client = dap.client;
-      final testFile = dap.createTestFile(simpleBreakpointResolutionProgram);
+      final testFile =
+          dap.createTestFile(simpleBreakpointProgramWith50ExtraLines);
       final setBreakpointLine = lineWith(testFile, breakpointMarker);
 
       // Run the app and get to a breakpoint. This will allow us to add new
       // breakpoints in the same file that are _immediately_ resolved.
-      await Future.wait([
-        client.initialize(),
-        client.expectStop('breakpoint'),
-        client.setBreakpoint(testFile, setBreakpointLine),
-        client.launch(testFile.path),
-      ], eagerError: true);
+      await client.hitBreakpoint(testFile, setBreakpointLine);
 
       // Call setBreakpoint again, and ensure it response before we get any
       // breakpoint change events because we require their IDs before the change
@@ -129,11 +125,12 @@ main() {
           }
         }),
         client
-            // Send 50 breakpoints for lines 1-50 to ensure we spend some time
-            // sending requests to the VM to allow events to start coming back
-            // from the VM before we complete. Without this, the test can pass
-            // even without the fix.
-            .setBreakpoints(testFile, List.generate(50, (index) => index))
+            // Send 50 breakpoints for the next 50 lines to ensure we spend some
+            // time sending requests to the VM to allow events to start coming
+            // back from the VM before we complete. Without this, the test can
+            // pass even without the fix.
+            .setBreakpoints(testFile,
+                List.generate(50, (index) => setBreakpointLine + index))
             .then((_) => setBreakpointsResponded = true),
       ]);
     });

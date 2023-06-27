@@ -128,7 +128,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     final isLeafField =
         ffiConstant.fieldValues[nativeIsLeafField.fieldReference];
     final isLeaf = (isLeafField as BoolConstant).value;
-    final assetField = ffiConstant.fieldValues[nativeAssetField];
+    final assetField = ffiConstant.fieldValues[nativeAssetField.fieldReference];
     final assetName = (assetField is StringConstant)
         ? assetField
         : (currentAsset ?? StringConstant("ffi"));

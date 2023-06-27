@@ -49,7 +49,8 @@ void main(List<String> args) {
     List<Map<String, num>> snapshotResults = [];
     runResults.add(snapshotResults);
     for (int iteration = 0; iteration < iterations; iteration++) {
-      snapshotResults.add(_benchmark(aotRuntime, core, snapshot, arguments));
+      snapshotResults
+          .add(_benchmark(aotRuntime, core, snapshot, [], arguments));
     }
   }
   stdout.write("\n\n");
@@ -97,6 +98,10 @@ void _help() {
   print("has been observed to be stable.");
 }
 
+bool compare(List<Map<String, num>> from, List<Map<String, num>> to) {
+  return _compare(from, to);
+}
+
 bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
   bool somethingWasSignificant = false;
   Set<String> allCaptions = {};
@@ -121,7 +126,8 @@ bool _compare(List<Map<String, num>> from, List<Map<String, num>> to) {
     TTestResult stats = SimpleTTestStat.ttest(toForCaption, fromForCaption);
     if (stats.significant) {
       somethingWasSignificant = true;
-      print("$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)}");
+      print("$caption: ${stats.percentChangeIfSignificant(fractionDigits: 4)} "
+          "(${stats.valueChangeIfSignificant(fractionDigits: 2)})");
     }
   }
   return somethingWasSignificant;
@@ -136,12 +142,21 @@ List<num> _extractDataForCaption(String caption, List<Map<String, num>> data) {
   return result;
 }
 
+Map<String, num> benchmark(
+    String snapshot, List<String> extraVmArguments, List<String> arguments,
+    {String? aotRuntime, int? core}) {
+  return _benchmark(aotRuntime ?? _computeAotRuntime(), core ?? 7, snapshot,
+      extraVmArguments, arguments,
+      silent: true);
+}
+
 late final RegExp _extractNumbers =
     new RegExp(r"([\d+\,\.]+)\s+(.+)\s*", caseSensitive: false);
 
-Map<String, num> _benchmark(
-    String aotRuntime, int core, String snapshot, List<String> arguments) {
-  stdout.write(".");
+Map<String, num> _benchmark(String aotRuntime, int core, String snapshot,
+    List<String> extraVmArguments, List<String> arguments,
+    {bool silent = false}) {
+  if (!silent) stdout.write(".");
   ProcessResult processResult = Process.runSync("perf", [
     "stat",
     "-B",
@@ -150,6 +165,7 @@ Map<String, num> _benchmark(
     "$core",
     aotRuntime,
     "--deterministic",
+    ...extraVmArguments,
     snapshot,
     ...arguments
   ]);
@@ -158,7 +174,7 @@ Map<String, num> _benchmark(
         "stdout:\n${processResult.stdout}\n\n"
         "stderr:\n${processResult.stderr}\n\n";
   }
-  if (processResult.stdout != "") {
+  if (processResult.stdout != "" && !silent) {
     print(processResult.stdout);
   }
   String stderr = processResult.stderr;

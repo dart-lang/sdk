@@ -72,18 +72,27 @@ class IsolateManager {
   /// Tracks client breakpoints by the ID assigned by the VM so we can look up
   /// conditions/logpoints when hitting breakpoints.
   ///
+  /// Because the VM might return the same breakpoint for multiple
+  /// `addBreakpointWithScriptUri` calls (if they immediately resolve to the
+  /// same location) there may be multiple client breakpoints for a given VM
+  /// breakpoint ID.
+  ///
   /// When an item is added to this map, any pending events in
   /// [_pendingBreakpointEvents] MUST be processed immediately.
-  final Map<String, ClientBreakpoint> _clientBreakpointsByVmId = {};
+  final Map<String, List<ClientBreakpoint>> _clientBreakpointsByVmId = {};
 
-  /// Tracks breakpoints for which we have received `BreakpointAdded` or
-  /// `BreakpointResolved` events, but whose `addBreakpointWithScriptUri`
-  /// requests have not yet completed.
+  /// Tracks `BreakpointAdded` or `BreakpointResolved` events for VM
+  /// breakpoints.
   ///
-  /// We cannot process these events until after we get the breakpoint ID
-  /// back from the VM. This queue MUST be processed immediately any time a
-  /// breakpoint is added to [_clientBreakpointsByVmId].
-  final Map<String, PendingBreakpointActions> _pendingBreakpointEvents = {};
+  /// These are kept for all breakpoints until they are removed by the VM
+  /// because it's always possible that the VM will reuse a breakpoint ID (eg.
+  /// if we add a new breakpoint that resolves to the same location as another
+  /// breakpoint).
+  ///
+  /// When new breakpoints are added by the client, we must check this map to
+  /// see it's al already-resolved breakpoint so that we can send resolution
+  /// info to the client.
+  final Map<String, vm.Event> _breakpointResolvedEventsByVmId = {};
 
   /// Tracks breakpoints created in the VM so they can be removed when the
   /// editor sends new breakpoints (currently the editor just sends a new list
@@ -552,8 +561,13 @@ class IsolateManager {
         // Look up the client breakpoints that correspond to the VM breakpoint(s)
         // we hit. It's possible some of these may be missing because we could
         // hit a breakpoint that was set before we were attached.
+        //
+        // When multiple client breakpoints have been folded into a single VM
+        // breakpoint, we (arbitrarily) use the first one for conditions and
+        // logpoints.
         final clientBreakpoints = event.pauseBreakpoints!
-            .map((bp) => _clientBreakpointsByVmId[bp.id!]?.breakpoint)
+            .map((bp) =>
+                _clientBreakpointsByVmId[bp.id!]?.firstOrNull?.breakpoint)
             .toSet();
 
         // Split into logpoints (which just print messages) and breakpoints.
@@ -629,49 +643,57 @@ class IsolateManager {
 
   /// Handles 'BreakpointAdded'/'BreakpointResolved' events from the VM,
   /// informing the client of updated information about the breakpoint.
+  ///
+  /// Information about unresolved breakpoints will be ignored to avoid
+  /// overwriting resolved breakpoint info with unresolved/stale info in the
+  /// case of multiple isolates where they haven't all loaded the scripts that
+  /// we added breakpoints for.
   void _handleBreakpointAddedOrResolved(vm.Event event) {
     final breakpoint = event.breakpoint!;
     final breakpointId = breakpoint.id!;
 
-    final existingBreakpoint = _clientBreakpointsByVmId[breakpointId];
-    if (existingBreakpoint == null) {
-      // If we can't match this breakpoint up, we cannot get its ID or send
-      // events for it. This can happen if:
-      //
-      // 1. A breakpoint is being resolved just as a user changes breakpoints,
-      //    so we have replaced our collection with a new set before we
-      //    processed this event.
-      // 2. We got a `BreakpointAdded`/`BreakpointUpdated` event prior to the
-      //    response to `addBreakpointWithScriptUri`. In this case, we need to
-      //    process this once that has completed and we can match up the IDs.
-      //
-      // It's important we don't miss any events for (2), so queue them up so
-      // they can be handled if/when the breakpoint is handled in a
-      // `setBreakpointWithScriptUri` response.
-      final queue = _pendingBreakpointEvents.putIfAbsent(
-        breakpointId,
-        PendingBreakpointActions.new,
-      );
-      // Queue another call back to this function later.
-      queue.queueAction(() => _handleBreakpointAddedOrResolved(event));
+    if (!(breakpoint.resolved ?? false)) {
+      // Unresolved breakpoint, don't need to do anything.
       return;
     }
 
-    // Location may be [SourceLocation] or [UnresolvedSourceLocaion] depending
-    // on whether this is an Added or Resolved event.
+    // Store this event so if we get any future breakpoints that resolve to this
+    // VM breakpoint, we can access the resolution info.
+    _breakpointResolvedEventsByVmId[breakpointId] = event;
+
+    // And for existing breakpoints, send (or queue) resolved events.
+    final existingBreakpoints = _clientBreakpointsByVmId[breakpointId];
+    for (final existingBreakpoint in existingBreakpoints ?? const []) {
+      queueBreakpointResolutionEvent(event, existingBreakpoint);
+    }
+  }
+
+  /// Queues a breakpoint resolution event that passes resolution info from
+  /// the VM back to the client.
+  ///
+  /// This queue will be processed only after the client has been given the ID
+  /// of this breakpoint. If that has already happened, the event will be
+  /// processed on the next task queue iteration.
+  void queueBreakpointResolutionEvent(
+    vm.Event addedOrResolvedEvent,
+    ClientBreakpoint clientBreakpoint,
+  ) {
+    assert(addedOrResolvedEvent.breakpoint != null);
+    final breakpoint = addedOrResolvedEvent.breakpoint!;
+    assert(breakpoint.resolved ?? false);
+
+    // This is always resolved because of the check above.
     final location = breakpoint.location;
-    final resolvedLocation = location is vm.SourceLocation ? location : null;
-    final unresolvedLocation =
-        location is vm.UnresolvedSourceLocation ? location : null;
+    final resolvedLocation = location as vm.SourceLocation;
     final updatedBreakpoint = Breakpoint(
-      id: existingBreakpoint.id,
-      line: resolvedLocation?.line ?? unresolvedLocation?.line,
-      column: resolvedLocation?.column ?? unresolvedLocation?.column,
-      verified: breakpoint.resolved ?? false,
+      id: clientBreakpoint.id,
+      line: resolvedLocation.line,
+      column: resolvedLocation.column,
+      verified: true,
     );
     // Ensure we don't send the breakpoint event until the client has been
-    // given the breakpoint ID.
-    existingBreakpoint.queueAction(
+    // given the breakpoint ID by queueing it.
+    clientBreakpoint.queueAction(
       () => _adapter.sendEvent(
         BreakpointEventBody(breakpoint: updatedBreakpoint, reason: 'changed'),
       ),
@@ -820,17 +842,19 @@ class IsolateManager {
               column: bp.breakpoint.column);
           final vmBpId = vmBp.id!;
           existingBreakpointsForIsolateAndUri[vmBpId] = vmBp;
-          _clientBreakpointsByVmId[vmBpId] = bp;
 
-          // Now we have the ID of this breakpoint, append an action that
-          // processes any pending events.
-          final pendingEvents = _pendingBreakpointEvents[vmBpId];
-          if (pendingEvents != null) {
-            bp.queueAction(() {
-              pendingEvents.completer.complete();
-              return pendingEvents._lastActionFuture;
-            });
-            _pendingBreakpointEvents.remove(vmBpId);
+          // Store this client breakpoint by the VM ID, so when we get events
+          // from the VM we can map them back to client breakpoints (for example
+          // to send resolved events).
+          _clientBreakpointsByVmId.putIfAbsent(vmBpId, () => []).add(bp);
+
+          // Queue any resolved events that may have already arrived
+          // (either because the VM sent them before responding to us, or
+          // because it gave us an existing VM breakpoint because it resolved to
+          // the same location as another).
+          final resolvedEvent = _breakpointResolvedEventsByVmId[vmBpId];
+          if (resolvedEvent != null) {
+            queueBreakpointResolutionEvent(resolvedEvent, bp);
           }
         } catch (e) {
           // Swallow errors setting breakpoints rather than failing the whole
