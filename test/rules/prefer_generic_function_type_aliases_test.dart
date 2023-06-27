@@ -17,6 +17,20 @@ class PreferGenericFunctionTypeAliasesTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_generic_function_type_aliases';
 
+  test_classicTypedef() async {
+    await assertDiagnostics(r'''
+typedef void F();
+''', [
+      lint(13, 1),
+    ]);
+  }
+
+  test_genericFunctionType() async {
+    await assertNoDiagnostics(r'''
+typedef F = void Function();
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/2777
   test_undefinedFunction() async {
     await assertDiagnostics(r'''
