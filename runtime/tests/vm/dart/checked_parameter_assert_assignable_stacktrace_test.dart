@@ -1,8 +1,14 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// Note: we pass --save-debugging-info=* without --dwarf-stack-traces to
+// make this test pass on vm-aot-dwarf-* builders.
+//
+// VMOptions=--save-debugging-info=$TEST_COMPILATION_DIR/debug.so
+// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/debug.so
 
-import 'causal_stacks/utils.dart' show assertStack, IGNORE_REMAINING_STACK;
+import 'awaiter_stacks/harness.dart' as harness;
 
 class A {
   void takesA(A a) {
@@ -18,7 +24,9 @@ class B extends A {
 
 StackTrace? trace = null;
 
-void main() {
+void main() async {
+  harness.configure(currentExpectations);
+
   A a = new A();
   A b = new B();
   try {
@@ -26,9 +34,17 @@ void main() {
   } catch (e, st) {
     trace = st;
   }
-  assertStack(const <String>[
-    r'^#0      B.takesA \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:14(:27)?\)$',
-    r'^#1      main \(.*/checked_parameter_assert_assignable_stacktrace_test.dart:25(:7)?\)$',
-    IGNORE_REMAINING_STACK,
-  ], trace!);
+
+  await harness.checkExpectedStack(trace!);
+  harness.updateExpectations();
 }
+
+// CURRENT EXPECTATIONS BEGIN
+final currentExpectations = [
+  """
+#0    B.takesA (%test%)
+#1    main (%test%)
+#2    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
+#3    _RawReceivePort._handleMessage (isolate_patch.dart)"""
+];
+// CURRENT EXPECTATIONS END
