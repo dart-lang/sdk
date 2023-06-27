@@ -62,8 +62,8 @@ class LegacyTestMover {
   List<String> gatherSnippets(List<String> legacyLines) {
     var snippets = <String>[];
     var startIndex = 0;
+    var endIndex = math.min(legacyLines.length, 40);
     while (startIndex < legacyLines.length) {
-      var endIndex = math.min(legacyLines.length, 40);
       for (var index = startIndex; index < endIndex; index++) {
         print('${index.toString().padLeft(3)}  ${legacyLines[index]}');
       }
@@ -78,6 +78,7 @@ class LegacyTestMover {
       }
       snippets.add(snippet.join('\n'));
       startIndex = math.max(0, ranges.first.start - 3);
+      endIndex = math.min(legacyLines.length, startIndex + 40);
     }
     return snippets;
   }
