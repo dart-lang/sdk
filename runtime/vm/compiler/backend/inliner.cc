@@ -1825,19 +1825,21 @@ class CallSiteInliner : public ValueObject {
       ClosureCallInstr* call = call_info[call_idx].call;
       // Find the closure of the callee.
       ASSERT(call->ArgumentCount() > 0);
-      Function& target = Function::ZoneHandle();
-      Definition* receiver =
-          call->Receiver()->definition()->OriginalDefinition();
-      if (const auto* alloc = receiver->AsAllocateClosure()) {
-        target = alloc->known_function().ptr();
-      } else if (ConstantInstr* constant = receiver->AsConstant()) {
-        if (constant->value().IsClosure()) {
-          target = Closure::Cast(constant->value()).function();
+      Function& target = Function::ZoneHandle(call->target_function().ptr());
+      if (target.IsNull()) {
+        Definition* receiver =
+            call->Receiver()->definition()->OriginalDefinition();
+        if (const auto* alloc = receiver->AsAllocateClosure()) {
+          target = alloc->known_function().ptr();
+        } else if (ConstantInstr* constant = receiver->AsConstant()) {
+          if (constant->value().IsClosure()) {
+            target = Closure::Cast(constant->value()).function();
+          }
         }
       }
 
       if (target.IsNull()) {
-        TRACE_INLINING(THR_Print("     Bailout: non-closure operator\n"));
+        TRACE_INLINING(THR_Print("     Bailout: unknown target\n"));
         continue;
       }
 

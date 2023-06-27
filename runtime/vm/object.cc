@@ -15206,8 +15206,6 @@ void KernelProgramInfo::set_libraries_cache(const Array& cache) const {
   untag()->set_libraries_cache(cache.ptr());
 }
 
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
 LibraryPtr KernelProgramInfo::LookupLibrary(Thread* thread,
                                             const Smi& name_index) const {
   REUSABLE_ARRAY_HANDLESCOPE(thread);
