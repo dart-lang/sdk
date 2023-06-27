@@ -281,14 +281,23 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
           ProcessToSpace();
           ProcessPromotedList();
         } while (HasWork());
-        ProcessWeakProperties();
+        ProcessWeakPropertiesScoped();
       } while (HasWork());
     } else {
       ASSERT(scavenger_->abort_);
     }
   }
 
-  void ProcessWeakProperties();
+  void ProcessWeakProperties() {
+    LongJumpScope jump(thread_);
+    if (setjmp(*jump.Set()) == 0) {
+      ProcessWeakPropertiesScoped();
+    } else {
+      ASSERT(scavenger_->abort_);
+    }
+  }
+
+  void ProcessWeakPropertiesScoped();
 
   bool HasWork() {
     if (scavenger_->abort_) return false;
@@ -400,6 +409,10 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
 
   DART_FORCE_INLINE
   ObjectPtr ScavengeObject(ObjectPtr raw_obj) {
+    // Fragmentation might cause the scavenge to fail. Ensure we always have
+    // somewhere to bail out to.
+    ASSERT(thread_->long_jump_base() != nullptr);
+
     uword raw_addr = UntaggedObject::ToAddr(raw_obj);
     // The scavenger is only expects objects located in the from space.
     ASSERT(from_->Contains(raw_addr));
@@ -1269,7 +1282,7 @@ void ScavengerVisitorBase<parallel>::ProcessPromotedList() {
 }
 
 template <bool parallel>
-void ScavengerVisitorBase<parallel>::ProcessWeakProperties() {
+void ScavengerVisitorBase<parallel>::ProcessWeakPropertiesScoped() {
   if (scavenger_->abort_) return;
 
   // Finished this round of scavenging. Process the pending weak properties

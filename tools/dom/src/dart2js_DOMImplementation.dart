@@ -9,7 +9,12 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final Object _window;
+  final Object? __window;
+
+  Object get _window {
+    if (__window == null) throw new NullWindowException();
+    return __window!;
+  }
 
   // Fields.
   HistoryBase get history =>
@@ -46,7 +51,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrame(this._window);
+  _DOMWindowCrossFrame(this.__window);
 
   static WindowBase _createSafe(w) {
     if (identical(w, window)) {

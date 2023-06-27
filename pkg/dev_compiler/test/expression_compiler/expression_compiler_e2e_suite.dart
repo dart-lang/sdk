@@ -149,11 +149,13 @@ class TestCompiler {
 
     var classHierarchy = compilerResult.classHierarchy!;
     var compilerOptions = SharedCompilerOptions(
-        replCompile: true,
-        moduleName: moduleName,
-        experiments: experiments,
-        soundNullSafety: setup.soundNullSafety,
-        emitDebugMetadata: true);
+      replCompile: true,
+      moduleName: moduleName,
+      experiments: experiments,
+      soundNullSafety: setup.soundNullSafety,
+      emitDebugMetadata: true,
+      canaryFeatures: false,
+    );
     var coreTypes = compilerResult.coreTypes;
 
     final importToSummary = Map<Library, Component>.identity();

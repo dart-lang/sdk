@@ -12,7 +12,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 
-// ignore: missing_override_of_must_be_overridden
 class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
   late final ClassElement element;
 
@@ -352,7 +351,6 @@ class DeclarationBuilderFromNode {
   }
 }
 
-// ignore: missing_override_of_must_be_overridden
 class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   FieldDeclarationImpl({
     required super.id,
@@ -367,7 +365,6 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
   });
 }
 
-// ignore: missing_override_of_must_be_overridden
 abstract class IdentifierImpl extends macro.IdentifierImpl {
   IdentifierImpl({
     required super.id,
@@ -377,7 +374,6 @@ abstract class IdentifierImpl extends macro.IdentifierImpl {
   Element? get element;
 }
 
-// ignore: missing_override_of_must_be_overridden
 class IdentifierImplFromElement extends IdentifierImpl {
   @override
   final Element element;
@@ -389,7 +385,6 @@ class IdentifierImplFromElement extends IdentifierImpl {
   });
 }
 
-// ignore: missing_override_of_must_be_overridden
 class IntrospectableClassDeclarationImpl
     extends macro.IntrospectableClassDeclarationImpl {
   late final ClassElement element;
@@ -412,7 +407,6 @@ class IntrospectableClassDeclarationImpl
   });
 }
 
-// ignore: missing_override_of_must_be_overridden
 abstract class LibraryImpl extends macro.LibraryImpl {
   LibraryImpl({
     required super.id,
@@ -423,7 +417,6 @@ abstract class LibraryImpl extends macro.LibraryImpl {
   Element? get element;
 }
 
-// ignore: missing_override_of_must_be_overridden
 class LibraryImplFromElement extends LibraryImpl {
   @override
   final Element element;
@@ -436,7 +429,6 @@ class LibraryImplFromElement extends LibraryImpl {
   });
 }
 
-// ignore: missing_override_of_must_be_overridden
 class _DeclaredIdentifierImpl extends IdentifierImpl {
   @override
   final Element element;
@@ -448,7 +440,6 @@ class _DeclaredIdentifierImpl extends IdentifierImpl {
   });
 }
 
-// ignore: missing_override_of_must_be_overridden
 class _NamedTypeIdentifierImpl extends IdentifierImpl {
   final ast.NamedType node;
 

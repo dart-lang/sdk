@@ -297,7 +297,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     for path in os.environ.get('PATH', '').split(os.pathsep):
         if os.path.basename(path) == 'depot_tools':
             cipd_bin = os.path.join(path, '.cipd_bin')
-            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+            if os.path.isfile(os.path.join(cipd_bin, ExecutableName('gomacc'))):
                 goma_depot_tools_dir = cipd_bin
                 break
     # Otherwise use goma from home directory.
@@ -571,6 +571,12 @@ def parse_args(args):
         parser.print_help()
         return None
     return options
+
+
+def ExecutableName(basename):
+    if utils.IsWindows():
+        return f'{basename}.exe'
+    return basename
 
 
 def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):

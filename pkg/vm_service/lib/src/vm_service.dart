@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.9.0';
+const String vmServiceVersion = '4.10.0';
 
 /// @optional
 const String optional = 'optional';
@@ -3347,8 +3347,7 @@ class Breakpoint extends Obj {
   /// Has this breakpoint been assigned to a specific program location?
   bool? resolved;
 
-  /// Is this a breakpoint that was added synthetically as part of a step
-  /// OverAsyncSuspension resume command?
+  /// Note: this property is deprecated and is always absent from the response.
   @optional
   bool? isSyntheticAsyncContinuation;
 
@@ -8464,6 +8463,12 @@ class Stack extends Response {
   /// running `async` function. Asynchronous frames are separated from each
   /// other and synchronous prefix via frames of kind
   /// FrameKind.kAsyncSuspensionMarker.
+  ///
+  /// The name is historic and misleading: despite what *causal* implies, this
+  /// stack does not reflect the stack at the moment when asynchronous operation
+  /// was started (i.e. the stack that *caused* it), but instead reflects the
+  /// chain of listeners which will run when asynchronous operation is completed
+  /// (i.e. its *awaiters*).
   ///
   /// This field is absent if currently running code does not have an
   /// asynchronous continuation.

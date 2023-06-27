@@ -1,3 +1,7 @@
+## 11.7.3
+- Update to version `4.10` of the spec.
+- Add deprecation notice to `Breakpoint.isSyntheticAsyncContinuation`.
+
 ## 11.7.2
 - Make Event classes abstract to permit `dap` event stream extensions.
 

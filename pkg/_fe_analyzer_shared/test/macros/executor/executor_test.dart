@@ -34,14 +34,7 @@ void main() {
     'ProcessStdio',
   ]) {
     group('$executorKind executor', () {
-      for (var mode in [
-        SerializationMode.byteDataServer,
-        SerializationMode.jsonServer,
-      ]) {
-        final clientMode = mode == SerializationMode.byteDataServer
-            ? SerializationMode.byteDataClient
-            : SerializationMode.jsonClient;
-
+      for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
         group('$mode', () {
           setUpAll(() async {
             simpleMacroFile =
@@ -53,7 +46,7 @@ void main() {
               macroUri.toString(): {
                 macroName: ['', 'named']
               }
-            }, clientMode);
+            }, mode);
             var bootstrapFile =
                 File(tmpDir.uri.resolve('main.dart').toFilePath())
                   ..writeAsStringSync(bootstrapContent);

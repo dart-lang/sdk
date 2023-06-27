@@ -339,8 +339,8 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
 
   Uri uri = _defaultDir.resolve('main.dart');
   MemoryFileSystem fs = new MemoryFileSystem(_defaultDir);
-  fs.entityForUri(uri).writeAsStringSync(bootstrapMacroIsolate(
-      macroDeclarations, SerializationMode.byteDataClient));
+  fs.entityForUri(uri).writeAsStringSync(
+      bootstrapMacroIsolate(macroDeclarations, SerializationMode.byteData));
 
   precompilationOptions
     ..fileSystem = new HybridFileSystem(fs, options.fileSystem);
@@ -351,8 +351,7 @@ Future<Map<Uri, ExecutorFactoryToken>> _compileMacros(
   Set<Uri> macroLibraries =
       neededPrecompilations.macroDeclarations.keys.toSet();
   ExecutorFactoryToken executorToken = macroExecutor.registerExecutorFactory(
-      () => isolatedExecutor.start(
-          SerializationMode.byteDataServer, precompiledUri),
+      () => isolatedExecutor.start(SerializationMode.byteData, precompiledUri),
       macroLibraries);
   return <Uri, ExecutorFactoryToken>{
     for (Uri library in macroLibraries) library: executorToken,

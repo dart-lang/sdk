@@ -13,8 +13,8 @@ import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 
 void main() async {
   for (var serializationMode in [
-    SerializationMode.jsonClient,
-    SerializationMode.byteDataClient
+    SerializationMode.json,
+    SerializationMode.byteData
   ]) {
     await withSerializationMode(serializationMode, () async {
       await _isolateSpawnBenchmarks();
@@ -145,8 +145,7 @@ Future<void> _separateProcessStdioBenchmarks() async {
       process.stderr.listen((event) {
         print('stderr: ${utf8.decode(event)}');
       }),
-      (serializationMode == SerializationMode.jsonServer ||
-                  serializationMode == SerializationMode.jsonClient
+      (serializationMode == SerializationMode.json
               ? process.stdout
               : MessageGrouper(process.stdout).messageStream)
           .listen((data) {
@@ -226,8 +225,7 @@ Future<void> _separateProcessSocketBenchmarks() async {
     client.setOption(SocketOption.tcpNoDelay, true);
 
     var listeners = <StreamSubscription>[
-      (serializationMode == SerializationMode.jsonServer ||
-                  serializationMode == SerializationMode.jsonClient
+      (serializationMode == SerializationMode.json
               ? client
               : MessageGrouper(client).messageStream)
           .listen((event) {
@@ -323,7 +321,7 @@ String childProgram(SerializationMode mode) => '''
             var address = args[0];
             var port = int.parse(args[1]);
             var socket = await Socket.connect(address, port);
-            if (mode == SerializationMode.jsonClient || mode == SerializationMode.jsonServer) {
+            if (mode == SerializationMode.json) {
               socket.listen((data) {
                 var json = utf8.decode(data).trimRight();
                 deserialize(jsonDecode(json));
@@ -342,7 +340,7 @@ String childProgram(SerializationMode mode) => '''
           } else {
             // We allow one empty line to work around some weird data.
             var allowEmpty = true;
-            if (mode == SerializationMode.jsonClient || mode == SerializationMode.jsonServer) {
+            if (mode == SerializationMode.json) {
               stdin.listen((data) {
                 var json = utf8.decode(data).trimRight();
                 // On exit we tend to get extra empty lines sometimes?
@@ -439,8 +437,7 @@ void deserialize(Object? result) {
   result = result is TransferableTypedData
       ? result.materialize().asUint8List()
       : result;
-  if (serializationMode == SerializationMode.jsonClient ||
-      serializationMode == SerializationMode.jsonServer) {
+  if (serializationMode == SerializationMode.json) {
     if (result is List<int>) {
       result = jsonDecode(utf8.decode(result));
     }

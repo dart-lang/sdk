@@ -383,6 +383,21 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   }
 }
 
+/// A request to destroy a remote instance zone by id.
+class DestroyRemoteInstanceZoneRequest extends Request {
+  DestroyRemoteInstanceZoneRequest({required super.serializationZoneId});
+
+  DestroyRemoteInstanceZoneRequest.deserialize(
+      super.deserializer, super.serializationZoneId)
+      : super.deserialize();
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.destroyRemoteInstanceZoneRequest.index);
+    super.serialize(serializer);
+  }
+}
+
 /// A request to create a resolved identifier.
 class ResolveIdentifierRequest extends Request {
   final Uri library;
@@ -810,6 +825,7 @@ enum MessageType {
   constructorsOfRequest,
   declarationOfRequest,
   declarationList,
+  destroyRemoteInstanceZoneRequest,
   valuesOfRequest,
   fieldsOfRequest,
   methodsOfRequest,

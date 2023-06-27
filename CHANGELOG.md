@@ -36,14 +36,6 @@
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
 
-#### `dart:html`
-
-- **Breaking change to Window.open**:
-  `Window.open` will now throw an exception that can be caught
-  (`NullWindowException`) if the opened window is null. Previously, this null
-  window would be wrapped, and there would be surprising runtime errors when any
-  member is used on the wrapper.
-
 #### `dart:js_interop`
 
 - **Object literal constructors**:

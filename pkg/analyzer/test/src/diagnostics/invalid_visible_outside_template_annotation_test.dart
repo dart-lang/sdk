@@ -24,6 +24,19 @@ class InvalidVisibleOutsideTemplateAnnotationTest
         angularMeta: true, meta: true);
   }
 
+  test_invalid_classConstructor() async {
+    await assertErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
+
+class C {
+  @visibleOutsideTemplate
+  C();
+}
+''', [
+      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
+    ]);
+  }
+
   test_invalid_classDeclaration() async {
     await assertErrorsInCode(r'''
 import 'package:angular_meta/angular_meta.dart';
@@ -42,8 +55,6 @@ import 'package:angular_meta/angular_meta.dart';
 class C {
   @visibleOutsideTemplate
   int a = 0;
-
-  String b = '';
 }
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
@@ -57,19 +68,6 @@ import 'package:angular_meta/angular_meta.dart';
 class C {
   @visibleOutsideTemplate
   void m() {}
-}
-''', [
-      error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
-    ]);
-  }
-
-  test_invalid_constructor() async {
-    await assertErrorsInCode(r'''
-import 'package:angular_meta/angular_meta.dart';
-
-class C {
-  @visibleOutsideTemplate
-  C();
 }
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 62, 23),
@@ -109,11 +107,7 @@ enum E {
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
-mixin class M2 {
-  int m() => 1;
-
-  int a = 0;
-}
+mixin class M2 {}
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
     ]);
@@ -126,8 +120,6 @@ import 'package:angular_meta/angular_meta.dart';
 mixin class M2 {
   @visibleOutsideTemplate
   int m() => 1;
-
-  int a = 0;
 }
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 69, 23),
@@ -139,11 +131,7 @@ mixin class M2 {
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleOutsideTemplate
-mixin M {
-  int m() => 1;
-
-  int a = 0;
-}
+mixin M {}
 class C2 with M {}
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
@@ -157,8 +145,6 @@ import 'package:angular_meta/angular_meta.dart';
 mixin M {
   @visibleOutsideTemplate
   int m() => 1;
-
-  int a = 0;
 }
 class C2 with M {}
 ''', [
@@ -170,7 +156,8 @@ class C2 with M {}
     await assertErrorsInCode(r'''
 import 'package:angular_meta/angular_meta.dart';
 
-@visibleOutsideTemplate void foo() {}
+@visibleOutsideTemplate
+void foo() {}
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
     ]);
@@ -180,7 +167,8 @@ import 'package:angular_meta/angular_meta.dart';
     await assertErrorsInCode(r'''
 import 'package:angular_meta/angular_meta.dart';
 
-@visibleOutsideTemplate final a = 1;
+@visibleOutsideTemplate
+final a = 1;
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
     ]);
@@ -190,64 +178,97 @@ import 'package:angular_meta/angular_meta.dart';
     await assertErrorsInCode(r'''
 import 'package:angular_meta/angular_meta.dart';
 
-@visibleOutsideTemplate var a = 1, b;
+@visibleOutsideTemplate
+var a = 1, b;
 ''', [
       error(WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION, 50, 23),
     ]);
   }
 
-  test_valid() async {
+  test_valid_classConstructor() async {
     await assertNoErrorsInCode(r'''
 import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
-class C1 {
+class C {
+  @visibleOutsideTemplate
+  C();
+}
+''');
+  }
+
+  test_valid_classField() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+class C {
   @visibleOutsideTemplate
   int a = 0;
-
-  int b = 0;
-
-  String c = '';
 }
+''');
+  }
+
+  test_valid_classMethod() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
-enum E1 {
+class C {
   @visibleOutsideTemplate
-  a,
-  b,
+  void m() {}
 }
+''');
+  }
+
+  test_valid_enumClassMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
-enum E2 {
-  @visibleOutsideTemplate
-  a,
-  b;
-  final int c = 0;
-}
-
-@visibleForTemplate
-enum E3 {
+enum E {
   v;
   @visibleOutsideTemplate
   void test() {}
 }
+''');
+  }
+
+  test_valid_enumConstant() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
-mixin M {
+enum E {
   @visibleOutsideTemplate
-  int m() => 1;
-
-  int a = 0;
+  a,
+  b,
 }
-class C2 with M {}
+''');
+  }
+
+  test_valid_mixinClassMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
 
 @visibleForTemplate
 mixin class M2 {
   @visibleOutsideTemplate
   int m() => 1;
-
-  int a = 0;
 }
+''');
+  }
+
+  test_valid_mixinMember() async {
+    await assertNoErrorsInCode(r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+mixin M {
+  @visibleOutsideTemplate
+  int m() => 1;
+}
+class C2 with M {}
 ''');
   }
 }

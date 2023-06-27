@@ -28,26 +28,18 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   /// A map of response completers by request id.
   final _responseCompleters = <int, Completer<Response>>{};
 
-  /// We need to know which serialization zone to deserialize objects in, so
-  /// that we read them from the correct cache. Each macro execution creates its
-  /// own zone which it stores here by ID and then responses are deserialized in
-  /// that same zone.
-  static final _serializationZones = <int, Zone>{};
-
-  /// Incrementing identifier for the serialization zone ids.
-  static int _nextSerializationZoneId = 0;
-
   ExternalMacroExecutorBase(
       {required this.messageStream, required this.serializationMode}) {
-    messageStream.listen((message) {
-      withSerializationMode(serializationMode, () {
+    withSerializationMode(serializationMode, () {
+      messageStream.listen((message) {
+        // No need for a remote cache in this zone we only read a zone ID and
+        // then immediately run in that zone.
         Deserializer deserializer = deserializerFactory(message);
         // Every object starts with a zone ID which dictates the zone in which
         // we should deserialize the message.
         deserializer.moveNext();
         int zoneId = deserializer.expectInt();
-        Zone zone = _serializationZones[zoneId]!;
-        zone.run(() async {
+        withRemoteInstanceZone(zoneId, () async {
           deserializer.moveNext();
           MessageType messageType =
               MessageType.values[deserializer.expectInt()];
@@ -374,26 +366,33 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   /// Creates a [Request] with a given serialization zone ID, and handles the
   /// response, casting it to the expected type or throwing the error provided.
   Future<T> _sendRequest<T>(Request Function(int) requestFactory) =>
-      withSerializationMode(serializationMode, () async {
-        int zoneId = _nextSerializationZoneId++;
-        _serializationZones[zoneId] = Zone.current;
-        Request request = requestFactory(zoneId);
-        Serializer serializer = serializerFactory();
-        // It is our responsibility to add the zone ID header.
-        serializer.addInt(zoneId);
-        request.serialize(serializer);
-        sendResult(serializer);
-        Completer<Response> completer = new Completer<Response>();
-        _responseCompleters[request.id] = completer;
-        try {
-          Response response = await completer.future;
-          T? result = response.response as T?;
-          if (result != null) return result;
-          throw new RemoteException(
-              response.error!.toString(), response.stackTrace);
-        } finally {
-          // Clean up the zone after the request is done.
-          _serializationZones.remove(zoneId);
-        }
+      withSerializationMode(serializationMode, () {
+        final int zoneId = newRemoteInstanceZone();
+        return withRemoteInstanceZone(zoneId, () async {
+          Request request = requestFactory(zoneId);
+          Serializer serializer = serializerFactory();
+          // It is our responsibility to add the zone ID header.
+          serializer.addInt(zoneId);
+          request.serialize(serializer);
+          sendResult(serializer);
+          Completer<Response> completer = new Completer<Response>();
+          _responseCompleters[request.id] = completer;
+          try {
+            Response response = await completer.future;
+            T? result = response.response as T?;
+            if (result != null) return result;
+            throw new RemoteException(
+                response.error!.toString(), response.stackTrace);
+          } finally {
+            // Clean up the zone after the request is done.
+            destroyRemoteInstanceZone(zoneId);
+            // Tell the remote client to clean it up as well.
+            Serializer serializer = serializerFactory();
+            serializer.addInt(zoneId);
+            new DestroyRemoteInstanceZoneRequest(serializationZoneId: zoneId)
+                .serialize(serializer);
+            sendResult(serializer);
+          }
+        });
       });
 }

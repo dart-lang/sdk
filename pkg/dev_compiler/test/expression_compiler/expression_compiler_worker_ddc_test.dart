@@ -17,6 +17,7 @@ void main() async {
         runTests(
           moduleFormat: ModuleFormat.ddc,
           soundNullSafety: soundNullSafety,
+          canaryFeatures: false,
           verbose: debug,
         );
       });

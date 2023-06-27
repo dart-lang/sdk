@@ -16,10 +16,6 @@ import 'executor/serialization.dart'
 String bootstrapMacroIsolate(
     Map<String, Map<String, List<String>>> macroDeclarations,
     SerializationMode serializationMode) {
-  if (!serializationMode.isClient) {
-    throw new ArgumentError(
-        'Got $serializationMode but expected a client version.');
-  }
   StringBuffer imports = new StringBuffer();
   StringBuffer constructorEntries = new StringBuffer();
   macroDeclarations
@@ -110,9 +106,9 @@ void main(List<String> arguments, [SendPort? sendPort]) {
         sendResult = _sendIOSinkResultFactory(stdout);
         inputStream = stdin;
       }
-      if (serializationMode == SerializationMode.byteDataClient) {
+      if (serializationMode == SerializationMode.byteData) {
         messageStream = MessageGrouper(inputStream).messageStream;
-      } else if (serializationMode == SerializationMode.jsonClient) {
+      } else if (serializationMode == SerializationMode.json) {
         messageStream = const Utf8Decoder()
           .bind(inputStream)
           .transform(const LineSplitter())
@@ -134,41 +130,47 @@ void _handleMessage(
   Future<Response> sendRequest(Request request) =>
       _sendRequest(request, sendResult);
 
-  if (serializationMode == SerializationMode.byteDataClient
+  if (serializationMode == SerializationMode.byteData
       && message is TransferableTypedData) {
     message = message.materialize().asUint8List();
   }
   var deserializer = deserializerFactory(message)
       ..moveNext();
   int zoneId = deserializer.expectInt();
-  deserializer..moveNext();
-  var type = MessageType.values[deserializer.expectInt()];
-  var serializer = serializerFactory();
-  switch (type) {
-    case MessageType.instantiateMacroRequest:
-      var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
-      (await _instantiateMacro(request)).serialize(serializer);
-      break;
-    case MessageType.executeDeclarationsPhaseRequest:
-      var request = new ExecuteDeclarationsPhaseRequest.deserialize(deserializer, zoneId);
-      (await _executeDeclarationsPhase(request, sendRequest)).serialize(serializer);
-      break;
-    case MessageType.executeDefinitionsPhaseRequest:
-      var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
-      (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
-      break;
-    case MessageType.executeTypesPhaseRequest:
-      var request = new ExecuteTypesPhaseRequest.deserialize(deserializer, zoneId);
-      (await _executeTypesPhase(request, sendRequest)).serialize(serializer);
-      break;
-    case MessageType.response:
-      var response = new SerializableResponse.deserialize(deserializer, zoneId);
-      _responseCompleters.remove(response.requestId)!.complete(response);
-      return;
-    default:
-      throw new StateError('Unhandled event type \$type');
-  }
-  sendResult(serializer);
+  await withRemoteInstanceZone(zoneId, () async {
+    deserializer..moveNext();
+    var type = MessageType.values[deserializer.expectInt()];
+    var serializer = serializerFactory();
+    switch (type) {
+      case MessageType.instantiateMacroRequest:
+        var request = new InstantiateMacroRequest.deserialize(deserializer, zoneId);
+        (await _instantiateMacro(request)).serialize(serializer);
+        break;
+      case MessageType.executeDeclarationsPhaseRequest:
+        var request = new ExecuteDeclarationsPhaseRequest.deserialize(deserializer, zoneId);
+        (await _executeDeclarationsPhase(request, sendRequest)).serialize(serializer);
+        break;
+      case MessageType.executeDefinitionsPhaseRequest:
+        var request = new ExecuteDefinitionsPhaseRequest.deserialize(deserializer, zoneId);
+        (await _executeDefinitionsPhase(request, sendRequest)).serialize(serializer);
+        break;
+      case MessageType.executeTypesPhaseRequest:
+        var request = new ExecuteTypesPhaseRequest.deserialize(deserializer, zoneId);
+        (await _executeTypesPhase(request, sendRequest)).serialize(serializer);
+        break;
+      case MessageType.response:
+        var response = new SerializableResponse.deserialize(deserializer, zoneId);
+        _responseCompleters.remove(response.requestId)!.complete(response);
+        return;
+      case MessageType.destroyRemoteInstanceZoneRequest:
+        var request = new DestroyRemoteInstanceZoneRequest.deserialize(deserializer, zoneId);
+        destroyRemoteInstanceZone(zoneId);
+        return;
+      default:
+        throw new StateError('Unhandled event type \$type');
+    }
+    sendResult(serializer);
+  }, createIfMissing: true);
 }
 
 /// Maps libraries by uri to macros by name, and then constructors by name.
@@ -365,7 +367,7 @@ Future<Response> _sendRequest(
 /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
 /// [TransferableTypedData] object.
 void _sendIsolateResult(Serializer serializer, SendPort sendPort) {
-  if (serializationMode == SerializationMode.byteDataClient) {
+  if (serializationMode == SerializationMode.byteData) {
     sendPort.send(
         TransferableTypedData.fromList([serializer.result as Uint8List]));
   } else {
@@ -379,9 +381,9 @@ void _sendIsolateResult(Serializer serializer, SendPort sendPort) {
 /// Serializes the result to a string if using JSON.
 void Function(Serializer) _sendIOSinkResultFactory(IOSink sink) =>
     (Serializer serializer) {
-      if (serializationMode == SerializationMode.jsonClient) {
+      if (serializationMode == SerializationMode.json) {
         sink.writeln(jsonEncode(serializer.result));
-      } else if (serializationMode == SerializationMode.byteDataClient) {
+      } else if (serializationMode == SerializationMode.byteData) {
         Uint8List result = (serializer as ByteDataSerializer).result;
         int length = result.lengthInBytes;
         final bytesBuilder = BytesBuilder(copy: false);
