@@ -14,20 +14,31 @@ main() {
   // invocation.
   js.context.callMethod("eval", [
     """
+    retryCount = 0;
     if (self.document) {
       oldAppendChild = document.body.appendChild;
-      document.body.appendChild = function(element) {
+      replacement = function(element) {
         element.src = "non_existing.js";
         document.body.appendChild = oldAppendChild;
         document.body.appendChild(element);
+        if (retryCount < 3) {
+          retryCount++;
+          document.body.appendChild = replacement;
+        }
       }
+      document.body.appendChild = replacement;
     }
     if (self.load) {
       oldLoad = load;
-      load = function(uri) {
+      replacement = function(uri) {
         load = oldLoad;
         load("non_existing.js");
+        if (retryCount < 3) {
+          retryCount++;
+          load = replacement;
+        }
       }
+      load = replacement;
     }
   """
   ]);
