@@ -4,31 +4,57 @@
 
 // @dart = 2.9
 
-import 'awaiter_stacks/harness.dart' as harness;
+import 'causal_stacks/utils.dart';
 
 main() async {
-  harness.configure(currentExpectations);
-
   StackTrace trace = StackTrace.empty;
+
   A.visible(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      new A.visible',
+    r'^#2      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 
   A.invisible(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 
   visible(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      visible',
+    r'^#2      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 
   invisible(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 
   visibleClosure(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      visibleClosure.visibleInner',
+    r'^#2      visibleClosure',
+    r'^#3      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 
   invisibleClosure(() => trace = StackTrace.current);
-  await harness.checkExpectedStack(trace);
-
-  harness.updateExpectations();
+  await assertStack([
+    r'^#0      main.<anonymous closure>',
+    r'^#1      invisibleClosure',
+    r'^#2      main',
+    IGNORE_REMAINING_STACK,
+  ], trace);
 }
 
 class A {
@@ -63,38 +89,3 @@ void invisibleClosure(void Function() fun) {
 
   invisibleInner();
 }
-
-// CURRENT EXPECTATIONS BEGIN
-final currentExpectations = [
-  """
-#0    main.<anonymous closure> (%test%)
-#1    new A.visible (%test%)
-#2    main (%test%)
-#3    _delayEntrypointInvocation.<anonymous closure> (isolate_patch.dart)
-#4    _RawReceivePort._handleMessage (isolate_patch.dart)""",
-  """
-#0    main.<anonymous closure> (%test%)
-#1    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    main.<anonymous closure> (%test%)
-#1    visible (%test%)
-#2    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    main.<anonymous closure> (%test%)
-#1    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    main.<anonymous closure> (%test%)
-#1    visibleClosure.visibleInner (%test%)
-#2    visibleClosure (%test%)
-#3    main (%test%)
-<asynchronous suspension>""",
-  """
-#0    main.<anonymous closure> (%test%)
-#1    invisibleClosure (%test%)
-#2    main (%test%)
-<asynchronous suspension>"""
-];
-// CURRENT EXPECTATIONS END
