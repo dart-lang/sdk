@@ -154,6 +154,13 @@ const simpleMultiBreakpointProgram = '''
   }
 ''';
 
+final simpleBreakpointProgramWith50ExtraLines = '''
+  void main(List<String> args) async {
+    print('Hello!'); $breakpointMarker
+    ${'await null;\n' * 50}
+  }
+''';
+
 /// A Dart script that uses [Isolate.run] to run a short-lived isolate and has
 /// a `debugger()` call after the isolate completes to ensure the app does not
 /// immediately exit.
