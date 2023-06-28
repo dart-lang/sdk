@@ -44,5 +44,5 @@ static method /* from org-dartlang-testcase:///patch_lib.dart */ injectedMethod(
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:12:1 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 1, effectively constant: 1

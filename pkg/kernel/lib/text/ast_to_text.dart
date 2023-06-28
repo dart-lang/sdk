@@ -1801,6 +1801,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitFileUriExpression(FileUriExpression node) {
+    if (node is FileUriConstantExpression) {
+      writeWord('/* from ${node.fileUri} */');
+    }
     writeExpression(node.expression);
   }
 
@@ -2804,6 +2807,9 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
 
   @override
   void visitConstantExpression(ConstantExpression node) {
+    if (node is FileUriConstantExpression) {
+      writeWord('/* from ${node.fileUri} */');
+    }
     writeConstantReference(node.constant);
   }
 

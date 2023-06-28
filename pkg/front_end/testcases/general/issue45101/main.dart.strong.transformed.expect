@@ -32,9 +32,3 @@ constants  {
   #C3 = null
   #C4 = core::pragma {name:#C2, options:#C3}
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///origin_lib.dart:
-- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

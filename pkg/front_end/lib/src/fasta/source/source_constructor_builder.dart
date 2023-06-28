@@ -932,6 +932,15 @@ class DeclaredSourceConstructorBuilder
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
   Iterable<Annotatable> get annotatables => [constructor];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
+    }
+  }
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1293,6 +1302,9 @@ class SourceInlineClassConstructorBuilder
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
   Iterable<Annotatable> get annotatables => [_constructor];
+
+  @override
+  bool get isAugmented => false;
 }
 
 class InlineClassInitializerToStatementConverter

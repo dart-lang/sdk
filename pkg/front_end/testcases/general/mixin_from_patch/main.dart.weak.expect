@@ -18,7 +18,7 @@ import "dart:core" as core;
 
 import "dart:_internal";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   constructor _internal({core::bool value = #C2}) → test::Class
     : super core::Object::•()
@@ -44,7 +44,7 @@ abstract class _SubClass&Class&Mixin = test::Class with test::Mixin /*isAnonymou
     : super test::Class::_internal(value: value)
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class SubClass extends test::_SubClass&Class&Mixin {
   constructor _internal() → test::SubClass
     : super test::_SubClass&Class&Mixin::_internal(value: true)

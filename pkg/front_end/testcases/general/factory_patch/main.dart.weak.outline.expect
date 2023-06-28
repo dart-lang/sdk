@@ -30,8 +30,8 @@ class Class extends core::Object {
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:49 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:26 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:22:17 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:21:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 7, effectively constant: 4

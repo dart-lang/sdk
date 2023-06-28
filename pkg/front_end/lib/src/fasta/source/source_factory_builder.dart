@@ -321,6 +321,15 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
   Iterable<Annotatable> get annotatables => [_procedure];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
+    }
+  }
 }
 
 class RedirectingFactoryBuilder extends SourceFactoryBuilder {

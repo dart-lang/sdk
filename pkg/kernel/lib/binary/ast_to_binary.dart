@@ -2200,10 +2200,18 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
 
   @override
   void visitConstantExpression(ConstantExpression node) {
-    writeByte(Tag.ConstantExpression);
-    writeOffset(node.fileOffset);
-    writeDartType(node.type);
-    writeConstantReference(node.constant);
+    if (node is FileUriConstantExpression) {
+      writeByte(Tag.FileUriConstantExpression);
+      writeOffset(node.fileOffset);
+      writeUriReference(node.fileUri);
+      writeDartType(node.type);
+      writeConstantReference(node.constant);
+    } else {
+      writeByte(Tag.ConstantExpression);
+      writeOffset(node.fileOffset);
+      writeDartType(node.type);
+      writeConstantReference(node.constant);
+    }
   }
 
   @override

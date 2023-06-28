@@ -1,0 +1,13 @@
+{
+  "none": {
+    "comment:0": "This adds to the default libraries found in the platform.",
+    "libraries": {
+      "test": {
+        "patches": [
+          "patch_lib.dart"
+        ],
+        "uri": "origin_lib.dart"
+      }
+    }
+  }
+}

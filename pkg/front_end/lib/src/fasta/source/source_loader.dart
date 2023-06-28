@@ -933,6 +933,8 @@ severity: $severity
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
+        // TODO(johnniwinther): Replace this with something that supports
+        // augmentation libraries.
         List<String> newPathSegments =
             new List<String>.of(importUri.pathSegments);
         newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);

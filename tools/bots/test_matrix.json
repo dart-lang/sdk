@@ -372,8 +372,7 @@
       }
     },
     "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
-      "options": {
-      }
+      "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
@@ -381,8 +380,7 @@
       }
     },
     "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
-      "options": {
-      }
+      "options": {}
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
@@ -1806,7 +1804,7 @@
         "vm-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is for the ARM64 JIT builders, no shards."
+        "description": "This configuration is for the ARM64 JIT builders, no shards."
       },
       "steps": [
         {
@@ -1831,7 +1829,7 @@
         "vm-aot-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is for the ARM64 AOT builders, no shards."
+        "description": "This configuration is for the ARM64 AOT builders, no shards."
       },
       "steps": [
         {
@@ -3086,6 +3084,7 @@
             "-nunittest-asserts-${mode}-${system}",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]
@@ -3138,6 +3137,7 @@
             "-nunittest-asserts-${mode}-${system}-arm64",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]
@@ -3181,6 +3181,7 @@
             "-nunittest-asserts-${mode}-${system}",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]

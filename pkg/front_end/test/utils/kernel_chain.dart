@@ -518,6 +518,7 @@ class ComponentResult {
   }
 
   bool isUserLibraryImportUri(Uri? importUri) {
+    // TODO(johnniwinther): Support patch libraries user libraries.
     return userLibraries.contains(importUri);
   }
 

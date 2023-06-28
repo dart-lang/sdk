@@ -1744,9 +1744,12 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
 
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
-    if (tag == kConstantExpression) {
+    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
       helper_.ReadByte();      // Skip the tag.
       helper_.ReadPosition();  // Skip fileOffset.
+      if (tag == kFileUriConstantExpression) {
+        helper_.ReadUInt();  // Skip uri.
+      }
       helper_.SkipDartType();  // Skip type.
       const intptr_t index_in_constant_table = helper_.ReadUInt();
 

@@ -301,37 +301,51 @@ class TypeDependency {
   }
 }
 
+/// Removes [FileUriExpression] nodes for annotations whose file URI is
+/// [annotatableFileUri], the file URI of the [annotatable].
+///
+/// This is an optimization to avoid unnecessary [FileUriConstantExpression]
+/// nodes in the generated AST.
+void adjustAnnotationFileUri(Annotatable annotatable, Uri annotatableFileUri) {
+  List<Expression> annotations = annotatable.annotations;
+  for (int i = 0; i < annotations.length; i++) {
+    Expression annotation = annotations[i];
+    if (annotation is FileUriExpression &&
+        annotation.fileUri == annotatableFileUri) {
+      annotations[i] = annotation.expression..parent = annotatable;
+    }
+  }
+}
+
 /// Copies properties, function parameters and body from the [patch] constructor
 /// to its [origin].
 void finishConstructorPatch(Constructor origin, Constructor patch) {
-  // TODO(ahe): restore file-offset once we track both origin and patch file
-  // URIs. See https://github.com/dart-lang/sdk/issues/31579
   origin.fileUri = patch.fileUri;
   origin.startFileOffset = patch.startFileOffset;
   origin.fileOffset = patch.fileOffset;
   origin.fileEndOffset = patch.fileEndOffset;
-  origin.annotations.forEach((m) => m.fileOffset = patch.fileOffset);
 
   origin.isExternal = patch.isExternal;
   origin.function = patch.function;
   origin.function.parent = origin;
   origin.initializers = patch.initializers;
   setParents(origin.initializers, origin);
+
+  adjustAnnotationFileUri(origin, origin.fileUri);
 }
 
 /// Copies properties, function parameters and body from the [patch] procedure
 /// to its [origin].
 void finishProcedurePatch(Procedure origin, Procedure patch) {
-  // TODO(ahe): restore file-offset once we track both origin and patch file
-  // URIs. See https://github.com/dart-lang/sdk/issues/31579
   origin.fileUri = patch.fileUri;
   origin.fileStartOffset = patch.fileStartOffset;
   origin.fileOffset = patch.fileOffset;
   origin.fileEndOffset = patch.fileEndOffset;
-  origin.annotations.forEach((m) => m.fileOffset = patch.fileOffset);
 
   origin.isAbstract = patch.isAbstract;
   origin.isExternal = patch.isExternal;
   origin.function = patch.function;
   origin.function.parent = origin;
+
+  adjustAnnotationFileUri(origin, origin.fileUri);
 }

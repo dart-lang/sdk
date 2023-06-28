@@ -20,7 +20,7 @@ class _ArraySize<T extends core::Object? = dynamic> extends core::Object impleme
     ;
 }
 @_in::patch
-@core::pragma::_("vm:entry-point")
+@const core::pragma::_("vm:entry-point")
 class Array<T extends core::Object? = dynamic> extends core::Object {
   @_in::patch
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/
@@ -29,7 +29,7 @@ class Array<T extends core::Object? = dynamic> extends core::Object {
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
-Evaluated: ConstructorInvocation @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const pragma{pragma.name: "vm:entry-point", pragma.options: null})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:14:17 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:9:1 -> InstanceConstant(const pragma{pragma.name: "vm:entry-point", pragma.options: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:13:4 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 6, effectively constant: 3

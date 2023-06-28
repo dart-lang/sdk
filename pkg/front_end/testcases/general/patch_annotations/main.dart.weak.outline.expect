@@ -1,0 +1,48 @@
+library;
+import self as self;
+
+import "dart:test";
+
+static method main() → dynamic
+  ;
+
+@const dart.core::pragma::_("patch-library")
+@dart.core::pragma::_("origin-library")
+library;
+import self as self2;
+import "dart:core" as core;
+import "dart:_internal" as _in;
+
+import "dart:_internal";
+
+@_in::patch
+@const core::pragma::_("patch-class")
+@core::pragma::_("origin-class")
+class Class<@core::pragma::_("patch-class-type-variable") @core::pragma::_("origin-class-type-variable") T extends core::Object? = dynamic> extends core::Object {
+  @_in::patch
+  @core::pragma::_("patch-constructor")
+  @const core::pragma::_("origin-constructor")
+  external constructor •() → self2::Class<self2::Class::T%>;
+  @_in::patch
+  @core::pragma::_("patch-procedure")
+  @const core::pragma::_("origin-procedure")
+  external method method<@core::pragma::_("origin-method-type-variable") S extends core::Object? = dynamic>() → void;
+}
+
+
+Extra constant evaluation status:
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:5:1 -> InstanceConstant(const pragma{pragma.name: "patch-library", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:5:2 -> InstanceConstant(const pragma{pragma.name: "origin-library", pragma.options: null})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:11:1 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:12:1 -> InstanceConstant(const pragma{pragma.name: "patch-class", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:8:2 -> InstanceConstant(const pragma{pragma.name: "origin-class", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:10:25 -> InstanceConstant(const pragma{pragma.name: "patch-class-type-variable", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:9:14 -> InstanceConstant(const pragma{pragma.name: "origin-class-type-variable", pragma.options: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:13:16 -> InstanceConstant(const _Patch{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:13:25 -> InstanceConstant(const pragma{pragma.name: "patch-constructor", pragma.options: null})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///origin_lib.dart:10:3 -> InstanceConstant(const pragma{pragma.name: "origin-constructor", pragma.options: null})
+Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:14:47 -> InstanceConstant(const _Patch{})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:14:56 -> InstanceConstant(const pragma{pragma.name: "patch-procedure", pragma.options: null})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///origin_lib.dart:13:3 -> InstanceConstant(const pragma{pragma.name: "origin-procedure", pragma.options: null})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///origin_lib.dart:14:25 -> InstanceConstant(const pragma{pragma.name: "origin-method-type-variable", pragma.options: null})
+Extra constant evaluation: evaluated: 14, effectively constant: 14

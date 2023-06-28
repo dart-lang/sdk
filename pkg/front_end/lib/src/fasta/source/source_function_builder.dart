@@ -206,6 +206,10 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
   @override
   bool get isAssignable => false;
 
+  /// Returns `true` if this member is augmented, either by being the origin
+  /// of a augmented member or by not being the last among augmentations.
+  bool get isAugmented;
+
   @override
   Scope computeFormalParameterScope(Scope parent) {
     if (formals == null) return parent;
@@ -479,7 +483,8 @@ abstract class SourceFunctionBuilderImpl extends SourceMemberBuilderImpl
           classOrExtensionBuilder?.scope ?? libraryBuilder.scope;
       for (Annotatable annotatable in annotatables) {
         MetadataBuilder.buildAnnotations(annotatable, metadata,
-            bodyBuilderContext, libraryBuilder, fileUri, parentScope);
+            bodyBuilderContext, libraryBuilder, fileUri, parentScope,
+            createFileUriExpression: isAugmented);
       }
       if (typeVariables != null) {
         for (int i = 0; i < typeVariables!.length; i++) {

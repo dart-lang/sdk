@@ -1161,6 +1161,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kNullLiteral:
       return BuildNullLiteral(position);
     case kConstantExpression:
+    case kFileUriConstantExpression:
       return BuildConstantExpression(position, tag);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
@@ -1170,6 +1171,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
     case kAwaitExpression:
       return BuildAwaitExpression(position);
+    case kFileUriExpression:
+      return BuildFileUriExpression(position);
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -1180,7 +1183,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
@@ -4374,6 +4376,11 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   if (tag == kConstantExpression) {
     p = ReadPosition();
     SkipDartType();
+  } else if (tag == kFileUriConstantExpression) {
+    // TODO(alexmarkov): Use file offset together with file uri.
+    ReadPosition();
+    ReadUInt();
+    SkipDartType();
   }
   if (position != nullptr) *position = p;
   const intptr_t constant_index = ReadUInt();
@@ -4506,6 +4513,16 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
   }
   instructions += B->Suspend(pos, stub_id);
   return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFileUriExpression(
+    TokenPosition* position) {
+  ReadUInt();  // read uri
+
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
+  return BuildExpression(position);  // read expression.
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement(
@@ -5928,7 +5945,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(
     if (tag != kInvalidExpression) {
       has_valid_annotation = true;
     }
-    if (tag == kConstantExpression) {
+    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
       auto& instance = Instance::Handle();
       instance = constant_reader_.ReadConstantExpression();
       if (instance.clazz() == IG->object_store()->pragma_class()) {

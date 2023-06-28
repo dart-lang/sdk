@@ -2754,6 +2754,12 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();  // read type.
       SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      ReadPosition();  // read position.
+      ReadUInt();      // skip uri
+      SkipDartType();  // read type.
+      SkipConstantReference();
+      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
@@ -2765,6 +2771,11 @@ void KernelReaderHelper::SkipExpression() {
         SkipDartType();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      ReadUInt();        // skip uri
+      ReadPosition();    // read position
+      SkipExpression();  // read expression
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -2775,7 +2786,6 @@ void KernelReaderHelper::SkipExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:

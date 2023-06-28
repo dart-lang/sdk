@@ -40,7 +40,7 @@ static method /* from org-dartlang-testcase:///patch_lib.dart */ _injectedMethod
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:9:5 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:9:43 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:19 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:28:17 -> InstanceConstant(const _Patch{})

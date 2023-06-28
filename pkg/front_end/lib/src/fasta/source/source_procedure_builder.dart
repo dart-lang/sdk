@@ -640,6 +640,15 @@ class SourceProcedureBuilder extends SourceFunctionBuilderImpl
   // TODO(johnniwinther): Add annotations to tear-offs.
   @override
   Iterable<Annotatable> get annotatables => [procedure];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
+    }
+  }
 }
 
 class SourceProcedureMember extends BuilderClassMember {
