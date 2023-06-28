@@ -311,6 +311,8 @@ class HtmlIndexer {
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints">
+      <link rel="canonical" href="https://dart.dev/lints">
       <link rel="stylesheet" href="../styles.css">
       <title>Linter for Dart</title>
    </head>
@@ -509,6 +511,8 @@ linter:
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints/all">
+      <link rel="canonical" href="https://dart.dev/lints/all">
       <link rel="stylesheet" href="../../styles.css">
       <title>Analysis Options</title>
    </head>
@@ -656,6 +660,8 @@ class RuleHtmlGenerator extends RuleGenerator {
       <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
       <meta name="mobile-web-app-capable" content="yes">
       <meta name="apple-mobile-web-app-capable" content="yes">
+      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints/$name">
+      <link rel="canonical" href="https://dart.dev/lints/$name">
       <title>$name</title>
       <link rel="stylesheet" href="../styles.css">
    </head>
