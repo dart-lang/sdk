@@ -83,33 +83,32 @@ abstract class AugmentedClassElement implements AugmentedInterfaceElement {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
 
-/// The result of applying augmentations to a [InterfaceElement].
+/// The result of applying augmentations to an [ExtensionElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInterfaceElement {
+abstract class AugmentedExtensionElement implements AugmentedInstanceElement {}
+
+/// The result of applying augmentations to an [InlineClassElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentedInlineClassElement
+    implements AugmentedNamedInstanceElement {}
+
+/// The result of applying augmentations to a [InstanceElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentedInstanceElement {
   /// Returns accessors (getters and setters) declared in this element.
   ///
   /// [PropertyAccessorAugmentationElement]s replace corresponding elements,
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
 
-  /// Returns constructors declared in this element.
-  ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
   /// Returns fields declared in this element.
   ///
   /// [FieldAugmentationElement]s replace corresponding elements, other
   /// [FieldElement]s are appended.
   List<FieldElement> get fields;
-
-  /// Returns interfaces implemented by this element.
-  ///
-  /// This is a union of interfaces declared by the class declaration and
-  /// all its augmentations.
-  List<InterfaceType> get interfaces;
 
   /// Returns metadata associated with this element.
   ///
@@ -123,15 +122,6 @@ abstract class AugmentedInterfaceElement {
   /// [MethodElement]s are appended.
   List<MethodElement> get methods;
 
-  /// Returns mixins applied by this class or in its augmentations.
-  ///
-  /// This is a union of mixins applied by the class declaration and all its
-  /// augmentations.
-  List<InterfaceType> get mixins;
-
-  /// Returns the unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
   /// Returns the field from [fields] that has the given [name].
   FieldElement? getField(String name);
 
@@ -141,11 +131,26 @@ abstract class AugmentedInterfaceElement {
   /// Returns the method from [methods] that has the given [name].
   MethodElement? getMethod(String name);
 
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
-
   /// Returns the setter from [accessors] that has the given [name].
   PropertyAccessorElement? getSetter(String name);
+}
+
+/// The result of applying augmentations to a [InterfaceElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentedInterfaceElement
+    implements AugmentedNamedInstanceElement {
+  /// Returns interfaces implemented by this element.
+  ///
+  /// This is a union of interfaces declared by the class declaration and
+  /// all its augmentations.
+  List<InterfaceType> get interfaces;
+
+  /// Returns mixins applied by this class or in its augmentations.
+  ///
+  /// This is a union of mixins applied by the class declaration and all its
+  /// augmentations.
+  List<InterfaceType> get mixins;
 }
 
 /// The result of applying augmentations to a [MixinElement].
@@ -157,6 +162,24 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
   /// This is a union of constraints declared by the class declaration and
   /// all its augmentations.
   List<InterfaceType> get superclassConstraints;
+}
+
+/// The result of applying augmentations to a [NamedInstanceElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentedNamedInstanceElement
+    implements AugmentedInstanceElement {
+  /// Returns constructors declared in this element.
+  ///
+  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// other [ConstructorElement]s are appended.
+  List<ConstructorElement> get constructors;
+
+  /// Returns the unnamed constructor from [constructors].
+  ConstructorElement? get unnamedConstructor;
+
+  /// Returns the constructor from [constructors] that has the given [name].
+  ConstructorElement? getNamedConstructor(String name);
 }
 
 /// A pattern variable that is explicitly declared.
@@ -1207,25 +1230,32 @@ abstract class ExecutableElement implements FunctionTypedElement {
   String get name;
 }
 
+/// [ExtensionOrAugmentationElement] augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ExtensionAugmentationElement
+    implements ExtensionOrAugmentationElement {
+  /// Returns the element that is augmented by this augmentation; or `null` if
+  /// there is no corresponding element to be augmented. The chain of
+  /// augmentations should normally end with a [ExtensionElement], but might
+  /// end with `null` immediately or after a few intermediate
+  /// [ExtensionAugmentationElement]s in case of invalid code when an
+  /// augmentation is declared without the corresponding extension declaration.
+  ExtensionOrAugmentationElement? get augmentationTarget;
+}
+
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExtensionElement implements TypeParameterizedElement {
-  /// Return a list containing all of the accessors (getters and setters)
-  /// declared in this extension.
-  List<PropertyAccessorElement> get accessors;
-
-  @override
-  CompilationUnitElement get enclosingElement;
+abstract class ExtensionElement
+    implements ExtensionOrAugmentationElement, InstanceElement {
+  /// Returns the result of applying augmentations.
+  @experimental
+  AugmentedExtensionElement get augmented;
 
   /// Return the type that is extended by this extension.
   DartType get extendedType;
-
-  /// Return a list containing all of the fields declared in this extension.
-  List<FieldElement> get fields;
-
-  /// Return a list containing all of the methods declared in this extension.
-  List<MethodElement> get methods;
 
   /// Return the element representing the field with the given [name] that is
   /// declared in this extension, or `null` if this extension does not declare a
@@ -1246,6 +1276,18 @@ abstract class ExtensionElement implements TypeParameterizedElement {
   /// declared in this extension, or `null` if this extension does not declare a
   /// setter with the given name.
   PropertyAccessorElement? getSetter(String name);
+}
+
+/// Shared interface between [ExtensionElement] and augmentations.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ExtensionOrAugmentationElement
+    implements InstanceOrAugmentationElement {
+  /// The immediate augmentation of this element, or `null` if there are no
+  /// augmentations. [ExtensionAugmentationElement.augmentationTarget] is the
+  /// back pointer that will point at this element.
+  ExtensionAugmentationElement? get augmentation;
 }
 
 /// A field augmentation defined within a class.
@@ -1398,7 +1440,11 @@ abstract class InlineClassAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class InlineClassElement
-    implements InlineClassOrAugmentationElement, InstanceElement {
+    implements InlineClassOrAugmentationElement, NamedInstanceElement {
+  /// Returns the result of applying augmentations.
+  @experimental
+  AugmentedInlineClassElement get augmented;
+
   /// Returns directly implemented [InlineClassType]s.
   List<InlineClassType> get implemented;
 }
@@ -1409,17 +1455,14 @@ abstract class InlineClassElement
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class InlineClassOrAugmentationElement
-    implements InstanceOrAugmentationElement {
+    implements NamedInstanceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
   /// augmentations. [InlineClassAugmentationElement.augmentationTarget] is the
   /// back pointer that will point at this element.
   InlineClassAugmentationElement? get augmentation;
-
-  @override
-  String get name;
 }
 
-/// An element that can be instantiated, and has `this`.
+/// An element that has `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
@@ -1432,26 +1475,16 @@ abstract class InstanceElement
   /// suffix is used, depending on the nullability status of the declaring
   /// library.
   DartType get thisType;
-
-  /// Create the [DartType] for this element with the given [typeArguments]
-  /// and [nullabilitySuffix].
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
 }
 
 /// Shared interface between [InstanceElement] and augmentations.
 ///
 /// Clients may not extend, implement or mix-in this class.
+@experimental
 abstract class InstanceOrAugmentationElement
     implements TypeParameterizedElement {
   /// Returns declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
-
-  /// Returns declared constructors.
-  /// The list is empty for [MixinElement].
-  List<ConstructorElement> get constructors;
 
   @override
   CompilationUnitElement get enclosingElement;
@@ -1467,7 +1500,7 @@ abstract class InstanceOrAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceElement
-    implements InterfaceOrAugmentationElement, InstanceElement {
+    implements InterfaceOrAugmentationElement, NamedInstanceElement {
   /// Return a list containing all the supertypes defined for this element and
   /// its supertypes. This includes superclasses, mixins, interfaces, and
   /// superclass constraints.
@@ -1680,8 +1713,9 @@ abstract class InterfaceElement
 /// so they cannot by instantiated into an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
+@experimental
 abstract class InterfaceOrAugmentationElement
-    implements InstanceOrAugmentationElement {
+    implements NamedInstanceOrAugmentationElement {
   /// Return a list containing all of the interfaces that are implemented by
   /// this class.
   ///
@@ -1705,9 +1739,6 @@ abstract class InterfaceOrAugmentationElement
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get mixins;
-
-  @override
-  String get name;
 }
 
 /// A pattern variable that is a join of other pattern variables, created
@@ -2060,6 +2091,34 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
   /// Return a list containing all of the executable elements defined within
   /// this executable element.
   List<ExecutableElement> get inheritedElements;
+}
+
+/// An element that represents a named [InstanceElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NamedInstanceElement
+    implements NamedInstanceOrAugmentationElement, InstanceElement {}
+
+/// [InstanceOrAugmentationElement] with a name.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class NamedInstanceOrAugmentationElement
+    implements InstanceOrAugmentationElement {
+  /// Returns declared constructors.
+  /// The list is empty for [MixinElement].
+  List<ConstructorElement> get constructors;
+
+  @override
+  String get name;
+
+  /// Create the [DartType] for this element with the given [typeArguments]
+  /// and [nullabilitySuffix].
+  DartType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  });
 }
 
 /// An object that controls how namespaces are combined.

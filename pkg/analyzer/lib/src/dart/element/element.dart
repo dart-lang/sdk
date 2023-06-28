@@ -57,8 +57,9 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A concrete implementation of a [ClassElement].
-abstract class AbstractClassElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData, MacroTargetElement
+abstract class AbstractClassElementImpl
+    extends NamedInstanceOrAugmentationElementImpl
+    with HasCompletionData, MacroTargetElement
     implements InterfaceElement {
   /// The superclass of the class, or `null` for [Object].
   @override
@@ -1118,11 +1119,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   List<InterfaceType> get mixins {
     linkedData?.read(this);
     return super.mixins;
-  }
-
-  @override
-  String get name {
-    return super.name!;
   }
 
   @override
@@ -3095,11 +3091,6 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
-  String get name {
-    return super.name!;
-  }
-
-  @override
   InterfaceType? get supertype {
     linkedData?.read(this);
     return super.supertype;
@@ -3375,6 +3366,18 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
+  ExtensionAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  AugmentedExtensionElement get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   List<Element> get children => [
         ...super.children,
         ...accessors,
@@ -3448,6 +3451,9 @@ class ExtensionElementImpl extends _ExistingElementImpl
     }
     _methods = methods;
   }
+
+  @override
+  DartType get thisType => extendedType;
 
   @override
   List<TypeParameterElement> get typeParameters {
@@ -3845,6 +3851,18 @@ class InlineClassElementImpl extends InlineClassOrAugmentationElementImpl
   }
 
   @override
+  AugmentedInlineClassElement get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   List<InlineClassType> get implemented {
     // TODO(scheglov) implement
     throw UnimplementedError();
@@ -3878,14 +3896,9 @@ class InlineClassElementImpl extends InlineClassOrAugmentationElementImpl
 }
 
 abstract class InlineClassOrAugmentationElementImpl
-    extends InstanceOrAugmentationElementImpl
+    extends NamedInstanceOrAugmentationElementImpl
     implements InlineClassOrAugmentationElement {
   InlineClassOrAugmentationElementImpl(super.name, super.nameOffset);
-
-  @override
-  String get name {
-    return super.name!;
-  }
 }
 
 abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
@@ -3895,12 +3908,6 @@ abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
 
   @override
   List<PropertyAccessorElement> get accessors {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  List<ConstructorElement> get constructors {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
@@ -5433,6 +5440,17 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     for (Element child in children) {
       child.accept(visitor);
     }
+  }
+}
+
+abstract class NamedInstanceOrAugmentationElementImpl
+    extends InstanceOrAugmentationElementImpl
+    implements NamedInstanceOrAugmentationElement {
+  NamedInstanceOrAugmentationElementImpl(super.name, super.nameOffset);
+
+  @override
+  String get name {
+    return super.name!;
   }
 }
 
