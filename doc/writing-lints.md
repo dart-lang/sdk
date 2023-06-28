@@ -157,13 +157,13 @@ Details are under active development.  Feedback is most [welcome][issues]!
 [Dart package naming conventions]: https://dart.dev/tools/pub/pubspec#name
 [parallel construction]: https://en.wikipedia.org/wiki/Parallelism_(grammar)
 [style guide]: https://dart.dev/effective-dart/style/
-[lints]: https://dart-lang.github.io/linter/lints/
+[lints]: https://dart.dev/lints
 [lib/src/rules]: https://github.com/dart-lang/linter/tree/main/lib/src/rules
 [test_data/rules]: https://github.com/dart-lang/linter/tree/main/test_data/rules
 [rule.dart]: https://github.com/dart-lang/linter/blob/main/tool/rule.dart
 [doc.dart]: https://github.com/dart-lang/linter/blob/main/tool/doc.dart
 [analyzer.dart utility library]: https://github.com/dart-lang/linter/blob/main/lib/src/analyzer.dart
-[implementation_imports]: https://dart-lang.github.io/linter/lints/implementation_imports.html
+[implementation_imports]: https://dart.dev/lints/implementation_imports
 [Dart Language Specification]: https://dart.dev/guides/language/spec
 [draft language spec]: https://spec.dart.dev/DartLangSpecDraft.pdf
 [mock_sdk.dart]: https://github.com/dart-lang/sdk/blob/main/pkg/analyzer/lib/src/test_utilities/mock_sdk.dart
