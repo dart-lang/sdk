@@ -59,6 +59,9 @@ class ClosureFunctionsCache : public AllStatic {
   // closure functions have been visited.
   static void ForAllClosureFunctions(
       std::function<bool(const Function&)> callback);
+
+  // Clear the cache of closure functions.
+  static void ResetLocked();
 };
 
 }  // namespace dart

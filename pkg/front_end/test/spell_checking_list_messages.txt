@@ -73,6 +73,8 @@ name.stack
 name3.#name
 nameokempty
 native('native
+nativecallable
+nativecallable.listener
 nativefieldwrapperclass
 natively
 nativetype

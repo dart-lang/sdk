@@ -8,6 +8,7 @@
 #include "vm/class_finalizer.h"
 
 #include "vm/canonical_tables.h"
+#include "vm/closure_functions_cache.h"
 #include "vm/compiler/jit/compiler.h"
 #include "vm/flags.h"
 #include "vm/hash_table.h"
@@ -995,6 +996,7 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
+  ClosureFunctionsCache::ResetLocked();  // Function hashes depend on cids.
 }
 
 class CidRewriteVisitor : public ObjectVisitor {

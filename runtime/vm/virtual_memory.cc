@@ -51,7 +51,8 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
 // TODO(52579): Reenable on Fuchsia.
 
 bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
-  ASSERT_LESS_OR_EQUAL(size(), target->size());
+  const intptr_t aligned_size = Utils::RoundUp(size(), PageSize());
+  ASSERT_LESS_OR_EQUAL(aligned_size, target->size());
 
 #if defined(DART_HOST_OS_MACOS)
   // Mac is special cased because iOS doesn't allow allocating new executable
@@ -60,7 +61,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   // effectively the same for non-writable memory.
   const mach_port_t task = mach_task_self();
   const vm_address_t source_address = reinterpret_cast<vm_address_t>(address());
-  const vm_size_t mem_size = size();
+  const vm_size_t mem_size = aligned_size;
   const vm_prot_t read_execute = VM_PROT_READ | VM_PROT_EXECUTE;
   vm_prot_t current_protection = read_execute;
   vm_prot_t max_protection = read_execute;
@@ -85,7 +86,7 @@ bool VirtualMemory::DuplicateRX(VirtualMemory* target) {
   // Check that target doesn't overlap with this.
   ASSERT(target->start() >= end() || target->end() <= start());
   memcpy(target->address(), address(), size());  // NOLINT
-  Protect(target->address(), size(), kReadExecute);
+  Protect(target->address(), aligned_size, kReadExecute);
   return true;
 #endif  // defined(DART_HOST_OS_MACOS)
 }

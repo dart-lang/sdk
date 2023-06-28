@@ -1,0 +1,26 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "dart:ffi" as ffi;
+import "dart:isolate" as iso;
+
+import "dart:ffi";
+
+static method main() → void {
+  self::testNativeCallableListener();
+}
+static method printInt(core::int i) → void
+  return core::print(i);
+static method testNativeCallableListener() → void {
+  final ffi::NativeCallable<(ffi::Int32) → ffi::Void> callback = block {
+    final ffi::NativeCallable<(ffi::Int32) → ffi::Void> #t1 = new ffi::NativeCallable::_<(ffi::Int32) → ffi::Void>((final core::List<dynamic> args) → void
+      self::printInt(args.{core::List::[]}(0){(core::int) → dynamic});
+, "NativeCallable(printInt)");
+    [@vm.call-site-attributes.metadata=receiverType:dart.ffi::NativeCallable<dart.ffi::Void Function(dart.ffi::Int32)>] #t1.{ffi::NativeCallable::_pointer} = ffi::_pointerAsyncFromFunction<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>(ffi::_nativeAsyncCallbackFunction<(ffi::Int32) → ffi::Void>(#C1), #t1.{ffi::NativeCallable::_port}{iso::RawReceivePort});
+  } =>#t1;
+  core::print(callback.{ffi::NativeCallable::nativeFunction}{ffi::Pointer<ffi::NativeFunction<(ffi::Int32) → ffi::Void>>});
+  callback.{ffi::NativeCallable::close}(){() → void};
+}
+constants  {
+  #C1 = static-tearoff self::printInt
+}

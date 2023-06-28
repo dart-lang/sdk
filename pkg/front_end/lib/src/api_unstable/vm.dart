@@ -78,6 +78,7 @@ export '../fasta/fasta_codes.dart'
         noLength,
         templateCantHaveNamedParameters,
         templateCantHaveOptionalParameters,
+        templateFfiNativeCallableListenerReturnVoid,
         templateFfiCompoundImplementsFinalizable,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,

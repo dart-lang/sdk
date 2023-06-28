@@ -30,8 +30,13 @@ void transformLibraries(
     List<Library> libraries,
     DiagnosticReporter diagnosticReporter,
     ReferenceFromIndex? referenceFromIndex) {
-  final index = LibraryIndex(component,
-      ['dart:ffi', 'dart:_internal', 'dart:typed_data', 'dart:nativewrappers']);
+  final index = LibraryIndex(component, [
+    'dart:ffi',
+    'dart:_internal',
+    'dart:typed_data',
+    'dart:nativewrappers',
+    'dart:isolate'
+  ]);
   // Skip if dart:ffi isn't loaded (e.g. during incremental compile).
   if (index.tryGetClass('dart:ffi', 'FfiNative') == null) {
     return;

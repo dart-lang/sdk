@@ -935,46 +935,49 @@ class ElementKind implements Comparable<ElementKind> {
   static const ElementKind IMPORT =
       ElementKind('IMPORT', 13, "import directive");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 14, "label");
+  static const ElementKind INLINE_CLASS =
+      ElementKind('INLINE_CLASS', 14, "inline class");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 15, "library");
+  static const ElementKind LABEL = ElementKind('LABEL', 15, "label");
+
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 16, "library");
 
   static const ElementKind LIBRARY_AUGMENTATION =
-      ElementKind('LIBRARY_AUGMENTATION', 16, "library augmentation");
+      ElementKind('LIBRARY_AUGMENTATION', 17, "library augmentation");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 17, "local variable");
+      ElementKind('LOCAL_VARIABLE', 18, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 18, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 19, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 19, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 20, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 20, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 21, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 21, "parameter");
+      ElementKind('PARAMETER', 22, "parameter");
 
-  static const ElementKind PART = ElementKind('PART', 22, "part");
+  static const ElementKind PART = ElementKind('PART', 23, "part");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 23, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 24, "import prefix");
 
-  static const ElementKind RECORD = ElementKind('RECORD', 24, "record");
+  static const ElementKind RECORD = ElementKind('RECORD', 25, "record");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 25, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 26, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 26, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 27, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 27, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 28, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 28, "type parameter");
+      ElementKind('TYPE_PARAMETER', 29, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 29, "type alias");
+      ElementKind('TYPE_ALIAS', 30, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 30, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 31, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
@@ -989,6 +992,7 @@ class ElementKind implements Comparable<ElementKind> {
     GENERIC_FUNCTION_TYPE,
     GETTER,
     IMPORT,
+    INLINE_CLASS,
     LABEL,
     LIBRARY,
     LOCAL_VARIABLE,
@@ -1373,11 +1377,97 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
+/// An inline class augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class InlineClassAugmentationElement
+    implements InlineClassOrAugmentationElement {
+  /// Returns the element that is augmented by this augmentation; or `null` if
+  /// there is no corresponding element to be augmented. The chain of
+  /// augmentations should normally end with a [InlineClassElement], but might
+  /// end with `null` immediately or after a few intermediate
+  /// [InlineClassAugmentationElement]s in case of invalid code when an
+  /// augmentation is declared without the corresponding inline class
+  /// declaration.
+  InlineClassOrAugmentationElement? get augmentationTarget;
+}
+
+/// An element that represents an inline class.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class InlineClassElement
+    implements InlineClassOrAugmentationElement, InstanceElement {
+  /// Returns directly implemented [InlineClassType]s.
+  List<InlineClassType> get implemented;
+}
+
+/// Shared interface between [InlineClassElement] and
+/// [InlineClassAugmentationElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class InlineClassOrAugmentationElement
+    implements InstanceOrAugmentationElement {
+  /// The immediate augmentation of this element, or `null` if there are no
+  /// augmentations. [InlineClassAugmentationElement.augmentationTarget] is the
+  /// back pointer that will point at this element.
+  InlineClassAugmentationElement? get augmentation;
+
+  @override
+  String get name;
+}
+
+/// An element that can be instantiated, and has `this`.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class InstanceElement
+    implements InstanceOrAugmentationElement, TypeDefiningElement {
+  /// Returns the type of `this` expression.
+  ///
+  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
+  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
+  /// type parameters, and either `none` or `star` is used for the nullability
+  /// suffix is used, depending on the nullability status of the declaring
+  /// library.
+  DartType get thisType;
+
+  /// Create the [DartType] for this element with the given [typeArguments]
+  /// and [nullabilitySuffix].
+  DartType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  });
+}
+
+/// Shared interface between [InstanceElement] and augmentations.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class InstanceOrAugmentationElement
+    implements TypeParameterizedElement {
+  /// Returns declared accessors (getters and setters).
+  List<PropertyAccessorElement> get accessors;
+
+  /// Returns declared constructors.
+  /// The list is empty for [MixinElement].
+  List<ConstructorElement> get constructors;
+
+  @override
+  CompilationUnitElement get enclosingElement;
+
+  /// Returns declared fields.
+  List<FieldElement> get fields;
+
+  /// Returns declared methods.
+  List<MethodElement> get methods;
+}
+
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceElement
-    implements InterfaceOrAugmentationElement, TypeDefiningElement {
+    implements InterfaceOrAugmentationElement, InstanceElement {
   /// Return a list containing all the supertypes defined for this element and
   /// its supertypes. This includes superclasses, mixins, interfaces, and
   /// superclass constraints.
@@ -1400,13 +1490,7 @@ abstract class InterfaceElement
   /// guard against infinite loops.
   InterfaceType? get supertype;
 
-  /// Return the type of `this` expression for this element.
-  ///
-  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
-  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
-  /// type parameters, and either `none` or `star` is used for the nullability
-  /// suffix is used, depending on the nullability status of the declaring
-  /// library.
+  @override
   InterfaceType get thisType;
 
   /// Returns the unnamed constructor declared directly in this class. If the
@@ -1440,8 +1524,7 @@ abstract class InterfaceElement
   /// TODO(scheglov) Deprecate and remove it.
   PropertyAccessorElement? getSetter(String name);
 
-  /// Create the [InterfaceType] for this element with the given [typeArguments]
-  /// and [nullabilitySuffix].
+  @override
   InterfaceType instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -1598,22 +1681,7 @@ abstract class InterfaceElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceOrAugmentationElement
-    implements TypeParameterizedElement {
-  /// Return a list containing all of the accessors (getters and setters)
-  /// declared in this class.
-  List<PropertyAccessorElement> get accessors;
-
-  /// Return a list containing all of the constructors declared in this class.
-  /// The list will be empty if there are no constructors defined for this
-  /// class, as is the case when this element represents an enum or a mixin.
-  List<ConstructorElement> get constructors;
-
-  @override
-  CompilationUnitElement get enclosingElement;
-
-  /// Return a list containing all of the fields declared in this class.
-  List<FieldElement> get fields;
-
+    implements InstanceOrAugmentationElement {
   /// Return a list containing all of the interfaces that are implemented by
   /// this class.
   ///
@@ -1623,9 +1691,6 @@ abstract class InterfaceOrAugmentationElement
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get interfaces;
-
-  /// Return a list containing all of the methods declared in this class.
-  List<MethodElement> get methods;
 
   /// Return a list containing all of the mixins that are applied to the class
   /// being extended in order to derive the superclass of this class.

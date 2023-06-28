@@ -135,11 +135,14 @@ class FlowGraphBuilder : public BaseFlowGraphBuilder {
 
   FlowGraph* BuildGraphOfInvokeFieldDispatcher(const Function& function);
   FlowGraph* BuildGraphOfFfiTrampoline(const Function& function);
-  FlowGraph* BuildGraphOfFfiCallback(const Function& function);
+  FlowGraph* BuildGraphOfSyncFfiCallback(const Function& function);
+  FlowGraph* BuildGraphOfAsyncFfiCallback(const Function& function);
   FlowGraph* BuildGraphOfFfiNative(const Function& function);
 
   Fragment NativeFunctionBody(const Function& function,
                               LocalVariable* first_parameter);
+  Fragment LoadNativeArg(const compiler::ffi::CallbackMarshaller& marshaller,
+                         intptr_t arg_index);
 
   FlowGraph* BuildGraphOfRecognizedMethod(const Function& function);
 

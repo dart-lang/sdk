@@ -621,6 +621,11 @@ struct CloneSuspendStateStubABI {
   static constexpr Register kDstFrameReg = R8;
 };
 
+// ABI for FfiAsyncCallbackSendStub.
+struct FfiAsyncCallbackSendStubABI {
+  static constexpr Register kArgsReg = R0;
+};
+
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch
 // table calls (though normal functions will not expect or use this
 // register). This ABI is added to distinguish memory corruption errors from

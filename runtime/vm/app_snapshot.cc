@@ -1388,6 +1388,7 @@ class FfiTrampolineDataSerializationCluster : public SerializationCluster {
       AutoTraceObject(data);
       WriteFromTo(data);
       s->Write<int32_t>(data->untag()->callback_id_);
+      s->Write<uint8_t>(data->untag()->callback_kind_);
     }
   }
 
@@ -1416,6 +1417,7 @@ class FfiTrampolineDataDeserializationCluster : public DeserializationCluster {
                                      FfiTrampolineData::InstanceSize());
       d.ReadFromTo(data);
       data->untag()->callback_id_ = d.Read<int32_t>();
+      data->untag()->callback_kind_ = d.Read<uint8_t>();
     }
   }
 };

@@ -534,7 +534,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(CSP, SP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(52579): Remove.
+    // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
       GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4, R9);
     } else {
@@ -567,12 +567,74 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(CSP, SP);
   }
 
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the async
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmp(THR, Operand(0));
+  __ b(&done, EQ);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmp(
+      R9,
+      Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ b(&async_callback, EQ);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
+
   // Clobbers all volatile registers, including the callback ID in R9.
   // Resets CSP and SP, important for EnterSafepoint below.
   __ blr(R10);
 
   // Clobbers TMP, TMP2 and R9 -- all volatile and not holding return values.
   __ EnterFullSafepoint(/*scratch=*/R9);
+
+  __ b(&done);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // Clobbers all volatile registers, including the callback ID in R9.
+  // Resets CSP and SP, important for EnterSafepoint below.
+  __ blr(R10);
+
+  // Exit the temporary isolate.
+  {
+    __ mov(SP, CSP);
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4, R9);
+    } else {
+      Label call;
+      __ ldr(R4, compiler::Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
+      __ Bind(&call);
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+#endif
+
+    __ mov(CSP, SP);
+    __ blr(R4);
+    __ mov(SP, CSP);
+    __ mov(THR, R0);
+
+    __ LeaveFrame();
+    __ mov(CSP, SP);
+  }
+
+  __ Bind(&done);
 
   // Pop LR and THR from the real stack (CSP).
   RESTORES_LR_FROM_FRAME(__ ldp(

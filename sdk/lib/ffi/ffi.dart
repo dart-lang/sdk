@@ -51,7 +51,8 @@ final class Pointer<T extends NativeType> extends NativeType {
   ///
   /// The returned function address can only be invoked on the mutator (main)
   /// thread of the current isolate. It will abort the process if invoked on any
-  /// other thread.
+  /// other thread. Use [NativeCallable.listener] to create callbacks that can
+  /// be invoked from any thread.
   ///
   /// The pointer returned will remain alive for the duration of the current
   /// isolate's lifetime. After the isolate it was created in is terminated,
@@ -153,6 +154,49 @@ extension NativeFunctionPointer<NF extends Function>
   /// Leaf calls are faster than non-leaf calls.
   external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
       {bool isLeaf = false});
+}
+
+/// A native callable which listens for calls to a native function.
+///
+/// Creates a native function linked to a Dart function, so that calling the
+/// native function will call the Dart function in some way, with the arguments
+/// converted to Dart values.
+@Since('3.1')
+final class NativeCallable<T extends Function> {
+  /// Constructs a [NativeCallable] that can be invoked from any thread.
+  ///
+  /// When the native code invokes the function [nativeFunction], the arguments
+  /// will be sent over a [SendPort] to the [Isolate] that created the
+  /// [NativeCallable], and the callback will be invoked.
+  ///
+  /// The native code does not wait for a response from the callback, so only
+  /// functions returning void are supported.
+  ///
+  /// The callback will be invoked at some time in the future. The native caller
+  /// cannot assume the callback will be run immediately. Resources passed to
+  /// the callback (such as pointers to malloc'd memory, or output parameters)
+  /// must be valid until the call completes.
+  ///
+  /// This callback must be [close]d when it is no longer needed. The [Isolate]
+  /// that created the callback will be kept alive until [close] is called.
+  external NativeCallable.listener(
+      @DartRepresentationOf("T") Function callback);
+
+  /// The native function pointer which can be used to invoke the `callback`
+  /// passed to the constructor.
+  ///
+  /// If this receiver has been [close]d, the pointer is a [nullptr].
+  external Pointer<NativeFunction<T>> get nativeFunction;
+
+  /// Closes this callback and releases its resources.
+  ///
+  /// Further calls to existing [nativeFunction]s will result in undefined
+  /// behavior. New accesses to [nativeFunction] will give a [nullptr].
+  ///
+  /// This method must not be called more than once on each native callback.
+  ///
+  /// It is safe to call [close] inside the [callback].
+  external void close();
 }
 
 //

@@ -38,9 +38,12 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
                        instructions - dso_base, bss_start);
   }
 
-  // TODO(52579): Remove.
+  // TODO(https://dartbug.com/52579): Remove.
   InitializeBSSEntry(Relocation::DRT_GetFfiCallbackMetadata,
                      reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),
+                     bss_start);
+  InitializeBSSEntry(Relocation::DRT_ExitTemporaryIsolate,
+                     reinterpret_cast<uword>(DLRT_ExitTemporaryIsolate),
                      bss_start);
 }
 

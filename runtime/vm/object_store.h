@@ -282,6 +282,7 @@ class ObjectPointerVisitor;
   RW(Code, await_stub)                                                         \
   RW(Code, await_with_type_check_stub)                                         \
   RW(Code, clone_suspend_state_stub)                                           \
+  RW(Code, ffi_async_callback_send_stub)                                       \
   RW(Code, init_async_stub)                                                    \
   RW(Code, resume_stub)                                                        \
   RW(Code, return_async_stub)                                                  \
@@ -377,6 +378,7 @@ class ObjectPointerVisitor;
   DO(await_stub, Await)                                                        \
   DO(await_with_type_check_stub, AwaitWithTypeCheck)                           \
   DO(clone_suspend_state_stub, CloneSuspendState)                              \
+  DO(ffi_async_callback_send_stub, FfiAsyncCallbackSend)                       \
   DO(init_async_stub, InitAsync)                                               \
   DO(resume_stub, Resume)                                                      \
   DO(return_async_stub, ReturnAsync)                                           \

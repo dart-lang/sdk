@@ -401,6 +401,7 @@ FfiNativeUnexpectedNumberOfParametersWithReceiver/analyzerCode: Fail
 FfiNotStatic/analyzerCode: Fail
 FfiPackedAnnotation/analyzerCode: Fail
 FfiPackedAnnotationAlignment/analyzerCode: Fail
+FfiNativeCallableListenerReturnVoid/analyzerCode: Fail
 FfiSizeAnnotation/analyzerCode: Fail
 FfiSizeAnnotationDimensions/analyzerCode: Fail
 FfiStructAnnotation/analyzerCode: Fail

@@ -1435,6 +1435,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
+
+  // The kind of callback this is. See FfiCallbackKind.
+  uint8_t callback_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
@@ -3521,7 +3524,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3546,7 +3549,7 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
   }
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3597,7 +3600,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;

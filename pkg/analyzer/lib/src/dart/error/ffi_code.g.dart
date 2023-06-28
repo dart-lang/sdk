@@ -320,8 +320,8 @@ class FfiCode extends AnalyzerErrorCode {
   ///  0: the return type that should be 'void'.
   static const FfiCode MUST_RETURN_VOID = FfiCode(
     'MUST_RETURN_VOID',
-    "The return type of the function passed to 'RawVoidCallback' must be "
-        "'void' rather than '{0}'.",
+    "The return type of the function passed to 'NativeCallable.listener' must "
+        "be 'void' rather than '{0}'.",
     correctionMessage: "Try changing the return type to 'void'.",
   );
 

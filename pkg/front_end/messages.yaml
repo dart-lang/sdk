@@ -5032,6 +5032,11 @@ FfiExceptionalReturnNull:
   problemMessage: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
+FfiNativeCallableListenerReturnVoid:
+  # Used by dart:ffi
+  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#type'."
+  external: test/ffi_test.dart
+
 FfiExpectedConstantArg:
   # Used by dart:ffi
   problemMessage: "Argument '#name' must be a constant."

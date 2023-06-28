@@ -3834,6 +3834,95 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
+class InlineClassElementImpl extends InlineClassOrAugmentationElementImpl
+    implements InlineClassElement {
+  InlineClassElementImpl(super.name, super.nameOffset);
+
+  @override
+  InlineClassAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<InlineClassType> get implemented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  ElementKind get kind {
+    return ElementKind.INLINE_CLASS;
+  }
+
+  @override
+  InlineClassType get thisType {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  DartType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+}
+
+abstract class InlineClassOrAugmentationElementImpl
+    extends InstanceOrAugmentationElementImpl
+    implements InlineClassOrAugmentationElement {
+  InlineClassOrAugmentationElementImpl(super.name, super.nameOffset);
+
+  @override
+  String get name {
+    return super.name!;
+  }
+}
+
+abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin
+    implements InstanceOrAugmentationElement {
+  InstanceOrAugmentationElementImpl(super.name, super.nameOffset);
+
+  @override
+  List<PropertyAccessorElement> get accessors {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  CompilationUnitElement get enclosingElement {
+    return super.enclosingElement as CompilationUnitElement;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<MethodElement> get methods {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+}
+
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     implements JoinPatternVariableElement {
   @override

@@ -10586,6 +10586,7 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
     kInitAsync,
     kInitAsyncStar,
     kInitSyncStar,
+    kFfiAsyncCallbackSend,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,

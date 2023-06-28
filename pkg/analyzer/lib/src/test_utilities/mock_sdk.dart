@@ -775,10 +775,10 @@ final class Pointer<T extends NativeType> extends NativeType {
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
-class RawVoidCallback<T extends Function> {
-  RawVoidCallback(@DartRepresentationOf('T') Function callback) {}
+class NativeCallable<T extends Function> {
+  NativeCallable.listener(@DartRepresentationOf('T') Function callback) {}
 
-  Pointer<NativeFunction<T>> get pointer;
+  Pointer<NativeFunction<T>> get nativeFunction;
 
   void close();
 }

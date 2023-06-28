@@ -4,6 +4,8 @@
 
 #include "vm/runtime_entry.h"
 
+#include <memory>
+
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
@@ -3796,6 +3798,19 @@ DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
   FATAL("Not loaded");
 }
 
+DEFINE_RUNTIME_ENTRY(FfiAsyncCallbackSend, 1) {
+  Dart_Port target_port = Thread::Current()->unboxed_int64_runtime_arg();
+  TRACE_RUNTIME_CALL("FfiAsyncCallbackSend %p", (void*)target_port);
+  const Object& message = Object::Handle(zone, arguments.ArgAt(0));
+  const Array& msg_array = Array::Handle(zone, Array::New(3));
+  msg_array.SetAt(0, message);
+  PersistentHandle* handle =
+      isolate->group()->api_state()->AllocatePersistentHandle();
+  handle->set_ptr(msg_array);
+  PortMap::PostMessage(
+      Message::New(target_port, handle, Message::kNormalPriority));
+}
+
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);
@@ -3951,10 +3966,6 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
                               false,
                               &DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
-#if defined(DART_HOST_OS_WINDOWS)
-#pragma intrinsic(_ReturnAddress)
-#endif
-
 // This is called by a native callback trampoline
 // (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
 // a runtime entry because we can't use Thread to look it up.
@@ -3965,49 +3976,117 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
                      reinterpret_cast<void*>(trampoline));
+  ASSERT(out_entry_point != nullptr);
+  ASSERT(out_trampoline_type != nullptr);
 
-  auto metadata =
-      FfiCallbackMetadata::Instance()->LookupMetadataForTrampoline(trampoline);
+  Thread* const current_thread = Thread::Current();
+  auto* fcm = FfiCallbackMetadata::Instance();
+  auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
+
+  // Is this an async callback?
+  if (metadata.trampoline_type() ==
+      FfiCallbackMetadata::TrampolineType::kAsync) {
+    Isolate* current_isolate = nullptr;
+    if (current_thread != nullptr) {
+      // TODO(https://dartbug.com/52764): Fast path if current_isolate is the
+      // target_isolate.
+      current_isolate = current_thread->isolate();
+      ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+      current_thread->ExitSafepoint();
+      current_thread->set_execution_state(Thread::kThreadInVM);
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
+    }
+
+    // It's possible that the callback was deleted, or the target isolate was
+    // shut down, in between looking up the metadata above, and this point. So
+    // grab the lock and then check that the callback is still alive.
+    MutexLocker locker(fcm->lock());
+    auto metadata2 = fcm->LookupMetadataForTrampoline(trampoline);
+    *out_trampoline_type = static_cast<uword>(metadata2.trampoline_type());
+
+    // Check IsLive, but also check that the metdata hasn't changed. This is
+    // for the edge case that the callback was destroyed and recycled in between
+    // the two lookups.
+    if (!metadata.IsLive() || !metadata.IsSameCallback(metadata2)) {
+      TRACE_RUNTIME_CALL("GetFfiCallbackMetadata callback deleted %p",
+                         reinterpret_cast<void*>(trampoline));
+      locker.Unlock();
+      if (current_isolate != nullptr) {
+        Thread::EnterIsolate(current_isolate);
+        ASSERT(current_thread == Thread::Current());
+        current_thread->EnterSafepoint();
+      }
+      locker.Lock();  // MutexLocker::~MutexLocker assumes lock is held.
+      return nullptr;
+    }
+
+    // Enter the temporary isolate.
+    *out_entry_point = metadata2.target_entry_point();
+    Isolate* target_isolate = metadata2.target_isolate();
+    target_isolate->group()->EnterTemporaryIsolate();
+    Thread* const temp_thread = Thread::Current();
+    ASSERT(temp_thread != nullptr);
+    temp_thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+    temp_thread->set_unboxed_int64_runtime_arg(metadata2.send_port());
+    temp_thread->set_unboxed_int64_runtime_second_arg(
+        reinterpret_cast<intptr_t>(current_isolate));
+    ASSERT(!temp_thread->IsAtSafepoint());
+    return temp_thread;
+  }
+
+  // Otherwise, this is a sync callback, so verify that we're already entered
+  // into the target isolate.
   if (!metadata.IsLive()) {
     FATAL("Callback invoked after it has been deleted.");
   }
-
   Isolate* target_isolate = metadata.target_isolate();
-  ASSERT(out_entry_point != nullptr);
   *out_entry_point = metadata.target_entry_point();
-  ASSERT(out_trampoline_type != nullptr);
   *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-
-  Thread* const thread = Thread::Current();
-  if (thread == nullptr) {
+  if (current_thread == nullptr) {
     FATAL("Cannot invoke native callback outside an isolate.");
   }
-  if (thread->no_callback_scope_depth() != 0) {
+  if (current_thread->no_callback_scope_depth() != 0) {
     FATAL("Cannot invoke native callback when API callbacks are prohibited.");
   }
-  if (thread->is_unwind_in_progress()) {
+  if (current_thread->is_unwind_in_progress()) {
     FATAL("Cannot invoke native callback while unwind error propagates.");
   }
-  if (!thread->IsDartMutatorThread()) {
+  if (!current_thread->IsDartMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
   }
-  if (thread->isolate() != target_isolate) {
+  if (current_thread->isolate() != target_isolate) {
     FATAL("Cannot invoke native callback from a different isolate.");
   }
 
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  thread->set_execution_state(Thread::kThreadInVM);
+  current_thread->set_execution_state(Thread::kThreadInVM);
 
-  thread->ExitSafepoint();
+  current_thread->ExitSafepoint();
 
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
                      (void*)*out_entry_point);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
                      (void*)*out_trampoline_type);
-  return thread;
+  return current_thread;
+}
+
+extern "C" void DLRT_ExitTemporaryIsolate() {
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  Isolate* source_isolate =
+      reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
+  IsolateGroup::ExitTemporaryIsolate();
+  if (source_isolate != nullptr) {
+    TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
+                       source_isolate);
+    Thread::EnterIsolate(source_isolate);
+    Thread::Current()->EnterSafepoint();
+  }
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {

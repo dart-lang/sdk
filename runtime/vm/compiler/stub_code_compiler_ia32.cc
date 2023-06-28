@@ -303,6 +303,23 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(!IsCalleeSavedRegister(ECX) && !IsArgumentRegister(ECX));
   COMPILE_ASSERT(ECX != THR);
 
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the async
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmpl(THR, Immediate(0));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmpl(EBX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
+
   // On entry to the function, there will be two extra slots on the stack:
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
@@ -324,6 +341,40 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ Bind(&ret_4);
   __ ret(Immediate(4));
+
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(ECX);
+
+  // Exit the temporary isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movl(EAX,
+            Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
+    __ CallCFunction(EAX);
+
+    __ LeaveFrame();
+  }
+
+  __ Bind(&done);
+
+  // Pop the trampoline type into ECX.
+  __ popl(ECX);
+
+  // Restore callee-saved registers.
+  __ popl(EBX);
+  __ popl(THR);
+
+  // Stack delta is always 0 for async callbacks.
+  __ ret();
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.

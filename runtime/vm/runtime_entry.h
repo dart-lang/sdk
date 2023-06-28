@@ -162,6 +162,8 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(uword trampoline,
                                                uword* out_entry_point,
                                                uword* out_callback_kind);
 
+extern "C" void DLRT_ExitTemporaryIsolate();
+
 // For creating scoped handles in FFI trampolines.
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread);
 extern "C" void DLRT_ExitHandleScope(Thread* thread);

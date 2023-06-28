@@ -159,119 +159,111 @@ void RunNativeFinalizerCallback(NativeFinalizerPtr raw_finalizer,
 // fields referring to dead objects and |kName| field which contains visitor
 // name for tracing output.
 template <typename GCVisitorType>
-void MournFinalized(GCVisitorType* visitor) {
-  FinalizerEntryPtr current_entry =
-      visitor->delayed_.finalizer_entries.Release();
-  while (current_entry != FinalizerEntry::null()) {
-    TRACE_FINALIZER("Processing Entry %p", current_entry->untag());
-    FinalizerEntryPtr next_entry =
-        current_entry->untag()->next_seen_by_gc_.Decompress(
-            current_entry->heap_base());
-    current_entry->untag()->next_seen_by_gc_ = FinalizerEntry::null();
+void MournFinalizerEntry(GCVisitorType* visitor,
+                         FinalizerEntryPtr current_entry) {
+  TRACE_FINALIZER("Processing Entry %p", current_entry->untag());
 
-    uword heap_base = current_entry->heap_base();
-    const Heap::Space before_gc_space = SpaceForExternal(current_entry);
-    const bool value_collected_this_gc =
-        GCVisitorType::ForwardOrSetNullIfCollected(
-            heap_base, &current_entry->untag()->value_);
-    if (!value_collected_this_gc && before_gc_space == Heap::kNew) {
-      const Heap::Space after_gc_space = SpaceForExternal(current_entry);
-      if (after_gc_space == Heap::kOld) {
-        const intptr_t external_size = current_entry->untag()->external_size_;
-        TRACE_FINALIZER("Promoting external size %" Pd
-                        " bytes from new to old space",
-                        external_size);
-        visitor->isolate_group()->heap()->PromotedExternal(external_size);
-      }
+  uword heap_base = current_entry->heap_base();
+  const Heap::Space before_gc_space = SpaceForExternal(current_entry);
+  const bool value_collected_this_gc =
+      GCVisitorType::ForwardOrSetNullIfCollected(
+          heap_base, &current_entry->untag()->value_);
+  if (!value_collected_this_gc && before_gc_space == Heap::kNew) {
+    const Heap::Space after_gc_space = SpaceForExternal(current_entry);
+    if (after_gc_space == Heap::kOld) {
+      const intptr_t external_size = current_entry->untag()->external_size_;
+      TRACE_FINALIZER("Promoting external size %" Pd
+                      " bytes from new to old space",
+                      external_size);
+      visitor->isolate_group()->heap()->PromotedExternal(external_size);
     }
-    GCVisitorType::ForwardOrSetNullIfCollected(
-        heap_base, &current_entry->untag()->detach_);
-    GCVisitorType::ForwardOrSetNullIfCollected(
-        heap_base, &current_entry->untag()->finalizer_);
+  }
+  GCVisitorType::ForwardOrSetNullIfCollected(heap_base,
+                                             &current_entry->untag()->detach_);
+  GCVisitorType::ForwardOrSetNullIfCollected(
+      heap_base, &current_entry->untag()->finalizer_);
 
-    ObjectPtr token_object = current_entry->untag()->token();
-    // See sdk/lib/_internal/vm/lib/internal_patch.dart FinalizerBase.detach.
-    const bool is_detached = token_object == current_entry;
+  ObjectPtr token_object = current_entry->untag()->token();
+  // See sdk/lib/_internal/vm/lib/internal_patch.dart FinalizerBase.detach.
+  const bool is_detached = token_object == current_entry;
 
-    if (value_collected_this_gc && !is_detached) {
-      FinalizerBasePtr finalizer = current_entry->untag()->finalizer();
+  if (!value_collected_this_gc) return;
+  if (is_detached) return;
 
-      if (finalizer.IsRawNull()) {
-        TRACE_FINALIZER("Value collected entry %p finalizer null",
-                        current_entry->untag());
+  FinalizerBasePtr finalizer = current_entry->untag()->finalizer();
 
-        // Do nothing, the finalizer has been GCed.
-      } else {
-        TRACE_FINALIZER("Value collected entry %p finalizer %p",
-                        current_entry->untag(), finalizer->untag());
+  if (finalizer.IsRawNull()) {
+    TRACE_FINALIZER("Value collected entry %p finalizer null",
+                    current_entry->untag());
 
-        FinalizerPtr finalizer_dart = static_cast<FinalizerPtr>(finalizer);
-        // Move entry to entries collected and current head of that list as
-        // the next element. Using a atomic exchange satisfies concurrency
-        // between the parallel GC tasks.
-        // We rely on the fact that the mutator thread is not running to avoid
-        // races between GC and mutator modifying Finalizer.entries_collected.
-        //
-        // We only run in serial marker or in the finalize step in the marker,
-        // both are in safepoint.
-        // The main scavenger worker is at safepoint, the other scavenger
-        // workers are not, but they bypass safepoint because the main
-        // worker is at a safepoint already.
-        ASSERT(Thread::Current()->OwnsGCSafepoint() ||
-               Thread::Current()->BypassSafepoints());
+    // Do nothing, the finalizer has been GCed.
+    return;
+  }
 
-        if (finalizer.IsNativeFinalizer()) {
-          NativeFinalizerPtr native_finalizer =
-              static_cast<NativeFinalizerPtr>(finalizer);
+  TRACE_FINALIZER("Value collected entry %p finalizer %p",
+                  current_entry->untag(), finalizer->untag());
 
-          // Immediately call native callback.
-          RunNativeFinalizerCallback(native_finalizer, current_entry,
-                                     before_gc_space, visitor);
+  FinalizerPtr finalizer_dart = static_cast<FinalizerPtr>(finalizer);
+  // Move entry to entries collected and current head of that list as
+  // the next element. Using a atomic exchange satisfies concurrency
+  // between the parallel GC tasks.
+  // We rely on the fact that the mutator thread is not running to avoid
+  // races between GC and mutator modifying Finalizer.entries_collected.
+  //
+  // We only run in serial marker or in the finalize step in the marker,
+  // both are in safepoint.
+  // The main scavenger worker is at safepoint, the other scavenger
+  // workers are not, but they bypass safepoint because the main
+  // worker is at a safepoint already.
+  ASSERT(Thread::Current()->OwnsGCSafepoint() ||
+         Thread::Current()->BypassSafepoints());
 
-          // Fall-through sending a message to clear the entries and remove
-          // from detachments.
-        }
+  if (finalizer.IsNativeFinalizer()) {
+    NativeFinalizerPtr native_finalizer =
+        static_cast<NativeFinalizerPtr>(finalizer);
 
-        FinalizerEntryPtr previous_head =
-            finalizer_dart->untag()->exchange_entries_collected(current_entry);
-        current_entry->untag()->set_next(previous_head);
-        const bool first_entry = previous_head.IsRawNull();
+    // Immediately call native callback.
+    RunNativeFinalizerCallback(native_finalizer, current_entry, before_gc_space,
+                               visitor);
 
-        // If we're in the marker, we need to ensure that we release the store
-        // buffer afterwards.
-        // If we're in the scavenger and have the finalizer in old space and
-        // a new space entry, we don't need to release the store buffer.
-        if (!first_entry && previous_head->IsNewObject() &&
-            current_entry->IsOldObject()) {
-          TRACE_FINALIZER("Entry %p (old) next is %p (new)",
-                          current_entry->untag(), previous_head->untag());
-          // We must release the thread's store buffer block.
-        }
+    // Fall-through sending a message to clear the entries and remove
+    // from detachments.
+  }
 
-        // Schedule calling Dart finalizer.
-        if (first_entry) {
-          Isolate* isolate = finalizer->untag()->isolate_;
-          if (isolate == nullptr) {
-            TRACE_FINALIZER(
-                "Not scheduling finalizer %p callback on isolate null",
-                finalizer->untag());
-          } else {
-            TRACE_FINALIZER("Scheduling finalizer %p callback on isolate %p",
-                            finalizer->untag(), isolate);
+  FinalizerEntryPtr previous_head =
+      finalizer_dart->untag()->exchange_entries_collected(current_entry);
+  current_entry->untag()->set_next(previous_head);
+  const bool first_entry = previous_head.IsRawNull();
 
-            PersistentHandle* handle =
-                isolate->group()->api_state()->AllocatePersistentHandle();
-            handle->set_ptr(finalizer);
-            MessageHandler* message_handler = isolate->message_handler();
-            message_handler->PostMessage(
-                Message::New(handle, Message::kNormalPriority),
-                /*before_events*/ false);
-          }
-        }
-      }
+  // If we're in the marker, we need to ensure that we release the store
+  // buffer afterwards.
+  // If we're in the scavenger and have the finalizer in old space and
+  // a new space entry, we don't need to release the store buffer.
+  if (!first_entry && previous_head->IsNewObject() &&
+      current_entry->IsOldObject()) {
+    TRACE_FINALIZER("Entry %p (old) next is %p (new)", current_entry->untag(),
+                    previous_head->untag());
+    // We must release the thread's store buffer block.
+  }
+
+  // Schedule calling Dart finalizer.
+  if (first_entry) {
+    Isolate* isolate = finalizer->untag()->isolate_;
+    if (isolate == nullptr) {
+      TRACE_FINALIZER("Not scheduling finalizer %p callback on isolate null",
+                      finalizer->untag());
+    } else {
+      TRACE_FINALIZER("Scheduling finalizer %p callback on isolate %p",
+                      finalizer->untag(), isolate);
+
+      PersistentHandle* handle =
+          isolate->group()->api_state()->AllocatePersistentHandle();
+      handle->set_ptr(finalizer);
+      MessageHandler* message_handler = isolate->message_handler();
+      message_handler->PostMessage(
+          Message::New(handle, Message::kNormalPriority),
+          /*before_events*/ false);
     }
-
-    current_entry = next_entry;
   }
 }
 

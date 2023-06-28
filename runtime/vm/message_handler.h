@@ -215,7 +215,7 @@ class MessageHandler {
 
  private:
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class PortMap;
   friend class MessageHandlerTestPeer;
   friend class MessageHandlerTask;

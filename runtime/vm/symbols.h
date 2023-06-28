@@ -116,6 +116,7 @@ class ObjectPointerVisitor;
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiPointerAsyncFromFunctionSendArgs, "_pointerAsyncFromFunctionSendArgs")  \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \

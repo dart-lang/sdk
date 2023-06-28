@@ -1401,6 +1401,9 @@ void Call1ArgStubInstr::PrintOperandsTo(BaseTextBuffer* f) const {
     case StubId::kInitSyncStar:
       name = "InitSyncStar";
       break;
+    case StubId::kFfiAsyncCallbackSend:
+      name = "FfiAsyncCallbackSend";
+      break;
   }
   f->Printf("%s(", name);
   operand()->PrintTo(f);

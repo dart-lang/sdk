@@ -2818,6 +2818,11 @@ struct NameFormattingParams {
   }
 };
 
+enum class FfiCallbackKind : uint8_t {
+  kSync,
+  kAsync,
+};
+
 class Function : public Object {
  public:
   StringPtr name() const { return untag()->name(); }
@@ -2874,6 +2879,12 @@ class Function : public Object {
 
   // Can only be called on FFI trampolines.
   void SetFfiCallbackExceptionalReturn(const Instance& value) const;
+
+  // Can only be called on FFI trampolines.
+  FfiCallbackKind GetFfiCallbackKind() const;
+
+  // Can only be called on FFI trampolines.
+  void SetFfiCallbackKind(FfiCallbackKind value) const;
 
   // Return the signature of this function.
   PRECOMPILER_WSR_FIELD_DECLARATION(FunctionType, signature);
@@ -4161,6 +4172,11 @@ class FfiTrampolineData : public Object {
     return untag()->callback_exceptional_return();
   }
   void set_callback_exceptional_return(const Instance& value) const;
+
+  FfiCallbackKind callback_kind() const {
+    return static_cast<FfiCallbackKind>(untag()->callback_kind_);
+  }
+  void set_callback_kind(FfiCallbackKind kind) const;
 
   int32_t callback_id() const { return untag()->callback_id_; }
   void set_callback_id(int32_t value) const;
@@ -12818,14 +12834,6 @@ class WeakProperty : public Instance {
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedWeakProperty));
-  }
-
-  static void Clear(WeakPropertyPtr raw_weak) {
-    ASSERT(raw_weak->untag()->next_seen_by_gc_ ==
-           CompressedWeakPropertyPtr(WeakProperty::null()));
-    // This action is performed by the GC. No barrier.
-    raw_weak->untag()->key_ = Object::null();
-    raw_weak->untag()->value_ = Object::null();
   }
 
  private:
