@@ -298,17 +298,35 @@ class PageSpace {
   void AcquireLock(FreeList* freelist);
   void ReleaseLock(FreeList* freelist);
 
+  void PauseConcurrentMarking();
+  void ResumeConcurrentMarking();
+  void YieldConcurrentMarking();
+
   Monitor* tasks_lock() const { return &tasks_lock_; }
   intptr_t tasks() const { return tasks_; }
   void set_tasks(intptr_t val) {
     ASSERT(val >= 0);
     tasks_ = val;
   }
-  intptr_t concurrent_marker_tasks() const { return concurrent_marker_tasks_; }
+  intptr_t concurrent_marker_tasks() const {
+    DEBUG_ASSERT(tasks_lock_.IsOwnedByCurrentThread());
+    return concurrent_marker_tasks_;
+  }
   void set_concurrent_marker_tasks(intptr_t val) {
     ASSERT(val >= 0);
+    DEBUG_ASSERT(tasks_lock_.IsOwnedByCurrentThread());
     concurrent_marker_tasks_ = val;
   }
+  intptr_t concurrent_marker_tasks_active() const {
+    DEBUG_ASSERT(tasks_lock_.IsOwnedByCurrentThread());
+    return concurrent_marker_tasks_active_;
+  }
+  void set_concurrent_marker_tasks_active(intptr_t val) {
+    ASSERT(val >= 0);
+    DEBUG_ASSERT(tasks_lock_.IsOwnedByCurrentThread());
+    concurrent_marker_tasks_active_ = val;
+  }
+  bool pause_concurrent_marking() const { return pause_concurrent_marking_; }
   Phase phase() const { return phase_; }
   void set_phase(Phase val) { phase_ = val; }
 
@@ -444,6 +462,8 @@ class PageSpace {
   mutable Monitor tasks_lock_;
   intptr_t tasks_;
   intptr_t concurrent_marker_tasks_;
+  intptr_t concurrent_marker_tasks_active_;
+  RelaxedAtomic<bool> pause_concurrent_marking_;
   Phase phase_;
 
 #if defined(DEBUG)

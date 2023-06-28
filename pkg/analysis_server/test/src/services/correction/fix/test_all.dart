@@ -168,6 +168,7 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
+import 'remove_extension_constructor_test.dart' as remove_extension_constructor;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
@@ -420,6 +421,7 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
+    remove_extension_constructor.main();
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();

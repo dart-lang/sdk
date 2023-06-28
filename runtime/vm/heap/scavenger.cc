@@ -1713,6 +1713,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     }
     promo_candidate_words += page->promo_candidate_words();
   }
+  heap_->old_space()->PauseConcurrentMarking();
   SemiSpace* from = Prologue(reason);
 
   intptr_t bytes_promoted;
@@ -1747,6 +1748,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   MournWeakHandles();
   MournWeakTables();
   heap_->old_space()->ResetProgressBars();
+  heap_->old_space()->ResumeConcurrentMarking();
 
   // Restore write-barrier assumptions.
   heap_->isolate_group()->RememberLiveTemporaries();

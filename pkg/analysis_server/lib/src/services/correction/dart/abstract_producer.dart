@@ -14,7 +14,6 @@ import 'package:analyzer/dart/analysis/code_style_options.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
@@ -23,6 +22,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -527,6 +527,11 @@ abstract class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
   String get file => _context.file;
 
   Flutter get flutter => Flutter.instance;
+
+  /// See [CompilationUnitImpl.invalidNodes]
+  List<AstNode> get invalidNodes {
+    return (unit as CompilationUnitImpl).invalidNodes;
+  }
 
   AstNode get node => _context.node;
 

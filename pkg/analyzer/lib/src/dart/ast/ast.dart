@@ -3715,6 +3715,11 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   @override
   final FeatureSet featureSet;
 
+  /// Nodes that were parsed, but happened at locations where they are not
+  /// allowed. So, instead of dropping them, we remember them here. Quick
+  /// fixes could look here to determine which source range to remove.
+  final List<AstNodeImpl> invalidNodes;
+
   /// Initialize a newly created compilation unit to have the given directives
   /// and declarations. The [scriptTag] can be `null` if there is no script tag
   /// in the compilation unit. The list of [directives] can be `null` if there
@@ -3728,6 +3733,7 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
     required this.endToken,
     required this.featureSet,
     required this.lineInfo,
+    required this.invalidNodes,
   }) : _scriptTag = scriptTag {
     _becomeParentOf(_scriptTag);
     _directives._initialize(this, directives);

@@ -2717,9 +2717,7 @@ ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
   notes: |-
     Provide an empty body for the member.
 ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the constructor.
+  status: hasFix
 ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
   status: needsFix
   notes: |-

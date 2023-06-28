@@ -1,5 +1,7 @@
 ## 6.1.0-dev
-* Added `InstanceElement`, a super-interface for `InterfaceElement`.
+* Added `NamedInstanceElement`, a super-interface for `InterfaceElement`.
+* Added `InstanceElement`, a super-interface for `NamedInstanceElement`
+  and `ExtensionElement`.
 
 ## 6.0.0
 * Remove deprecated `declaredElement2` from AST.
