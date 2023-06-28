@@ -119,7 +119,7 @@ Handle::Handle(intptr_t handle)
       handle_(reinterpret_cast<HANDLE>(handle)),
       completion_port_(INVALID_HANDLE_VALUE),
       event_handler_(nullptr),
-      data_ready_(nullptr),
+      data_ready_(),
       pending_read_(nullptr),
       pending_write_(nullptr),
       last_error_(NOERROR),
@@ -221,7 +221,7 @@ void Handle::ReadComplete(OverlappedBuffer* buffer) {
     ASSERT(pending_read_ == buffer);
     ASSERT(data_ready_ == nullptr);
     if (!IsClosing()) {
-      data_ready_ = pending_read_;
+      data_ready_.reset(pending_read_);
     } else {
       OverlappedBuffer::DisposeBuffer(buffer);
     }
@@ -665,7 +665,6 @@ intptr_t Handle::Read(void* buffer, intptr_t num_bytes) {
   num_bytes =
       data_ready_->Read(buffer, Utils::Minimum<intptr_t>(num_bytes, INT_MAX));
   if (data_ready_->IsEmpty()) {
-    OverlappedBuffer::DisposeBuffer(data_ready_);
     data_ready_ = nullptr;
     if (!IsClosing() && !IsClosedRead()) {
       IssueRead();
@@ -694,7 +693,6 @@ intptr_t Handle::RecvFrom(void* buffer,
   }
   // Always dispose of the buffer, as UDP messages must be read in their
   // entirety to match how recvfrom works in a socket.
-  OverlappedBuffer::DisposeBuffer(data_ready_);
   data_ready_ = nullptr;
   if (!IsClosing() && !IsClosedRead()) {
     IssueRecvFrom();
@@ -975,9 +973,7 @@ void ClientSocket::IssueDisconnect() {
 void ClientSocket::DisconnectComplete(OverlappedBuffer* buffer) {
   OverlappedBuffer::DisposeBuffer(buffer);
   closesocket(socket());
-  if (data_ready_ != nullptr) {
-    OverlappedBuffer::DisposeBuffer(data_ready_);
-  }
+  data_ready_ = nullptr;
   mark_closed();
 #if defined(DEBUG)
   disconnecting_--;
