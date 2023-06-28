@@ -1192,6 +1192,8 @@ class Class : public Object {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   uint32_t Hash() const;
+  static uint32_t Hash(ClassPtr);
+
   int32_t SourceFingerprint() const;
 
   // Return the Type with type arguments filled in with dynamic.

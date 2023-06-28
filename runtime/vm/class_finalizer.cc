@@ -996,7 +996,6 @@ void ClassFinalizer::SortClasses() {
   RemapClassIds(old_to_new_cid.get());
   RehashTypes();          // Types use cid's as part of their hashes.
   IG->RehashConstants();  // Const objects use cid's as part of their hashes.
-  ClosureFunctionsCache::ResetLocked();  // Function hashes depend on cids.
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
