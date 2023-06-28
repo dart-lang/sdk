@@ -17,7 +17,8 @@ class BSS : public AllStatic {
   // stored at the index.
   enum class Relocation : intptr_t {
     InstructionsRelocatedAddress,
-    DRT_GetFfiCallbackMetadata,  // TODO(52579): Remove.
+    DRT_GetFfiCallbackMetadata,  // TODO(https://dartbug.com/52579): Remove.
+    DRT_ExitTemporaryIsolate,    // TODO(https://dartbug.com/52579): Remove.
     EndOfVmEntries,
 
     // We don't have any isolate group specific entries at the moment.

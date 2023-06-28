@@ -838,6 +838,7 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
       if (x.FfiCallbackTarget() != Object::null()) {
         s->Write<const Instance&>(
             Instance::Handle(zone, x.FfiCallbackExceptionalReturn()));
+        s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiCallbackKind()));
       } else {
         s->Write<const String&>(String::Handle(zone, x.name()));
         s->Write<const FunctionType&>(
@@ -924,9 +925,10 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
       const FunctionType& c_signature = d->Read<const FunctionType&>();
       if (!callback_target.IsNull()) {
         const Instance& exceptional_return = d->Read<const Instance&>();
+        FfiCallbackKind kind = static_cast<FfiCallbackKind>(d->Read<uint8_t>());
         return Function::ZoneHandle(
             zone, compiler::ffi::NativeCallbackFunction(
-                      c_signature, callback_target, exceptional_return));
+                      c_signature, callback_target, exceptional_return, kind));
       } else {
         const String& name = d->Read<const String&>();
         const FunctionType& signature = d->Read<const FunctionType&>();

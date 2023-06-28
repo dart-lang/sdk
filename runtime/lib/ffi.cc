@@ -43,6 +43,20 @@ DEFINE_NATIVE_ENTRY(Ffi_pointerFromFunction, 1, 1) {
   return Pointer::New(isolate->CreateSyncFfiCallback(zone, function));
 }
 
+DEFINE_NATIVE_ENTRY(Ffi_pointerAsyncFromFunction, 1, 2) {
+  const auto& function = Function::CheckedHandle(zone, arguments->NativeArg0());
+  const auto& port =
+      ReceivePort::CheckedHandle(zone, arguments->NativeArgAt(1));
+  return Pointer::New(
+      isolate->CreateAsyncFfiCallback(zone, function, port.Id()));
+}
+
+DEFINE_NATIVE_ENTRY(Ffi_deleteAsyncFunctionPointer, 1, 1) {
+  const auto& pointer = Pointer::CheckedHandle(zone, arguments->NativeArg0());
+  isolate->DeleteFfiCallback(pointer.NativeAddress());
+  return Object::null();
+}
+
 DEFINE_NATIVE_ENTRY(DartNativeApiFunctionPointer, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(String, name_dart, arguments->NativeArgAt(0));
   const char* name = name_dart.ToCString();

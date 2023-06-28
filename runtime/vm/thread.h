@@ -814,6 +814,12 @@ class Thread : public ThreadState {
   void set_unboxed_int64_runtime_arg(int64_t value) {
     unboxed_runtime_arg_.int64_storage[0] = value;
   }
+  int64_t unboxed_int64_runtime_second_arg() const {
+    return unboxed_runtime_arg_.int64_storage[1];
+  }
+  void set_unboxed_int64_runtime_second_arg(int64_t value) {
+    unboxed_runtime_arg_.int64_storage[1] = value;
+  }
   double unboxed_double_runtime_arg() const {
     return unboxed_runtime_arg_.double_storage[0];
   }

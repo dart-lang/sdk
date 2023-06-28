@@ -8343,6 +8343,20 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
+FfiCallbackKind Function::GetFfiCallbackKind() const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(data());
+  ASSERT(!obj.IsNull());
+  return FfiTrampolineData::Cast(obj).callback_kind();
+}
+
+void Function::SetFfiCallbackKind(FfiCallbackKind value) const {
+  ASSERT(IsFfiTrampoline());
+  const Object& obj = Object::Handle(data());
+  ASSERT(!obj.IsNull());
+  FfiTrampolineData::Cast(obj).set_callback_kind(value);
+}
+
 const char* Function::KindToCString(UntaggedFunction::Kind kind) {
   return UntaggedFunction::KindToCString(kind);
 }
@@ -11419,6 +11433,10 @@ void FfiTrampolineData::set_is_leaf(bool is_leaf) const {
 void FfiTrampolineData::set_callback_exceptional_return(
     const Instance& value) const {
   untag()->set_callback_exceptional_return(value.ptr());
+}
+
+void FfiTrampolineData::set_callback_kind(FfiCallbackKind kind) const {
+  StoreNonPointer(&untag()->callback_kind_, static_cast<uint8_t>(kind));
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import "dart:_internal" show patch, has63BitSmis;
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:isolate';
 import 'dart:typed_data';
@@ -143,6 +144,19 @@ external dynamic _nativeCallbackFunction<NS extends Function>(
 external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
     dynamic function);
 
+@pragma("vm:recognized", "other")
+@pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
+external dynamic _nativeAsyncCallbackFunction<NS extends Function>(
+    Function target);
+
+@pragma("vm:external-name", "Ffi_pointerAsyncFromFunction")
+external Pointer<NS> _pointerAsyncFromFunction<NS extends NativeFunction>(
+    dynamic function, RawReceivePort port);
+
+@pragma("vm:external-name", "Ffi_deleteAsyncFunctionPointer")
+external void _deleteAsyncFunctionPointer<NS extends NativeFunction>(
+    Pointer<NS> pointer);
+
 @patch
 @pragma("vm:entry-point")
 final class Pointer<T extends NativeType> {
@@ -171,6 +185,35 @@ final class Pointer<T extends NativeType> {
 
   @patch
   Pointer<U> cast<U extends NativeType>() => Pointer.fromAddress(address);
+}
+
+@patch
+final class NativeCallable<T extends Function> {
+  Pointer<NativeFunction<T>> _pointer = nullptr;
+  final RawReceivePort _port;
+
+  @patch
+  NativeCallable.listener(@DartRepresentationOf("T") Function callback)
+      : _port = RawReceivePort()..close() {
+    throw UnsupportedError("NativeCallable cannot be constructed dynamically.");
+  }
+
+  NativeCallable._(void Function(List) handler, String portDebugName)
+      : _port = RawReceivePort(
+            Zone.current.bindUnaryCallbackGuarded(handler), portDebugName);
+
+  @patch
+  Pointer<NativeFunction<T>> get nativeFunction => _pointer;
+
+  @patch
+  void close() {
+    if (_pointer == nullptr) {
+      throw StateError("NativeCallable is already closed.");
+    }
+    _port.close();
+    _deleteAsyncFunctionPointer(_pointer);
+    _pointer = nullptr;
+  }
 }
 
 @patch

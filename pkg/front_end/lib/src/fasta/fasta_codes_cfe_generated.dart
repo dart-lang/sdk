@@ -1115,6 +1115,34 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn(
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateFfiNativeCallableListenerReturnVoid = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The return type of the function passed to NativeCallable.listener must be void rather than '#type'.""",
+        withArguments: _withArgumentsFfiNativeCallableListenerReturnVoid);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeFfiNativeCallableListenerReturnVoid =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "FfiNativeCallableListenerReturnVoid",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiNativeCallableListenerReturnVoid(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeFfiNativeCallableListenerReturnVoid,
+      problemMessage:
+          """The return type of the function passed to NativeCallable.listener must be void rather than '${type}'.""" +
+              labeler.originMessages,
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         DartType _type,

@@ -3382,7 +3382,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      return BuildFfiNativeCallbackFunction();
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kSync);
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsync);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -6297,15 +6299,23 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   return code;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
+    FfiCallbackKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
+  // FfiCallbackKind::kSync:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // The FE also guarantees that all three arguments are constants.
+  // FfiCallbackKind::kAsync:
+  //   _nativeAsyncCallbackFunction<NativeSignatureType>(target)
+  //
+  // The FE also guarantees that both arguments are constants.
+
+  // Target, and for kSync callbacks, the exceptional return.
+  const intptr_t expected_argc = kind == FfiCallbackKind::kSync ? 2 : 1;
 
   const intptr_t argc = ReadUInt();  // Read argument count.
-  ASSERT(argc == 2);                 // Target, exceptionalReturn.
+  ASSERT(argc == expected_argc);
 
   const intptr_t list_length = ReadListLength();  // Read types list length.
   ASSERT(list_length == 1);                       // The native signature.
@@ -6318,7 +6328,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   Fragment code;
   const intptr_t positional_count =
       ReadListLength();  // Read positional argument count.
-  ASSERT(positional_count == 2);
+  ASSERT(positional_count == expected_argc);
 
   // Read target expression and extract the target function.
   code += BuildExpression();  // Build first positional argument (target).
@@ -6332,13 +6342,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   target = target.parent_function();
   code += Drop();
 
-  // Build second positional argument (exceptionalReturn).
-  code += BuildExpression();
-  Definition* exceptional_return_def = B->Peek();
-  ASSERT(exceptional_return_def->IsConstant());
-  const Instance& exceptional_return =
-      Instance::Cast(exceptional_return_def->AsConstant()->value());
-  code += Drop();
+  Instance& exceptional_return = Instance::ZoneHandle(Z, Instance::null());
+  if (kind == FfiCallbackKind::kSync) {
+    // Build second positional argument (exceptionalReturn).
+    code += BuildExpression();
+    Definition* exceptional_return_def = B->Peek();
+    ASSERT(exceptional_return_def->IsConstant());
+    exceptional_return ^= exceptional_return_def->AsConstant()->value().ptr();
+    code += Drop();
+  }
 
   const intptr_t named_args_len =
       ReadListLength();  // Skip (empty) named arguments list.
@@ -6349,9 +6361,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
   ReportIfNotNull(error);
 
-  const Function& result =
-      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
-                                  native_sig, target, exceptional_return));
+  const Function& result = Function::ZoneHandle(
+      Z, compiler::ffi::NativeCallbackFunction(native_sig, target,
+                                               exceptional_return, kind));
   code += Constant(result);
 
   return code;

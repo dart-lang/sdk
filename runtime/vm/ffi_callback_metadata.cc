@@ -4,6 +4,7 @@
 
 #include "vm/ffi_callback_metadata.h"
 
+#include "vm/compiler/assembler/disassembler.h"
 #include "vm/flag_list.h"
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
@@ -14,7 +15,7 @@ namespace dart {
 FfiCallbackMetadata::FfiCallbackMetadata() {}
 
 void FfiCallbackMetadata::EnsureStubPageLocked() {
-  // Assumes lock_ is already locked for writing.
+  ASSERT(lock_.IsOwnedByCurrentThread());
   if (stub_page_ != nullptr) {
     return;
   }
@@ -23,14 +24,18 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
   const uword code_start = trampoline_code.EntryPoint();
+  const uword code_end = code_start + trampoline_code.Size();
   const uword page_start = code_start & kPageMask;
-  offset_of_first_trampoline_in_page_ = code_start - page_start;
 
   ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
                        RXMappingSize());
 
+  // Stub page uses a tight (unaligned) bound for the end of the code area.
+  // Otherwise we can read past the end of the code area when doing DuplicateRX.
   stub_page_ = VirtualMemory::ForImagePage(reinterpret_cast<void*>(page_start),
-                                           RXMappingSize());
+                                           code_end - page_start);
+
+  offset_of_first_trampoline_in_page_ = code_start - page_start;
 
 #if defined(DART_TARGET_OS_FUCHSIA)
   // On Fuchsia we can't currently duplicate pages, so use the first page of
@@ -87,6 +92,8 @@ void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
 
 VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 #if defined(DART_TARGET_OS_FUCHSIA)
+  // TODO(https://dartbug.com/52579): Remove.
+  UNREACHABLE();
   return nullptr;
 #else
   VirtualMemory* new_page = VirtualMemory::AllocateAligned(
@@ -101,14 +108,26 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
     return nullptr;
   }
 
+#if !defined(PRODUCT) || defined(FORCE_INCLUDE_DISASSEMBLER)
+  if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
+    DisassembleToStdout formatter;
+    THR_Print("Code for duplicated stub 'FfiCallbackTrampoline' {\n");
+    const uword code_start =
+        new_page->start() + offset_of_first_trampoline_in_page_;
+    Disassembler::Disassemble(code_start, code_start + kPageSize, &formatter,
+                              /*comments=*/nullptr);
+    THR_Print("}\n");
+  }
+#endif
+
   return new_page;
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
 void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   EnsureStubPageLocked();
 
-  // Assumes lock_ is already locked for writing.
   if (free_list_head_ != nullptr) {
     return;
   }
@@ -122,6 +141,8 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   // Fill in the runtime functions.
   FillRuntimeFunction(new_page, kGetFfiCallbackMetadata,
                       reinterpret_cast<void*>(DLRT_GetFfiCallbackMetadata));
+  FillRuntimeFunction(new_page, kExitTemporaryIsolate,
+                      reinterpret_cast<void*>(DLRT_ExitTemporaryIsolate));
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
@@ -132,8 +153,13 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   }
 }
 
-FfiCallbackMetadata::Metadata* FfiCallbackMetadata::AllocateTrampolineLocked() {
-  // Assumes lock_ is already locked for writing.
+FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateMetadataEntry(
+    Isolate* target_isolate,
+    TrampolineType trampoline_type,
+    uword target_entry_point,
+    Dart_Port send_port,
+    Metadata** list_head) {
+  MutexLocker locker(&lock_);
   EnsureFreeListNotEmptyLocked();
   ASSERT(free_list_head_ != nullptr);
   Metadata* entry = free_list_head_;
@@ -142,11 +168,19 @@ FfiCallbackMetadata::Metadata* FfiCallbackMetadata::AllocateTrampolineLocked() {
     ASSERT(free_list_tail_ == entry);
     free_list_tail_ = nullptr;
   }
-  return entry;
+  Metadata* next_entry = *list_head;
+  if (next_entry != nullptr) {
+    ASSERT(next_entry->list_prev_ == nullptr);
+    next_entry->list_prev_ = entry;
+  }
+  *entry = Metadata(target_isolate, trampoline_type, target_entry_point,
+                    send_port, nullptr, next_entry);
+  *list_head = entry;
+  return TrampolineOfMetadata(entry);
 }
 
 void FfiCallbackMetadata::AddToFreeListLocked(Metadata* entry) {
-  // Assumes lock_ is already locked for writing.
+  ASSERT(lock_.IsOwnedByCurrentThread());
   if (free_list_tail_ == nullptr) {
     ASSERT(free_list_head_ == nullptr);
     free_list_head_ = free_list_tail_ = entry;
@@ -160,27 +194,49 @@ void FfiCallbackMetadata::AddToFreeListLocked(Metadata* entry) {
   entry->free_list_next_ = nullptr;
 }
 
-void FfiCallbackMetadata::DeleteSyncTrampolines(Metadata** sync_list_head) {
-  WriteRwLocker locker(Thread::Current(), &lock_);
-  for (Metadata* entry = *sync_list_head; entry != nullptr;) {
-    Metadata* next = entry->sync_list_next();
+void FfiCallbackMetadata::DeleteAllCallbacks(Metadata** list_head) {
+  MutexLocker locker(&lock_);
+  for (Metadata* entry = *list_head; entry != nullptr;) {
+    Metadata* next = entry->list_next();
     AddToFreeListLocked(entry);
     entry = next;
   }
-  *sync_list_head = nullptr;
+  *list_head = nullptr;
 }
 
-FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateFfiCallback(
-    Isolate* isolate,
-    Zone* zone,
-    const Function& function,
-    Metadata** sync_list_head) {
+void FfiCallbackMetadata::DeleteCallback(Trampoline trampoline,
+                                         Metadata** list_head) {
+  MutexLocker locker(&lock_);
+  auto* entry = MetadataOfTrampoline(trampoline);
+  ASSERT(entry->IsLive());
+  auto* prev = entry->list_prev_;
+  auto* next = entry->list_next_;
+  if (prev != nullptr) {
+    prev->list_next_ = next;
+  } else {
+    ASSERT(*list_head == entry);
+    *list_head = next;
+  }
+  if (next != nullptr) {
+    next->list_prev_ = prev;
+  }
+  AddToFreeListLocked(entry);
+}
+
+uword FfiCallbackMetadata::GetEntryPoint(Zone* zone, const Function& function) {
   const auto& code =
       Code::Handle(zone, FLAG_precompiled_mode ? function.CurrentCode()
                                                : function.EnsureHasCode());
   ASSERT(!code.IsNull());
+  return code.EntryPoint();
+}
 
-  const uword target_entry_point = code.EntryPoint();
+FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
+    Isolate* isolate,
+    Zone* zone,
+    const Function& function,
+    Metadata** list_head) {
+  ASSERT(function.GetFfiCallbackKind() == FfiCallbackKind::kSync);
   TrampolineType trampoline_type = TrampolineType::kSync;
 
 #if defined(TARGET_ARCH_IA32)
@@ -195,29 +251,28 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateFfiCallback(
   }
 #endif
 
-  WriteRwLocker locker(Thread::Current(), &lock_);
-  Metadata* entry = AllocateTrampolineLocked();
-  Metadata* sync_list_next = *sync_list_head;
-  *sync_list_head = entry;
-  *entry =
-      Metadata(isolate, target_entry_point, sync_list_next, trampoline_type);
-
-  return TrampolineOfMetadata(entry);
+  return CreateMetadataEntry(isolate, trampoline_type,
+                             GetEntryPoint(zone, function), ILLEGAL_PORT,
+                             list_head);
 }
 
-FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
+FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     Isolate* isolate,
     Zone* zone,
     const Function& function,
-    Metadata** sync_list_head) {
-  return CreateFfiCallback(isolate, zone, function, sync_list_head);
+    Dart_Port send_port,
+    Metadata** list_head) {
+  ASSERT(function.GetFfiCallbackKind() == FfiCallbackKind::kAsync);
+  return CreateMetadataEntry(isolate, TrampolineType::kAsync,
+                             GetEntryPoint(zone, function), send_port,
+                             list_head);
 }
 
 FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadata(
     Metadata* metadata) const {
   const uword start = MappingStart(reinterpret_cast<uword>(metadata));
   Metadata* metadatas = reinterpret_cast<Metadata*>(start + MetadataOffset());
-  const uword index = (metadata - metadatas);
+  const uword index = metadata - metadatas;
 #if defined(DART_TARGET_OS_FUCHSIA)
   return StubCode::FfiCallbackTrampoline().EntryPoint() +
          index * kNativeCallbackTrampolineSize;
@@ -253,9 +308,6 @@ FfiCallbackMetadata::Metadata* FfiCallbackMetadata::MetadataOfTrampoline(
 
 FfiCallbackMetadata::Metadata FfiCallbackMetadata::LookupMetadataForTrampoline(
     Trampoline trampoline) const {
-  // Note: The locker's thread may be null because this method is explicitly
-  // designed to be usable outside of a VM thread.
-  ReadRwLocker locker(Thread::Current(), &lock_);
   return *MetadataOfTrampoline(trampoline);
 }
 

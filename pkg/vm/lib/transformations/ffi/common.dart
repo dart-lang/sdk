@@ -247,7 +247,9 @@ class FfiTransformer extends Transformer {
   final Procedure libraryLookupMethod;
   final Procedure abiMethod;
   final Procedure pointerFromFunctionProcedure;
+  final Procedure pointerAsyncFromFunctionProcedure;
   final Procedure nativeCallbackFunctionProcedure;
+  final Procedure nativeAsyncCallbackFunctionProcedure;
   final Map<NativeType, Procedure> loadMethods;
   final Map<NativeType, Procedure> loadUnalignedMethods;
   final Map<NativeType, Procedure> storeMethods;
@@ -268,6 +270,12 @@ class FfiTransformer extends Transformer {
   final Class finalizableClass;
   final Procedure reachabilityFenceFunction;
   final Procedure checkAbiSpecificIntegerMappingFunction;
+  final Class rawRecvPortClass;
+  final Class nativeCallableClass;
+  final Constructor nativeCallableListenerConstructor;
+  final Constructor nativeCallablePrivateConstructor;
+  final Field nativeCallablePortField;
+  final Field nativeCallablePointerField;
 
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
@@ -454,8 +462,12 @@ class FfiTransformer extends Transformer {
         abiMethod = index.getTopLevelProcedure('dart:ffi', '_abi'),
         pointerFromFunctionProcedure =
             index.getTopLevelProcedure('dart:ffi', '_pointerFromFunction'),
+        pointerAsyncFromFunctionProcedure =
+            index.getTopLevelProcedure('dart:ffi', '_pointerAsyncFromFunction'),
         nativeCallbackFunctionProcedure =
             index.getTopLevelProcedure('dart:ffi', '_nativeCallbackFunction'),
+        nativeAsyncCallbackFunctionProcedure = index.getTopLevelProcedure(
+            'dart:ffi', '_nativeAsyncCallbackFunction'),
         nativeTypesClasses = nativeTypeClassNames.map((nativeType, name) =>
             MapEntry(nativeType, index.getClass('dart:ffi', name))),
         classNativeTypes = nativeTypeClassNames.map((nativeType, name) =>
@@ -510,7 +522,17 @@ class FfiTransformer extends Transformer {
         reachabilityFenceFunction =
             index.getTopLevelProcedure('dart:_internal', 'reachabilityFence'),
         checkAbiSpecificIntegerMappingFunction = index.getTopLevelProcedure(
-            'dart:ffi', "_checkAbiSpecificIntegerMapping") {
+            'dart:ffi', "_checkAbiSpecificIntegerMapping"),
+        rawRecvPortClass = index.getClass('dart:isolate', 'RawReceivePort'),
+        nativeCallableClass = index.getClass('dart:ffi', 'NativeCallable'),
+        nativeCallableListenerConstructor =
+            index.getConstructor('dart:ffi', 'NativeCallable', 'listener'),
+        nativeCallablePrivateConstructor =
+            index.getConstructor('dart:ffi', 'NativeCallable', '_'),
+        nativeCallablePortField =
+            index.getField('dart:ffi', 'NativeCallable', '_port'),
+        nativeCallablePointerField =
+            index.getField('dart:ffi', 'NativeCallable', '_pointer') {
     nativeFieldWrapperClass1Type = nativeFieldWrapperClass1Class.getThisType(
         coreTypes, Nullability.nonNullable);
     voidType = nativeTypesClasses[NativeType.kVoid]!

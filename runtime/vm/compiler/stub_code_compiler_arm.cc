@@ -480,22 +480,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, R4,
-                           TMP);
-    } else {
-      Label call;
-      __ ldr(R4, Address(PC, 0));
-      __ b(&call);
-      __ Emit(reinterpret_cast<intptr_t>(&DLRT_GetFfiCallbackMetadata));
-      __ Bind(&call);
-    }
-#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
 
     __ blx(R4);
     __ mov(THR, Operand(R0));
@@ -511,6 +497,24 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   __ PopRegisters(argument_registers);
 
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the async
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmp(THR, Operand(0));
+  __ b(&done, EQ);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmp(
+      R4,
+      Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ b(&async_callback, EQ);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
+
   // On entry to the function, there will be four extra slots on the stack:
   // saved THR, R4, R5 and the return address. The target will know to skip
   // them.
@@ -518,6 +522,33 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   // Clobbers R4, R5 and TMP, all saved or volatile.
   __ EnterFullSafepoint(R4, R5);
+
+  __ b(&done);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be four extra slots on the stack:
+  // saved THR, R4, R5 and the return address. The target will know to skip
+  // them.
+  __ blx(R5);
+
+  // Exit the temporary isolate.
+  {
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
+
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+
+    __ blx(R4);
+
+    __ LeaveFrame(1 << FP);
+  }
+
+  __ Bind(&done);
 
   // Returns.
   __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));

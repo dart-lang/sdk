@@ -392,7 +392,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ addi(A2, SPREG, target::kWordSize);  // out_trampoline_type
 
 #if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(52579): Remove.
+    // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
       GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, T1, T2);
     } else {
@@ -428,12 +428,75 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
   COMPILE_ASSERT(!IsCalleeSavedRegister(T3) && !IsArgumentRegister(T3));
 
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ beqz(THR, &done, Assembler::kNearJump);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  COMPILE_ASSERT(
+      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kSync) == 0);
+  __ bnez(T3, &async_callback, Assembler::kNearJump);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
+
   // Clobbers all volatile registers, including the callback ID in T1.
   __ jalr(T2);
 
   // Clobbers TMP, TMP2 and T1 -- all volatile and not holding return values.
   __ EnterFullSafepoint(/*scratch=*/T1);
 
+  __ j(&done, Assembler::kNearJump);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // Clobbers all volatile registers, including the callback ID in T1.
+  __ jalr(T2);
+
+  // Exit the temporary isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    Label call;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, T1, T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_ExitTemporaryIsolate));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_ExitTemporaryIsolate));
+#endif
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ Bind(&call);
+    __ jalr(T1);
+
+    __ LeaveFrame();
+  }
+
+  __ Bind(&done);
   __ PopRegisterPair(RA, THR);
   __ ret();
 

@@ -44,7 +44,8 @@ void transformLibraries(
     'dart:_internal',
     'dart:typed_data',
     'dart:nativewrappers',
-    'dart:_wasm'
+    'dart:_wasm',
+    'dart:isolate',
   ]);
   final transformer = WasmFfiNativeTransformer(
       index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);

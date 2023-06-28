@@ -7764,6 +7764,10 @@ LocationSummary* Call1ArgStubInstr::MakeLocationSummary(Zone* zone,
       locs->set_in(0, Location::RegisterLocation(
                           InitSuspendableFunctionStubABI::kTypeArgsReg));
       break;
+    case StubId::kFfiAsyncCallbackSend:
+      locs->set_in(
+          0, Location::RegisterLocation(FfiAsyncCallbackSendStubABI::kArgsReg));
+      break;
   }
   locs->set_out(0, Location::RegisterLocation(CallingConventions::kReturnReg));
   return locs;
@@ -7784,6 +7788,9 @@ void Call1ArgStubInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       break;
     case StubId::kInitSyncStar:
       stub = object_store->init_sync_star_stub();
+      break;
+    case StubId::kFfiAsyncCallbackSend:
+      stub = object_store->ffi_async_callback_send_stub();
       break;
   }
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,

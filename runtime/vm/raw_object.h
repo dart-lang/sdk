@@ -1435,6 +1435,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
+
+  // The kind of callback this is. See FfiCallbackKind.
+  uint8_t callback_kind_;
 };
 
 class UntaggedField : public UntaggedObject {

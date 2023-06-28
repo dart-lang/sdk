@@ -422,7 +422,8 @@ struct CanonicalFfiCallbackFunctionTraits {
     return (f1.FfiCallbackTarget() == f2.FfiCallbackTarget() &&
             f1.FfiCSignature() == f2.FfiCSignature() &&
             f1.FfiCallbackExceptionalReturn() ==
-                f2.FfiCallbackExceptionalReturn());
+                f2.FfiCallbackExceptionalReturn() &&
+            f1.GetFfiCallbackKind() == f2.GetFfiCallbackKind());
   }
   static bool ReportStats() { return false; }
 };

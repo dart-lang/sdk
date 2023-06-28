@@ -984,6 +984,7 @@ bool FlowGraphBuilder::IsRecognizedMethodForFlowGraph(
     case MethodRecognizer::kFfiLoadDoubleUnaligned:
     case MethodRecognizer::kFfiLoadPointer:
     case MethodRecognizer::kFfiNativeCallbackFunction:
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
     case MethodRecognizer::kFfiStoreInt8:
     case MethodRecognizer::kFfiStoreInt16:
     case MethodRecognizer::kFfiStoreInt32:
@@ -1266,7 +1267,8 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfRecognizedMethod(
       ASSERT_EQUAL(function.NumParameters(), 0);
       body += IntConstant(static_cast<int64_t>(compiler::ffi::TargetAbi()));
       break;
-    case MethodRecognizer::kFfiNativeCallbackFunction: {
+    case MethodRecognizer::kFfiNativeCallbackFunction:
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction: {
       const auto& error = String::ZoneHandle(
           Z, Symbols::New(thread_,
                           "This function should be handled on call site."));
@@ -4739,7 +4741,11 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
   if (function.FfiCallbackTarget() != Function::null()) {
-    return BuildGraphOfFfiCallback(function);
+    if (function.GetFfiCallbackKind() == FfiCallbackKind::kSync) {
+      return BuildGraphOfSyncFfiCallback(function);
+    } else {
+      return BuildGraphOfAsyncFfiCallback(function);
+    }
   } else {
     return BuildGraphOfFfiNative(function);
   }
@@ -4925,7 +4931,33 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {
                            prologue_info);
 }
 
-FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
+Fragment FlowGraphBuilder::LoadNativeArg(
+    const compiler::ffi::CallbackMarshaller& marshaller,
+    intptr_t arg_index) {
+  const intptr_t num_defs = marshaller.NumDefinitions(arg_index);
+  auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
+
+  Fragment fragment;
+  for (intptr_t j = 0; j < num_defs; j++) {
+    const intptr_t def_index = marshaller.DefinitionIndex(j, arg_index);
+    auto* parameter = new (Z) NativeParameterInstr(marshaller, def_index);
+    Push(parameter);
+    fragment <<= parameter;
+    LocalVariable* def = MakeTemporary();
+    defs->Add(def);
+  }
+
+  if (marshaller.IsCompound(arg_index)) {
+    fragment +=
+        FfiCallbackConvertCompoundArgumentToDart(marshaller, arg_index, defs);
+  } else {
+    fragment += FfiConvertPrimitiveToDart(marshaller, arg_index);
+  }
+  return fragment;
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfSyncFfiCallback(
+    const Function& function) {
   const char* error = nullptr;
   const auto marshaller_ptr =
       compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
@@ -4955,23 +4987,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
 
   // Box and push the arguments.
   for (intptr_t i = 0; i < marshaller.num_args(); i++) {
-    const intptr_t num_defs = marshaller.NumDefinitions(i);
-    auto defs = new (Z) ZoneGrowableArray<LocalVariable*>(Z, num_defs);
-
-    for (intptr_t j = 0; j < num_defs; j++) {
-      const intptr_t def_index = marshaller.DefinitionIndex(j, i);
-      auto* parameter = new (Z) NativeParameterInstr(marshaller, def_index);
-      Push(parameter);
-      body <<= parameter;
-      LocalVariable* def = MakeTemporary();
-      defs->Add(def);
-    }
-
-    if (marshaller.IsCompound(i)) {
-      body += FfiCallbackConvertCompoundArgumentToDart(marshaller, i, defs);
-    } else {
-      body += FfiConvertPrimitiveToDart(marshaller, i);
-    }
+    body += LoadNativeArg(marshaller, i);
   }
 
   // Call the target.
@@ -5045,6 +5061,79 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfFfiCallback(const Function& function) {
         FfiConvertPrimitiveToNative(marshaller, compiler::ffi::kResultIndex);
   }
 
+  catch_body += NativeReturn(marshaller);
+  --catch_depth_;
+
+  PrologueInfo prologue_info(-1, -1);
+  return new (Z) FlowGraph(*parsed_function_, graph_entry_, last_used_block_id_,
+                           prologue_info);
+}
+
+FlowGraph* FlowGraphBuilder::BuildGraphOfAsyncFfiCallback(
+    const Function& function) {
+  const char* error = nullptr;
+  const auto marshaller_ptr =
+      compiler::ffi::CallbackMarshaller::FromFunction(Z, function, &error);
+  // AbiSpecific integers can be incomplete causing us to not know the calling
+  // convention. However, this is caught fromFunction in both JIT/AOT.
+  RELEASE_ASSERT(error == nullptr);
+  RELEASE_ASSERT(marshaller_ptr != nullptr);
+  const auto& marshaller = *marshaller_ptr;
+
+  // Currently all async FFI callbacks return void. This is enforced by the
+  // frontend.
+  ASSERT(marshaller.IsVoid(compiler::ffi::kResultIndex));
+
+  graph_entry_ =
+      new (Z) GraphEntryInstr(*parsed_function_, Compiler::kNoOSRDeoptId);
+
+  auto* const native_entry =
+      new (Z) NativeEntryInstr(marshaller, graph_entry_, AllocateBlockId(),
+                               CurrentTryIndex(), GetNextDeoptId());
+
+  graph_entry_->set_normal_entry(native_entry);
+
+  Fragment function_body(native_entry);
+  function_body += CheckStackOverflowInPrologue(function.token_pos());
+
+  // Wrap the entire method in a big try/catch. This is important to ensure that
+  // the VM does not crash if the callback throws an exception.
+  const intptr_t try_handler_index = AllocateTryIndex();
+  Fragment body = TryCatch(try_handler_index);
+  ++try_depth_;
+
+  // Box and push the arguments into an array, to be sent to the target.
+  body += Constant(TypeArguments::ZoneHandle(Z, TypeArguments::null()));
+  body += IntConstant(marshaller.num_args());
+  body += CreateArray();
+  LocalVariable* array = MakeTemporary();
+  for (intptr_t i = 0; i < marshaller.num_args(); i++) {
+    body += LoadLocal(array);
+    body += IntConstant(i);
+    body += LoadNativeArg(marshaller, i);
+    body += StoreIndexed(kArrayCid);
+  }
+
+  // Send the arg array to the target. The arg array is still on the stack.
+  body += Call1ArgStub(TokenPosition::kNoSource,
+                       Call1ArgStubInstr::StubId::kFfiAsyncCallbackSend);
+
+  // All async FFI callbacks return void, so just return 0.
+  body += Drop();
+  body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
+  body += NativeReturn(marshaller);
+
+  --try_depth_;
+  function_body += body;
+
+  ++catch_depth_;
+  Fragment catch_body = CatchBlockEntry(Array::empty_array(), try_handler_index,
+                                        /*needs_stacktrace=*/false,
+                                        /*is_synthesized=*/true);
+
+  // This catch indicates there's been some sort of error, but async callbacks
+  // are fire-and-forget, and we don't guarantee delivery. So just return 0.
+  catch_body += UnboxedIntConstant(0, kUnboxedFfiIntPtr);
   catch_body += NativeReturn(marshaller);
   --catch_depth_;
 

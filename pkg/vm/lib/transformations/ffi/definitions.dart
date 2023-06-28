@@ -76,7 +76,8 @@ void transformLibraries(
     'dart:ffi',
     'dart:_internal',
     'dart:typed_data',
-    'dart:nativewrappers'
+    'dart:nativewrappers',
+    'dart:isolate',
   ]);
   if (!index.containsLibrary('dart:ffi')) {
     // TODO: This check doesn't make sense: "dart:ffi" is always loaded/created

@@ -45,6 +45,7 @@ class FfiCallbackMetadata {
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
+    kExitTemporaryIsolate,
     kNumRuntimeFunctions,
   };
 
@@ -58,14 +59,26 @@ class FfiCallbackMetadata {
   Trampoline CreateSyncFfiCallback(Isolate* isolate,
                                    Zone* zone,
                                    const Function& function,
-                                   Metadata** sync_list_head);
+                                   Metadata** list_head);
 
-  // Deletes all the sync trampolines in the list.
-  void DeleteSyncTrampolines(Metadata** sync_list_head);
+  // Creates an async callback trampoline for the given function and associates
+  // it with the send_port.
+  Trampoline CreateAsyncFfiCallback(Isolate* isolate,
+                                    Zone* zone,
+                                    const Function& function,
+                                    Dart_Port send_port,
+                                    Metadata** list_head);
+
+  // Deletes a single trampoline.
+  void DeleteCallback(Trampoline trampoline, Metadata** list_head);
+
+  // Deletes all the trampolines in the list.
+  void DeleteAllCallbacks(Metadata** list_head);
 
   // FFI callback metadata for any sync or async trampoline.
   class Metadata {
-    Isolate* target_isolate_ = nullptr;
+    Isolate* target_isolate_;
+    TrampolineType trampoline_type_;
 
     union {
       // IsLive()
@@ -74,37 +87,40 @@ class FfiCallbackMetadata {
         // safe because Instructions objects are never moved by the GC.
         uword target_entry_point_;
 
-        Metadata* sync_list_next_;
+        Dart_Port send_port_;
 
-        TrampolineType trampoline_type_;
+        // Links in the Isolate's list of callbacks.
+        Metadata* list_prev_;
+        Metadata* list_next_;
       };
 
       // !IsLive()
       Metadata* free_list_next_;
     };
 
-    Metadata()
-        : target_entry_point_(0),
-          sync_list_next_(nullptr),
-          trampoline_type_(TrampolineType::kSync) {}
     Metadata(Isolate* target_isolate,
+             TrampolineType trampoline_type,
              uword target_entry_point,
-             Metadata* sync_list_next,
-             TrampolineType trampoline_type)
+             Dart_Port send_port,
+             Metadata* list_prev,
+             Metadata* list_next)
         : target_isolate_(target_isolate),
+          trampoline_type_(trampoline_type),
           target_entry_point_(target_entry_point),
-          sync_list_next_(sync_list_next),
-          trampoline_type_(trampoline_type) {}
+          send_port_(send_port),
+          list_prev_(list_prev),
+          list_next_(list_next) {}
 
    public:
     friend class FfiCallbackMetadata;
-    bool operator==(const Metadata& other) const {
+    bool IsSameCallback(const Metadata& other) const {
+      // Not checking the list links, because they can change when other
+      // callbacks are deleted.
       return target_isolate_ == other.target_isolate_ &&
+             trampoline_type_ == other.trampoline_type_ &&
              target_entry_point_ == other.target_entry_point_ &&
-             sync_list_next_ == other.sync_list_next_ &&
-             trampoline_type_ == other.trampoline_type_;
+             send_port_ == other.send_port_;
     }
-    bool operator!=(const Metadata& other) const { return !(*this == other); }
 
     // Whether the callback is still alive.
     bool IsLive() const { return target_isolate_ != 0; }
@@ -123,24 +139,37 @@ class FfiCallbackMetadata {
       return target_entry_point_;
     }
 
-    // To efficiently delete all the sync callbacks for a isolate, they are
-    // stored in a singly-linked list. This is the next link in that list.
-    Metadata* sync_list_next() {
+    // The send port that the async callback will send a message to.
+    Dart_Port send_port() const {
       ASSERT(IsLive());
-      return sync_list_next_;
+      return send_port_;
+    }
+
+    // To efficiently delete all the callbacks for a isolate, they are stored in
+    // a linked list. Since we also need to delete async callbacks at arbitrary
+    // times, the list must be doubly linked.
+    Metadata* list_prev() {
+      ASSERT(IsLive());
+      return list_prev_;
+    }
+    Metadata* list_next() {
+      ASSERT(IsLive());
+      return list_next_;
     }
 
     // Tells FfiCallbackTrampolineStub how to call into the entry point. Mostly
     // it's just a flag for whether this is a sync or async callback, but on
     // IA32 it also encodes whether there's a stack delta of 4 to deal with.
     TrampolineType trampoline_type() const {
-      ASSERT(IsLive());
       return trampoline_type_;
     }
   };
 
   // Returns the Metadata object for the given trampoline.
   Metadata LookupMetadataForTrampoline(Trampoline trampoline) const;
+
+  // The mutex that guards creation and destruction of callbacks.
+  Mutex* lock() { return &lock_; }
 
   // The number of trampolines that can be stored on a single page.
   static constexpr intptr_t NumCallbackTrampolinesPerPage() {
@@ -203,27 +232,31 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_IA32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 10;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 142;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 146;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 196;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 4;
 #elif defined(TARGET_ARCH_ARM64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 296;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 320;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 230;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 202;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 204;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?
 #endif
+
+  // Visible for testing.
+  Metadata* MetadataOfTrampoline(Trampoline trampoline) const;
+  Trampoline TrampolineOfMetadata(Metadata* metadata) const;
 
  private:
   FfiCallbackMetadata();
@@ -233,18 +266,17 @@ class FfiCallbackMetadata {
   void FillRuntimeFunction(VirtualMemory* page, uword index, void* function);
   VirtualMemory* AllocateTrampolinePage();
   void EnsureFreeListNotEmptyLocked();
-  Metadata* AllocateTrampolineLocked();
+  Trampoline CreateMetadataEntry(Isolate* target_isolate,
+                                 TrampolineType trampoline_type,
+                                 uword target_entry_point,
+                                 Dart_Port send_port,
+                                 Metadata** list_head);
   Trampoline TryAllocateFromFreeListLocked();
-  Trampoline CreateFfiCallback(Isolate* isolate,
-                               Zone* zone,
-                               const Function& function,
-                               Metadata** sync_list_head);
-  Metadata* MetadataOfTrampoline(Trampoline trampoline) const;
-  Trampoline TrampolineOfMetadata(Metadata* metadata) const;
+  static uword GetEntryPoint(Zone* zone, const Function& function);
 
   static FfiCallbackMetadata* singleton_;
 
-  mutable RwLock lock_;
+  mutable Mutex lock_;
   VirtualMemory* stub_page_ = nullptr;
   MallocGrowableArray<VirtualMemory*> trampoline_pages_;
   uword offset_of_first_trampoline_in_page_ = 0;

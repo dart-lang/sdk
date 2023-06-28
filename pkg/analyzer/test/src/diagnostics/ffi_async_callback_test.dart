@@ -9,78 +9,79 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(FfiRawVoidCallbacksMustReturnVoid);
+    defineReflectiveTests(FfiNativeCallableListenersMustReturnVoid);
   });
 }
 
 @reflectiveTest
-class FfiRawVoidCallbacksMustReturnVoid extends PubPackageResolutionTest {
-  test_RawVoidCallback_inferred() async {
+class FfiNativeCallableListenersMustReturnVoid
+    extends PubPackageResolutionTest {
+  test_NativeCallable_listener_inferred() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
-  RawVoidCallback<Void Function(Int32)>? callback;
-  callback = RawVoidCallback(f);
+  NativeCallable<Void Function(Int32)>? callback;
+  callback = NativeCallable.listener(f);
   callback.close();
 }
 ''', []);
   }
 
-  test_RawVoidCallback_mustBeANativeFunctionType() async {
+  test_NativeCallable_listener_mustBeANativeFunctionType() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
-  RawVoidCallback<void Function(int)>(f);
+  NativeCallable<void Function(int)>.listener(f);
 }
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 56, 35),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 56, 43),
     ]);
   }
 
-  test_RawVoidCallback_mustBeASubtype() async {
+  test_NativeCallable_listener_mustBeASubtype() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
-  RawVoidCallback<Void Function(Double)>(f);
+  NativeCallable<Void Function(Double)>.listener(f);
 }
 ''', [
-      error(FfiCode.MUST_BE_A_SUBTYPE, 95, 1),
+      error(FfiCode.MUST_BE_A_SUBTYPE, 103, 1),
     ]);
   }
 
-  test_RawVoidCallback_mustHaveTypeArgs() async {
+  test_NativeCallable_listener_mustHaveTypeArgs() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
-  RawVoidCallback(f);
+  NativeCallable.listener(f);
 }
 ''', [
-      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 55, 15),
+      error(FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE, 55, 23),
     ]);
   }
 
-  test_RawVoidCallback_mustReturnVoid() async {
+  test_NativeCallable_listener_mustReturnVoid() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 int f(int i) => i * 2;
 void g() {
-  RawVoidCallback<Int32 Function(Int32)>(f);
+  NativeCallable<Int32 Function(Int32)>.listener(f);
 }
 ''', [
-      error(FfiCode.MUST_RETURN_VOID, 94, 1),
+      error(FfiCode.MUST_RETURN_VOID, 102, 1),
     ]);
   }
 
-  test_RawVoidCallback_ok() async {
+  test_NativeCallable_listener_ok() async {
     await assertErrorsInCode(r'''
 import 'dart:ffi';
 void f(int i) => i * 2;
 void g() {
-  RawVoidCallback<Void Function(Int32)>(f);
+  NativeCallable<Void Function(Int32)>.listener(f);
 }
 ''', []);
   }

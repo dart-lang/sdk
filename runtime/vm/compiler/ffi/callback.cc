@@ -17,7 +17,8 @@ namespace ffi {
 
 FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
                                    const Function& dart_target,
-                                   const Instance& exceptional_return) {
+                                   const Instance& exceptional_return,
+                                   FfiCallbackKind kind) {
   Thread* const thread = Thread::Current();
   Zone* const zone = thread->zone();
   Function& function = Function::Handle(zone);
@@ -46,6 +47,7 @@ FunctionPtr NativeCallbackFunction(const FunctionType& c_signature,
   // the body.
   function.SetFfiCSignature(c_signature);
   function.SetFfiCallbackTarget(dart_target);
+  function.SetFfiCallbackKind(kind);
 
   // We need to load the exceptional return value as a constant in the generated
   // function. Even though the FE ensures that it is a constant, it could still

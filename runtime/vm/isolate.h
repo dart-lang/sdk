@@ -767,6 +767,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
+  Isolate* EnterTemporaryIsolate();
+  static void ExitTemporaryIsolate();
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -1242,10 +1245,15 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
       Zone* zone,
       const Function& function);
+  FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
+      Zone* zone,
+      const Function& function,
+      Dart_Port send_port);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
 
   // Visible for testing.
-  FfiCallbackMetadata::Metadata* ffi_callback_sync_list_head() {
-    return ffi_callback_sync_list_head_;
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+    return ffi_callback_list_head_;
   }
 
   intptr_t BlockClassFinalization() {
@@ -1635,7 +1643,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
-  FfiCallbackMetadata::Metadata* ffi_callback_sync_list_head_ = nullptr;
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
 

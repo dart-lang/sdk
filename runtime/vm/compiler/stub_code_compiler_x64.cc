@@ -494,7 +494,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movq(CallingConventions::kArg3Reg, RSP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(52579): Remove.
+    // TODO(https://dartbug.com/52579): Remove.
     if (FLAG_precompiled_mode) {
       GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, RAX,
                            TMP);
@@ -535,12 +535,65 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // Registers: Like entry, except TMP == target, RAX == abi, and THR == thread
   //            All argument registers are untouched.
 
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmpq(THR, Immediate(0));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmpq(RAX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
+
   // On entry to the function, there will be two extra slots on the stack:
   // the saved THR and the return address. The target will know to skip them.
   __ call(TMP);
 
   // Takes care to not clobber *any* registers (besides TMP).
   __ EnterFullSafepoint();
+
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(TMP);
+
+  // Exit the temporary isolate.
+  {
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, RAX, TMP);
+    } else {
+      __ movq(RAX,
+              Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+
+    __ LeaveFrame();
+  }
+
+  __ Bind(&done);
 
   // Restore THR (callee-saved).
   __ popq(THR);

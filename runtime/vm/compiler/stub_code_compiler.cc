@@ -2550,6 +2550,17 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::GenerateFfiAsyncCallbackSendStub() {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ PushRegister(FfiAsyncCallbackSendStubABI::kArgsReg);
+  __ CallRuntime(kFfiAsyncCallbackSendRuntimeEntry, 1);
+  __ Drop(1);                                      // Drop argument.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
 void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
   ASSERT(pc_descriptors_list_ != nullptr);
   const intptr_t pc_offset = assembler->InsertAlignedRelocation(reloc);
