@@ -10,6 +10,7 @@
 !update.sh
 !/wasmer
 !/pkg/c_compiler.status
+!/pkg/native_assets_builder.status
 !/pkg/native_assets_cli.status
 # but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
 /tcmalloc/gperftools
