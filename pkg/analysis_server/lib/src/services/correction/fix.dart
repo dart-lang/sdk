@@ -1107,6 +1107,11 @@ class DartFixKind {
     DartFixKindPriority.IN_FILE,
     'Remove empty statements everywhere in file',
   );
+  static const REMOVE_EXTENSION_CONSTRUCTOR = FixKind(
+    'dart.fix.remove.extension.constructor',
+    DartFixKindPriority.DEFAULT,
+    'Remove extension constructor',
+  );
   static const REMOVE_IF_NULL_OPERATOR = FixKind(
     'dart.fix.remove.ifNullOperator',
     DartFixKindPriority.DEFAULT,

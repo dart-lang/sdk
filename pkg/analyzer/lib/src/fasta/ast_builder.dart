@@ -75,6 +75,7 @@ class AstBuilder extends StackListener {
   ScriptTagImpl? scriptTag;
   final List<DirectiveImpl> directives = [];
   final List<CompilationUnitMemberImpl> declarations = [];
+  final List<AstNodeImpl> invalidNodes = [];
 
   @override
   final Uri uri;
@@ -1148,84 +1149,12 @@ class AstBuilder extends StackListener {
         optional('set', getOrSet));
     debugEvent("ClassConstructor");
 
-    var bodyObject = pop();
-    var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
-    var separator = pop() as Token?;
-    var parameters = pop() as FormalParameterListImpl;
-    var typeParameters = pop() as TypeParameterListImpl?;
-    var name = pop();
-    pop(); // return type
-    var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<AnnotationImpl>?;
-    var comment = _findComment(metadata, beginToken);
-
-    ConstructorNameImpl? redirectedConstructor;
-    FunctionBodyImpl body;
-    if (bodyObject is FunctionBodyImpl) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
-      body = EmptyFunctionBodyImpl(
-        semicolon: endToken,
-      );
-    } else {
-      internalProblem(
-          templateInternalProblemUnhandled.withArguments(
-              "${bodyObject.runtimeType}", "bodyObject"),
-          beginToken.charOffset,
-          uri);
-    }
-
-    SimpleIdentifierImpl prefixOrName;
-    Token? period;
-    SimpleIdentifierImpl? nameOrNull;
-    if (name is SimpleIdentifierImpl) {
-      prefixOrName = name;
-    } else if (name is PrefixedIdentifierImpl) {
-      prefixOrName = name.prefix;
-      period = name.period;
-      nameOrNull = name.identifier;
-    } else if (name is _OperatorName) {
-      prefixOrName = name.name;
-    } else {
-      throw UnimplementedError(
-          'name is an instance of ${name.runtimeType} in endClassConstructor');
-    }
-
-    if (typeParameters != null) {
-      // Outline builder also reports this error message.
-      handleRecoverableError(messageConstructorWithTypeParameters,
-          typeParameters.beginToken, typeParameters.endToken);
-    }
-    if (modifiers?.constKeyword != null &&
-        (body.length > 1 || body.beginToken.lexeme != ';')) {
-      // This error is also reported in BodyBuilder.finishFunction
-      Token bodyToken = body.beginToken;
-      // Token bodyToken = body.beginToken ?? modifiers.constKeyword;
-      handleRecoverableError(
-          messageConstConstructorWithBody, bodyToken, bodyToken);
-    }
-    var constructor = ConstructorDeclarationImpl(
-      comment: comment,
-      metadata: metadata,
-      externalKeyword: modifiers?.externalKeyword,
-      constKeyword: modifiers?.finalConstOrVarKeyword,
-      factoryKeyword: null,
-      returnType: SimpleIdentifierImpl(prefixOrName.token),
-      period: period,
-      name: nameOrNull?.token,
-      parameters: parameters,
-      separator: separator,
-      initializers: initializers,
-      redirectedConstructor: redirectedConstructor,
-      body: body,
+    _classLikeBuilder?.members.add(
+      _buildConstructorDeclaration(
+        beginToken: beginToken,
+        endToken: endToken,
+      ),
     );
-
-    _classLikeBuilder?.members.add(constructor);
-    if (_classLikeBuilder is MixinDeclarationImpl) {
-      // TODO (danrubel): Report an error if this is a mixin declaration.
-    }
   }
 
   @override
@@ -1246,70 +1175,11 @@ class AstBuilder extends StackListener {
     assert(optional(';', endToken) || optional('}', endToken));
     debugEvent("ClassFactoryMethod");
 
-    FunctionBodyImpl body;
-    Token? separator;
-    ConstructorNameImpl? redirectedConstructor;
-    var bodyObject = pop();
-    if (bodyObject is FunctionBodyImpl) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      separator = bodyObject.equalToken;
-      redirectedConstructor = bodyObject.constructorName;
-      body = EmptyFunctionBodyImpl(
-        semicolon: endToken,
-      );
-    } else {
-      internalProblem(
-          templateInternalProblemUnhandled.withArguments(
-              "${bodyObject.runtimeType}", "bodyObject"),
-          beginToken.charOffset,
-          uri);
-    }
-
-    var parameters = pop() as FormalParameterListImpl;
-    var typeParameters = pop() as TypeParameterListImpl?;
-    var constructorName = pop() as IdentifierImpl;
-    var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<AnnotationImpl>?;
-    var comment = _findComment(metadata, beginToken);
-
-    if (typeParameters != null) {
-      // TODO(danrubel): Update OutlineBuilder to report this error message.
-      handleRecoverableError(messageConstructorWithTypeParameters,
-          typeParameters.beginToken, typeParameters.endToken);
-    }
-
-    // Decompose the preliminary ConstructorName into the type name and
-    // the actual constructor name.
-    SimpleIdentifierImpl returnType;
-    Token? period;
-    Token? nameToken;
-    IdentifierImpl typeName = constructorName;
-    if (typeName is SimpleIdentifierImpl) {
-      returnType = typeName;
-    } else if (typeName is PrefixedIdentifierImpl) {
-      returnType = typeName.prefix;
-      period = typeName.period;
-      nameToken = typeName.identifier.token;
-    } else {
-      throw UnimplementedError();
-    }
-
     _classLikeBuilder?.members.add(
-      ConstructorDeclarationImpl(
-        comment: comment,
-        metadata: metadata,
-        externalKeyword: modifiers?.externalKeyword,
-        constKeyword: modifiers?.finalConstOrVarKeyword,
+      _buildFactoryConstructorDeclaration(
+        beginToken: beginToken,
         factoryKeyword: factoryKeyword,
-        returnType: SimpleIdentifierImpl(returnType.token),
-        period: period,
-        name: nameToken,
-        parameters: parameters,
-        separator: separator,
-        initializers: null,
-        redirectedConstructor: redirectedConstructor,
-        body: body,
+        endToken: endToken,
       ),
     );
   }
@@ -1490,6 +1360,7 @@ class AstBuilder extends StackListener {
       endToken: endToken,
       featureSet: _featureSet,
       lineInfo: _lineInfo,
+      invalidNodes: invalidNodes,
     );
     push(unit);
   }
@@ -1678,19 +1549,13 @@ class AstBuilder extends StackListener {
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
     debugEvent("ExtensionConstructor");
-    // TODO(danrubel) Decide how to handle constructor declarations within
-    // extensions. They are invalid and the parser has already reported an
-    // error at this point. In the future, we should include them in order
-    // to get navigation, search, etc.
-    pop(); // body
-    pop(); // initializers
-    pop(); // separator
-    pop(); // parameters
-    pop(); // typeParameters
-    pop(); // name
-    pop(); // returnType
-    pop(); // modifiers
-    pop(); // metadata
+
+    invalidNodes.add(
+      _buildConstructorDeclaration(
+        beginToken: beginToken,
+        endToken: endToken,
+      ),
+    );
   }
 
   @override
@@ -1733,56 +1598,11 @@ class AstBuilder extends StackListener {
     assert(optional(';', endToken) || optional('}', endToken));
     debugEvent("ExtensionFactoryMethod");
 
-    var bodyObject = pop();
-    var parameters = pop() as FormalParameterListImpl;
-    var typeParameters = pop() as TypeParameterListImpl?;
-    var constructorName = pop();
-    var modifiers = pop() as _Modifiers?;
-    var metadata = pop() as List<AnnotationImpl>?;
-
-    FunctionBodyImpl body;
-    if (bodyObject is FunctionBodyImpl) {
-      body = bodyObject;
-    } else if (bodyObject is _RedirectingFactoryBody) {
-      body = EmptyFunctionBodyImpl(
-        semicolon: endToken,
-      );
-    } else {
-      // Unhandled situation which should never happen.
-      // Since this event handler is just a recovery attempt,
-      // don't bother adding this declaration to the AST.
-      return;
-    }
-    var comment = _findComment(metadata, beginToken);
-
-    // Constructor declarations within extensions are invalid and the parser
-    // has already reported an error at this point, but we include them in as
-    // a method declaration in order to get navigation, search, etc.
-
-    SimpleIdentifierImpl methodName;
-    if (constructorName is SimpleIdentifierImpl) {
-      methodName = constructorName;
-    } else if (constructorName is PrefixedIdentifierImpl) {
-      methodName = constructorName.identifier;
-    } else {
-      // Unsure what the method name should be in this situation.
-      // Since this event handler is just a recovery attempt,
-      // don't bother adding this declaration to the AST.
-      return;
-    }
-    _classLikeBuilder?.members.add(
-      MethodDeclarationImpl(
-        comment: comment,
-        metadata: metadata,
-        externalKeyword: modifiers?.externalKeyword,
-        modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
-        returnType: null,
-        propertyKeyword: null,
-        operatorKeyword: null,
-        name: methodName.token,
-        typeParameters: typeParameters,
-        parameters: parameters,
-        body: body,
+    invalidNodes.add(
+      _buildFactoryConstructorDeclaration(
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken,
       ),
     );
   }
@@ -2658,12 +2478,13 @@ class AstBuilder extends StackListener {
   void endMixinConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     debugEvent("MixinConstructor");
-    // TODO(danrubel) Decide how to handle constructor declarations within
-    // mixins. They are invalid, but we include them in order to get navigation,
-    // search, etc. Currently the error is reported by multiple listeners,
-    // but should be moved into the parser.
-    endClassConstructor(
-        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+
+    _classLikeBuilder?.members.add(
+      _buildConstructorDeclaration(
+        beginToken: beginToken,
+        endToken: endToken,
+      ),
+    );
   }
 
   @override
@@ -2681,7 +2502,14 @@ class AstBuilder extends StackListener {
   void endMixinFactoryMethod(
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("MixinFactoryMethod");
-    endClassFactoryMethod(beginToken, factoryKeyword, endToken);
+
+    _classLikeBuilder?.members.add(
+      _buildFactoryConstructorDeclaration(
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken,
+      ),
+    );
   }
 
   @override
@@ -5692,6 +5520,158 @@ class AstBuilder extends StackListener {
       handleRecoverableError(messageMissingAssignableSelector,
           expression.beginToken, expression.endToken);
     }
+  }
+
+  ConstructorDeclarationImpl _buildConstructorDeclaration({
+    required Token beginToken,
+    required Token endToken,
+  }) {
+    var bodyObject = pop();
+    var initializers = (pop() as List<ConstructorInitializerImpl>?) ?? const [];
+    var separator = pop() as Token?;
+    var parameters = pop() as FormalParameterListImpl;
+    var typeParameters = pop() as TypeParameterListImpl?;
+    var name = pop();
+    pop(); // return type
+    var modifiers = pop() as _Modifiers?;
+    var metadata = pop() as List<AnnotationImpl>?;
+    var comment = _findComment(metadata, beginToken);
+
+    ConstructorNameImpl? redirectedConstructor;
+    FunctionBodyImpl body;
+    if (bodyObject is FunctionBodyImpl) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
+    } else {
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
+    }
+
+    SimpleIdentifierImpl prefixOrName;
+    Token? period;
+    SimpleIdentifierImpl? nameOrNull;
+    if (name is SimpleIdentifierImpl) {
+      prefixOrName = name;
+    } else if (name is PrefixedIdentifierImpl) {
+      prefixOrName = name.prefix;
+      period = name.period;
+      nameOrNull = name.identifier;
+    } else if (name is _OperatorName) {
+      prefixOrName = name.name;
+    } else {
+      throw UnimplementedError(
+          'name is an instance of ${name.runtimeType} in endClassConstructor');
+    }
+
+    if (typeParameters != null) {
+      // Outline builder also reports this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
+    if (modifiers?.constKeyword != null &&
+        (body.length > 1 || body.beginToken.lexeme != ';')) {
+      // This error is also reported in BodyBuilder.finishFunction
+      Token bodyToken = body.beginToken;
+      // Token bodyToken = body.beginToken ?? modifiers.constKeyword;
+      handleRecoverableError(
+          messageConstConstructorWithBody, bodyToken, bodyToken);
+    }
+    var constructor = ConstructorDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      externalKeyword: modifiers?.externalKeyword,
+      constKeyword: modifiers?.finalConstOrVarKeyword,
+      factoryKeyword: null,
+      returnType: SimpleIdentifierImpl(prefixOrName.token),
+      period: period,
+      name: nameOrNull?.token,
+      parameters: parameters,
+      separator: separator,
+      initializers: initializers,
+      redirectedConstructor: redirectedConstructor,
+      body: body,
+    );
+    return constructor;
+  }
+
+  ConstructorDeclarationImpl _buildFactoryConstructorDeclaration({
+    required Token beginToken,
+    required Token factoryKeyword,
+    required Token endToken,
+  }) {
+    FunctionBodyImpl body;
+    Token? separator;
+    ConstructorNameImpl? redirectedConstructor;
+    var bodyObject = pop();
+    if (bodyObject is FunctionBodyImpl) {
+      body = bodyObject;
+    } else if (bodyObject is _RedirectingFactoryBody) {
+      separator = bodyObject.equalToken;
+      redirectedConstructor = bodyObject.constructorName;
+      body = EmptyFunctionBodyImpl(
+        semicolon: endToken,
+      );
+    } else {
+      internalProblem(
+          templateInternalProblemUnhandled.withArguments(
+              "${bodyObject.runtimeType}", "bodyObject"),
+          beginToken.charOffset,
+          uri);
+    }
+
+    var parameters = pop() as FormalParameterListImpl;
+    var typeParameters = pop() as TypeParameterListImpl?;
+    var constructorName = pop() as IdentifierImpl;
+    var modifiers = pop() as _Modifiers?;
+    var metadata = pop() as List<AnnotationImpl>?;
+    var comment = _findComment(metadata, beginToken);
+
+    if (typeParameters != null) {
+      // TODO(danrubel): Update OutlineBuilder to report this error message.
+      handleRecoverableError(messageConstructorWithTypeParameters,
+          typeParameters.beginToken, typeParameters.endToken);
+    }
+
+    // Decompose the preliminary ConstructorName into the type name and
+    // the actual constructor name.
+    SimpleIdentifierImpl returnType;
+    Token? period;
+    Token? nameToken;
+    IdentifierImpl typeName = constructorName;
+    if (typeName is SimpleIdentifierImpl) {
+      returnType = typeName;
+    } else if (typeName is PrefixedIdentifierImpl) {
+      returnType = typeName.prefix;
+      period = typeName.period;
+      nameToken = typeName.identifier.token;
+    } else {
+      throw UnimplementedError();
+    }
+
+    final constructor = ConstructorDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      externalKeyword: modifiers?.externalKeyword,
+      constKeyword: modifiers?.finalConstOrVarKeyword,
+      factoryKeyword: factoryKeyword,
+      returnType: SimpleIdentifierImpl(returnType.token),
+      period: period,
+      name: nameToken,
+      parameters: parameters,
+      separator: separator,
+      initializers: null,
+      redirectedConstructor: redirectedConstructor,
+      body: body,
+    );
+    return constructor;
   }
 
   CommentImpl? _findComment(

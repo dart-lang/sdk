@@ -138,6 +138,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_empty_catch.
 import 'package:analysis_server/src/services/correction/dart/remove_empty_constructor_body.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_else.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_empty_statement.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_extension_constructor.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_if_null_operator.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
@@ -1446,6 +1447,9 @@ class FixProcessor extends BaseProcessor {
     ParserErrorCode.EXPECTED_TOKEN: [
       InsertSemicolon.new,
       ReplaceWithArrow.new,
+    ],
+    ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR: [
+      RemoveExtensionConstructor.new,
     ],
     ParserErrorCode.GETTER_WITH_PARAMETERS: [
       RemoveParametersInGetterDeclaration.new,
