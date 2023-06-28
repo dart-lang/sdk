@@ -4,6 +4,7 @@
 
 library fasta.source_class_builder;
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase, ClassHierarchyMembers;
@@ -1256,7 +1257,19 @@ class SourceClassBuilder extends ClassBuilderImpl
       if (field.isInstanceMember &&
           !field.isFinal &&
           _isPrivateNameInThisLibrary(field.name)) {
-        unpromotablePrivateFieldNames.add(field.name.text);
+        if (isLateLoweredField(field)) {
+          // Late lowered fields do not have the finality of the declaration
+          // so we use lookup the corresponding [SourceFieldBuilder].
+          String fieldName = extractFieldNameFromLateLoweredField(field).text;
+          Builder? builder = scope.lookupLocalMember(fieldName, setter: false);
+          assert(builder is SourceFieldBuilder,
+              "Unexpected late-lowered field '$fieldName' in $this: $builder");
+          if (builder is SourceFieldBuilder && !builder.isFinal) {
+            unpromotablePrivateFieldNames.add(fieldName);
+          }
+        } else if (!isLateLoweredIsSetField(field)) {
+          unpromotablePrivateFieldNames.add(field.name.text);
+        }
       }
     }
     for (Procedure procedure in cls.procedures) {
@@ -1265,13 +1278,17 @@ class SourceClassBuilder extends ClassBuilderImpl
       // abstract non-final field makes fields with the same name unpromotable.
       if (procedure.isInstanceMember &&
           _isPrivateNameInThisLibrary(procedure.name)) {
-        if (procedure.isGetter && !procedure.isAbstract) {
+        if (procedure.isGetter &&
+            !procedure.isAbstract &&
+            !isLateLoweredFieldGetter(procedure)) {
           ProcedureStubKind procedureStubKind = procedure.stubKind;
           if (procedureStubKind == ProcedureStubKind.Regular ||
               procedureStubKind == ProcedureStubKind.NoSuchMethodForwarder) {
             unpromotablePrivateFieldNames.add(procedure.name.text);
           }
-        } else if (procedure.isSetter && procedure.isAbstractFieldAccessor) {
+        } else if (procedure.isSetter &&
+            procedure.isAbstractFieldAccessor &&
+            !isLateLoweredFieldSetter(procedure)) {
           unpromotablePrivateFieldNames.add(procedure.name.text);
         }
       }

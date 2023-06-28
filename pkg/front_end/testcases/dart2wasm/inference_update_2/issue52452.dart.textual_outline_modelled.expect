@@ -1,0 +1,42 @@
+abstract class D extends A with M3 {
+  D(int? i)
+      : _f4 = i,
+        super(i);
+  final int? _f4;
+}
+
+class A {
+  A(int? i);
+}
+
+class B {
+  B(int? i);
+}
+
+class C {
+  C(int? i)
+      : _f2 = i,
+        _f3 = i,
+        _f4 = i;
+  final int? _f2;
+  final int? _f3;
+  final int? _f4;
+}
+
+class E extends B with M1 implements D {
+  E(super.i);
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+main() {}
+mixin M1 {
+  late final int? _f3;
+  late final int? _f4 = 0;
+  late int? _f2;
+}
+mixin M3 {}
+void acceptsInt(int x) {}
+void testConflictWithNoSuchMethodForwarderIfImplementedInMixin(C c) {}
+void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin1(C c) {}
+void testNoConflictWithNoSuchMethodForwarderIfImplementedInMixin2(C c) {}
