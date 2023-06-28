@@ -25,6 +25,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type_visitor.dart';
 import 'package:analyzer/src/dart/element/type.dart' show RecordTypeImpl;
+import 'package:meta/meta.dart';
 
 /// The type associated with elements in the element model.
 ///
@@ -263,6 +264,15 @@ abstract class FunctionType implements DartType {
   /// function type with the given [argumentTypes]. The resulting function
   /// type will have no type parameters.
   FunctionType instantiate(List<DartType> argumentTypes);
+}
+
+/// The type introduced by an inline class.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class InlineClassType implements ParameterizedType {
+  @override
+  InlineClassElement get element;
 }
 
 /// Information about an instantiated [TypeAliasElement] and the type
