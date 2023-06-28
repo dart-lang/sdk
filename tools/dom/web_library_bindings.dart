@@ -9581,7 +9581,6 @@ final Map<String, Set<String>> dartTypeToNativeTypes = {
   'NoncedElement': {'NoncedElement'},
   'Notification': {'Notification'},
   'NotificationEvent': {'NotificationEvent'},
-  'NullWindowException': {'NullWindowException'},
   'Number': {'SVGNumber'},
   'NumberInputElement': {'NumberInputElement'},
   'NumberList': {'SVGNumberList'},
