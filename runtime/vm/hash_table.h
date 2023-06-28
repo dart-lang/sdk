@@ -899,6 +899,8 @@ class UnorderedHashSet
   }
 };
 
+typedef UnorderedHashMap<SmiTraits> IntHashMap;
+
 }  // namespace dart
 
 #endif  // RUNTIME_VM_HASH_TABLE_H_

@@ -169,6 +169,7 @@ class ObjectPointerVisitor;
   RW(Smi, last_libraries_count)                                                \
   RW(Array, loading_units)                                                     \
   RW(GrowableObjectArray, closure_functions)                                   \
+  RW(Array, closure_functions_table)                                           \
   RW(GrowableObjectArray, pending_classes)                                     \
   RW(Array, record_field_names_map)                                            \
   ARW_RELAXED(Array, record_field_names)                                       \

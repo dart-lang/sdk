@@ -2090,8 +2090,6 @@ class InvalidationCollector : public ObjectVisitor {
   GrowableArray<const Instance*>* const instances_;
 };
 
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
 void ProgramReloadContext::RunInvalidationVisitors() {
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();

@@ -1901,6 +1901,53 @@ void main(List<String> arguments, SendPort sendPort) {
       ];
 
       expect(await starter(args), 0);
+
+      expect(dillFile.existsSync(), true);
+    });
+
+    test('compile to JavaScript with canary features enabled', () async {
+      var file = File('${tempDir.path}/foo.dart')..createSync();
+      file.writeAsStringSync("main() {\n}\n");
+      var packageConfig = File('${tempDir.path}/.dart_tool/package_config.json')
+        ..createSync(recursive: true)
+        ..writeAsStringSync('''
+  {
+    "configVersion": 2,
+    "packages": [
+      {
+        "name": "hello",
+        "rootUri": "../",
+        "packageUri": "./"
+      }
+    ]
+  }
+  ''');
+      var dillFile = File('${tempDir.path}/app.dill');
+      var sourcesFile = File('${tempDir.path}/app.dill.sources');
+
+      expect(dillFile.existsSync(), false);
+      expect(sourcesFile.existsSync(), false);
+
+      final List<String> args = <String>[
+        '--sdk-root=${sdkRoot.toFilePath()}',
+        '--incremental',
+        '--platform=${ddcPlatformKernel.path}',
+        '--output-dill=${dillFile.path}',
+        '--packages=${packageConfig.path}',
+        '--target=dartdevc',
+        '--dartdevc-canary',
+        file.path,
+      ];
+
+      expect(await starter(args), 0);
+
+      expect(dillFile.existsSync(), true);
+      expect(sourcesFile.existsSync(), true);
+      var ddcFlags = utf8
+          .decode(sourcesFile.readAsBytesSync())
+          .split('\n')
+          .singleWhere((l) => l.startsWith('// Flags: '));
+      expect(ddcFlags, contains('canary'));
     });
 
     test('compile to JavaScript with package scheme', () async {
@@ -2441,7 +2488,9 @@ e() {
       expect(await result, 0);
       expect(count, 1);
       frontendServer.close();
-    }, timeout: Timeout.none);
+    },
+        timeout: Timeout.none,
+        skip: 'https://github.com/dart-lang/sdk/issues/52775');
 
     test('compile to JavaScript, all modules with sound null safety', () async {
       var file = File('${tempDir.path}/foo.dart')..createSync();
@@ -2867,8 +2916,8 @@ e() {
         '--output-dill=${dillFile.path}',
         '--output-incremental-dill=${incrementalDillFile.path}'
       ];
-      File dart2js = File.fromUri(
-          Platform.script.resolve("../../../pkg/compiler/lib/src/dart2js.dart"));
+      File dart2js = File.fromUri(Platform.script
+          .resolve("../../../pkg/compiler/lib/src/dart2js.dart"));
       expect(dart2js.existsSync(), equals(true));
       File dart2jsOtherFile = File.fromUri(Platform.script
           .resolve("../../../pkg/compiler/lib/src/compiler.dart"));
@@ -2925,7 +2974,8 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(target, VerificationStage.afterModularTransformations, component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
 
             count += 1;
 
@@ -2950,7 +3000,8 @@ e() {
             component =
                 loadComponentFromBinary(platformKernel.toFilePath(), component);
             expect(component.mainMethod, isNotNull);
-            verifyComponent(target, VerificationStage.afterModularTransformations, component);
+            verifyComponent(target,
+                VerificationStage.afterModularTransformations, component);
 
             count += 1;
 

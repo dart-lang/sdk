@@ -358,7 +358,7 @@ class FinalizablePersistentHandle {
   // Returns the space to charge for the external size.
   Heap::Space SpaceForExternal() const {
     // Non-heap and VM-heap objects count as old space here.
-    return ptr_->IsSmiOrOldObject() ? Heap::kOld : Heap::kNew;
+    return ptr_->IsImmediateOrOldObject() ? Heap::kOld : Heap::kNew;
   }
 
   ObjectPtr ptr_;

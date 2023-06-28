@@ -29,6 +29,11 @@ class UntaggedObject;
     return (value & kSmiTagMask) == 0 ||                                       \
            Utils::IsAligned(value - kHeapObjectTag, kWordSize);                \
   }                                                                            \
+  bool IsImmediateObject() const {                                             \
+    ASSERT(IsWellFormed());                                                    \
+    const uword value = ptr;                                                   \
+    return (value & kSmiTagMask) != kHeapObjectTag;                            \
+  }                                                                            \
   bool IsHeapObject() const {                                                  \
     ASSERT(IsWellFormed());                                                    \
     const uword value = ptr;                                                   \
@@ -53,7 +58,7 @@ class UntaggedObject;
   }                                                                            \
                                                                                \
   /* Like !IsHeapObject() || IsOldObject() but compiles to a single branch. */ \
-  bool IsSmiOrOldObject() const {                                              \
+  bool IsImmediateOrOldObject() const {                                        \
     ASSERT(IsWellFormed());                                                    \
     const uword kNewObjectBits = (kNewObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \
@@ -61,7 +66,7 @@ class UntaggedObject;
   }                                                                            \
                                                                                \
   /* Like !IsHeapObject() || IsNewObject() but compiles to a single branch. */ \
-  bool IsSmiOrNewObject() const {                                              \
+  bool IsImmediateOrNewObject() const {                                        \
     ASSERT(IsWellFormed());                                                    \
     const uword kOldObjectBits = (kOldObjectAlignmentOffset | kHeapObjectTag); \
     const uword addr = ptr;                                                    \

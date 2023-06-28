@@ -2782,8 +2782,8 @@ String getIsolateAffinityTag(String name) {
   return JS('String', '#(#)', isolateTagGetter, name);
 }
 
-final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
-final Set<String> _loadedLibraries = new Set<String>();
+final Map<String, Completer<Null>?> _loadingLibraries = {};
+final Set<String> _loadedLibraries = {};
 
 typedef void DeferredLoadCallback();
 
@@ -2881,8 +2881,9 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
             part: uri, hash: hash, event: 'alreadyInitialized', loadId: loadId);
         continue;
       }
-      // On strange scenarios, e.g. if js encounters parse errors, we might get
-      // an "success" callback on the script load but the hunk will be null.
+      // This check is just an extra precaution, `isHunkLoaded(hash)` should
+      // always be true at this point. `_loadHunk` does this check and throws
+      // for any part that failed to load.
       if (JS('bool', '#(#)', isHunkLoaded, hash)) {
         _addEvent(part: uri, hash: hash, event: 'initialize', loadId: loadId);
         JS('void', '#(#)', initializer, hash);
@@ -2897,11 +2898,12 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
   }
 
   Future loadAndInitialize(int i) {
-    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) {
+    final hash = hashes[i];
+    if (JS('bool', '#(#)', isHunkLoaded, hash)) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i], loadId, priority).then((Null _) {
+    return _loadHunk(uris[i], loadId, priority, hash, 0).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2993,16 +2995,16 @@ Object _computePolicy() {
 /// loading is changed to use a more structured layout with subdirectories, this
 /// method will need to be updated to make the URL still clearly safe by
 /// construction.
-Object _getBasedScriptUrl(String component) {
+Object _getBasedScriptUrl(String component, String suffix) {
   final base = _thisScriptBaseUrl;
   final encodedComponent = _encodeURIComponent(component);
-  final url = '$base$encodedComponent';
+  final url = '$base$encodedComponent$suffix';
   final policy = _deferredLoadingTrustedTypesPolicy;
   return JS('', '#.createScriptURL(#)', policy, url);
 }
 
 Object getBasedScriptUrlForTesting(String component) =>
-    _getBasedScriptUrl(component);
+    _getBasedScriptUrl(component, '');
 
 String _encodeURIComponent(String component) {
   return JS('', 'self.encodeURIComponent(#)', component);
@@ -3057,17 +3059,21 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
+Future<Null> _loadHunk(
+    String hunkName, String loadId, int priority, String hash, int retryCount) {
+  const int maxRetries = 3;
   var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
 
-  var future = _loadingLibraries[hunkName];
+  var completer = _loadingLibraries[hunkName];
   _addEvent(part: hunkName, event: 'startLoad', loadId: loadId);
-  if (future != null) {
+  if (completer != null && retryCount == 0) {
     _addEvent(part: hunkName, event: 'reuse', loadId: loadId);
-    return future.then((Null _) => null);
+    return completer.future;
   }
+  completer ??= _loadingLibraries[hunkName] = Completer();
 
-  Object trustedScriptUri = _getBasedScriptUrl(hunkName);
+  Object trustedScriptUri = _getBasedScriptUrl(
+      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
   // [trustedScriptUri] is either a String, in which case `toString()` is an
   // identity function, or it is a TrustedScriptURL and `toString()` returns the
   // sanitized URL.
@@ -3076,22 +3082,33 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
   _addEvent(part: hunkName, event: 'download', loadId: loadId);
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
-  Completer<Null> completer = Completer();
-
-  void success() {
-    _addEvent(part: hunkName, event: 'downloadSuccess', loadId: loadId);
-    completer.complete(null);
-  }
 
   void failure(error, String context, StackTrace? stackTrace) {
-    _addEvent(part: hunkName, event: 'downloadFailure', loadId: loadId);
-    _loadingLibraries[hunkName] = null;
-    stackTrace ??= StackTrace.current;
-    completer.completeError(
-        DeferredLoadException('Loading $uriAsString failed: $error\n'
-            'Context: $context\n'
-            'event log:\n${_getEventLog()}\n'),
-        stackTrace);
+    if (retryCount < maxRetries) {
+      _addEvent(part: hunkName, event: 'retry$retryCount', loadId: loadId);
+      _loadHunk(hunkName, loadId, priority, hash, retryCount + 1);
+    } else {
+      _addEvent(part: hunkName, event: 'downloadFailure', loadId: loadId);
+      _loadingLibraries[hunkName] = null;
+      stackTrace ??= StackTrace.current;
+      completer!.completeError(
+          DeferredLoadException('Loading $uriAsString failed: $error\n'
+              'Context: $context\n'
+              'event log:\n${_getEventLog()}\n'),
+          stackTrace);
+    }
+  }
+
+  void success() {
+    var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
+
+    if (JS('bool', '#(#)', isHunkLoaded, hash)) {
+      _addEvent(part: hunkName, event: 'downloadSuccess', loadId: loadId);
+      completer!.complete(null);
+    } else {
+      failure(
+          'Success callback invoked but part $hunkName not loaded.', '', null);
+    }
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
@@ -3160,7 +3177,6 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);
     JS('', 'document.body.appendChild(#)', script);
   }
-  _loadingLibraries[hunkName] = completer.future;
   return completer.future;
 }
 

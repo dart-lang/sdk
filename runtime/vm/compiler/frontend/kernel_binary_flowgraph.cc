@@ -3005,6 +3005,21 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
   LocalVariable* variable = LookupVariable(variable_kernel_position);
   ASSERT(!variable->is_late());
 
+  auto& target_function = Function::ZoneHandle(Z);
+  {
+    AlternativeReadingScope alt(
+        &reader_, variable_kernel_position - data_program_offset_);
+    SkipVariableDeclaration();
+    // FunctionNode follows the variable declaration.
+    const intptr_t function_node_kernel_offset = ReaderOffset();
+
+    target_function = ClosureFunctionsCache::LookupClosureFunction(
+        Function::Handle(Z,
+                         parsed_function()->function().GetOutermostFunction()),
+        function_node_kernel_offset);
+    RELEASE_ASSERT(!target_function.IsNull());
+  }
+
   Fragment instructions;
 
   // Type arguments.
@@ -3043,8 +3058,8 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     ASSERT(!parsed_function()->function().is_native());
     instructions += DebugStepCheck(position);
   }
-  instructions +=
-      B->ClosureCall(position, type_args_len, argument_count, argument_names);
+  instructions += B->ClosureCall(target_function, position, type_args_len,
+                                 argument_count, argument_names);
   return instructions;
 }
 
@@ -3106,7 +3121,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(position, type_args_len, argument_count, argument_names);
+        B->ClosureCall(Function::null_function(), position, type_args_len,
+                       argument_count, argument_names);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,
@@ -5949,31 +5965,23 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   if (declaration) {
     position = parent_position;
   }
-  if (!position.IsReal()) {
-    // Positions has to be unique in regards to the parent.
-    // A non-real at this point is probably -1, we cannot blindly use that
-    // as others might use it too. Create a new dummy non-real TokenPosition.
-    position = TokenPosition::Synthetic(offset);
-  }
 
-  // The VM has a per-isolate table of functions indexed by the enclosing
-  // function and token position.
+  const auto& member_function =
+      Function::Handle(Z, parsed_function()->function().GetOutermostFunction());
   Function& function = Function::ZoneHandle(Z);
 
   {
     SafepointReadRwLocker ml(thread(),
                              thread()->isolate_group()->program_lock());
-    // NOTE: This is not TokenPosition in the general sense!
     function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        parsed_function()->function(), position);
+        member_function, offset);
   }
 
   if (function.IsNull()) {
     SafepointWriteRwLocker ml(thread(),
                               thread()->isolate_group()->program_lock());
-    // NOTE: This is not TokenPosition in the general sense!
     function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        parsed_function()->function(), position);
+        member_function, offset);
     if (function.IsNull()) {
       for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
         if (scopes()->function_scopes[i].kernel_offset != offset) {
@@ -5986,7 +5994,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         } else {
           name = &Symbols::AnonymousClosure();
         }
-        // NOTE: This is not TokenPosition in the general sense!
         if (!closure_owner_.IsNull()) {
           function = Function::NewClosureFunctionWithKind(
               UntaggedFunction::kClosureFunction, *name,
@@ -6058,11 +6065,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           }
         }
 
+        ASSERT(function.GetOutermostFunction() == member_function.ptr());
+        ASSERT(function.kernel_offset() == offset);
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;
       }
     }
   }
+  ASSERT(function.token_pos() == position);
+  ASSERT(function.parent_function() == parsed_function()->function().ptr());
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 

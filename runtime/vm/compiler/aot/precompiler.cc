@@ -2323,6 +2323,9 @@ void Precompiler::DropFunctions() {
   // Note: in PRODUCT mode snapshotter will drop this field when serializing.
   // This is done in ProgramSerializationRoots.
   IG->object_store()->set_closure_functions(retained_functions);
+
+  // Only needed during compilation.
+  IG->object_store()->set_closure_functions_table(Object::null_array());
 }
 
 void Precompiler::DropFields() {

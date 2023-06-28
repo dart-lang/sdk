@@ -352,7 +352,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // ScavengePointer cannot be called recursively.
     ObjectPtr raw_obj = *p;
 
-    if (raw_obj->IsSmiOrOldObject()) {
+    if (raw_obj->IsImmediateOrOldObject()) {
       return;
     }
 
@@ -382,7 +382,8 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     // ScavengePointer cannot be called recursively.
     ObjectPtr raw_obj = p->Decompress(heap_base);
 
-    if (raw_obj->IsSmiOrOldObject()) {  // Could be tested without decompression
+    // Could be tested without decompression.
+    if (raw_obj->IsImmediateOrOldObject()) {
       return;
     }
 
@@ -583,7 +584,7 @@ typedef ScavengerVisitorBase<true> ParallelScavengerVisitor;
 
 static bool IsUnreachable(ObjectPtr* ptr) {
   ObjectPtr raw_obj = *ptr;
-  if (raw_obj->IsSmiOrOldObject()) {
+  if (raw_obj->IsImmediateOrOldObject()) {
     return false;
   }
   uword raw_addr = UntaggedObject::ToAddr(raw_obj);
@@ -1349,7 +1350,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
     WeakPropertyPtr raw_weak = static_cast<WeakPropertyPtr>(raw_obj);
     // The fate of the weak property is determined by its key.
     ObjectPtr raw_key = raw_weak->untag()->key();
-    if (!raw_key->IsSmiOrOldObject()) {
+    if (!raw_key->IsImmediateOrOldObject()) {
       uword header = ReadHeaderRelaxed(raw_key);
       if (!IsForwarding(header)) {
         // Key is white.  Enqueue the weak property.
@@ -1363,7 +1364,7 @@ intptr_t ScavengerVisitorBase<parallel>::ProcessCopied(ObjectPtr raw_obj) {
     WeakReferencePtr raw_weak = static_cast<WeakReferencePtr>(raw_obj);
     // The fate of the weak reference target is determined by its target.
     ObjectPtr raw_target = raw_weak->untag()->target();
-    if (!raw_target->IsSmiOrOldObject()) {
+    if (!raw_target->IsImmediateOrOldObject()) {
       uword header = ReadHeaderRelaxed(raw_target);
       if (!IsForwarding(header)) {
         // Target is white. Enqueue the weak reference. Always visit type
@@ -1579,7 +1580,7 @@ bool ScavengerVisitorBase<parallel>::ForwardOrSetNullIfCollected(
     uword heap_base,
     CompressedObjectPtr* ptr_address) {
   ObjectPtr raw = ptr_address->Decompress(heap_base);
-  if (raw->IsSmiOrOldObject()) {
+  if (raw->IsImmediateOrOldObject()) {
     // Object already null (which is old) or not touched during this GC.
     return false;
   }

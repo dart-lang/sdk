@@ -62,9 +62,10 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
       ObjectPtr raw_key = cur_weak->untag()->key();
       // Reset the next pointer in the weak property.
       cur_weak->untag()->next_seen_by_gc_ = WeakProperty::null();
-      if (raw_key->IsSmiOrNewObject() || raw_key->untag()->IsMarked()) {
+      if (raw_key->IsImmediateOrNewObject() || raw_key->untag()->IsMarked()) {
         ObjectPtr raw_val = cur_weak->untag()->value();
-        if (!raw_val->IsSmiOrNewObject() && !raw_val->untag()->IsMarked()) {
+        if (!raw_val->IsImmediateOrNewObject() &&
+            !raw_val->untag()->IsMarked()) {
           more_to_mark = true;
         }
 
@@ -325,7 +326,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   static bool ForwardOrSetNullIfCollected(uword heap_base,
                                           CompressedObjectPtr* ptr_address) {
     ObjectPtr raw = ptr_address->Decompress(heap_base);
-    if (raw->IsSmiOrNewObject()) {
+    if (raw->IsImmediateOrNewObject()) {
       // Object not touched during this GC.
       return false;
     }
@@ -394,7 +395,7 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
   void MarkObject(ObjectPtr raw_obj) {
     // Fast exit if the raw object is immediate or in new space. No memory
     // access.
-    if (raw_obj->IsSmiOrNewObject()) {
+    if (raw_obj->IsImmediateOrNewObject()) {
       return;
     }
 
@@ -447,7 +448,7 @@ typedef MarkingVisitorBase<false> UnsyncMarkingVisitor;
 typedef MarkingVisitorBase<true> SyncMarkingVisitor;
 
 static bool IsUnreachable(const ObjectPtr raw_obj) {
-  if (raw_obj->IsSmiOrNewObject()) {
+  if (raw_obj->IsImmediateOrNewObject()) {
     return false;
   }
   return !raw_obj->untag()->IsMarked();

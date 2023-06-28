@@ -909,38 +909,36 @@ void Heap::ResetObjectIdTable() {
 }
 
 intptr_t Heap::GetWeakEntry(ObjectPtr raw_obj, WeakSelector sel) const {
-  if (!raw_obj->IsSmiOrOldObject()) {
+  if (raw_obj->IsImmediateOrOldObject()) {
+    return old_weak_tables_[sel]->GetValue(raw_obj);
+  } else {
     return new_weak_tables_[sel]->GetValue(raw_obj);
   }
-  ASSERT(raw_obj->IsSmiOrOldObject());
-  return old_weak_tables_[sel]->GetValue(raw_obj);
 }
 
 void Heap::SetWeakEntry(ObjectPtr raw_obj, WeakSelector sel, intptr_t val) {
-  if (!raw_obj->IsSmiOrOldObject()) {
-    new_weak_tables_[sel]->SetValue(raw_obj, val);
-  } else {
-    ASSERT(raw_obj->IsSmiOrOldObject());
+  if (raw_obj->IsImmediateOrOldObject()) {
     old_weak_tables_[sel]->SetValue(raw_obj, val);
+  } else {
+    new_weak_tables_[sel]->SetValue(raw_obj, val);
   }
 }
 
 intptr_t Heap::SetWeakEntryIfNonExistent(ObjectPtr raw_obj,
                                          WeakSelector sel,
                                          intptr_t val) {
-  if (!raw_obj->IsSmiOrOldObject()) {
-    return new_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
-  } else {
-    ASSERT(raw_obj->IsSmiOrOldObject());
+  if (raw_obj->IsImmediateOrOldObject()) {
     return old_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
+  } else {
+    return new_weak_tables_[sel]->SetValueIfNonExistent(raw_obj, val);
   }
 }
 
 void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
   const auto before_space =
-      !before_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
+      before_object->IsImmediateOrOldObject() ? Heap::kOld : Heap::kNew;
   const auto after_space =
-      !after_object->IsSmiOrOldObject() ? Heap::kNew : Heap::kOld;
+      after_object->IsImmediateOrOldObject() ? Heap::kOld : Heap::kNew;
 
   for (int sel = 0; sel < Heap::kNumWeakSelectors; sel++) {
     const auto selector = static_cast<Heap::WeakSelector>(sel);
@@ -954,15 +952,15 @@ void Heap::ForwardWeakEntries(ObjectPtr before_object, ObjectPtr after_object) {
 
   isolate_group()->ForEachIsolate(
       [&](Isolate* isolate) {
-        auto before_table = !before_object->IsSmiOrOldObject()
-                                ? isolate->forward_table_new()
-                                : isolate->forward_table_old();
+        auto before_table = before_object->IsImmediateOrOldObject()
+                                ? isolate->forward_table_old()
+                                : isolate->forward_table_new();
         if (before_table != nullptr) {
           intptr_t entry = before_table->RemoveValueExclusive(before_object);
           if (entry != 0) {
-            auto after_table = !after_object->IsSmiOrOldObject()
-                                   ? isolate->forward_table_new()
-                                   : isolate->forward_table_old();
+            auto after_table = after_object->IsImmediateOrOldObject()
+                                   ? isolate->forward_table_old()
+                                   : isolate->forward_table_new();
             ASSERT(after_table != nullptr);
             after_table->SetValueExclusive(after_object, entry);
           }

@@ -209,10 +209,10 @@ class MessageSerializer : public BaseSerializer {
   bool MarkObjectId(ObjectPtr object, intptr_t id) {
     ASSERT(id != WeakTable::kNoValue);
     WeakTable* table;
-    if (!object->IsSmiOrOldObject()) {
-      table = isolate()->forward_table_new();
-    } else {
+    if (object->IsImmediateOrOldObject()) {
       table = isolate()->forward_table_old();
+    } else {
+      table = isolate()->forward_table_new();
     }
     return table->MarkValueExclusive(object, id);
   }
@@ -220,20 +220,20 @@ class MessageSerializer : public BaseSerializer {
   void SetObjectId(ObjectPtr object, intptr_t id) {
     ASSERT(id != WeakTable::kNoValue);
     WeakTable* table;
-    if (!object->IsSmiOrOldObject()) {
-      table = isolate()->forward_table_new();
-    } else {
+    if (object->IsImmediateOrOldObject()) {
       table = isolate()->forward_table_old();
+    } else {
+      table = isolate()->forward_table_new();
     }
     table->SetValueExclusive(object, id);
   }
 
   intptr_t GetObjectId(ObjectPtr object) const {
     const WeakTable* table;
-    if (!object->IsSmiOrOldObject()) {
-      table = isolate()->forward_table_new();
-    } else {
+    if (object->IsImmediateOrOldObject()) {
       table = isolate()->forward_table_old();
+    } else {
+      table = isolate()->forward_table_new();
     }
     return table->GetValueExclusive(object);
   }

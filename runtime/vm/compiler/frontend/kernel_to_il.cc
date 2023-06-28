@@ -3302,8 +3302,9 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfInvokeFieldDispatcher(
       // Lookup the function in the closure.
       body += LoadNativeField(Slot::Closure_function());
     }
-    body += ClosureCall(TokenPosition::kNoSource, descriptor.TypeArgsLen(),
-                        descriptor.Count(), *argument_names);
+    body += ClosureCall(Function::null_function(), TokenPosition::kNoSource,
+                        descriptor.TypeArgsLen(), descriptor.Count(),
+                        *argument_names);
   } else {
     const intptr_t kNumArgsChecked = 1;
     body +=
