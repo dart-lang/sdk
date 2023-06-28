@@ -98,25 +98,25 @@ abstract class AugmentedInlineClassElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedInstanceElement {
-  /// Returns accessors (getters and setters) declared in this element.
+  /// The accessors (getters and setters) declared in this element.
   ///
   /// [PropertyAccessorAugmentationElement]s replace corresponding elements,
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
 
-  /// Returns fields declared in this element.
+  /// The fields declared in this element.
   ///
   /// [FieldAugmentationElement]s replace corresponding elements, other
   /// [FieldElement]s are appended.
   List<FieldElement> get fields;
 
-  /// Returns metadata associated with this element.
+  /// The metadata associated with this element.
   ///
   /// This is a union of annotations associated with the class declaration and
   /// all its augmentations.
   List<ElementAnnotation> get metadata;
 
-  /// Returns methods declared in this element.
+  /// The methods declared in this element.
   ///
   /// [MethodAugmentationElement]s replace corresponding elements, other
   /// [MethodElement]s are appended.
@@ -140,13 +140,13 @@ abstract class AugmentedInstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedInterfaceElement
     implements AugmentedNamedInstanceElement {
-  /// Returns interfaces implemented by this element.
+  /// The interfaces implemented by this element.
   ///
   /// This is a union of interfaces declared by the class declaration and
   /// all its augmentations.
   List<InterfaceType> get interfaces;
 
-  /// Returns mixins applied by this class or in its augmentations.
+  /// The mixins applied by this class or in its augmentations.
   ///
   /// This is a union of mixins applied by the class declaration and all its
   /// augmentations.
@@ -157,7 +157,7 @@ abstract class AugmentedInterfaceElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
-  /// Returns superclass constraints of this element.
+  /// The superclass constraints of this element.
   ///
   /// This is a union of constraints declared by the class declaration and
   /// all its augmentations.
@@ -169,13 +169,13 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedNamedInstanceElement
     implements AugmentedInstanceElement {
-  /// Returns constructors declared in this element.
+  /// The constructors declared in this element.
   ///
   /// [ConstructorAugmentationElement]s replace corresponding elements,
   /// other [ConstructorElement]s are appended.
   List<ConstructorElement> get constructors;
 
-  /// Returns the unnamed constructor from [constructors].
+  /// The unnamed constructor from [constructors].
   ConstructorElement? get unnamedConstructor;
 
   /// Returns the constructor from [constructors] that has the given [name].
@@ -208,7 +208,7 @@ abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement
     implements ClassOrAugmentationElement, InterfaceElement {
-  /// Returns the result of applying augmentations to this class.
+  /// The result of applying augmentations.
   AugmentedClassElement get augmented;
 
   /// Return `true` if this class or its superclass declares a non-final
@@ -1147,10 +1147,11 @@ abstract class ElementVisitor<R> {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
-  /// Returns the element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented. The chain of
-  /// augmentations should normally end with an [EnumElement], but might end
-  /// with `null` immediately or after a few intermediate
+  /// The element that is augmented by this augmentation; or `null` if
+  /// there is no corresponding element to be augmented.
+  ///
+  /// The chain of augmentations should normally end with an [EnumElement], but
+  /// might end with `null` immediately or after a few intermediate
   /// [EnumAugmentationElement]s in case of invalid code when an augmentation
   /// is declared without the corresponding enum declaration.
   EnumOrAugmentationElement? get augmentationTarget;
@@ -1161,7 +1162,7 @@ abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement
     implements EnumOrAugmentationElement, InterfaceElement {
-  /// Returns the result of applying augmentations to this element.
+  /// The result of applying augmentations.
   AugmentedEnumElement get augmented;
 }
 
@@ -1172,8 +1173,10 @@ abstract class EnumElement
 abstract class EnumOrAugmentationElement
     implements InterfaceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations. [EnumAugmentationElement.augmentationTarget] is the back
-  /// pointer that will point at this element.
+  /// augmentations.
+  ///
+  /// [EnumAugmentationElement.augmentationTarget] is the back pointer that
+  /// will point at this element.
   EnumAugmentationElement? get augmentation;
 }
 
@@ -1236,10 +1239,11 @@ abstract class ExecutableElement implements FunctionTypedElement {
 @experimental
 abstract class ExtensionAugmentationElement
     implements ExtensionOrAugmentationElement {
-  /// Returns the element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented. The chain of
-  /// augmentations should normally end with a [ExtensionElement], but might
-  /// end with `null` immediately or after a few intermediate
+  /// The element that is augmented by this augmentation; or `null` if
+  /// there is no corresponding element to be augmented.
+  ///
+  /// The chain of augmentations should normally end with a [ExtensionElement],
+  /// but might end with `null` immediately or after a few intermediate
   /// [ExtensionAugmentationElement]s in case of invalid code when an
   /// augmentation is declared without the corresponding extension declaration.
   ExtensionOrAugmentationElement? get augmentationTarget;
@@ -1250,7 +1254,7 @@ abstract class ExtensionAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionElement
     implements ExtensionOrAugmentationElement, InstanceElement {
-  /// Returns the result of applying augmentations.
+  /// The result of applying augmentations.
   @experimental
   AugmentedExtensionElement get augmented;
 
@@ -1285,8 +1289,10 @@ abstract class ExtensionElement
 abstract class ExtensionOrAugmentationElement
     implements InstanceOrAugmentationElement {
   /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations. [ExtensionAugmentationElement.augmentationTarget] is the
-  /// back pointer that will point at this element.
+  /// augmentations.
+  ///
+  /// [ExtensionAugmentationElement.augmentationTarget] is the back pointer
+  /// that will point at this element.
   ExtensionAugmentationElement? get augmentation;
 }
 
@@ -1441,7 +1447,7 @@ abstract class InlineClassAugmentationElement
 @experimental
 abstract class InlineClassElement
     implements InlineClassOrAugmentationElement, NamedInstanceElement {
-  /// Returns the result of applying augmentations.
+  /// The result of applying augmentations.
   @experimental
   AugmentedInlineClassElement get augmented;
 
@@ -2032,7 +2038,7 @@ abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement
     implements MixinOrAugmentationElement, InterfaceElement {
-  /// Returns the result of applying augmentations to this element.
+  /// The result of applying augmentations.
   AugmentedMixinElement get augmented;
 
   /// Return `true` if this mixin is a base mixin.
