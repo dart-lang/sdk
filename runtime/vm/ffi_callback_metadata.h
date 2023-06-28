@@ -244,11 +244,11 @@ class FfiCallbackMetadata {
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV32)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 232;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 284;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #elif defined(TARGET_ARCH_RISCV64)
   static constexpr intptr_t kNativeCallbackTrampolineSize = 8;
-  static constexpr intptr_t kNativeCallbackSharedStubSize = 204;
+  static constexpr intptr_t kNativeCallbackSharedStubSize = 252;
   static constexpr intptr_t kNativeCallbackTrampolineStackDelta = 2;
 #else
 #error What architecture?
