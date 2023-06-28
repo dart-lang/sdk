@@ -3343,7 +3343,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library, metadata, bodyBuilderContext, this, fileUri, scope);
+        library, metadata, bodyBuilderContext, this, fileUri, scope,
+        createFileUriExpression: isPatch);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {

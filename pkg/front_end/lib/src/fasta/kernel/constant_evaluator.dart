@@ -2225,9 +2225,15 @@ class ConstantsTransformer extends RemovingTransformer {
         constant.expression is InvalidExpression) {
       return constant.expression;
     }
-    return new ConstantExpression(
-        constant, node.getStaticType(staticTypeContext))
-      ..fileOffset = node.fileOffset;
+    ConstantExpression constantExpression =
+        new ConstantExpression(constant, node.getStaticType(staticTypeContext))
+          ..fileOffset = node.fileOffset;
+    if (node is FileUriExpression) {
+      return new FileUriConstantExpression(constantExpression.constant,
+          type: constantExpression.type, fileUri: node.fileUri)
+        ..fileOffset = node.fileOffset;
+    }
+    return constantExpression;
   }
 
   bool shouldInline(Expression initializer) {

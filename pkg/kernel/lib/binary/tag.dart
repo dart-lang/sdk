@@ -87,6 +87,8 @@ class Tag {
   static const int RecordLiteral = 104;
   static const int ConstRecordLiteral = 105;
   static const int ConstantExpression = 106;
+  // 107 is occupied by [FutureOrType] (type).
+  static const int FileUriConstantExpression = 108;
   static const int SetLiteral = 109;
   static const int ConstSetLiteral = 110;
   static const int ListConcatenation = 111;
@@ -159,7 +161,7 @@ class Tag {
   // 106 is occupied by [ConstantExpression].
   static const int FutureOrType = 107;
 
-  // 108 is occupied by [RedirectingFactory] (member).
+  // 108 is occupied by [FileUriConstantExpression] (expression).
   // 109 is occupied by [SetLiteral] (expression).
   // 110 is occupied by [ConstSetLiteral] (expression).
   // 111 is occupied by [ListConcatenation] (expression).
@@ -224,7 +226,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 105;
+  static const int BinaryFormatVersion = 106;
 }
 
 abstract class ConstantTag {

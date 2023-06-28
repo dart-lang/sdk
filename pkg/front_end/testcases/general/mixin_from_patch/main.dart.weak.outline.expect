@@ -47,8 +47,8 @@ class SubClass extends self2::_SubClass&Class&Mixin {
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:20 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:14:3 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:16:19 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:16:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 5, effectively constant: 4

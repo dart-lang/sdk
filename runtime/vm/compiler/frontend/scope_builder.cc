@@ -966,6 +966,12 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipDartType();
       helper_.SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      helper_.ReadPosition();
+      helper_.ReadUInt();
+      helper_.SkipDartType();
+      helper_.SkipConstantReference();
+      return;
     case kInstantiation: {
       VisitExpression();
       const intptr_t list_length =
@@ -986,6 +992,11 @@ void ScopeBuilder::VisitExpression() {
         VisitDartType();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      helper_.ReadUInt();      // read uri.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -996,7 +1007,6 @@ void ScopeBuilder::VisitExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:

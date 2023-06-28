@@ -372,7 +372,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
 
     MetadataBuilder.buildAnnotations(isPatch ? origin.cls : cls, metadata,
-        bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope);
+        bodyBuilderContext, libraryBuilder, fileUri, libraryBuilder.scope,
+        createFileUriExpression: isPatch);
     if (typeVariables != null) {
       for (int i = 0; i < typeVariables!.length; i++) {
         typeVariables![i].buildOutlineExpressions(
@@ -1116,11 +1117,7 @@ class SourceClassBuilder extends ClassBuilderImpl
   }
 
   int buildBodyNodes() {
-    // TODO(ahe): restore file-offset once we track both origin and patch file
-    // URIs. See https://github.com/dart-lang/sdk/issues/31579
-    if (isPatch) {
-      cls.annotations.forEach((m) => m.fileOffset = origin.cls.fileOffset);
-    }
+    adjustAnnotationFileUri(cls, cls.fileUri);
 
     int count = 0;
 

@@ -670,6 +670,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       SkipDartType();
       SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      ReadPosition();
+      ReadUInt();  // skip uri
+      SkipDartType();
+      SkipConstantReference();
+      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
@@ -681,6 +687,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
         CalculateDartTypeFingerprint();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      ReadUInt();      // skip uri
+      ReadPosition();  // read position
+      CalculateExpressionFingerprint();
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -691,7 +702,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:

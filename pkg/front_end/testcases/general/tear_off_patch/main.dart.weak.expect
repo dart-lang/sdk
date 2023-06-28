@@ -29,7 +29,7 @@ import "dart:_internal";
 
 typedef Alias<T extends core::num> = test::Class<T>;
 typedef AliasImpl<T extends core::num> = test::ClassImpl<T>;
-@#C13
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C13
 class Class<T extends core::Object? = dynamic> extends core::Object {
   @#C13
   constructor •({core::bool defaultValue = #C14, required test::Class::T% value = #C15}) → test::Class<test::Class::T%>
@@ -46,7 +46,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ redirect2<T extends core::Object? = dynamic>({core::bool defaultValue = #C15, required test::Class::redirect2::T% value = #C15}) → test::Class<test::Class::redirect2::T%> /* redirection-target: test::ClassImpl::patched<test::Class::redirect2::T%>*/
     return new test::ClassImpl::patched<test::Class::redirect2::T%>(defaultValue: defaultValue, value: value);
 }
-@#C13
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C13
 class ClassImpl<T extends core::Object? = dynamic> extends core::Object implements test::Class<test::ClassImpl::T%> {
   constructor •({core::bool defaultValue = #C14, required test::ClassImpl::T% value = #C15}) → test::ClassImpl<test::ClassImpl::T%>
     : super core::Object::•()

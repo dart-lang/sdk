@@ -50,11 +50,11 @@ static method _#AliasImpl#patched#tearOff<T extends core::num>({has-declared-ini
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:46 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:8 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:8:27 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:12:21 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:15:10 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:18:36 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:27:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:19:45 -> InstanceConstant(const _Patch{})
 Extra constant evaluation: evaluated: 31, effectively constant: 7

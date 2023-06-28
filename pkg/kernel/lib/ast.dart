@@ -8683,6 +8683,16 @@ class ConstantExpression extends Expression {
   }
 }
 
+class FileUriConstantExpression extends ConstantExpression
+    implements FileUriNode {
+  @override
+  Uri fileUri;
+
+  FileUriConstantExpression(Constant constant,
+      {DartType type = const DynamicType(), required this.fileUri})
+      : super(constant, type);
+}
+
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.

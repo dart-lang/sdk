@@ -2323,6 +2323,8 @@ class BinaryBuilder {
         return _readSwitchExpression();
       case Tag.PatternAssignment:
         return _readPatternAssignment();
+      case Tag.FileUriConstantExpression:
+        return _readFileUriConstantExpression();
       default:
         throw fail('unexpected expression tag: $tag');
     }
@@ -2901,6 +2903,15 @@ class BinaryBuilder {
     DartType type = readDartType();
     Constant constant = readConstantReference();
     return new ConstantExpression(constant, type)..fileOffset = offset;
+  }
+
+  Expression _readFileUriConstantExpression() {
+    int offset = readOffset();
+    Uri fileUri = readUriReference();
+    DartType type = readDartType();
+    Constant constant = readConstantReference();
+    return new FileUriConstantExpression(constant, type: type, fileUri: fileUri)
+      ..fileOffset = offset;
   }
 
   List<MapLiteralEntry> readMapLiteralEntryList() {

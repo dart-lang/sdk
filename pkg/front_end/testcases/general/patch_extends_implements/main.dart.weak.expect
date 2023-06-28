@@ -118,37 +118,37 @@ class SuperClass extends core::Object {
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 abstract class Class1a extends core::Object {
   synthetic constructor •() → test::Class1a
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class1b extends core::Object {
   synthetic constructor •() → test::Class1b
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class2a extends test::SuperClass {
   synthetic constructor •() → test::Class2a
     : super test::SuperClass::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class2b extends core::Object {
   synthetic constructor •() → test::Class2b
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class3a extends core::Object implements test::Interface {
   synthetic constructor •() → test::Class3a
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class3b extends core::Object {
   synthetic constructor •() → test::Class3b
     : super core::Object::•()
@@ -159,31 +159,31 @@ abstract class _Class4a&Object&Mixin = core::Object with test::Mixin /*isAnonymo
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class4a extends test::_Class4a&Object&Mixin {
   synthetic constructor •() → test::Class4a
     : super test::_Class4a&Object&Mixin::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class4b extends core::Object {
   synthetic constructor •() → test::Class4b
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5a extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → test::Class5a /* redirection-target: test::Class5aImpl::• */
     return new test::Class5aImpl::•();
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5aImpl extends core::Object implements test::Class5a {
   synthetic constructor •() → test::Class5aImpl
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5b extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → test::Class5b /* redirection-target: test::Class5bImpl::• */
@@ -193,13 +193,13 @@ class Class5b extends core::Object {
   factory Class5b() = Class5bImpl;
                       ^";
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5bImpl extends core::Object {
   synthetic constructor •() → test::Class5bImpl
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5c extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •() → test::Class5c /* redirection-target: test::Class5cImpl::• */
@@ -209,13 +209,13 @@ class Class5c extends core::Object {
   factory Class5c() = Class5cImpl;
                       ^";
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class5cImpl extends core::Object {
   synthetic constructor •() → test::Class5cImpl
     : super core::Object::•()
     ;
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class6a<T extends core::Object? = dynamic> extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((test::Class6a::•::T%) → void f) → test::Class6a<test::Class6a::•::T%> /* redirection-target: test::_Class6aImpl::•<test::Class6a::•::T%>*/
@@ -225,13 +225,13 @@ class Class6a<T extends core::Object? = dynamic> extends core::Object {
   factory Class6a(void Function(T) f) = _Class6aImpl<T>;
                                         ^";
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class6b<T extends core::Object? = dynamic> extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((test::Class6b::•::T%) → void f) → test::Class6b<test::Class6b::•::T%> /* redirection-target: test::_Class6bImpl::•<test::Class6b::•::T%>*/
     return new test::_Class6bImpl::•<test::Class6b::•::T%>(f);
 }
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class6c<T extends core::Object? = dynamic> extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>((test::Class6c::•::T%) → void f) → test::Class6c<test::Class6c::•::T%> /* redirection-target: test::_Class6cImpl::•<test::Class6c::•::T%>*/

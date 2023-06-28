@@ -526,7 +526,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   ExpressionInferenceResult visitFileUriExpression(
       FileUriExpression node, DartType typeContext) {
-    return _unhandledExpression(node, typeContext);
+    ExpressionInferenceResult result =
+        inferExpression(node.expression, typeContext);
+    node.expression = result.expression..parent = node;
+    return new ExpressionInferenceResult(result.inferredType, node);
   }
 
   @override

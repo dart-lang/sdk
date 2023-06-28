@@ -18,8 +18,8 @@ class _ArraySize<T extends core::Object? = dynamic> extends core::Object impleme
     : self2::_ArraySize::foo = foo, super core::Object::•()
     ;
 }
-@#C1
-@#C4
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C4
 class Array<T extends core::Object? = dynamic> extends core::Object {
   @#C1
   static factory /* from org-dartlang-testcase:///patch_lib.dart */ •<T extends core::Object? = dynamic>(core::int foo) → self2::Array<self2::Array::•::T%> /* redirection-target: self2::_ArraySize::•<self2::Array::•::T%>*/
@@ -32,9 +32,3 @@ constants  {
   #C3 = null
   #C4 = core::pragma {name:#C2, options:#C3}
 }
-
-
-Constructor coverage from constants:
-org-dartlang-testcase:///origin_lib.dart:
-- pragma._ (from org-dartlang-sdk:///sdk/lib/core/annotations.dart)
-- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

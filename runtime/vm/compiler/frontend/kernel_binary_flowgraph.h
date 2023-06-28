@@ -339,6 +339,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildLibraryPrefixAction(TokenPosition* position,
                                     const String& selector);
   Fragment BuildAwaitExpression(TokenPosition* position);
+  Fragment BuildFileUriExpression(TokenPosition* position);
 
   Fragment BuildExpressionStatement(TokenPosition* position);
   Fragment BuildBlock(TokenPosition* position);
