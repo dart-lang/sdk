@@ -83,6 +83,33 @@ class MarkingVisitorBase : public ObjectPointerVisitor {
     return more_to_mark;
   }
 
+  void DrainMarkingStackWithPauseChecks() {
+    do {
+      ObjectPtr raw_obj;
+      while (work_list_.Pop(&raw_obj)) {
+        const intptr_t class_id = raw_obj->GetClassId();
+
+        intptr_t size;
+        if (class_id == kWeakPropertyCid) {
+          size = ProcessWeakProperty(static_cast<WeakPropertyPtr>(raw_obj));
+        } else if (class_id == kWeakReferenceCid) {
+          size = ProcessWeakReference(static_cast<WeakReferencePtr>(raw_obj));
+        } else if (class_id == kWeakArrayCid) {
+          size = ProcessWeakArray(static_cast<WeakArrayPtr>(raw_obj));
+        } else if (class_id == kFinalizerEntryCid) {
+          size = ProcessFinalizerEntry(static_cast<FinalizerEntryPtr>(raw_obj));
+        } else {
+          size = raw_obj->untag()->VisitPointersNonvirtual(this);
+        }
+        marked_bytes_ += size;
+
+        if (UNLIKELY(page_space_->pause_concurrent_marking())) {
+          page_space_->YieldConcurrentMarking();
+        }
+      }
+    } while (ProcessPendingWeakProperties());
+  }
+
   void DrainMarkingStack() {
     while (ProcessMarkingStack(kIntptrMax)) {
     }
@@ -809,7 +836,7 @@ class ConcurrentMarkTask : public ThreadPool::Task {
 
       marker_->IterateRoots(visitor_);
 
-      visitor_->DrainMarkingStack();
+      visitor_->DrainMarkingStackWithPauseChecks();
       int64_t stop = OS::GetCurrentMonotonicMicros();
       visitor_->AddMicros(stop - start);
       if (FLAG_log_marker_tasks) {
@@ -826,6 +853,8 @@ class ConcurrentMarkTask : public ThreadPool::Task {
       page_space_->set_tasks(page_space_->tasks() - 1);
       page_space_->set_concurrent_marker_tasks(
           page_space_->concurrent_marker_tasks() - 1);
+      page_space_->set_concurrent_marker_tasks_active(
+          page_space_->concurrent_marker_tasks_active() - 1);
       ASSERT(page_space_->phase() == PageSpace::kMarking);
       if (page_space_->concurrent_marker_tasks() == 0) {
         page_space_->set_phase(PageSpace::kAwaitingFinalization);
@@ -904,6 +933,8 @@ void GCMarker::StartConcurrentMark(PageSpace* page_space) {
     page_space->set_tasks(page_space->tasks() + num_tasks);
     page_space->set_concurrent_marker_tasks(
         page_space->concurrent_marker_tasks() + num_tasks);
+    page_space->set_concurrent_marker_tasks_active(
+        page_space->concurrent_marker_tasks_active() + num_tasks);
   }
 
   ResetSlices();

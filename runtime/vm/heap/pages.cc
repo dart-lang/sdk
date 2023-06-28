@@ -62,6 +62,8 @@ PageSpace::PageSpace(Heap* heap, intptr_t max_capacity_in_words)
       tasks_lock_(),
       tasks_(0),
       concurrent_marker_tasks_(0),
+      concurrent_marker_tasks_active_(0),
+      pause_concurrent_marking_(false),
       phase_(kDone),
 #if defined(DEBUG)
       iterating_thread_(nullptr),
@@ -432,6 +434,37 @@ void PageSpace::ReleaseLock(FreeList* freelist) {
   intptr_t size = freelist->TakeUnaccountedSizeLocked();
   usage_.used_in_words += (size >> kWordSizeLog2);
   freelist->mutex()->Unlock();
+}
+
+void PageSpace::PauseConcurrentMarking() {
+  MonitorLocker ml(&tasks_lock_);
+  ASSERT(!pause_concurrent_marking_);
+  pause_concurrent_marking_ = true;
+  while (concurrent_marker_tasks_active_ != 0) {
+    ml.Wait();
+  }
+}
+
+void PageSpace::ResumeConcurrentMarking() {
+  MonitorLocker ml(&tasks_lock_);
+  ASSERT(pause_concurrent_marking_);
+  pause_concurrent_marking_ = false;
+  ml.NotifyAll();
+}
+
+void PageSpace::YieldConcurrentMarking() {
+  MonitorLocker ml(&tasks_lock_);
+  if (pause_concurrent_marking_) {
+    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Pause");
+    concurrent_marker_tasks_active_--;
+    if (concurrent_marker_tasks_active_ == 0) {
+      ml.NotifyAll();
+    }
+    while (pause_concurrent_marking_) {
+      ml.Wait();
+    }
+    concurrent_marker_tasks_active_++;
+  }
 }
 
 class BasePageIterator : ValueObject {
