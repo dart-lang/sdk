@@ -189,16 +189,5 @@ void ClosureFunctionsCache::ForAllClosureFunctions(
     }
   }
 }
-void ClosureFunctionsCache::ResetLocked() {
-  auto thread = Thread::Current();
-  auto zone = thread->zone();
-  auto object_store = thread->isolate_group()->object_store();
-  DEBUG_ASSERT(
-      thread->isolate_group()->program_lock()->IsCurrentThreadWriter());
-
-  object_store->set_closure_functions_table(Object::null_array());
-  object_store->set_closure_functions(
-      GrowableObjectArray::Handle(zone, GrowableObjectArray::New()));
-}
 
 }  // namespace dart

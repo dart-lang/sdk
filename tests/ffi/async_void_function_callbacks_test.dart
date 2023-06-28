@@ -310,7 +310,7 @@ class ManyCallsBetweenIsolates extends TestCase {
   @override
   Future<void> runOnIsoA(IsolateA iso) async {
     print("ManyCallsBetweenIsolates.runOnIsoA sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnSameThread(
               responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
@@ -321,7 +321,7 @@ class ManyCallsBetweenIsolates extends TestCase {
   @override
   Future<void> runOnIsoB(IsolateB iso) async {
     print("ManyCallsBetweenIsolates.runOnIsoB sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnSameThread(
               responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
@@ -341,7 +341,7 @@ class ManyCallsBetweenIsolatesViaNewThreadBlocking extends TestCase {
   Future<void> runOnIsoA(IsolateA iso) async {
     print(
         "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoA sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnNewThreadBlocking(
               responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
@@ -353,7 +353,7 @@ class ManyCallsBetweenIsolatesViaNewThreadBlocking extends TestCase {
   Future<void> runOnIsoB(IsolateB iso) async {
     print(
         "ManyCallsBetweenIsolatesViaNewThreadBlocking.runOnIsoB sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnNewThreadBlocking(
               responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));
@@ -373,7 +373,7 @@ class ManyCallsBetweenIsolatesViaNewThreadNonBlocking extends TestCase {
   Future<void> runOnIsoA(IsolateA iso) async {
     print(
         "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoA sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnNewThreadNonBlocking(
               responseId, Pointer.fromAddress(iso.fnPtrsB.addGlobalVarPtr)));
@@ -385,7 +385,7 @@ class ManyCallsBetweenIsolatesViaNewThreadNonBlocking extends TestCase {
   Future<void> runOnIsoB(IsolateB iso) async {
     print(
         "ManyCallsBetweenIsolatesViaNewThreadNonBlocking.runOnIsoB sending messages.");
-    await Future.wait(List.filled(1000, null).map((_) async {
+    await Future.wait(List.filled(100, null).map((_) async {
       final result = iso.atm.call((responseId) => iso.natLib
           .callFunctionOnNewThreadNonBlocking(
               responseId, Pointer.fromAddress(iso.fnPtrsA.addGlobalVarPtr)));

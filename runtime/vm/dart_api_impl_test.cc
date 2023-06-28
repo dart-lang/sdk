@@ -10868,6 +10868,29 @@ TEST_CASE(DartAPI_HeapSampling_NonTrivialSamplingPeriod) {
   Dart_EnterIsolate(isolate);
   Dart_DisableHeapSampling();
 }
+
+// Check that we set correct sampling interval for old space allocations
+// during initial isolate startup (before the first TLAB is created).
+// This is a regression test for a bug that was causing each old space
+// allocation to be sampled.
+VM_UNIT_TEST_CASE(
+    DartAPI_HeapSampling_CorrectSamplingIntervalForOldSpaceAllocations) {
+  Dart_RegisterHeapSamplingCallback(
+      [](Dart_Isolate isolate, Dart_IsolateGroup isolate_group,
+         const char* cls_name, intptr_t allocation_size) -> void* {
+        // Should not be called because sampling interval is very large.
+        UNREACHABLE();
+        return nullptr;
+      },
+      [](void* data) {
+        // Nothing to do.
+      });
+  Dart_SetHeapSamplingPeriod(1 * GB);
+  Dart_EnableHeapSampling();
+  TestCase::CreateTestIsolate();
+  Dart_DisableHeapSampling();
+  Dart_ShutdownIsolate();
+}
 #endif  // !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
 
 #if defined(DART_ENABLE_HEAP_SNAPSHOT_WRITER)

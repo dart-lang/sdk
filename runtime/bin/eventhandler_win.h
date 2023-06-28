@@ -100,6 +100,8 @@ class OverlappedBuffer {
 
   void set_data_length(int data_length) { data_length_ = data_length; }
 
+  void operator delete(void* buffer) { free(buffer); }
+
  private:
   OverlappedBuffer(int buffer_size, Operation operation)
       : operation_(operation), buflen_(buffer_size) {
@@ -129,8 +131,6 @@ class OverlappedBuffer {
   void* operator new(size_t size, int buffer_size) {
     return malloc(size + buffer_size);
   }
-
-  void operator delete(void* buffer) { free(buffer); }
 
   // Allocate an overlapped buffer for thse specified amount of data and
   // operation. Some operations need additional buffer space, which is
@@ -272,7 +272,8 @@ class Handle : public ReferenceCounted<Handle>, public DescriptorInfoBase {
   HANDLE completion_port_;
   EventHandlerImplementation* event_handler_;
 
-  OverlappedBuffer* data_ready_;     // Buffer for data ready to be read.
+  std::unique_ptr<OverlappedBuffer>
+      data_ready_;                   // Buffer for data ready to be read.
   OverlappedBuffer* pending_read_;   // Buffer for pending read.
   OverlappedBuffer* pending_write_;  // Buffer for pending write
 

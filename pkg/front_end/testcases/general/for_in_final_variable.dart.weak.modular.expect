@@ -23,8 +23,8 @@ import "dart:core" as core;
 
 static method f() → dynamic {
   late final dynamic i;
-  for (final core::int #t1 in <core::int>[1, 2, 3]) {
-    invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:7:8: Error: Can't assign to the final variable 'i'.
+  for (final dynamic #t1 in <dynamic>[1, 2, 3]) {
+    i = invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:7:8: Error: Can't assign to the final variable 'i'.
   for (i in [1, 2, 3]) {
        ^";
     late final dynamic i2;
@@ -48,8 +48,8 @@ static method g() → dynamic {
   final dynamic j;
   core::List<core::int> l = block {
     final core::List<core::int> #t3 = <core::int>[];
-    for (final core::int #t4 in <core::int>[1, 2, 3]) {
-      invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:26:10: Error: Can't assign to the final variable 'i'.
+    for (final dynamic #t4 in <dynamic>[1, 2, 3]) {
+      i = invalid-expression "pkg/front_end/testcases/general/for_in_final_variable.dart:26:10: Error: Can't assign to the final variable 'i'.
     for (i in [1, 2, 3]) 0,
          ^";
       #t3.{core::List::add}{Invariant}(0){(core::int) → void};

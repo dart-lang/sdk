@@ -5475,7 +5475,10 @@ bool Class::NoteImplementor(const Class& implementor) const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 uint32_t Class::Hash() const {
-  return String::HashRawSymbol(Name());
+  return Class::Hash(ptr());
+}
+uint32_t Class::Hash(ClassPtr obj) {
+  return String::HashRawSymbol(obj.untag()->name());
 }
 
 int32_t Class::SourceFingerprint() const {
@@ -7832,8 +7835,8 @@ uword Function::Hash() const {
   if (IsClosureFunction()) {
     hash = hash ^ token_pos().Hash();
   }
-  if (untag()->owner()->IsClass()) {
-    hash = hash ^ Class::RawCast(untag()->owner())->untag()->id();
+  if (Owner()->IsClass()) {
+    hash = hash ^ Class::Hash(Class::RawCast(Owner()));
   }
   return hash;
 }

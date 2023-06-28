@@ -6282,6 +6282,7 @@ class ProgramSerializationRoots : public SerializationRoots {
     HashTables::New<CanonicalTypeParameterSet>(4))                             \
   ONLY_IN_PRODUCT(ONLY_IN_AOT(                                                 \
       V(closure_functions, GrowableObjectArray, GrowableObjectArray::null()))) \
+  ONLY_IN_AOT(V(closure_functions_table, Array, Array::null()))                \
   ONLY_IN_AOT(V(canonicalized_stack_map_entries, CompressedStackMaps,          \
                 CompressedStackMaps::null()))
 

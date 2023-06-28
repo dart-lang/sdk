@@ -411,6 +411,46 @@ class VariableUseGenerator extends Generator {
   }
 }
 
+/// A [VariableUseGenerator] subclass for late final for-in loop variables
+///
+/// The special case of late final for-in loop variables is determined by the
+/// following requirements to the error reporting.
+///
+///   * Even though the loop can be executed only once, initializing the
+///     variable exactly once, it is still reasonable to report the error for
+///     assigning to the late variable.
+///
+///   * The variable should be considered assigned in the statements following
+///     the loop.
+///
+/// To have both of the effect, [ForInLateFinalVariableUseGenerator] is emitted
+/// for the assignments of such variables. It extends [VariableUseGenerator],
+/// but reports an error on assignment, similarly to
+/// [AbstractReadOnlyAccessGenerator].
+class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
+  ForInLateFinalVariableUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, VariableDeclaration variable)
+      : super(helper, token, variable);
+
+  @override
+  String get _debugName => "ForInLateFinalVariableUseGenerator";
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    InvalidExpression error = _helper.buildProblem(
+        templateCannotAssignToFinalVariable.withArguments(variable.name!),
+        fileOffset,
+        lengthForToken(token))
+      ..parent = variable;
+    Expression assignment =
+        super.buildAssignment(value, voidContext: voidContext);
+    if (assignment is VariableSet) {
+      assignment.value = error..parent = assignment;
+    }
+    return assignment;
+  }
+}
+
 /// A [PropertyAccessGenerator] represents a subexpression whose prefix is
 /// an explicit property access.
 ///

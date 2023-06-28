@@ -248,6 +248,12 @@ void HeapProfileSampler::SampleOldSpaceAllocation(intptr_t allocation_size) {
     interval_to_next_sample_ = tlab_interval;
   }
 
+  // If we don't have a TLAB yet simply initialize interval_to_next_sample_
+  // from the sampling interval.
+  if (interval_to_next_sample_ == kUninitialized) {
+    interval_to_next_sample_ = sampling_interval_;
+  }
+
   // Check the allocation is large enough to trigger a sample. If not, tighten
   // the interval.
   if (allocation_size < interval_to_next_sample_) {

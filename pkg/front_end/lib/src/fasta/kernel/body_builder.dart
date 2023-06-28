@@ -3296,7 +3296,12 @@ class BodyBuilder extends StackListenerImpl
             this, token, fasta.messageNotAConstantExpression);
       }
       VariableDeclaration variable = variableBuilder.variable!;
-      if (!variableBuilder.isAssignable ||
+      if (scope.kind == ScopeKind.forStatement &&
+          variable.isAssignable &&
+          variable.isLate &&
+          variable.isFinal) {
+        return new ForInLateFinalVariableUseGenerator(this, token, variable);
+      } else if (!variableBuilder.isAssignable ||
           (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
         return _createReadOnlyVariableAccess(
             variable,
