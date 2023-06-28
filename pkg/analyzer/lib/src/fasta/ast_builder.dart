@@ -2479,7 +2479,7 @@ class AstBuilder extends StackListener {
       Token? beginInitializers, Token endToken) {
     debugEvent("MixinConstructor");
 
-    _classLikeBuilder?.members.add(
+    invalidNodes.add(
       _buildConstructorDeclaration(
         beginToken: beginToken,
         endToken: endToken,
@@ -2503,7 +2503,7 @@ class AstBuilder extends StackListener {
       Token beginToken, Token factoryKeyword, Token endToken) {
     debugEvent("MixinFactoryMethod");
 
-    _classLikeBuilder?.members.add(
+    invalidNodes.add(
       _buildFactoryConstructorDeclaration(
         beginToken: beginToken,
         factoryKeyword: factoryKeyword,

@@ -106,6 +106,8 @@ class FindNode {
 
   MethodInvocation get singleMethodInvocation => _single();
 
+  MixinDeclaration get singleMixinDeclaration => _single();
+
   OnClause get singleOnClause => _single();
 
   ParenthesizedExpression get singleParenthesizedExpression => _single();

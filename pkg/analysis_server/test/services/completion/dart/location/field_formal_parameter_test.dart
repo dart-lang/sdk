@@ -170,20 +170,6 @@ suggestions
 ''');
   }
 
-  /// https://github.com/dart-lang/sdk/issues/39028
-  Future<void> test_mixin_constructor() async {
-    await computeSuggestions('''
-mixin M {
-  var field = 0;
-  M(this.^);
-}
-''');
-
-    assertResponse(r'''
-suggestions
-''');
-  }
-
   Future<void> _checkContainers({
     required String declarations,
     required String constructorParameters,

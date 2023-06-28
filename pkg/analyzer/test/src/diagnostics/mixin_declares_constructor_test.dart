@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/error/syntactic_errors.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -16,47 +15,83 @@ main() {
 
 @reflectiveTest
 class MixinDeclaresConstructorTest extends PubPackageResolutionTest {
-  test_fieldFormalParameter() async {
+  test_factory_named() async {
     await assertErrorsInCode(r'''
 mixin M {
-  final int f;
-  M(this.f);
+  factory M.named() => throw 0;
 }
 ''', [
-      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 27, 1),
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
     ]);
 
-    var fpNode = findNode.fieldFormalParameter('f);');
-    var fpElement = fpNode.declaredElement as FieldFormalParameterElement;
-    assertElement(fpElement.field, findElement.field('f'));
+    final node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+  declaredElement: self::@mixin::M
+''');
   }
 
-  test_resolved() async {
+  test_factory_unnamed() async {
     await assertErrorsInCode(r'''
 mixin M {
-  M(int a) {
-    a; // read
+  factory M() => throw 0;
+}
+''', [
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 7),
+    ]);
+
+    final node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+  declaredElement: self::@mixin::M
+''');
   }
+
+  test_generative_named() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  M.named();
 }
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
     ]);
 
-    // Even though it is an error for a mixin to declare a constructor,
-    // we still build elements for constructors, and resolve them.
+    final node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+  declaredElement: self::@mixin::M
+''');
+  }
 
-    var element = findElement.mixin('M');
-    var constructorElement = element.constructors.single;
+  test_generative_unnamed() async {
+    await assertErrorsInCode(r'''
+mixin M {
+  M();
+}
+''', [
+      error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
+    ]);
 
-    var constructorNode = findNode.constructor('M(int a)');
-    assertElement(constructorNode, constructorElement);
-
-    var aElement = constructorElement.parameters[0];
-    var aNode = constructorNode.parameters.parameters[0];
-    assertElement(aNode, aElement);
-
-    var aRef = findNode.simple('a; // read');
-    assertElement(aRef, aElement);
-    assertType(aRef, 'int');
+    final node = findNode.singleMixinDeclaration;
+    assertResolvedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: M
+  leftBracket: {
+  rightBracket: }
+  declaredElement: self::@mixin::M
+''');
   }
 }
