@@ -136,6 +136,7 @@ import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'unnecessary_constructor_name_test.dart' as unnecessary_constructor_name;
 import 'unnecessary_final_test.dart' as unnecessary_final;
 import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
+import 'unnecessary_late_test.dart' as unnecessary_late;
 import 'unnecessary_library_directive_test.dart'
     as unnecessary_library_directive;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
@@ -265,6 +266,7 @@ void main() {
   unnecessary_constructor_name.main();
   unnecessary_final.main();
   unnecessary_lambdas.main();
+  unnecessary_late.main();
   unnecessary_library_directive.main();
   unnecessary_null_checks.main();
   unnecessary_nullable_for_final_variable_declarations.main();
