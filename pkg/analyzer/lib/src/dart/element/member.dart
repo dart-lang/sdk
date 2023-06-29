@@ -44,8 +44,12 @@ class ConstructorMember extends ExecutableMember
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   InterfaceElement get enclosingElement => declaration.enclosingElement;
+
+  @override
+  NamedInstanceElement get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   bool get isConst => declaration.isConst;
@@ -350,8 +354,12 @@ class FieldMember extends VariableMember implements FieldElement {
   @override
   String get displayName => declaration.displayName;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   PropertyAccessorElement? get getter {
@@ -446,8 +454,12 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   @override
   FunctionElement get declaration => super.declaration as FunctionElement;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   bool get isDartCoreIdentical => declaration.isDartCoreIdentical;
@@ -511,8 +523,12 @@ abstract class Member implements Element {
   @override
   String? get documentationComment => _declaration.documentationComment;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element? get enclosingElement => _declaration.enclosingElement;
+
+  @override
+  Element? get enclosingElement2 => _declaration.enclosingElement2;
 
   @override
   bool get hasAlwaysThrows => _declaration.hasAlwaysThrows;
@@ -798,8 +814,12 @@ class MethodMember extends ExecutableMember implements MethodElement {
   @override
   MethodElement get declaration => super.declaration as MethodElement;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   String get name => declaration.name;
@@ -888,8 +908,12 @@ class ParameterMember extends VariableMember
   @override
   String? get defaultValueCode => declaration.defaultValueCode;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element? get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element? get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   bool get hasDefaultValue => declaration.hasDefaultValue;
@@ -1026,8 +1050,12 @@ class PropertyAccessorMember extends ExecutableMember
   PropertyAccessorElement get declaration =>
       super.declaration as PropertyAccessorElement;
 
+  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement => declaration.enclosingElement;
+
+  @override
+  Element get enclosingElement2 => declaration.enclosingElement2;
 
   @override
   bool get isGetter => declaration.isGetter;

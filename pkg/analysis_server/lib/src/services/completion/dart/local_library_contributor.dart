@@ -92,7 +92,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (element.isOperator) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement2 is! CompilationUnitElement) {
       return;
     }
     var returnType = element.returnType;
@@ -128,7 +128,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions && element.variable.isConst)) {
-      var parent = element.enclosingElement;
+      var parent = element.enclosingElement2;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {

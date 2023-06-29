@@ -219,7 +219,7 @@ class _BaseUnitMemberValidator {
     var declarations = await searchEngine.searchMemberDeclarations(name);
     for (var declaration in declarations) {
       var member = declaration.element;
-      var declaringClass = member.enclosingElement as InterfaceElement;
+      var declaringClass = member.enclosingElement2 as InterfaceElement;
       var memberReferences = await searchEngine.searchReferences(member);
       for (var memberReference in memberReferences) {
         var refElement = memberReference.element;

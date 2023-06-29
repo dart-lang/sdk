@@ -88,7 +88,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
   performance ??= OperationPerformanceImpl("<root>");
   Set<ClassMemberElement> result = HashSet<ClassMemberElement>();
   // extension member
-  var enclosingElement = member.enclosingElement;
+  var enclosingElement = member.enclosingElement2;
   if (enclosingElement is ExtensionElement) {
     result.add(member);
     return Future.value(result);
@@ -147,7 +147,7 @@ Future<Set<ClassMemberElement>> getHierarchyMembers(
 Future<List<ParameterElement>> getHierarchyNamedParameters(
     SearchEngine searchEngine, ParameterElement element) async {
   if (element.isNamed) {
-    var method = element.enclosingElement;
+    var method = element.enclosingElement2;
     if (method is MethodElement) {
       var hierarchyParameters = <ParameterElement>[];
       var hierarchyMembers = await getHierarchyMembers(searchEngine, method);

@@ -183,7 +183,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   void assertEnclosingElement(Element element, Element expectedEnclosing) {
-    expect(element.enclosingElement, expectedEnclosing);
+    expect(element.enclosingElement2, expectedEnclosing);
   }
 
   Future<void> assertErrorsInCode(
@@ -307,7 +307,7 @@ mixin ResolutionTest implements ResourceProviderMixin {
   ) {
     var actualMapString = Map.fromEntries(
       substitution.map.entries.where((entry) {
-        return entry.key.enclosingElement is! ExecutableElement;
+        return entry.key.enclosingElement2 is! ExecutableElement;
       }).map((entry) {
         return MapEntry(
           entry.key.name,

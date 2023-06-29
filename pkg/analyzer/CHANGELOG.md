@@ -2,6 +2,9 @@
 * Added `NamedInstanceElement`, a super-interface for `InterfaceElement`.
 * Added `InstanceElement`, a super-interface for `NamedInstanceElement`
   and `ExtensionElement`.
+* Deprecated `Element.enclosingElement`, use `enclosingElement2` instead.
+  With this `ConstructorElement.enclosingElement` returns `NamedInstanceElement`
+  instead of `InterfaceElement`, to support `InlineClassElement` constructors.
 
 ## 6.0.0
 * Remove deprecated `declaredElement2` from AST.

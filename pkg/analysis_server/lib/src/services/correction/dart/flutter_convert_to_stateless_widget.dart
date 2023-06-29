@@ -315,7 +315,7 @@ class _ReplacementEditBuilder extends RecursiveAstVisitor<void> {
     }
     var element = node.staticElement;
     if (element is ExecutableElement &&
-        element.enclosingElement == widgetClassElement &&
+        element.enclosingElement2 == widgetClassElement &&
         !elementsToMove.contains(element)) {
       var parent = node.parent;
       if (parent is PrefixedIdentifier) {
@@ -358,7 +358,7 @@ class _StatelessVerifier extends RecursiveAstVisitor<void> {
   void visitMethodInvocation(MethodInvocation node) {
     var methodElement = node.methodName.staticElement?.declaration;
     if (methodElement is ClassMemberElement) {
-      var classElement = methodElement.enclosingElement;
+      var classElement = methodElement.enclosingElement2;
       if (classElement is ClassElement &&
           Flutter.instance.isExactState(classElement) &&
           !FlutterConvertToStatelessWidget._isDefaultOverride(

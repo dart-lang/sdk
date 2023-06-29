@@ -144,7 +144,7 @@ class FlutterDataCollector extends RecursiveAstVisitor<void> {
         throw StateError(
             'Unresolved constructor name: ${node.constructorName}');
       }
-      var childWidget = element.enclosingElement.name;
+      var childWidget = element.enclosingElement2.name;
       if (!element.librarySource.uri
           .toString()
           .startsWith('package:flutter/')) {

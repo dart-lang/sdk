@@ -467,7 +467,7 @@ class _EdgeInsetsProperty {
       var constructor = propertyExpression.constructorName.staticElement;
       if (flutter != null &&
           constructor != null &&
-          constructor.enclosingElement == classEdgeInsets) {
+          constructor.enclosingElement2 == classEdgeInsets) {
         var arguments = propertyExpression.argumentList.arguments;
         var constructorName = constructor.name;
         if (constructorName == 'all') {

@@ -1758,7 +1758,7 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
-      ..enclosingElement = first.enclosingElement
+      ..enclosingElement = first.enclosingElement2
       ..type = InvalidTypeImpl.instance;
   }
 }

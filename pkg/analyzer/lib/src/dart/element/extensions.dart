@@ -17,21 +17,21 @@ extension ElementAnnotationExtensions on ElementAnnotation {
   /// Return the target kinds defined for this [ElementAnnotation].
   Set<TargetKind> get targetKinds {
     final element = this.element;
-    InterfaceElement? interfaceElement;
+    NamedInstanceElement? instanceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {
         var type = element.returnType;
         if (type is InterfaceType) {
-          interfaceElement = type.element;
+          instanceElement = type.element;
         }
       }
     } else if (element is ConstructorElement) {
-      interfaceElement = element.enclosingElement;
+      instanceElement = element.enclosingElement2;
     }
-    if (interfaceElement == null) {
+    if (instanceElement == null) {
       return const <TargetKind>{};
     }
-    for (var annotation in interfaceElement.metadata) {
+    for (var annotation in instanceElement.metadata) {
       if (annotation.isTarget) {
         var value = annotation.computeConstantValue();
         if (value == null) {
@@ -63,21 +63,21 @@ extension ElementExtension on Element {
       return true;
     }
 
-    var ancestor = enclosingElement;
+    var ancestor = enclosingElement2;
     if (ancestor is InterfaceElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement2;
     } else if (ancestor is ExtensionElement) {
       if (ancestor.hasDoNotStore) {
         return true;
       }
-      ancestor = ancestor.enclosingElement;
+      ancestor = ancestor.enclosingElement2;
     }
 
     return ancestor is CompilationUnitElement &&
-        ancestor.enclosingElement.hasDoNotStore;
+        ancestor.enclosingElement2.hasDoNotStore;
   }
 
   /// Return `true` if this element is an instance member of a class or mixin.
@@ -91,7 +91,7 @@ extension ElementExtension on Element {
     assert(this is! PropertyInducingElement,
         'Check the PropertyAccessorElement instead');
     var this_ = this;
-    var enclosing = this_.enclosingElement;
+    var enclosing = this_.enclosingElement2;
     if (enclosing is InterfaceElement) {
       return this_ is MethodElement && !this_.isStatic ||
           this_ is PropertyAccessorElement && !this_.isStatic;
@@ -102,7 +102,7 @@ extension ElementExtension on Element {
 
 extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
-    return this is ConstructorElement && enclosingElement is EnumElementImpl;
+    return this is ConstructorElement && enclosingElement2 is EnumElementImpl;
   }
 }
 

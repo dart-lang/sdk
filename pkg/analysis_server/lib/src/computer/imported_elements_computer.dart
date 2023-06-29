@@ -112,7 +112,7 @@ class _Visitor extends UnifyingAstVisitor<void> {
     if (element == null) {
       return;
     }
-    if (element.enclosingElement is! CompilationUnitElement) {
+    if (element.enclosingElement2 is! CompilationUnitElement) {
       return;
     }
 

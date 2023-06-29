@@ -79,7 +79,7 @@ class InformativeDataApplier {
         var unitReader = SummaryDataReader(unitInfoBytes);
         var unitInfo = _InfoUnit(unitReader);
 
-        final enclosing = unitElement.enclosingElement;
+        final enclosing = unitElement.enclosingElement2;
         if (enclosing is LibraryElementImpl) {
           if (identical(enclosing.definingCompilationUnit, unitElement)) {
             _applyToLibrary(enclosing, unitInfo);

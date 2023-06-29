@@ -332,7 +332,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
 
     for (final rawMember in map.values) {
       var member = ExecutableMember.from2(rawMember, substitution);
-      var enclosingInterface = member.enclosingElement as InterfaceElement;
+      var enclosingInterface = member.enclosingElement2 as InterfaceElement;
       var inheritanceDistance = inheritanceDistances.putIfAbsent(
         enclosingInterface,
         () => request.featureComputer

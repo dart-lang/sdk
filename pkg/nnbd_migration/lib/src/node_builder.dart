@@ -716,7 +716,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in metadata) {
       var element = annotation.element;
       if (element is ConstructorElement) {
-        var name = element.enclosingElement.name;
+        var name = element.enclosingElement2.name;
         if (_isAngularUri(element.librarySource.uri)) {
           if (name == 'ViewChild' || name == 'ContentChild') {
             return _AngularAnnotation.child;
@@ -758,7 +758,8 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Constructors have no explicit return type annotation, so use the
         // implicit return type.
         decoratedReturnType = _createDecoratedTypeForClass(
-            declaredElement.enclosingElement, parameters!.parent);
+            declaredElement.enclosingElement2 as InterfaceElement,
+            parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
         // If the function expression just throws, analyzer will infer `Null`
@@ -881,7 +882,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
-    final enclosingElement = declaredElement.enclosingElement;
+    final enclosingElement = declaredElement.enclosingElement2;
     if ((enclosingElement is ConstructorElement &&
                 (_isInsideAngularComponent || _isInjectable) ||
             (enclosingElement is FunctionElement) &&
@@ -986,7 +987,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// package.
   bool _isAngularConstructor(Element? element, String name) =>
       element is ConstructorElement &&
-      element.enclosingElement.name == name &&
+      element.enclosingElement2.name == name &&
       _isAngularUri(element.librarySource.uri);
 
   /// Determines whether the given [uri] comes from the Angular package.

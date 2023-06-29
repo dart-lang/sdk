@@ -600,7 +600,7 @@ class _ErrorHelper {
 
     if (element is LocalVariableElement ||
         (element is FunctionElement &&
-            element.enclosingElement is ExecutableElement)) {
+            element.enclosingElement2 is ExecutableElement)) {
       errorReporter.reportError(
         DiagnosticFactory().referencedBeforeDeclaration(
           errorReporter.source,

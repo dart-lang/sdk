@@ -1460,7 +1460,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
   void _assertExecutable(ExecutableElement? element, String? expected) {
     if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement2;
 
       var type = element.type;
       var typeStr = typeString(type);
@@ -1470,7 +1470,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       if (element is PropertyAccessorElement) {
         var variable = element.variable;
-        expect(variable.enclosingElement, same(element.enclosingElement));
+        expect(variable.enclosingElement2, same(element.enclosingElement2));
         expect(variable.name, element.displayName);
         if (element.isGetter) {
           expect(variable.type, element.returnType);
@@ -1552,7 +1552,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var element = entry.value;
       var type = element.type;
 
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement2;
       if (enclosingElement.name == 'Object') continue;
 
       var typeStr = type.getDisplayString(withNullability: false);

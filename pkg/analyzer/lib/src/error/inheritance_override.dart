@@ -620,7 +620,7 @@ class _ClassVerifier {
       ) {
         var member = concreteMap[Name(libraryUri, memberName)];
         if (member != null) {
-          var enclosingClass = member.enclosingElement as InterfaceElement;
+          var enclosingClass = member.enclosingElement2 as InterfaceElement;
           if (enclosingClass is! ClassElement || filter(enclosingClass)) {
             reporter.reportErrorForToken(
               CompileTimeErrorCode.ILLEGAL_CONCRETE_ENUM_MEMBER_INHERITANCE,
@@ -661,7 +661,7 @@ class _ClassVerifier {
         reporter.reportErrorForToken(
           CompileTimeErrorCode.ILLEGAL_ENUM_VALUES_INHERITANCE,
           classNameToken,
-          [inherited.enclosingElement.name!],
+          [inherited.enclosingElement2.name!],
         );
       }
     }
@@ -746,13 +746,13 @@ class _ClassVerifier {
         token,
         [
           name.name,
-          conflict.getter.enclosingElement.name!,
-          conflict.method.enclosingElement.name!
+          conflict.getter.enclosingElement2.name!,
+          conflict.method.enclosingElement2.name!
         ],
       );
     } else if (conflict is CandidatesConflict) {
       var candidatesStr = conflict.candidates.map((candidate) {
-        var className = candidate.enclosingElement.name;
+        var className = candidate.enclosingElement2.name;
         var typeStr = candidate.type.getDisplayString(
           withNullability: _isNonNullableByDefault,
         );
@@ -788,7 +788,7 @@ class _ClassVerifier {
       }
 
       var elementName = element.displayName;
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement2;
       var enclosingName = enclosingElement.displayName;
       var description = "$prefix$enclosingName.$elementName";
 

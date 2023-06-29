@@ -38,7 +38,7 @@ bool isLocalElement(Element? element) {
   return element is LocalVariableElement ||
       element is ParameterElement ||
       element is FunctionElement &&
-          element.enclosingElement is! CompilationUnitElement;
+          element.enclosingElement2 is! CompilationUnitElement;
 }
 
 Element? _getLocalElement(SimpleIdentifier node) {

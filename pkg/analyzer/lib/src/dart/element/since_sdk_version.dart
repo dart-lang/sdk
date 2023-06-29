@@ -30,7 +30,7 @@ class SinceSdkVersionComputer {
     }
 
     final specified = _specifiedVersion(element);
-    final enclosing = element.enclosingElement?.sinceSdkVersion;
+    final enclosing = element.enclosingElement2?.sinceSdkVersion;
     return specified.maxWith(enclosing);
   }
 
