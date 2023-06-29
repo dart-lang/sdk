@@ -4463,7 +4463,7 @@ Fragment StreamingFlowGraphBuilder::BuildLibraryPrefixAction(
     const String& selector) {
   const intptr_t dependency_index = ReadUInt();
   const Library& current_library = Library::Handle(
-      Z, Class::Handle(Z, parsed_function()->function().origin()).library());
+      Z, Class::Handle(Z, parsed_function()->function().Owner()).library());
   const Array& dependencies = Array::Handle(Z, current_library.dependencies());
   const LibraryPrefix& prefix =
       LibraryPrefix::CheckedZoneHandle(Z, dependencies.At(dependency_index));

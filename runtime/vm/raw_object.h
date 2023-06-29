@@ -1104,9 +1104,8 @@ class UntaggedPatchClass : public UntaggedObject {
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
 
-  COMPRESSED_POINTER_FIELD(ClassPtr, patched_class)
-  VISIT_FROM(patched_class)
-  COMPRESSED_POINTER_FIELD(ClassPtr, origin_class)
+  COMPRESSED_POINTER_FIELD(ClassPtr, wrapped_class)
+  VISIT_FROM(wrapped_class)
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
   VISIT_TO(library_kernel_data)

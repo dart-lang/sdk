@@ -855,10 +855,10 @@ DEFINE_NATIVE_ENTRY(DeclarationMirror_metadata, 0, 1) {
     klass ^= decl.ptr();
     library = klass.library();
   } else if (decl.IsFunction()) {
-    klass = Function::Cast(decl).origin();
+    klass = Function::Cast(decl).Owner();
     library = klass.library();
   } else if (decl.IsField()) {
-    klass = Field::Cast(decl).Origin();
+    klass = Field::Cast(decl).Owner();
     library = klass.library();
   } else if (decl.IsLibrary()) {
     library ^= decl.ptr();
