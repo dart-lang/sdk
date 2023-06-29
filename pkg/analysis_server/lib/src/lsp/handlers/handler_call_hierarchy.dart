@@ -143,7 +143,7 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
 /// The target returned by this handler will be sent back to the server for
 /// incoming/outgoing calls as the user navigates the call hierarchy in the
 /// client.
-class PrepareCallHierarchyHandler extends MessageHandler<
+class PrepareCallHierarchyHandler extends LspMessageHandler<
     CallHierarchyPrepareParams,
     TextDocumentPrepareCallHierarchyResult> with _CallHierarchyUtils {
   PrepareCallHierarchyHandler(super.server);
@@ -163,7 +163,7 @@ class PrepareCallHierarchyHandler extends MessageHandler<
       return success(const []);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -221,7 +221,7 @@ class PrepareCallHierarchyHandler extends MessageHandler<
 /// An abstract base class for incoming and outgoing CallHierarchy handlers
 /// which perform largely the same task using different LSP classes.
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
-    extends MessageHandler<P, R> with _CallHierarchyUtils {
+    extends LspMessageHandler<P, R> with _CallHierarchyUtils {
   _AbstractCallHierarchyCallsHandler(super.server);
 
   /// Gets the appropriate types of calls for this handler.
@@ -237,7 +237,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
       return success(const []);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return failure(serverNotInitializedError);

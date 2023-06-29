@@ -210,7 +210,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
         selectionOffset: offset,
         selectionLength: length,
         includeExperimental:
-            server.clientConfiguration.global.experimentalRefactors,
+            server.lspClientConfiguration.global.experimentalRefactors,
       );
       final processor = RefactoringProcessor(context);
       final actions = await processor.compute();

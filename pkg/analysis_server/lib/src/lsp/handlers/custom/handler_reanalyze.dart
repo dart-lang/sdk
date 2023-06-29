@@ -8,7 +8,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class ReanalyzeHandler extends MessageHandler<void, void> {
+class ReanalyzeHandler extends LspMessageHandler<void, void> {
   ReanalyzeHandler(super.server);
 
   @override

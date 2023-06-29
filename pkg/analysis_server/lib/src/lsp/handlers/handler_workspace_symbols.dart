@@ -8,7 +8,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
 class WorkspaceSymbolHandler
-    extends MessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
+    extends LspMessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
   WorkspaceSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;
@@ -20,7 +20,7 @@ class WorkspaceSymbolHandler
   @override
   Future<ErrorOr<List<SymbolInformation>>> handle(WorkspaceSymbolParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
@@ -39,7 +39,7 @@ class WorkspaceSymbolHandler
 
     final supportedSymbolKinds = clientCapabilities.workspaceSymbolKinds;
     final searchOnlyAnalyzed = !server
-        .clientConfiguration.global.includeDependenciesInWorkspaceSymbols;
+        .lspClientConfiguration.global.includeDependenciesInWorkspaceSymbols;
 
     // Cap the number of results we'll return because short queries may match
     // huge numbers on large projects.

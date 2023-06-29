@@ -30,6 +30,10 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
   return items.map(converter).where((item) => item != null).cast<T>();
 }
 
+/// A base class for LSP handlers that require an LSP analysis server and are
+/// not supported over the legacy protocol.
+typedef LspMessageHandler<P, R> = MessageHandler<P, R, LspAnalysisServer>;
+
 abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
   final LspAnalysisServer server;
@@ -190,13 +194,10 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R>
-    with
-        Handler<R>,
-        HandlerHelperMixin,
-        RequestHandlerMixin<LspAnalysisServer> {
+abstract class MessageHandler<P, R, S extends LspAnalysisServer>
+    with Handler<R>, HandlerHelperMixin, RequestHandlerMixin<S> {
   @override
-  final LspAnalysisServer server;
+  final S server;
 
   MessageHandler(this.server);
 
@@ -256,7 +257,7 @@ mixin PositionalArgCommandHandler {
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
-  final Map<Method, MessageHandler<Object?, Object?>> _messageHandlers = {};
+  final Map<Method, LspMessageHandler<Object?, Object?>> _messageHandlers = {};
   final CancelRequestHandler _cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
@@ -306,7 +307,7 @@ abstract class ServerStateMessageHandler {
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
-  void registerHandler(MessageHandler<Object?, Object?> handler) {
+  void registerHandler(LspMessageHandler<Object?, Object?> handler) {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 

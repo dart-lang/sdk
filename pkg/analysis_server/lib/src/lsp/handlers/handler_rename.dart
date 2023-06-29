@@ -14,7 +14,7 @@ import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/utilities.dart';
 
-class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
+class PrepareRenameHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentPrepareRenameResult> {
   PrepareRenameHandler(super.server);
   @override
@@ -80,10 +80,11 @@ class PrepareRenameHandler extends MessageHandler<TextDocumentPositionParams,
   }
 }
 
-class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
+class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
   RenameHandler(super.server);
 
-  LspGlobalClientConfiguration get config => server.clientConfiguration.global;
+  LspGlobalClientConfiguration get config =>
+      server.lspClientConfiguration.global;
 
   @override
   Method get handlesMessage => Method.textDocument_rename;
@@ -93,7 +94,7 @@ class RenameHandler extends MessageHandler<RenameParams, WorkspaceEdit?> {
 
   /// Checks whether a client supports Rename resource operations.
   bool get _clientSupportsRename {
-    final capabilities = server.clientCapabilities;
+    final capabilities = server.lspClientCapabilities;
     return (capabilities?.documentChanges ?? false) &&
         (capabilities?.renameResourceOperations ?? false);
   }

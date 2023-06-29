@@ -13,7 +13,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 
 abstract class AbstractSemanticTokensHandler<T>
-    extends MessageHandler<T, SemanticTokens?>
+    extends LspMessageHandler<T, SemanticTokens?>
     with LspPluginRequestHandlerMixin {
   AbstractSemanticTokensHandler(super.server);
 

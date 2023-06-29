@@ -17,7 +17,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 /// to obtain the code to insert when a new color is selected (see
 /// [DocumentColorPresentationHandler]).
 class DocumentColorHandler
-    extends MessageHandler<DocumentColorParams, List<ColorInformation>> {
+    extends LspMessageHandler<DocumentColorParams, List<ColorInformation>> {
   DocumentColorHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_documentColor;

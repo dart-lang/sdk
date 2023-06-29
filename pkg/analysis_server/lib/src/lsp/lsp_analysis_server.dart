@@ -70,7 +70,8 @@ class LspAnalysisServer extends AnalysisServer {
   /// Configuration for the workspace from the client. This is similar to
   /// initializationOptions but can be updated dynamically rather than set
   /// only when the server starts.
-  final LspClientConfiguration clientConfiguration = LspClientConfiguration();
+  final LspClientConfiguration lspClientConfiguration =
+      LspClientConfiguration();
 
   /// The channel from which messages are received and to which responses should
   /// be sent.
@@ -209,9 +210,6 @@ class LspAnalysisServer extends AnalysisServer {
   String? get clientAppHost => _initializationOptions?.appHost;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
-  LspClientCapabilities? get clientCapabilities => _clientCapabilities;
-
-  /// The capabilities of the LSP client. Will be null prior to initialization.
   InitializeParamsClientInfo? get clientInfo => _clientInfo;
 
   /// The name of the remote when the client is running using a remote workspace.
@@ -233,6 +231,9 @@ class LspAnalysisServer extends AnalysisServer {
   ///  there aren't potential errors here.
   LspInitializationOptions get initializationOptions =>
       _initializationOptions as LspInitializationOptions;
+
+  /// The capabilities of the LSP client. Will be null prior to initialization.
+  LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
 
   @override
   LspNotificationManager get notificationManager =>
@@ -274,7 +275,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// 'window/showMessageRequest'.
   @override
   bool get supportsShowMessageRequest =>
-      clientCapabilities?.supportsShowMessageRequest ?? false;
+      lspClientCapabilities?.supportsShowMessageRequest ?? false;
 
   Future<void> addPriorityFile(String filePath) async {
     // When pubspecs are opened, trigger pre-loading of pub package names and
@@ -297,7 +298,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Fetches configuration from the client (if supported) and then sends
   /// register/unregister requests for any supported/enabled dynamic registrations.
   Future<void> fetchClientConfigurationAndPerformDynamicRegistration() async {
-    if (clientCapabilities?.configuration ?? false) {
+    if (lspClientCapabilities?.configuration ?? false) {
       // Take a copy of workspace folders because we need to match up the
       // responses to the request by index and it's possible _workspaceFolders
       // will change after we sent the request but before we get the response.
@@ -337,12 +338,12 @@ class LspAnalysisServer extends AnalysisServer {
         };
         final newGlobalConfig = result.last as Map<String, Object?>? ?? {};
 
-        final oldGlobalConfig = clientConfiguration.global;
-        clientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
+        final oldGlobalConfig = lspClientConfiguration.global;
+        lspClientConfiguration.replace(newGlobalConfig, workspaceFolderConfig);
 
-        if (clientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
+        if (lspClientConfiguration.affectsAnalysisRoots(oldGlobalConfig)) {
           await _refreshAnalysisRoots();
-        } else if (clientConfiguration
+        } else if (lspClientConfiguration
             .affectsAnalysisResults(oldGlobalConfig)) {
           // Some settings affect analysis results and require re-analysis
           // (such as showTodos).
@@ -775,7 +776,7 @@ class LspAnalysisServer extends AnalysisServer {
       wasAnalyzing = true;
     }
 
-    if (clientCapabilities?.workDoneProgress != true) {
+    if (lspClientCapabilities?.workDoneProgress != true) {
       channel.sendNotification(NotificationMessage(
         method: CustomMethods.analyzerStatus,
         params: AnalyzerStatusParams(isAnalyzing: isAnalyzing),
@@ -1034,7 +1035,7 @@ class LspAnalysisServer extends AnalysisServer {
         ? _workspaceFolders.toSet()
         : _getRootsForOpenFiles();
 
-    final excludedPaths = clientConfiguration.global.analysisExcludedFolders
+    final excludedPaths = lspClientConfiguration.global.analysisExcludedFolders
         .expand((excludePath) => resourceProvider.pathContext
                 .isAbsolute(excludePath)
             ? [excludePath]
@@ -1213,10 +1214,10 @@ class LspServerContextManagerCallbacks
 
     // Otherwise, show TODOs based on client configuration (either showing all,
     // or specific types of TODOs).
-    if (analysisServer.clientConfiguration.global.showAllTodos) {
+    if (analysisServer.lspClientConfiguration.global.showAllTodos) {
       return true;
     }
-    return analysisServer.clientConfiguration.global.showTodoTypes
+    return analysisServer.lspClientConfiguration.global.showTodoTypes
         .contains(error.code.toUpperCase());
   }
 }

@@ -1238,7 +1238,7 @@ class LspCapabilitiesPage extends DiagnosticPageWithNav {
     buf.writeln('<div class="columns">');
     buf.writeln('<div class="column one-half">');
     h3('Client Capabilities');
-    var clientCapabilities = server.clientCapabilities;
+    var clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       p('Client capabilities have not yet been received.');
     } else {

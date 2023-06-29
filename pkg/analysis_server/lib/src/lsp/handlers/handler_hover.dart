@@ -11,7 +11,8 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
-class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
+class HoverHandler
+    extends LspMessageHandler<TextDocumentPositionParams, Hover?> {
   HoverHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_hover;
@@ -83,7 +84,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
       content.writeln(cleanDartdoc(hover.dartdoc));
     }
 
-    final formats = server.clientCapabilities?.hoverContentFormats;
+    final formats = server.lspClientCapabilities?.hoverContentFormats;
     return Hover(
       contents:
           asMarkupContentOrString(formats, content.toString().trimRight()),
@@ -98,7 +99,7 @@ class HoverHandler extends MessageHandler<TextDocumentPositionParams, Hover?> {
       compilationUnit,
       offset,
       documentationPreference:
-          server.clientConfiguration.global.preferredDocumentation,
+          server.lspClientConfiguration.global.preferredDocumentation,
     );
     final hover = computer.compute();
     return success(toHover(unit.lineInfo, hover));

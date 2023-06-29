@@ -6,7 +6,7 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class WorkspaceDidChangeConfigurationMessageHandler
-    extends MessageHandler<DidChangeConfigurationParams, void> {
+    extends LspMessageHandler<DidChangeConfigurationParams, void> {
   WorkspaceDidChangeConfigurationMessageHandler(super.server);
 
   @override

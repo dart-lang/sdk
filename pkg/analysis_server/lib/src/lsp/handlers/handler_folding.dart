@@ -10,7 +10,7 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class FoldingHandler
-    extends MessageHandler<FoldingRangeParams, List<FoldingRange>> {
+    extends LspMessageHandler<FoldingRangeParams, List<FoldingRange>> {
   FoldingHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_foldingRange;
@@ -22,7 +22,7 @@ class FoldingHandler
   @override
   Future<ErrorOr<List<FoldingRange>>> handle(FoldingRangeParams params,
       MessageInfo message, CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

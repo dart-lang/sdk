@@ -45,6 +45,9 @@ import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
+typedef _RequestHandlerGenerator<T extends LspAnalysisServer>
+    = MessageHandler<Object?, Object?, T> Function(T);
+
 /// The server moves to this state when a critical unrecoverable error (for
 /// example, inconsistent document state between server/client) occurs and will
 /// reject all messages.
@@ -61,61 +64,63 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
+  static const lspHandlerGenerators =
+      <_RequestHandlerGenerator<LspAnalysisServer>>[
+    HoverHandler.new,
+    ShutdownMessageHandler.new,
+    ExitMessageHandler.new,
+    TextDocumentOpenHandler.new,
+    TextDocumentChangeHandler.new,
+    TextDocumentCloseHandler.new,
+    CompletionHandler.new,
+    CompletionResolveHandler.new,
+    DocumentColorHandler.new,
+    DocumentColorPresentationHandler.new,
+    SignatureHelpHandler.new,
+    DefinitionHandler.new,
+    TypeDefinitionHandler.new,
+    SuperHandler.new,
+    ReferencesHandler.new,
+    ImplementationHandler.new,
+    FormattingHandler.new,
+    FormatOnTypeHandler.new,
+    FormatRangeHandler.new,
+    DocumentHighlightsHandler.new,
+    DocumentSymbolHandler.new,
+    CodeActionHandler.new,
+    ExecuteCommandHandler.new,
+    WorkspaceFoldersHandler.new,
+    PrepareRenameHandler.new,
+    RenameHandler.new,
+    PrepareCallHierarchyHandler.new,
+    IncomingCallHierarchyHandler.new,
+    OutgoingCallHierarchyHandler.new,
+    PrepareTypeHierarchyHandler.new,
+    TypeHierarchySubtypesHandler.new,
+    TypeHierarchySupertypesHandler.new,
+    FoldingHandler.new,
+    DiagnosticServerHandler.new,
+    WorkspaceSymbolHandler.new,
+    WorkspaceDidChangeConfigurationMessageHandler.new,
+    ReanalyzeHandler.new,
+    WillRenameFilesHandler.new,
+    SelectionRangeHandler.new,
+    SemanticTokensFullHandler.new,
+    SemanticTokensRangeHandler.new,
+    InlayHintHandler.new,
+  ];
+
   InitializedStateMessageHandler(
     LspAnalysisServer server,
   ) : super(server) {
-    final options = server.initializationOptions;
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
-    registerHandler(ShutdownMessageHandler(server));
-    registerHandler(ExitMessageHandler(server));
-    registerHandler(
-      TextDocumentOpenHandler(server),
-    );
-    registerHandler(TextDocumentChangeHandler(server));
-    registerHandler(
-      TextDocumentCloseHandler(server),
-    );
-    registerHandler(HoverHandler(server));
-    registerHandler(CompletionHandler(server, options));
-    registerHandler(CompletionResolveHandler(server));
-    registerHandler(DocumentColorHandler(server));
-    registerHandler(DocumentColorPresentationHandler(server));
-    registerHandler(SignatureHelpHandler(server));
-    registerHandler(DefinitionHandler(server));
-    registerHandler(TypeDefinitionHandler(server));
-    registerHandler(SuperHandler(server));
-    registerHandler(ReferencesHandler(server));
-    registerHandler(ImplementationHandler(server));
-    registerHandler(FormattingHandler(server));
-    registerHandler(FormatOnTypeHandler(server));
-    registerHandler(FormatRangeHandler(server));
-    registerHandler(DocumentHighlightsHandler(server));
-    registerHandler(DocumentSymbolHandler(server));
-    registerHandler(CodeActionHandler(server));
-    registerHandler(ExecuteCommandHandler(server));
-    registerHandler(WorkspaceFoldersHandler(
-        server, !options.onlyAnalyzeProjectsWithOpenFiles));
-    registerHandler(PrepareRenameHandler(server));
-    registerHandler(RenameHandler(server));
-    registerHandler(PrepareCallHierarchyHandler(server));
-    registerHandler(IncomingCallHierarchyHandler(server));
-    registerHandler(OutgoingCallHierarchyHandler(server));
-    registerHandler(PrepareTypeHierarchyHandler(server));
-    registerHandler(TypeHierarchySubtypesHandler(server));
-    registerHandler(TypeHierarchySupertypesHandler(server));
-    registerHandler(FoldingHandler(server));
-    registerHandler(DiagnosticServerHandler(server));
-    registerHandler(WorkspaceSymbolHandler(server));
-    registerHandler(WorkspaceDidChangeConfigurationMessageHandler(server));
-    registerHandler(ReanalyzeHandler(server));
-    registerHandler(WillRenameFilesHandler(server));
-    registerHandler(SelectionRangeHandler(server));
-    registerHandler(SemanticTokensFullHandler(server));
-    registerHandler(SemanticTokensRangeHandler(server));
-    registerHandler(InlayHintHandler(server));
+
+    for (final generator in lspHandlerGenerators) {
+      registerHandler(generator(server));
+    }
   }
 }
 
