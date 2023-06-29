@@ -1331,10 +1331,10 @@ void Thread::SetupDartMutatorState(Isolate* isolate) {
   field_table_values_ = isolate->field_table_->table();
   isolate->mutator_thread_ = this;
 
-  SetupDartMutatorStateDependingOnSnapshot(isolate);
+  SetupDartMutatorStateDependingOnSnapshot(isolate->group());
 }
 
-void Thread::SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate) {
+void Thread::SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group) {
   // The snapshot may or may not have been read at this point (on isolate group
   // creation, the first isolate is first time entered before the snapshot is
   // read)
@@ -1342,7 +1342,6 @@ void Thread::SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate) {
   // So we call this code explicitly after snapshot reading time and whenever we
   // enter an isolate with a new thread object.
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto group = isolate->group();
   auto object_store = group->object_store();
   if (object_store != nullptr) {
     global_object_pool_ = object_store->global_object_pool();

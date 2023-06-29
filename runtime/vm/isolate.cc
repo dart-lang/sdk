@@ -833,7 +833,7 @@ void IsolateGroup::ExitTemporaryIsolate() {
   Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
-  Dart::ShutdownIsolate();
+  Dart::ShutdownIsolate(thread);
 }
 
 void IsolateGroup::RehashConstants() {
@@ -2327,7 +2327,7 @@ void Isolate::LowLevelShutdown() {
 
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
-    MegamorphicCacheTable::PrintSizes(this);
+    MegamorphicCacheTable::PrintSizes(thread);
   }
   if (FLAG_dump_symbol_stats) {
     Symbols::DumpStats(group());
@@ -2390,9 +2390,9 @@ void Isolate::Shutdown() {
 
   {
     StackZone zone(thread);
-    HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
+    HandleScope handle_scope(thread);
     debugger()->Shutdown();
     Profiler::IsolateShutdown(thread);
 #endif

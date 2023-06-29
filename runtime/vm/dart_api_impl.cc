@@ -1280,15 +1280,28 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   bool success = false;
   {
     StackZone zone(T);
+    HandleScope handle_scope(T);
+
+#if defined(SUPPORT_TIMELINE)
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "InitializeIsolate");
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "isolateName", I->name());
+#endif
+
     // We enter an API scope here as InitializeIsolate could compile some
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     T->EnterApiScope();
-    const Error& error_obj = Error::Handle(
-        Z, Dart::InitializeIsolate(
-               source->snapshot_data, source->snapshot_instructions,
-               source->kernel_buffer, source->kernel_buffer_size,
-               is_new_group ? nullptr : group, isolate_data));
+    auto& error_obj = Error::Handle(Z);
+    if (is_new_group) {
+      error_obj = Dart::InitializeIsolateGroup(
+          T, source->snapshot_data, source->snapshot_instructions,
+          source->kernel_buffer, source->kernel_buffer_size);
+    }
+    if (error_obj.IsNull()) {
+      error_obj = Dart::InitializeIsolate(T, is_new_group, isolate_data);
+    }
     if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
@@ -1316,7 +1329,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     return Api::CastIsolate(I);
   }
 
-  Dart::ShutdownIsolate();
+  Dart::ShutdownIsolate(T);
   return static_cast<Dart_Isolate>(nullptr);
 }
 
@@ -1485,7 +1498,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
 #endif
     Dart::RunShutdownCallback();
   }
-  Dart::ShutdownIsolate();
+  Dart::ShutdownIsolate(T);
 }
 
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {

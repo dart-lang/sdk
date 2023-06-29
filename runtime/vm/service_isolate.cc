@@ -261,7 +261,7 @@ bool ServiceIsolate::SendIsolateShutdownMessage() {
     return false;
   }
 
-  Dart_Port main_port = Dart_GetMainPortId();
+  Dart_Port main_port = isolate->main_port();
   if (FLAG_trace_service) {
     OS::PrintErr(DART_VM_SERVICE_ISOLATE_NAME ": Isolate %s %" Pd64
                                               " deregistered.\n",

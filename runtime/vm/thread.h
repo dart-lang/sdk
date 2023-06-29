@@ -1410,7 +1410,7 @@ class Thread : public ThreadState {
   void ResetMutatorState();
 
   void SetupDartMutatorState(Isolate* isolate);
-  void SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate);
+  void SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group);
   void ResetDartMutatorState(Isolate* isolate);
 
   static void SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag);

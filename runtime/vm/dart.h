@@ -46,29 +46,30 @@ class Dart : public AllStatic {
                                 const Dart_IsolateFlags& api_flags,
                                 IsolateGroup* isolate_group);
 
-  // Initialize an isolate, either from a snapshot, from a Kernel binary, or
-  // from SDK library sources.  If the snapshot_buffer is non-null,
-  // initialize from a snapshot or a Kernel binary depending on the value of
-  // from_kernel.  Otherwise, initialize from sources.
-  static ErrorPtr InitializeIsolate(const uint8_t* snapshot_data,
-                                    const uint8_t* snapshot_instructions,
-                                    const uint8_t* kernel_buffer,
-                                    intptr_t kernel_buffer_size,
-                                    IsolateGroup* source_isolate_group,
-                                    void* data);
-  static ErrorPtr InitIsolateFromSnapshot(Thread* T,
-                                          Isolate* I,
-                                          const uint8_t* snapshot_data,
-                                          const uint8_t* snapshot_instructions,
-                                          const uint8_t* kernel_buffer,
-                                          intptr_t kernel_buffer_size);
+  // Initialize an isolate group either from a snapshot or from a Kernel binary.
+  static ErrorPtr InitializeIsolateGroup(Thread* T,
+                                         const uint8_t* snapshot_data,
+                                         const uint8_t* snapshot_instructions,
+                                         const uint8_t* kernel_buffer,
+                                         intptr_t kernel_buffer_size);
+  static ErrorPtr InitIsolateGroupFromSnapshot(
+      Thread* T,
+      const uint8_t* snapshot_data,
+      const uint8_t* snapshot_instructions,
+      const uint8_t* kernel_buffer,
+      intptr_t kernel_buffer_size);
+  static ErrorPtr InitializeIsolate(Thread* T,
+                                    bool is_first_isolate_in_group,
+                                    void* isolate_data);
 
   static void RunShutdownCallback();
-  static void ShutdownIsolate(Isolate* isolate);
-  static void ShutdownIsolate();
+  static void ShutdownIsolate(Thread* T);
 
   static Isolate* vm_isolate() { return vm_isolate_; }
-  static IsolateGroup* vm_isolate_group() { return vm_isolate_->group(); }
+  static IsolateGroup* vm_isolate_group() {
+    if (vm_isolate_ == nullptr) return nullptr;
+    return vm_isolate_->group();
+  }
   static ThreadPool* thread_pool() { return thread_pool_; }
   static bool VmIsolateNameEquals(const char* name);
 
