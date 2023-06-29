@@ -6937,8 +6937,8 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       PatchClassPtr patch_cls = static_cast<PatchClassPtr>(obj);
       type = "PatchClass";
       links.Add(
-          {patch_cls->untag()->patched_class(),
-           V8SnapshotProfileWriter::Reference::Property("patched_class_")});
+          {patch_cls->untag()->wrapped_class(),
+           V8SnapshotProfileWriter::Reference::Property("wrapped_class_")});
       break;
     }
     case kLibraryCid: {

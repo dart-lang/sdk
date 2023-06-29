@@ -10,7 +10,7 @@
 // VMOptions=--no_retain_function_objects
 // VMOptions=--dwarf_stack_traces
 
-import "splay_test.dart" deferred as splay; // Some non-trivial code.
+import "gc/splay_test.dart" deferred as splay; // Some non-trivial code.
 
 main() async {
   await splay.loadLibrary();

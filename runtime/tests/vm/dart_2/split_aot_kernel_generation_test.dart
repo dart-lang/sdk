@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// OtherResources=splay_test.dart splay_common.dart
+// OtherResources=gc/splay_test.dart gc/splay_common.dart
 
 // Tests AOT kernel generation split into 2 steps using '--from-dill' option.
 
@@ -46,5 +46,5 @@ Future<void> runSplitAOTKernelGenerationTest(Uri testScriptUri) async {
 
 main() async {
   await runSplitAOTKernelGenerationTest(
-      Platform.script.resolve('splay_test.dart'));
+      Platform.script.resolve('gc/splay_test.dart'));
 }

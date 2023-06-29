@@ -105,10 +105,6 @@ io/raw_secure_server_socket_test: Crash
 io/raw_server_socket_cancel_test: Skip # Issue 28182 # This test sometimes hangs on Mac.
 io/socket_many_connections_test: Skip # This test fails with "Too many open files" on the Mac OS buildbot. This is expected as MacOS by default runs with a very low number of allowed open files ('ulimit -n' says something like 256).
 
-[ $arch == arm || $arch == arm64 || $runtime != vm || $system == android ]
-fragmentation_test: SkipSlow
-fragmentation_typed_data_test: SkipSlow
-
 [ $compiler == dart2js || $compiler == ddc ]
 *: SkipByDesign
 

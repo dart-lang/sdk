@@ -7781,26 +7781,15 @@ const char* TypeArguments::ToCString() const {
 }
 
 const char* PatchClass::ToCString() const {
-  const Class& cls = Class::Handle(patched_class());
+  const Class& cls = Class::Handle(wrapped_class());
   const char* cls_name = cls.ToCString();
   return OS::SCreate(Thread::Current()->zone(), "PatchClass for %s", cls_name);
 }
 
-PatchClassPtr PatchClass::New(const Class& patched_class,
-                              const Class& origin_class) {
-  const PatchClass& result = PatchClass::Handle(PatchClass::New());
-  result.set_patched_class(patched_class);
-  result.set_origin_class(origin_class);
-  result.set_script(Script::Handle(origin_class.script()));
-  result.set_library_kernel_offset(-1);
-  return result.ptr();
-}
-
-PatchClassPtr PatchClass::New(const Class& patched_class,
+PatchClassPtr PatchClass::New(const Class& wrapped_class,
                               const Script& script) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
-  result.set_patched_class(patched_class);
-  result.set_origin_class(patched_class);
+  result.set_wrapped_class(wrapped_class);
   result.set_script(script);
   result.set_library_kernel_offset(-1);
   return result.ptr();
@@ -7814,12 +7803,8 @@ PatchClassPtr PatchClass::New() {
   return static_cast<PatchClassPtr>(raw);
 }
 
-void PatchClass::set_patched_class(const Class& value) const {
-  untag()->set_patched_class(value.ptr());
-}
-
-void PatchClass::set_origin_class(const Class& value) const {
-  untag()->set_origin_class(value.ptr());
+void PatchClass::set_wrapped_class(const Class& value) const {
+  untag()->set_wrapped_class(value.ptr());
 }
 
 void PatchClass::set_script(const Script& value) const {
@@ -10588,17 +10573,7 @@ ClassPtr Function::Owner() const {
   }
   const Object& obj = Object::Handle(untag()->owner());
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).patched_class();
-}
-
-ClassPtr Function::origin() const {
-  ASSERT(untag()->owner() != Object::null());
-  if (untag()->owner()->IsClass()) {
-    return Class::RawCast(untag()->owner());
-  }
-  const Object& obj = Object::Handle(untag()->owner());
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).origin_class();
+  return PatchClass::Cast(obj).wrapped_class();
 }
 
 void Function::InheritKernelOffsetFrom(const Function& src) const {
@@ -11593,18 +11568,7 @@ ClassPtr Field::Owner() const {
     return Class::Cast(obj).ptr();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).patched_class();
-}
-
-ClassPtr Field::Origin() const {
-  const Field& field = Field::Handle(Original());
-  ASSERT(field.IsOriginal());
-  const Object& obj = Object::Handle(field.untag()->owner());
-  if (obj.IsClass()) {
-    return Class::Cast(obj).ptr();
-  }
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).origin_class();
+  return PatchClass::Cast(obj).wrapped_class();
 }
 
 ScriptPtr Field::Script() const {

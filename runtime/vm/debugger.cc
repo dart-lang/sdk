@@ -489,7 +489,7 @@ ScriptPtr ActivationFrame::SourceScript() {
 }
 
 LibraryPtr ActivationFrame::Library() {
-  const Class& cls = Class::Handle(function().origin());
+  const Class& cls = Class::Handle(function().Owner());
   return cls.library();
 }
 
@@ -1094,7 +1094,7 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
       // Cannot execute an instance method without a receiver.
       return Object::optimized_out().ptr();
     }
-    const Class& method_cls = Class::Handle(function().origin());
+    const Class& method_cls = Class::Handle(function().Owner());
     ASSERT(receiver.IsInstance() || receiver.IsNull());
     if (!(receiver.IsInstance() || receiver.IsNull())) {
       return Object::null();

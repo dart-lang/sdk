@@ -87,6 +87,9 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel 
 [ $builder_tag == tsan ]
 dart/analyze_snapshot_binary_test: SkipSlow
 dart/appjit_cha_deopt_test: SkipSlow
+dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart/gc/scavenger_abort_test: SkipSlow
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
@@ -98,6 +101,9 @@ dart/v8_snapshot_profile_writer_test: SkipSlow
 dart/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
 dart_2/analyze_snapshot_binary_test: SkipSlow
 dart_2/appjit_cha_deopt_test: SkipSlow
+dart_2/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart_2/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart_2/gc/scavenger_abort_test: SkipSlow
 dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart_2/regress_40462_test: SkipSlow
 dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
@@ -143,10 +149,8 @@ dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 dart/await_type_check_with_dynamic_loading_test: SkipByDesign # Uses dart:mirrors.
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # Isolate.spawnUri is not supported in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
-dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 dart_2/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
-dart_2/scavenger_abort_test: SkipSlow
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
 
 [ $compiler != dartkp ]
@@ -260,21 +264,21 @@ cc/Profiler_ToggleRecordAllocation: SkipByDesign
 cc/Profiler_TrivialRecordAllocation: SkipByDesign
 cc/Profiler_TypedArrayAllocation: SkipByDesign
 cc/Service_Profile: SkipByDesign
+dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
-dart/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
+dart_2/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart_2/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart_2/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart_2/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart_2/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
-dart_2/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart_2/unboxed_param_args_descriptor_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart_2/unboxed_param_tear_off_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
 dart_2/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not supported on simulator
@@ -522,7 +526,6 @@ dart/print_flow_graph_determinism_test: SkipSlow
 dart/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-dart/splay_test: SkipSlow
 dart/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart_2/appjit*: SkipByDesign # Cannot reload with URI pointing to app snapshot.
 dart_2/disassemble_determinism_test: SkipSlow # Runs expensive fibonacci(32) computation in 2 subprocesses
@@ -533,7 +536,6 @@ dart_2/print_flow_graph_determinism_test: SkipSlow
 dart_2/slow_path_shared_stub_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 dart_2/spawn_infinite_loop_test: Skip # We can shutdown an isolate before it reloads.
 dart_2/spawn_shutdown_test: Skip # We can shutdown an isolate before it reloads.
-dart_2/splay_test: SkipSlow
 dart_2/stack_overflow_shared_test: SkipSlow # Too slow with --shared-slow-path-triggers-gc flag and not relevant outside precompiled.
 
 [ $hot_reload || $hot_reload_rollback || $compiler != dartk && $compiler != dartkp ]

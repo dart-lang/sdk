@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-import "splay_test.dart" deferred as splay; // Some non-trivial code.
+import "gc/splay_test.dart" deferred as splay; // Some non-trivial code.
 
 main() async {
   await splay.loadLibrary();

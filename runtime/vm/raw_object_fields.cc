@@ -28,8 +28,7 @@ namespace dart {
   F(Class, constants_)                                                         \
   F(Class, declaration_type_)                                                  \
   F(Class, invocation_dispatcher_cache_)                                       \
-  F(PatchClass, patched_class_)                                                \
-  F(PatchClass, origin_class_)                                                 \
+  F(PatchClass, wrapped_class_)                                                \
   F(PatchClass, script_)                                                       \
   F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \

@@ -686,7 +686,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -1402,7 +1402,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -2107,7 +2107,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -2825,7 +2825,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -4958,7 +4958,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -5675,7 +5675,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -6375,7 +6375,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -7083,7 +7083,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
@@ -7780,7 +7780,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -8490,7 +8490,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
@@ -10599,7 +10599,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -11308,7 +11308,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
@@ -12086,7 +12086,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
@@ -12873,7 +12873,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
@@ -13665,7 +13665,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
@@ -16033,7 +16033,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
@@ -16821,7 +16821,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
@@ -17601,7 +17601,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
@@ -18379,7 +18379,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
@@ -19162,7 +19162,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;
@@ -21503,7 +21503,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x14;
+    0x10;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x8;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0xc;
@@ -22282,7 +22282,7 @@ static constexpr dart::compiler::target::word AOT_NativeArguments_StructSize =
 static constexpr dart::compiler::target::word AOT_Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_Object_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word AOT_PatchClass_InstanceSize =
-    0x28;
+    0x20;
 static constexpr dart::compiler::target::word AOT_PcDescriptors_HeaderSize =
     0x10;
 static constexpr dart::compiler::target::word AOT_Pointer_InstanceSize = 0x18;

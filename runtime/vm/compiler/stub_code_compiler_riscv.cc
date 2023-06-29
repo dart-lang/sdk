@@ -1772,10 +1772,62 @@ COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler,
                                            bool cards) {
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ andi(TMP2, A1, 1 << target::ObjectAlignment::kNewObjectBitPosition);
-  __ beqz(TMP2, &add_to_mark_stack);
+  RegisterSet spill_set((1 << T2) | (1 << T3) | (1 << T4), 0);
 
+  Label skip_marking;
+  __ lbu(TMP, FieldAddress(A1, target::Object::tags_offset()));
+  __ lbu(TMP2, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ and_(TMP, TMP, TMP2);
+  __ andi(TMP, TMP, target::UntaggedObject::kIncrementalBarrierMask);
+  __ beqz(TMP, &skip_marking);
+
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label done;
+    __ PushRegisters(spill_set);
+    __ addi(T3, A1, target::Object::tags_offset() - kHeapObjectTag);
+    // T3: Untagged address of header word (amo's do not support offsets).
+    __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+#if XLEN == 32
+    __ amoandw(TMP2, TMP2, Address(T3, 0));
+#else
+    __ amoandd(TMP2, TMP2, Address(T3, 0));
+#endif
+    __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
+    __ beqz(TMP2, &done);  // Was already clear -> lost race.
+
+    __ lx(T4, Address(THR, target::Thread::marking_stack_block_offset()));
+    __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+    __ slli(T3, T2, target::kWordSizeLog2);
+    __ add(T3, T4, T3);
+    __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
+    __ addi(T2, T2, 1);
+    __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
+    __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
+    __ BranchIf(NE, &done);
+
+    {
+      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ mv(A0, THR);
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
+    }
+
+    __ Bind(&done);
+    __ PopRegisters(spill_set);
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ lbu(TMP, FieldAddress(A0, target::Object::tags_offset()));
+  __ lbu(TMP2, FieldAddress(A1, target::Object::tags_offset()));
+  __ srli(TMP, TMP, target::UntaggedObject::kBarrierOverlapShift);
+  __ and_(TMP, TMP2, TMP);
+  __ andi(TMP, TMP, target::UntaggedObject::kGenerationalBarrierMask);
+  __ bnez(TMP, &add_to_remembered_set);
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ lbu(TMP2, FieldAddress(A0, target::Object::tags_offset()));
     __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kCardRememberedBit);
@@ -1790,129 +1842,42 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ Bind(&ok);
 #endif
   }
-
-  // Spill T2, T3, T4.
-  __ subi(SP, SP, 3 * target::kWordSize);
-  __ sx(T2, Address(SP, 2 * target::kWordSize));
-  __ sx(T3, Address(SP, 1 * target::kWordSize));
-  __ sx(T4, Address(SP, 0 * target::kWordSize));
-
-  // Atomically clear kOldAndNotRememberedBit.
-  ASSERT(target::Object::tags_offset() == 0);
-  __ subi(T3, A0, kHeapObjectTag);
-  // T3: Untagged address of header word (amo's do not support offsets).
-  __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-#if XLEN == 32
-  __ amoandw(TMP2, TMP2, Address(T3, 0));
-#else
-  __ amoandd(TMP2, TMP2, Address(T3, 0));
-#endif
-  __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
-  __ beqz(TMP2, &lost_race);  // Was already clear -> lost race.
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  __ LoadFromOffset(T4, THR, target::Thread::store_buffer_block_offset());
-  __ LoadFromOffset(T2, T4, target::StoreBufferBlock::top_offset(),
-                    kUnsignedFourBytes);
-  __ slli(T3, T2, target::kWordSizeLog2);
-  __ add(T3, T4, T3);
-  __ StoreToOffset(A0, T3, target::StoreBufferBlock::pointers_offset());
-
-  // Increment top_ and check for overflow.
-  // T2: top_.
-  // T4: StoreBufferBlock.
-  Label overflow;
-  __ addi(T2, T2, 1);
-  __ StoreToOffset(T2, T4, target::StoreBufferBlock::top_offset(),
-                   kUnsignedFourBytes);
-  __ CompareImmediate(T2, target::StoreBufferBlock::kSize);
-  // Restore values.
-  __ BranchIf(EQ, &overflow);
-
-  // Restore T2, T3, T4.
-  __ lx(T4, Address(SP, 0 * target::kWordSize));
-  __ lx(T3, Address(SP, 1 * target::kWordSize));
-  __ lx(T2, Address(SP, 2 * target::kWordSize));
-  __ addi(SP, SP, 3 * target::kWordSize);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
-  // Restore T2, T3, T4.
-  __ lx(T4, Address(SP, 0 * target::kWordSize));
-  __ lx(T3, Address(SP, 1 * target::kWordSize));
-  __ lx(T2, Address(SP, 2 * target::kWordSize));
-  __ addi(SP, SP, 3 * target::kWordSize);
   {
-    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ mv(A0, THR);
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
-  }
-  __ ret();
-
-  __ Bind(&add_to_mark_stack);
-  // Spill T2, T3, T4.
-  __ subi(SP, SP, 3 * target::kWordSize);
-  __ sx(T2, Address(SP, 2 * target::kWordSize));
-  __ sx(T3, Address(SP, 1 * target::kWordSize));
-  __ sx(T4, Address(SP, 0 * target::kWordSize));
-
-  // Atomically clear kOldAndNotMarkedBit.
-  Label marking_overflow;
-  ASSERT(target::Object::tags_offset() == 0);
-  __ subi(T3, A1, kHeapObjectTag);
-  // T3: Untagged address of header word (amo's do not support offsets).
-  __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    // Atomically clear kOldAndNotRememberedBit.
+    Label done;
+    __ PushRegisters(spill_set);
+    __ addi(T3, A0, target::Object::tags_offset() - kHeapObjectTag);
+    // T3: Untagged address of header word (amo's do not support offsets).
+    __ li(TMP2, ~(1 << target::UntaggedObject::kOldAndNotRememberedBit));
 #if XLEN == 32
-  __ amoandw(TMP2, TMP2, Address(T3, 0));
+    __ amoandw(TMP2, TMP2, Address(T3, 0));
 #else
-  __ amoandd(TMP2, TMP2, Address(T3, 0));
+    __ amoandd(TMP2, TMP2, Address(T3, 0));
 #endif
-  __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotMarkedBit);
-  __ beqz(TMP2, &lost_race);  // Was already clear -> lost race.
+    __ andi(TMP2, TMP2, 1 << target::UntaggedObject::kOldAndNotRememberedBit);
+    __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
-  __ LoadFromOffset(T4, THR, target::Thread::marking_stack_block_offset());
-  __ LoadFromOffset(T2, T4, target::MarkingStackBlock::top_offset(),
-                    kUnsignedFourBytes);
-  __ slli(T3, T2, target::kWordSizeLog2);
-  __ add(T3, T4, T3);
-  __ StoreToOffset(A1, T3, target::MarkingStackBlock::pointers_offset());
-  __ addi(T2, T2, 1);
-  __ StoreToOffset(T2, T4, target::MarkingStackBlock::top_offset(),
-                   kUnsignedFourBytes);
-  __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
-  __ BranchIf(EQ, &marking_overflow);
-  // Restore T2, T3, T4.
-  __ lx(T4, Address(SP, 0 * target::kWordSize));
-  __ lx(T3, Address(SP, 1 * target::kWordSize));
-  __ lx(T2, Address(SP, 2 * target::kWordSize));
-  __ addi(SP, SP, 3 * target::kWordSize);
-  __ ret();
+    __ lx(T4, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ lw(T2, Address(T4, target::StoreBufferBlock::top_offset()));
+    __ slli(T3, T2, target::kWordSizeLog2);
+    __ add(T3, T4, T3);
+    __ sx(A0, Address(T3, target::StoreBufferBlock::pointers_offset()));
+    __ addi(T2, T2, 1);
+    __ sw(T2, Address(T4, target::StoreBufferBlock::top_offset()));
+    __ CompareImmediate(T2, target::StoreBufferBlock::kSize);
+    __ BranchIf(NE, &done);
 
-  __ Bind(&marking_overflow);
-  // Restore T2, T3, T4.
-  __ lx(T4, Address(SP, 0 * target::kWordSize));
-  __ lx(T3, Address(SP, 1 * target::kWordSize));
-  __ lx(T2, Address(SP, 2 * target::kWordSize));
-  __ addi(SP, SP, 3 * target::kWordSize);
-  {
-    LeafRuntimeScope rt(assembler, /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ mv(A0, THR);
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, /*argument_count=*/1);
+    {
+      LeafRuntimeScope rt(assembler, /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ mv(A0, THR);
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, /*argument_count=*/1);
+    }
+
+    __ Bind(&done);
+    __ PopRegisters(spill_set);
+    __ ret();
   }
-  __ ret();
-
-  __ Bind(&lost_race);
-  // Restore T2, T3, T4.
-  __ lx(T4, Address(SP, 0 * target::kWordSize));
-  __ lx(T3, Address(SP, 1 * target::kWordSize));
-  __ lx(T2, Address(SP, 2 * target::kWordSize));
-  __ addi(SP, SP, 3 * target::kWordSize);
-  __ ret();
-
   if (cards) {
     Label remember_card_slow;
 

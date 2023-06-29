@@ -2103,10 +2103,23 @@ enum Genericity {
   kFunctions,     // Consider type params of current and parent functions.
 };
 
+// Wrapper of a [Class] with different [Script] and kernel binary.
+//
+// We use this as owner of [Field]/[Function] objects that were from a different
+// script/kernel than the actual class object.
+//
+//  * used for corelib patches that live in different .dart files than the
+//    library itself.
+//
+//  * used for library parts that live in different .dart files than the library
+//    itself.
+//
+//  * used in reload to make old [Function]/[Field] objects have the old script
+//    kernel data.
+//
 class PatchClass : public Object {
  public:
-  ClassPtr patched_class() const { return untag()->patched_class(); }
-  ClassPtr origin_class() const { return untag()->origin_class(); }
+  ClassPtr wrapped_class() const { return untag()->wrapped_class(); }
   ScriptPtr script() const { return untag()->script(); }
   ExternalTypedDataPtr library_kernel_data() const {
     return untag()->library_kernel_data();
@@ -2130,17 +2143,13 @@ class PatchClass : public Object {
   }
   static bool IsInFullSnapshot(PatchClassPtr cls) {
     NoSafepointScope no_safepoint;
-    return Class::IsInFullSnapshot(cls->untag()->patched_class());
+    return Class::IsInFullSnapshot(cls->untag()->wrapped_class());
   }
 
-  static PatchClassPtr New(const Class& patched_class,
-                           const Class& origin_class);
-
-  static PatchClassPtr New(const Class& patched_class, const Script& source);
+  static PatchClassPtr New(const Class& wrapped_class, const Script& source);
 
  private:
-  void set_patched_class(const Class& value) const;
-  void set_origin_class(const Class& value) const;
+  void set_wrapped_class(const Class& value) const;
   void set_script(const Script& value) const;
 
   static PatchClassPtr New();
@@ -2921,14 +2930,13 @@ class Function : public Object {
 
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
-  ClassPtr origin() const;
   ScriptPtr script() const;
   ObjectPtr RawOwner() const { return untag()->owner(); }
 
   // The NNBD mode of the library declaring this function.
   // TODO(alexmarkov): nnbd_mode() doesn't work for mixins.
   // It should be either removed or fixed.
-  NNBDMode nnbd_mode() const { return Class::Handle(origin()).nnbd_mode(); }
+  NNBDMode nnbd_mode() const { return Class::Handle(Owner()).nnbd_mode(); }
 
   RegExpPtr regexp() const;
   intptr_t string_specialization_cid() const;
@@ -4320,7 +4328,6 @@ class Field : public Object {
   inline void set_field_id_unsafe(intptr_t field_id) const;
 
   ClassPtr Owner() const;
-  ClassPtr Origin() const;  // Either mixin class, or same as owner().
   ScriptPtr Script() const;
   ObjectPtr RawOwner() const;
 

@@ -4026,7 +4026,6 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     target_isolate->group()->EnterTemporaryIsolate();
     Thread* const temp_thread = Thread::Current();
     ASSERT(temp_thread != nullptr);
-    temp_thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
     temp_thread->set_unboxed_int64_runtime_arg(metadata2.send_port());
     temp_thread->set_unboxed_int64_runtime_second_arg(
         reinterpret_cast<intptr_t>(current_isolate));

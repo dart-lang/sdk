@@ -1403,10 +1403,60 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ pushl(EAX);
   __ pushl(ECX);
 
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ testl(EBX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ j(ZERO, &add_to_mark_stack);
+  Label skip_marking;
+  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ andl(EAX, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ testl(EAX, Immediate(target::UntaggedObject::kIncrementalBarrierMask));
+  __ j(ZERO, &skip_marking);
 
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label retry, done;
+    __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+    __ Bind(&retry);
+    __ movl(ECX, EAX);
+    __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ j(ZERO, &done);  // Marked by another thread.
+    __ andl(ECX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
+    // On failure, EAX is updated with the current value.
+    __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
+    __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
+    __ movl(Address(EAX, ECX, TIMES_4,
+                    target::MarkingStackBlock::pointers_offset()),
+            EBX);
+    __ incl(ECX);
+    __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
+    __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/1 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
+  __ shrl(EAX, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  __ andl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
+  __ testl(EAX, Immediate(target::UntaggedObject::kGenerationalBarrierMask));
+  __ j(NOT_ZERO, &add_to_remembered_set, Assembler::kNearJump);
+  __ popl(ECX);  // Unspill.
+  __ popl(EAX);  // Unspill.
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ testl(FieldAddress(EDX, target::Object::tags_offset()),
              Immediate(1 << target::UntaggedObject::kCardRememberedBit));
@@ -1422,99 +1472,54 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 #endif
   }
 
-  // Atomically clear kOldAndNotRememberedBit.
-  Label retry;
-  __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
-  __ Bind(&retry);
-  __ movl(ECX, EAX);
-  __ testl(ECX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(ZERO, &lost_race);  // Remembered by another thread.
-  __ andl(ECX,
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-  // Cmpxchgl: compare value = implicit operand EAX, new value = ECX.
-  // On failure, EAX is updated with the current value.
-  __ LockCmpxchgl(FieldAddress(EDX, target::Object::tags_offset()), ECX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  // Spilled: EAX, ECX
-  // EDX: Address being stored
-  __ movl(EAX, Address(THR, target::Thread::store_buffer_block_offset()));
-  __ movl(ECX, Address(EAX, target::StoreBufferBlock::top_offset()));
-  __ movl(
-      Address(EAX, ECX, TIMES_4, target::StoreBufferBlock::pointers_offset()),
-      EDX);
-
-  // Increment top_ and check for overflow.
-  // Spilled: EAX, ECX
-  // ECX: top_
-  // EAX: StoreBufferBlock
-  Label overflow;
-  __ incl(ECX);
-  __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
-  __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
-  // Restore values.
-  // Spilled: EAX, ECX
-  __ popl(ECX);
-  __ popl(EAX);
-  __ j(EQUAL, &overflow, Assembler::kNearJump);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
   {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/1 * target::kWordSize,
-                        /*preserve_registers=*/true);
-    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    // Atomically clear kOldAndNotRememberedBit.
+    Label retry, done;
+    __ movl(EAX, FieldAddress(EDX, target::Object::tags_offset()));
+    __ Bind(&retry);
+    __ movl(ECX, EAX);
+    __ testl(ECX,
+             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+    __ j(ZERO, &done);  // Remembered by another thread.
+    __ andl(ECX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+    // Cmpxchgl: compare value = implicit operand EAX, new value = ECX.
+    // On failure, EAX is updated with the current value.
+    __ LockCmpxchgl(FieldAddress(EDX, target::Object::tags_offset()), ECX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    // Load the StoreBuffer block out of the thread. Then load top_ out of the
+    // StoreBufferBlock and add the address to the pointers_.
+    // Spilled: EAX, ECX
+    // EDX: Address being stored
+    __ movl(EAX, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(ECX, Address(EAX, target::StoreBufferBlock::top_offset()));
+    __ movl(
+        Address(EAX, ECX, TIMES_4, target::StoreBufferBlock::pointers_offset()),
+        EDX);
+
+    // Increment top_ and check for overflow.
+    // Spilled: EAX, ECX
+    // ECX: top_
+    // EAX: StoreBufferBlock
+    __ incl(ECX);
+    __ movl(Address(EAX, target::StoreBufferBlock::top_offset()), ECX);
+    __ cmpl(ECX, Immediate(target::StoreBufferBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/1 * target::kWordSize,
+                          /*preserve_registers=*/true);
+      __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popl(ECX);
+    __ popl(EAX);
+    __ ret();
   }
-  __ ret();
-
-  __ Bind(&add_to_mark_stack);
-  // Atomically clear kOldAndNotMarkedBit.
-  Label retry_marking, marking_overflow;
-  __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
-  __ Bind(&retry_marking);
-  __ movl(ECX, EAX);
-  __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
-  // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
-  // On failure, EAX is updated with the current value.
-  __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);
-  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
-
-  __ movl(EAX, Address(THR, target::Thread::marking_stack_block_offset()));
-  __ movl(ECX, Address(EAX, target::MarkingStackBlock::top_offset()));
-  __ movl(
-      Address(EAX, ECX, TIMES_4, target::MarkingStackBlock::pointers_offset()),
-      EBX);
-  __ incl(ECX);
-  __ movl(Address(EAX, target::MarkingStackBlock::top_offset()), ECX);
-  __ cmpl(ECX, Immediate(target::MarkingStackBlock::kSize));
-  __ popl(ECX);  // Unspill.
-  __ popl(EAX);  // Unspill.
-  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&marking_overflow);
-  {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/1 * target::kWordSize,
-                        /*preserve_registers=*/true);
-    __ movl(Address(ESP, 0), THR);  // Push the thread as the only argument.
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-  }
-  __ ret();
-
-  __ Bind(&lost_race);
-  __ popl(ECX);  // Unspill.
-  __ popl(EAX);  // Unspill.
-  __ ret();
-
   if (cards) {
     Label remember_card_slow;
 

@@ -1201,7 +1201,7 @@ class Thread : public ThreadState {
   Isolate* isolate_ = nullptr;
   IsolateGroup* isolate_group_ = nullptr;
 
-  uword saved_stack_limit_ = 0;
+  uword saved_stack_limit_ = OSThread::kInvalidStackLimit;
   // The mutator uses this to indicate it wants to OSR (by
   // setting [Thread::kOsrRequest]) before going to runtime which will see this
   // bit.
@@ -1412,6 +1412,10 @@ class Thread : public ThreadState {
   void SetupDartMutatorState(Isolate* isolate);
   void SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group);
   void ResetDartMutatorState(Isolate* isolate);
+
+  static void SuspendDartMutatorThreadInternal(Thread* thread,
+                                               VMTag::VMTagId tag);
+  static void ResumeDartMutatorThreadInternal(Thread* thread);
 
   static void SuspendThreadInternal(Thread* thread, VMTag::VMTagId tag);
   static void ResumeThreadInternal(Thread* thread);

@@ -3003,7 +3003,7 @@ static void BuildExpressionEvaluationScope(Thread* thread, JSONStream* js) {
       method_name = frame->function().UserVisibleName();
       isStatic = true;
     } else {
-      Class& method_cls = Class::Handle(zone, frame->function().origin());
+      Class& method_cls = Class::Handle(zone, frame->function().Owner());
       method_cls = method_cls.Mixin();
       library_uri = Library::Handle(zone, method_cls.library()).url();
       klass_name = method_cls.UserVisibleName();

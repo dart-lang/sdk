@@ -1898,10 +1898,65 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == RDX);
 COMPILE_ASSERT(kWriteBarrierValueReg == RAX);
 COMPILE_ASSERT(kWriteBarrierSlotReg == R13);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
-  Label add_to_mark_stack, remember_card, lost_race;
-  __ testq(RAX, Immediate(1 << target::ObjectAlignment::kNewObjectBitPosition));
-  __ j(ZERO, &add_to_mark_stack);
+  Label skip_marking;
+  __ movq(TMP, FieldAddress(RAX, target::Object::tags_offset()));
+  __ andq(TMP, Address(THR, target::Thread::write_barrier_mask_offset()));
+  __ testq(TMP, Immediate(target::UntaggedObject::kIncrementalBarrierMask));
+  __ j(ZERO, &skip_marking);
 
+  {
+    // Atomically clear kOldAndNotMarkedBit.
+    Label retry, done;
+    __ pushq(RAX);      // Spill.
+    __ pushq(RCX);      // Spill.
+    __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
+    __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
+
+    __ Bind(&retry);
+    __ movq(RCX, RAX);
+    __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ j(ZERO, &done);  // Marked by another thread.
+
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+    // On failure, RAX is updated with the current value.
+    __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
+    __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
+    __ movq(Address(RAX, RCX, TIMES_8,
+                    target::MarkingStackBlock::pointers_offset()),
+            TMP);
+    __ incq(RCX);
+    __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
+    __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, THR);
+      rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popq(RCX);  // Unspill.
+    __ popq(RAX);  // Unspill.
+  }
+
+  Label add_to_remembered_set, remember_card;
+  __ Bind(&skip_marking);
+  __ movq(TMP, FieldAddress(RDX, target::Object::tags_offset()));
+  __ shrl(TMP, Immediate(target::UntaggedObject::kBarrierOverlapShift));
+  __ andq(TMP, FieldAddress(RAX, target::Object::tags_offset()));
+  __ testq(TMP, Immediate(target::UntaggedObject::kGenerationalBarrierMask));
+  __ j(NOT_ZERO, &add_to_remembered_set, Assembler::kNearJump);
+  __ ret();
+
+  __ Bind(&add_to_remembered_set);
   if (cards) {
     __ movl(TMP, FieldAddress(RDX, target::Object::tags_offset()));
     __ testl(TMP, Immediate(1 << target::UntaggedObject::kCardRememberedBit));
@@ -1916,102 +1971,56 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ Bind(&ok);
 #endif
   }
-
-  __ pushq(RAX);  // Spill.
-  __ pushq(RCX);  // Spill.
-
-  // Atomically clear kOldAndNotRemembered.
-  Label retry;
-  __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
-  __ Bind(&retry);
-  __ movq(RCX, RAX);
-  __ testq(RCX,
-           Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
-  __ j(ZERO, &lost_race);  // Remembered by another thread.
-  __ andq(RCX,
-          Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
-  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-  // On failure, RAX is updated with the current value.
-  __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
-
-  // Load the StoreBuffer block out of the thread. Then load top_ out of the
-  // StoreBufferBlock and add the address to the pointers_.
-  // RDX: Address being stored
-  __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
-  __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
-  __ movq(
-      Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
-      RDX);
-
-  // Increment top_ and check for overflow.
-  // RCX: top_
-  // RAX: StoreBufferBlock
-  Label overflow;
-  __ incq(RCX);
-  __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
-  __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ j(EQUAL, &overflow, Assembler::kNearJump);
-  __ ret();
-
-  // Handle overflow: Call the runtime leaf function.
-  __ Bind(&overflow);
   {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ movq(CallingConventions::kArg1Reg, THR);
-    rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    // Atomically clear kOldAndNotRemembered.
+    Label retry, done;
+    __ pushq(RAX);  // Spill.
+    __ pushq(RCX);  // Spill.
+    __ movq(RAX, FieldAddress(RDX, target::Object::tags_offset()));
+
+    __ Bind(&retry);
+    __ movq(RCX, RAX);
+    __ testq(RCX,
+             Immediate(1 << target::UntaggedObject::kOldAndNotRememberedBit));
+    __ j(ZERO, &done);  // Remembered by another thread.
+    __ andq(RCX,
+            Immediate(~(1 << target::UntaggedObject::kOldAndNotRememberedBit)));
+    // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
+    // On failure, RAX is updated with the current value.
+    __ LockCmpxchgq(FieldAddress(RDX, target::Object::tags_offset()), RCX);
+    __ j(NOT_EQUAL, &retry, Assembler::kNearJump);
+
+    // Load the StoreBuffer block out of the thread. Then load top_ out of the
+    // StoreBufferBlock and add the address to the pointers_.
+    // RDX: Address being stored
+    __ movq(RAX, Address(THR, target::Thread::store_buffer_block_offset()));
+    __ movl(RCX, Address(RAX, target::StoreBufferBlock::top_offset()));
+    __ movq(
+        Address(RAX, RCX, TIMES_8, target::StoreBufferBlock::pointers_offset()),
+        RDX);
+
+    // Increment top_ and check for overflow.
+    // RCX: top_
+    // RAX: StoreBufferBlock
+    __ incq(RCX);
+    __ movl(Address(RAX, target::StoreBufferBlock::top_offset()), RCX);
+    __ cmpl(RCX, Immediate(target::StoreBufferBlock::kSize));
+    __ j(NOT_EQUAL, &done);
+
+    {
+      LeafRuntimeScope rt(assembler,
+                          /*frame_size=*/0,
+                          /*preserve_registers=*/true);
+      __ movq(CallingConventions::kArg1Reg, THR);
+      rt.Call(kStoreBufferBlockProcessRuntimeEntry, 1);
+    }
+
+    __ Bind(&done);
+    __ popq(RCX);  // Unspill.
+    __ popq(RAX);  // Unspill.
+    __ ret();
   }
-  __ ret();
 
-  __ Bind(&add_to_mark_stack);
-  __ pushq(RAX);      // Spill.
-  __ pushq(RCX);      // Spill.
-  __ movq(TMP, RAX);  // RAX is fixed implicit operand of CAS.
-
-  // Atomically clear kOldAndNotMarkedBit.
-  Label retry_marking, marking_overflow;
-  __ movq(RAX, FieldAddress(TMP, target::Object::tags_offset()));
-  __ Bind(&retry_marking);
-  __ movq(RCX, RAX);
-  __ testq(RCX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
-  __ j(ZERO, &lost_race);  // Marked by another thread.
-  __ andq(RCX, Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
-  // Cmpxchgq: compare value = implicit operand RAX, new value = RCX.
-  // On failure, RAX is updated with the current value.
-  __ LockCmpxchgq(FieldAddress(TMP, target::Object::tags_offset()), RCX);
-  __ j(NOT_EQUAL, &retry_marking, Assembler::kNearJump);
-
-  __ movq(RAX, Address(THR, target::Thread::marking_stack_block_offset()));
-  __ movl(RCX, Address(RAX, target::MarkingStackBlock::top_offset()));
-  __ movq(
-      Address(RAX, RCX, TIMES_8, target::MarkingStackBlock::pointers_offset()),
-      TMP);
-  __ incq(RCX);
-  __ movl(Address(RAX, target::MarkingStackBlock::top_offset()), RCX);
-  __ cmpl(RCX, Immediate(target::MarkingStackBlock::kSize));
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ j(EQUAL, &marking_overflow, Assembler::kNearJump);
-  __ ret();
-
-  __ Bind(&marking_overflow);
-  {
-    LeafRuntimeScope rt(assembler,
-                        /*frame_size=*/0,
-                        /*preserve_registers=*/true);
-    __ movq(CallingConventions::kArg1Reg, THR);
-    rt.Call(kMarkingStackBlockProcessRuntimeEntry, 1);
-  }
-  __ ret();
-
-  __ Bind(&lost_race);
-  __ popq(RCX);  // Unspill.
-  __ popq(RAX);  // Unspill.
-  __ ret();
 
   if (cards) {
     Label remember_card_slow;

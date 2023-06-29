@@ -6,7 +6,7 @@
 
 import 'dart:async';
 import 'snapshot_test_helper.dart';
-import 'splay_test.dart';
+import 'gc/splay_test.dart';
 
 int fib(int n) {
   if (n <= 1) return 1;
