@@ -4,13 +4,7 @@
 # Sections in this file should contain "$compiler == dartk" or
 # "$compiler == dartkp".
 
-fragmentation_test: Pass, Slow # GC heavy
-fragmentation_typed_data_test: Pass, Slow # GC heavy
 io/process_sync_test: Pass, Slow # Spawns synchronously subprocesses in sequence.
-
-[ $builder_tag == tsan ]
-fragmentation_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-fragmentation_typed_data_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
 
 [ $system == android ]
 entrypoints_verification_test: Skip # Requires shared objects which the test script doesn't "adb push".
