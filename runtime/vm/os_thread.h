@@ -84,6 +84,8 @@ class BaseThread {
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
  public:
+  static const uword kInvalidStackLimit = ~static_cast<uword>(0);
+
   // The constructor of OSThread is never called directly, instead we call
   // this factory style method 'CreateOSThread' to create OSThread structures.
   // The method can return a nullptr if the Dart VM is in shutdown mode.

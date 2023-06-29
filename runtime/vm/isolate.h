@@ -1740,7 +1740,7 @@ class StartIsolateScope {
       ASSERT(Isolate::Current() == nullptr);
       Thread::EnterIsolate(new_isolate_);
       // Ensure this is not a nested 'isolate enter' with prior state.
-      ASSERT(Thread::Current()->saved_stack_limit() == 0);
+      ASSERT(Thread::Current()->top_exit_frame_info() == 0);
     }
   }
 
@@ -1753,7 +1753,7 @@ class StartIsolateScope {
     if (saved_isolate_ != new_isolate_) {
       ASSERT(saved_isolate_ == nullptr);
       // ASSERT that we have bottomed out of all Dart invocations.
-      ASSERT(Thread::Current()->saved_stack_limit() == 0);
+      ASSERT(Thread::Current()->top_exit_frame_info() == 0);
       Thread::ExitIsolate();
     }
   }
