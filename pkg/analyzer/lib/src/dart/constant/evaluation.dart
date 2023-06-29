@@ -989,37 +989,31 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       _getConstant(node.expression);
 
   @override
-  Constant? visitNamedType(NamedType node) {
-    var type = node.type;
-
-    if (type == null) {
-      return null;
-    }
+  Constant visitNamedType(NamedType node) {
+    var type = node.typeOrThrow;
 
     if ((!_isNonNullableByDefault || node.isTypeLiteralInConstantPattern) &&
         hasTypeParameterReference(type)) {
-      return super.visitNamedType(node);
-    } else {
-      if (node.isDeferred) {
-        _reportFromDeferredLibrary(node, node.name2);
-        return null;
-      }
-      _getConstantValue(
-        errorNode: node,
-        expression: null,
-        identifier: null,
-        element: node.element,
-      );
+      // TODO(kallentu): Don't report error here and report a more specific
+      // diagnostic
+      _errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.INVALID_CONSTANT, node);
+      return InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+    } else if (node.isDeferred) {
+      return _getDeferredLibraryError(node, node.name2) ??
+          InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
     if (_substitution != null) {
       type = _substitution!.substituteType(type);
     }
 
-    return DartObjectImpl(
-      typeSystem,
-      _typeProvider.typeType,
-      TypeState(type),
+    return _getConstantValue(
+      errorNode: node,
+      expression: null,
+      identifier: null,
+      element: node.element,
+      givenType: type,
     );
   }
 
@@ -1041,33 +1035,30 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       _getConstant(node.expression);
 
   @override
-  Constant? visitPrefixedIdentifier(PrefixedIdentifier node) {
+  Constant visitPrefixedIdentifier(PrefixedIdentifier node) {
     SimpleIdentifier prefixNode = node.prefix;
     var prefixElement = prefixNode.staticElement;
-    // String.length
-    if (prefixElement is! PrefixElement &&
-        prefixElement is! InterfaceElement &&
-        prefixElement is! ExtensionElement) {
-      var prefixResult = prefixNode.accept(this);
-      if (prefixResult is DartObjectImpl &&
-          _isStringLength(prefixResult, node.identifier)) {
-        return prefixResult.stringLength(typeSystem);
-      }
-    }
+
     // importPrefix.CONST
     if (prefixElement is PrefixElement) {
       if (node.isDeferred) {
-        _reportFromDeferredLibrary(node, node.identifier);
-        return null;
+        return _getDeferredLibraryError(node, node.identifier) ??
+            InvalidConstant(node, CompileTimeErrorCode.INVALID_CONSTANT);
+      }
+    } else if (prefixElement is! ExtensionElement) {
+      var prefixResult = _getConstant(prefixNode);
+      if (prefixResult is! DartObjectImpl) {
+        return prefixResult;
+      }
+
+      // String.length
+      if (prefixElement is! InterfaceElement) {
+        if (_isStringLength(prefixResult, node.identifier)) {
+          return prefixResult.stringLength(typeSystem);
+        }
       }
     }
-    if (prefixElement is! PrefixElement && prefixElement is! ExtensionElement) {
-      var prefixResult = prefixNode.accept(this);
-      if (prefixResult == null) {
-        // The error has already been reported.
-        return null;
-      }
-    }
+
     // Validate prefixed identifier.
     return _getConstantValue(
       errorNode: node,
@@ -1105,12 +1096,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitPropertyAccess(PropertyAccess node) {
+  Constant visitPropertyAccess(PropertyAccess node) {
     var target = node.target;
     if (target != null) {
-      var prefixResult = target.accept(this);
-      if (prefixResult is DartObjectImpl &&
-          _isStringLength(prefixResult, node.propertyName)) {
+      var prefixResult = _getConstant(target);
+      if (prefixResult is! DartObjectImpl) {
+        return prefixResult;
+      }
+      if (_isStringLength(prefixResult, node.propertyName)) {
         return prefixResult.stringLength(typeSystem);
       }
     }
@@ -1213,7 +1206,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitSimpleIdentifier(SimpleIdentifier node) {
+  Constant visitSimpleIdentifier(SimpleIdentifier node) {
     var value = _lexicalEnvironment?[node.name];
     if (value != null) {
       return _instantiateFunctionTypeForSimpleIdentifier(node, value);
@@ -1259,9 +1252,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitTypeLiteral(TypeLiteral node) {
-    return node.type.accept(this);
-  }
+  Constant visitTypeLiteral(TypeLiteral node) => _getConstant(node.type);
 
   /// Add the entries produced by evaluating the given collection [element] to
   /// the given [list]. Return an [InvalidConstant] if the evaluation of one or
@@ -1501,14 +1492,19 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return result;
   }
 
-  /// Return the constant value of the static constant represented by the given
-  /// [identifier]. The [expression] is the node to be used if an error needs to be
-  /// reported.
-  DartObjectImpl? _getConstantValue({
+  /// Returns a [Constant] based on the [element] provided.
+  ///
+  /// The [errorNode] is the node to be used if an error needs to be reported,
+  /// the [expression] is used to identify type parameter errors, and
+  /// [identifier] to determine the constant of any [ExecutableElement]s.
+  ///
+  /// TODO(kallentu): Revisit this method and clean it up a bit.
+  Constant _getConstantValue({
     required AstNode errorNode,
     required Expression? expression,
     required SimpleIdentifier? identifier,
     required Element? element,
+    DartType? givenType,
   }) {
     element = element?.declaration;
     var variableElement =
@@ -1519,7 +1515,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     if (expression is SimpleIdentifier &&
         (expression.tearOffTypeArgumentTypes?.any(hasTypeParameterReference) ??
             false)) {
+      // TODO(kallentu): Don't report error here.
       _error(expression, null);
+      return InvalidConstant(expression, CompileTimeErrorCode.INVALID_CONSTANT);
     }
 
     if (variableElement is VariableElementImpl) {
@@ -1531,8 +1529,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       var result = variableElement.evaluationResult;
       if (variableElement.isConst && result != null) {
         var value = result.value;
-        if (value == null) {
-          return value;
+        if (value == null || identifier == null) {
+          return InvalidConstant(
+              errorNode, CompileTimeErrorCode.INVALID_CONSTANT);
         }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, value);
       }
@@ -1550,15 +1549,20 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           variableElement.type,
           FunctionState(variableElement),
         );
+        if (identifier == null) {
+          return InvalidConstant(
+              errorNode, CompileTimeErrorCode.INVALID_CONSTANT);
+        }
         return _instantiateFunctionTypeForSimpleIdentifier(identifier, rawType);
       }
     } else if (variableElement is InterfaceElement) {
-      var type = variableElement.instantiate(
-        typeArguments: variableElement.typeParameters
-            .map((t) => _typeProvider.dynamicType)
-            .toFixedList(),
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
+      var type = givenType ??
+          variableElement.instantiate(
+            typeArguments: variableElement.typeParameters
+                .map((t) => _typeProvider.dynamicType)
+                .toFixedList(),
+            nullabilitySuffix: NullabilitySuffix.star,
+          );
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
@@ -1571,12 +1575,13 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         TypeState(_typeProvider.dynamicType),
       );
     } else if (variableElement is TypeAliasElement) {
-      var type = variableElement.instantiate(
-        typeArguments: variableElement.typeParameters
-            .map((t) => t.bound ?? _typeProvider.dynamicType)
-            .toList(),
-        nullabilitySuffix: NullabilitySuffix.star,
-      );
+      var type = givenType ??
+          variableElement.instantiate(
+            typeArguments: variableElement.typeParameters
+                .map((t) => t.bound ?? _typeProvider.dynamicType)
+                .toList(),
+            nullabilitySuffix: NullabilitySuffix.star,
+          );
       return DartObjectImpl(
         typeSystem,
         _typeProvider.typeType,
@@ -1607,80 +1612,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     // error code.
     final errorNode2 = evaluationEngine.configuration.errorNode(errorNode);
     _error(errorNode2, null);
-    return null;
+    return InvalidConstant(errorNode2, CompileTimeErrorCode.INVALID_CONSTANT);
   }
 
-  /// If the type of [value] is a generic [FunctionType], and [node] has type
-  /// argument types, returns [value] type-instantiated with those [node]'s
-  /// type argument types, otherwise returns [value].
-  DartObjectImpl _instantiateFunctionType(
-      FunctionReference node, DartObjectImpl value) {
-    var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement) {
-      return value;
-    }
-    var valueType = functionElement.type;
-    if (valueType.typeFormals.isNotEmpty) {
-      var typeArgumentTypes = node.typeArgumentTypes;
-      if (typeArgumentTypes != null && typeArgumentTypes.isNotEmpty) {
-        var instantiatedType =
-            functionElement.type.instantiate(typeArgumentTypes);
-        var substitution = _substitution;
-        if (substitution != null) {
-          instantiatedType =
-              substitution.substituteType(instantiatedType) as FunctionType;
-        }
-        return value.typeInstantiate(
-            typeSystem, instantiatedType, typeArgumentTypes);
-      }
-    }
-    return value;
-  }
-
-  /// If the type of [value] is a generic [FunctionType], and [node] is a
-  /// [SimpleIdentifier] with tear-off type argument types, returns [value]
-  /// type-instantiated with those [node]'s tear-off type argument types,
-  /// otherwise returns [value].
-  DartObjectImpl? _instantiateFunctionTypeForSimpleIdentifier(
-      SimpleIdentifier? node, DartObjectImpl value) {
-    if (node == null) {
-      return null;
-    }
-
-    // TODO(srawlins): When all code uses [FunctionReference]s generated via
-    // generic function instantiation, remove this method and all call sites.
-    var functionElement = value.toFunctionValue();
-    if (functionElement is! ExecutableElement) {
-      return value;
-    }
-    var valueType = functionElement.type;
-    if (valueType.typeFormals.isNotEmpty) {
-      var tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
-      if (tearOffTypeArgumentTypes != null &&
-          tearOffTypeArgumentTypes.isNotEmpty) {
-        var instantiatedType =
-            functionElement.type.instantiate(tearOffTypeArgumentTypes);
-        return value.typeInstantiate(
-            typeSystem, instantiatedType, tearOffTypeArgumentTypes);
-      }
-    }
-    return value;
-  }
-
-  /// Return `true` if the given [targetResult] represents a string and the
-  /// [identifier] is "length".
-  bool _isStringLength(
-      DartObjectImpl targetResult, SimpleIdentifier identifier) {
-    final targetType = targetResult.type;
-    if (!(targetType is InterfaceType &&
-        targetType.element == _typeProvider.stringElement)) {
-      return false;
-    }
-    return identifier.name == 'length' &&
-        identifier.staticElement?.enclosingElement2 is! ExtensionElement;
-  }
-
-  void _reportFromDeferredLibrary(AstNode node, SyntacticEntity errorTarget) {
+  InvalidConstant? _getDeferredLibraryError(
+      AstNode node, SyntacticEntity errorTarget) {
     var errorCode = () {
       AstNode? previous;
       for (AstNode? current = node; current != null;) {
@@ -1725,12 +1661,81 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       }
     }();
     if (errorCode != null) {
+      // TODO(kallentu): Don't report error here.
       _errorReporter.reportErrorForOffset(
         errorCode,
         errorTarget.offset,
         errorTarget.length,
       );
+      return InvalidConstant(node, errorCode);
     }
+    return null;
+  }
+
+  /// If the type of [value] is a generic [FunctionType], and [node] has type
+  /// argument types, returns [value] type-instantiated with those [node]'s
+  /// type argument types, otherwise returns [value].
+  DartObjectImpl _instantiateFunctionType(
+      FunctionReference node, DartObjectImpl value) {
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! ExecutableElement) {
+      return value;
+    }
+    var valueType = functionElement.type;
+    if (valueType.typeFormals.isNotEmpty) {
+      var typeArgumentTypes = node.typeArgumentTypes;
+      if (typeArgumentTypes != null && typeArgumentTypes.isNotEmpty) {
+        var instantiatedType =
+            functionElement.type.instantiate(typeArgumentTypes);
+        var substitution = _substitution;
+        if (substitution != null) {
+          instantiatedType =
+              substitution.substituteType(instantiatedType) as FunctionType;
+        }
+        return value.typeInstantiate(
+            typeSystem, instantiatedType, typeArgumentTypes);
+      }
+    }
+    return value;
+  }
+
+  /// If the type of [value] is a generic [FunctionType], and [node] is a
+  /// [SimpleIdentifier] with tear-off type argument types, returns [value]
+  /// type-instantiated with those [node]'s tear-off type argument types,
+  /// otherwise returns [value].
+  Constant _instantiateFunctionTypeForSimpleIdentifier(
+      SimpleIdentifier node, DartObjectImpl value) {
+    // TODO(srawlins): When all code uses [FunctionReference]s generated via
+    // generic function instantiation, remove this method and all call sites.
+    var functionElement = value.toFunctionValue();
+    if (functionElement is! ExecutableElement) {
+      return value;
+    }
+    var valueType = functionElement.type;
+    if (valueType.typeFormals.isNotEmpty) {
+      var tearOffTypeArgumentTypes = node.tearOffTypeArgumentTypes;
+      if (tearOffTypeArgumentTypes != null &&
+          tearOffTypeArgumentTypes.isNotEmpty) {
+        var instantiatedType =
+            functionElement.type.instantiate(tearOffTypeArgumentTypes);
+        return value.typeInstantiate(
+            typeSystem, instantiatedType, tearOffTypeArgumentTypes);
+      }
+    }
+    return value;
+  }
+
+  /// Return `true` if the given [targetResult] represents a string and the
+  /// [identifier] is "length".
+  bool _isStringLength(
+      DartObjectImpl targetResult, SimpleIdentifier identifier) {
+    final targetType = targetResult.type;
+    if (!(targetType is InterfaceType &&
+        targetType.element == _typeProvider.stringElement)) {
+      return false;
+    }
+    return identifier.name == 'length' &&
+        identifier.staticElement?.enclosingElement2 is! ExtensionElement;
   }
 
   void _reportNotPotentialConstants(AstNode node) {
