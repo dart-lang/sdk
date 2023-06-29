@@ -27,6 +27,8 @@ set speed(int ms);
 ''';
 
 class AvoidReturnTypesOnSetters extends LintRule {
+  bool get canUseParsedResult => true;
+
   static const LintCode code = LintCode(
       'avoid_return_types_on_setters', 'Unnecessary return type on a setter.',
       correctionMessage: 'Try removing the return type.');

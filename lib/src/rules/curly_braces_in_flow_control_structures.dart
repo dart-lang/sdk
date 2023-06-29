@@ -51,6 +51,8 @@ if (overflowChars != other.overflowChars) {
 ''';
 
 class CurlyBracesInFlowControlStructures extends LintRule {
+  bool get canUseParsedResult => true;
+
   static const LintCode code = LintCode(
       'curly_braces_in_flow_control_structures',
       'Statements in {0} should be enclosed in a block.',

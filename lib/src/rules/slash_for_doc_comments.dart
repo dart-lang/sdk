@@ -43,6 +43,8 @@ bool isJavaStyle(Comment comment) {
 }
 
 class SlashForDocComments extends LintRule {
+  bool get canUseParsedResult => true;
+
   static const LintCode code = LintCode('slash_for_doc_comments',
       "Use the end-of-line form ('///') for doc comments.",
       correctionMessage: "Try rewriting the comment to use '///'.");

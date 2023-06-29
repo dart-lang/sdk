@@ -34,6 +34,8 @@ m(){
 ''';
 
 class UnnecessaryConst extends LintRule {
+  bool get canUseParsedResult => true;
+
   static const LintCode code = LintCode(
       'unnecessary_const', "Unnecessary 'const' keyword.",
       correctionMessage: 'Try removing the keyword.');

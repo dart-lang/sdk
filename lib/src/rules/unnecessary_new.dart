@@ -32,6 +32,8 @@ m(){
 ''';
 
 class UnnecessaryNew extends LintRule {
+  bool get canUseParsedResult => true;
+
   static const LintCode code = LintCode(
       'unnecessary_new', "Unnecessary 'new' keyword.",
       correctionMessage: "Try removing the 'new' keyword.");
