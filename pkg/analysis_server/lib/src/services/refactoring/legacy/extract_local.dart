@@ -315,7 +315,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       if (node is MethodInvocation) {
         var invocation = node;
         var element = invocation.methodName.staticElement;
-        if (element is ExecutableElement && element.returnType is VoidType) {
+        if (element is ExecutableElement && element.returnType2 is VoidType) {
           if (singleExpression == null) {
             return RefactoringStatus.fatal(
                 'Cannot extract the void expression.',

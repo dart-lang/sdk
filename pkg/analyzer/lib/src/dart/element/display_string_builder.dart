@@ -66,7 +66,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorElement(ConstructorElement element) {
-    _writeType(element.returnType);
+    _writeType(element.returnType2);
     _write(' ');
 
     _write(element.displayName);
@@ -91,7 +91,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExecutableElement(ExecutableElement element, String name) {
-    _writeType(element.returnType);
+    _writeType(element.returnType2);
     _write(' ');
 
     _write(name);
@@ -144,7 +144,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
-    _writeType(element.returnType);
+    _writeType(element.returnType2);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(element.parameters, forElement: true);

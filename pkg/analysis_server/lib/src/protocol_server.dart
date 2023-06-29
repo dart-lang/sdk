@@ -61,7 +61,7 @@ String? getReturnTypeString(engine.Element element,
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType
+      return element.returnType2
           .getDisplayString(withNullability: withNullability);
     }
   } else if (element is engine.VariableElement) {

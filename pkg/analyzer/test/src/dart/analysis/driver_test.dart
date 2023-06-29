@@ -3723,7 +3723,7 @@ var v = 0
   void _assertClassMethodReturnType(CompilationUnit unit, String className,
       String fieldName, String expected) {
     var node = _getClassMethod(unit, className, fieldName);
-    var type = node.declaredElement!.returnType;
+    var type = node.declaredElement!.returnType2;
     assertType(type, expected);
   }
 

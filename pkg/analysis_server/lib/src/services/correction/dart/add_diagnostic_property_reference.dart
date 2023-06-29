@@ -198,7 +198,7 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
       // Getter.
       var element = node.declaredElement;
       if (element is PropertyAccessorElement) {
-        return element.returnType;
+        return element.returnType2;
       }
     } else if (node is VariableDeclaration) {
       // Field.

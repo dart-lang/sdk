@@ -49,7 +49,7 @@ class GetterSetterTypesVerifier {
       if (getter.kind == ElementKind.GETTER) {
         var setter = interface.map[Name(libraryUri, '${name.name}=')];
         if (setter != null && setter.parameters.length == 1) {
-          var getterType = getter.returnType;
+          var getterType = getter.returnType2;
           var setterType = setter.parameters[0].type;
           if (!_match(getterType, setterType)) {
             Element errorElement;
@@ -119,7 +119,7 @@ class GetterSetterTypesVerifier {
 
   /// Return the return type of the [getter].
   static DartType _getGetterType(PropertyAccessorElement getter) {
-    return getter.returnType;
+    return getter.returnType2;
   }
 
   /// Return the type of the first parameter of the [setter].

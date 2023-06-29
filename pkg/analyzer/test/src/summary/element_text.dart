@@ -608,7 +608,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeType('returnType', e.returnType2);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -712,7 +712,7 @@ class _ElementWriter {
 
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeType('returnType', e.returnType2);
       _writeNonSyntheticElement(e);
     });
 
@@ -887,7 +887,7 @@ class _ElementWriter {
 
       expect(e.typeParameters, isEmpty);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType);
+      _writeType('returnType', e.returnType2);
       _writeNonSyntheticElement(e);
       writeLinking();
     });
@@ -1028,7 +1028,7 @@ class _ElementWriter {
         _withIndent(() {
           _writeTypeParameterElements(aliasedElement.typeParameters);
           _writeParameterElements(aliasedElement.parameters);
-          _writeType('returnType', aliasedElement.returnType);
+          _writeType('returnType', aliasedElement.returnType2);
         });
       }
     });

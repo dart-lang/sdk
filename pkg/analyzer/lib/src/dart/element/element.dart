@@ -1554,6 +1554,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     _redirectedConstructor = redirectedConstructor;
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   InterfaceType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this)
@@ -1565,8 +1566,13 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  InterfaceType get returnTypeInternal {
-    return (_returnType ??= enclosingElement2.thisType) as InterfaceType;
+  NamedInstanceType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this)
+          as NamedInstanceType;
+
+  @override
+  DartType get returnTypeInternal {
+    return _returnType ??= enclosingElement2.thisType;
   }
 
   ConstructorElement? get superConstructor {
@@ -1592,7 +1598,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     return _type ??= FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
-      returnType: returnType,
+      returnType: returnType2,
       nullabilitySuffix: _noneOrStarSuffix,
     );
   }
@@ -3296,6 +3302,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     return _parameters;
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   DartType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
@@ -3311,6 +3318,10 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     // TODO(scheglov) Remove when type analysis is done in the single pass.
     _type = null;
   }
+
+  @override
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal {
@@ -3332,7 +3343,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
-      returnType: returnType,
+      returnType: returnType2,
       nullabilitySuffix: _noneOrStarSuffix,
     );
   }
@@ -3784,6 +3795,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     _parameters = parameters;
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   DartType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
@@ -3794,6 +3806,10 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   set returnType(DartType returnType) {
     _returnType = returnType;
   }
+
+  @override
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal {
@@ -3816,7 +3832,7 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     return _type = FunctionTypeImpl(
       typeFormals: typeParameters,
       parameters: parameters,
-      returnType: returnType,
+      returnType: returnType2,
       nullabilitySuffix:
           isNullable ? NullabilitySuffix.question : _noneOrStarSuffix,
     );
@@ -6050,6 +6066,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
     return enclosingElement2;
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   DartType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
@@ -6058,6 +6075,10 @@ class PropertyAccessorElementImpl_ImplicitGetter
   set returnType(DartType returnType) {
     assert(false); // Should never be called.
   }
+
+  @override
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal => variable.type;
@@ -6078,7 +6099,7 @@ class PropertyAccessorElementImpl_ImplicitGetter
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: const <ParameterElement>[],
-      returnType: returnType,
+      returnType: returnType2,
       nullabilitySuffix: _noneOrStarSuffix,
     );
   }
@@ -6123,6 +6144,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
         growable: false);
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   DartType get returnType =>
       ElementTypeProvider.current.getExecutableReturnType(this);
@@ -6131,6 +6153,10 @@ class PropertyAccessorElementImpl_ImplicitSetter
   set returnType(DartType returnType) {
     assert(false); // Should never be called.
   }
+
+  @override
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal => VoidTypeImpl.instance;
@@ -6151,7 +6177,7 @@ class PropertyAccessorElementImpl_ImplicitSetter
     return _type ??= FunctionTypeImpl(
       typeFormals: const <TypeParameterElement>[],
       parameters: parameters,
-      returnType: returnType,
+      returnType: returnType2,
       nullabilitySuffix: _noneOrStarSuffix,
     );
   }
@@ -6244,7 +6270,7 @@ abstract class PropertyInducingElementImpl
 
     if (isSynthetic) {
       if (getter != null) {
-        return _type = getter!.returnType;
+        return _type = getter!.returnType2;
       } else if (setter != null) {
         List<ParameterElement> parameters = setter!.parameters;
         return _type = parameters.isNotEmpty

@@ -415,7 +415,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
 
     // return type
-    var returnType = element.returnType;
+    var returnType = element.returnType2;
     if (!isSetter) {
       var typeWritten = writeType(returnType,
           groupName: returnTypeGroupName, methodBeingCopied: element);

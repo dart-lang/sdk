@@ -279,7 +279,7 @@ class AssignmentExpressionResolver {
           leftType,
           operator,
           rightType,
-          operatorElement.returnType,
+          operatorElement.returnType2,
           operatorElement,
         );
       } else {

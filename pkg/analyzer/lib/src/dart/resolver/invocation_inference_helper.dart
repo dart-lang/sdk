@@ -49,7 +49,7 @@ class ConstructorElementToInfer {
         : FunctionTypeImpl(
             typeFormals: typeParameters,
             parameters: element.parameters,
-            returnType: element.returnType,
+            returnType: element.returnType2,
             nullabilitySuffix: NullabilitySuffix.none,
           );
   }

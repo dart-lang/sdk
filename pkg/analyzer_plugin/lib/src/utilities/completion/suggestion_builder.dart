@@ -128,7 +128,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
       if (element.kind == ElementKind.SETTER) {
         return null;
       } else {
-        return element.returnType.getDisplayString(withNullability: false);
+        return element.returnType2.getDisplayString(withNullability: false);
       }
     } else if (element is VariableElement) {
       var type = element.type;
@@ -136,7 +136,7 @@ class SuggestionBuilderImpl implements SuggestionBuilder {
     } else if (element is TypeAliasElement) {
       var aliasedElement = element.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElement) {
-        var returnType = aliasedElement.returnType;
+        var returnType = aliasedElement.returnType2;
         return returnType.getDisplayString(withNullability: false);
       } else {
         return null;

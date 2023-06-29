@@ -370,7 +370,7 @@ abstract class ResolvedCorrectionProducer
     // return myFunction();
     if (parent is ReturnStatement) {
       var executable = getEnclosingExecutableElement(expression);
-      return executable?.returnType;
+      return executable?.returnType2;
     }
     // int v = myFunction();
     if (parent is VariableDeclaration) {

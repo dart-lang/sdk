@@ -728,7 +728,7 @@ class SuggestionBuilder {
     //  the [request]) and compute the [inheritanceDistance] in this method.
     var featureComputer = request.featureComputer;
     var contextType = featureComputer.contextTypeFeature(
-        request.contextType, method.returnType);
+        request.contextType, method.returnType2);
     var elementKind =
         _computeElementKind(method, distance: inheritanceDistance);
     var hasDeprecated = featureComputer.hasDeprecatedFeature(method);
@@ -1124,8 +1124,8 @@ class SuggestionBuilder {
     if (elementData == null) return;
     var completion = elementData.completion;
     if (_couldMatch(completion, prefix)) {
-      var relevance =
-          _computeTopLevelRelevance(function, elementType: function.returnType);
+      var relevance = _computeTopLevelRelevance(function,
+          elementType: function.returnType2);
       _addBuilder(
         _createCompletionSuggestionBuilder(
           function,
@@ -1577,7 +1577,7 @@ class SuggestionBuilder {
   /// invalid setter with no parameters at all.
   DartType? _getPropertyAccessorType(PropertyAccessorElement accessor) {
     if (accessor.isGetter) {
-      return accessor.returnType;
+      return accessor.returnType2;
     } else {
       var parameters = accessor.parameters;
       if (parameters.isEmpty) {

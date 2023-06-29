@@ -20,7 +20,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
     NamedInstanceElement? instanceElement;
     if (element is PropertyAccessorElement) {
       if (element.isGetter) {
-        var type = element.returnType;
+        var type = element.returnType2;
         if (type is InterfaceType) {
           instanceElement = type.element;
         }

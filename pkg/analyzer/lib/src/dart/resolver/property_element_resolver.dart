@@ -259,7 +259,7 @@ class PropertyElementResolver with ScopeHelpers {
       readElementRequested = _resolver.toLegacyElement(readLookup?.requested);
       if (readElementRequested is PropertyAccessorElement &&
           !readElementRequested.isStatic) {
-        var unpromotedType = readElementRequested.returnType;
+        var unpromotedType = readElementRequested.returnType2;
         getType = _resolver.flowAnalysis.flow?.propertyGet(
                 node,
                 ThisPropertyTarget.singleton,
@@ -480,7 +480,7 @@ class PropertyElementResolver with ScopeHelpers {
     DartType? getType;
     if (hasRead) {
       var unpromotedType =
-          result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
+          result.getter?.returnType2 ?? _typeSystem.typeProvider.dynamicType;
       getType = _resolver.flowAnalysis.flow?.propertyGet(
               node,
               isCascaded
@@ -551,7 +551,7 @@ class PropertyElementResolver with ScopeHelpers {
         );
       } else {
         readElement = _resolver.toLegacyElement(readElement);
-        getType = readElement.returnType;
+        getType = readElement.returnType2;
         if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
           readElementRecovery = readElement;
           readElement = null;
@@ -624,7 +624,7 @@ class PropertyElementResolver with ScopeHelpers {
           [memberName, element.name!],
         );
       } else {
-        getType = readElement.returnType;
+        getType = readElement.returnType2;
       }
       _checkForStaticMember(target, propertyName, readElement);
     }
@@ -681,7 +681,7 @@ class PropertyElementResolver with ScopeHelpers {
 
       if (readElement != null) {
         readElement = _resolver.toLegacyElement(readElement);
-        getType = readElement.returnType;
+        getType = readElement.returnType2;
         if (_checkForStaticAccessToInstanceMember(propertyName, readElement)) {
           readElementRecovery = readElement;
           readElement = null;
@@ -755,7 +755,7 @@ class PropertyElementResolver with ScopeHelpers {
     var writeElement = _resolver.toLegacyElement(lookupResult.setter);
     DartType? getType;
     if (hasRead && readElement is PropertyAccessorElement) {
-      getType = readElement.returnType;
+      getType = readElement.returnType2;
     }
 
     if (hasRead && readElement == null || hasWrite && writeElement == null) {
@@ -827,7 +827,7 @@ class PropertyElementResolver with ScopeHelpers {
           }
         }
         var unpromotedType =
-            readElement?.returnType ?? _typeSystem.typeProvider.dynamicType;
+            readElement?.returnType2 ?? _typeSystem.typeProvider.dynamicType;
         getType = _resolver.flowAnalysis.flow?.propertyGet(
                 node,
                 SuperPropertyTarget.singleton,

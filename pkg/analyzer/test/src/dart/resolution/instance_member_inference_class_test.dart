@@ -761,7 +761,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_multiple_different_dynamic() async {
@@ -777,7 +777,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_multiple_different_generic() async {
@@ -793,7 +793,7 @@ class C implements A<int>, B<double> {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType2);
   }
 
   test_method_return_multiple_different_incompatible() async {
@@ -809,7 +809,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertTypeDynamic(foo.returnType);
+    assertTypeDynamic(foo.returnType2);
   }
 
   test_method_return_multiple_different_merge() async {
@@ -827,7 +827,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'Object?');
+    assertType(foo.returnType2, 'Object?');
   }
 
   test_method_return_multiple_different_void() async {
@@ -843,7 +843,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_multiple_same_generic() async {
@@ -859,7 +859,7 @@ class C<T> implements A<T>, B<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'T');
+    assertType(foo.returnType2, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
@@ -875,7 +875,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_multiple_same_void() async {
@@ -891,7 +891,7 @@ class C implements A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'C');
-    assertType(foo.returnType, 'void');
+    assertType(foo.returnType2, 'void');
   }
 
   test_method_return_nonNullify() async {
@@ -909,7 +909,7 @@ abstract class B implements A {
 }
 ''');
     var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_single() async {
@@ -922,7 +922,7 @@ class B extends A {
 }
 ''');
     var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType, 'int');
+    assertType(foo.returnType2, 'int');
   }
 
   test_method_return_single_generic() async {
@@ -935,7 +935,7 @@ class B<T> extends A<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType, 'T');
+    assertType(foo.returnType2, 'T');
   }
 
   test_setter_covariant_fromSetter() async {
@@ -1132,12 +1132,12 @@ class B implements A {
 
   void _assertGetterType(PropertyAccessorElement? accessor, String expected) {
     accessor!;
-    assertType(accessor.returnType, expected);
+    assertType(accessor.returnType2, expected);
   }
 
   void _assertGetterTypeDynamic(PropertyAccessorElement? accessor) {
     accessor!;
-    assertTypeDynamic(accessor.returnType);
+    assertTypeDynamic(accessor.returnType2);
   }
 
   void _assertParameter(

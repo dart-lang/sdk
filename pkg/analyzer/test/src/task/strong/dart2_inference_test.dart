@@ -266,11 +266,11 @@ class C {
     ClassElement c = findElement.class_('C');
 
     PropertyAccessorElement x = c.accessors[0];
-    expect(x.returnType, VoidTypeImpl.instance);
+    expect(x.returnType2, VoidTypeImpl.instance);
 
     MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
-    expect(operator.returnType, VoidTypeImpl.instance);
+    expect(operator.returnType2, VoidTypeImpl.instance);
   }
 
   test_implicitVoidReturnType_derived() async {
@@ -287,11 +287,11 @@ class Derived extends Base {
     ClassElement c = findElement.class_('Derived');
 
     PropertyAccessorElement x = c.accessors[0];
-    expect(x.returnType, VoidTypeImpl.instance);
+    expect(x.returnType2, VoidTypeImpl.instance);
 
     MethodElement operator = c.methods[0];
     expect(operator.displayName, '[]=');
-    expect(operator.returnType, VoidTypeImpl.instance);
+    expect(operator.returnType2, VoidTypeImpl.instance);
   }
 
   test_listMap_empty() async {

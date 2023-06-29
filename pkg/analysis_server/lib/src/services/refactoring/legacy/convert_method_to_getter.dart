@@ -89,7 +89,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
           'Only class methods or top-level functions can be converted to getters.');
     }
     // returns a value
-    if (element.returnType is VoidType) {
+    if (element.returnType2 is VoidType) {
       return RefactoringStatus.fatal(
           'Cannot convert ${element.kind.displayName} returning void.');
     }

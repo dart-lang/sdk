@@ -2715,7 +2715,7 @@ MethodInvocation
     MethodDeclaration mapC = AstFinder.getMethodInClass(unit, "C", "map");
     assertMapOfIntToListOfInt(mapB.declaredElement!.type as InterfaceType);
     assertMapOfIntToListOfInt(
-        mapC.declaredElement!.returnType as InterfaceType);
+        mapC.declaredElement!.returnType2 as InterfaceType);
 
     var mapLiteralB = mapB.initializer as SetOrMapLiteral;
     var mapLiteralC =

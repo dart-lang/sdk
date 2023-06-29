@@ -30,7 +30,7 @@ class NullSafeApiVerifier {
     final constructor = expression.constructorName.staticElement;
     if (constructor == null) return;
 
-    final type = constructor.returnType;
+    final type = constructor.returnType2;
     final isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
 
     if (isFutureValue) {
