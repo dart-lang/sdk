@@ -680,6 +680,12 @@ class _TypeIntrospector implements macro.TypeIntrospector {
   }
 
   @override
+  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
+    // TODO: implement typesOf
+    throw UnimplementedError();
+  }
+
+  @override
   Future<List<macro.EnumValueDeclaration>> valuesOf(
       covariant macro.IntrospectableEnum type) {
     // TODO: implement valuesOf

@@ -713,7 +713,8 @@ class MacroApplications {
                 typeDeclarationResolver,
                 typeResolver,
                 typeIntrospector,
-                typeInferrer);
+                typeInferrer,
+                libraryDeclarationsResolver);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -727,9 +728,11 @@ class MacroApplications {
   }
 
   late macro.TypeInferrer typeInferrer;
+  late macro.LibraryDeclarationsResolver libraryDeclarationsResolver;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
     typeInferrer = new _TypeInferrer(this);
+    libraryDeclarationsResolver = new _LibraryDeclarationsResolver();
     List<SourceLibraryBuilder> augmentationLibraries = [];
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in libraryData.entries) {
@@ -1332,6 +1335,12 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     }
     return new Future.value(result);
   }
+
+  @override
+  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
+    // TODO: implement typesOf
+    throw new UnimplementedError();
+  }
 }
 
 class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
@@ -1358,6 +1367,16 @@ class _TypeInferrer implements macro.TypeInferrer {
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
       new Future.value(_macroApplications._inferOmittedType(omittedType));
+}
+
+class _LibraryDeclarationsResolver
+    implements macro.LibraryDeclarationsResolver {
+  @override
+  Future<List<macro.Declaration>> topLevelDeclarationsOf(
+      macro.Library library) {
+    // TODO: implement topLevelDeclarationsOf
+    throw new UnimplementedError();
+  }
 }
 
 macro.DeclarationKind _declarationKind(macro.Declaration declaration) {

@@ -75,6 +75,21 @@ class SimpleMacro
       for (var field in fields) "'${field.identifier.name}',",
       '];',
     ]));
+
+    // TODO: Do this in `buildDeclarationsForLibrary` once that exists.
+    var languageVersion = clazz.library.languageVersion;
+    builder.declareInLibrary(
+        DeclarationCode.fromString("const library = '${clazz.library.uri}';"));
+    builder.declareInLibrary(DeclarationCode.fromString(
+      'const languageVersion = '
+      "'${languageVersion.major}.${languageVersion.minor}';",
+    ));
+    var libraryTypes = await builder.typesOf(clazz.library);
+    builder.declareInLibrary(DeclarationCode.fromParts([
+      'const definedTypes = [',
+      for (var type in libraryTypes) "'${type.identifier.name}',",
+      '];',
+    ]));
   }
 
   @override
@@ -403,31 +418,43 @@ class SimpleMacro
   @override
   Future<void> buildDefinitionForVariable(
       VariableDeclaration variable, VariableDefinitionBuilder builder) async {
-    var definingClass =
-        variable is FieldDeclaration ? variable.definingType.name : '';
-    builder.augment(
-      getter: DeclarationCode.fromParts([
-        variable.type.code,
-        ' get ',
-        variable.identifier.name,
-        ''' {
+    if (variable.identifier.name == 'allLibraryDeclarations') {
+      var allDeclarations =
+          await builder.topLevelDeclarationsOf(variable.library);
+      builder.augment(
+          initializer: ExpressionCode.fromParts([
+        '[',
+        for (var declaration in allDeclarations)
+          "'${declaration.identifier.name}',",
+        ']',
+      ]));
+    } else {
+      var definingClass =
+          variable is FieldDeclaration ? variable.definingType.name : '';
+      builder.augment(
+        getter: DeclarationCode.fromParts([
+          variable.type.code,
+          ' get ',
+          variable.identifier.name,
+          ''' {
           print('parentClass: $definingClass');
           print('isExternal: ${variable.isExternal}');
           print('isFinal: ${variable.isFinal}');
           print('isLate: ${variable.isLate}');
           return augment super;
         }''',
-      ]),
-      setter: DeclarationCode.fromParts([
-        'set ',
-        variable.identifier.name,
-        '(',
-        variable.type.code,
-        ' value) { augment super = value; }'
-      ]),
-      initializer:
-          ExpressionCode.fromString("'new initial value' + augment super"),
-    );
+        ]),
+        setter: DeclarationCode.fromParts([
+          'set ',
+          variable.identifier.name,
+          '(',
+          variable.type.code,
+          ' value) { augment super = value; }'
+        ]),
+        initializer:
+            ExpressionCode.fromString("'new initial value' + augment super"),
+      );
+    }
   }
 
   @override

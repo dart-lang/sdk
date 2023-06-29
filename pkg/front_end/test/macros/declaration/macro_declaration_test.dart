@@ -318,7 +318,8 @@ class TestMacroExecutor extends MultiMacroExecutor {
       TypeDeclarationResolver typeDeclarationResolver,
       TypeResolver typeResolver,
       TypeIntrospector typeIntrospector,
-      TypeInferrer typeInferrer) async {
+      TypeInferrer typeInferrer,
+      LibraryDeclarationsResolver libraryDeclarationsResolver) async {
     return new _MacroExecutionResult();
   }
 

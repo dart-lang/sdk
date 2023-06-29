@@ -119,7 +119,8 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
           TypeDeclarationResolver typeDeclarationResolver,
           TypeResolver typeResolver,
           TypeIntrospector typeIntrospector,
-          TypeInferrer typeInferrer) =>
+          TypeInferrer typeInferrer,
+          LibraryDeclarationsResolver libraryDeclarationsResolver) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
           executor.executeDefinitionsPhase(
               macro,
@@ -128,7 +129,8 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
               typeDeclarationResolver,
               typeResolver,
               typeIntrospector,
-              typeInferrer));
+              typeInferrer,
+              libraryDeclarationsResolver));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,

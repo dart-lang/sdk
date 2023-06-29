@@ -174,7 +174,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     TypeIntrospector typeIntrospector,
     TypeResolver typeResolver,
     TypeDeclarationResolver typeDeclarationResolver,
-    TypeInferrer typeInferrer) async {
+    TypeInferrer typeInferrer,
+    LibraryDeclarationsResolver libraryDeclarationsResolver) async {
   if (declaration is FunctionDeclaration) {
     if (macro is ConstructorDefinitionMacro &&
         declaration is ConstructorDeclaration) {
@@ -185,7 +186,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
               typeIntrospector,
               typeDeclarationResolver,
               typeResolver,
-              typeInferrer);
+              typeInferrer,
+              libraryDeclarationsResolver);
       await macro.buildDefinitionForConstructor(declaration, builder);
       return builder.result;
     } else {
@@ -195,7 +197,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
           typeIntrospector,
           typeDeclarationResolver,
           typeResolver,
-          typeInferrer);
+          typeInferrer,
+          libraryDeclarationsResolver);
       if (macro is MethodDefinitionMacro && declaration is MethodDeclaration) {
         await macro.buildDefinitionForMethod(
             declaration as MethodDeclarationImpl, builder);
@@ -212,7 +215,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         typeIntrospector,
         typeDeclarationResolver,
         typeResolver,
-        typeInferrer);
+        typeInferrer,
+        libraryDeclarationsResolver);
     if (macro is FieldDefinitionMacro && declaration is FieldDeclaration) {
       await macro.buildDefinitionForField(declaration, builder);
       return builder.result;
@@ -232,7 +236,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         typeIntrospector,
         typeDeclarationResolver,
         typeResolver,
-        typeInferrer);
+        typeInferrer,
+        libraryDeclarationsResolver);
     await macro.buildDefinitionForClass(declaration, builder);
     return builder.result;
   } else if (macro is EnumDefinitionMacro && declaration is EnumDeclaration) {
@@ -247,7 +252,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         typeIntrospector,
         typeDeclarationResolver,
         typeResolver,
-        typeInferrer);
+        typeInferrer,
+        libraryDeclarationsResolver);
     await macro.buildDefinitionForEnum(declaration, builder);
     return builder.result;
   } else if (macro is EnumValueDefinitionMacro &&
@@ -258,7 +264,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         typeIntrospector,
         typeDeclarationResolver,
         typeResolver,
-        typeInferrer);
+        typeInferrer,
+        libraryDeclarationsResolver);
     await macro.buildDefinitionForEnumValue(declaration, builder);
     return builder.result;
   } else if (macro is MixinDefinitionMacro && declaration is MixinDeclaration) {
@@ -273,7 +280,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
         typeIntrospector,
         typeDeclarationResolver,
         typeResolver,
-        typeInferrer);
+        typeInferrer,
+        libraryDeclarationsResolver);
     await macro.buildDefinitionForMixin(declaration, builder);
     return builder.result;
   }

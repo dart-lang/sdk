@@ -618,8 +618,11 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   }
 }
 
+abstract interface class TypeDeclarationImpl
+    implements DeclarationImpl, TypeDeclaration {}
+
 abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
-    implements ParameterizedTypeDeclaration {
+    implements ParameterizedTypeDeclaration, TypeDeclarationImpl {
   @override
   final List<TypeParameterDeclarationImpl> typeParameters;
 
