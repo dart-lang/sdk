@@ -448,7 +448,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         OS::PrintErr("Size of vm isolate snapshot = %" Pd "\n",
                      snapshot->length());
         vm_isolate_group()->heap()->PrintSizes();
-        MegamorphicCacheTable::PrintSizes(vm_isolate_);
+        MegamorphicCacheTable::PrintSizes(T);
         intptr_t size;
         intptr_t capacity;
         Symbols::GetStats(vm_isolate_->group(), &size, &capacity);
@@ -738,7 +738,7 @@ char* Dart::Cleanup() {
   }
   OSThread::DisableOSThreadCreation();
 
-  ShutdownIsolate();
+  ShutdownIsolate(Thread::Current());
   vm_isolate_ = nullptr;
   ASSERT(Isolate::IsolateListLength() == 0);
   Service::Cleanup();
@@ -816,30 +816,24 @@ Isolate* Dart::CreateIsolate(const char* name_prefix,
   return isolate;
 }
 
-ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
-                                       Isolate* I,
-                                       const uint8_t* snapshot_data,
-                                       const uint8_t* snapshot_instructions,
-                                       const uint8_t* kernel_buffer,
-                                       intptr_t kernel_buffer_size) {
-  auto IG = I->group();
-  if (kernel_buffer != nullptr) {
-    SafepointReadRwLocker reader(T, IG->program_lock());
-    I->field_table()->MarkReadyToUse();
-  }
-
+ErrorPtr Dart::InitIsolateGroupFromSnapshot(
+    Thread* T,
+    const uint8_t* snapshot_data,
+    const uint8_t* snapshot_instructions,
+    const uint8_t* kernel_buffer,
+    intptr_t kernel_buffer_size) {
+  auto IG = T->isolate_group();
   Error& error = Error::Handle(T->zone());
   error = Object::Init(IG, kernel_buffer, kernel_buffer_size);
   if (!error.IsNull()) {
     return error.ptr();
   }
-  if ((snapshot_data != nullptr) && kernel_buffer == nullptr) {
+  if (snapshot_data != nullptr && kernel_buffer == nullptr) {
     // Read the snapshot and setup the initial state.
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
                                "ReadProgramSnapshot");
 #endif  // defined(SUPPORT_TIMELINE)
-    // TODO(turnidge): Remove once length is not part of the snapshot.
     const Snapshot* snapshot = Snapshot::SetupFromBuffer(snapshot_data);
     if (snapshot == nullptr) {
       const String& message = String::Handle(String::New("Invalid snapshot"));
@@ -861,12 +855,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
       return error.ptr();
     }
 
-    T->SetupDartMutatorStateDependingOnSnapshot(I);
-    {
-      SafepointReadRwLocker reader(T, IG->program_lock());
-      I->set_field_table(T, IG->initial_field_table()->Clone(I));
-      I->field_table()->MarkReadyToUse();
-    }
+    T->SetupDartMutatorStateDependingOnSnapshot(IG);
 
 #if defined(SUPPORT_TIMELINE)
     if (tbes.enabled()) {
@@ -878,7 +867,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
 #endif  // defined(SUPPORT_TIMELINE)
     if (FLAG_trace_isolates) {
       IG->heap()->PrintSizes();
-      MegamorphicCacheTable::PrintSizes(I);
+      MegamorphicCacheTable::PrintSizes(T);
     }
   } else {
     if ((vm_snapshot_kind_ != Snapshot::kNone) && kernel_buffer == nullptr) {
@@ -888,7 +877,7 @@ ErrorPtr Dart::InitIsolateFromSnapshot(Thread* T,
     }
   }
 #if !defined(PRODUCT) || defined(FORCE_INCLUDE_SAMPLING_HEAP_PROFILER)
-  I->group()->class_table()->PopulateUserVisibleNames();
+  IG->class_table()->PopulateUserVisibleNames();
 #endif
 
   return Error::null();
@@ -931,53 +920,22 @@ static void FinalizeBuiltinClasses(Thread* thread) {
   ENSURE_FINALIZED(ByteBuffer)
 }
 
-ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
-                                 const uint8_t* snapshot_instructions,
-                                 const uint8_t* kernel_buffer,
-                                 intptr_t kernel_buffer_size,
-                                 IsolateGroup* source_isolate_group,
-                                 void* isolate_data) {
-  // Initialize the new isolate.
-  Thread* T = Thread::Current();
-  Isolate* I = T->isolate();
-  auto IG = T->isolate_group();
-#if defined(SUPPORT_TIMELINE)
-  TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
-                             "InitializeIsolate");
-  tbes.SetNumArguments(1);
-  tbes.CopyArgument(0, "isolateName", I->name());
-#endif
-  ASSERT(I != nullptr);
-  StackZone zone(T);
-  HandleScope handle_scope(T);
-  bool was_child_cloned_into_existing_isolate = false;
-  if (source_isolate_group != nullptr) {
-    // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
-    //
-    //   * before this block it will ignore this isolate. The [Clone] of the
-    //     initial field table will pick up the new value.
-    //   * after this block it will add the new static field to this isolate.
-    {
-      SafepointReadRwLocker reader(T, source_isolate_group->program_lock());
-      I->set_field_table(T,
-                         source_isolate_group->initial_field_table()->Clone(I));
-      I->field_table()->MarkReadyToUse();
-    }
-
-    was_child_cloned_into_existing_isolate = true;
-  } else {
-    const Error& error = Error::Handle(
-        InitIsolateFromSnapshot(T, I, snapshot_data, snapshot_instructions,
-                                kernel_buffer, kernel_buffer_size));
-    if (!error.IsNull()) {
-      return error.ptr();
-    }
+ErrorPtr Dart::InitializeIsolateGroup(Thread* T,
+                                      const uint8_t* snapshot_data,
+                                      const uint8_t* snapshot_instructions,
+                                      const uint8_t* kernel_buffer,
+                                      intptr_t kernel_buffer_size) {
+  auto& error = Error::Handle(
+      InitIsolateGroupFromSnapshot(T, snapshot_data, snapshot_instructions,
+                                   kernel_buffer, kernel_buffer_size));
+  if (!error.IsNull()) {
+    return error.ptr();
   }
 
   Object::VerifyBuiltinVtables();
-  if (T->isolate()->origin_id() == 0) {
-    DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
-  }
+
+  auto IG = T->isolate_group();
+  DEBUG_ONLY(IG->heap()->Verify("InitializeIsolate", kForbidMarked));
 
 #if defined(DART_PRECOMPILED_RUNTIME)
   const bool kIsAotRuntime = true;
@@ -985,62 +943,79 @@ ErrorPtr Dart::InitializeIsolate(const uint8_t* snapshot_data,
   const bool kIsAotRuntime = false;
 #endif
 
-  if (kIsAotRuntime || was_child_cloned_into_existing_isolate) {
+  auto object_store = IG->object_store();
+  if (kIsAotRuntime) {
 #if !defined(TARGET_ARCH_IA32)
-    ASSERT(IG->object_store()->build_generic_method_extractor_code() !=
-           Code::null());
-    ASSERT(IG->object_store()->build_nongeneric_method_extractor_code() !=
+    ASSERT(object_store->build_generic_method_extractor_code() != Code::null());
+    ASSERT(object_store->build_nongeneric_method_extractor_code() !=
            Code::null());
 #endif
   } else {
     FinalizeBuiltinClasses(T);
 #if !defined(TARGET_ARCH_IA32)
-    if (I != Dart::vm_isolate()) {
-      if (IG->object_store()->build_generic_method_extractor_code() !=
-          nullptr) {
+    if (IG != Dart::vm_isolate_group()) {
+      if (object_store->build_generic_method_extractor_code() != nullptr ||
+          object_store->build_nongeneric_method_extractor_code() != nullptr) {
         SafepointWriteRwLocker ml(T, IG->program_lock());
-        if (IG->object_store()->build_generic_method_extractor_code() !=
-            nullptr) {
-          IG->object_store()->set_build_generic_method_extractor_code(
-              Code::Handle(
-                  StubCode::GetBuildGenericMethodExtractorStub(nullptr)));
+        if (object_store->build_generic_method_extractor_code() != nullptr) {
+          object_store->set_build_generic_method_extractor_code(Code::Handle(
+              StubCode::GetBuildGenericMethodExtractorStub(nullptr)));
         }
-      }
-      if (IG->object_store()->build_nongeneric_method_extractor_code() !=
-          nullptr) {
-        SafepointWriteRwLocker ml(T, IG->program_lock());
-        if (IG->object_store()->build_nongeneric_method_extractor_code() !=
-            nullptr) {
-          IG->object_store()->set_build_nongeneric_method_extractor_code(
-              Code::Handle(
-                  StubCode::GetBuildNonGenericMethodExtractorStub(nullptr)));
+        if (object_store->build_nongeneric_method_extractor_code() != nullptr) {
+          object_store->set_build_nongeneric_method_extractor_code(Code::Handle(
+              StubCode::GetBuildNonGenericMethodExtractorStub(nullptr)));
         }
       }
     }
 #endif  // !defined(TARGET_ARCH_IA32)
   }
 
-  Error& error = Error::Handle();
   if (snapshot_data == nullptr || kernel_buffer != nullptr) {
-    error ^= IG->object_store()->PreallocateObjects();
+    error ^= object_store->PreallocateObjects();
     if (!error.IsNull()) {
       return error.ptr();
     }
   }
+
+  if (FLAG_print_class_table) {
+    IG->class_table()->Print();
+  }
+
+  return Error::null();
+}
+
+ErrorPtr Dart::InitializeIsolate(Thread* T,
+                                 bool is_first_isolate_in_group,
+                                 void* isolate_data) {
+  auto I = T->isolate();
+  auto IG = T->isolate_group();
+  auto Z = T->zone();
+
+  // If a static field gets registered in [IsolateGroup::RegisterStaticField]:
+  //
+  //   * before this block it will ignore this isolate. The [Clone] of the
+  //     initial field table will pick up the new value.
+  //   * after this block it will add the new static field to this isolate.
+  {
+    SafepointReadRwLocker reader(T, IG->program_lock());
+    I->set_field_table(T, IG->initial_field_table()->Clone(I));
+    I->field_table()->MarkReadyToUse();
+  }
+
   const auto& out_of_memory =
       Object::Handle(IG->object_store()->out_of_memory());
-  error ^= I->isolate_object_store()->PreallocateObjects(out_of_memory);
+  const auto& error = Error::Handle(
+      Z, I->isolate_object_store()->PreallocateObjects(out_of_memory));
   if (!error.IsNull()) {
     return error.ptr();
   }
 
   I->set_init_callback_data(isolate_data);
-  if (FLAG_print_class_table) {
-    IG->class_table()->Print();
-  }
+
 #if !defined(PRODUCT)
-  ServiceIsolate::MaybeMakeServiceIsolate(I);
-  if (!Isolate::IsSystemIsolate(I)) {
+  if (Isolate::IsSystemIsolate(I)) {
+    ServiceIsolate::MaybeMakeServiceIsolate(I);
+  } else {
     I->message_handler()->set_should_pause_on_start(
         FLAG_pause_isolates_on_start);
     I->message_handler()->set_should_pause_on_exit(FLAG_pause_isolates_on_exit);
@@ -1189,18 +1164,8 @@ void Dart::RunShutdownCallback() {
   }
 }
 
-void Dart::ShutdownIsolate(Isolate* isolate) {
-  ASSERT(Isolate::Current() == nullptr);
-  // We need to enter the isolate in order to shut it down.
-  Thread::EnterIsolate(isolate);
-  ShutdownIsolate();
-  // Since the isolate is shutdown and deleted, there is no need to
-  // exit the isolate here.
-  ASSERT(Isolate::Current() == nullptr);
-}
-
-void Dart::ShutdownIsolate() {
-  Isolate::Current()->Shutdown();
+void Dart::ShutdownIsolate(Thread* T) {
+  T->isolate()->Shutdown();
 }
 
 bool Dart::VmIsolateNameEquals(const char* name) {

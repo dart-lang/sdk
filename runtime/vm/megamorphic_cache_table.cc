@@ -44,8 +44,7 @@ MegamorphicCachePtr MegamorphicCacheTable::Lookup(Thread* thread,
   return cache.ptr();
 }
 
-void MegamorphicCacheTable::PrintSizes(Isolate* isolate) {
-  auto thread = Thread::Current();
+void MegamorphicCacheTable::PrintSizes(Thread* thread) {
   auto isolate_group = thread->isolate_group();
   SafepointMutexLocker ml(isolate_group->megamorphic_table_mutex());
 
