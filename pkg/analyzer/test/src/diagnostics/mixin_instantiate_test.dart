@@ -22,45 +22,12 @@ mixin M {
   M.named() {}
 }
 
-main() {
+void f() {
   new M.named();
 }
 ''', [
       error(ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR, 12, 1),
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 43, 1),
-    ]);
-
-    var node = findNode.instanceCreation('M.named();');
-    assertResolvedNodeText(node, r'''
-InstanceCreationExpression
-  keyword: new
-  constructorName: ConstructorName
-    type: NamedType
-      name: M
-      element: self::@mixin::M
-      type: M
-    period: .
-    name: SimpleIdentifier
-      token: named
-      staticElement: self::@mixin::M::@constructor::named
-      staticType: null
-    staticElement: self::@mixin::M::@constructor::named
-  argumentList: ArgumentList
-    leftParenthesis: (
-    rightParenthesis: )
-  staticType: M
-''');
-  }
-
-  test_namedConstructor_undefined() async {
-    await assertErrorsInCode(r'''
-mixin M {}
-
-main() {
-  new M.named();
-}
-''', [
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 45, 1),
     ]);
 
     final node = findNode.singleInstanceCreationExpression;
@@ -89,14 +56,14 @@ InstanceCreationExpression
     await assertErrorsInCode(r'''
 mixin M {}
 
-main() {
+void f() {
   new M();
 }
 ''', [
-      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 27, 1),
+      error(CompileTimeErrorCode.MIXIN_INSTANTIATE, 29, 1),
     ]);
 
-    var node = findNode.instanceCreation('M();');
+    final node = findNode.singleInstanceCreationExpression;
     assertResolvedNodeText(node, r'''
 InstanceCreationExpression
   keyword: new

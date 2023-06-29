@@ -10,14 +10,15 @@ import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(RemoveExtensionConstructorTest);
+    defineReflectiveTests(RemoveConstructorTest_extension);
+    defineReflectiveTests(RemoveConstructorTest_mixin);
   });
 }
 
 @reflectiveTest
-class RemoveExtensionConstructorTest extends FixProcessorTest {
+class RemoveConstructorTest_extension extends FixProcessorTest {
   @override
-  FixKind get kind => DartFixKind.REMOVE_EXTENSION_CONSTRUCTOR;
+  FixKind get kind => DartFixKind.REMOVE_CONSTRUCTOR;
 
   Future<void> test_betweenFields() async {
     await resolveTestCode('''
@@ -101,6 +102,98 @@ extension E on int {
 ''');
     await assertHasFix('''
 extension E on int {
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveConstructorTest_mixin extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.REMOVE_CONSTRUCTOR;
+
+  Future<void> test_betweenFields() async {
+    await resolveTestCode('''
+mixin M {
+  static int foo = 0;
+
+  M();
+
+  static int bar = 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static int foo = 0;
+
+  static int bar = 0;
+}
+''');
+  }
+
+  Future<void> test_betweenMethods() async {
+    await resolveTestCode('''
+mixin M {
+  void foo() {}
+
+  M();
+
+  void bar() {}
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void foo() {}
+
+  void bar() {}
+}
+''');
+  }
+
+  Future<void> test_factory_named() async {
+    await resolveTestCode('''
+mixin M {
+  factory M.named() => throw 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+}
+''');
+  }
+
+  Future<void> test_factory_unnamed() async {
+    await resolveTestCode('''
+mixin M {
+  factory M() => throw 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+}
+''');
+  }
+
+  Future<void> test_generative_named() async {
+    await resolveTestCode('''
+mixin M {
+  M.named();
+}
+''');
+    await assertHasFix('''
+mixin M {
+}
+''');
+  }
+
+  Future<void> test_generative_unnamed() async {
+    await resolveTestCode('''
+mixin M {
+  M();
+}
+''');
+    await assertHasFix('''
+mixin M {
 }
 ''');
   }

@@ -158,6 +158,7 @@ import 'remove_character_test.dart' as remove_character;
 import 'remove_comparison_test.dart' as remove_comparison;
 import 'remove_const_test.dart' as remove_const;
 import 'remove_constructor_name_test.dart' as remove_constructor_name;
+import 'remove_constructor_test.dart' as remove_constructor;
 import 'remove_dead_code_test.dart' as remove_dead_code;
 import 'remove_default_value_test.dart' as remove_default_value;
 import 'remove_deprecated_new_in_comment_reference_test.dart'
@@ -168,7 +169,6 @@ import 'remove_empty_constructor_body_test.dart'
     as remove_empty_constructor_body;
 import 'remove_empty_else_test.dart' as remove_empty_else;
 import 'remove_empty_statement_test.dart' as remove_empty_statement;
-import 'remove_extension_constructor_test.dart' as remove_extension_constructor;
 import 'remove_if_null_operator_test.dart' as remove_if_null_operator;
 import 'remove_initializer_test.dart' as remove_initializer;
 import 'remove_interpolation_braces_test.dart' as remove_interpolation_braces;
@@ -412,6 +412,7 @@ void main() {
     remove_character.main();
     remove_comparison.main();
     remove_const.main();
+    remove_constructor.main();
     remove_constructor_name.main();
     remove_dead_code.main();
     remove_default_value.main();
@@ -421,7 +422,6 @@ void main() {
     remove_empty_constructor_body.main();
     remove_empty_else.main();
     remove_empty_statement.main();
-    remove_extension_constructor.main();
     remove_if_null_operator.main();
     remove_initializer.main();
     remove_interpolation_braces.main();

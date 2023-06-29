@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveTypeAnnotation extends ResolvedCorrectionProducer {
+class RemoveTypeAnnotation extends ParsedCorrectionProducer {
   final _Kind _kind;
 
   RemoveTypeAnnotation.fixVarAndType() : _kind = _Kind.fixVarAndType;

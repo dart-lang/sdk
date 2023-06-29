@@ -3050,9 +3050,7 @@ ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
 ParserErrorCode.MIXED_PARAMETER_GROUPS:
   status: noFix
 ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the constructor.
+  status: hasFix
 ParserErrorCode.MIXIN_WITH_CLAUSE:
   status: needsEvaluation
 ParserErrorCode.MODIFIER_OUT_OF_ORDER:
