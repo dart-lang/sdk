@@ -32160,9 +32160,11 @@ class Window extends EventTarget
    *   from MDN.
    */
   WindowBase open(String url, String name, [String? options]) {
-    final win =
-        options == null ? _open2(url, name) : _open3(url, name, options);
-    return _DOMWindowCrossFrame._createSafe(win);
+    if (options == null) {
+      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
+    }
   }
 
   // API level getter and setter for Location.
@@ -33774,13 +33776,6 @@ class Window extends EventTarget
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this)
       ? JS<num>('num', '#.scrollY', this).round()
       : document.documentElement!.scrollTop;
-}
-
-class NullWindowException implements Exception {
-  @override
-  String toString() {
-    return 'Attempting to use a null window opened in Window.open.';
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -40022,7 +40017,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-_convertDartToNative_EventTarget(e) {
+EventTarget? _convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
@@ -40121,12 +40116,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   // Private window.  Note, this is a window in another frame, so it
   // cannot be typed as "Window" as its prototype is not patched
   // properly.  Its fields and methods can only be accessed via JavaScript.
-  final Object? __window;
-
-  Object get _window {
-    if (__window == null) throw new NullWindowException();
-    return __window!;
-  }
+  final _window;
 
   // Fields.
   HistoryBase get history =>
@@ -40163,7 +40153,7 @@ class _DOMWindowCrossFrame implements WindowBase {
   }
 
   // Implementation support.
-  _DOMWindowCrossFrame(this.__window);
+  _DOMWindowCrossFrame(this._window);
 
   static WindowBase _createSafe(w) {
     if (identical(w, window)) {

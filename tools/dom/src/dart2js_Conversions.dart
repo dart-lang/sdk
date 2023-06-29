@@ -33,7 +33,7 @@ EventTarget? _convertNativeToDart_EventTarget(e) {
     return e;
 }
 
-_convertDartToNative_EventTarget(e) {
+EventTarget? _convertDartToNative_EventTarget(e) {
   if (e is _DOMWindowCrossFrame) {
     return e._window;
   } else {
