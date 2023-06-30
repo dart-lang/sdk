@@ -111,7 +111,7 @@ class EnclosingExecutableContext {
   bool get isSynchronous => !isAsynchronous;
 
   DartType get returnType {
-    return catchErrorOnErrorReturnType ?? element!.returnType;
+    return catchErrorOnErrorReturnType ?? element!.returnType2;
   }
 
   static bool _inFactoryConstructor(Element? element) {
@@ -3077,7 +3077,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (element is PropertyAccessorElement && element.isSetter) {
       return;
     }
-    if (element.hasImplicitReturnType && element.returnType is DynamicType) {
+    if (element.hasImplicitReturnType && element.returnType2 is DynamicType) {
       errorReporter.reportErrorForToken(LanguageCode.IMPLICIT_DYNAMIC_RETURN,
           functionName, [element.displayName]);
     }

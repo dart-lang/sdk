@@ -1848,7 +1848,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// have a return type.
   DartType? _returnType(Element? element) {
     if (element is ExecutableElement) {
-      return element.returnType;
+      return element.returnType2;
     }
     return null;
   }

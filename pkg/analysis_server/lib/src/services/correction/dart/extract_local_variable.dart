@@ -85,7 +85,7 @@ class ExtractLocalVariable extends ResolvedCorrectionProducer {
   }) async {
     if (targetProperty is PropertyAccessorElement &&
         targetProperty.isGetter &&
-        typeSystem.isPotentiallyNullable(targetProperty.returnType)) {
+        typeSystem.isPotentiallyNullable(targetProperty.returnType2)) {
       AstNode? enclosingNode = target;
       while (true) {
         if (enclosingNode == null || enclosingNode is FunctionBody) {

@@ -398,7 +398,18 @@ void main() {
                     equalsIgnoringWhitespace('''
                 static const List<String> fieldNames = ['myField',];
               '''));
-                expect(result.libraryAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations
+                        .map((code) => code.debugString().toString())
+                        .toList(),
+                    [
+                      equalsIgnoringWhitespace(
+                          "const library = 'package:foo/bar.dart';"),
+                      equalsIgnoringWhitespace(
+                          "const languageVersion = '3.0';"),
+                      equalsIgnoringWhitespace("const definedTypes = "
+                          "['MyClass','MyEnum','MyMixin',];"),
+                    ]);
               });
 
               test('on enums', () async {
@@ -472,7 +483,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(result.enumValueAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
@@ -496,7 +508,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
@@ -516,7 +529,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 expect(
@@ -537,7 +551,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(result.enumValueAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
@@ -561,7 +576,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(result.enumValueAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
@@ -586,7 +602,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(result.enumValueAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
@@ -609,6 +626,27 @@ void main() {
                 augment final /*inferred*/String _myVariable = 'new initial value' + augment super;
                 '''),
                     ]));
+
+                result = await executor.executeDefinitionsPhase(
+                    instanceId,
+                    Fixtures.allDeclarationsVariable,
+                    FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations
+                        .map((a) => a.debugString().toString()),
+                    unorderedEquals([
+                      equalsIgnoringWhitespace(
+                          "augment final List<String> allLibraryDeclarations = "
+                          "['MyClass','MyEnum','MyMixin','myFunction',"
+                          "'_myVariable',];"),
+                    ]));
               });
 
               test('on fields', () async {
@@ -619,7 +657,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 expect(
@@ -638,7 +677,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
@@ -662,7 +702,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, hasLength(1));
                 var entryAugmentationStrings = definitionResult
                     .enumValueAugmentations[Fixtures.myEnum.identifier]!
@@ -701,7 +742,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .enumValueAugmentations[Fixtures.myEnum.identifier]!
@@ -720,7 +762,8 @@ void main() {
                     Fixtures.testTypeDeclarationResolver,
                     Fixtures.testTypeResolver,
                     Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer);
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult

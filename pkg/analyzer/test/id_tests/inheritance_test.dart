@@ -121,7 +121,7 @@ class _InheritanceDataExtractor extends AstDataExtractor<String> {
           type = executable.type;
         } else if (executable is PropertyAccessorElement) {
           if (executable.isGetter) {
-            type = executable.returnType;
+            type = executable.returnType2;
           } else {
             type = executable.parameters.first.type;
           }

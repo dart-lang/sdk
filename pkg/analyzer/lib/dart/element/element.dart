@@ -472,8 +472,12 @@ abstract class ConstructorElement
   /// library containing this constructor has not yet been resolved.
   ConstructorElement? get redirectedConstructor;
 
+  @Deprecated('Use returnType2 instead')
   @override
   InterfaceType get returnType;
+
+  @override
+  NamedInstanceType get returnType2;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -1436,7 +1440,11 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   List<ParameterElement> get parameters;
 
   /// The return type defined by this element.
+  @Deprecated('Use returnType2 instead')
   DartType get returnType;
+
+  /// The return type defined by this element.
+  DartType get returnType2;
 
   /// The type defined by this element.
   FunctionType get type;

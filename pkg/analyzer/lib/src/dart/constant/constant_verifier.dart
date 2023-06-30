@@ -253,7 +253,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         _evaluationEngine.evaluateConstructorCall(
             _currentLibrary,
             node,
-            constructor.returnType.typeArguments,
+            constructor.returnType2.typeArguments,
             node.argumentList.arguments,
             constructor,
             constantVisitor,

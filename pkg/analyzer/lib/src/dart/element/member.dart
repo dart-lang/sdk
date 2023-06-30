@@ -95,8 +95,12 @@ class ConstructorMember extends ExecutableMember
     return ConstructorMember(_typeProvider, declaration, substitution, false);
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   InterfaceType get returnType => type.returnType as InterfaceType;
+
+  @override
+  NamedInstanceType get returnType2 => type.returnType as NamedInstanceType;
 
   @override
   Source get source => _declaration.source!;
@@ -216,9 +220,18 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
     }).toList();
   }
 
+  @Deprecated('Use returnType2 instead')
   @override
   DartType get returnType {
     var result = declaration.returnType;
+    result = _substitution.substituteType(result);
+    result = _toLegacyType(result);
+    return result;
+  }
+
+  @override
+  DartType get returnType2 {
+    var result = declaration.returnType2;
     result = _substitution.substituteType(result);
     result = _toLegacyType(result);
     return result;
@@ -416,7 +429,7 @@ class FieldMember extends VariableMember implements FieldElement {
   /// from the [definingType], create a field member representing the given
   /// field. Return the member that was created, or the base field if no member
   /// was created.
-  static FieldElement from(FieldElement field, InterfaceType definingType) {
+  static FieldElement from(FieldElement field, NamedInstanceType definingType) {
     if (definingType.typeArguments.isEmpty) {
       return field;
     }

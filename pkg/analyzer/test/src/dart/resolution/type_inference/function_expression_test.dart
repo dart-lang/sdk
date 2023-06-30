@@ -1223,7 +1223,7 @@ var v = () sync* {
 
   void _assertReturnType(String search, String expected) {
     var element = findNode.functionExpression(search).declaredElement!;
-    assertType(element.returnType, expected);
+    assertType(element.returnType2, expected);
   }
 }
 

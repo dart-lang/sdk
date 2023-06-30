@@ -527,7 +527,7 @@ class PatternConverter with SpaceCreator<DartPattern, DartType> {
         DartType? extensionPropertyType;
         if (element is PropertyAccessorElement &&
             element.enclosingElement2 is ExtensionElement) {
-          extensionPropertyType = element.returnType;
+          extensionPropertyType = element.returnType2;
         } else if (element is ExecutableElement &&
             element.enclosingElement2 is ExtensionElement) {
           extensionPropertyType = element.type;

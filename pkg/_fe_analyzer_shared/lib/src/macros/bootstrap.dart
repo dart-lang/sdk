@@ -329,10 +329,15 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         sendRequest,
         remoteInstance: request.typeInferrer,
         serializationZoneId: request.serializationZoneId);
+    var libraryDeclarationsResolver = ClientLibraryDeclarationsResolver(
+        sendRequest,
+        remoteInstance: request.libraryDeclarationsResolver,
+        serializationZoneId: request.serializationZoneId);
 
     var result = await executeDefinitionMacro(
         instance, request.declaration, identifierResolver, typeIntrospector,
-        typeResolver, typeDeclarationResolver, typeInferrer);
+        typeResolver, typeDeclarationResolver, typeInferrer,
+        libraryDeclarationsResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,

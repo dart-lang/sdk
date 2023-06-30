@@ -611,7 +611,7 @@ class _ReferenceProcessor {
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
-            if (!executable.returnType.isDartAsyncFuture) {
+            if (!executable.returnType2.isDartAsyncFuture) {
               status.addFatalError(
                   'Cannot inline async into a function that does not return a Future.',
                   newLocation_fromNode(_node));

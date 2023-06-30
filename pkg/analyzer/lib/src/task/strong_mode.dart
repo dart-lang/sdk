@@ -139,7 +139,7 @@ class InstanceMemberInferrer {
         name: getterName,
       );
       if (combinedGetter != null) {
-        var returnType = combinedGetter.returnType;
+        var returnType = combinedGetter.returnType2;
         return typeSystem.nonNullifyLegacy(returnType);
       }
       return DynamicTypeImpl.instance;

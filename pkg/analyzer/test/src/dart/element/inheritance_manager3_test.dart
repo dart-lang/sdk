@@ -52,7 +52,7 @@ abstract class B<E> {
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType;
+    final returnType = foo.returnType2;
     expect(returnType.element, same(T));
   }
 
@@ -67,7 +67,7 @@ abstract class B<E> extends A<E> {}
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType;
+    final returnType = foo.returnType2;
     // Check that the return type uses the same `T` as `<T>`.
     expect(returnType.element, same(T));
   }
@@ -83,7 +83,7 @@ abstract class B extends A {}
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType;
+    final returnType = foo.returnType2;
     expect(returnType.element, same(T));
   }
 
@@ -1473,7 +1473,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
         expect(variable.enclosingElement2, same(element.enclosingElement2));
         expect(variable.name, element.displayName);
         if (element.isGetter) {
-          expect(variable.type, element.returnType);
+          expect(variable.type, element.returnType2);
         } else {
           expect(variable.type, element.parameters[0].type);
         }

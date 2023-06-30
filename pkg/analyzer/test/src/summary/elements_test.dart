@@ -12928,14 +12928,14 @@ library
 ''');
     var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
-    var xType = xExpr.constructorName.staticElement!.returnType;
+    var xType = xExpr.constructorName.staticElement!.returnType2;
     _assertTypeStr(
       xType,
       'C<int>',
     );
     var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
-    var yType = yExpr.constructorName.staticElement!.returnType;
+    var yType = yExpr.constructorName.staticElement!.returnType2;
     _assertTypeStr(yType, 'C<int>');
   }
 

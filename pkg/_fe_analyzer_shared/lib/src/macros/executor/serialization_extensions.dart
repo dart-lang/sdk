@@ -19,6 +19,7 @@ extension DeserializerExtensions on Deserializer {
     final RemoteInstance instance = switch (kind) {
       RemoteInstanceKind.typeIntrospector ||
       RemoteInstanceKind.identifierResolver ||
+      RemoteInstanceKind.libraryDeclarationsResolver ||
       RemoteInstanceKind.namedStaticType ||
       RemoteInstanceKind.staticType ||
       RemoteInstanceKind.typeDeclarationResolver ||

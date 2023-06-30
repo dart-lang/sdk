@@ -95,7 +95,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (element.enclosingElement2 is! CompilationUnitElement) {
       return;
     }
-    var returnType = element.returnType;
+    var returnType = element.returnType2;
     if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);

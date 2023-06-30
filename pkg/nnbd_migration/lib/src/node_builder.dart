@@ -284,7 +284,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables.recordDecoratedElementType(
         valuesGetter,
         DecoratedType(valuesGetter.type, makeNonNullNode(valuesTarget),
-            returnType: DecoratedType(valuesGetter.returnType,
+            returnType: DecoratedType(valuesGetter.returnType2,
                 makeNonNullNode(valuesTarget.returnType()),
                 typeArguments: [
                   DecoratedType(classElement.thisType,

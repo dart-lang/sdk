@@ -51,6 +51,8 @@ abstract interface class TypeResolver {
 /// The API used to introspect on any [TypeDeclaration] which also has the
 /// marker interface [IntrospectableType].
 ///
+/// Can also be used to ask for all the types declared in a [Library].
+///
 /// Available in the declaration and definition phases.
 abstract interface class TypeIntrospector {
   /// The values available for [enuum].
@@ -78,6 +80,15 @@ abstract interface class TypeIntrospector {
   /// on [type].
   Future<List<ConstructorDeclaration>> constructorsOf(
       covariant IntrospectableType type);
+
+  /// [TypeDeclaration]s for all the types declared in [library].
+  ///
+  /// In the declarations phase these will not be [IntrospectableType]s, since
+  /// types are still incomplete at that point.
+  ///
+  /// In the definitions phase, these will be [IntrospectableType]s where
+  /// appropriate (but, for instance, type aliases will not be).
+  Future<List<TypeDeclaration>> typesOf(covariant Library library);
 }
 
 /// The interface used by [Macro]s to resolve any [Identifier]s pointing to
@@ -92,7 +103,7 @@ abstract interface class TypeDeclarationResolver {
   ///
   /// In the declaration phase, this will return [IntrospectableType] instances
   /// only for those types that are introspectable. Specifically, types are only
-  /// introspectable of the macro is running on a class declaration, and the
+  /// introspectable if the macro is running on a class declaration, and the
   /// type appears in the type hierarchy of that class.
   ///
   /// In the definition phase, this will return [IntrospectableType] instances
@@ -143,6 +154,17 @@ abstract interface class TypeInferrer {
   Future<TypeAnnotation> inferType(covariant OmittedTypeAnnotation omittedType);
 }
 
+/// The interface used by [Macro]s to get the list of all declarations in a
+/// [Library].
+///
+/// Only available in the definition phase of macro expansion.
+abstract interface class LibraryDeclarationsResolver {
+  /// Returns a list of all the [Declaration]s in the given [library].
+  ///
+  /// Where applicable, these will be introspectable declarations.
+  Future<List<Declaration>> topLevelDeclarationsOf(covariant Library library);
+}
+
 /// The base class for builders in the definition phase. These can convert
 /// any [TypeAnnotation] into its corresponding [TypeDeclaration], and also
 /// reflect more deeply on those.
@@ -153,7 +175,8 @@ abstract interface class DefinitionBuilder
         TypeIntrospector,
         TypeDeclarationResolver,
         TypeInferrer,
-        TypeResolver {}
+        TypeResolver,
+        LibraryDeclarationsResolver {}
 
 /// The APIs used by [Macro]s that run on type declarations, to fill in the
 /// definitions of any declarations within that class.

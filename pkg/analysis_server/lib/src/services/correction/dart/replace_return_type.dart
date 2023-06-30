@@ -95,7 +95,7 @@ class ReplaceReturnType extends ResolvedCorrectionProducer {
         if (overriddenList != null) {
           var notSubtype = overriddenList.any((element) => !libraryElement
               .typeSystem
-              .isSubtypeOf(newType, element.returnType));
+              .isSubtypeOf(newType, element.returnType2));
           if (notSubtype) {
             return false;
           }

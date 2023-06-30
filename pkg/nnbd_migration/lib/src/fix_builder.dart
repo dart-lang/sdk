@@ -1047,7 +1047,7 @@ abstract class _AssignmentLikeExpressionHandler {
         readType!,
         combinerType,
         rhsType,
-        combiner.returnType,
+        combiner.returnType2,
         combiner,
       );
       if (!fixBuilder._typeSystem.isSubtypeOf(combinerReturnType, writeType)) {

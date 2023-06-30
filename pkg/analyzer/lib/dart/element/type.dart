@@ -270,7 +270,7 @@ abstract class FunctionType implements DartType {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class InlineClassType implements ParameterizedType {
+abstract class InlineClassType implements NamedInstanceType {
   @override
   InlineClassElement get element;
 }
@@ -290,7 +290,7 @@ abstract class InstantiatedTypeAliasElement {
 /// such a type.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InterfaceType implements ParameterizedType {
+abstract class InterfaceType implements NamedInstanceType {
   /// Return a list containing all of the accessors (getters and setters)
   /// declared in this type.
   List<PropertyAccessorElement> get accessors;
@@ -425,6 +425,14 @@ abstract class InterfaceType implements ParameterizedType {
 /// Can usually be treated as [DynamicType], but should occasionally be handled
 /// differently, e.g. it does not cause follow-on implicit cast errors.
 abstract class InvalidType implements DartType {}
+
+/// The type introduced by a [NamedInstanceElement].
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class NamedInstanceType implements ParameterizedType {
+  @override
+  NamedInstanceElement get element;
+}
 
 /// The type `Never` represents the uninhabited bottom type.
 abstract class NeverType implements DartType {}

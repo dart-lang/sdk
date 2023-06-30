@@ -245,7 +245,7 @@ class AnalyzerConverter {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       }
-      return element.returnType.getDisplayString(withNullability: false);
+      return element.returnType2.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
       return element.type.getDisplayString(withNullability: false);
     } else if (element is analyzer.TypeAliasElement) {

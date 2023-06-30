@@ -195,7 +195,7 @@ class ConstantEvaluationEngine {
         var result = evaluateConstructorCall(
             library,
             constNode,
-            element.returnType.typeArguments,
+            element.returnType2.typeArguments,
             constNode.arguments!.arguments,
             element,
             constantVisitor,
@@ -269,24 +269,27 @@ class ConstantEvaluationEngine {
           // any dependencies.
           return;
         }
-        bool defaultSuperInvocationNeeded = true;
-        var initializers = constant.constantInitializers;
-        for (ConstructorInitializer initializer in initializers) {
-          if (initializer is SuperConstructorInvocation ||
-              initializer is RedirectingConstructorInvocation) {
-            defaultSuperInvocationNeeded = false;
+        final returnType = constant.returnType2;
+        if (returnType is InterfaceType) {
+          bool defaultSuperInvocationNeeded = true;
+          var initializers = constant.constantInitializers;
+          for (ConstructorInitializer initializer in initializers) {
+            if (initializer is SuperConstructorInvocation ||
+                initializer is RedirectingConstructorInvocation) {
+              defaultSuperInvocationNeeded = false;
+            }
+            initializer.accept(referenceFinder);
           }
-          initializer.accept(referenceFinder);
-        }
-        if (defaultSuperInvocationNeeded) {
-          // No explicit superconstructor invocation found, so we need to
-          // manually insert a reference to the implicit superconstructor.
-          var superclass = constant.returnType.superclass;
-          if (superclass != null && !superclass.isDartCoreObject) {
-            var unnamedConstructor =
-                superclass.element.unnamedConstructor?.declaration;
-            if (unnamedConstructor != null && unnamedConstructor.isConst) {
-              callback(unnamedConstructor);
+          if (defaultSuperInvocationNeeded) {
+            // No explicit superconstructor invocation found, so we need to
+            // manually insert a reference to the implicit superconstructor.
+            var superclass = returnType.superclass;
+            if (superclass != null && !superclass.isDartCoreObject) {
+              var unnamedConstructor =
+                  superclass.element.unnamedConstructor?.declaration;
+              if (unnamedConstructor != null && unnamedConstructor.isConst) {
+                callback(unnamedConstructor);
+              }
             }
           }
         }
@@ -865,7 +868,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return evaluationEngine.evaluateConstructorCall(
       _library,
       node,
-      constructor.returnType.typeArguments,
+      constructor.returnType2.typeArguments,
       node.argumentList.arguments,
       constructor,
       this,
@@ -2405,7 +2408,7 @@ class _InstanceCreationEvaluator {
         _argumentValues = argumentValues,
         _invocation = invocation;
 
-  InterfaceType get definingType => _constructor.returnType;
+  NamedInstanceType get definingType => _constructor.returnType2;
 
   DartObjectImpl? get firstArgument => _argumentValues[0];
 
@@ -2420,7 +2423,9 @@ class _InstanceCreationEvaluator {
   }) {
     final definingClass = _constructor.enclosingElement2;
     var argumentCount = arguments.length;
-    if (_constructor.name == "fromEnvironment") {
+    final definingType = this.definingType;
+    if (definingType is InterfaceType &&
+        _constructor.name == "fromEnvironment") {
       if (!_checkFromEnvironmentArguments(arguments, definingType)) {
         _errorReporter.reportErrorForNode(
             CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
@@ -2543,7 +2548,7 @@ class _InstanceCreationEvaluator {
           continue;
         }
         // Match the value and the type.
-        var fieldType = FieldMember.from(field, _constructor.returnType).type;
+        var fieldType = FieldMember.from(field, _constructor.returnType2).type;
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,
@@ -2596,6 +2601,11 @@ class _InstanceCreationEvaluator {
   }
 
   _InitializersEvaluationResult _checkInitializers() {
+    final definingType = this.definingType;
+    if (definingType is! InterfaceType) {
+      return _InitializersEvaluationResult(null, evaluationIsComplete: true);
+    }
+
     var constructorBase = _constructor.declaration as ConstructorElementImpl;
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
@@ -2763,6 +2773,11 @@ class _InstanceCreationEvaluator {
     required String? superName,
     required List<Expression>? superArguments,
   }) {
+    final definingType = this.definingType;
+    if (definingType is! InterfaceType) {
+      return;
+    }
+
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
       var superConstructor =
@@ -2866,7 +2881,7 @@ class _InstanceCreationEvaluator {
       // cycles (e.g. "compile-time constant expression depends on itself").
       return DartObjectImpl.validWithUnknownValue(
         library.typeSystem,
-        constructor.returnType,
+        constructor.returnType2,
       );
     }
 

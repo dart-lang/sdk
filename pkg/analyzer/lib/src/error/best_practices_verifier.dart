@@ -1020,7 +1020,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else if (element is FunctionElement) {
         var signatureTypes = [
           ...element.parameters.map((p) => p.type),
-          element.returnType,
+          element.returnType2,
           ...element.typeParameters.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {

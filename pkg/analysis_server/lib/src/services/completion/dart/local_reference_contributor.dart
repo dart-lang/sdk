@@ -129,7 +129,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     for (var method in type.methods) {
       if (!method.isStatic) {
         if (_visibilityTracker._isVisible(method.declaration)) {
-          if (method.returnType is! VoidType) {
+          if (method.returnType2 is! VoidType) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForMethod(
                   method: method,

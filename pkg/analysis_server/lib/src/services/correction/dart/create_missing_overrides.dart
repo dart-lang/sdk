@@ -96,7 +96,7 @@ class CreateMissingOverrides extends ResolvedCorrectionProducer {
               builder.write(eol);
               // add field
               builder.write(prefix);
-              builder.writeType(element.returnType, required: true);
+              builder.writeType(element.returnType2, required: true);
               builder.write(' ');
               builder.write(element.name);
               builder.write(';');

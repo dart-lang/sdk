@@ -113,6 +113,7 @@ enum RemoteInstanceKind {
   introspectableEnumDeclaration,
   introspectableMixinDeclaration,
   library,
+  libraryDeclarationsResolver,
   methodDeclaration,
   mixinDeclaration,
   namedStaticType,

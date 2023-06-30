@@ -19,12 +19,14 @@ class TestTypeIntrospector implements TypeIntrospector {
   final Map<IntrospectableEnum, List<EnumValueDeclaration>> enumValues;
   final Map<IntrospectableType, List<FieldDeclaration>> fields;
   final Map<IntrospectableType, List<MethodDeclaration>> methods;
+  final Map<Library, List<TypeDeclaration>> libraryTypes;
 
   TestTypeIntrospector({
     required this.constructors,
     required this.enumValues,
     required this.fields,
     required this.methods,
+    required this.libraryTypes,
   });
 
   @override
@@ -46,6 +48,10 @@ class TestTypeIntrospector implements TypeIntrospector {
   Future<List<MethodDeclaration>> methodsOf(
           covariant IntrospectableType clazz) async =>
       methods[clazz]!;
+
+  @override
+  Future<List<TypeDeclaration>> typesOf(covariant Library library) async =>
+      libraryTypes[library]!;
 }
 
 class FakeIdentifierResolver implements IdentifierResolver {
@@ -136,6 +142,17 @@ class TestIdentifier extends IdentifierImpl {
     required String? staticScope,
   }) : resolved = ResolvedIdentifier(
             kind: kind, name: name, staticScope: staticScope, uri: uri);
+}
+
+class TestLibraryDeclarationsResolver implements LibraryDeclarationsResolver {
+  final Map<Library, List<Declaration>> libraryDeclarations;
+
+  TestLibraryDeclarationsResolver(this.libraryDeclarations);
+
+  @override
+  Future<List<Declaration>> topLevelDeclarationsOf(
+          covariant Library library) async =>
+      libraryDeclarations[library]!;
 }
 
 extension DebugCodeString on Code {
@@ -376,6 +393,20 @@ class Fixtures {
       returnType: voidType,
       typeParameters: []);
 
+  static final allDeclarationsVariable = VariableDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier: IdentifierImpl(
+          id: RemoteInstance.uniqueId, name: 'allLibraryDeclarations'),
+      library: Fixtures.library,
+      isExternal: false,
+      isFinal: true,
+      isLate: false,
+      type: NamedTypeAnnotationImpl(
+          id: RemoteInstance.uniqueId,
+          isNullable: false,
+          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'List'),
+          typeArguments: [stringType]));
+
   // Class and member declarations
   static final myInterfaceType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
@@ -575,26 +606,27 @@ class Fixtures {
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
     myClass.identifier: myClassStaticType,
   });
-  static final testTypeIntrospector = TestTypeIntrospector(
-    constructors: {
-      myClass: [myConstructor],
-      myEnum: [myEnumConstructor],
-      myMixin: [],
-    },
-    enumValues: {
-      myEnum: myEnumValues,
-    },
-    fields: {
-      myClass: [myField],
-      myMixin: [],
-      myEnum: [],
-    },
-    methods: {
-      myClass: [myMethod],
-      myMixin: [myMixinMethod],
-      myEnum: [],
-    },
-  );
+  static final testTypeIntrospector = TestTypeIntrospector(constructors: {
+    myClass: [myConstructor],
+    myEnum: [myEnumConstructor],
+    myMixin: [],
+  }, enumValues: {
+    myEnum: myEnumValues,
+  }, fields: {
+    myClass: [myField],
+    myMixin: [],
+    myEnum: [],
+  }, methods: {
+    myClass: [myMethod],
+    myMixin: [myMixinMethod],
+    myEnum: [],
+  }, libraryTypes: {
+    Fixtures.library: [
+      myClass,
+      myEnum,
+      myMixin,
+    ],
+  });
   static final testTypeDeclarationResolver = TestTypeDeclarationResolver({
     myClass.identifier: myClass,
     myEnum.identifier: myEnum,
@@ -604,4 +636,15 @@ class Fixtures {
   });
 
   static final testTypeInferrer = TestTypeInferrer();
+
+  static final testLibraryDeclarationsResolver =
+      TestLibraryDeclarationsResolver({
+    Fixtures.library: [
+      myClass,
+      myEnum,
+      myMixin,
+      myFunction,
+      myVariable,
+    ],
+  });
 }

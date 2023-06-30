@@ -366,7 +366,7 @@ class MethodInvocationResolver with ScopeHelpers {
       getter = _resolver.toLegacyElement(getter);
       nameNode.staticElement = getter;
       _reportStaticAccessToInstanceMember(getter, nameNode);
-      _rewriteAsFunctionExpressionInvocation(node, getter.returnType,
+      _rewriteAsFunctionExpressionInvocation(node, getter.returnType2,
           contextType: contextType);
       return;
     }
@@ -433,7 +433,7 @@ class MethodInvocationResolver with ScopeHelpers {
     nameNode.staticElement = member;
 
     if (member is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, member.returnType,
+      return _rewriteAsFunctionExpressionInvocation(node, member.returnType2,
           contextType: contextType);
     }
 
@@ -459,7 +459,7 @@ class MethodInvocationResolver with ScopeHelpers {
         target = _resolver.toLegacyElement(target);
         nameNode.staticElement = target;
         rawType = target.type;
-        node.staticType = target.returnType;
+        node.staticType = target.returnType2;
       }
     }
 
@@ -569,7 +569,7 @@ class MethodInvocationResolver with ScopeHelpers {
         element = multiply.conflictingElements[0];
       }
       if (element is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
+        return _rewriteAsFunctionExpressionInvocation(node, element.returnType2,
             contextType: contextType);
       }
       if (element is ExecutableElement) {
@@ -661,7 +661,7 @@ class MethodInvocationResolver with ScopeHelpers {
     }
 
     if (element is PropertyAccessorElement) {
-      return _rewriteAsFunctionExpressionInvocation(node, element.returnType,
+      return _rewriteAsFunctionExpressionInvocation(node, element.returnType2,
           contextType: contextType);
     }
 
@@ -704,7 +704,7 @@ class MethodInvocationResolver with ScopeHelpers {
     if (target != null) {
       nameNode.staticElement = target;
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType2,
             contextType: contextType, isSuperAccess: true);
       }
       _setResolution(node, target.type, whyNotPromotedList,
@@ -797,7 +797,7 @@ class MethodInvocationResolver with ScopeHelpers {
       }
 
       if (target is PropertyAccessorElement) {
-        return _rewriteAsFunctionExpressionInvocation(node, target.returnType,
+        return _rewriteAsFunctionExpressionInvocation(node, target.returnType2,
             contextType: contextType);
       }
       return _setResolution(node, target.type, whyNotPromotedList,
@@ -845,7 +845,7 @@ class MethodInvocationResolver with ScopeHelpers {
         nameNode.staticElement = element;
         if (element is PropertyAccessorElement) {
           return _rewriteAsFunctionExpressionInvocation(
-              node, element.returnType,
+              node, element.returnType2,
               contextType: contextType);
         }
         _setResolution(node, element.type, whyNotPromotedList,

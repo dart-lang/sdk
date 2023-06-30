@@ -1934,7 +1934,7 @@ class EdgeBuilder extends GeneralizingAstVisitor<DecoratedType>
     var typeArguments = decoratedSupertype.typeArguments;
     Iterable<DartType?> typeArgumentTypes;
     typeArgumentTypes = typeArguments.map((t) => t!.type);
-    var createdType = DecoratedType(callee.returnType, nullabilityNode,
+    var createdType = DecoratedType(callee.returnType2, nullabilityNode,
         typeArguments: typeArguments);
     var calleeType =
         getOrComputeElementType(node, callee, targetType: createdType);
