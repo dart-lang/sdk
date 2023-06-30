@@ -24,11 +24,7 @@ void main(List<String> args) async {
   var parser = ArgParser()
     ..addOption('out', abbr: 'o', help: 'Specifies output directory.')
     ..addFlag('create-dirs',
-        abbr: 'd', help: 'Enables creation of necessary directories.')
-    ..addFlag('markdown',
-        abbr: 'm',
-        help: 'Enables generation of the markdown docs.',
-        defaultsTo: true);
+        abbr: 'd', help: 'Enables creation of necessary directories.');
 
   ArgResults options;
   try {
@@ -41,10 +37,8 @@ void main(List<String> args) async {
   var outDir = options['out'] as String?;
 
   var createDirectories = options['create-dirs'] == true;
-  var enableMarkdown = options['markdown'] == true;
 
-  await generateDocs(outDir,
-      createDirectories: createDirectories, enableMarkdown: enableMarkdown);
+  await generateDocs(outDir, createDirectories: createDirectories);
 }
 
 const ruleFootMatter = '''
@@ -141,8 +135,7 @@ Future<Map<String, String>> fetchFixStatusMap() async {
   return _fixStatusMap;
 }
 
-Future<void> generateDocs(String? dir,
-    {bool createDirectories = false, bool enableMarkdown = true}) async {
+Future<void> generateDocs(String? dir, {bool createDirectories = false}) async {
   var outDir = dir;
   if (outDir != null) {
     var d = Directory(outDir);
@@ -182,17 +175,10 @@ Future<void> generateDocs(String? dir,
   for (var rule in rules) {
     var fixStatus = getFixStatus(rule, fixStatusMap);
     RuleHtmlGenerator(rule, fixStatus).generate(outDir);
-    if (enableMarkdown) {
-      RuleMarkdownGenerator(rule, fixStatus).generate(outDir);
-    }
   }
 
   // Generate index.
   HtmlIndexer(rules, fixStatusMap).generate(outDir);
-
-  if (enableMarkdown) {
-    MarkdownIndexer(rules, fixStatusMap).generate(filePath: outDir);
-  }
 
   // Generate options samples.
   OptionsSample(rules).generate(outDir);
@@ -382,90 +368,6 @@ class MachineSummaryGenerator {
   }
 }
 
-class MarkdownIndexer {
-  final Iterable<LintRule> rules;
-  final Map<String, String> fixStatusMap;
-
-  MarkdownIndexer(this.rules, this.fixStatusMap);
-
-  void generate({String? filePath}) {
-    var buffer = StringBuffer();
-
-    buffer.writeln('# Linter for Dart');
-    buffer.writeln();
-    buffer.writeln('## Lint Rules');
-    buffer.writeln();
-    buffer.writeln(
-        '[Using the Linter](https://dart.dev/guides/language/analysis-options#enabling-linter-rules)');
-    buffer.writeln();
-    buffer.writeln('## Supported Lint Rules');
-    buffer.writeln();
-    buffer.writeln('This list is auto-generated from our sources.');
-    buffer.writeln();
-    buffer.writeln(ruleLeadMatter);
-    buffer.writeln();
-
-    for (var group in Group.builtin) {
-      buffer.writeln('- **${group.name}** - ${group.description}');
-      buffer.writeln();
-    }
-
-    buffer.writeln(ruleFootMatter);
-    buffer.writeln();
-
-    void emit(LintRule rule) {
-      buffer
-          .writeln('**[${rule.name}](${rule.name}.md)** - ${rule.description}');
-      if (coreRules.contains(rule.name)) {
-        buffer.writeln('[![core](style-core.svg)]'
-            '(https://github.com/dart-lang/lints/blob/main/lib/core.yaml)');
-      }
-      if (recommendedRules.contains(rule.name)) {
-        buffer.writeln('[![recommended](style-recommended.svg)]'
-            '(https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml)');
-      }
-      if (flutterRules.contains(rule.name)) {
-        buffer.writeln('[![flutter](style-flutter.svg)]'
-            '(https://github.com/flutter/packages/blob/main/packages/'
-            'flutter_lints/lib/flutter.yaml)');
-      }
-      if (fixStatusMap[rule.name] == 'hasFix') {
-        buffer.writeln('[![has-fix](has-fix.svg)]'
-            '(https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a)');
-      }
-
-      buffer.writeln();
-    }
-
-    buffer.writeln('## Error Rules');
-    buffer.writeln();
-    // ignore: prefer_foreach
-    for (var rule in rules.where((rule) => rule.group == Group.errors)) {
-      emit(rule);
-    }
-
-    buffer.writeln('## Style Rules');
-    buffer.writeln();
-    // ignore: prefer_foreach
-    for (var rule in rules.where((rule) => rule.group == Group.style)) {
-      emit(rule);
-    }
-
-    buffer.writeln('## Pub Rules');
-    buffer.writeln();
-    // ignore: prefer_foreach
-    for (var rule in rules.where((rule) => rule.group == Group.pub)) {
-      emit(rule);
-    }
-
-    if (filePath == null) {
-      printToConsole(buffer);
-    } else {
-      File('$filePath/index.md').writeAsStringSync(buffer.toString());
-    }
-  }
-}
-
 class OptionsSample {
   Iterable<LintRule> rules;
 
@@ -553,11 +455,11 @@ linter:
 ''';
 }
 
-abstract class RuleGenerator {
+class RuleHtmlGenerator {
   final LintRule rule;
   final String fixStatus;
 
-  RuleGenerator(this.rule, this.fixStatus);
+  RuleHtmlGenerator(this.rule, this.fixStatus);
 
   String get details => rule.details;
 
@@ -583,12 +485,6 @@ linter:
     - $name
 ```
   ''';
-
-  void generate([String? filePath]);
-}
-
-class RuleHtmlGenerator extends RuleGenerator {
-  RuleHtmlGenerator(super.rule, super.fixStatus);
 
   String get detailsHeader {
     if (state.isRemoved) {
@@ -639,7 +535,6 @@ class RuleHtmlGenerator extends RuleGenerator {
     }
   }
 
-  @override
   void generate([String? filePath]) {
     var generated = _generate();
     if (filePath != null) {
@@ -697,77 +592,6 @@ class RuleHtmlGenerator extends RuleGenerator {
    </body>
 </html>
 ''';
-}
-
-class RuleMarkdownGenerator extends RuleGenerator {
-  RuleMarkdownGenerator(super.rule, super.fixStatus);
-
-  String get since {
-    var info = sinceMap[name]!;
-    var sdkVersion = info.sinceDartSdk != null
-        ? '>= ${info.sinceDartSdk}'
-        : '**Unreleased**';
-    return 'Dart SDK: $sdkVersion';
-  }
-
-  String get stateString => rule.state.describe;
-
-  @override
-  void generate([String? filePath]) {
-    var buffer = StringBuffer();
-
-    buffer.writeln('# Rule $name');
-    buffer.writeln();
-    buffer.writeln('**Group**: $group\\');
-    buffer.writeln('**State**: $stateString\\');
-    buffer.writeln('**Since**: $since\\');
-    buffer.writeln();
-
-    // badges
-    if (coreRules.contains(name)) {
-      buffer.writeln('[![core](style-core.svg)]'
-          '(https://github.com/dart-lang/lints/blob/main/lib/core.yaml)');
-    }
-    if (recommendedRules.contains(name)) {
-      buffer.writeln('[![recommended](style-flutter.svg)]'
-          'https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml)');
-    }
-    if (flutterRules.contains(name)) {
-      buffer.writeln('[![flutter](style-flutter.svg)]'
-          '(https://github.com/flutter/packages/blob/main/packages/'
-          'flutter_lints/lib/flutter.yaml)');
-    }
-    if (fixStatus == 'hasFix') {
-      buffer.writeln('[![has-fix](has-fix.svg)]'
-          '(https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a)');
-    }
-
-    buffer.writeln();
-
-    buffer.writeln('## Description');
-    buffer.writeln();
-    buffer.writeln(details.trim());
-    buffer.writeln();
-
-    // incompatible rules
-    var incompatibleRules = rule.incompatibleRules;
-    if (incompatibleRules.isNotEmpty) {
-      buffer.writeln('## Incompatible with');
-      buffer.writeln();
-      for (var rule in incompatibleRules) {
-        buffer.writeln('- [$rule]($rule.md)');
-      }
-      buffer.writeln();
-    }
-
-    buffer.write(usageMarkdown);
-
-    if (filePath == null) {
-      printToConsole(buffer);
-    } else {
-      File('$filePath/$name.md').writeAsStringSync(buffer.toString());
-    }
-  }
 }
 
 extension on State {
