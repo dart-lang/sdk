@@ -1044,13 +1044,6 @@ class C<U> {
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 61,
           1),
     ]);
-    // TODO(kallentu): Assert constant value of 'g' in new style.
-    var result = _evaluateConstantLocal('g', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
-    ])!;
-    assertType(result.type, 'void Function(U)');
-    assertElement(result.toFunctionValue(), findElement.topFunction('f'));
-    _assertTypeArguments(result, ['U']);
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentElements() async {
@@ -1356,6 +1349,28 @@ const x = <int>[...a];
       error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
     ]);
     _assertNull('x');
+  }
+
+  test_visitNamedType_typeLiteral_typeParameter_nested() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (T)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 1),
+    ]);
+  }
+
+  test_visitNamedType_typeLiteral_typeParameter_nested2() async {
+    await assertErrorsInCode(r'''
+void f<T>(Object? x) {
+  if (x case const (List<T>)) {}
+}
+''', [
+      error(CompileTimeErrorCode.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION,
+          43, 7),
+    ]);
   }
 
   test_visitPrefixedIdentifier_genericFunction_instantiated() async {

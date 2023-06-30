@@ -6,11 +6,13 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class WorkspaceFoldersHandler
-    extends MessageHandler<DidChangeWorkspaceFoldersParams, void> {
+    extends LspMessageHandler<DidChangeWorkspaceFoldersParams, void> {
   // Whether to update analysis roots based on the open workspace folders.
   bool updateAnalysisRoots;
 
-  WorkspaceFoldersHandler(super.server, this.updateAnalysisRoots);
+  WorkspaceFoldersHandler(super.server)
+      : updateAnalysisRoots =
+            !server.initializationOptions.onlyAnalyzeProjectsWithOpenFiles;
 
   @override
   Method get handlesMessage => Method.workspace_didChangeWorkspaceFolders;

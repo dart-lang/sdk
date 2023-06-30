@@ -7,7 +7,7 @@ import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 class DiagnosticServerHandler
-    extends MessageHandler<void, DartDiagnosticServer> {
+    extends LspMessageHandler<void, DartDiagnosticServer> {
   DiagnosticServerHandler(super.server);
 
   @override

@@ -21,7 +21,7 @@ import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/navigation_dart.dart';
 import 'package:collection/collection.dart';
 
-class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
+class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
     TextDocumentDefinitionResult> with LspPluginRequestHandlerMixin {
   DefinitionHandler(super.server);
   @override
@@ -72,7 +72,7 @@ class DefinitionHandler extends MessageHandler<TextDocumentPositionParams,
       TextDocumentPositionParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;

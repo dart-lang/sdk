@@ -11,7 +11,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class TextDocumentChangeHandler
-    extends MessageHandler<DidChangeTextDocumentParams, void> {
+    extends LspMessageHandler<DidChangeTextDocumentParams, void> {
   TextDocumentChangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_didChange;
@@ -54,7 +54,7 @@ class TextDocumentChangeHandler
 }
 
 class TextDocumentCloseHandler
-    extends MessageHandler<DidCloseTextDocumentParams, void> {
+    extends LspMessageHandler<DidCloseTextDocumentParams, void> {
   TextDocumentCloseHandler(super.server);
 
   @override
@@ -79,7 +79,7 @@ class TextDocumentCloseHandler
 }
 
 class TextDocumentOpenHandler
-    extends MessageHandler<DidOpenTextDocumentParams, void> {
+    extends LspMessageHandler<DidOpenTextDocumentParams, void> {
   TextDocumentOpenHandler(super.server);
 
   @override

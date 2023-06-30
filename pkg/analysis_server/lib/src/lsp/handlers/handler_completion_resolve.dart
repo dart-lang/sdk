@@ -14,7 +14,7 @@ import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class CompletionResolveHandler
-    extends MessageHandler<CompletionItem, CompletionItem> {
+    extends LspMessageHandler<CompletionItem, CompletionItem> {
   /// The last completion item we asked to be resolved.
   ///
   /// Used to abort previous requests in async handlers if another resolve request
@@ -52,7 +52,7 @@ class CompletionResolveHandler
     DartCompletionResolutionInfo data,
     CancellationToken token,
   ) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return error(ErrorCodes.ServerNotInitialized,
@@ -131,7 +131,7 @@ class CompletionResolveHandler
           final dartDoc = DartUnitHoverComputer.computePreferredDocumentation(
               dartDocInfo,
               element,
-              server.clientConfiguration.global.preferredDocumentation);
+              server.lspClientConfiguration.global.preferredDocumentation);
           // `dartDoc` can be both null or empty.
           documentation = dartDoc != null && dartDoc.isNotEmpty
               ? asMarkupContentOrString(formats, dartDoc)

@@ -1493,7 +1493,7 @@ test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement2, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 
@@ -1506,7 +1506,7 @@ bool test(C c) => c.method<bool>(arg: true);
 ''');
     var x = findNode.namedExpression('arg: true');
     var y = x.staticParameterElement!;
-    expect(y.enclosingElement, isNotNull);
+    expect(y.enclosingElement2, isNotNull);
     expect(y.declaration, findElement.parameter('arg'));
   }
 

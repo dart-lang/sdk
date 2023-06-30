@@ -14,7 +14,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
 
 class ImplementationHandler
-    extends MessageHandler<TextDocumentPositionParams, List<Location>> {
+    extends LspMessageHandler<TextDocumentPositionParams, List<Location>> {
   ImplementationHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_implementation;

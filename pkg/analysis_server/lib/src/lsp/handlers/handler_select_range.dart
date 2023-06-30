@@ -11,7 +11,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 
 class SelectionRangeHandler
-    extends MessageHandler<SelectionRangeParams, List<SelectionRange>?> {
+    extends LspMessageHandler<SelectionRangeParams, List<SelectionRange>?> {
   SelectionRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_selectionRange;

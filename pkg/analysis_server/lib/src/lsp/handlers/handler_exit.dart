@@ -8,7 +8,7 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class ExitMessageHandler extends MessageHandler<void, void> {
+class ExitMessageHandler extends LspMessageHandler<void, void> {
   final bool clientDidCallShutdown;
 
   ExitMessageHandler(

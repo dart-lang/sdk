@@ -79,7 +79,7 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
     lsp.LspAnalysisServer server, List<server.SourceFileEdit> edits) {
   return toWorkspaceEdit(
       // Client capabilities are always available after initialization.
-      server.clientCapabilities!,
+      server.lspClientCapabilities!,
       edits
           .map((e) => FileEditInformation(
                 server.getVersionedDocumentIdentifier(e.file),
@@ -139,8 +139,8 @@ lsp.WorkspaceEdit createWorkspaceEdit(
   // existing file with a single edit and that there is either a selection or a
   // linked edit group (otherwise there's no value in snippets).
   if (!allowSnippets ||
-      !server.clientCapabilities!.experimentalSnippetTextEdit ||
-      !server.clientCapabilities!.documentChanges ||
+      !server.lspClientCapabilities!.experimentalSnippetTextEdit ||
+      !server.lspClientCapabilities!.documentChanges ||
       filePath == null ||
       lineInfo == null ||
       change.edits.length != 1 ||

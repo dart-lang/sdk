@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
-class CancelRequestHandler extends MessageHandler<CancelParams, void> {
+class CancelRequestHandler extends LspMessageHandler<CancelParams, void> {
   final Map<String, CancelableToken> _tokens = {};
 
   CancelRequestHandler(super.server);

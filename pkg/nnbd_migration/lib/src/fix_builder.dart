@@ -491,7 +491,7 @@ class MigrationResolutionHooksImpl
           return variable.typeInternal;
         }
         if (variable is ParameterElement) {
-          var enclosingElement = variable.enclosingElement;
+          var enclosingElement = variable.enclosingElement2;
           if (enclosingElement is PropertyAccessorElement &&
               enclosingElement.isSynthetic) {
             // This is the parameter of a synthetic getter, so it has the same
@@ -526,7 +526,7 @@ class MigrationResolutionHooksImpl
   /// on a nullable type without introducing a null check).
   bool isNullableExtensionMember(Element? element) {
     if (element != null) {
-      var enclosingElement = element.enclosingElement;
+      var enclosingElement = element.enclosingElement2;
       if (enclosingElement is ExtensionElement) {
         return _fixBuilder._typeSystem
             .isPotentiallyNullable(enclosingElement.extendedType);
@@ -1288,7 +1288,7 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
       var nullabilityNode =
           _fixBuilder._variables!.decoratedElementType(element!).node;
       if (!nullabilityNode.isNullable) {
-        var enclosingElement = element.enclosingElement;
+        var enclosingElement = element.enclosingElement2;
         if (enclosingElement is ConstructorElement &&
             enclosingElement.isFactory &&
             enclosingElement.redirectedConstructor != null &&
@@ -1401,8 +1401,8 @@ class _FixBuilderPreVisitor extends GeneralizingAstVisitor<void>
     // Change an existing `@required` annotation into a `required` keyword if
     // possible.
     final element = parameter.declaredElement!;
-    final method = element.enclosingElement!;
-    final cls = method.enclosingElement!;
+    final method = element.enclosingElement2!;
+    final cls = method.enclosingElement2!;
     var info = AtomicEditInfo(
         NullabilityFixDescription.addRequired(
             cls.name, method.name, element.name),

@@ -402,7 +402,7 @@ class DecoratedType implements DecoratedTypeInfo, SubstitutedType {
             Map<TypeParameterElement, SubstitutedType>.from(substitution);
         for (int i = 0; i < typeFormals.length; i++) {
           // Check if it's a fresh type variable.
-          if (undecoratedResult.typeFormals[i].enclosingElement == null) {
+          if (undecoratedResult.typeFormals[i].enclosingElement2 == null) {
             substitution[typeFormals[i]] =
                 _TypeVariableReplacement(undecoratedResult.typeFormals[i]);
           }
@@ -526,7 +526,7 @@ class DecoratedTypeParameterBounds {
   final _parentedBounds = <TypeParameterElement, DecoratedType?>{};
 
   DecoratedType? get(TypeParameterElement element) {
-    if (element.enclosingElement == null) {
+    if (element.enclosingElement2 == null) {
       return _orphanBounds[element];
     } else {
       return _parentedBounds[element];
@@ -534,7 +534,7 @@ class DecoratedTypeParameterBounds {
   }
 
   void put(TypeParameterElement element, DecoratedType? bounds) {
-    if (element.enclosingElement == null) {
+    if (element.enclosingElement2 == null) {
       _orphanBounds[element] = bounds;
     } else {
       _parentedBounds[element] = bounds;

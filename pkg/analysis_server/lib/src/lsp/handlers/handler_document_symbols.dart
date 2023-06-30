@@ -11,7 +11,7 @@ import 'package:analysis_server/src/protocol_server.dart' show Outline;
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
-class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
+class DocumentSymbolHandler extends LspMessageHandler<DocumentSymbolParams,
     TextDocumentDocumentSymbolResult> {
   DocumentSymbolHandler(super.server);
   @override
@@ -26,7 +26,7 @@ class DocumentSymbolHandler extends MessageHandler<DocumentSymbolParams,
       DocumentSymbolParams params,
       MessageInfo message,
       CancellationToken token) async {
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null || !isDartDocument(params.textDocument)) {
       return success(
         TextDocumentDocumentSymbolResult.t2([]),

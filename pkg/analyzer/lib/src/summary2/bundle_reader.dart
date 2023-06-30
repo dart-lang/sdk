@@ -203,7 +203,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ResolutionReader reader,
     ElementImpl element,
   ) {
-    var enclosing = element.enclosingElement;
+    var enclosing = element.enclosingElement2;
     if (enclosing is InterfaceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
@@ -275,7 +275,7 @@ class EnumElementLinkedData extends ElementLinkedData<EnumElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.supertype = reader._readOptionalInterfaceType();
@@ -299,7 +299,7 @@ class ExtensionElementLinkedData
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.extendedType = reader.readRequiredType();
@@ -1566,7 +1566,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   @override
   void _read(element, reader) {
     element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement,
+      unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
@@ -1647,7 +1647,7 @@ class ResolutionReader {
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
       element as ExecutableElement;
-      var enclosing = element.enclosingElement as TypeParameterizedElement;
+      var enclosing = element.enclosingElement2 as TypeParameterizedElement;
       var typeParameters = enclosing.typeParameters;
       var typeArguments = _readTypeList();
       var substitution = Substitution.fromPairs(typeParameters, typeArguments);

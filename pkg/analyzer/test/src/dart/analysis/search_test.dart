@@ -3023,7 +3023,7 @@ class NoMatchABCDEF {}
     }
 
     String elementToReferenceString(Element element) {
-      final enclosingElement = element.enclosingElement;
+      final enclosingElement = element.enclosingElement2;
       final reference = (element as ElementImpl).reference;
       if (reference != null) {
         return referenceToString(reference);

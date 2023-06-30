@@ -17,7 +17,7 @@ import 'package:analyzer/src/dart/element/element.dart' as analyzer;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 
-class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
+class TypeDefinitionHandler extends LspMessageHandler<TypeDefinitionParams,
     TextDocumentTypeDefinitionResult> with LspPluginRequestHandlerMixin {
   static const _emptyResult = TextDocumentTypeDefinitionResult.t2([]);
 
@@ -41,7 +41,7 @@ class TypeDefinitionHandler extends MessageHandler<TypeDefinitionParams,
       return success(_emptyResult);
     }
 
-    final clientCapabilities = server.clientCapabilities;
+    final clientCapabilities = server.lspClientCapabilities;
     if (clientCapabilities == null) {
       // This should not happen unless a client misbehaves.
       return serverNotInitializedError;
