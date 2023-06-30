@@ -27,7 +27,6 @@ class ObjectPointerVisitor;
   V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
-  V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
   V(Bool, "bool")                                                              \
   V(BooleanExpression, "boolean expression")                                   \
   V(BoundsCheckForPartialInstantiation, "_boundsCheckForPartialInstantiation") \
@@ -41,6 +40,9 @@ class ObjectPointerVisitor;
   V(Code, "Code")                                                              \
   V(CodeSourceMap, "CodeSourceMap")                                            \
   V(ColonMatcher, ":matcher")                                                  \
+  V(_Completer, "_Completer")                                                  \
+  V(_AsyncCompleter, "_AsyncCompleter")                                        \
+  V(_SyncCompleter, "_SyncCompleter")                                          \
   V(Compound, "_Compound")                                                     \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
@@ -144,7 +146,7 @@ class ObjectPointerVisitor;
   V(FunctionResult, "function result")                                         \
   V(FunctionTypeArgumentsVar, ":function_type_arguments_var")                  \
   V(Future, "Future")                                                          \
-  V(FutureImpl, "_Future")                                                     \
+  V(_Future, "_Future")                                                        \
   V(FutureOr, "FutureOr")                                                      \
   V(FutureValue, "Future.value")                                               \
   V(GetCall, "get:call")                                                       \
@@ -422,6 +424,7 @@ class ObjectPointerVisitor;
   V(_classRangeCheck, "_classRangeCheck")                                      \
   V(_current, "_current")                                                      \
   V(_ensureScheduleImmediate, "_ensureScheduleImmediate")                      \
+  V(future, "future")                                                          \
   V(_future, "_future")                                                        \
   V(_getRegisters, "_getRegisters")                                            \
   V(_growBacktrackingStack, "_growBacktrackingStack")                          \
@@ -518,6 +521,7 @@ class ObjectPointerVisitor;
   V(vm_ffi_struct_fields, "vm:ffi:struct-fields")                              \
   V(vm_invisible, "vm:invisible")                                              \
   V(vm_isolate_unsendable, "vm:isolate-unsendable")                            \
+  V(vm_awaiter_link, "vm:awaiter-link")                                        \
   V(vm_never_inline, "vm:never-inline")                                        \
   V(vm_non_nullable_result_type, "vm:non-nullable-result-type")                \
   V(vm_notify_debugger_on_exception, "vm:notify-debugger-on-exception")        \

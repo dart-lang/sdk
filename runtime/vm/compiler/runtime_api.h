@@ -1482,7 +1482,7 @@ class Closure : public AllStatic {
 
 class ClosureData : public AllStatic {
  public:
-  static word default_type_arguments_kind_offset();
+  static word packed_fields_offset();
   static word InstanceSize();
   FINAL_CLASS();
 };

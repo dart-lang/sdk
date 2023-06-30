@@ -175,8 +175,7 @@ NONNULLABLE_BOXED_NATIVE_SLOTS_LIST(FOR_EACH_NATIVE_SLOT)
 #define UNBOXED_NATIVE_SLOTS_LIST(V)                                           \
   AOT_ONLY_UNBOXED_NATIVE_SLOTS_LIST(V)                                        \
   V(AbstractType, UntaggedAbstractType, flags, Uint32, FINAL)                  \
-  V(ClosureData, UntaggedClosureData, default_type_arguments_kind, Uint8,      \
-    FINAL)                                                                     \
+  V(ClosureData, UntaggedClosureData, packed_fields, Uint32, FINAL)            \
   V(FinalizerBase, UntaggedFinalizerBase, isolate, IntPtr, VAR)                \
   V(FinalizerEntry, UntaggedFinalizerEntry, external_size, IntPtr, VAR)        \
   V(Function, UntaggedFunction, entry_point, Uword, FINAL)                     \

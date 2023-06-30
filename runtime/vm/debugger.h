@@ -292,7 +292,12 @@ class ActivationFrame : public ZoneAllocated {
                   const Array& deopt_frame,
                   intptr_t deopt_frame_offset);
 
-  ActivationFrame(uword pc, const Code& code);
+  // Create a |kAsyncAwaiter| frame representing asynchronous awaiter
+  // waiting for the completion of a |Future|.
+  //
+  // |closure| is the listener which will be invoked when awaited
+  // computation completes.
+  ActivationFrame(uword pc, const Code& code, const Closure& closure);
 
   explicit ActivationFrame(Kind kind);
 
@@ -303,6 +308,10 @@ class ActivationFrame : public ZoneAllocated {
   uword sp() const { return sp_; }
 
   uword GetCallerSp() const { return fp() + (kCallerSpSlotFromFp * kWordSize); }
+
+  // For |kAsyncAwaiter| frames this is the listener which will be invoked
+  // when the frame below (callee) completes.
+  const Closure& closure() const { return closure_; }
 
   const Function& function() const {
     return function_;
@@ -374,10 +383,10 @@ class ActivationFrame : public ZoneAllocated {
 
   void PrintToJSONObject(JSONObject* jsobj);
 
-  // Get Closure that await'ed this async frame.
-  ObjectPtr GetAsyncAwaiter(CallerClosureFinder* caller_closure_finder);
-
   bool HandlesException(const Instance& exc_obj);
+
+  bool has_catch_error() const { return has_catch_error_; }
+  void set_has_catch_error(bool value) { has_catch_error_ = value; }
 
  private:
   void PrintToJSONObjectRegular(JSONObject* jsobj);
@@ -423,6 +432,7 @@ class ActivationFrame : public ZoneAllocated {
   Context& ctx_ = Context::ZoneHandle();
   const Code& code_;
   const Function& function_;
+  const Closure& closure_;
 
   bool token_pos_initialized_ = false;
   TokenPosition token_pos_ = TokenPosition::kNoSource;
@@ -443,6 +453,8 @@ class ActivationFrame : public ZoneAllocated {
   LocalVarDescriptors& var_descriptors_ = LocalVarDescriptors::ZoneHandle();
   ZoneGrowableArray<intptr_t> desc_indices_;
   PcDescriptors& pc_desc_ = PcDescriptors::ZoneHandle();
+
+  bool has_catch_error_ = false;
 
   friend class Debugger;
   friend class DebuggerStackTrace;
@@ -471,8 +483,8 @@ class DebuggerStackTrace : public ZoneAllocated {
 
  private:
   void AddActivation(ActivationFrame* frame);
-  void AddAsyncSuspension();
-  void AddAsyncAwaiterFrame(uword pc, const Code& code);
+  void AddAsyncSuspension(bool has_catch_error);
+  void AddAsyncAwaiterFrame(uword pc, const Code& code, const Closure& closure);
 
   void AppendCodeFrames(StackFrame* frame, const Code& code);
 

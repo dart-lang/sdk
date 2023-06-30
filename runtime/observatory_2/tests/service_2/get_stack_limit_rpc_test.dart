@@ -53,10 +53,18 @@ var tests = <IsolateTest>[
     expect(asyncFrames.length, greaterThan(frames.length));
     expect(stack['truncated'], false);
     verifyStack(frames, [
-      'bar', 'foo', 'bar', 'foo',
-      'bar', 'foo', 'bar', 'foo',
-      'bar', 'foo', 'bar', 'foo',
-      '_RootZone.runUnary', // Internal async. mech. ..
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo'
     ]);
 
     final fullStackLength = frames.length;
@@ -71,10 +79,18 @@ var tests = <IsolateTest>[
     expect(asyncFrames.length, fullStackLength + 1);
     expect(stack['truncated'], true);
     verifyStack(frames, [
-      'bar', 'foo', 'bar', 'foo',
-      'bar', 'foo', 'bar', 'foo',
-      'bar', 'foo', 'bar', 'foo',
-      '_RootZone.runUnary', // Internal async. mech. ..
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo',
+      'bar',
+      'foo'
     ]);
 
     // Try a limit < actual stack depth and expect to get a stack of depth

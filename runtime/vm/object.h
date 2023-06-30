@@ -11,6 +11,7 @@
 
 #include <limits>
 #include <tuple>
+#include <utility>
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
@@ -457,6 +458,7 @@ class Object {
   V(RecordType, null_record_type)                                              \
   V(TypeArguments, null_type_arguments)                                        \
   V(CompressedStackMaps, null_compressed_stackmaps)                            \
+  V(Closure, null_closure)                                                     \
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
@@ -3079,6 +3081,22 @@ class Function : public Object {
   ContextScopePtr context_scope() const;
   void set_context_scope(const ContextScope& value) const;
 
+  struct AwaiterLink {
+    // Context depth at which the `@pragma('vm:awaiter-link')` variable
+    // is located.
+    uint8_t depth = UntaggedClosureData::kNoAwaiterLinkDepth;
+    // Context index at which the `@pragma('vm:awaiter-link')` variable
+    // is located.
+    uint8_t index = -1;
+  };
+
+  AwaiterLink awaiter_link() const;
+  void set_awaiter_link(AwaiterLink link) const;
+  bool HasAwaiterLink() const {
+    return IsClosureFunction() &&
+           (awaiter_link().depth != UntaggedClosureData::kNoAwaiterLinkDepth);
+  }
+
   // Enclosing function of this local function.
   FunctionPtr parent_function() const;
 
@@ -3999,6 +4017,10 @@ class Function : public Object {
   FOR_EACH_FUNCTION_KIND_BIT(DEFINE_ACCESSORS)
 #undef DEFINE_ACCESSORS
 
+  static bool is_visible(FunctionPtr f) {
+    return f.untag()->kind_tag_.Read<VisibleBit>();
+  }
+
 #define DEFINE_ACCESSORS(name, accessor_name)                                  \
   void set_##accessor_name(bool value) const {                                 \
     untag()->kind_tag_.UpdateBool<name##Bit>(value);                           \
@@ -4127,16 +4149,28 @@ class ClosureData : public Object {
     return RoundedAllocationSize(sizeof(UntaggedClosureData));
   }
 
-  static intptr_t default_type_arguments_kind_offset() {
-    return OFFSET_OF(UntaggedClosureData, default_type_arguments_kind_);
+  static intptr_t packed_fields_offset() {
+    return OFFSET_OF(UntaggedClosureData, packed_fields_);
   }
 
   using DefaultTypeArgumentsKind =
       UntaggedClosureData::DefaultTypeArgumentsKind;
+  using PackedDefaultTypeArgumentsKind =
+      UntaggedClosureData::PackedDefaultTypeArgumentsKind;
+
+  static constexpr uint8_t kNoAwaiterLinkDepth =
+      UntaggedClosureData::kNoAwaiterLinkDepth;
 
  private:
   ContextScopePtr context_scope() const { return untag()->context_scope(); }
   void set_context_scope(const ContextScope& value) const;
+
+  void set_packed_fields(uint32_t value) const {
+    untag()->packed_fields_ = value;
+  }
+
+  Function::AwaiterLink awaiter_link() const;
+  void set_awaiter_link(Function::AwaiterLink link) const;
 
   // Enclosing function of this local function.
   PRECOMPILER_WSR_FIELD_DECLARATION(Function, parent_function)
@@ -7252,21 +7286,16 @@ class ContextScope : public Object {
 
   void ClearFlagsAt(intptr_t scope_index) const;
 
-  bool IsFinalAt(intptr_t scope_index) const;
-  void SetIsFinalAt(intptr_t scope_index, bool is_final) const;
-
-  bool IsLateAt(intptr_t scope_index) const;
-  void SetIsLateAt(intptr_t scope_index, bool is_late) const;
-
   intptr_t LateInitOffsetAt(intptr_t scope_index) const;
   void SetLateInitOffsetAt(intptr_t scope_index,
                            intptr_t late_init_offset) const;
 
-  bool IsConstAt(intptr_t scope_index) const;
-  void SetIsConstAt(intptr_t scope_index, bool is_const) const;
+#define DECLARE_FLAG_ACCESSORS(Name)                                           \
+  bool Is##Name##At(intptr_t scope_index) const;                               \
+  void SetIs##Name##At(intptr_t scope_index, bool value) const;
 
-  bool IsInvisibleAt(intptr_t scope_index) const;
-  void SetIsInvisibleAt(intptr_t scope_index, bool is_invisible) const;
+  CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(DECLARE_FLAG_ACCESSORS)
+#undef DECLARE_FLAG_ACCESSORS
 
   AbstractTypePtr TypeAt(intptr_t scope_index) const;
   void SetTypeAt(intptr_t scope_index, const AbstractType& type) const;
@@ -7323,8 +7352,8 @@ class ContextScope : public Object {
     return untag()->VariableDescAddr(index);
   }
 
-  bool GetFlagAt(intptr_t scope_index, intptr_t mask) const;
-  void SetFlagAt(intptr_t scope_index, intptr_t mask, bool value) const;
+  bool GetFlagAt(intptr_t scope_index, intptr_t bit_index) const;
+  void SetFlagAt(intptr_t scope_index, intptr_t bit_index, bool value) const;
 
   FINAL_HEAP_OBJECT_IMPLEMENTATION(ContextScope, Object);
   friend class Class;
@@ -13486,6 +13515,12 @@ using InstantiationsCacheTable =
 void DumpTypeTable(Isolate* isolate);
 void DumpTypeParameterTable(Isolate* isolate);
 void DumpTypeArgumentsTable(Isolate* isolate);
+
+bool FindPragmaInMetadata(Thread* T,
+                          const Object& metadata_obj,
+                          const String& pragma_name,
+                          bool multiple = false,
+                          Object* options = nullptr);
 
 EntryPointPragma FindEntryPointPragma(IsolateGroup* isolate_group,
                                       const Array& metadata,

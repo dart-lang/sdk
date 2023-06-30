@@ -478,11 +478,9 @@ abstract interface class Future<T> {
   ///   return 'result';
   /// }
   /// ```
-  @pragma("vm:recognized", "other")
   static Future<List<T>> wait<T>(Iterable<Future<T>> futures,
       {bool eagerError = false, void cleanUp(T successValue)?}) {
-    // This is a VM recognised method, and the _future variable is deliberately
-    // allocated in a specific slot in the closure context for stack unwinding.
+    @pragma('vm:awaiter-link')
     final _Future<List<T>> _future = _Future<List<T>>();
     List<T?>? values; // Collects the values. Set to null on error.
     int remaining = 0; // How many futures are we waiting for.
@@ -1068,6 +1066,7 @@ extension FutureExtensions<T> on Future<T> {
       }
       return handleError(error, stackTrace);
     }
+
     if (this is _Future<Object?>) {
       // Internal method working like `catchError`,
       // but allows specifying a different result future type.

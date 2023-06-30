@@ -203,6 +203,7 @@ void ParsedFunction::AllocateVariables() {
           variable->declaration_token_pos(), variable->token_pos(), tmp,
           variable->type(), variable->kernel_offset(),
           variable->parameter_type(), variable->parameter_value());
+      raw_parameter->set_annotations_offset(variable->annotations_offset());
       if (variable->is_explicit_covariant_parameter()) {
         raw_parameter->set_is_explicit_covariant_parameter();
       }

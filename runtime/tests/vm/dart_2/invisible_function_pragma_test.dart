@@ -1,15 +1,27 @@
 // Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+//
+// Note: we pass --save-debugging-info=* without --dwarf-stack-traces to
+// make this test pass on vm-aot-dwarf-* builders.
+//
+// VMOptions=--save-debugging-info=$TEST_COMPILATION_DIR/debug.so
+// VMOptions=--dwarf-stack-traces --save-debugging-info=$TEST_COMPILATION_DIR/debug.so
 
 // @dart = 2.9
 
 import 'awaiter_stacks/harness.dart' as harness;
 
 main() async {
+  if (harness.shouldSkip()) {
+    // Skip the test in this configuration.
+    return;
+  }
+
   harness.configure(currentExpectations);
 
   StackTrace trace = StackTrace.empty;
+
   A.visible(() => trace = StackTrace.current);
   await harness.checkExpectedStack(trace);
 
@@ -33,22 +45,31 @@ main() async {
 
 class A {
   A.visible(void Function() fun) {
+    print('A.visible');
     fun();
   }
 
   @pragma('vm:invisible')
   A.invisible(void Function() fun) {
+    print('A.invisible');
     fun();
   }
 }
 
-void visible(void Function() fun) => fun();
+void visible(void Function() fun) {
+  print('visible()');
+  fun();
+}
 
 @pragma('vm:invisible')
-void invisible(void Function() fun) => fun();
+void invisible(void Function() fun) {
+  print('invisible()');
+  fun();
+}
 
 void visibleClosure(void Function() fun) {
   visibleInner() {
+    print('visibleInner');
     fun();
   }
 
@@ -58,6 +79,7 @@ void visibleClosure(void Function() fun) {
 void invisibleClosure(void Function() fun) {
   @pragma('vm:invisible')
   invisibleInner() {
+    print('invisibleInner');
     fun();
   }
 

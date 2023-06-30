@@ -2545,9 +2545,9 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   LocalVariable* closure_data = MakeTemporary("closure_data");
 
   store_default += LoadLocal(closure_data);
-  const auto& slot = Slot::ClosureData_default_type_arguments_kind();
-  store_default += LoadNativeField(slot);
-  store_default += Box(slot.representation());
+  store_default += BuildExtractUnboxedSlotBitFieldIntoSmi<
+      ClosureData::PackedDefaultTypeArgumentsKind>(
+      Slot::ClosureData_packed_fields());
   LocalVariable* default_tav_kind = MakeTemporary("default_tav_kind");
 
   // Two locals to drop after join, closure_data and default_tav_kind.
