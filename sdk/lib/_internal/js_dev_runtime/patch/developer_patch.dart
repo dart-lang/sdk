@@ -12,6 +12,15 @@ import 'dart:async';
 import 'dart:convert' show json;
 import 'dart:isolate';
 
+// These values must be kept in sync with developer/timeline.dart.
+const int _beginPatch = 1;
+const int _endPatch = 2;
+const int _asyncBeginPatch = 5;
+const int _asyncEndPatch = 7;
+const int _flowBeginPatch = 9;
+const int _flowStepPatch = 10;
+const int _flowEndPatch = 11;
+
 var _issuedRegisterExtensionWarning = false;
 var _issuedPostEventWarning = false;
 final _developerSupportWarning = 'from dart:developer is only supported in '
@@ -140,26 +149,110 @@ void _postEvent(String eventKind, String eventData) {
 
 @patch
 bool _isDartStreamEnabled() {
-  return false;
+  return true;
 }
 
 @patch
 int _getTraceClock() {
-  // TODO.
-  return _clockValue++;
+  // Note: Use `millisecondsSinceEpoch` instead of `microsecondsSinceEpoch`
+  // because JS isn't able to hold the value of `microsecondsSinceEpoch` without
+  // rounding errors.
+  return DateTime.now().millisecondsSinceEpoch;
 }
 
-int _clockValue = 0;
+int _taskId = 1;
 
 @patch
 int _getNextTaskId() {
-  return 0;
+  return _taskId++;
+}
+
+bool _isBeginEvent(int type) => type == _beginPatch || type == _asyncBeginPatch;
+
+bool _isEndEvent(int type) => type == _endPatch || type == _asyncEndPatch;
+
+bool _isUnsupportedEvent(int type) =>
+    type == _flowBeginPatch || type == _flowEndPatch || type == _flowStepPatch;
+
+String _createEventName({
+  required int taskId,
+  required String name,
+  required bool isBeginEvent,
+  required bool isEndEvent,
+}) {
+  if (isBeginEvent) {
+    return '$taskId-$name-begin';
+  }
+  if (isEndEvent) {
+    return '$taskId-$name-end';
+  }
+  // Return only the name for events that don't need measurements:
+  return name;
+}
+
+Map<String, int> _eventNameToCount = {};
+
+String _postfixWithCount(String eventName) {
+  final count = _eventNameToCount[eventName];
+  if (count == null) return eventName;
+  return '$eventName-$count';
+}
+
+void _incrementEventCount(String eventName) {
+  final currentCount = _eventNameToCount[eventName] ?? 0;
+  _eventNameToCount[eventName] = currentCount + 1;
+}
+
+void _decrementEventCount(String eventName) {
+  if (!_eventNameToCount.containsKey(eventName)) return;
+
+  final newCount = _eventNameToCount[eventName]! - 1;
+  if (newCount <= 0) {
+    _eventNameToCount.remove(eventName);
+  } else {
+    _eventNameToCount[eventName] = newCount;
+  }
 }
 
 @patch
 void _reportTaskEvent(
     int taskId, int flowId, int type, String name, String argumentsAsJson) {
-  // TODO.
+  // Ignore any unsupported events.
+  if (_isUnsupportedEvent(type)) return;
+
+  final isBeginEvent = _isBeginEvent(type);
+  final isEndEvent = _isEndEvent(type);
+  var currentEventName = _createEventName(
+    taskId: taskId,
+    name: name,
+    isBeginEvent: isBeginEvent,
+    isEndEvent: isEndEvent,
+  );
+  // Postfix the event name with the current count of events with that name. This
+  // guarantees that we are always measuring from the most recent begin event.
+  if (isBeginEvent) {
+    _incrementEventCount(currentEventName);
+    currentEventName = _postfixWithCount(currentEventName);
+  }
+  final markOptions = JS('', '{detail: JSON.parse(#)}', argumentsAsJson);
+
+  // Start by creating a mark event.
+  JS('', 'performance.mark(#, #)', currentEventName, markOptions);
+
+  // If it's an end event, then create a measurement from the most recent begin
+  // event with the same name.
+  if (isEndEvent) {
+    final beginEventName = _createEventName(
+        taskId: taskId, name: name, isBeginEvent: true, isEndEvent: false);
+    JS(
+      '',
+      'performance.measure(#, #, #)',
+      name,
+      _postfixWithCount(beginEventName),
+      currentEventName,
+    );
+    _decrementEventCount(beginEventName);
+  }
 }
 
 @patch
