@@ -816,7 +816,11 @@ class DebugInformationEntry {
       DartCallInfo(
           function: unit.nameOfOrigin(abstractOrigin ?? -1),
           inlined: inlined,
-          internal: isArtificial,
+          // Don't hide artificial (invisible) methods which appear as
+          // Future listeners. This is because tear-offs of static methods
+          // are marked as invisible (even if the method itself is visible)
+          // and we want these to appear in stack traces.
+          internal: isArtificial && address != lowPC,
           filename: filename,
           line: line,
           column: column)

@@ -159,8 +159,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -262,7 +262,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -869,8 +869,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -973,7 +973,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -1581,8 +1581,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -1684,7 +1684,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -2290,8 +2290,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -2394,7 +2394,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -3005,8 +3005,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x14;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x14;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -3109,7 +3109,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -3717,8 +3717,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x14;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x14;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -3821,7 +3821,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -4430,8 +4430,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -4533,7 +4533,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -5141,8 +5141,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -5245,7 +5245,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -5851,8 +5851,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -5951,7 +5951,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -6553,8 +6553,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -6654,7 +6654,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -7257,8 +7257,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -7357,7 +7357,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -7958,8 +7958,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -8059,7 +8059,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -8665,8 +8665,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x14;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x14;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -8766,7 +8766,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -9369,8 +9369,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x14;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x14;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -9470,7 +9470,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -10074,8 +10074,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x4;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x10;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x10;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x18;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x14;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x1c;
@@ -10174,7 +10174,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x280;
+    ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -10777,8 +10777,8 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     Closure_instantiator_type_arguments_offset = 0x8;
-static constexpr dart::compiler::target::word
-    ClosureData_default_type_arguments_kind_offset = 0x20;
+static constexpr dart::compiler::target::word ClosureData_packed_fields_offset =
+    0x20;
 static constexpr dart::compiler::target::word Code_instructions_offset = 0x30;
 static constexpr dart::compiler::target::word Code_object_pool_offset = 0x28;
 static constexpr dart::compiler::target::word Code_owner_offset = 0x38;
@@ -10878,7 +10878,7 @@ static constexpr dart::compiler::target::word ObjectStore_string_type_offset =
 static constexpr dart::compiler::target::word ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    ObjectStore_ffi_callback_code_offset = 0x500;
+    ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -11501,7 +11501,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x10;
+    AOT_ClosureData_packed_fields_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x18;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -11619,7 +11619,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x280;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -12288,7 +12288,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -12406,7 +12406,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -13078,7 +13078,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -13196,7 +13196,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -13867,7 +13867,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x14;
+    AOT_ClosureData_packed_fields_offset = 0x14;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -13985,7 +13985,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -14656,7 +14656,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x14;
+    AOT_ClosureData_packed_fields_offset = 0x14;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -14774,7 +14774,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -15447,7 +15447,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x10;
+    AOT_ClosureData_packed_fields_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x18;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -15565,7 +15565,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x280;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -16235,7 +16235,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -16353,7 +16353,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -17020,7 +17020,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x10;
+    AOT_ClosureData_packed_fields_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x18;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -17134,7 +17134,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x280;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -17798,7 +17798,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -17912,7 +17912,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -18579,7 +18579,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -18693,7 +18693,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -19359,7 +19359,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x14;
+    AOT_ClosureData_packed_fields_offset = 0x14;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -19473,7 +19473,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -20139,7 +20139,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x14;
+    AOT_ClosureData_packed_fields_offset = 0x14;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -20253,7 +20253,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word
@@ -20921,7 +20921,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x4;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x10;
+    AOT_ClosureData_packed_fields_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x18;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -21035,7 +21035,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x84;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x280;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x278;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x224;
 static constexpr dart::compiler::target::word
@@ -21700,7 +21700,7 @@ static constexpr dart::compiler::target::word AOT_Closure_hash_offset = 0x30;
 static constexpr dart::compiler::target::word
     AOT_Closure_instantiator_type_arguments_offset = 0x8;
 static constexpr dart::compiler::target::word
-    AOT_ClosureData_default_type_arguments_kind_offset = 0x20;
+    AOT_ClosureData_packed_fields_offset = 0x20;
 static constexpr dart::compiler::target::word AOT_Code_instructions_offset =
     0x30;
 static constexpr dart::compiler::target::word AOT_Code_object_pool_offset =
@@ -21814,7 +21814,7 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ObjectStore_type_type_offset =
     0x108;
 static constexpr dart::compiler::target::word
-    AOT_ObjectStore_ffi_callback_code_offset = 0x500;
+    AOT_ObjectStore_ffi_callback_code_offset = 0x4f0;
 static constexpr dart::compiler::target::word
     AOT_ObjectStore_suspend_state_await_offset = 0x448;
 static constexpr dart::compiler::target::word

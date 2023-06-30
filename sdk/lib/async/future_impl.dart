@@ -6,6 +6,7 @@ part of dart.async;
 
 abstract class _Completer<T> implements Completer<T> {
   @pragma("wasm:entry-point")
+  @pragma("vm:entry-point")
   final _Future<T> future = new _Future<T>();
 
   // Overridden by either a synchronous or asynchronous implementation.
@@ -35,6 +36,7 @@ abstract class _Completer<T> implements Completer<T> {
 }
 
 /// Completer which completes future asynchronously.
+@pragma("vm:entry-point")
 class _AsyncCompleter<T> extends _Completer<T> {
   @pragma("wasm:entry-point")
   void complete([FutureOr<T>? value]) {
@@ -50,6 +52,7 @@ class _AsyncCompleter<T> extends _Completer<T> {
 /// Completer which completes future synchronously.
 ///
 /// Created by [Completer.sync]. Use with caution.
+@pragma("vm:entry-point")
 class _SyncCompleter<T> extends _Completer<T> {
   void complete([FutureOr<T>? value]) {
     if (!future._mayComplete) throw new StateError("Future already completed");
@@ -914,12 +917,10 @@ class _Future<T> implements Future<T> {
     }
   }
 
-  @pragma("vm:recognized", "other")
   @pragma("vm:entry-point")
   Future<T> timeout(Duration timeLimit, {FutureOr<T> onTimeout()?}) {
     if (_isComplete) return new _Future.immediate(this);
-    // This is a VM recognised method, and the _future variable is deliberately
-    // allocated in a specific slot in the closure context for stack unwinding.
+    @pragma('vm:awaiter-link')
     _Future<T> _future = new _Future<T>();
     Timer timer;
     if (onTimeout == null) {

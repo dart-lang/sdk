@@ -550,8 +550,6 @@ void ScopeBuilder::VisitFunctionNode() {
   FunctionNodeHelper function_node_helper(&helper_);
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kTypeParameters);
 
-  const auto& function = parsed_function_->function();
-
   intptr_t list_length =
       helper_.ReadListLength();  // read type_parameters list length.
   for (intptr_t i = 0; i < list_length; ++i) {
@@ -572,19 +570,6 @@ void ScopeBuilder::VisitFunctionNode() {
     PositionScope scope(&helper_.reader_);
     VisitStatement();  // Read body
     first_body_token_position_ = helper_.reader_.min_position();
-  }
-
-  // Mark known chained futures such as _Future::timeout()'s _future.
-  if (function.recognized_kind() == MethodRecognizer::kFutureTimeout &&
-      depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
-  } else if (function.recognized_kind() == MethodRecognizer::kFutureWait &&
-             depth_.function_ == 1) {
-    LocalVariable* future = scope_->LookupVariableByName(Symbols::_future());
-    ASSERT(future != nullptr);
-    future->set_is_chained_future();
   }
 }
 
@@ -1332,6 +1317,8 @@ void ScopeBuilder::VisitVariableDeclaration() {
   const intptr_t kernel_offset =
       helper_.data_program_offset_ + helper_.ReaderOffset();
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   AbstractType& type = BuildAndVisitVariableType();
 
@@ -1356,6 +1343,9 @@ void ScopeBuilder::VisitVariableDeclaration() {
   }
   LocalVariable* variable =
       MakeVariable(helper.position_, end_position, name, type, kernel_offset);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1646,6 +1636,8 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   const InferredTypeMetadata parameter_type =
       inferred_type_metadata_helper_.GetInferredType(helper_.ReaderOffset());
   VariableDeclarationHelper helper(&helper_);
+  helper.ReadUntilExcluding(VariableDeclarationHelper::kAnnotations);
+  const intptr_t annotations_offset = helper_.ReaderOffset();
   helper.ReadUntilExcluding(VariableDeclarationHelper::kType);
   String& name = H.DartSymbolObfuscate(helper.name_index_);
   ASSERT(name.Length() > 0);
@@ -1656,6 +1648,9 @@ void ScopeBuilder::AddVariableDeclarationParameter(
   LocalVariable* variable =
       MakeVariable(helper.position_, helper.position_, name, type,
                    kernel_offset, &parameter_type);
+  if (helper.annotation_count_ > 0) {
+    variable->set_annotations_offset(annotations_offset);
+  }
   if (helper.IsFinal()) {
     variable->set_is_final();
   }
@@ -1731,7 +1726,7 @@ LocalVariable* ScopeBuilder::MakeVariable(
     TokenPosition token_pos,
     const String& name,
     const AbstractType& type,
-    intptr_t kernel_offset,
+    intptr_t kernel_offset /* = LocalVariable::kNoKernelOffset */,
     const InferredTypeMetadata* param_type_md /* = nullptr */) {
   CompileType* param_type = nullptr;
   const Object* param_value = nullptr;

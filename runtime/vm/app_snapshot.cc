@@ -1316,8 +1316,7 @@ class ClosureDataSerializationCluster : public SerializationCluster {
       }
       WriteCompressedField(data, parent_function);
       WriteCompressedField(data, closure);
-      s->WriteUnsigned(
-          static_cast<intptr_t>(data->untag()->default_type_arguments_kind_));
+      s->WriteUnsigned(static_cast<uint32_t>(data->untag()->packed_fields_));
     }
   }
 
@@ -1351,8 +1350,7 @@ class ClosureDataDeserializationCluster : public DeserializationCluster {
       }
       data->untag()->parent_function_ = static_cast<FunctionPtr>(d.ReadRef());
       data->untag()->closure_ = static_cast<ClosurePtr>(d.ReadRef());
-      data->untag()->default_type_arguments_kind_ =
-          static_cast<ClosureData::DefaultTypeArgumentsKind>(d.ReadUnsigned());
+      data->untag()->packed_fields_ = d.ReadUnsigned<uint32_t>();
     }
   }
 };

@@ -51,6 +51,7 @@
 #include "vm/regexp_parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
+#include "vm/stack_trace.h"
 #include "vm/symbols.h"
 #include "vm/tags.h"
 #include "vm/timeline.h"
@@ -122,8 +123,9 @@ struct RetainReasons : public AllStatic {
   static constexpr const char* kImplicitClosure = "implicit closure";
   // The object is a local closure.
   static constexpr const char* kLocalClosure = "local closure";
-  // The object is a sync or async function or in the parent chain of one.
-  static constexpr const char* kIsSyncAsyncFunction = "sync or async function";
+  // The object is needed for async stack unwinding.
+  static constexpr const char* kAsyncStackUnwinding =
+      "needed for async stack unwinding";
   // The object is the initializer for a static field.
   static constexpr const char* kStaticFieldInitializer =
       "static field initializer";
@@ -1135,15 +1137,6 @@ void Precompiler::AddTypesOf(const Function& function) {
     return;
   }
 
-  // Special case to allow walking of lazy async stacks to work.
-  // Should match parent checks in CallerClosureFinder::FindCaller.
-  if (parent_function.recognized_kind() == MethodRecognizer::kFutureTimeout ||
-      parent_function.recognized_kind() == MethodRecognizer::kFutureWait) {
-    AddRetainReason(parent_function, RetainReasons::kIsSyncAsyncFunction);
-    AddTypesOf(parent_function);
-    return;
-  }
-
   // We're not retaining the parent due to this function, so wrap it with
   // a weak serialization reference.
   const auto& data = ClosureData::CheckedHandle(Z, function.data());
@@ -1405,6 +1398,10 @@ const char* Precompiler::MustRetainFunction(const Function& function) {
   }
   if (Function::IsDynamicInvocationForwarderName(function.name())) {
     return "dynamic invocation forwarder";
+  }
+
+  if (StackTraceUtils::IsNeededForAsyncAwareUnwinding(function)) {
+    return RetainReasons::kAsyncStackUnwinding;
   }
 
   return nullptr;
@@ -2207,6 +2204,9 @@ void Precompiler::DropFunctions() {
       // Dynamic resolution of entry points also checks for valid arguments.
       return AddRetainReason(sig, RetainReasons::kEntryPointPragmaSignature);
     }
+    if (StackTraceUtils::IsNeededForAsyncAwareUnwinding(function)) {
+      return AddRetainReason(sig, RetainReasons::kAsyncStackUnwinding);
+    }
     if (FLAG_trace_precompiler) {
       THR_Print("Clearing signature for function %s\n",
                 function.ToLibNamePrefixedQualifiedCString());
@@ -2920,6 +2920,7 @@ void Precompiler::DiscardCodeObjects() {
                        const FunctionSet& functions_called_dynamically)
         : zone_(zone),
           function_(Function::Handle(zone)),
+          parent_function_(Function::Handle(zone)),
           class_(Class::Handle(zone)),
           library_(Library::Handle(zone)),
           loading_unit_(LoadingUnit::Handle(zone)),
@@ -2975,9 +2976,8 @@ void Precompiler::DiscardCodeObjects() {
 
       function_ = code.function();
       if (functions_to_retain_.ContainsKey(function_)) {
-        // Retain Code objects corresponding to:
-        // * async/async* closures (to construct async stacks).
-        // * native functions (to find native implementation).
+        // Retain Code objects corresponding to native functions
+        // (to find native implementation).
         if (function_.is_native()) {
           ++codes_with_native_function_;
           return;
@@ -2987,6 +2987,11 @@ void Precompiler::DiscardCodeObjects() {
         // called functions.
         if (functions_called_dynamically_.ContainsKey(function_)) {
           ++codes_with_dynamically_called_function_;
+          return;
+        }
+
+        if (StackTraceUtils::IsNeededForAsyncAwareUnwinding(function_)) {
+          ++codes_with_function_needed_for_async_unwinding_;
           return;
         }
       } else {
@@ -3011,6 +3016,10 @@ void Precompiler::DiscardCodeObjects() {
       }
 
       code.set_is_discarded(true);
+      if (FLAG_trace_precompiler) {
+        THR_Print("Discarding code object corresponding to %s\n",
+                  function_.ToFullyQualifiedCString());
+      }
       ++discarded_codes_;
     }
 
@@ -3037,6 +3046,8 @@ void Precompiler::DiscardCodeObjects() {
                 codes_with_native_function_);
       THR_Print("    %8" Pd " Codes with dynamically called functions\n",
                 codes_with_dynamically_called_function_);
+      THR_Print("    %8" Pd " Codes with async unwinding related functions\n",
+                codes_with_function_needed_for_async_unwinding_);
       THR_Print("    %8" Pd " Codes with deferred functions\n",
                 codes_with_deferred_function_);
       THR_Print("    %8" Pd " Codes with ffi trampoline functions\n",
@@ -3050,6 +3061,7 @@ void Precompiler::DiscardCodeObjects() {
    private:
     Zone* zone_;
     Function& function_;
+    Function& parent_function_;
     Class& class_;
     Library& library_;
     LoadingUnit& loading_unit_;
@@ -3067,6 +3079,7 @@ void Precompiler::DiscardCodeObjects() {
     intptr_t codes_with_pc_descriptors_ = 0;
     intptr_t codes_with_native_function_ = 0;
     intptr_t codes_with_dynamically_called_function_ = 0;
+    intptr_t codes_with_function_needed_for_async_unwinding_ = 0;
     intptr_t codes_with_deferred_function_ = 0;
     intptr_t codes_with_ffi_trampoline_function_ = 0;
     intptr_t codes_used_as_call_targets_ = 0;

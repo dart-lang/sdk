@@ -1398,7 +1398,21 @@ class UntaggedClosureData : public UntaggedObject {
                     compiler::target::kSmiBits,
                 "Default type arguments kind must fit in a Smi");
 
-  DefaultTypeArgumentsKind default_type_arguments_kind_;
+  static constexpr uint8_t kNoAwaiterLinkDepth = 0xFF;
+
+  AtomicBitFieldContainer<uint32_t> packed_fields_;
+
+  using PackedDefaultTypeArgumentsKind =
+      BitField<decltype(packed_fields_), DefaultTypeArgumentsKind, 0, 8>;
+  using PackedAwaiterLinkDepth =
+      BitField<decltype(packed_fields_),
+               uint8_t,
+               PackedDefaultTypeArgumentsKind::kNextBit,
+               8>;
+  using PackedAwaiterLinkIndex = BitField<decltype(packed_fields_),
+                                          uint8_t,
+                                          PackedAwaiterLinkDepth::kNextBit,
+                                          8>;
 
   friend class Function;
   friend class UnitDeserializationRoots;
@@ -2326,6 +2340,13 @@ class UntaggedContext : public UntaggedObject {
                                 ObjectPtr);  // num_variables_
 };
 
+#define CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(V)                               \
+  V(Final)                                                                     \
+  V(Const)                                                                     \
+  V(Late)                                                                      \
+  V(Invisible)                                                                 \
+  V(AwaiterLink)
+
 class UntaggedContextScope : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ContextScope);
 
@@ -2336,10 +2357,11 @@ class UntaggedContextScope : public UntaggedObject {
     CompressedSmiPtr token_pos;
     CompressedStringPtr name;
     CompressedSmiPtr flags;
-    static constexpr intptr_t kIsFinal = 1 << 0;
-    static constexpr intptr_t kIsConst = 1 << 1;
-    static constexpr intptr_t kIsLate = 1 << 2;
-    static constexpr intptr_t kIsInvisible = 1 << 3;
+    enum FlagBits {
+#define DECLARE_BIT(Name) kIs##Name,
+      CONTEXT_SCOPE_VARIABLE_DESC_FLAG_LIST(DECLARE_BIT)
+#undef DECLARE_BIT
+    };
     CompressedSmiPtr late_init_offset;
     union {
       CompressedAbstractTypePtr type;

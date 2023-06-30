@@ -6,6 +6,7 @@
 #include "vm/scopes.h"
 
 #include "vm/compiler/backend/slot.h"
+#include "vm/kernel.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/stack_frame.h"
@@ -146,48 +147,13 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   VariableIndex next_index =
       first_parameter_index;  // Current free frame index.
 
-  LocalVariable* chained_future = nullptr;
   LocalVariable* suspend_state_var = nullptr;
   for (intptr_t i = 0; i < num_variables(); i++) {
     LocalVariable* variable = VariableAt(i);
-    if (variable->owner() == this) {
-      if (variable->is_captured()) {
-        if (variable->is_chained_future()) {
-          chained_future = variable;
-        }
-      } else {
-        if (variable->name().Equals(Symbols::SuspendStateVar())) {
-          suspend_state_var = variable;
-        }
-      }
-    }
-  }
-  if (chained_future != nullptr) {
-    AllocateContextVariable(chained_future, &context_owner);
-    *found_captured_variables = true;
-    // Remember context indices of _future variables in _Future.timeout and
-    // Future.wait. They are used while collecting async stack traces.
-    if (function.recognized_kind() == MethodRecognizer::kFutureTimeout) {
-#ifdef DEBUG
-      auto old_value = IsolateGroup::Current()
-                           ->object_store()
-                           ->future_timeout_future_index();
-      ASSERT(old_value == Object::null() ||
-             Smi::Value(old_value) == chained_future->index().value());
-#endif  // DEBUG
-      IsolateGroup::Current()->object_store()->set_future_timeout_future_index(
-          Smi::Handle(Smi::New(chained_future->index().value())));
-    } else if (function.recognized_kind() == MethodRecognizer::kFutureWait) {
-#ifdef DEBUG
-      auto old_value =
-          IsolateGroup::Current()->object_store()->future_wait_future_index();
-      ASSERT(old_value == Object::null() ||
-             Smi::Value(old_value) == chained_future->index().value());
-#endif  // DEBUG
-      IsolateGroup::Current()->object_store()->set_future_wait_future_index(
-          Smi::Handle(Smi::New(chained_future->index().value())));
-    } else {
-      UNREACHABLE();
+    if (variable->owner() == this &&
+        variable->name().Equals(Symbols::SuspendStateVar())) {
+      ASSERT(!variable->is_captured());
+      suspend_state_var = variable;
     }
   }
 
@@ -220,23 +186,21 @@ VariableIndex LocalScope::AllocateVariables(const Function& function,
   // No overlapping of parameters and locals.
   ASSERT(next_index.value() >= first_local_index.value());
   next_index = first_local_index;
-  while (pos < num_variables()) {
+  for (; pos < num_variables(); pos++) {
     LocalVariable* variable = VariableAt(pos);
+    if (variable == suspend_state_var) {
+      continue;
+    }
+
     if (variable->owner() == this) {
       if (variable->is_captured()) {
-        // Skip the variables already pre-allocated above.
-        if (variable != chained_future) {
-          AllocateContextVariable(variable, &context_owner);
-          *found_captured_variables = true;
-        }
+        AllocateContextVariable(variable, &context_owner);
+        *found_captured_variables = true;
       } else {
-        if (variable != suspend_state_var) {
-          variable->set_index(next_index);
-          next_index = VariableIndex(next_index.value() - 1);
-        }
+        variable->set_index(next_index);
+        next_index = VariableIndex(next_index.value() - 1);
       }
     }
-    pos++;
   }
   // Allocate variables of all children.
   VariableIndex min_index = next_index;
@@ -453,7 +417,13 @@ int LocalScope::NumCapturedVariables() const {
 }
 
 ContextScopePtr LocalScope::PreserveOuterScope(
-    int current_context_level) const {
+    const Function& function,
+    intptr_t current_context_level) const {
+  Zone* zone = Thread::Current()->zone();
+  auto& library = Library::Handle(
+      zone, function.IsNull()
+                ? Library::null()
+                : Class::Handle(zone, function.Owner()).library());
   // Since code generation for nested functions is postponed until first
   // invocation, the function level of the closure scope can only be 1.
   ASSERT(function_level() == 1);
@@ -464,6 +434,8 @@ ContextScopePtr LocalScope::PreserveOuterScope(
   // Create a ContextScope with space for num_captured_vars descriptors.
   const ContextScope& context_scope =
       ContextScope::Handle(ContextScope::New(num_captured_vars, false));
+
+  LocalVariable* awaiter_link = nullptr;
 
   // Create a descriptor for each referenced captured variable of enclosing
   // functions to preserve its name and its context allocation information.
@@ -494,14 +466,40 @@ ContextScopePtr LocalScope::PreserveOuterScope(
       // Adjust the context level relative to the current context level,
       // since the context of the current scope will be at level 0 when
       // compiling the nested function.
-      int adjusted_context_level =
+      intptr_t adjusted_context_level =
           variable->owner()->context_level() - current_context_level;
       context_scope.SetContextLevelAt(captured_idx, adjusted_context_level);
       context_scope.SetKernelOffsetAt(captured_idx, variable->kernel_offset());
+
+      // Handle async frame link.
+      const bool is_awaiter_link = variable->ComputeIfIsAwaiterLink(library);
+      context_scope.SetIsAwaiterLinkAt(captured_idx, is_awaiter_link);
+      if (is_awaiter_link) {
+        awaiter_link = variable;
+      }
       captured_idx++;
     }
   }
   ASSERT(context_scope.num_variables() == captured_idx);  // Verify count.
+
+  if (awaiter_link != nullptr) {
+    const intptr_t depth =
+        current_context_level - awaiter_link->owner()->context_level();
+    const intptr_t index = awaiter_link->index().value();
+    if (Utils::IsUint(8, depth) && Utils::IsUint(8, index)) {
+      function.set_awaiter_link(
+          {static_cast<uint8_t>(depth), static_cast<uint8_t>(index)});
+    } else if (FLAG_precompiled_mode) {
+      OS::PrintErr(
+          "Warning: @pragma('vm:awaiter-link') marked variable %s is visible "
+          "from the function %s but the link {%" Pd ", %" Pd
+          "} can't be encoded\n",
+          awaiter_link->name().ToCString(),
+          function.IsNull() ? "<?>" : function.ToFullyQualifiedCString(), depth,
+          index);
+    }
+  }
+
   return context_scope.ptr();
 }
 
@@ -528,6 +526,7 @@ LocalScope* LocalScope::RestoreOuterScope(const ContextScope& context_scope) {
                             AbstractType::ZoneHandle(context_scope.TypeAt(i)),
                             context_scope.KernelOffsetAt(i));
     }
+    variable->set_is_awaiter_link(context_scope.IsAwaiterLinkAt(i));
     variable->set_is_captured();
     variable->set_index(VariableIndex(context_scope.ContextIndexAt(i)));
     if (context_scope.IsFinalAt(i)) {
@@ -595,6 +594,20 @@ ContextScopePtr LocalScope::CreateImplicitClosureScope(const Function& func) {
   context_scope.SetKernelOffsetAt(0, LocalVariable::kNoKernelOffset);
   ASSERT(context_scope.num_variables() == kNumCapturedVars);  // Verify count.
   return context_scope.ptr();
+}
+
+bool LocalVariable::ComputeIfIsAwaiterLink(const Library& library) {
+  if (is_awaiter_link_ == IsAwaiterLink::kUnknown) {
+    RELEASE_ASSERT(annotations_offset_ != kNoKernelOffset);
+    Thread* T = Thread::Current();
+    Zone* Z = T->zone();
+    const auto& metadata = Object::Handle(
+        Z, kernel::EvaluateMetadata(library, annotations_offset_,
+                                    /* is_annotations_offset = */ true));
+    set_is_awaiter_link(
+        FindPragmaInMetadata(T, metadata, Symbols::vm_awaiter_link()));
+  }
+  return is_awaiter_link_ == IsAwaiterLink::kLink;
 }
 
 bool LocalVariable::Equals(const LocalVariable& other) const {

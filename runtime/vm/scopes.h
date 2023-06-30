@@ -85,6 +85,7 @@ class LocalVariable : public ZoneAllocated {
         token_pos_(token_pos),
         name_(name),
         kernel_offset_(kernel_offset),
+        annotations_offset_(kNoKernelOffset),
         owner_(nullptr),
         type_(type),
         parameter_type_(parameter_type),
@@ -97,10 +98,10 @@ class LocalVariable : public ZoneAllocated {
         is_forced_stack_(false),
         covariance_mode_(kNotCovariant),
         is_late_(false),
-        is_chained_future_(false),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
-        index_() {
+        index_(),
+        is_awaiter_link_(IsAwaiterLink::kNotLink) {
     DEBUG_ASSERT(type.IsNotTemporaryScopedHandle());
     ASSERT(type.IsFinalized());
     ASSERT(name.IsSymbol());
@@ -113,10 +114,17 @@ class LocalVariable : public ZoneAllocated {
   TokenPosition declaration_token_pos() const { return declaration_pos_; }
   const String& name() const { return name_; }
   intptr_t kernel_offset() const { return kernel_offset_; }
+  intptr_t annotations_offset() const { return annotations_offset_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
     ASSERT(owner_ == nullptr);
     owner_ = owner;
+  }
+
+  void set_annotations_offset(intptr_t offset) {
+    annotations_offset_ = offset;
+    is_awaiter_link_ = (offset == kNoKernelOffset) ? IsAwaiterLink::kNotLink
+                                                   : IsAwaiterLink::kUnknown;
   }
 
   const AbstractType& type() const { return type_; }
@@ -130,6 +138,11 @@ class LocalVariable : public ZoneAllocated {
   bool is_captured() const { return is_captured_; }
   void set_is_captured() { is_captured_ = true; }
 
+  bool ComputeIfIsAwaiterLink(const Library& library);
+  void set_is_awaiter_link(bool value) {
+    is_awaiter_link_ = value ? IsAwaiterLink::kLink : IsAwaiterLink::kNotLink;
+  }
+
   // Variables marked as forced to stack are skipped and not captured by
   // CaptureLocalVariables - which iterates scope chain between two scopes
   // and indiscriminately marks all variables as captured.
@@ -139,9 +152,6 @@ class LocalVariable : public ZoneAllocated {
 
   bool is_late() const { return is_late_; }
   void set_is_late() { is_late_ = true; }
-
-  bool is_chained_future() const { return is_chained_future_; }
-  void set_is_chained_future() { is_chained_future_ = true; }
 
   intptr_t late_init_offset() const { return late_init_offset_; }
   void set_late_init_offset(intptr_t late_init_offset) {
@@ -230,6 +240,7 @@ class LocalVariable : public ZoneAllocated {
   const TokenPosition token_pos_;
   const String& name_;
   const intptr_t kernel_offset_;
+  intptr_t annotations_offset_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
   const AbstractType& type_;  // Declaration type of local variable.
@@ -247,10 +258,16 @@ class LocalVariable : public ZoneAllocated {
   bool is_forced_stack_;
   CovarianceMode covariance_mode_;
   bool is_late_;
-  bool is_chained_future_;
   intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;
+
+  enum class IsAwaiterLink {
+    kUnknown,
+    kNotLink,
+    kLink,
+  };
+  IsAwaiterLink is_awaiter_link_;
 
   friend class LocalScope;
   DISALLOW_COPY_AND_ASSIGN(LocalVariable);
@@ -402,7 +419,8 @@ class LocalScope : public ZoneAllocated {
 
   // Create a ContextScope object describing all captured variables referenced
   // from this scope and belonging to outer scopes.
-  ContextScopePtr PreserveOuterScope(int current_context_level) const;
+  ContextScopePtr PreserveOuterScope(const Function& function,
+                                     intptr_t current_context_level) const;
 
   // Mark all local variables that are accessible from this scope up to
   // top_scope (included) as captured unless they are marked as forced to stack.

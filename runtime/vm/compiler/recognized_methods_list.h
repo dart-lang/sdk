@@ -131,10 +131,6 @@ namespace dart {
   V(_SuspendState, set:_errorCallback, SuspendState_setErrorCallback,          \
     0xc3fa77cc)                                                                \
   V(_SuspendState, _clone, SuspendState_clone, 0xae0bb4c0)                     \
-  V(_SuspendState, _createAsyncCallbacks, SuspendState_createAsyncCallbacks,   \
-    0x8625a677)                                                                \
-  V(_SuspendState, _createAsyncStarCallback,                                   \
-    SuspendState_createAsyncStarCallback, 0x98ecfd9c)                          \
   V(_SuspendState, _resume, SuspendState_resume, 0x5d6bf8a9)                   \
   V(_IntegerImplementation, toDouble, IntegerToDouble, 0x9763ff66)             \
   V(_Double, _add, DoubleAdd, 0xea57d747)                                      \
@@ -321,9 +317,6 @@ namespace dart {
   V(::, _getNativeField, GetNativeField, 0xa0050fa5)                           \
   V(::, reachabilityFence, ReachabilityFence, 0x73009f9f)                      \
   V(_Utf8Decoder, _scan, Utf8DecoderScan, 0xb98ea301)                          \
-  V(_Future, timeout, FutureTimeout, 0xa0e8b7f4)                               \
-  V(Future, wait, FutureWait, 0x29515d77)                                      \
-  V(_RootZone, runUnary, RootZoneRunUnary, 0x642af2eb)                         \
   V(_FutureListener, handleValue, FutureListenerHandleValue, 0xec1745d2)       \
   V(::, has63BitSmis, Has63BitSmis, 0xf60ccb11)                                \
   V(::, get:extensionStreamHasListener, ExtensionStreamHasListener, 0xfaa5d763)\

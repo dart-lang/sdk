@@ -447,12 +447,6 @@ dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtim
 dart_2/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
 
 [ $builder_tag == dwarf || $builder_tag == obfuscated ]
-dart/awaiter_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart/awaiter_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart/awaiter_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
-dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
-dart/awaiter_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
-dart/checked_parameter_assert_assignable_stacktrace_test: SkipByDesign # Asserts exact stacktrace output.
 dart/error_messages_in_null_checks_test: SkipByDesign # Relies symbol names in stack traces
 dart/extension_names_test: SkipByDesign # Relies symbol names in stack traces
 dart/extension_unnamed_names_test: SkipByDesign # Relies symbol names in stack traces
@@ -461,12 +455,6 @@ dart/invisible_function_pragma_test: SkipByDesign # Relies symbol names in stack
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Relies symbol names in stack traces
 dart/optimized_stacktrace_line_test: SkipByDesign # Relies symbol names in stack traces
 dart/stacktrace_mixin_application_test: SkipByDesign # Relies symbol names in stack traces
-dart_2/awaiter_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/awaiter_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/awaiter_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/awaiter_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/awaiter_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/checked_parameter_assert_assignable_stacktrace_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/error_messages_in_null_checks_test: SkipByDesign # Relies on uris / symbol names
 dart_2/extension_names_test: SkipByDesign # Relies on uris / symbol names
 dart_2/extension_unnamed_names_test: SkipByDesign # Relies on uris / symbol names

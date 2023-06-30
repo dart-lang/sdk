@@ -2636,8 +2636,9 @@ ISOLATE_UNIT_TEST_CASE(ContextScope) {
   EXPECT(found_captured_vars);
 
   const intptr_t local_scope_context_level = 5;
-  const ContextScope& context_scope = ContextScope::Handle(
-      local_scope->PreserveOuterScope(local_scope_context_level));
+  const ContextScope& context_scope =
+      ContextScope::Handle(local_scope->PreserveOuterScope(
+          Function::null_function(), local_scope_context_level));
   LocalScope* outer_scope = LocalScope::RestoreOuterScope(context_scope);
   EXPECT_EQ(3, outer_scope->num_variables());
 

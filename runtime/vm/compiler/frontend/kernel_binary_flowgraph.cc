@@ -6060,7 +6060,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
 
         LocalScope* scope = scopes()->function_scopes[i].scope;
         const ContextScope& context_scope = ContextScope::Handle(
-            Z, scope->PreserveOuterScope(flow_graph_builder_->context_depth_));
+            Z, scope->PreserveOuterScope(function,
+                                         flow_graph_builder_->context_depth_));
         function.set_context_scope(context_scope);
         function.set_kernel_offset(offset);
         type_translator_.SetupFunctionParameters(Class::Handle(Z), function,

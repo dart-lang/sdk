@@ -27,6 +27,10 @@ class B extends A {
 StackTrace trace = null;
 
 void main() async {
+  if (harness.shouldSkip()) {
+    // Skip the test in this configuration.
+    return;
+  }
   harness.configure(currentExpectations);
 
   A a = new A();

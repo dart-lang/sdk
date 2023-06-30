@@ -235,6 +235,7 @@ ActivationFrame::ActivationFrame(uword pc,
       sp_(sp),
       code_(Code::ZoneHandle(code.ptr())),
       function_(Function::ZoneHandle(code.function())),
+      closure_(Closure::null_closure()),
       deopt_frame_(Array::ZoneHandle(deopt_frame.ptr())),
       deopt_frame_offset_(deopt_frame_offset),
       kind_(kRegular),
@@ -243,10 +244,13 @@ ActivationFrame::ActivationFrame(uword pc,
   ASSERT(!function_.IsNull());
 }
 
-ActivationFrame::ActivationFrame(uword pc, const Code& code)
+ActivationFrame::ActivationFrame(uword pc,
+                                 const Code& code,
+                                 const Closure& closure)
     : pc_(pc),
       code_(Code::ZoneHandle(code.ptr())),
       function_(Function::ZoneHandle(code.function())),
+      closure_(Closure::ZoneHandle(closure.ptr())),
       deopt_frame_(Array::empty_array()),
       deopt_frame_offset_(0),
       kind_(kAsyncAwaiter) {}
@@ -254,6 +258,7 @@ ActivationFrame::ActivationFrame(uword pc, const Code& code)
 ActivationFrame::ActivationFrame(Kind kind)
     : code_(Code::ZoneHandle()),
       function_(Function::null_function()),
+      closure_(Closure::null_closure()),
       deopt_frame_(Array::empty_array()),
       deopt_frame_offset_(0),
       kind_(kind) {
@@ -636,25 +641,9 @@ intptr_t ActivationFrame::ContextLevel() {
   return context_level_;
 }
 
-ObjectPtr ActivationFrame::GetAsyncAwaiter(
-    CallerClosureFinder* caller_closure_finder) {
-  if (fp() != 0 && !function_.IsNull()) {
-    if (function_.IsAsyncFunction() || function_.IsAsyncGenerator()) {
-      const auto& suspend_state = Object::Handle(GetSuspendStateVar());
-      if (caller_closure_finder->WasPreviouslySuspended(function_,
-                                                        suspend_state)) {
-        return caller_closure_finder->FindCallerFromSuspendState(
-            SuspendState::Cast(suspend_state));
-      }
-    }
-  }
-
-  return Object::null();
-}
-
 bool ActivationFrame::HandlesException(const Instance& exc_obj) {
   if (kind_ == kAsyncSuspensionMarker) {
-    return false;
+    return has_catch_error();
   }
   intptr_t try_index = TryIndex();
   const auto& handlers = ExceptionHandlers::Handle(code().exception_handlers());
@@ -689,24 +678,6 @@ bool ActivationFrame::HandlesException(const Instance& exc_obj) {
       }
     }
     try_index = handlers.OuterTryIndex(try_index);
-  }
-  // Async functions might have indirect exception handlers in the form of
-  // `Future.catchError`. Check _FutureListeners.
-  if (kind_ == kRegular && function().IsAsyncFunction()) {
-    CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-    auto& suspend_state = Object::Handle(GetSuspendStateVar());
-    if (!caller_closure_finder.WasPreviouslySuspended(function(),
-                                                      suspend_state)) {
-      return false;
-    }
-    Object& futureOrListener =
-        Object::Handle(SuspendState::Cast(suspend_state).function_data());
-    futureOrListener =
-        caller_closure_finder.GetFutureFutureListener(futureOrListener);
-    if (futureOrListener.IsNull()) {
-      return false;
-    }
-    return caller_closure_finder.HasCatchError(futureOrListener);
   }
 
   return false;
@@ -1301,7 +1272,7 @@ void DebuggerStackTrace::AddActivation(ActivationFrame* frame) {
   }
 }
 
-void DebuggerStackTrace::AddAsyncSuspension() {
+void DebuggerStackTrace::AddAsyncSuspension(bool has_catch_error) {
   // We might start asynchronous unwinding in one of the internal
   // dart:async functions which would make synchronous part of the
   // stack empty. This would not happen normally but might happen
@@ -1310,10 +1281,15 @@ void DebuggerStackTrace::AddAsyncSuspension() {
       trace_.Last()->kind() != ActivationFrame::kAsyncSuspensionMarker) {
     trace_.Add(new ActivationFrame(ActivationFrame::kAsyncSuspensionMarker));
   }
+  if (has_catch_error) {
+    trace_.Last()->set_has_catch_error(true);
+  }
 }
 
-void DebuggerStackTrace::AddAsyncAwaiterFrame(uword pc, const Code& code) {
-  trace_.Add(new ActivationFrame(pc, code));
+void DebuggerStackTrace::AddAsyncAwaiterFrame(uword pc,
+                                              const Code& code,
+                                              const Closure& closure) {
+  trace_.Add(new ActivationFrame(pc, code, closure));
 }
 
 const uint8_t kSafepointKind = UntaggedPcDescriptors::kIcCall |
@@ -1716,65 +1692,39 @@ DebuggerStackTrace* DebuggerStackTrace::CollectAsyncAwaiters() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
 
-  Code& code = Code::Handle(zone);
   Function& function = Function::Handle(zone);
 
   constexpr intptr_t kDefaultStackAllocation = 8;
   auto stack_trace = new DebuggerStackTrace(kDefaultStackAllocation);
 
-  const auto& code_array = GrowableObjectArray::ZoneHandle(
-      zone, GrowableObjectArray::New(kDefaultStackAllocation));
-  GrowableArray<uword> pc_offset_array(kDefaultStackAllocation);
   bool has_async = false;
+  StackTraceUtils::CollectFrames(
+      thread, /*skip_frames=*/0, [&](const StackTraceUtils::Frame& frame) {
+        if (frame.frame != nullptr) {  // Synchronous portion of the stack.
+          stack_trace->AppendCodeFrames(frame.frame, frame.code);
+        } else {
+          has_async = true;
 
-  std::function<void(StackFrame*)> on_sync_frame = [&](StackFrame* frame) {
-    code = frame->LookupDartCode();
-    stack_trace->AppendCodeFrames(frame, code);
-  };
+          if (frame.code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
+            stack_trace->AddAsyncSuspension(frame.has_async_catch_error);
+            return;
+          }
 
-  StackTraceUtils::CollectFrames(thread, code_array, &pc_offset_array,
-                                 /*skip_frames=*/0, &on_sync_frame, &has_async);
+          // Skip invisible function frames.
+          function ^= frame.code.function();
+          if (!function.is_visible()) {
+            return;
+          }
+
+          const uword absolute_pc = frame.code.PayloadStart() + frame.pc_offset;
+          stack_trace->AddAsyncAwaiterFrame(absolute_pc, frame.code,
+                                            frame.closure);
+        }
+      });
 
   // If the entire stack is sync, return no (async) trace.
   if (!has_async) {
     return nullptr;
-  }
-
-  const intptr_t length = code_array.Length();
-  bool async_frames = false;
-  bool skip_next_gap_marker = false;
-  for (intptr_t i = 0; i < length; ++i) {
-    code ^= code_array.At(i);
-    if (code.ptr() == StubCode::AsynchronousGapMarker().ptr()) {
-      if (!skip_next_gap_marker) {
-        stack_trace->AddAsyncSuspension();
-      }
-      skip_next_gap_marker = false;
-
-      // Once we reach a gap, the rest is async.
-      async_frames = true;
-      continue;
-    }
-
-    // Skip the sync frames since they've been added (and un-inlined) above.
-    if (!async_frames) {
-      continue;
-    }
-
-    if (!code.IsFunctionCode()) {
-      continue;
-    }
-
-    // Skip invisible function frames.
-    function ^= code.function();
-    if (!function.is_visible()) {
-      skip_next_gap_marker = true;
-      continue;
-    }
-
-    const uword pc_offset = pc_offset_array[i];
-    const uword absolute_pc = code.PayloadStart() + pc_offset;
-    stack_trace->AddAsyncAwaiterFrame(absolute_pc, code);
   }
 
   return stack_trace;
@@ -1901,7 +1851,8 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
   // If handler_frame's function is annotated with
   // @pragma('vm:notify-debugger-on-exception'), we specifically want to notify
   // the debugger of this otherwise ignored exception.
-  if (Library::FindPragma(Thread::Current(), /*only_core=*/false,
+  if (!handler_function.IsNull() &&
+      Library::FindPragma(Thread::Current(), /*only_core=*/false,
                           handler_function,
                           Symbols::vm_notify_debugger_on_exception())) {
     return true;
@@ -3067,23 +3018,19 @@ void Debugger::HandleSteppingRequest(bool skip_next_step /* = false */) {
                    stepping_fp_);
     }
   } else if (resume_action_ == kStepOut) {
-    if (stack_trace_->FrameAt(0)->function().IsAsyncFunction() ||
-        stack_trace_->FrameAt(0)->function().IsAsyncGenerator()) {
-      CallerClosureFinder caller_closure_finder(Thread::Current()->zone());
-      // Request to step out of an async/async* closure.
-      const Object& async_op = Object::Handle(
-          stack_trace_->FrameAt(0)->GetAsyncAwaiter(&caller_closure_finder));
-      if (!async_op.IsNull()) {
-        // Step out to the awaiter.
-        ASSERT(async_op.IsClosure());
-        AsyncStepInto(Closure::Cast(async_op));
-        if (FLAG_verbose_debug) {
-          OS::PrintErr("HandleSteppingRequest- kContinue to async_op %s\n",
-                       Function::Handle(Closure::Cast(async_op).function())
-                           .ToFullyQualifiedCString());
-        }
-        return;
+    // Check if we have an asynchronous awaiter for the current frame.
+    if (async_awaiter_stack_trace_ != nullptr &&
+        async_awaiter_stack_trace_->Length() > 2 &&
+        async_awaiter_stack_trace_->FrameAt(1)->kind() ==
+            ActivationFrame::kAsyncSuspensionMarker) {
+      auto awaiter_frame = async_awaiter_stack_trace_->FrameAt(2);
+      AsyncStepInto(awaiter_frame->closure());
+      if (FLAG_verbose_debug) {
+        OS::PrintErr("HandleSteppingRequest - continue to async awaiter %s\n",
+                     Function::Handle(awaiter_frame->closure().function())
+                         .ToFullyQualifiedCString());
       }
+      return;
     }
 
     // Fall through to synchronous stepping.
@@ -4094,11 +4041,9 @@ Breakpoint* Debugger::GetBreakpointByIdInTheList(intptr_t id,
 
 void Debugger::AsyncStepInto(const Closure& awaiter) {
   Zone* zone = Thread::Current()->zone();
-  CallerClosureFinder caller_closure_finder(zone);
-  if (caller_closure_finder.IsAsyncCallback(
-          Function::Handle(zone, awaiter.function()))) {
-    const auto& suspend_state = SuspendState::Handle(
-        zone, caller_closure_finder.GetSuspendStateFromAsyncCallback(awaiter));
+
+  auto& suspend_state = SuspendState::Handle(zone);
+  if (StackTraceUtils::GetSuspendState(awaiter, &suspend_state)) {
     const auto& function_data =
         Object::Handle(zone, suspend_state.function_data());
     SetBreakpointAtResumption(function_data);
