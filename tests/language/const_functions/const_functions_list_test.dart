@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const firstVar = firstFn();
 //               ^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int firstFn() {
   const List<int> x = [1, 2];
   return x.first;
@@ -18,7 +18,7 @@ int firstFn() {
 
 const firstCatchVar = firstCatchFn();
 //                    ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int firstCatchFn() {
   try {
     const List<int> x = [];
@@ -31,7 +31,7 @@ int firstCatchFn() {
 
 const isEmptyVar = isEmptyFn();
 //                 ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 bool isEmptyFn() {
   const List<int> x = [1, 2];
   return x.isEmpty;
@@ -39,7 +39,7 @@ bool isEmptyFn() {
 
 const isNotEmptyVar = isNotEmptyFn();
 //                    ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 bool isNotEmptyFn() {
   const List<int> x = [1, 2];
   return x.isNotEmpty;
@@ -47,7 +47,7 @@ bool isNotEmptyFn() {
 
 const lastVar = lastFn();
 //              ^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int lastFn() {
   const List<int> x = [1, 2];
   return x.last;
@@ -55,7 +55,7 @@ int lastFn() {
 
 const lastCatchVar = lastCatchFn();
 //                   ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int lastCatchFn() {
   try {
     const List<int> x = [];
@@ -68,7 +68,7 @@ int lastCatchFn() {
 
 const lengthVar = lengthFn();
 //                ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int lengthFn() {
   const List<int> x = [1, 2];
   return x.length;
@@ -76,7 +76,7 @@ int lengthFn() {
 
 const singleVar = singleFn();
 //                ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int singleFn() {
   const List<int> x = [1];
   return x.single;
@@ -84,7 +84,7 @@ int singleFn() {
 
 const singleCatchVar = singleCatchFn();
 //                     ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int singleCatchFn() {
   try {
     const List<int> x = [];
@@ -97,7 +97,7 @@ int singleCatchFn() {
 
 const singleCatchVar2 = singleCatchFn2();
 //                      ^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int singleCatchFn2() {
   try {
     const List<int> x = [1, 2];
@@ -110,7 +110,7 @@ int singleCatchFn2() {
 
 const getWithIndexVar = getWithIndexFn();
 //                      ^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int getWithIndexFn() {
   const List<int> x = [1];
   return x[0];
@@ -118,7 +118,7 @@ int getWithIndexFn() {
 
 const rangeErrorCatchVar = rangeErrorCatchFn();
 //                         ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int rangeErrorCatchFn() {
   try {
     const List<int> x = [1];
@@ -131,7 +131,7 @@ int rangeErrorCatchFn() {
 
 const mutableListVar = mutableList();
 //                     ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 List<int> mutableList() {
   List<int> x = [1, 2];
   return x;
@@ -139,7 +139,7 @@ List<int> mutableList() {
 
 const mutableListAddVar = mutableListAdd();
 //                        ^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 List<int> mutableListAdd() {
   List<int> x = [1, 2];
   x.add(3);

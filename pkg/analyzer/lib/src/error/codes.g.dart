@@ -809,6 +809,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try replacing the 'for' element with a spread, or removing 'const'.",
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_METHOD_INVOCATION =
+      CompileTimeErrorCode(
+    'CONST_EVAL_METHOD_INVOCATION',
+    "Methods can't be invoked in constant expressions.",
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   static const CompileTimeErrorCode CONST_EVAL_THROWS_EXCEPTION =

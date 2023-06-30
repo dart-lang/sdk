@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const var1 = varAssignmentTest(1);
 //           ^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int varAssignmentTest(int a) {
   int x = 4;
   {
@@ -28,16 +28,16 @@ int function() {
 
   const var2 = varAssignmentTest2();
   //           ^^^^^^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return var2;
 }
 
 const var3 = varAssignmentTest3(1);
 //           ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var4 = varAssignmentTest3(2);
 //           ^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int varAssignmentTest3(int a) {
   int x = 4;
   x = a + 1;

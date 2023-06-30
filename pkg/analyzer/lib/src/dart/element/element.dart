@@ -632,6 +632,10 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     super.fields = fields;
   }
 
+  bool get hasGenerativeConstConstructor {
+    return constructors.any((c) => !c.isFactory && c.isConst);
+  }
+
   @override
   bool get hasNonFinalField {
     final classesToVisit = <InterfaceElement>[];

@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const var1 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn() {
   int x = 0;
   assert(x == 0, "fail");
@@ -19,7 +19,7 @@ int fn() {
 
 const var2 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn2() {
   int x = 0;
   assert(() {

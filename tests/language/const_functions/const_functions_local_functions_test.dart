@@ -12,7 +12,7 @@ int function1() {
   int add(int a, int b) => a + b;
   const value = add(10, 2);
   //            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -25,7 +25,7 @@ int function2() {
 
   const value = addTwo(2);
   //            ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -33,7 +33,7 @@ int function3() {
   int addTwoReturn(int a) => a + constTwo;
   const value = addTwoReturn(3);
   //            ^^^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -42,7 +42,7 @@ int function4() {
   int addTwo(int a) => a + localTwo;
   const value = addTwo(20);
   //            ^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -50,7 +50,7 @@ int function5() {
   T typeFn<T>(T a) => a;
   const value = typeFn(3);
   //            ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -58,7 +58,7 @@ int function6() {
   int optionalFn([int a = 0]) => a;
   const value = optionalFn(1);
   //            ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -66,7 +66,7 @@ int function7() {
   int namedFn({int a = 0}) => a;
   const value = namedFn(a: 2);
   //            ^^^^^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value;
 }
 
@@ -74,10 +74,10 @@ int function8() {
   int add(int a, int b) => a + b;
   const value = add(1, 1);
   //            ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   const value1 = add(2, 3);
   //             ^^^^^^^^^
-  // [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+  // [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
   return value + value1;
 }
 

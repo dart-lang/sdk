@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const firstException = firstExceptionFn();
 //                     ^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int firstExceptionFn() {
   const List<int> x = [];
@@ -19,7 +19,7 @@ int firstExceptionFn() {
 
 const lastException = lastExceptionFn();
 //                    ^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int lastExceptionFn() {
   const List<int> x = [];
@@ -28,7 +28,7 @@ int lastExceptionFn() {
 
 const singleException = singleExceptionFn();
 //                      ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int singleExceptionFn() {
   const List<int> x = [];
@@ -37,7 +37,7 @@ int singleExceptionFn() {
 
 const singleExceptionMulti = singleExceptionMultiFn();
 //                           ^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int singleExceptionMultiFn() {
   const List<int> x = [1, 2];
@@ -46,7 +46,7 @@ int singleExceptionMultiFn() {
 
 const invalidProperty = invalidPropertyFn();
 //                      ^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int invalidPropertyFn() {
   const List<int> x = [1, 2];
   return x.invalidProperty;
@@ -57,7 +57,7 @@ int invalidPropertyFn() {
 
 const getWithIndexException = getWithIndexExceptionFn();
 //                            ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int getWithIndexExceptionFn() {
   const List<int> x = [1];
@@ -66,7 +66,7 @@ int getWithIndexExceptionFn() {
 
 const getWithIndexException2 = getWithIndexExceptionFn2();
 //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int getWithIndexExceptionFn2() {
   const List<int> x = [1];
@@ -75,7 +75,7 @@ int getWithIndexExceptionFn2() {
 
 const getWithIndexException3 = getWithIndexExceptionFn3();
 //                             ^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int getWithIndexExceptionFn3() {
   const List<int> x = [1];
   return x[0.1];
@@ -86,7 +86,7 @@ int getWithIndexExceptionFn3() {
 
 const constListAddException = constListAddExceptionFn();
 //                            ^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 List<int> constListAddExceptionFn() {
   const List<int> x = [1, 2];

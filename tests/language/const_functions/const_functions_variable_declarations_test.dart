@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 
 const var1 = function1(1, 2);
 //           ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var1_1 = function1(2, 2);
 //             ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function1(int a, int b) {
   var x = 1 + a + b;
   return x;
@@ -21,7 +21,7 @@ int function1(int a, int b) {
 
 const var2 = function2();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 String function2() {
   dynamic x = "string";
   return x;
@@ -29,7 +29,7 @@ String function2() {
 
 const var3 = function3();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function3() {
   var first = 2;
   var second = 2 + first;
@@ -38,7 +38,7 @@ int function3() {
 
 const var4 = function4();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function4() {
   var first = 2;
   var second = 0;
@@ -47,7 +47,7 @@ int function4() {
 
 const var5 = function5();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function5() {
   const constant = -2;
   return constant;
@@ -55,7 +55,7 @@ int function5() {
 
 const var6 = function6();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function6() {
   var a;
   a = 2;
@@ -64,7 +64,7 @@ int function6() {
 
 const var7 = function7();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function7() {
   var a;
   var b;
@@ -74,7 +74,7 @@ int function7() {
 
 const var8 = function8();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int function8() {
   var a;
   int? b;
@@ -84,7 +84,7 @@ int function8() {
 
 const var9 = function9();
 //           ^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int? function9() {
   int? x;
   return x;

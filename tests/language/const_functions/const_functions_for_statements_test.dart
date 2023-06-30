@@ -10,10 +10,10 @@ import "package:expect/expect.dart";
 
 const var1 = fn(2);
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var2 = fn(3);
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn(int a) {
   int b = a;
   for (int i = 0; i < 2; i++) {
@@ -24,10 +24,10 @@ int fn(int a) {
 
 const var3 = fn1(2);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var4 = fn1(3);
 //           ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn1(int a) {
   int b = a;
   for (int i = 0;; i++) {
@@ -38,7 +38,7 @@ int fn1(int a) {
 
 const var5 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn2() {
   for (int i = 0, j = 2;; i += 2, j += 1) {
     if (i + j > 10) {
@@ -49,7 +49,7 @@ int fn2() {
 
 const var6 = fnContinue();
 //           ^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnContinue() {
   int a = 0;
   for (int i = 0; i < 5; i++) {
@@ -61,10 +61,10 @@ int fnContinue() {
 
 const var7 = fnBreak(2);
 //           ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 const var8 = fnBreak(3);
 //           ^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnBreak(int a) {
   int b = a;
   for (int i = 0; i < 2; i++) {
@@ -76,7 +76,7 @@ int fnBreak(int a) {
 
 const var9 = fnNestedFor();
 //           ^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnNestedFor() {
   int a = 0;
   for (;;) {
@@ -89,7 +89,7 @@ int fnNestedFor() {
 
 const var10 = fnBreakLabel();
 //            ^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fnBreakLabel() {
   foo:
   for (;;) {

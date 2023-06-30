@@ -2849,8 +2849,9 @@ The following code produces this diagnostic because the field `s` is
 initialized to a non-constant value:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   [!const!] C();
 }
 {% endprettify %}
@@ -2871,8 +2872,9 @@ If the field can't be initialized to a constant value, then remove the
 keyword `const` from the constructor:
 
 {% prettify dart tag=pre+code %}
+String x = '3';
 class C {
-  final String s = 3.toString();
+  final String s = x;
   C();
 }
 {% endprettify %}
