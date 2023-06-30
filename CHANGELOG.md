@@ -1,5 +1,6 @@
 # 3.1.0-wip
 
+- new lint: `no_self_assignments`
 - new lint: `no_wildcard_variable_uses`
 
 ---
