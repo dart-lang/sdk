@@ -22,7 +22,7 @@ const var2 = str[3];
 
 const var3 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 fn() {
   String s = "str";
@@ -31,7 +31,7 @@ fn() {
 
 const var4 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 fn2() {
   String s = "str";
@@ -40,7 +40,7 @@ fn2() {
 
 const var5 = fn3();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 fn3() {
   String s = "str";
   return str[1.1];

@@ -16,8 +16,8 @@ class Simple {
   const Simple(this.name) {
 //^
 // [cfe] A const constructor can't have a body.
-  //                      ^
-  // [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
+//                        ^
+// [analyzer] SYNTACTIC_ERROR.CONST_CONSTRUCTOR_WITH_BODY
     assert(this.name == printString);
   }
 }

@@ -2340,8 +2340,9 @@ CompileTimeErrorCode:
       initialized to a non-constant value:
 
       ```dart
+      String x = '3';
       class C {
-        final String s = 3.toString();
+        final String s = x;
         [!const!] C();
       }
       ```
@@ -2362,8 +2363,9 @@ CompileTimeErrorCode:
       keyword `const` from the constructor:
 
       ```dart
+      String x = '3';
       class C {
-        final String s = 3.toString();
+        final String s = x;
         C();
       }
       ```
@@ -2573,6 +2575,8 @@ CompileTimeErrorCode:
   CONST_EVAL_FOR_ELEMENT:
     problemMessage: "Constant expressions don't support 'for' elements."
     correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
+  CONST_EVAL_METHOD_INVOCATION:
+    problemMessage: "Methods can't be invoked in constant expressions."
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     comment: |-

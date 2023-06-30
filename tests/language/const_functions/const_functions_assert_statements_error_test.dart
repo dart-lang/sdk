@@ -10,7 +10,7 @@ import "package:expect/expect.dart";
 
 const var1 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 // [cfe] Constant evaluation error:
 int fn() {
   int x = 1;

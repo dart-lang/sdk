@@ -1351,6 +1351,17 @@ const x = <int>[...a];
     _assertNull('x');
   }
 
+  test_visitMethodInvocation_notIdentical() async {
+    await assertErrorsInCode(r'''
+int f() {
+  return 3;
+}
+const a = f();
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 34, 3),
+    ]);
+  }
+
   test_visitNamedType_typeLiteral_typeParameter_nested() async {
     await assertErrorsInCode(r'''
 void f<T>(Object? x) {

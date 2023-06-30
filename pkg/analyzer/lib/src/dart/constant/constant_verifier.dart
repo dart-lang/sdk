@@ -445,6 +445,19 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     var initializer = node.initializer;
     if (initializer != null && (node.isConst || node.isFinal)) {
       var element = node.declaredElement as VariableElementImpl;
+      if (element is FieldElement && !element.isStatic) {
+        var enclosingElement = element.enclosingElement2;
+        if (enclosingElement is ClassElementImpl &&
+            !enclosingElement.hasGenerativeConstConstructor) {
+          // TODO(kallentu): Evaluate if we need to do this check for inline
+          // classes.
+          //
+          // We report errors in the class fields only if there's a generative
+          // const constructor in the class.
+          return;
+        }
+      }
+
       var result = element.evaluationResult;
       if (result == null) {
         // Variables marked "const" should have had their values computed by
@@ -553,6 +566,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+          identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION) ||
           identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
@@ -1361,12 +1376,11 @@ extension on Expression {
             var container = declarationListParent.parent;
             if (container is ClassDeclaration) {
               var enclosingClass = container.declaredElement;
-              if (enclosingClass != null) {
+              if (enclosingClass is ClassElementImpl) {
                 // A field initializer of a class with at least one generative
                 // const constructor does not constitute a constant context, but
                 // must be a constant expression.
-                return enclosingClass.constructors
-                    .any((c) => c.isConst && !c.isFactory);
+                return enclosingClass.hasGenerativeConstConstructor;
               }
             }
           }

@@ -956,7 +956,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant? visitMethodInvocation(MethodInvocation node) {
+  Constant visitMethodInvocation(MethodInvocation node) {
     var element = node.methodName.staticElement;
     if (element is FunctionElement) {
       if (element.name == "identical") {
@@ -966,14 +966,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           if (enclosingElement is CompilationUnitElement) {
             LibraryElement library = enclosingElement.library;
             if (library.isDartCore) {
-              var leftConstant = arguments[0].accept(this);
-              var rightConstant = arguments[1].accept(this);
-              // TODO(kallentu): Remove unwrapping when isIdentical handles
-              // Constant.
-              var leftArgument =
-                  leftConstant is DartObjectImpl ? leftConstant : null;
-              var rightArgument =
-                  rightConstant is DartObjectImpl ? rightConstant : null;
+              var leftArgument = _getConstant(arguments[0]);
+              if (leftArgument is! DartObjectImpl) {
+                return leftArgument;
+              }
+              var rightArgument = _getConstant(arguments[1]);
+              if (rightArgument is! DartObjectImpl) {
+                return rightArgument;
+              }
               return _dartObjectComputer.isIdentical(
                   node, leftArgument, rightArgument);
             }
@@ -981,10 +981,11 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         }
       }
     }
-    // TODO(https://github.com/dart-lang/sdk/issues/47061): Use a specific
-    // error code.
-    _error(node, null);
-    return null;
+    // TODO(kallentu): Don't report error here.
+    _errorReporter.reportErrorForNode(
+        CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, node);
+    return InvalidConstant(
+        node, CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION);
   }
 
   @override
@@ -1944,16 +1945,15 @@ class DartObjectComputer {
     return null;
   }
 
-  DartObjectImpl? isIdentical(Expression node, DartObjectImpl? leftOperand,
-      DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      try {
-        return leftOperand.isIdentical2(_typeSystem, rightOperand);
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
+  Constant isIdentical(Expression node, DartObjectImpl leftOperand,
+      DartObjectImpl rightOperand) {
+    try {
+      return leftOperand.isIdentical2(_typeSystem, rightOperand);
+    } on EvaluationException catch (exception) {
+      // TODO(kallentu): Don't report error here.
+      _errorReporter.reportErrorForNode(exception.errorCode, node);
+      return InvalidConstant(node, exception.errorCode);
     }
-    return null;
   }
 
   DartObjectImpl? lazyAnd(BinaryExpression node, DartObjectImpl? leftOperand,

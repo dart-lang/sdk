@@ -16,7 +16,7 @@ class A {
 
 const var1 = fn();
 //           ^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn() => const A(1).x;
 //                     ^
 // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_GETTER
@@ -24,7 +24,7 @@ int fn() => const A(1).x;
 
 const var2 = fn2();
 //           ^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE
+// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_METHOD_INVOCATION
 int fn2() {
   var x = const A(1);
   return x.x;

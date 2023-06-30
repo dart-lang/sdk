@@ -1422,8 +1422,7 @@ class A {
 const a = 0;
 const b = A.foo(a);
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 66,
-          8),
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 66, 8),
     ]);
 
     var node = findNode.singleMethodInvocation;
@@ -1457,8 +1456,7 @@ MethodInvocation
 const a = 0;
 const b = 'abc'.codeUnitAt(a);
 ''', [
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 23,
-          19),
+      error(CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION, 23, 19),
     ]);
 
     var node = findNode.singleMethodInvocation;
