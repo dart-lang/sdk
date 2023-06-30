@@ -5138,7 +5138,8 @@ class Library : public Object {
   // Includes 'dart:async', 'dart:typed_data', etc.
   bool IsAnyCoreLibrary() const;
 
-  inline intptr_t UrlHash() const;
+  inline intptr_t UrlHash() const { return UrlHash(ptr()); }
+  static inline intptr_t UrlHash(LibraryPtr library);
 
   ExternalTypedDataPtr kernel_data() const { return untag()->kernel_data(); }
   void set_kernel_data(const ExternalTypedData& data) const;
@@ -13291,10 +13292,8 @@ bool String::Equals(const String& str) const {
   return Equals(str, 0, str.Length());
 }
 
-intptr_t Library::UrlHash() const {
-  intptr_t result = String::GetCachedHash(url());
-  ASSERT(result != 0);
-  return result;
+intptr_t Library::UrlHash(LibraryPtr library) {
+  return String::HashRawSymbol(library.untag()->url());
 }
 
 void MegamorphicCache::SetEntry(const Array& array,

@@ -42,10 +42,17 @@ namespace dart {
 DECLARE_FLAG(bool, dual_map_code);
 DECLARE_FLAG(bool, write_protect_code);
 
+static LibraryPtr CreateDummyLibrary(const String& url) {
+  return Library::New(url);
+}
+
 static ClassPtr CreateDummyClass(const String& class_name,
                                  const Script& script) {
-  const Class& cls = Class::Handle(Class::New(
-      Library::Handle(), class_name, script, TokenPosition::kNoSource));
+  const auto& lib_url =
+      String::Handle(Symbols::New(Thread::Current(), "test:library"));
+  const auto& library = Library::Handle(CreateDummyLibrary(lib_url));
+  const Class& cls = Class::Handle(
+      Class::New(library, class_name, script, TokenPosition::kNoSource));
   cls.set_is_synthesized_class_unsafe();  // Dummy class for testing.
   cls.set_is_declaration_loaded_unsafe();
   return cls.ptr();
@@ -2744,10 +2751,6 @@ ISOLATE_UNIT_TEST_CASE(CheckedHandle) {
   EXPECT(!str3.IsOneByteString());
 }
 
-static LibraryPtr CreateDummyLibrary(const String& library_name) {
-  return Library::New(library_name);
-}
-
 static FunctionPtr CreateFunction(const char* name) {
   Thread* thread = Thread::Current();
   const String& class_name = String::Handle(Symbols::New(thread, "ownerClass"));
@@ -3139,7 +3142,7 @@ ISOLATE_UNIT_TEST_CASE(ClassDictionaryIterator) {
   Class& re44 = Class::ZoneHandle(CreateTestClass("Re4/4"));
   Field& ce68 = Field::ZoneHandle(CreateTestField("Ce6/8"));
   Field& tee = Field::ZoneHandle(CreateTestField("TEE"));
-  String& url = String::ZoneHandle(String::New("SBB"));
+  String& url = String::ZoneHandle(Symbols::New(thread, "SBB"));
   Library& lib = Library::Handle(Library::New(url));
   lib.AddClass(ae66);
   lib.AddObject(ce68, String::ZoneHandle(ce68.name()));
