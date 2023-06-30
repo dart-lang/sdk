@@ -5489,8 +5489,7 @@ uint32_t Class::Hash() const {
   return Class::Hash(ptr());
 }
 uint32_t Class::Hash(ClassPtr obj) {
-  return CombineHashes(String::HashRawSymbol(obj.untag()->name()),
-                       Library::UrlHash(obj.untag()->library()));
+  return String::HashRawSymbol(obj.untag()->name());
 }
 
 int32_t Class::SourceFingerprint() const {
@@ -7830,12 +7829,12 @@ void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
 uword Function::Hash() const {
   uword hash = String::HashRawSymbol(name());
   if (IsClosureFunction()) {
-    hash = CombineHashes(hash, token_pos().Hash());
+    hash = hash ^ token_pos().Hash();
   }
   if (Owner()->IsClass()) {
-    hash = CombineHashes(hash, Class::Hash(Class::RawCast(Owner())));
+    hash = hash ^ Class::Hash(Class::RawCast(Owner()));
   }
-  return FinalizeHash(hash, kHashBits);
+  return hash;
 }
 
 bool Function::HasBreakpoint() const {
@@ -13401,7 +13400,6 @@ void Library::set_name(const String& name) const {
 }
 
 void Library::set_url(const String& url) const {
-  ASSERT(url.IsSymbol());
   untag()->set_url(url.ptr());
 }
 
@@ -14311,7 +14309,6 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   ASSERT(thread->IsDartMutatorThread());
-  ASSERT(url.IsSymbol());
   // Force the url to have a hash code.
   url.Hash();
   const bool dart_scheme = url.StartsWith(Symbols::DartScheme());
