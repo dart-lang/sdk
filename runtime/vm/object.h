@@ -3087,7 +3087,7 @@ class Function : public Object {
     uint8_t depth = UntaggedClosureData::kNoAwaiterLinkDepth;
     // Context index at which the `@pragma('vm:awaiter-link')` variable
     // is located.
-    uint8_t index = -1;
+    uint8_t index = static_cast<uint8_t>(-1);
   };
 
   AwaiterLink awaiter_link() const;
