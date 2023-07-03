@@ -324,11 +324,9 @@ bool HierarchyInfo::CanUseSubtypeRangeCheckFor(const AbstractType& type) {
   // arguments.
   //
   // This is e.g. true for "String" but also for "List<dynamic>".  (A type for
-  // which the type arguments vector is filled with "dynamic" is known as a rare
-  // type)
+  // which the type arguments vector is instantiated to bounds is known as a
+  // rare type.)
   if (type_class.IsGeneric()) {
-    // TODO(kustermann): We might want to consider extending this when the type
-    // arguments are not "dynamic" but instantiated-to-bounds.
     const Type& rare_type = Type::Handle(zone, type_class.RareType());
     if (!rare_type.IsSubtypeOf(type, Heap::kNew)) {
       ASSERT(Type::Cast(type).arguments() != TypeArguments::null());

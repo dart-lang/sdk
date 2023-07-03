@@ -1198,7 +1198,7 @@ class Class : public Object {
 
   int32_t SourceFingerprint() const;
 
-  // Return the Type with type arguments filled in with dynamic.
+  // Return the Type with type arguments instantiated to bounds.
   TypePtr RareType() const;
 
   // Return the non-nullable Type whose arguments are the type parameters
@@ -3087,7 +3087,7 @@ class Function : public Object {
     uint8_t depth = UntaggedClosureData::kNoAwaiterLinkDepth;
     // Context index at which the `@pragma('vm:awaiter-link')` variable
     // is located.
-    uint8_t index = -1;
+    uint8_t index = static_cast<uint8_t>(-1);
   };
 
   AwaiterLink awaiter_link() const;
@@ -8315,6 +8315,7 @@ class TypeParameters : public Object {
   friend class FunctionType;
   friend class Object;
   friend class Precompiler;
+  friend class Type;  // To determine whether to print type arguments.
 };
 
 // A TypeArguments is an array of AbstractType.
