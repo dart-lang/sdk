@@ -3068,12 +3068,17 @@ bool Class::IsInFullSnapshot() const {
 }
 
 TypePtr Class::RareType() const {
-  if (!IsGeneric() && !IsClosureClass()) {
+  if (!IsGeneric()) {
     return DeclarationType();
   }
   ASSERT(is_declaration_loaded());
-  Type& type = Type::Handle(Type::New(*this, Object::null_type_arguments(),
-                                      Nullability::kNonNullable));
+  Thread* const thread = Thread::Current();
+  Zone* const zone = thread->zone();
+  const auto& inst_to_bounds =
+      TypeArguments::Handle(zone, InstantiateToBounds(thread));
+  ASSERT(inst_to_bounds.ptr() != Object::empty_type_arguments().ptr());
+  auto& type = Type::Handle(
+      zone, Type::New(*this, inst_to_bounds, Nullability::kNonNullable));
   type ^= ClassFinalizer::FinalizeType(type);
   return type.ptr();
 }
@@ -22768,12 +22773,14 @@ void Type::PrintName(NameVisibility name_visibility,
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Class& cls = Class::Handle(zone, type_class());
+  const TypeParameters& params =
+      TypeParameters::Handle(zone, cls.type_parameters());
   printer->AddString(cls.NameCString(name_visibility));
   const TypeArguments& args = TypeArguments::Handle(zone, arguments());
   intptr_t num_type_params = 0;
   if (cls.is_declaration_loaded()) {
     num_type_params = cls.NumTypeParameters(thread);
-  } else if (!args.IsNull()) {
+  } else if (!args.IsNull() || args.ptr() != params.defaults()) {
     num_type_params = args.Length();
   }
   if (num_type_params == 0) {
