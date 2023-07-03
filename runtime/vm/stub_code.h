@@ -69,6 +69,8 @@ class StubCode : public AllStatic {
         return StubCode::Subtype1TestCache();
       case 2:
         return StubCode::Subtype2TestCache();
+      case 3:
+        return StubCode::Subtype3TestCache();
       case 4:
         return StubCode::Subtype4TestCache();
       case 6:

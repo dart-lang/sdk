@@ -2838,7 +2838,11 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 //   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                                                      int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  ASSERT(n >= 1);
+  ASSERT(n <= SubtypeTestCache::kMaxInputs);
+  // If we need the parent function type arguments for a closure, we also need
+  // the delayed type arguments, so this case will never happen.
+  ASSERT(n != 5);
 
   // We could initialize kSubtypeTestCacheResultReg with null and use that as
   // the null register up until exit, which means we'd just need to return
