@@ -19939,7 +19939,9 @@ bool SubtypeTestCache::IsOccupied(intptr_t index) const {
 
 intptr_t SubtypeTestCache::UsedInputsForType(const AbstractType& type) {
   if (type.IsType()) {
-    return type.IsInstantiated() ? 2 : 4;
+    if (type.IsInstantiated()) return 2;
+    if (type.IsInstantiated(kFunctions)) return 3;
+    return 4;
   }
   // Default to all inputs except for the destination type, which must be
   // statically known, otherwise this method wouldn't be called.

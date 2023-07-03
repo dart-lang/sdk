@@ -1023,10 +1023,17 @@ class FlowGraphCompiler : public ValueObject {
       compiler::Label* is_not_instance_lbl);
 
   enum class TypeTestStubKind {
+    // Just check the instance cid (no closures).
     kTestTypeOneArg = 1,
+    // Also check the instance type arguments.
     kTestTypeTwoArgs = 2,
+    // Also check the instantiator type arguments for the destination type.
+    kTestTypeThreeArgs = 3,
+    // Also check the function type arguments for the destination type.
     kTestTypeFourArgs = 4,
+    // Also check the parent function and delayed type arguments for a closure.
     kTestTypeSixArgs = 6,
+    // Also check the destination type, as it is not known at compile time.
     kTestTypeSevenArgs = 7,
   };
 

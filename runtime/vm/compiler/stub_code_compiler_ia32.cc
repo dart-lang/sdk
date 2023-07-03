@@ -2501,7 +2501,11 @@ static void GenerateSubtypeTestCacheLoop(
 // result (true or false).
 void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                                                      int n) {
-  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  ASSERT(n >= 1);
+  ASSERT(n <= SubtypeTestCache::kMaxInputs);
+  // If we need the parent function type arguments for a closure, we also need
+  // the delayed type arguments, so this case will never happen.
+  ASSERT(n != 5);
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
@@ -2545,7 +2549,7 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
                   target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  if (n >= 4) {
+  if (n >= 3) {
     __ LoadClassIdMayBeSmi(STCInternal::kInstanceCidOrSignatureReg,
                            TypeTestABI::kInstanceReg);
   } else {

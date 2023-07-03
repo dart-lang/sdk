@@ -2669,10 +2669,13 @@ SubtypeTestCachePtr FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     if (!type.IsFutureOrType()) {
       __ BranchIfSmi(TypeTestABI::kInstanceReg, is_not_instance_lbl);
     }
+    const TypeTestStubKind test_kind =
+        type.IsInstantiated(kFunctions) ? TypeTestStubKind::kTestTypeThreeArgs
+                                        : TypeTestStubKind::kTestTypeFourArgs;
     // Uninstantiated type class is known at compile time, but the type
     // arguments are determined at runtime by the instantiator(s).
-    return GenerateCallSubtypeTestStub(TypeTestStubKind::kTestTypeFourArgs,
-                                       is_instance_lbl, is_not_instance_lbl);
+    return GenerateCallSubtypeTestStub(test_kind, is_instance_lbl,
+                                       is_not_instance_lbl);
   }
   return SubtypeTestCache::null();
 }
@@ -2744,9 +2747,9 @@ void FlowGraphCompiler::GenerateInstanceOf(const InstructionSource& source,
 // Expected inputs (from TypeTestABI):
 // - kInstanceReg: instance (preserved).
 // - kInstantiatorTypeArgumentsReg: instantiator type arguments
-//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//   (for test_kind >= kTestTypeThreeArg).
 // - kFunctionTypeArgumentsReg: function type arguments
-//   (for test_kind == kTestTypeFourArg or test_kind == kTestTypeSixArg).
+//   (for test_kind >= kTestTypeFourArg).
 //
 // See the arch-specific GenerateSubtypeNTestCacheStub method to see which
 // registers may need saving across this call.

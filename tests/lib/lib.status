@@ -26,6 +26,7 @@ developer/timeline_test: Skip # Not supported
 isolate/issue_24243_parent_isolate_test: Skip # Requires checked mode
 
 [ $runtime == d8 ]
+developer/timeline_recorders_test: SkipByDesign # https://bugs.chromium.org/p/v8/issues/detail?id=14129
 js/export/static_interop_mock/proto_test: SkipByDesign # Uses dart:html.
 js/js_util/javascriptobject_extensions_test: SkipByDesign # Uses dart:html.
 js/static_interop_test/constants_test: SkipByDesign # Uses dart:html.

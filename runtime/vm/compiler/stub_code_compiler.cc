@@ -1091,15 +1091,17 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
 
   // If the subtype-cache is null, it needs to be lazily-created by the runtime.
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
-  __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
+  __ BranchIf(EQUAL, &call_runtime);
 
   // Use the number of inputs used by the STC to determine which stub to call.
-  Label call_2, call_4, call_6;
+  Label call_2, call_3, call_4, call_6;
   __ Comment("Check number of STC inputs");
   __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
                   Slot::SubtypeTestCache_num_inputs());
   __ CompareImmediate(TypeTestABI::kScratchReg, 2);
   __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 3);
+  __ BranchIf(EQUAL, &call_3, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 4);
   __ BranchIf(EQUAL, &call_4, Assembler::kNearJump);
   __ CompareImmediate(TypeTestABI::kScratchReg, 6);
@@ -1129,6 +1131,16 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   {
     __ Comment("Call 4 input STC check");
     __ Call(StubCodeSubtype4TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_3);
+  {
+    __ Comment("Call 3 input STC check");
+    __ Call(StubCodeSubtype3TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
@@ -3101,7 +3113,7 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
 
   // Fill in all the STC input registers.
   Label initialized, not_closure;
-  if (n >= 4) {
+  if (n >= 3) {
     __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
   } else {
     // If the type is fully instantiated, then it can be determined at compile
@@ -3209,6 +3221,11 @@ void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
 // See comment on [GenerateSubtypeNTestCacheStub].
 void StubCodeCompiler::GenerateSubtype2TestCacheStub() {
   GenerateSubtypeNTestCacheStub(assembler, 2);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
 // See comment on [GenerateSubtypeNTestCacheStub].
