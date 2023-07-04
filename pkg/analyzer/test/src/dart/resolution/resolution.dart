@@ -23,6 +23,8 @@ import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../../generated/test_support.dart';
+import '../../../util/element_printer.dart';
+import '../../../util/tree_string_sink.dart';
 import '../../summary/resolved_ast_printer.dart';
 import 'dart_object_printer.dart';
 import 'node_text_expectations.dart';
@@ -508,12 +510,20 @@ mixin ResolutionTest implements ResourceProviderMixin {
     AstNode node, {
     bool skipArgumentList = false,
   }) {
-    var buffer = StringBuffer();
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration(),
+      selfUriStr: '${result.libraryElement.source.uri}',
+    );
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: '${result.libraryElement.source.uri}',
-        sink: buffer,
-        indent: '',
+        sink: sink,
+        elementPrinter: elementPrinter,
         configuration: ResolvedNodeTextConfiguration()
           ..skipArgumentList = skipArgumentList,
         withResolution: false,
@@ -523,12 +533,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
   }
 
   String _resolvedNodeText(AstNode node) {
-    var buffer = StringBuffer();
+    final buffer = StringBuffer();
+    final sink = TreeStringSink(
+      sink: buffer,
+      indent: '',
+    );
+    final elementPrinter = ElementPrinter(
+      sink: sink,
+      configuration: ElementPrinterConfiguration()
+        ..withRedirectedConstructors =
+            nodeTextConfiguration.withRedirectedConstructors,
+      selfUriStr: '${result.libraryElement.source.uri}',
+    );
     node.accept(
       ResolvedAstPrinter(
-        selfUriStr: '${result.libraryElement.source.uri}',
-        sink: buffer,
-        indent: '',
+        sink: sink,
+        elementPrinter: elementPrinter,
         configuration: nodeTextConfiguration,
       ),
     );
