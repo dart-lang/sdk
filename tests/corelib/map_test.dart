@@ -140,6 +140,8 @@ void main() {
       isValidKey: (a) => a is int));
 
   testFrom();
+
+  testLazyKeysValueEntries();
 }
 
 void test<K, V>(Map<K, V> map) {
@@ -1047,4 +1049,125 @@ void testUnmodifiableMaps() {
   checkUnmodifiable(Map.unmodifiable({1: 1}));
   checkUnmodifiable(UnmodifiableMapView({1: 1}));
   checkUnmodifiable(const MapView({1: 1}));
+}
+
+void testLazyKeysValueEntries() {
+  // Regression test for https://dartbug.com/48282
+  //
+  // Checks that the keys, values and entries iterables are lazy iterables
+  // backed by the map.
+  //
+  // Creates a fresh map, then fills in entries, and then removes them again.
+  // At each step, check that the `keys`, `values` and `entries` iterables
+  // contain the expected elements. (Not checking ordering, since HashMap
+  // doesn't guarantee one.)
+  const mapSize = 129;
+  void testWithKeyType<K extends Comparable<Object>>(
+      String keyTypeName, K Function(int) toKey) {
+    void testWithMap(String mapType, Map<K, int> map) {
+      // This test does a lot of linear work per element, so too large
+      // mapSize makes it slow.
+      // It prints a diagnostic at the end if a test is particularly slow.
+      var sw = Stopwatch()..start();
+      String testName = "$mapType<$keyTypeName, int>";
+      var keys = map.keys;
+      var values = map.values;
+      var entries = map.entries;
+      Expect.equals(0, map.length, testName);
+      Expect.equals(0, keys.length, testName);
+      Expect.equals(0, values.length, testName);
+      Expect.equals(0, entries.length, testName);
+      Expect.isTrue(keys.toList().isEmpty, testName);
+      Expect.isTrue(values.toList().isEmpty, testName);
+      Expect.isTrue(entries.toList().isEmpty, testName);
+
+      for (var i = 0; i < mapSize; i++) {
+        map[toKey(i)] = i;
+        Expect.equals(i + 1, map.length, testName);
+        Expect.equals(i + 1, keys.length, testName);
+        Expect.equals(i + 1, values.length, testName);
+        Expect.equals(i + 1, entries.length, testName);
+        Expect.listEquals(
+          [for (var j = 0; j <= i; j++) toKey(j)]..sort(),
+          keys.map((x) => x).toList()..sort(),
+          testName,
+        );
+        Expect.listEquals(
+          [for (var j = 0; j <= i; j++) j],
+          values.map((x) => x).toList()..sort(),
+          testName,
+        );
+        {
+          // No `operator==` on `MapEntry`.
+          var currentEntries = entries.map((x) => x).toList()
+            ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          for (var j = 0; j <= i; j++) {
+            var currentEntry = currentEntries[j];
+            Expect.equals(toKey(j), currentEntry.key, testName);
+            Expect.equals(j, currentEntry.value, testName);
+          }
+        }
+        Expect.equals(map.keys.last, keys.last);
+        Expect.equals(map.values.last, values.last);
+        Expect.equals(map.keys.last, entries.last.key);
+        Expect.equals(map.values.last, entries.last.value);
+      }
+      for (var i = 0; i < mapSize; i++) {
+        Expect.equals(map.keys.first, keys.first);
+        Expect.equals(map.values.first, values.first);
+        Expect.equals(map.keys.first, entries.first.key);
+        Expect.equals(map.values.first, entries.first.value);
+        var removed = map.remove(toKey(i));
+        Expect.equals(i, removed, testName);
+        Expect.equals(mapSize - 1 - i, map.length, testName);
+        Expect.equals(mapSize - 1 - i, keys.length, testName);
+        Expect.equals(mapSize - 1 - i, values.length, testName);
+        Expect.equals(mapSize - 1 - i, entries.length, testName);
+        Expect.listEquals(
+          [for (var j = i + 1; j < mapSize; j++) toKey(j)]..sort(),
+          keys.map((x) => x).toList()..sort(),
+          testName,
+        );
+        Expect.listEquals(
+          [for (var j = i + 1; j < mapSize; j++) j],
+          values.map((x) => x).toList()..sort(),
+          testName,
+        );
+        {
+          // No `operator==` on `MapEntry`.
+          var currentEntries = entries.map((x) => x).toList()
+            ..sort((e1, e2) => e1.value.compareTo(e2.value));
+          for (var j = i + 1; j < mapSize; j++) {
+            var currentEntry = currentEntries[j - i - 1];
+            Expect.equals(toKey(j), currentEntry.key, testName);
+            Expect.equals(j, currentEntry.value, testName);
+          }
+        }
+      }
+      Expect.isTrue(keys.isEmpty, testName);
+      Expect.isTrue(values.isEmpty, testName);
+      Expect.isTrue(entries.isEmpty, testName);
+      var elapsed = sw.elapsedMilliseconds;
+      if (elapsed > 200) {
+        print("$testName: $elapsed ms");
+      }
+    }
+
+    testWithMap("SplayTreeMap", SplayTreeMap<K, int>());
+    testWithMap("HashMap", HashMap<K, int>());
+    testWithMap("LinkedHashMap", LinkedHashMap<K, int>());
+    testWithMap("LinkedHashMap-literal", <K, int>{});
+  }
+
+  testWithKeyType<int>("int", (int x) => x);
+  testWithKeyType<String>("String", (int x) => "$x");
+  testWithKeyType<Key>("Key", Key.new);
+}
+
+class Key implements Comparable<Key> {
+  final int id;
+  Key(this.id);
+  int get hashCode => id.hashCode ^ 1023;
+  bool operator ==(Object other) => other is Key && id == other.id;
+  int compareTo(Key other) => id.compareTo(other.id);
 }

@@ -572,8 +572,13 @@ void FUNCTION_NAME(Socket_Read)(Dart_NativeArguments args) {
       Dart_ThrowException(DartUtils::NewDartOSError());
     }
   } else {
-    OSError os_error(-1, "Invalid argument", OSError::kUnknown);
-    Dart_ThrowException(DartUtils::NewDartOSError(&os_error));
+    Dart_Handle exception;
+    {
+      // Make sure OSError destructor is called.
+      OSError os_error(-1, "Invalid argument", OSError::kUnknown);
+      exception = DartUtils::NewDartOSError(&os_error);
+    }
+    Dart_ThrowException(exception);
   }
 }
 

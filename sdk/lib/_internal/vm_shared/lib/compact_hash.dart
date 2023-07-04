@@ -629,8 +629,8 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
     }
   }
 
-  Iterable<K> get keys => _CompactIterable<K>(this, _data, _usedData, -2, 2);
-  Iterable<V> get values => _CompactIterable<V>(this, _data, _usedData, -1, 2);
+  Iterable<K> get keys => _CompactIterable<K>(this, -2, 2);
+  Iterable<V> get values => _CompactIterable<V>(this, -1, 2);
 }
 
 base class _CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
@@ -675,17 +675,13 @@ base class _CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
 // and checks for concurrent modification.
 class _CompactIterable<E> extends Iterable<E> {
   final _HashBase _table;
-  // dart:core#_List (sdk/lib/_internal/vm/lib/array.dart).
-  final List _data;
-  final int _len;
   final int _offset;
   final int _step;
 
-  _CompactIterable(
-      this._table, this._data, this._len, this._offset, this._step);
+  _CompactIterable(this._table, this._offset, this._step);
 
-  Iterator<E> get iterator =>
-      _CompactIterator<E>(_table, _data, _len, _offset, _step);
+  Iterator<E> get iterator => _CompactIterator<E>(
+      _table, _table._data, _table._usedData, _offset, _step);
 
   int get length => _table.length;
   bool get isEmpty => length == 0;
@@ -928,6 +924,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
       i = _HashBase._nextProbe(i, sizeMask);
       pair = _index[i];
     }
+
     return false;
   }
 
