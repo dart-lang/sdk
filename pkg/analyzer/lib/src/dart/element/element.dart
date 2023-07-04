@@ -56,426 +56,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// A concrete implementation of a [ClassElement].
-abstract class AbstractClassElementImpl
-    extends NamedInstanceOrAugmentationElementImpl
-    with HasCompletionData, MacroTargetElement
-    implements InterfaceElement {
-  /// The superclass of the class, or `null` for [Object].
-  @override
-  InterfaceType? supertype;
-
-  /// A list containing all of the mixins that are applied to the class being
-  /// extended in order to derive the superclass of this class.
-  List<InterfaceType> _mixins = const [];
-
-  /// A list containing all of the interfaces that are implemented by this
-  /// class.
-  List<InterfaceType> _interfaces = const [];
-
-  /// The type defined by the class.
-  InterfaceType? _thisType;
-
-  /// A list containing all of the accessors (getters and setters) contained in
-  /// this class.
-  List<PropertyAccessorElementImpl> _accessors =
-      _Sentinel.propertyAccessorElement;
-
-  /// A list containing all of the fields contained in this class.
-  List<FieldElementImpl> _fields = _Sentinel.fieldElement;
-
-  /// A list containing all of the methods contained in this class.
-  List<MethodElementImpl> _methods = _Sentinel.methodElement;
-
-  /// A flag indicating whether the types associated with the instance members
-  /// of this class have been inferred.
-  bool hasBeenInferred = false;
-
-  /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(AbstractClassElementImpl)?
-      mixinInferenceCallback;
-
-  /// Initialize a newly created class element to have the given [name] at the
-  /// given [offset] in the file that contains the declaration of this element.
-  AbstractClassElementImpl(String super.name, super.offset);
-
-  @override
-  List<PropertyAccessorElementImpl> get accessors;
-
-  /// Set the accessors contained in this class to the given [accessors].
-  set accessors(List<PropertyAccessorElementImpl> accessors) {
-    for (var accessor in accessors) {
-      accessor.enclosingElement = this;
-    }
-    _accessors = accessors;
-  }
-
-  @override
-  List<InterfaceType> get allSupertypes {
-    return library.session.classHierarchy.implementedInterfaces(this);
-  }
-
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...constructors,
-        ...methods,
-        ...typeParameters,
-      ];
-
-  @override
-  List<ConstructorElementImpl> get constructors;
-
-  @override
-  String get displayName => name;
-
-  @Deprecated('Use enclosingElement2 instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement {
-    return _enclosingElement as CompilationUnitElementImpl;
-  }
-
-  @override
-  CompilationUnitElementImpl get enclosingElement2 {
-    return _enclosingElement as CompilationUnitElementImpl;
-  }
-
-  @override
-  List<FieldElementImpl> get fields;
-
-  /// Set the fields contained in this class to the given [fields].
-  set fields(List<FieldElementImpl> fields) {
-    for (var field in fields) {
-      field.enclosingElement = this;
-    }
-    _fields = fields;
-  }
-
-  @override
-  List<InterfaceType> get interfaces =>
-      ElementTypeProvider.current.getClassInterfaces(this);
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
-  }
-
-  List<InterfaceType> get interfacesInternal {
-    return _interfaces;
-  }
-
-  /// Return `true` if this class represents the class '_Enum' defined in the
-  /// dart:core library.
-  bool get isDartCoreEnumImpl {
-    return name == '_Enum' && library.isDartCore;
-  }
-
-  /// Return `true` if this class represents the class 'Function' defined in the
-  /// dart:core library.
-  bool get isDartCoreFunctionImpl {
-    return name == 'Function' && library.isDartCore;
-  }
-
-  @override
-  List<InterfaceType> get mixins {
-    if (mixinInferenceCallback != null) {
-      var mixins = mixinInferenceCallback!(this);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> mixins) {
-    _mixins = mixins;
-  }
-
-  @override
-  InterfaceType get thisType {
-    if (_thisType == null) {
-      List<DartType> typeArguments;
-      if (typeParameters.isNotEmpty) {
-        typeArguments = typeParameters.map<DartType>((t) {
-          return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
-        }).toFixedList();
-      } else {
-        typeArguments = const <DartType>[];
-      }
-      return _thisType = instantiate(
-        typeArguments: typeArguments,
-        nullabilitySuffix: _noneOrStarSuffix,
-      );
-    }
-    return _thisType!;
-  }
-
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
-  }
-
-  @override
-  ConstructorElement? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
-  @override
-  FieldElement? getField(String name) {
-    return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
-  }
-
-  @override
-  PropertyAccessorElement? getGetter(String getterName) {
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isGetter && accessor.name == getterName);
-  }
-
-  @override
-  MethodElement? getMethod(String methodName) {
-    return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    return constructors.firstWhereOrNull((element) => element.name == name);
-  }
-
-  @override
-  PropertyAccessorElement? getSetter(String setterName) {
-    return getSetterFromAccessors(setterName, accessors);
-  }
-
-  @override
-  InterfaceType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    return InterfaceTypeImpl(
-      element: this,
-      typeArguments: typeArguments,
-      nullabilitySuffix: nullabilitySuffix,
-    );
-  }
-
-  @override
-  MethodElement? lookUpConcreteMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull(
-        (method) => !method.isAbstract && method.isAccessibleIn(library));
-  }
-
-  @override
-  PropertyAccessorElement? lookUpGetter(
-      String getterName, LibraryElement library) {
-    return _implementationsOfGetter(getterName)
-        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
-  }
-
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteGetter(
-      String getterName, LibraryElement library) {
-    return _implementationsOfGetter(getterName).firstWhereOrNull((getter) =>
-        !getter.isAbstract &&
-        !getter.isStatic &&
-        getter.isAccessibleIn(library) &&
-        getter.enclosingElement2 != this);
-  }
-
-  ExecutableElement? lookUpInheritedConcreteMember(
-      String name, LibraryElement library) {
-    if (name.endsWith('=')) {
-      return lookUpInheritedConcreteSetter(name, library);
-    } else {
-      return lookUpInheritedConcreteMethod(name, library) ??
-          lookUpInheritedConcreteGetter(name, library);
-    }
-  }
-
-  @override
-  MethodElement? lookUpInheritedConcreteMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
-        !method.isAbstract &&
-        !method.isStatic &&
-        method.isAccessibleIn(library) &&
-        method.enclosingElement2 != this);
-  }
-
-  @override
-  PropertyAccessorElement? lookUpInheritedConcreteSetter(
-      String setterName, LibraryElement library) {
-    return _implementationsOfSetter(setterName).firstWhereOrNull((setter) =>
-        !setter.isAbstract &&
-        !setter.isStatic &&
-        setter.isAccessibleIn(library) &&
-        setter.enclosingElement2 != this);
-  }
-
-  @override
-  MethodElement? lookUpInheritedMethod(
-      String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
-        !method.isStatic &&
-        method.isAccessibleIn(library) &&
-        method.enclosingElement2 != this);
-  }
-
-  @override
-  MethodElement? lookUpMethod(String methodName, LibraryElement library) {
-    return _implementationsOfMethod(methodName).firstWhereOrNull(
-        (MethodElement method) => method.isAccessibleIn(library));
-  }
-
-  @override
-  PropertyAccessorElement? lookUpSetter(
-      String setterName, LibraryElement library) {
-    return _implementationsOfSetter(setterName).firstWhereOrNull(
-        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
-  }
-
-  /// Return the static getter with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  PropertyAccessorElement? lookupStaticGetter(
-      String name, LibraryElement library) {
-    return _implementationsOfGetter(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
-  /// Return the static method with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  MethodElement? lookupStaticMethod(String name, LibraryElement library) {
-    return _implementationsOfMethod(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
-  /// Return the static setter with the [name], accessible to the [library].
-  ///
-  /// This method should be used only for error recovery during analysis,
-  /// when instance access to a static class member, defined in this class,
-  /// or a superclass.
-  PropertyAccessorElement? lookupStaticSetter(
-      String name, LibraryElement library) {
-    return _implementationsOfSetter(name).firstWhereOrNull(
-        (element) => element.isStatic && element.isAccessibleIn(library));
-  }
-
-  /// Return an iterable containing all of the implementations of a getter with
-  /// the given [getterName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The getters that are returned are not filtered in any way. In particular,
-  /// they can include getters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The getters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the getter it will occur first, if
-  /// Object contains a definition of the getter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfGetter(
-      String getterName) sync* {
-    final visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var getter = classElement.getGetter(getterName);
-      if (getter != null) {
-        yield getter;
-      }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
-        getter = mixin.element.getGetter(getterName);
-        if (getter != null) {
-          yield getter;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a method with
-  /// the given [methodName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The methods that are returned are not filtered in any way. In particular,
-  /// they can include methods that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The methods are returned based on the depth of their defining class; if
-  /// this class contains a definition of the method it will occur first, if
-  /// Object contains a definition of the method it will occur last.
-  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
-    final visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var method = classElement.getMethod(methodName);
-      if (method != null) {
-        yield method;
-      }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
-        method = mixin.element.getMethod(methodName);
-        if (method != null) {
-          yield method;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  /// Return an iterable containing all of the implementations of a setter with
-  /// the given [setterName] that are defined in this class and any superclass
-  /// of this class (but not in interfaces).
-  ///
-  /// The setters that are returned are not filtered in any way. In particular,
-  /// they can include setters that are not visible in some context. Clients
-  /// must perform any necessary filtering.
-  ///
-  /// The setters are returned based on the depth of their defining class; if
-  /// this class contains a definition of the setter it will occur first, if
-  /// Object contains a definition of the setter it will occur last.
-  Iterable<PropertyAccessorElement> _implementationsOfSetter(
-      String setterName) sync* {
-    final visitedClasses = <InterfaceElement>{};
-    InterfaceElement? classElement = this;
-    while (classElement != null && visitedClasses.add(classElement)) {
-      var setter = classElement.getSetter(setterName);
-      if (setter != null) {
-        yield setter;
-      }
-      for (InterfaceType mixin in classElement.mixins.reversed) {
-        setter = mixin.element.getSetter(setterName);
-        if (setter != null) {
-          yield setter;
-        }
-      }
-      classElement = classElement.supertype?.element;
-    }
-  }
-
-  static PropertyAccessorElement? getSetterFromAccessors(
-      String setterName, List<PropertyAccessorElement> accessors) {
-    // TODO (jwren) revisit- should we append '=' here or require clients to
-    // include it?
-    // Do we need the check for isSetter below?
-    if (!setterName.endsWith('=')) {
-      setterName += '=';
-    }
-    return accessors.firstWhereOrNull(
-        (accessor) => accessor.isSetter && accessor.name == setterName);
-  }
-}
-
 class AugmentationImportElementImpl extends _ExistingElementImpl
     implements AugmentationImportElement {
   @override
@@ -528,11 +108,22 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
   BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 
-/// An [AbstractClassElementImpl] which is a class.
-class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
+/// An [InterfaceElementImpl] which is a class.
+class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
+    implements ClassElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(super.name, super.offset);
+
+  @override
+  List<PropertyAccessorElementImpl> get accessors {
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
+    }
+
+    linkedData?.readMembers(this);
+    return _accessors;
+  }
 
   @override
   set accessors(List<PropertyAccessorElementImpl> accessors) {
@@ -604,8 +195,8 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
       return _constructors = _computeMixinAppConstructors();
     }
 
-    var linkedData = this.linkedData;
-    if (linkedData is ClassElementLinkedData) {
+    final linkedData = this.linkedData;
+    if (linkedData != null) {
       linkedData.readMembers(this);
       return _constructors;
     }
@@ -624,6 +215,16 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
+  }
+
+  @override
+  List<FieldElementImpl> get fields {
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
+    }
+
+    linkedData?.readMembers(this);
+    return _fields;
   }
 
   @override
@@ -822,15 +423,19 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
-  set methods(List<MethodElementImpl> methods) {
-    assert(!isMixinApplication);
-    super.methods = methods;
+  List<MethodElementImpl> get methods {
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
+    }
+
+    linkedData?.readMembers(this);
+    return _methods;
   }
 
   @override
-  InterfaceType? get supertype {
-    linkedData?.read(this);
-    return super.supertype;
+  set methods(List<MethodElementImpl> methods) {
+    assert(!isMixinApplication);
+    super.methods = methods;
   }
 
   @override
@@ -1019,67 +624,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 }
 
-abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
-  /// For classes which are not mixin applications, a list containing all of the
-  /// constructors contained in this class, or `null` if the list of
-  /// constructors has not yet been built.
-  ///
-  /// For classes which are mixin applications, the list of constructors is
-  /// computed on the fly by the [constructors] getter, and this field is
-  /// `null`.
-  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
-
-  ElementLinkedData? linkedData;
-
+abstract class ClassOrMixinElementImpl<LinkedData extends ElementLinkedData>
+    extends InterfaceElementImpl<LinkedData> {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassOrMixinElementImpl(super.name, super.offset);
-
-  @override
-  List<PropertyAccessorElementImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    var linkedData = this.linkedData;
-    if (linkedData is ClassElementLinkedData) {
-      linkedData.readMembers(this);
-      return _accessors;
-    }
-
-    return _accessors;
-  }
-
-  /// Set the constructors contained in this class to the given [constructors].
-  ///
-  /// Should only be used for class elements that are not mixin applications.
-  set constructors(List<ConstructorElementImpl> constructors) {
-    for (var constructor in constructors) {
-      constructor.enclosingElement = this;
-    }
-    _constructors = constructors;
-  }
-
-  @override
-  List<FieldElementImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    var linkedData = this.linkedData;
-    if (linkedData is ClassElementLinkedData) {
-      linkedData.readMembers(this);
-      return _fields;
-    }
-
-    return _fields;
-  }
-
-  @override
-  List<InterfaceType> get interfacesInternal {
-    linkedData?.read(this);
-    return _interfaces;
-  }
 
   bool get isBase {
     return hasModifier(Modifier.BASE);
@@ -1089,66 +638,9 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
     setModifier(Modifier.BASE, isBase);
   }
 
-  @override
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool isSimplyBounded) {
-    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
-  }
-
   /// TODO(scheglov) Do we need a separate kind for `MixinElement`?
   @override
   ElementKind get kind => ElementKind.CLASS;
-
-  @override
-  List<ElementAnnotation> get metadata {
-    linkedData?.read(this);
-    return super.metadata;
-  }
-
-  @override
-  List<MethodElementImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    var linkedData = this.linkedData;
-    if (linkedData is ClassElementLinkedData) {
-      linkedData.readMembers(this);
-      return _methods;
-    }
-
-    return _methods;
-  }
-
-  /// Set the methods contained in this class to the given [methods].
-  set methods(List<MethodElementImpl> methods) {
-    for (var method in methods) {
-      method.enclosingElement = this;
-    }
-    _methods = methods;
-  }
-
-  @override
-  List<InterfaceType> get mixins {
-    linkedData?.read(this);
-    return super.mixins;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
-
-  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
-    this.reference = reference;
-    reference.element = this;
-
-    this.linkedData = linkedData;
-  }
 }
 
 /// A concrete implementation of a [CompilationUnitElement].
@@ -1504,7 +996,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @Deprecated('Use enclosingElement2 instead')
   @override
   InterfaceElement get enclosingElement =>
-      super.enclosingElement2 as AbstractClassElementImpl;
+      super.enclosingElement2 as InterfaceElementImpl;
 
   @override
   NamedInstanceElement get enclosingElement2 =>
@@ -3048,19 +2540,12 @@ class ElementLocationImpl implements ElementLocation {
   }
 }
 
-/// An [AbstractClassElementImpl] which is an enum.
-class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
-  ElementLinkedData? linkedData;
-  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
-
+/// An [InterfaceElementImpl] which is an enum.
+class EnumElementImpl extends InterfaceElementImpl<EnumElementLinkedData>
+    implements EnumElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
-
-  @override
-  List<PropertyAccessorElementImpl> get accessors {
-    return _accessors;
-  }
 
   @override
   Never get augmentation {
@@ -3079,64 +2564,7 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
-  List<ConstructorElementImpl> get constructors {
-    return _constructors;
-  }
-
-  set constructors(List<ConstructorElementImpl> constructors) {
-    for (var constructor in constructors) {
-      constructor.enclosingElement = this;
-    }
-    _constructors = constructors;
-  }
-
-  @override
-  List<FieldElementImpl> get fields {
-    return _fields;
-  }
-
-  @override
-  bool get isSimplyBounded {
-    return hasModifier(Modifier.SIMPLY_BOUNDED);
-  }
-
-  set isSimplyBounded(bool isSimplyBounded) {
-    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
-  }
-
-  @override
   ElementKind get kind => ElementKind.ENUM;
-
-  @override
-  List<ElementAnnotation> get metadata {
-    linkedData?.read(this);
-    return super.metadata;
-  }
-
-  @override
-  List<MethodElementImpl> get methods {
-    return _methods;
-  }
-
-  /// Set the methods contained in this class to the given [methods].
-  set methods(List<MethodElementImpl> methods) {
-    for (var method in methods) {
-      method.enclosingElement = this;
-    }
-    _methods = methods;
-  }
-
-  @override
-  InterfaceType? get supertype {
-    linkedData?.read(this);
-    return super.supertype;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
 
   ConstFieldElementImpl? get valuesField {
     for (var field in fields) {
@@ -3157,13 +2585,6 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeEnumElement(this);
-  }
-
-  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
-    this.reference = reference;
-    reference.element = this;
-
-    this.linkedData = linkedData;
   }
 }
 
@@ -3567,8 +2988,7 @@ class ExtensionElementImpl extends _ExistingElementImpl
 
   @override
   PropertyAccessorElement? getSetter(String setterName) {
-    return AbstractClassElementImpl.getSetterFromAccessors(
-        setterName, accessors);
+    return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -3989,6 +3409,489 @@ abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
   List<MethodElement> get methods {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+}
+
+abstract class InterfaceElementImpl<LinkedData extends ElementLinkedData>
+    extends NamedInstanceOrAugmentationElementImpl
+    with HasCompletionData, MacroTargetElement
+    implements InterfaceElement {
+  LinkedData? linkedData;
+  InterfaceType? _supertype;
+
+  /// A list containing all of the mixins that are applied to the class being
+  /// extended in order to derive the superclass of this class.
+  List<InterfaceType> _mixins = const [];
+
+  /// A list containing all of the interfaces that are implemented by this
+  /// class.
+  List<InterfaceType> _interfaces = const [];
+
+  /// The type defined by the class.
+  InterfaceType? _thisType;
+
+  /// A list containing all of the accessors (getters and setters) contained in
+  /// this class.
+  List<PropertyAccessorElementImpl> _accessors =
+      _Sentinel.propertyAccessorElement;
+
+  /// A list containing all of the fields contained in this class.
+  List<FieldElementImpl> _fields = _Sentinel.fieldElement;
+
+  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
+
+  /// A list containing all of the methods contained in this class.
+  List<MethodElementImpl> _methods = _Sentinel.methodElement;
+
+  /// A flag indicating whether the types associated with the instance members
+  /// of this class have been inferred.
+  bool hasBeenInferred = false;
+
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceType>? Function(InterfaceElementImpl)? mixinInferenceCallback;
+
+  /// Initialize a newly created class element to have the given [name] at the
+  /// given [offset] in the file that contains the declaration of this element.
+  InterfaceElementImpl(String super.name, super.offset);
+
+  @override
+  List<PropertyAccessorElementImpl> get accessors {
+    return _accessors;
+  }
+
+  /// Set the accessors contained in this class to the given [accessors].
+  set accessors(List<PropertyAccessorElementImpl> accessors) {
+    for (var accessor in accessors) {
+      accessor.enclosingElement = this;
+    }
+    _accessors = accessors;
+  }
+
+  @override
+  List<InterfaceType> get allSupertypes {
+    return library.session.classHierarchy.implementedInterfaces(this);
+  }
+
+  @override
+  List<Element> get children => [
+        ...super.children,
+        ...accessors,
+        ...fields,
+        ...constructors,
+        ...methods,
+        ...typeParameters,
+      ];
+
+  @override
+  List<ConstructorElementImpl> get constructors {
+    return _constructors;
+  }
+
+  set constructors(List<ConstructorElementImpl> constructors) {
+    for (var constructor in constructors) {
+      constructor.enclosingElement = this;
+    }
+    _constructors = constructors;
+  }
+
+  @override
+  String get displayName => name;
+
+  @Deprecated('Use enclosingElement2 instead')
+  @override
+  CompilationUnitElementImpl get enclosingElement {
+    return _enclosingElement as CompilationUnitElementImpl;
+  }
+
+  @override
+  CompilationUnitElementImpl get enclosingElement2 {
+    return _enclosingElement as CompilationUnitElementImpl;
+  }
+
+  @override
+  List<FieldElementImpl> get fields => _fields;
+
+  /// Set the fields contained in this class to the given [fields].
+  set fields(List<FieldElementImpl> fields) {
+    for (var field in fields) {
+      field.enclosingElement = this;
+    }
+    _fields = fields;
+  }
+
+  @override
+  List<InterfaceType> get interfaces =>
+      ElementTypeProvider.current.getClassInterfaces(this);
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
+    linkedData?.read(this);
+    return _interfaces;
+  }
+
+  /// Return `true` if this class represents the class '_Enum' defined in the
+  /// dart:core library.
+  bool get isDartCoreEnumImpl {
+    return name == '_Enum' && library.isDartCore;
+  }
+
+  /// Return `true` if this class represents the class 'Function' defined in the
+  /// dart:core library.
+  bool get isDartCoreFunctionImpl {
+    return name == 'Function' && library.isDartCore;
+  }
+
+  @override
+  bool get isSimplyBounded {
+    return hasModifier(Modifier.SIMPLY_BOUNDED);
+  }
+
+  set isSimplyBounded(bool isSimplyBounded) {
+    setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
+  }
+
+  @override
+  List<ElementAnnotation> get metadata {
+    linkedData?.read(this);
+    return super.metadata;
+  }
+
+  @override
+  List<MethodElementImpl> get methods {
+    return _methods;
+  }
+
+  /// Set the methods contained in this class to the given [methods].
+  set methods(List<MethodElementImpl> methods) {
+    for (var method in methods) {
+      method.enclosingElement = this;
+    }
+    _methods = methods;
+  }
+
+  @override
+  List<InterfaceType> get mixins {
+    if (mixinInferenceCallback != null) {
+      var mixins = mixinInferenceCallback!(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    linkedData?.read(this);
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> mixins) {
+    _mixins = mixins;
+  }
+
+  @override
+  InterfaceType? get supertype {
+    linkedData?.read(this);
+    return _supertype;
+  }
+
+  set supertype(InterfaceType? value) {
+    _supertype = value;
+  }
+
+  @override
+  InterfaceType get thisType {
+    if (_thisType == null) {
+      List<DartType> typeArguments;
+      if (typeParameters.isNotEmpty) {
+        typeArguments = typeParameters.map<DartType>((t) {
+          return t.instantiate(nullabilitySuffix: _noneOrStarSuffix);
+        }).toFixedList();
+      } else {
+        typeArguments = const <DartType>[];
+      }
+      return _thisType = instantiate(
+        typeArguments: typeArguments,
+        nullabilitySuffix: _noneOrStarSuffix,
+      );
+    }
+    return _thisType!;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    _typeParameterElements = typeParameters;
+  }
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  FieldElement? getField(String name) {
+    return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String getterName) {
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isGetter && accessor.name == getterName);
+  }
+
+  @override
+  MethodElement? getMethod(String methodName) {
+    return methods.firstWhereOrNull((method) => method.name == methodName);
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    return constructors.firstWhereOrNull((element) => element.name == name);
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String setterName) {
+    return getSetterFromAccessors(setterName, accessors);
+  }
+
+  @override
+  InterfaceType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    return InterfaceTypeImpl(
+      element: this,
+      typeArguments: typeArguments,
+      nullabilitySuffix: nullabilitySuffix,
+    );
+  }
+
+  @override
+  MethodElement? lookUpConcreteMethod(
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
+        (method) => !method.isAbstract && method.isAccessibleIn(library));
+  }
+
+  @override
+  PropertyAccessorElement? lookUpGetter(
+      String getterName, LibraryElement library) {
+    return _implementationsOfGetter(getterName)
+        .firstWhereOrNull((getter) => getter.isAccessibleIn(library));
+  }
+
+  @override
+  PropertyAccessorElement? lookUpInheritedConcreteGetter(
+      String getterName, LibraryElement library) {
+    return _implementationsOfGetter(getterName).firstWhereOrNull((getter) =>
+        !getter.isAbstract &&
+        !getter.isStatic &&
+        getter.isAccessibleIn(library) &&
+        getter.enclosingElement2 != this);
+  }
+
+  ExecutableElement? lookUpInheritedConcreteMember(
+      String name, LibraryElement library) {
+    if (name.endsWith('=')) {
+      return lookUpInheritedConcreteSetter(name, library);
+    } else {
+      return lookUpInheritedConcreteMethod(name, library) ??
+          lookUpInheritedConcreteGetter(name, library);
+    }
+  }
+
+  @override
+  MethodElement? lookUpInheritedConcreteMethod(
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
+        !method.isAbstract &&
+        !method.isStatic &&
+        method.isAccessibleIn(library) &&
+        method.enclosingElement2 != this);
+  }
+
+  @override
+  PropertyAccessorElement? lookUpInheritedConcreteSetter(
+      String setterName, LibraryElement library) {
+    return _implementationsOfSetter(setterName).firstWhereOrNull((setter) =>
+        !setter.isAbstract &&
+        !setter.isStatic &&
+        setter.isAccessibleIn(library) &&
+        setter.enclosingElement2 != this);
+  }
+
+  @override
+  MethodElement? lookUpInheritedMethod(
+      String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull((method) =>
+        !method.isStatic &&
+        method.isAccessibleIn(library) &&
+        method.enclosingElement2 != this);
+  }
+
+  @override
+  MethodElement? lookUpMethod(String methodName, LibraryElement library) {
+    return _implementationsOfMethod(methodName).firstWhereOrNull(
+        (MethodElement method) => method.isAccessibleIn(library));
+  }
+
+  @override
+  PropertyAccessorElement? lookUpSetter(
+      String setterName, LibraryElement library) {
+    return _implementationsOfSetter(setterName).firstWhereOrNull(
+        (PropertyAccessorElement setter) => setter.isAccessibleIn(library));
+  }
+
+  /// Return the static getter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  PropertyAccessorElement? lookupStaticGetter(
+      String name, LibraryElement library) {
+    return _implementationsOfGetter(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
+  }
+
+  /// Return the static method with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  MethodElement? lookupStaticMethod(String name, LibraryElement library) {
+    return _implementationsOfMethod(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
+  }
+
+  /// Return the static setter with the [name], accessible to the [library].
+  ///
+  /// This method should be used only for error recovery during analysis,
+  /// when instance access to a static class member, defined in this class,
+  /// or a superclass.
+  PropertyAccessorElement? lookupStaticSetter(
+      String name, LibraryElement library) {
+    return _implementationsOfSetter(name).firstWhereOrNull(
+        (element) => element.isStatic && element.isAccessibleIn(library));
+  }
+
+  void setLinkedData(Reference reference, LinkedData linkedData) {
+    this.reference = reference;
+    reference.element = this;
+
+    this.linkedData = linkedData;
+  }
+
+  /// Return an iterable containing all of the implementations of a getter with
+  /// the given [getterName] that are defined in this class and any superclass
+  /// of this class (but not in interfaces).
+  ///
+  /// The getters that are returned are not filtered in any way. In particular,
+  /// they can include getters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The getters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the getter it will occur first, if
+  /// Object contains a definition of the getter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfGetter(
+      String getterName) sync* {
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      var getter = classElement.getGetter(getterName);
+      if (getter != null) {
+        yield getter;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        getter = mixin.element.getGetter(getterName);
+        if (getter != null) {
+          yield getter;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a method with
+  /// the given [methodName] that are defined in this class and any superclass
+  /// of this class (but not in interfaces).
+  ///
+  /// The methods that are returned are not filtered in any way. In particular,
+  /// they can include methods that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The methods are returned based on the depth of their defining class; if
+  /// this class contains a definition of the method it will occur first, if
+  /// Object contains a definition of the method it will occur last.
+  Iterable<MethodElement> _implementationsOfMethod(String methodName) sync* {
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      var method = classElement.getMethod(methodName);
+      if (method != null) {
+        yield method;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        method = mixin.element.getMethod(methodName);
+        if (method != null) {
+          yield method;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
+  }
+
+  /// Return an iterable containing all of the implementations of a setter with
+  /// the given [setterName] that are defined in this class and any superclass
+  /// of this class (but not in interfaces).
+  ///
+  /// The setters that are returned are not filtered in any way. In particular,
+  /// they can include setters that are not visible in some context. Clients
+  /// must perform any necessary filtering.
+  ///
+  /// The setters are returned based on the depth of their defining class; if
+  /// this class contains a definition of the setter it will occur first, if
+  /// Object contains a definition of the setter it will occur last.
+  Iterable<PropertyAccessorElement> _implementationsOfSetter(
+      String setterName) sync* {
+    final visitedClasses = <InterfaceElement>{};
+    InterfaceElement? classElement = this;
+    while (classElement != null && visitedClasses.add(classElement)) {
+      var setter = classElement.getSetter(setterName);
+      if (setter != null) {
+        yield setter;
+      }
+      for (InterfaceType mixin in classElement.mixins.reversed) {
+        setter = mixin.element.getSetter(setterName);
+        if (setter != null) {
+          yield setter;
+        }
+      }
+      classElement = classElement.supertype?.element;
+    }
+  }
+
+  static PropertyAccessorElement? getSetterFromAccessors(
+      String setterName, List<PropertyAccessorElement> accessors) {
+    // TODO (jwren) revisit- should we append '=' here or require clients to
+    // include it?
+    // Do we need the check for isSetter below?
+    if (!setterName.endsWith('=')) {
+      setterName += '=';
+    }
+    return accessors.firstWhereOrNull(
+        (accessor) => accessor.isSetter && accessor.name == setterName);
   }
 }
 
@@ -5026,11 +4929,8 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
-  // TODO(brianwilkerson) Consider creating an abstract superclass of
-  // ClassElementImpl that contains the portions of the API that this class
-  // needs, and make this class extend the new class.
-
+class MixinElementImpl extends ClassOrMixinElementImpl<MixinElementLinkedData>
+    implements MixinElement {
   /// A list containing all of the superclass constraints that are defined for
   /// the mixin.
   List<InterfaceType> _superclassConstraints = const [];
@@ -5057,12 +4957,12 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   }
 
   @override
-  List<ConstructorElementImpl> get constructors {
-    return _constructors;
-  }
+  List<InterfaceType> get mixins => const [];
 
   @override
-  List<InterfaceType> get mixins => const <InterfaceType>[];
+  set mixins(List<InterfaceType> mixins) {
+    throw StateError('Attempt to set mixins for a mixin declaration.');
+  }
 
   @override
   List<InterfaceType> get superclassConstraints {

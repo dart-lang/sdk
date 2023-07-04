@@ -101,8 +101,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(ClassOrMixinElementImpl element) {
-    if (element is ClassElementImpl && element.isMixinApplication) {
+  void readMembers(ClassElementImpl element) {
+    if (element.isMixinApplication) {
       element.constructors;
     } else {
       _readMembers?.call();
@@ -668,7 +668,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    AbstractClassElementImpl classElement,
+    InterfaceElementImpl classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');

@@ -374,7 +374,7 @@ class MigrationResolutionHooksImpl
   }
 
   @override
-  List<InterfaceType> getClassInterfaces(AbstractClassElementImpl element) {
+  List<InterfaceType> getClassInterfaces(InterfaceElementImpl element) {
     return _wrapExceptions(
         _fixBuilder.unit,
         () => element.interfacesInternal,

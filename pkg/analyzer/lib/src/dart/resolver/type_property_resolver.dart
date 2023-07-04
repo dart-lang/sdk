@@ -258,7 +258,7 @@ class TypePropertyResolver {
     _needsGetterError = _getterRequested == null;
 
     if (_getterRequested == null && recoverWithStatic) {
-      var classElement = type.element as AbstractClassElementImpl;
+      var classElement = type.element as InterfaceElementImpl;
       _getterRecovery ??=
           classElement.lookupStaticGetter(_name, _definingLibrary) ??
               classElement.lookupStaticMethod(_name, _definingLibrary);
@@ -271,7 +271,7 @@ class TypePropertyResolver {
     _needsSetterError = _setterRequested == null;
 
     if (_setterRequested == null && recoverWithStatic) {
-      var classElement = type.element as AbstractClassElementImpl;
+      var classElement = type.element as InterfaceElementImpl;
       _setterRecovery ??=
           classElement.lookupStaticSetter(_name, _definingLibrary);
       _needsSetterError = _setterRecovery == null;

@@ -303,7 +303,7 @@ class InstanceMemberInferrer {
   /// [classElement].
   void _inferClass(InterfaceElement classElement) {
     _setInducedModifier(classElement);
-    if (classElement is AbstractClassElementImpl) {
+    if (classElement is InterfaceElementImpl) {
       if (classElement.hasBeenInferred) {
         return;
       }
@@ -338,7 +338,7 @@ class InstanceMemberInferrer {
           );
         }
         for (var method in classElement.methods) {
-          _inferExecutable(method as MethodElementImpl);
+          _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after
