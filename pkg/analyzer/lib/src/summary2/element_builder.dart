@@ -1241,7 +1241,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node?.accept(this);
   }
 
-  void _resolveConstructorFieldFormals(AbstractClassElementImpl element) {
+  void _resolveConstructorFieldFormals(InterfaceElementImpl element) {
     for (var constructor in element.constructors) {
       for (var parameter in constructor.parameters) {
         if (parameter is FieldFormalParameterElementImpl) {

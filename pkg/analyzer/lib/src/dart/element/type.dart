@@ -789,7 +789,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticGetter(name, library);
     }
 
@@ -828,7 +828,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticMethod(name, library);
     }
 
@@ -867,7 +867,7 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     }
 
     if (recoveryStatic) {
-      final element = this.element as AbstractClassElementImpl;
+      final element = this.element as InterfaceElementImpl;
       return element.lookupStaticSetter(name, library);
     }
 
