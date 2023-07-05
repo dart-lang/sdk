@@ -61,7 +61,7 @@ const x = bool.fromEnvironment('dart.library.js_util');
 ''');
 
     _assertTopVarConstValue('x', r'''
-bool <unknown>
+<unknown> bool
   variable: self::@variable::x
 ''');
   }

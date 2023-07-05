@@ -69,7 +69,11 @@ class ElementPrinter {
 
   void writeElement(String name, Element? element) {
     _sink.writeWithIndent('$name: ');
+    writeElement0(element);
+  }
 
+  /// TODO(scheglov) rename [writeElement] to `writeNamedElement`, and this.
+  void writeElement0(Element? element) {
     switch (element) {
       case null:
         _sink.writeln('<null>');
@@ -93,19 +97,36 @@ class ElementPrinter {
 
   void writeNamedType(String name, DartType? type) {
     _sink.writeWithIndent('$name: ');
-    _writeType(type);
+    writeType(type);
   }
 
   void writeType(DartType? type) {
-    _sink.writeIndent();
-    _writeType(type);
+    if (type != null) {
+      var typeStr = _typeStr(type);
+      _sink.writeln(typeStr);
+
+      var alias = type.alias;
+      if (alias != null) {
+        _sink.withIndent(() {
+          writeElement('alias', alias.element);
+          _sink.withIndent(() {
+            writeTypeList('typeArguments', alias.typeArguments);
+          });
+        });
+      }
+    } else {
+      _sink.writeln('null');
+    }
   }
 
   void writeTypeList(String name, List<DartType>? types) {
     if (types != null && types.isNotEmpty) {
       _sink.writelnWithIndent(name);
       _sink.withIndent(() {
-        types.forEach(writeType);
+        for (final type in types) {
+          _sink.writeIndent();
+          writeType(type);
+        }
       });
     }
   }
@@ -230,25 +251,6 @@ class ElementPrinter {
 
   void _writePartElement(PartElement element) {
     writeDirectiveUri(element.uri);
-  }
-
-  void _writeType(DartType? type) {
-    if (type != null) {
-      var typeStr = _typeStr(type);
-      _sink.writeln(typeStr);
-
-      var alias = type.alias;
-      if (alias != null) {
-        _sink.withIndent(() {
-          writeElement('alias', alias.element);
-          _sink.withIndent(() {
-            writeTypeList('typeArguments', alias.typeArguments);
-          });
-        });
-      }
-    } else {
-      _sink.writeln('null');
-    }
   }
 
   static String _nameOfMemberClass(Member member) {

@@ -29073,6 +29073,48 @@ library
     expect(augmentation.enclosingElement2, same(library));
   }
 
+  test_library_augmentationImports_depthFirst() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+''');
+
+    newFile('$testPackageLibPath/c.dart', r'''
+library augment 'test.dart';
+''');
+
+    final library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'c.dart';
+''');
+
+    configuration.withLibraryAugmentations = true;
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+      definingUnit
+    package:test/c.dart
+      definingUnit
+  definingUnit
+  augmentations
+    self::@augmentation::package:test/a.dart
+    self::@augmentation::package:test/b.dart
+    self::@augmentation::package:test/c.dart
+''');
+
+    final import_0 = library.augmentationImports[0];
+    final augmentation = import_0.importedAugmentation!;
+    expect(augmentation.enclosingElement2, same(library));
+  }
+
   test_library_augmentationImports_noRelativeUriStr() async {
     final library = await buildLibrary(r'''
 import augment '${'foo'}.dart';

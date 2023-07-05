@@ -133,6 +133,7 @@ class ElementTextConfiguration {
   bool withExportScope = false;
   bool withFunctionTypeParameters = false;
   bool withImports = true;
+  bool withLibraryAugmentations = false;
   bool withMetadata = true;
   bool withNonSynthetic = false;
   bool withPropertyLinking = false;
@@ -262,7 +263,7 @@ class _ElementWriter {
     return components.join(';');
   }
 
-  void _writeAugmentationElement(LibraryAugmentationElement e) {
+  void _writeAugmentationElement(LibraryAugmentationElementImpl e) {
     _writeLibraryOrAugmentationElement(e);
   }
 
@@ -274,7 +275,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeMetadata(e);
-      if (uri is DirectiveUriWithAugmentation) {
+      if (uri is DirectiveUriWithAugmentationImpl) {
         _writeAugmentationElement(uri.augmentation);
       }
     });
@@ -644,7 +645,22 @@ class _ElementWriter {
     }
   }
 
-  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
+  void _writeLibraryAugmentations(LibraryElementImpl e) {
+    if (configuration.withLibraryAugmentations) {
+      final augmentations = e.augmentations;
+      if (augmentations.isNotEmpty) {
+        _sink.writelnWithIndent('augmentations');
+        _sink.withIndent(() {
+          for (final element in augmentations) {
+            _sink.writeIndent();
+            _elementPrinter.writeElement0(element);
+          }
+        });
+      }
+    }
+  }
+
+  void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElementImpl e) {
     _writeDocumentation(e);
     _writeMetadata(e);
     _writeSinceSdkVersion(e);
@@ -665,6 +681,10 @@ class _ElementWriter {
     _sink.withIndent(() {
       _writeUnitElement(e.definingCompilationUnit);
     });
+
+    if (e is LibraryElementImpl) {
+      _writeLibraryAugmentations(e);
+    }
   }
 
   void _writeMetadata(Element element) {
