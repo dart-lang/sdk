@@ -14,6 +14,8 @@ import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 
+import '../../util/element_printer.dart';
+import '../../util/tree_string_sink.dart';
 import 'resolved_ast_printer.dart';
 
 /// Set this path to automatically replace expectations in invocations of
@@ -50,13 +52,24 @@ void checkElementTextWithConfiguration(
   String expected, {
   ElementTextConfiguration? configuration,
 }) {
-  var writer = _ElementWriter(
+  final buffer = StringBuffer();
+  final sink = TreeStringSink(
+    sink: buffer,
+    indent: '',
+  );
+  final elementPrinter = ElementPrinter(
+    sink: sink,
+    configuration: ElementPrinterConfiguration(),
     selfUriStr: '${library.source.uri}',
+  );
+  var writer = _ElementWriter(
+    sink: sink,
+    elementPrinter: elementPrinter,
     configuration: configuration ?? ElementTextConfiguration(),
   );
   writer.writeLibraryElement(library);
 
-  String actualText = writer.buffer.toString();
+  String actualText = buffer.toString();
   actualText =
       actualText.split('\n').map((line) => line.trimRight()).join('\n');
 
@@ -135,31 +148,31 @@ class ElementTextConfiguration {
 
 /// Writes the canonical text presentation of elements.
 class _ElementWriter {
-  final String? selfUriStr;
+  final TreeStringSink _sink;
+  final ElementPrinter _elementPrinter;
   final ElementTextConfiguration configuration;
-  final StringBuffer buffer = StringBuffer();
   final _IdMap _idMap = _IdMap();
 
-  String indent = '';
-
   _ElementWriter({
-    this.selfUriStr,
+    required TreeStringSink sink,
+    required ElementPrinter elementPrinter,
     required this.configuration,
-  });
+  })  : _sink = sink,
+        _elementPrinter = elementPrinter;
 
   void writeLibraryElement(LibraryElement e) {
     e as LibraryElementImpl;
 
-    _writelnWithIndent('library');
-    _withIndent(() {
+    _sink.writelnWithIndent('library');
+    _sink.withIndent(() {
       var name = e.name;
       if (name.isNotEmpty) {
-        _writelnWithIndent('name: $name');
+        _sink.writelnWithIndent('name: $name');
       }
 
       var nameOffset = e.nameOffset;
       if (nameOffset != -1) {
-        _writelnWithIndent('nameOffset: $nameOffset');
+        _sink.writelnWithIndent('nameOffset: $nameOffset');
       }
 
       _writeLibraryOrAugmentationElement(e);
@@ -167,12 +180,12 @@ class _ElementWriter {
       _writeElements('parts', e.parts, _writePartElement);
 
       if (configuration.withExportScope) {
-        _writelnWithIndent('exportedReferences');
-        _withIndent(() {
+        _sink.writelnWithIndent('exportedReferences');
+        _sink.withIndent(() {
           _writeExportedReferences(e);
         });
-        _writelnWithIndent('exportNamespace');
-        _withIndent(() {
+        _sink.writelnWithIndent('exportNamespace');
+        _sink.withIndent(() {
           _writeExportNamespace(e);
         });
       }
@@ -213,9 +226,8 @@ class _ElementWriter {
 
   ResolvedAstPrinter _createAstPrinter() {
     return ResolvedAstPrinter(
-      selfUriStr: selfUriStr,
-      sink: buffer,
-      indent: indent,
+      sink: _sink,
+      elementPrinter: _elementPrinter,
       configuration: ResolvedNodeTextConfiguration()
         // TODO(scheglov) https://github.com/dart-lang/sdk/issues/49101
         ..withParameterElements = false,
@@ -223,6 +235,7 @@ class _ElementWriter {
     );
   }
 
+  /// TODO(scheglov) Replace with reference?
   String _getElementLocationString(Element? element) {
     if (element == null || element is MultiplyDefinedElement) {
       return 'null';
@@ -249,24 +262,17 @@ class _ElementWriter {
     return components.join(';');
   }
 
-  void _withIndent(void Function() f) {
-    var savedIndent = indent;
-    indent = '$savedIndent  ';
-    f();
-    indent = savedIndent;
-  }
-
   void _writeAugmentationElement(LibraryAugmentationElement e) {
     _writeLibraryOrAugmentationElement(e);
   }
 
   void _writeAugmentationImportElement(AugmentationImportElement e) {
     final uri = e.uri;
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeMetadata(e);
       if (uri is DirectiveUriWithAugmentation) {
         _writeAugmentationElement(uri.augmentation);
@@ -277,51 +283,51 @@ class _ElementWriter {
   void _writeBodyModifiers(ExecutableElement e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
-      buffer.write(' async');
+      _sink.write(' async');
     }
 
     if (e.isSynchronous && e.isGenerator) {
       expect(e.isAsynchronous, isFalse);
-      buffer.write(' sync');
+      _sink.write(' sync');
     }
 
-    _writeIf(e.isGenerator, '*');
+    _sink.writeIf(e.isGenerator, '*');
 
     if (e is ExecutableElementImpl && e.invokesSuperSelf) {
-      buffer.write(' invokesSuperSelf');
+      _sink.write(' invokesSuperSelf');
     }
   }
 
   void _writeClassElement(InterfaceElement e) {
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       if (e is ClassElement) {
-        _writeIf(e.isAbstract, 'abstract ');
-        _writeIf(e.isMacro, 'macro ');
-        _writeIf(e.isSealed, 'sealed ');
-        _writeIf(e.isBase, 'base ');
-        _writeIf(e.isInterface, 'interface ');
-        _writeIf(e.isFinal, 'final ');
-        _writeIf(e.isInline, 'inline ');
-        _writeIf(e.isMixinClass, 'mixin ');
+        _sink.writeIf(e.isAbstract, 'abstract ');
+        _sink.writeIf(e.isMacro, 'macro ');
+        _sink.writeIf(e.isSealed, 'sealed ');
+        _sink.writeIf(e.isBase, 'base ');
+        _sink.writeIf(e.isInterface, 'interface ');
+        _sink.writeIf(e.isFinal, 'final ');
+        _sink.writeIf(e.isInline, 'inline ');
+        _sink.writeIf(e.isMixinClass, 'mixin ');
       }
-      _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
 
       if (e is EnumElement) {
-        buffer.write('enum ');
+        _sink.write('enum ');
       } else if (e is MixinElement) {
-        _writeIf(e.isBase, 'base ');
-        buffer.write('mixin ');
+        _sink.writeIf(e.isBase, 'base ');
+        _sink.write('mixin ');
       } else {
-        buffer.write('class ');
+        _sink.write('class ');
       }
       if (e is ClassElement) {
-        _writeIf(e.isMixinApplication, 'alias ');
+        _sink.writeIf(e.isMixinApplication, 'alias ');
       }
 
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -339,11 +345,14 @@ class _ElementWriter {
         if (superclassConstraints.isEmpty) {
           throw StateError('At least Object is expected.');
         }
-        _writeTypeList('superclassConstraints', superclassConstraints);
+        _elementPrinter.writeTypeList(
+          'superclassConstraints',
+          superclassConstraints,
+        );
       }
 
-      _writeTypeList('mixins', e.mixins);
-      _writeTypeList('interfaces', e.interfaces);
+      _elementPrinter.writeTypeList('mixins', e.mixins);
+      _elementPrinter.writeTypeList('interfaces', e.interfaces);
 
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
@@ -365,8 +374,8 @@ class _ElementWriter {
   void _writeCodeRange(Element e) {
     if (configuration.withCodeRanges && !e.isSynthetic) {
       e as ElementImpl;
-      _writelnWithIndent('codeOffset: ${e.codeOffset}');
-      _writelnWithIndent('codeLength: ${e.codeLength}');
+      _sink.writelnWithIndent('codeOffset: ${e.codeOffset}');
+      _sink.writelnWithIndent('codeLength: ${e.codeLength}');
     }
   }
 
@@ -375,8 +384,8 @@ class _ElementWriter {
       if (e is ConstVariableElement) {
         var initializer = e.constantInitializer;
         if (initializer != null) {
-          _writelnWithIndent('constantInitializer');
-          _withIndent(() {
+          _sink.writelnWithIndent('constantInitializer');
+          _sink.withIndent(() {
             _writeNode(initializer);
           });
         }
@@ -400,16 +409,16 @@ class _ElementWriter {
       }
     }
 
-    _writeIndentedLine(() {
-      _writeIf(e.isSynthetic, 'synthetic ');
-      _writeIf(e.isExternal, 'external ');
-      _writeIf(e.isConst, 'const ');
-      _writeIf(e.isFactory, 'factory ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isExternal, 'external ');
+      _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isFactory, 'factory ');
       expect(e.isAbstract, isFalse);
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -419,8 +428,8 @@ class _ElementWriter {
       var periodOffset = e.periodOffset;
       var nameEnd = e.nameEnd;
       if (periodOffset != null && nameEnd != null) {
-        _writelnWithIndent('periodOffset: $periodOffset');
-        _writelnWithIndent('nameEnd: $nameEnd');
+        _sink.writelnWithIndent('periodOffset: $periodOffset');
+        _sink.writelnWithIndent('nameEnd: $nameEnd');
       }
 
       _writeParameterElements(e.parameters);
@@ -436,13 +445,16 @@ class _ElementWriter {
         final enclosingElement = superConstructor.enclosingElement2;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
-          _writeElementReference('superConstructor', superConstructor);
+          _elementPrinter.writeElement('superConstructor', superConstructor);
         }
       }
 
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
-        _writeElementReference('redirectedConstructor', redirectedConstructor);
+        _elementPrinter.writeElement(
+          'redirectedConstructor',
+          redirectedConstructor,
+        );
       }
 
       _writeNonSyntheticElement(e);
@@ -463,25 +475,25 @@ class _ElementWriter {
 
   void _writeDirectiveUri(DirectiveUri uri) {
     if (uri is DirectiveUriWithAugmentationImpl) {
-      buffer.write('${uri.augmentation.source.uri}');
+      _sink.write('${uri.augmentation.source.uri}');
     } else if (uri is DirectiveUriWithLibraryImpl) {
-      buffer.write('${uri.library.source.uri}');
+      _sink.write('${uri.library.source.uri}');
     } else if (uri is DirectiveUriWithUnit) {
-      buffer.write('${uri.unit.source.uri}');
+      _sink.write('${uri.unit.source.uri}');
     } else if (uri is DirectiveUriWithSource) {
-      buffer.write("source '${uri.source.uri}'");
+      _sink.write("source '${uri.source.uri}'");
     } else if (uri is DirectiveUriWithRelativeUri) {
-      buffer.write("relativeUri '${uri.relativeUri}'");
+      _sink.write("relativeUri '${uri.relativeUri}'");
     } else if (uri is DirectiveUriWithRelativeUriString) {
-      buffer.write("relativeUriString '${uri.relativeUriString}'");
+      _sink.write("relativeUriString '${uri.relativeUriString}'");
     } else {
-      buffer.write('noRelativeUriString');
+      _sink.write('noRelativeUriString');
     }
   }
 
   void _writeDisplayName(Element e) {
     if (configuration.withDisplayName) {
-      _writelnWithIndent('displayName: ${e.displayName}');
+      _sink.writelnWithIndent('displayName: ${e.displayName}');
     }
   }
 
@@ -491,13 +503,8 @@ class _ElementWriter {
       var str = documentation;
       str = str.replaceAll('\n', r'\n');
       str = str.replaceAll('\r', r'\r');
-      _writelnWithIndent('documentationComment: $str');
+      _sink.writelnWithIndent('documentationComment: $str');
     }
-  }
-
-  void _writeElementReference(String name, Element element) {
-    var printer = _createAstPrinter();
-    printer.writeElement(name, element);
   }
 
   void _writeElements<T extends Object>(
@@ -507,8 +514,8 @@ class _ElementWriter {
   ) {
     var filtered = elements.where(configuration.filter).toList();
     if (filtered.isNotEmpty) {
-      _writelnWithIndent(name);
-      _withIndent(() {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
         for (var element in filtered) {
           f(element);
         }
@@ -521,14 +528,14 @@ class _ElementWriter {
     exportedReferences.sortBy((e) => e.reference.toString());
 
     for (final exported in exportedReferences) {
-      _writeIndentedLine(() {
+      _sink.writeIndentedLine(() {
         if (exported is ExportedReferenceDeclared) {
-          buffer.write('declared ');
+          _sink.write('declared ');
         } else if (exported is ExportedReferenceExported) {
-          buffer.write('exported${exported.locations} ');
+          _sink.write('exported${exported.locations} ');
         }
         // TODO(scheglov) Use the same writer as for resolved AST.
-        buffer.write(exported.reference);
+        _sink.write(exported.reference);
       });
     }
   }
@@ -536,11 +543,11 @@ class _ElementWriter {
   void _writeExportElement(LibraryExportElement e) {
     e.location;
 
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
@@ -554,16 +561,16 @@ class _ElementWriter {
     for (var name in names) {
       var element = map[name];
       var elementLocationStr = _getElementLocationString(element);
-      _writelnWithIndent('$name: $elementLocationStr');
+      _sink.writelnWithIndent('$name: $elementLocationStr');
     }
   }
 
   void _writeExtensionElement(ExtensionElement e) {
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -572,7 +579,7 @@ class _ElementWriter {
       _writeType('extendedType', e.extendedType);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);
@@ -585,9 +592,9 @@ class _ElementWriter {
     if (e is FieldFormalParameterElement) {
       var field = e.field;
       if (field != null) {
-        _writeElementReference('field', field);
+        _elementPrinter.writeElement('field', field);
       } else {
-        _writelnWithIndent('field: <null>');
+        _sink.writelnWithIndent('field: <null>');
       }
     }
   }
@@ -595,13 +602,13 @@ class _ElementWriter {
   void _writeFunctionElement(FunctionElement e) {
     expect(e.isStatic, isTrue);
 
-    _writeIndentedLine(() {
-      _writeIf(e.isExternal, 'external ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isExternal, 'external ');
       _writeName(e);
       _writeBodyModifiers(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -614,22 +621,16 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeIf(bool flag, String str) {
-    if (flag) {
-      buffer.write(str);
-    }
-  }
-
   void _writeImportElement(LibraryImportElement e) {
     e.location;
 
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
-      _writeIf(e.isSynthetic, ' synthetic');
+      _sink.writeIf(e.isSynthetic, ' synthetic');
       _writeImportElementPrefix(e.prefix);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeMetadata(e);
       _writeNamespaceCombinators(e.combinators);
     });
@@ -637,16 +638,10 @@ class _ElementWriter {
 
   void _writeImportElementPrefix(ImportElementPrefix? prefix) {
     if (prefix != null) {
-      _writeIf(prefix is DeferredImportElementPrefix, ' deferred');
-      buffer.write(' as ');
+      _sink.writeIf(prefix is DeferredImportElementPrefix, ' deferred');
+      _sink.write(' as ');
       _writeName(prefix.element);
     }
-  }
-
-  void _writeIndentedLine(void Function() f) {
-    buffer.write(indent);
-    f();
-    buffer.writeln();
   }
 
   void _writeLibraryOrAugmentationElement(LibraryOrAugmentationElement e) {
@@ -666,23 +661,18 @@ class _ElementWriter {
     _writeElements('augmentationImports', e.augmentationImports,
         _writeAugmentationImportElement);
 
-    _writelnWithIndent('definingUnit');
-    _withIndent(() {
+    _sink.writelnWithIndent('definingUnit');
+    _sink.withIndent(() {
       _writeUnitElement(e.definingCompilationUnit);
     });
-  }
-
-  void _writelnWithIndent(String line) {
-    buffer.write(indent);
-    buffer.writeln(line);
   }
 
   void _writeMetadata(Element element) {
     if (configuration.withMetadata) {
       var annotations = element.metadata;
       if (annotations.isNotEmpty) {
-        _writelnWithIndent('metadata');
-        _withIndent(() {
+        _sink.writelnWithIndent('metadata');
+        _sink.withIndent(() {
           for (var annotation in annotations) {
             annotation as ElementAnnotationImpl;
             _writeNode(annotation.annotationAst);
@@ -693,17 +683,17 @@ class _ElementWriter {
   }
 
   void _writeMethodElement(MethodElement e) {
-    _writeIndentedLine(() {
-      _writeIf(e.isSynthetic, 'synthetic ');
-      _writeIf(e.isStatic, 'static ');
-      _writeIf(e.isAbstract, 'abstract ');
-      _writeIf(e.isExternal, 'external ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      _sink.writeIf(e.isExternal, 'external ');
 
       _writeName(e);
       _writeBodyModifiers(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -727,19 +717,19 @@ class _ElementWriter {
   void _writeName(Element e) {
     // TODO(scheglov) Use 'name' everywhere.
     var name = e is ConstructorElement ? e.name : e.displayName;
-    buffer.write(name);
-    buffer.write(name.isNotEmpty ? ' @' : '@');
-    buffer.write(e.nameOffset);
+    _sink.write(name);
+    _sink.write(name.isNotEmpty ? ' @' : '@');
+    _sink.write(e.nameOffset);
   }
 
   void _writeNamespaceCombinator(NamespaceCombinator e) {
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       if (e is ShowElementCombinator) {
-        buffer.write('show: ');
-        buffer.write(e.shownNames.join(', '));
+        _sink.write('show: ');
+        _sink.write(e.shownNames.join(', '));
       } else if (e is HideElementCombinator) {
-        buffer.write('hide: ');
-        buffer.write(e.hiddenNames.join(', '));
+        _sink.write('hide: ');
+        _sink.write(e.hiddenNames.join(', '));
       }
     });
   }
@@ -749,7 +739,7 @@ class _ElementWriter {
   }
 
   void _writeNode(AstNode node) {
-    buffer.write(indent);
+    _sink.writeIndent();
     node.accept(
       _createAstPrinter(),
     );
@@ -757,40 +747,40 @@ class _ElementWriter {
 
   void _writeNonSyntheticElement(Element e) {
     if (configuration.withNonSynthetic) {
-      _writeElementReference('nonSynthetic', e.nonSynthetic);
+      _elementPrinter.writeElement('nonSynthetic', e.nonSynthetic);
     }
   }
 
   void _writeParameterElement(ParameterElement e) {
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       if (e.isRequiredPositional) {
-        buffer.write('requiredPositional ');
+        _sink.write('requiredPositional ');
       } else if (e.isOptionalPositional) {
-        buffer.write('optionalPositional ');
+        _sink.write('optionalPositional ');
       } else if (e.isRequiredNamed) {
-        buffer.write('requiredNamed ');
+        _sink.write('requiredNamed ');
       } else if (e.isOptionalNamed) {
-        buffer.write('optionalNamed ');
+        _sink.write('optionalNamed ');
       }
 
       if (e is ConstVariableElement) {
-        buffer.write('default ');
+        _sink.write('default ');
       }
 
-      _writeIf(e.isConst, 'const ');
-      _writeIf(e.isCovariant, 'covariant ');
-      _writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.isConst, 'const ');
+      _sink.writeIf(e.isCovariant, 'covariant ');
+      _sink.writeIf(e.isFinal, 'final ');
 
       if (e is FieldFormalParameterElement) {
-        buffer.write('this.');
+        _sink.write('this.');
       } else if (e is SuperFormalParameterElement) {
-        buffer.write('super.');
+        _sink.write('super.');
       }
 
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeType('type', e.type);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -810,11 +800,11 @@ class _ElementWriter {
 
   void _writePartElement(PartElement e) {
     final uri = e.uri;
-    _writeIndentedLine(() {
+    _sink.writeIndentedLine(() {
       _writeDirectiveUri(e.uri);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeMetadata(e);
       if (uri is DirectiveUriWithUnit) {
         _writeUnitElement(uri.unit);
@@ -856,16 +846,16 @@ class _ElementWriter {
       _assertNonSyntheticElementSelf(e);
     }
 
-    _writeIndentedLine(() {
-      _writeIf(e.isSynthetic, 'synthetic ');
-      _writeIf(e.isStatic, 'static ');
-      _writeIf(e.isAbstract, 'abstract ');
-      _writeIf(e.isExternal, 'external ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e.isAbstract, 'abstract ');
+      _sink.writeIf(e.isExternal, 'external ');
 
       if (e.isGetter) {
-        buffer.write('get ');
+        _sink.write('get ');
       } else {
-        buffer.write('set ');
+        _sink.write('set ');
       }
 
       _writeName(e);
@@ -874,12 +864,12 @@ class _ElementWriter {
 
     void writeLinking() {
       if (configuration.withPropertyLinking) {
-        _writelnWithIndent('id: ${_idMap[e]}');
-        _writelnWithIndent('variable: ${_idMap[e.variable]}');
+        _sink.writelnWithIndent('id: ${_idMap[e]}');
+        _sink.writelnWithIndent('variable: ${_idMap[e.variable]}');
       }
     }
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -915,18 +905,18 @@ class _ElementWriter {
       _assertNonSyntheticElementSelf(e);
     }
 
-    _writeIndentedLine(() {
-      _writeIf(e.isSynthetic, 'synthetic ');
-      _writeIf(e.isStatic, 'static ');
-      _writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
-      _writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
-      _writeIf(e is FieldElementImpl && e.isExternal, 'external ');
-      _writeIf(e.isLate, 'late ');
-      _writeIf(e.isFinal, 'final ');
-      _writeIf(e.isConst, 'const ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isSynthetic, 'synthetic ');
+      _sink.writeIf(e.isStatic, 'static ');
+      _sink.writeIf(e is FieldElementImpl && e.isAbstract, 'abstract ');
+      _sink.writeIf(e is FieldElementImpl && e.isCovariant, 'covariant ');
+      _sink.writeIf(e is FieldElementImpl && e.isExternal, 'external ');
+      _sink.writeIf(e.isLate, 'late ');
+      _sink.writeIf(e.isFinal, 'final ');
+      _sink.writeIf(e.isConst, 'const ');
       if (e is FieldElementImpl) {
-        _writeIf(e.isEnumConstant, 'enumConstant ');
-        _writeIf(e.isPromotable, 'promotable ');
+        _sink.writeIf(e.isEnumConstant, 'enumConstant ');
+        _sink.writeIf(e.isPromotable, 'promotable ');
       }
 
       _writeName(e);
@@ -934,21 +924,21 @@ class _ElementWriter {
 
     void writeLinking() {
       if (configuration.withPropertyLinking) {
-        _writelnWithIndent('id: ${_idMap[e]}');
+        _sink.writelnWithIndent('id: ${_idMap[e]}');
 
         final getter = e.getter;
         if (getter != null) {
-          _writelnWithIndent('getter: ${_idMap[getter]}');
+          _sink.writelnWithIndent('getter: ${_idMap[getter]}');
         }
 
         final setter = e.setter;
         if (setter != null) {
-          _writelnWithIndent('setter: ${_idMap[setter]}');
+          _sink.writelnWithIndent('setter: ${_idMap[setter]}');
         }
       }
     }
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -966,7 +956,7 @@ class _ElementWriter {
     PropertyInducingElementImpl e,
   ) {
     if (!e.isSynthetic) {
-      _writelnWithIndent(
+      _sink.writelnWithIndent(
         'shouldUseTypeForInitializerInference: '
         '${e.shouldUseTypeForInitializerInference}',
       );
@@ -976,7 +966,7 @@ class _ElementWriter {
   void _writeSinceSdkVersion(Element e) {
     final sinceSdkVersion = e.sinceSdkVersion;
     if (sinceSdkVersion != null) {
-      _writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
+      _sink.writelnWithIndent('sinceSdkVersion: $sinceSdkVersion');
     }
   }
 
@@ -984,19 +974,22 @@ class _ElementWriter {
     if (e is SuperFormalParameterElement) {
       var superParameter = e.superConstructorParameter;
       if (superParameter != null) {
-        _writeElementReference('superConstructorParameter', superParameter);
+        _elementPrinter.writeElement(
+          'superConstructorParameter',
+          superParameter,
+        );
       } else {
-        _writelnWithIndent('superConstructorParameter: <null>');
+        _sink.writelnWithIndent('superConstructorParameter: <null>');
       }
     }
   }
 
   void _writeType(String name, DartType type) {
-    _createAstPrinter().writeType(type, name: name);
+    _elementPrinter.writeNamedType(name, type);
 
     if (configuration.withFunctionTypeParameters) {
       if (type is FunctionType) {
-        _withIndent(() {
+        _sink.withIndent(() {
           _writeParameterElements(type.parameters);
         });
       }
@@ -1006,13 +999,13 @@ class _ElementWriter {
   void _writeTypeAliasElement(TypeAliasElement e) {
     e as TypeAliasElementImpl;
 
-    _writeIndentedLine(() {
-      _writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
-      _writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+    _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isFunctionTypeAliasBased, 'functionTypeAliasBased ');
+      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeDocumentation(e);
       _writeMetadata(e);
       _writeSinceSdkVersion(e);
@@ -1024,8 +1017,8 @@ class _ElementWriter {
 
       var aliasedElement = e.aliasedElement;
       if (aliasedElement is GenericFunctionTypeElementImpl) {
-        _writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
-        _withIndent(() {
+        _sink.writelnWithIndent('aliasedElement: GenericFunctionTypeElement');
+        _sink.withIndent(() {
           _writeTypeParameterElements(aliasedElement.typeParameters);
           _writeParameterElements(aliasedElement.parameters);
           _writeType('returnType', aliasedElement.returnType2);
@@ -1049,28 +1042,24 @@ class _ElementWriter {
       if (kindName.startsWith('TopLevelInferenceErrorKind.')) {
         kindName = kindName.substring('TopLevelInferenceErrorKind.'.length);
       }
-      _writelnWithIndent('typeInferenceError: $kindName');
-      _withIndent(() {
+      _sink.writelnWithIndent('typeInferenceError: $kindName');
+      _sink.withIndent(() {
         if (kindName == 'dependencyCycle') {
-          _writelnWithIndent('arguments: ${inferenceError?.arguments}');
+          _sink.writelnWithIndent('arguments: ${inferenceError?.arguments}');
         }
       });
     }
   }
 
-  void _writeTypeList(String name, List<DartType> types) {
-    _createAstPrinter().writeTypeList(name, types);
-  }
-
   void _writeTypeParameterElement(TypeParameterElement e) {
     e as TypeParameterElementImpl;
 
-    _writeIndentedLine(() {
-      buffer.write('${e.variance} ');
+    _sink.writeIndentedLine(() {
+      _sink.write('${e.variance} ');
       _writeName(e);
     });
 
-    _withIndent(() {
+    _sink.withIndent(() {
       _writeCodeRange(e);
 
       var bound = e.bound;
