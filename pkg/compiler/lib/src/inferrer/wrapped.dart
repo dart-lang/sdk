@@ -641,9 +641,9 @@ class WrappedAbstractValueDomain with AbstractValueDomain {
           receiver._abstractValue, selector, memberHierarchyBuilder);
 
   @override
-  bool isValidRefinement(covariant WrappedAbstractValue before,
+  bool isInvalidRefinement(covariant WrappedAbstractValue before,
       covariant WrappedAbstractValue after) {
-    return _abstractValueDomain.isValidRefinement(
+    return _abstractValueDomain.isInvalidRefinement(
         before._abstractValue, after._abstractValue);
   }
 }
