@@ -280,6 +280,10 @@ class FfiTransformer extends Transformer {
   late final InterfaceType nativeFieldWrapperClass1Type;
   late final InterfaceType voidType;
   late final InterfaceType pointerVoidType;
+  // The instantiated to bounds type argument for the Pointer class.
+  late final InterfaceType nativeTypeType;
+  // The Pointer type when instantiated to bounds.
+  late final InterfaceType pointerNativeTypeType;
 
   /// Classes corresponding to [NativeType], indexed by [NativeType].
   final Map<NativeType, Class> nativeTypesClasses;
@@ -539,6 +543,10 @@ class FfiTransformer extends Transformer {
         .getThisType(coreTypes, Nullability.nonNullable);
     pointerVoidType =
         InterfaceType(pointerClass, Nullability.nonNullable, [voidType]);
+    nativeTypeType = nativeTypesClasses[NativeType.kNativeType]!
+        .getThisType(coreTypes, Nullability.nonNullable);
+    pointerNativeTypeType =
+        InterfaceType(pointerClass, Nullability.nonNullable, [nativeTypeType]);
     intptrNativeTypeCfe =
         NativeTypeCfe(this, InterfaceType(intptrClass, Nullability.nonNullable))
             as AbiSpecificNativeTypeCfe;
@@ -849,8 +857,7 @@ class FfiTransformer extends Transformer {
     return BlockExpression(
         Block([typedDataBaseVar, offsetVar]),
         ConditionalExpression(
-            IsExpression(VariableGet(typedDataBaseVar),
-                InterfaceType(pointerClass, Nullability.nonNullable)),
+            IsExpression(VariableGet(typedDataBaseVar), pointerNativeTypeType),
             _pointerOffset(VariableGet(typedDataBaseVar),
                 VariableGet(offsetVar), dartType, fileOffset),
             _typedDataOffset(
@@ -875,10 +882,7 @@ class FfiTransformer extends Transformer {
       return false;
     }
     if (!env.isSubtypeOf(
-        type,
-        InterfaceType(
-            nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy),
-        SubtypeCheckMode.ignoringNullabilities)) {
+        type, nativeTypeType, SubtypeCheckMode.ignoringNullabilities)) {
       return false;
     }
     if (isPointerType(type)) {
@@ -899,12 +903,7 @@ class FfiTransformer extends Transformer {
       return false;
     }
     return env.isSubtypeOf(
-        type,
-        InterfaceType(pointerClass, Nullability.legacy, [
-          InterfaceType(
-              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
-        ]),
-        SubtypeCheckMode.ignoringNullabilities);
+        type, pointerNativeTypeType, SubtypeCheckMode.ignoringNullabilities);
   }
 
   bool isArrayType(DartType type) {
@@ -916,10 +915,7 @@ class FfiTransformer extends Transformer {
     }
     return env.isSubtypeOf(
         type,
-        InterfaceType(arrayClass, Nullability.legacy, [
-          InterfaceType(
-              nativeTypesClasses[NativeType.kNativeType]!, Nullability.legacy)
-        ]),
+        InterfaceType(arrayClass, Nullability.legacy, [nativeTypeType]),
         SubtypeCheckMode.ignoringNullabilities);
   }
 
