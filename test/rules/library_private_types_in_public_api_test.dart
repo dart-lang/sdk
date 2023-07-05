@@ -18,6 +18,30 @@ class LibraryPrivateTypesInPublicApiEnumTest extends LintRuleTest {
   @override
   String get lintRule => 'library_private_types_in_public_api';
 
+  test_abstractFinal_constructorParams() async {
+    await assertNoDiagnostics(r'''
+class _O {
+  const _O();
+}
+
+abstract final class E {
+  E(_O o);
+}
+''');
+  }
+
+  test_abstractInterface_constructorParams() async {
+    await assertNoDiagnostics(r'''
+class _O {
+  const _O();
+}
+
+abstract interface class E {
+  E(_O o);
+}
+''');
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 class _O {}
@@ -43,6 +67,18 @@ class _O {
 enum E {
   a(_O());
   const E(_O o);
+}
+''');
+  }
+
+  test_sealed_constructorParams() async {
+    await assertNoDiagnostics(r'''
+class _O {
+  const _O();
+}
+
+sealed class E {
+  E(_O o);
 }
 ''');
   }

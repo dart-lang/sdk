@@ -94,8 +94,19 @@ class Validator extends SimpleAstVisitor<void> {
     if (name != null && Identifier.isPrivateName(name.lexeme)) {
       return;
     }
+
     // Enum constructors are effectively private so don't visit their params.
     if (node.parent is EnumDeclaration) return;
+
+    // Select modified class types are also effectively private.
+    var enclosingElement = node.declaredElement?.enclosingElement;
+    if (enclosingElement is ClassElement) {
+      if (enclosingElement.isSealed) return;
+      if (enclosingElement.isAbstract) {
+        if (enclosingElement.isInterface) return;
+        if (enclosingElement.isFinal) return;
+      }
+    }
 
     node.parameters.accept(this);
   }
