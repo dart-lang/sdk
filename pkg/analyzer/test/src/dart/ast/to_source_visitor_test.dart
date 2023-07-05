@@ -2686,6 +2686,54 @@ void f({$code}) {}
     _assertSource(code, findNode.defaultParameter(code));
   }
 
+  void test_visitNamedType_multipleArgs() {
+    final code = 'Map<int, String>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_nestedArg() {
+    final code = 'List<Set<int>>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_noArgs() {
+    final code = 'int';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_noArgs_withQuestion() {
+    final code = 'int?';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_singleArg() {
+    final code = 'Set<int>';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
+  void test_visitNamedType_singleArg_withQuestion() {
+    final code = 'Set<int>?';
+    final findNode = _parseStringToFindNode('''
+final x = <$code>[];
+''');
+    _assertSource(code, findNode.namedType(code));
+  }
+
   void test_visitNativeClause() {
     final code = "native 'code'";
     final findNode = _parseStringToFindNode('''
@@ -3661,54 +3709,6 @@ final x = $code[];
 final x = $code[];
 ''');
     _assertSource(code, findNode.typeArgumentList(code));
-  }
-
-  void test_visitTypeName_multipleArgs() {
-    final code = 'Map<int, String>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_nestedArg() {
-    final code = 'List<Set<int>>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_noArgs() {
-    final code = 'int';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_noArgs_withQuestion() {
-    final code = 'int?';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_singleArg() {
-    final code = 'Set<int>';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
-  }
-
-  void test_visitTypeName_singleArg_withQuestion() {
-    final code = 'Set<int>?';
-    final findNode = _parseStringToFindNode('''
-final x = <$code>[];
-''');
-    _assertSource(code, findNode.namedType(code));
   }
 
   void test_visitTypeParameter_variance_contravariant() {

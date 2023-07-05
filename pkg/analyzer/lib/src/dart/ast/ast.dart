@@ -554,7 +554,7 @@ abstract final class AsExpression implements Expression {
 /// An as expression.
 ///
 ///    asExpression ::=
-///        [Expression] 'as' [TypeName]
+///        [Expression] 'as' [NamedType]
 final class AsExpressionImpl extends ExpressionImpl implements AsExpression {
   /// The expression used to compute the value being cast.
   ExpressionImpl _expression;
@@ -3049,7 +3049,7 @@ abstract final class ClassOrAugmentationDeclaration
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
-///        [TypeName] [WithClause] [ImplementsClause]? ';'
+///        [NamedType] [WithClause] [ImplementsClause]? ';'
 abstract final class ClassTypeAlias implements TypeAlias {
   /// Return the token for the 'abstract' keyword, or `null` if this is not
   /// defining an abstract class.
@@ -3101,7 +3101,7 @@ abstract final class ClassTypeAlias implements TypeAlias {
 ///      | 'abstract'? 'base'? 'mixin'
 ///
 ///    mixinApplication ::=
-///        [TypeName] [WithClause] [ImplementsClause]? ';'
+///        [NamedType] [WithClause] [ImplementsClause]? ';'
 final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   /// The type parameters for the class, or `null` if the class does not have
   /// any type parameters.
@@ -6473,7 +6473,7 @@ final class ExpressionStatementImpl extends StatementImpl
 /// The "extends" clause in a class declaration.
 ///
 ///    extendsClause ::=
-///        'extends' [TypeName]
+///        'extends' [NamedType]
 abstract final class ExtendsClause implements AstNode {
   /// Return the token representing the 'extends' keyword.
   Token get extendsKeyword;
@@ -6485,7 +6485,7 @@ abstract final class ExtendsClause implements AstNode {
 /// The "extends" clause in a class declaration.
 ///
 ///    extendsClause ::=
-///        'extends' [TypeName]
+///        'extends' [NamedType]
 final class ExtendsClauseImpl extends AstNodeImpl implements ExtendsClause {
   /// The token representing the 'extends' keyword.
   @override
@@ -6990,7 +6990,7 @@ abstract final class FieldFormalParameter implements NormalFormalParameter {
 /// A field formal parameter.
 ///
 ///    fieldFormalParameter ::=
-///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+///        ('final' [NamedType] | 'const' [NamedType] | 'var' | [NamedType])?
 ///        'this' '.' [SimpleIdentifier]
 ///        ([TypeParameterList]? [FormalParameterList])?
 final class FieldFormalParameterImpl extends NormalFormalParameterImpl
@@ -8839,7 +8839,7 @@ abstract final class FunctionTypedFormalParameter
 /// A function-typed formal parameter.
 ///
 ///    functionSignature ::=
-///        [TypeName]? [SimpleIdentifier] [TypeParameterList]?
+///        [NamedType]? [SimpleIdentifier] [TypeParameterList]?
 ///        [FormalParameterList] '?'?
 final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     implements FunctionTypedFormalParameter {
@@ -9693,7 +9693,7 @@ final class IfStatementImpl extends StatementImpl
 /// The "implements" clause in an class declaration.
 ///
 ///    implementsClause ::=
-///        'implements' [TypeName] (',' [TypeName])*
+///        'implements' [NamedType] (',' [NamedType])*
 abstract final class ImplementsClause implements AstNode {
   /// Return the token representing the 'implements' keyword.
   Token get implementsKeyword;
@@ -9705,7 +9705,7 @@ abstract final class ImplementsClause implements AstNode {
 /// The "implements" clause in an class declaration.
 ///
 ///    implementsClause ::=
-///        'implements' [TypeName] (',' [TypeName])*
+///        'implements' [NamedType] (',' [NamedType])*
 final class ImplementsClauseImpl extends AstNodeImpl
     implements ImplementsClause {
   /// The token representing the 'implements' keyword.
@@ -10330,7 +10330,7 @@ final class IndexExpressionImpl extends ExpressionImpl
 /// An instance creation expression.
 ///
 ///    newExpression ::=
-///        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])? [ArgumentList]
+///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])? [ArgumentList]
 abstract final class InstanceCreationExpression implements Expression {
   /// Return the list of arguments to the constructor.
   ArgumentList get argumentList;
@@ -10352,7 +10352,7 @@ abstract final class InstanceCreationExpression implements Expression {
 /// An instance creation expression.
 ///
 ///    newExpression ::=
-///        ('new' | 'const')? [TypeName] ('.' [SimpleIdentifier])?
+///        ('new' | 'const')? [NamedType] ('.' [SimpleIdentifier])?
 ///        [ArgumentList]
 final class InstanceCreationExpressionImpl extends ExpressionImpl
     implements InstanceCreationExpression {
@@ -10870,7 +10870,7 @@ abstract final class IsExpression implements Expression {
 /// An is expression.
 ///
 ///    isExpression ::=
-///        [Expression] 'is' '!'? [TypeName]
+///        [Expression] 'is' '!'? [NamedType]
 final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   /// The expression used to compute the value whose type is being tested.
   ExpressionImpl _expression;
@@ -13645,7 +13645,7 @@ final class ObjectPatternImpl extends DartPatternImpl implements ObjectPattern {
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
-///        'on' [TypeName] (',' [TypeName])*
+///        'on' [NamedType] (',' [NamedType])*
 abstract final class OnClause implements AstNode {
   /// Return the token representing the 'on' keyword.
   Token get onKeyword;
@@ -13657,7 +13657,7 @@ abstract final class OnClause implements AstNode {
 /// The "on" clause in a mixin declaration.
 ///
 ///    onClause ::=
-///        'on' [TypeName] (',' [TypeName])*
+///        'on' [NamedType] (',' [NamedType])*
 final class OnClauseImpl extends AstNodeImpl implements OnClause {
   @override
   final Token onKeyword;
@@ -15921,7 +15921,7 @@ abstract final class SimpleFormalParameter implements NormalFormalParameter {
 /// A simple formal parameter.
 ///
 ///    simpleFormalParameter ::=
-///        ('final' [TypeName] | 'var' | [TypeName])? [SimpleIdentifier]
+///        ('final' [NamedType] | 'var' | [NamedType])? [SimpleIdentifier]
 final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
     implements SimpleFormalParameter {
   /// The token representing either the 'final', 'const' or 'var' keyword, or
@@ -16974,7 +16974,7 @@ abstract final class SuperFormalParameter implements NormalFormalParameter {
 /// A super-initializer formal parameter.
 ///
 ///    fieldFormalParameter ::=
-///        ('final' [TypeName] | 'const' [TypeName] | 'var' | [TypeName])?
+///        ('final' [NamedType] | 'const' [NamedType] | 'var' | [NamedType])?
 ///        'super' '.' [SimpleIdentifier]
 ///        ([TypeParameterList]? [FormalParameterList])?
 final class SuperFormalParameterImpl extends NormalFormalParameterImpl
@@ -18381,7 +18381,7 @@ abstract final class TypeParameter implements Declaration {
 /// A type parameter.
 ///
 ///    typeParameter ::=
-///        typeParameterVariance? [SimpleIdentifier] ('extends' [TypeName])?
+///        typeParameterVariance? [SimpleIdentifier] ('extends' [NamedType])?
 ///
 ///    typeParameterVariance ::= 'out' | 'inout' | 'in'
 final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
@@ -19237,7 +19237,7 @@ final class WildcardPatternImpl extends DartPatternImpl
 /// The with clause in a class declaration.
 ///
 ///    withClause ::=
-///        'with' [TypeName] (',' [TypeName])*
+///        'with' [NamedType] (',' [NamedType])*
 abstract final class WithClause implements AstNode {
   /// Return the names of the mixins that were specified.
   NodeList<NamedType> get mixinTypes;
@@ -19249,7 +19249,7 @@ abstract final class WithClause implements AstNode {
 /// The with clause in a class declaration.
 ///
 ///    withClause ::=
-///        'with' [TypeName] (',' [TypeName])*
+///        'with' [NamedType] (',' [NamedType])*
 final class WithClauseImpl extends AstNodeImpl implements WithClause {
   /// The token representing the 'with' keyword.
   @override
