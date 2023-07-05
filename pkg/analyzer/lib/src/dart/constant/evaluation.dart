@@ -939,9 +939,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
       return InvalidConstant(
           node, CompileTimeErrorCode.MISSING_CONST_IN_LIST_LITERAL);
     }
-    List<DartObjectImpl> list = [];
+    final elements = <DartObjectImpl>[];
     for (CollectionElement element in node.elements) {
-      var result = _addElementsToList(list, element);
+      var result = _addElementsToList(elements, element);
       if (result is InvalidConstant) {
         return result;
       }
@@ -952,7 +952,14 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             ? nodeType.typeArguments[0]
             : _typeProvider.dynamicType;
     InterfaceType listType = _typeProvider.listType(elementType);
-    return DartObjectImpl(typeSystem, listType, ListState(list));
+    return DartObjectImpl(
+      typeSystem,
+      listType,
+      ListState(
+        elementType: elementType,
+        elements: elements,
+      ),
+    );
   }
 
   @override

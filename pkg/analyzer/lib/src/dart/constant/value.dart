@@ -176,14 +176,14 @@ class DartObjectImpl implements DartObject, Constant {
   final InstanceState state;
 
   @override
-  final VariableElement? variable;
+  final VariableElementImpl? variable;
 
   /// Initialize a newly created object to have the given [type] and [state].
   DartObjectImpl(this._typeSystem, this.type, this.state, {this.variable});
 
   /// Creates a duplicate instance of [other], tied to [variable].
   factory DartObjectImpl.forVariable(
-      DartObjectImpl other, VariableElement variable) {
+      DartObjectImpl other, VariableElementImpl variable) {
     return DartObjectImpl(other._typeSystem, other.type, other.state,
         variable: variable);
   }
@@ -883,7 +883,7 @@ class DartObjectImpl implements DartObject, Constant {
   List<DartObjectImpl>? toListValue() {
     final state = this.state;
     if (state is ListState) {
-      return state._elements;
+      return state.elements;
     }
     return null;
   }
@@ -2350,19 +2350,20 @@ class InvalidConstant implements Constant {
 
 /// The state of an object representing a list.
 class ListState extends InstanceState {
-  /// The elements of the list.
-  final List<DartObjectImpl> _elements;
+  final DartType elementType;
+  final List<DartObjectImpl> elements;
 
-  /// Initialize a newly created state to represent a list with the given
-  /// [elements].
-  ListState(this._elements);
+  ListState({
+    required this.elementType,
+    required this.elements,
+  });
 
   @override
   int get hashCode {
     int value = 0;
-    int count = _elements.length;
+    int count = elements.length;
     for (int i = 0; i < count; i++) {
-      value = (value << 3) ^ _elements[i].hashCode;
+      value = (value << 3) ^ elements[i].hashCode;
     }
     return value;
   }
@@ -2373,15 +2374,15 @@ class ListState extends InstanceState {
   @override
   bool operator ==(Object other) {
     if (other is ListState) {
-      List<DartObjectImpl> otherElements = other._elements;
-      int count = _elements.length;
+      List<DartObjectImpl> otherElements = other.elements;
+      int count = elements.length;
       if (otherElements.length != count) {
         return false;
       } else if (count == 0) {
         return true;
       }
       for (int i = 0; i < count; i++) {
-        if (_elements[i] != otherElements[i]) {
+        if (elements[i] != otherElements[i]) {
           return false;
         }
       }
@@ -2411,7 +2412,7 @@ class ListState extends InstanceState {
     StringBuffer buffer = StringBuffer();
     buffer.write('[');
     bool first = true;
-    for (var element in _elements) {
+    for (var element in elements) {
       if (first) {
         first = false;
       } else {

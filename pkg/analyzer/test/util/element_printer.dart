@@ -67,13 +67,7 @@ class ElementPrinter {
     }
   }
 
-  void writeElement(String name, Element? element) {
-    _sink.writeWithIndent('$name: ');
-    writeElement0(element);
-  }
-
-  /// TODO(scheglov) rename [writeElement] to `writeNamedElement`, and this.
-  void writeElement0(Element? element) {
+  void writeElement(Element? element) {
     switch (element) {
       case null:
         _sink.writeln('<null>');
@@ -95,9 +89,19 @@ class ElementPrinter {
     }
   }
 
+  void writeNamedElement(String name, Element? element) {
+    _sink.writeWithIndent('$name: ');
+    writeElement(element);
+  }
+
   void writeNamedType(String name, DartType? type) {
     _sink.writeWithIndent('$name: ');
     writeType(type);
+  }
+
+  void writeReference(Reference reference) {
+    final str = _referenceToString(reference);
+    _sink.writeln(str);
   }
 
   void writeType(DartType? type) {
@@ -108,7 +112,7 @@ class ElementPrinter {
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
-          writeElement('alias', alias.element);
+          writeNamedElement('alias', alias.element);
           _sink.withIndent(() {
             writeTypeList('typeArguments', alias.typeArguments);
           });
@@ -228,7 +232,7 @@ class ElementPrinter {
   void _writeMember(Member element) {
     _sink.writeln(_nameOfMemberClass(element));
     _sink.withIndent(() {
-      writeElement('base', element.declaration);
+      writeNamedElement('base', element.declaration);
 
       if (element.isLegacy) {
         _sink.writelnWithIndent('isLegacy: true');
@@ -243,7 +247,7 @@ class ElementPrinter {
       if (_configuration.withRedirectedConstructors) {
         if (element is ConstructorMember) {
           final redirected = element.redirectedConstructor;
-          writeElement('redirectedConstructor', redirected);
+          writeNamedElement('redirectedConstructor', redirected);
         }
       }
     });

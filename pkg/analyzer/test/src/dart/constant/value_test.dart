@@ -2356,7 +2356,10 @@ class DartObjectImplTest {
     return DartObjectImpl(
       _typeSystem,
       _typeProvider.listType(elementType),
-      ListState(elements),
+      ListState(
+        elementType: elementType,
+        elements: elements,
+      ),
     );
   }
 

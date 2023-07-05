@@ -1654,7 +1654,7 @@ Expected parent: (${parent.runtimeType}) $parent
 
   void _writeElement(String name, Element? element) {
     if (_withResolution) {
-      _elementPrinter.writeElement(name, element);
+      _elementPrinter.writeNamedElement(name, element);
     }
   }
 
