@@ -18,12 +18,6 @@
       "rootUri": "../../mock_packages/meta/",
       "packageUri": "lib/",
       "languageVersion": "2.17"
-    },
-    {
-      "name": "test_api",
-      "rootUri": "../../mock_packages/test_api/",
-      "packageUri": "lib/",
-      "languageVersion": "2.17"
     }
   ],
   "generated": "2022-06-30T01:27:31.576781Z",
