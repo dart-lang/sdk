@@ -153,6 +153,8 @@ import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
 import 'unnecessary_statements_test.dart' as unnecessary_statements;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
 import 'unnecessary_this_test.dart' as unnecessary_this;
+import 'unnecessary_to_list_in_spreads_test.dart'
+    as unnecessary_to_list_in_spreads;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
 import 'unrelated_type_equality_checks_test.dart'
     as unrelated_type_equality_checks;
@@ -289,6 +291,7 @@ void main() {
   unnecessary_statements.main();
   unnecessary_string_escapes.main();
   unnecessary_this.main();
+  unnecessary_to_list_in_spreads.main();
   unreachable_from_main.main();
   unrelated_type_equality_checks.main();
   use_build_context_synchronously.main();
