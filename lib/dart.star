@@ -97,10 +97,8 @@ def _try_builder(
         experiments = None,
         goma = None,
         location_filters = None,
-        pool = "luci.dart.try",
         properties = None,
-        on_cq = False,
-        no_host_class = False):
+        on_cq = False):
     """Creates a Dart tryjob.
 
     Args:
@@ -116,17 +114,17 @@ def _try_builder(
         experiments: Experiments to run on this builder, with percentages.
         goma: Whether to use goma or not.
         location_filters: Locations that trigger this tryjob.
-        pool: The pool to set in dimensions (defaults to "luci.dart.try").
         properties: Extra properties to set for builds.
         on_cq: Whether the build is added to the default set of CQ tryjobs.
-        no_host_class: Whether to filter "host_class" from the default dimensions.
     """
     if on_cq and location_filters:
         fail("Can't be on the default CQ and conditionally on the CQ")
     dimensions = defaults.dimensions(dimensions)
-    if no_host_class:
+
+    # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering
+    # of host_class.
+    if dimensions["pool"] == "luci.flutter.staging":
         dimensions.pop("host_class")
-    dimensions["pool"] = pool
     properties = defaults.properties(properties)
     builder_properties = _with_goma(goma, dimensions, properties)
     builder = name + "-try"
@@ -209,6 +207,11 @@ def _builder(
         location_filters: Locations that trigger this builder.
     """
     dimensions = defaults.dimensions(dimensions)
+
+    # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering
+    # of host_class.
+    if dimensions["pool"] == "luci.flutter.staging":
+        dimensions.pop("host_class")
     properties = defaults.properties(properties)
 
     os = dimensions["os"]
