@@ -14,11 +14,12 @@ load(
     "no_android",
     "windows",
 )
+load("//lib/paths.star", "paths")
 
 dart.ci_sandbox_builder(
     "pkg-linux-release",
     category = "pkg|l",
-    on_cq = True,
+    location_filters = paths.to_location_filters(paths.pkg),
     properties = chrome,
 )
 dart.ci_sandbox_builder(

@@ -77,6 +77,13 @@ _DART2WASM_PATHS = _CFE_PATHS + [
     "sdk/lib/_js_interop/.+",
 ]
 
+_PKG_PATHS = _VM_PATHS + [
+    "pkg/.+",
+    "third_party/pkg/.+",
+    "tools/package_deps/.+",
+    "tools/.*\\.dart",
+]
+
 _RELEASE_PATHS = [
     # Paths that trigger release tryjobs
     "tools/VERSION",
@@ -93,6 +100,7 @@ paths = struct(
     dart2js = _DART2JS_PATHS,
     dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,
+    pkg = _PKG_PATHS,
     release = _RELEASE_PATHS,
     standard = _STANDARD_PATHS,
     test_py = _TEST_PY_PATHS,
