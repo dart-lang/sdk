@@ -142,6 +142,8 @@ import 'unnecessary_late_test.dart' as unnecessary_late;
 import 'unnecessary_library_directive_test.dart'
     as unnecessary_library_directive;
 import 'unnecessary_new_test.dart' as unnecessary_new;
+import 'unnecessary_null_aware_assignments_test.dart'
+    as unnecessary_null_aware_assignments;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_nullable_for_final_variable_declarations_test.dart'
     as unnecessary_nullable_for_final_variable_declarations;
@@ -277,6 +279,7 @@ void main() {
   unnecessary_late.main();
   unnecessary_library_directive.main();
   unnecessary_new.main();
+  unnecessary_null_aware_assignments.main();
   unnecessary_null_checks.main();
   unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_overrides.main();
