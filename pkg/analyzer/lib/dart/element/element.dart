@@ -961,81 +961,85 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind CLASS = ElementKind('CLASS', 1, "class");
 
+  static const ElementKind CLASS_AUGMENTATION =
+      ElementKind('CLASS_AUGMENTATION', 2, "class augmentation");
+
   static const ElementKind COMPILATION_UNIT =
-      ElementKind('COMPILATION_UNIT', 2, "compilation unit");
+      ElementKind('COMPILATION_UNIT', 3, "compilation unit");
 
   static const ElementKind CONSTRUCTOR =
-      ElementKind('CONSTRUCTOR', 3, "constructor");
+      ElementKind('CONSTRUCTOR', 4, "constructor");
 
-  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 4, "<dynamic>");
+  static const ElementKind DYNAMIC = ElementKind('DYNAMIC', 5, "<dynamic>");
 
-  static const ElementKind ENUM = ElementKind('ENUM', 5, "enum");
+  static const ElementKind ENUM = ElementKind('ENUM', 6, "enum");
 
-  static const ElementKind ERROR = ElementKind('ERROR', 6, "<error>");
+  static const ElementKind ERROR = ElementKind('ERROR', 7, "<error>");
 
   static const ElementKind EXPORT =
-      ElementKind('EXPORT', 7, "export directive");
+      ElementKind('EXPORT', 8, "export directive");
 
-  static const ElementKind EXTENSION = ElementKind('EXTENSION', 8, "extension");
+  static const ElementKind EXTENSION = ElementKind('EXTENSION', 9, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 9, "field");
+  static const ElementKind FIELD = ElementKind('FIELD', 10, "field");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 10, "function");
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 11, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 11, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 12, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 12, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 13, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 13, "import directive");
+      ElementKind('IMPORT', 14, "import directive");
 
   static const ElementKind INLINE_CLASS =
-      ElementKind('INLINE_CLASS', 14, "inline class");
+      ElementKind('INLINE_CLASS', 15, "inline class");
 
-  static const ElementKind LABEL = ElementKind('LABEL', 15, "label");
+  static const ElementKind LABEL = ElementKind('LABEL', 16, "label");
 
-  static const ElementKind LIBRARY = ElementKind('LIBRARY', 16, "library");
+  static const ElementKind LIBRARY = ElementKind('LIBRARY', 17, "library");
 
   static const ElementKind LIBRARY_AUGMENTATION =
-      ElementKind('LIBRARY_AUGMENTATION', 17, "library augmentation");
+      ElementKind('LIBRARY_AUGMENTATION', 18, "library augmentation");
 
   static const ElementKind LOCAL_VARIABLE =
-      ElementKind('LOCAL_VARIABLE', 18, "local variable");
+      ElementKind('LOCAL_VARIABLE', 19, "local variable");
 
-  static const ElementKind METHOD = ElementKind('METHOD', 19, "method");
+  static const ElementKind METHOD = ElementKind('METHOD', 20, "method");
 
-  static const ElementKind NAME = ElementKind('NAME', 20, "<name>");
+  static const ElementKind NAME = ElementKind('NAME', 21, "<name>");
 
-  static const ElementKind NEVER = ElementKind('NEVER', 21, "<never>");
+  static const ElementKind NEVER = ElementKind('NEVER', 22, "<never>");
 
   static const ElementKind PARAMETER =
-      ElementKind('PARAMETER', 22, "parameter");
+      ElementKind('PARAMETER', 23, "parameter");
 
-  static const ElementKind PART = ElementKind('PART', 23, "part");
+  static const ElementKind PART = ElementKind('PART', 24, "part");
 
-  static const ElementKind PREFIX = ElementKind('PREFIX', 24, "import prefix");
+  static const ElementKind PREFIX = ElementKind('PREFIX', 25, "import prefix");
 
-  static const ElementKind RECORD = ElementKind('RECORD', 25, "record");
+  static const ElementKind RECORD = ElementKind('RECORD', 26, "record");
 
-  static const ElementKind SETTER = ElementKind('SETTER', 26, "setter");
+  static const ElementKind SETTER = ElementKind('SETTER', 27, "setter");
 
   static const ElementKind TOP_LEVEL_VARIABLE =
-      ElementKind('TOP_LEVEL_VARIABLE', 27, "top level variable");
+      ElementKind('TOP_LEVEL_VARIABLE', 28, "top level variable");
 
   static const ElementKind FUNCTION_TYPE_ALIAS =
-      ElementKind('FUNCTION_TYPE_ALIAS', 28, "function type alias");
+      ElementKind('FUNCTION_TYPE_ALIAS', 29, "function type alias");
 
   static const ElementKind TYPE_PARAMETER =
-      ElementKind('TYPE_PARAMETER', 29, "type parameter");
+      ElementKind('TYPE_PARAMETER', 30, "type parameter");
 
   static const ElementKind TYPE_ALIAS =
-      ElementKind('TYPE_ALIAS', 30, "type alias");
+      ElementKind('TYPE_ALIAS', 31, "type alias");
 
-  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 31, "<universe>");
+  static const ElementKind UNIVERSE = ElementKind('UNIVERSE', 32, "<universe>");
 
   static const List<ElementKind> values = [
     CLASS,
+    CLASS_AUGMENTATION,
     COMPILATION_UNIT,
     CONSTRUCTOR,
     DYNAMIC,
@@ -1123,6 +1127,8 @@ abstract class ElementLocation {
 ///   exception.
 abstract class ElementVisitor<R> {
   R? visitAugmentationImportElement(AugmentationImportElement element);
+
+  R? visitClassAugmentationElement(ClassAugmentationElement element);
 
   R? visitClassElement(ClassElement element);
 
@@ -2188,7 +2194,14 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class NamedInstanceElement
-    implements NamedInstanceOrAugmentationElement, InstanceElement {}
+    implements NamedInstanceOrAugmentationElement, InstanceElement {
+  /// Create the [DartType] for this element with the given [typeArguments]
+  /// and [nullabilitySuffix].
+  DartType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  });
+}
 
 /// [InstanceOrAugmentationElement] with a name.
 ///
@@ -2203,13 +2216,6 @@ abstract class NamedInstanceOrAugmentationElement
 
   @override
   String get name;
-
-  /// Create the [DartType] for this element with the given [typeArguments]
-  /// and [nullabilitySuffix].
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
 }
 
 /// An object that controls how namespaces are combined.

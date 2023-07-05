@@ -542,14 +542,18 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceType> _callbackWhenLoop(InterfaceElementImpl element) {
+  List<InterfaceType> _callbackWhenLoop(
+    InterfaceOrAugmentationElementMixin element,
+  ) {
     element.mixinInferenceCallback = null;
     return <InterfaceType>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType>? _callbackWhenRecursion(InterfaceElementImpl element) {
+  List<InterfaceType>? _callbackWhenRecursion(
+    InterfaceOrAugmentationElementMixin element,
+  ) {
     var node = _linker.getLinkingNode(element);
     if (node != null) {
       _inferDeclaration(node);

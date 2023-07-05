@@ -84,6 +84,31 @@ class BundleReader {
   }
 }
 
+class ClassAugmentationElementLinkedData
+    extends ElementLinkedData<ClassAugmentationElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  ClassAugmentationElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement2,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.augmentationTarget =
+        reader.readElement() as ClassOrAugmentationElementMixin?;
+    element.mixins = reader._readInterfaceTypeList();
+    element.interfaces = reader._readInterfaceTypeList();
+    applyConstantOffsets?.perform();
+  }
+}
+
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
   void Function()? _readMembers;
