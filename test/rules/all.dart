@@ -154,6 +154,8 @@ import 'unrelated_type_equality_checks_test.dart'
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_enums_test.dart' as use_enums;
+import 'use_full_hex_values_for_flutter_colors_test.dart'
+    as use_full_hex_values_for_flutter_colors;
 import 'use_function_type_syntax_for_parameters_test.dart'
     as use_function_type_syntax_for_parameters;
 import 'use_is_even_rather_than_modulo_test.dart'
@@ -281,6 +283,7 @@ void main() {
   unrelated_type_equality_checks.main();
   use_build_context_synchronously.main();
   use_enums.main();
+  use_full_hex_values_for_flutter_colors.main();
   use_function_type_syntax_for_parameters.main();
   use_is_even_rather_than_modulo.main();
   use_key_in_widget_constructors.main();
