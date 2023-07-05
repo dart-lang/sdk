@@ -226,11 +226,21 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
-    if (!inPrivateMember(node) &&
-        !isPrivate(node.name) &&
-        node.parent is! EnumDeclaration) {
-      check(node);
+    if (inPrivateMember(node) || isPrivate(node.name)) return;
+    var parent = node.parent;
+    if (parent is EnumDeclaration) return;
+    if (parent is ClassDeclaration) {
+      var classElement = parent.declaredElement;
+      if (classElement != null) {
+        if (classElement.isSealed) return;
+        if (classElement.isAbstract) {
+          if (classElement.isFinal) return;
+          if (classElement.isInterface) return;
+        }
+      }
     }
+
+    check(node);
   }
 
   @override

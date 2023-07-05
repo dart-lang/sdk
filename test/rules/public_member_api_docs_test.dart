@@ -17,6 +17,50 @@ class PublicMemberApiDocsTest extends LintRuleTest {
   @override
   String get lintRule => 'public_member_api_docs';
 
+  /// https://github.com/dart-lang/linter/issues/4526
+  test_abstractFinalConstructor() async {
+    await assertDiagnostics(r'''
+abstract final class S {
+  S();
+}
+
+final class A extends S {}
+''', [
+      lint(21, 1),
+      // No lint on `S()` declaration
+      lint(47, 1),
+    ]);
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4526
+  test_abstractInterfaceConstructor() async {
+    await assertDiagnostics(r'''
+abstract interface class S {
+  S();
+}
+
+final class A extends S {}
+''', [
+      lint(25, 1),
+      // No lint on `S()` declaration
+      lint(51, 1),
+    ]);
+  }
+
+  test_annotatedEnumValue() async {
+    await assertNoDiagnostics(r'''
+/// Documented.
+enum A {
+  /// This represents 'a'.
+  @Deprecated("Use 'b'")
+  a,
+
+  /// This represents 'b'.
+  b;
+}
+''');
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {
@@ -45,20 +89,6 @@ enum A {
   b();
 
   const A();
-}
-''');
-  }
-
-  test_annotatedEnumValue() async {
-    await assertNoDiagnostics(r'''
-/// Documented.
-enum A {
-  /// This represents 'a'.
-  @Deprecated("Use 'b'")
-  a,
-
-  /// This represents 'b'.
-  b;
 }
 ''');
   }
@@ -92,5 +122,20 @@ mixin M {
   @override
   String toString() => '';
 }''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4526
+  test_sealedConstructor() async {
+    await assertDiagnostics(r'''
+sealed class S {
+  S();
+}
+
+final class A extends S {}
+''', [
+      lint(13, 1),
+      // No lint on `S()` declaration
+      lint(39, 1),
+    ]);
   }
 }
