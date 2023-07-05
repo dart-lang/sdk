@@ -2103,7 +2103,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -2118,16 +2118,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
-  void visitClassTypeAlias(ClassTypeAlias node) {
+  void visitClassTypeAlias(covariant ClassTypeAliasImpl node) {
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitClassTypeAlias(node);
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override
@@ -2372,14 +2372,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
-    node as EnumConstantDeclarationImpl;
-
+  void visitEnumConstantDeclaration(
+    covariant EnumConstantDeclarationImpl node,
+  ) {
     node.documentationComment?.accept(this);
     node.metadata.accept(this);
     checkUnreachableNode(node);
 
-    var element = node.declaredElement as ConstFieldElementImpl;
+    var element = node.declaredElement!;
     var initializer = element.constantInitializer;
     if (initializer is InstanceCreationExpression) {
       var constructorName = initializer.constructorName;
@@ -2580,8 +2580,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitForElement(ForElement node, {CollectionLiteralContext? context}) {
-    _forResolver.resolveElement(node as ForElementImpl, context);
+  void visitForElement(
+    covariant ForElementImpl node, {
+    CollectionLiteralContext? context,
+  }) {
+    _forResolver.resolveElement(node, context);
   }
 
   @override
@@ -3038,7 +3041,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     //
     // Continue the class resolution.
     //
@@ -3053,7 +3056,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     baseOrFinalTypeVerifier.checkElement(
-        node.declaredElement as ClassOrMixinElementImpl, node.implementsClause);
+        node.declaredElement!, node.implementsClause);
   }
 
   @override

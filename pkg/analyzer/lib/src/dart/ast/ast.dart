@@ -2577,7 +2577,7 @@ final class CatchClauseParameterImpl extends AstNodeImpl
   final Token name;
 
   @override
-  LocalVariableElement? declaredElement;
+  LocalVariableElementImpl? declaredElement;
 
   CatchClauseParameterImpl({
     required this.name,
@@ -2815,7 +2815,7 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   NativeClauseImpl? _nativeClause;
 
   @override
-  ClassElement? declaredElement;
+  ClassElementImpl? declaredElement;
 
   /// The left curly bracket.
   @override
@@ -3164,7 +3164,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  ClassElement? declaredElement;
+  ClassElementImpl? declaredElement;
 
   /// Initialize a newly created class type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the class type alias does not
@@ -3635,7 +3635,7 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
   /// The element associated with this compilation unit, or `null` if the AST
   /// structure has not been resolved.
   @override
-  CompilationUnitElement? declaredElement;
+  CompilationUnitElementImpl? declaredElement;
 
   /// The line information for this compilation unit.
   @override
@@ -3677,10 +3677,6 @@ final class CompilationUnitImpl extends AstNodeImpl implements CompilationUnit {
 
   @override
   NodeListImpl<DirectiveImpl> get directives => _directives;
-
-  set element(CompilationUnitElement? element) {
-    declaredElement = element;
-  }
 
   @override
   LanguageVersionToken? get languageVersionToken {
@@ -4381,7 +4377,7 @@ final class ConstructorDeclarationImpl extends ClassMemberImpl
   /// structure has not been resolved or if this constructor could not be
   /// resolved.
   @override
-  ConstructorElement? declaredElement;
+  ConstructorElementImpl? declaredElement;
 
   /// Initialize a newly created constructor declaration. The [externalKeyword]
   /// can be `null` if the constructor is not external. Either or both of the
@@ -5104,7 +5100,7 @@ final class DeclaredIdentifierImpl extends DeclarationImpl
   final Token name;
 
   @override
-  LocalVariableElement? declaredElement;
+  LocalVariableElementImpl? declaredElement;
 
   /// Initialize a newly created formal parameter. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -5838,7 +5834,7 @@ final class EnumConstantDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  FieldElement? declaredElement;
+  FieldElementImpl? declaredElement;
 
   @override
   final EnumConstantArgumentsImpl? arguments;
@@ -5963,7 +5959,7 @@ final class EnumDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  EnumElement? declaredElement;
+  EnumElementImpl? declaredElement;
 
   /// Initialize a newly created enumeration declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -6609,7 +6605,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  ExtensionElement? declaredElement;
+  ExtensionElementImpl? declaredElement;
 
   ExtensionDeclarationImpl({
     required super.comment,
@@ -8275,7 +8271,7 @@ final class FunctionDeclarationImpl extends NamedCompilationUnitMemberImpl
   FunctionExpressionImpl _functionExpression;
 
   @override
-  ExecutableElement? declaredElement;
+  ExecutableElementImpl? declaredElement;
 
   /// Initialize a newly created function declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -8440,7 +8436,7 @@ final class FunctionExpressionImpl extends ExpressionImpl
   bool wasFunctionTypeSupplied = false;
 
   @override
-  ExecutableElement? declaredElement;
+  ExecutableElementImpl? declaredElement;
 
   /// Initialize a newly created function declaration.
   FunctionExpressionImpl({
@@ -8747,7 +8743,7 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   FormalParameterListImpl _parameters;
 
   @override
-  TypeAliasElement? declaredElement;
+  TypeAliasElementImpl? declaredElement;
 
   /// Initialize a newly created function type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the function does not have the
@@ -9049,7 +9045,7 @@ final class GenericFunctionTypeImpl extends TypeAnnotationImpl
 
   /// Return the element associated with the function type, or `null` if the
   /// AST structure has not been resolved.
-  GenericFunctionTypeElement? declaredElement;
+  GenericFunctionTypeElementImpl? declaredElement;
 
   /// Initialize a newly created generic function type.
   GenericFunctionTypeImpl({
@@ -9158,7 +9154,7 @@ final class GenericTypeAliasImpl extends TypeAliasImpl
   final Token equals;
 
   @override
-  Element? declaredElement;
+  ElementImpl? declaredElement;
 
   /// Returns a newly created generic type alias. Either or both of the
   /// [comment] and [metadata] can be `null` if the variable list does not have
@@ -12063,7 +12059,7 @@ final class MethodDeclarationImpl extends ClassMemberImpl
   /// a [PropertyAccessorElement] if this represents the declaration of either a
   /// getter or a setter.
   @override
-  ExecutableElement? declaredElement;
+  ExecutableElementImpl? declaredElement;
 
   /// Initialize a newly created method declaration. Either or both of the
   /// [comment] and [metadata] can be `null` if the declaration does not have
@@ -12473,7 +12469,7 @@ final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @override
-  MixinElement? declaredElement;
+  MixinElementImpl? declaredElement;
 
   /// The left curly bracket.
   @override
@@ -18406,7 +18402,7 @@ final class TypeParameterImpl extends DeclarationImpl implements TypeParameter {
   TypeAnnotationImpl? _bound;
 
   @override
-  TypeParameterElement? declaredElement;
+  TypeParameterElementImpl? declaredElement;
 
   /// Initialize a newly created type parameter. Either or both of the [comment]
   /// and [metadata] can be `null` if the parameter does not have the
@@ -18664,7 +18660,7 @@ final class VariableDeclarationImpl extends DeclarationImpl
   final Token name;
 
   @override
-  VariableElement? declaredElement;
+  VariableElementImpl? declaredElement;
 
   /// The equal sign separating the variable name from the initial value, or
   /// `null` if the initial value was not specified.

@@ -3072,13 +3072,6 @@
           ]
         },
         {
-          "name": "package unit tests",
-          "arguments": [
-            "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
-          ]
-        },
-        {
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
@@ -3105,6 +3098,15 @@
             "--fatal-infos",
             "tools"
           ]
+        },
+        {
+          "name": "package unit tests",
+          "arguments": [
+            "-nunittest-asserts-${mode}-${system}",
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+          ],
+          "shards": 3,
+          "fileset": "vm"
         }
       ]
     },
