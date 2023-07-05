@@ -4,6 +4,11 @@
 
 part of '../api.dart';
 
+/// The interface for classes that can be targeted by macros.
+///
+/// Could be a [Declaration] or [Library].
+abstract interface class MacroTarget {}
+
 /// A concrete reference to a named declaration, which may or may not yet be
 /// resolved.
 ///
@@ -95,7 +100,7 @@ abstract interface class StaticType {
 abstract interface class NamedStaticType implements StaticType {}
 
 /// The interface for all declarations.
-abstract interface class Declaration {
+abstract interface class Declaration implements MacroTarget {
   /// The library in which this declaration is defined.
   Library get library;
 
@@ -351,7 +356,7 @@ abstract interface class RecordFieldDeclaration implements Declaration {
 }
 
 /// Introspection information for a Library.
-abstract interface class Library {
+abstract interface class Library implements MacroTarget {
   /// The language version of this library.
   LanguageVersion get languageVersion;
 

@@ -32,6 +32,9 @@ class SimpleMacro
         FunctionTypesMacro,
         FunctionDeclarationsMacro,
         FunctionDefinitionMacro,
+        LibraryTypesMacro,
+        LibraryDeclarationsMacro,
+        LibraryDefinitionMacro,
         MethodTypesMacro,
         MethodDeclarationsMacro,
         MethodDefinitionMacro,
@@ -73,21 +76,6 @@ class SimpleMacro
     builder.declareInType(DeclarationCode.fromParts([
       'static const List<String> fieldNames = [',
       for (var field in fields) "'${field.identifier.name}',",
-      '];',
-    ]));
-
-    // TODO: Do this in `buildDeclarationsForLibrary` once that exists.
-    var languageVersion = clazz.library.languageVersion;
-    builder.declareInLibrary(
-        DeclarationCode.fromString("const library = '${clazz.library.uri}';"));
-    builder.declareInLibrary(DeclarationCode.fromString(
-      'const languageVersion = '
-      "'${languageVersion.major}.${languageVersion.minor}';",
-    ));
-    var libraryTypes = await builder.typesOf(clazz.library);
-    builder.declareInLibrary(DeclarationCode.fromParts([
-      'const definedTypes = [',
-      for (var type in libraryTypes) "'${type.identifier.name}',",
       '];',
     ]));
   }
@@ -418,43 +406,31 @@ class SimpleMacro
   @override
   Future<void> buildDefinitionForVariable(
       VariableDeclaration variable, VariableDefinitionBuilder builder) async {
-    if (variable.identifier.name == 'allLibraryDeclarations') {
-      var allDeclarations =
-          await builder.topLevelDeclarationsOf(variable.library);
-      builder.augment(
-          initializer: ExpressionCode.fromParts([
-        '[',
-        for (var declaration in allDeclarations)
-          "'${declaration.identifier.name}',",
-        ']',
-      ]));
-    } else {
-      var definingClass =
-          variable is FieldDeclaration ? variable.definingType.name : '';
-      builder.augment(
-        getter: DeclarationCode.fromParts([
-          variable.type.code,
-          ' get ',
-          variable.identifier.name,
-          ''' {
+    var definingClass =
+        variable is FieldDeclaration ? variable.definingType.name : '';
+    builder.augment(
+      getter: DeclarationCode.fromParts([
+        variable.type.code,
+        ' get ',
+        variable.identifier.name,
+        ''' {
           print('parentClass: $definingClass');
           print('isExternal: ${variable.isExternal}');
           print('isFinal: ${variable.isFinal}');
           print('isLate: ${variable.isLate}');
           return augment super;
         }''',
-        ]),
-        setter: DeclarationCode.fromParts([
-          'set ',
-          variable.identifier.name,
-          '(',
-          variable.type.code,
-          ' value) { augment super = value; }'
-        ]),
-        initializer:
-            ExpressionCode.fromString("'new initial value' + augment super"),
-      );
-    }
+      ]),
+      setter: DeclarationCode.fromParts([
+        'set ',
+        variable.identifier.name,
+        '(',
+        variable.type.code,
+        ' value) { augment super = value; }'
+      ]),
+      initializer:
+          ExpressionCode.fromString("'new initial value' + augment super"),
+    );
   }
 
   @override
@@ -559,6 +535,45 @@ class SimpleMacro
       VariableDeclaration variable, TypeBuilder builder) {
     var name = 'GeneratedBy${variable.identifier.name.capitalize()}';
     builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  void buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder) {
+    builder.declareInLibrary(
+        DeclarationCode.fromString("final LibraryInfo library;"));
+  }
+
+  @override
+  Future<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder) async {
+    var languageVersion = library.languageVersion;
+    var allDeclarations = await builder.topLevelDeclarationsOf(library);
+    var variableDeclaration =
+        allDeclarations.singleWhere((d) => d.identifier.name == 'library');
+    var variableBuilder =
+        await builder.buildVariable(variableDeclaration.identifier);
+    variableBuilder.augment(
+        initializer: ExpressionCode.fromParts([
+      'LibraryInfo(',
+      "Uri.parse('${library.uri}'), ",
+      "'${languageVersion.major}.${languageVersion.minor}', ",
+      "[",
+      for (var type in allDeclarations)
+        if (type is TypeDeclaration) ...[type.identifier, ', '],
+      "])",
+    ]));
+  }
+
+  @override
+  void buildTypesForLibrary(Library library, TypeBuilder builder) {
+    builder.declareType('LibraryInfo', DeclarationCode.fromString('''
+class LibraryInfo {
+  final Uri uri;
+  final String languageVersion;
+  final List<Type> definedTypes;
+  const LibraryInfo(this.uri, this.languageVersion, this.definedTypes);
+}'''));
   }
 }
 

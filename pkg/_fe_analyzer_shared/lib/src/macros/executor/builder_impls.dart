@@ -425,6 +425,78 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
   }
 }
 
+class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
+    implements LibraryDefinitionBuilder {
+  final Library library;
+
+  LibraryDefinitionBuilderImpl(
+    this.library,
+    super.identifierResolver,
+    super.typeIntrospector,
+    super.typeDeclarationResolver,
+    super.typeResolver,
+    super.typeInferrer,
+    super.libraryDeclarationsResolver, {
+    super.parentTypeAugmentations,
+    super.parentEnumValueAugmentations,
+    super.parentLibraryAugmentations,
+  });
+
+  @override
+  Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier) async {
+    FunctionDeclarationImpl function = (await libraryDeclarationsResolver
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as FunctionDeclarationImpl;
+    return new FunctionDefinitionBuilderImpl(
+        function,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer,
+        libraryDeclarationsResolver,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
+  }
+
+  @override
+  Future<TypeDefinitionBuilder> buildType(Identifier identifier) async {
+    IntrospectableType type = (await libraryDeclarationsResolver
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as IntrospectableType;
+    return new TypeDefinitionBuilderImpl(
+        type,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer,
+        libraryDeclarationsResolver,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
+  }
+
+  @override
+  Future<VariableDefinitionBuilder> buildVariable(Identifier identifier) async {
+    VariableDeclarationImpl variable = (await libraryDeclarationsResolver
+                .topLevelDeclarationsOf(library))
+            .firstWhere((declaration) => declaration.identifier == identifier)
+        as VariableDeclarationImpl;
+    return new VariableDefinitionBuilderImpl(
+        variable,
+        identifierResolver,
+        typeIntrospector,
+        typeDeclarationResolver,
+        typeResolver,
+        typeInferrer,
+        libraryDeclarationsResolver,
+        parentTypeAugmentations: _typeAugmentations,
+        parentLibraryAugmentations: _libraryAugmentations);
+  }
+}
+
 /// Builds all the possible augmentations for a variable.
 List<DeclarationCode> _buildVariableAugmentations(
     VariableDeclaration declaration,

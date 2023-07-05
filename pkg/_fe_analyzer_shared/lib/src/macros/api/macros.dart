@@ -7,6 +7,26 @@ part of '../api.dart';
 /// The marker interface for all types of macros.
 abstract interface class Macro {}
 
+/// The interface for [Macro]s that can be applied to a library directive, and
+/// want to contribute new type declarations to the library.
+abstract interface class LibraryTypesMacro implements Macro {
+  FutureOr<void> buildTypesForLibrary(Library library, TypeBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to a library directive, and
+/// want to contribute new non-type declarations to the library.
+abstract interface class LibraryDeclarationsMacro implements Macro {
+  FutureOr<void> buildDeclarationsForLibrary(
+      Library library, DeclarationBuilder builder);
+}
+
+/// The interface for [Macro]s that can be applied to a library directive, and
+/// want to provide definitions for declarations in the library.
+abstract interface class LibraryDefinitionMacro implements Macro {
+  FutureOr<void> buildDefinitionForLibrary(
+      Library library, LibraryDefinitionBuilder builder);
+}
+
 /// The interface for [Macro]s that can be applied to any top level function,
 /// instance method, or static method, and want to contribute new type
 /// declarations to the program.

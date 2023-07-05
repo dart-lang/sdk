@@ -178,6 +178,31 @@ abstract interface class DefinitionBuilder
         TypeResolver,
         LibraryDeclarationsResolver {}
 
+/// The APIs used by [Macro]s that run on library directives, to fill in the
+/// definitions of any declarations within that library.
+abstract interface class LibraryDefinitionBuilder implements DefinitionBuilder {
+  /// Retrieve a [TypeDefinitionBuilder] for a type declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a type
+  /// declaration in this library.
+  Future<TypeDefinitionBuilder> buildType(Identifier identifier);
+
+  /// Retrieve a [FunctionDefinitionBuilder] for a function declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
+  /// function declaration in this library.
+  Future<FunctionDefinitionBuilder> buildFunction(Identifier identifier);
+
+  /// Retrieve a [VariableDefinitionBuilder] for a variable declaration with
+  /// [identifier].
+  ///
+  /// Throws an [ArgumentError] if [identifier] does not refer to a top level
+  /// variable declaration in this library.
+  Future<VariableDefinitionBuilder> buildVariable(Identifier identifier);
+}
+
 /// The APIs used by [Macro]s that run on type declarations, to fill in the
 /// definitions of any declarations within that class.
 abstract interface class TypeDefinitionBuilder implements DefinitionBuilder {

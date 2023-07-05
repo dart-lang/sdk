@@ -260,11 +260,11 @@ class InstantiateMacroRequest extends Request {
 /// A request to execute a macro on a particular declaration in the types phase.
 class ExecuteTypesPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
-  final DeclarationImpl declaration;
+  final RemoteInstance target;
+
   final RemoteInstanceImpl identifierResolver;
 
-  ExecuteTypesPhaseRequest(
-      this.macro, this.declaration, this.identifierResolver,
+  ExecuteTypesPhaseRequest(this.macro, this.target, this.identifierResolver,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
@@ -272,7 +272,7 @@ class ExecuteTypesPhaseRequest extends Request {
   ExecuteTypesPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        declaration = RemoteInstance.deserialize(deserializer),
+        target = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
@@ -280,7 +280,7 @@ class ExecuteTypesPhaseRequest extends Request {
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeTypesPhaseRequest.index);
     macro.serialize(serializer);
-    declaration.serialize(serializer);
+    target.serialize(serializer);
     identifierResolver.serialize(serializer);
 
     super.serialize(serializer);
@@ -291,7 +291,7 @@ class ExecuteTypesPhaseRequest extends Request {
 /// phase.
 class ExecuteDeclarationsPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
-  final DeclarationImpl declaration;
+  final RemoteInstance target;
 
   final RemoteInstanceImpl identifierResolver;
   final RemoteInstanceImpl typeDeclarationResolver;
@@ -300,7 +300,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
 
   ExecuteDeclarationsPhaseRequest(
       this.macro,
-      this.declaration,
+      this.target,
       this.identifierResolver,
       this.typeDeclarationResolver,
       this.typeResolver,
@@ -312,7 +312,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
   ExecuteDeclarationsPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        declaration = RemoteInstance.deserialize(deserializer),
+        target = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
         typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
@@ -323,7 +323,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDeclarationsPhaseRequest.index);
     macro.serialize(serializer);
-    declaration.serialize(serializer);
+    target.serialize(serializer);
     identifierResolver.serialize(serializer);
     typeDeclarationResolver.serialize(serializer);
     typeResolver.serialize(serializer);
@@ -337,7 +337,7 @@ class ExecuteDeclarationsPhaseRequest extends Request {
 /// phase.
 class ExecuteDefinitionsPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
-  final DeclarationImpl declaration;
+  final RemoteInstance target;
 
   final RemoteInstanceImpl identifierResolver;
   final RemoteInstanceImpl typeResolver;
@@ -348,7 +348,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
 
   ExecuteDefinitionsPhaseRequest(
       this.macro,
-      this.declaration,
+      this.target,
       this.identifierResolver,
       this.typeResolver,
       this.typeIntrospector,
@@ -362,7 +362,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   ExecuteDefinitionsPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        declaration = RemoteInstance.deserialize(deserializer),
+        target = RemoteInstance.deserialize(deserializer),
         identifierResolver = RemoteInstance.deserialize(deserializer),
         typeResolver = RemoteInstance.deserialize(deserializer),
         typeIntrospector = RemoteInstance.deserialize(deserializer),
@@ -375,7 +375,7 @@ class ExecuteDefinitionsPhaseRequest extends Request {
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.executeDefinitionsPhaseRequest.index);
     macro.serialize(serializer);
-    declaration.serialize(serializer);
+    target.serialize(serializer);
     identifierResolver.serialize(serializer);
     typeResolver.serialize(serializer);
     typeIntrospector.serialize(serializer);
