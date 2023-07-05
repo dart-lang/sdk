@@ -83,6 +83,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    // TODO: implement visitClassAugmentationDeclaration
+    // super.visitClassAugmentationDeclaration(node);
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;

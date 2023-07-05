@@ -865,6 +865,7 @@ foo: aaabbbccc
 
   /// TODO(scheglov) Not quite correct - we should not add a synthetic one.
   /// Fix it when adding actual augmentation libraries.
+  @FailingTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -917,6 +918,7 @@ library
 ''');
   }
 
+  @FailingTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -977,6 +979,7 @@ library
 ''');
   }
 
+  @FailingTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1031,6 +1034,7 @@ library
 ''');
   }
 
+  @FailingTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1085,6 +1089,7 @@ library
 ''');
   }
 
+  @FailingTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';

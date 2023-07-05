@@ -144,6 +144,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    _runSubscriptions(node, registry._forClassAugmentationDeclaration);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _runSubscriptions(node, registry._forClassDeclaration);
     node.visitChildren(this);
@@ -1074,6 +1080,8 @@ class NodeLintRegistry {
   final List<_Subscription<CastPattern>> _forCastPattern = [];
   final List<_Subscription<CatchClause>> _forCatchClause = [];
   final List<_Subscription<CatchClauseParameter>> _forCatchClauseParameter = [];
+  final List<_Subscription<ClassAugmentationDeclaration>>
+      _forClassAugmentationDeclaration = [];
   final List<_Subscription<ClassDeclaration>> _forClassDeclaration = [];
   final List<_Subscription<ClassTypeAlias>> _forClassTypeAlias = [];
   final List<_Subscription<Comment>> _forComment = [];
@@ -1342,6 +1350,12 @@ class NodeLintRegistry {
   void addCatchClauseParameter(LintRule linter, AstVisitor visitor) {
     _forCatchClauseParameter
         .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addClassAugmentationDeclaration(LintRule linter, AstVisitor visitor) {
+    _forClassAugmentationDeclaration.add(
+      _Subscription(linter, visitor, _getTimer(linter)),
+    );
   }
 
   void addClassDeclaration(LintRule linter, AstVisitor visitor) {

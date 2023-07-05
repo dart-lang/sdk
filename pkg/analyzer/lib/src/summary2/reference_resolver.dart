@@ -49,6 +49,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
+  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    // TODO: implement visitClassAugmentationDeclaration
+    // super.visitClassAugmentationDeclaration(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     var outerScope = scope;
 

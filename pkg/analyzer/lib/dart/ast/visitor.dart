@@ -197,6 +197,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
 
   @override
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
@@ -897,6 +901,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
     node.visitChildren(this);
     return null;
   }
@@ -1859,6 +1869,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitCatchClauseParameter(CatchClauseParameter node) => null;
 
   @override
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) =>
+      null;
+
+  @override
   R? visitClassDeclaration(ClassDeclaration node) => null;
 
   @override
@@ -2386,6 +2400,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => _throw(node);
+
+  @override
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) =>
+      _throw(node);
 
   @override
   R? visitClassDeclaration(ClassDeclaration node) => _throw(node);
@@ -3031,6 +3049,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitCatchClauseParameter(CatchClauseParameter node) {
     stopwatch.start();
     T? result = _baseVisitor.visitCatchClauseParameter(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitClassAugmentationDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -4292,6 +4318,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitCatchClauseParameter(CatchClauseParameter node) => visitNode(node);
+
+  @override
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) =>
+      visitNode(node);
 
   @override
   R? visitClassDeclaration(ClassDeclaration node) => visitNode(node);

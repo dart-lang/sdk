@@ -1162,9 +1162,20 @@ class AstBuilder extends StackListener {
     debugEvent("ClassDeclaration");
 
     final builder = _classLikeBuilder as _ClassDeclarationBuilder;
-    declarations.add(
-      builder.build(),
-    );
+    final augmentKeyword = builder.augmentKeyword;
+
+    if (augmentKeyword != null) {
+      declarations.add(
+        builder.buildAugmentation(
+          augmentKeyword: augmentKeyword,
+        ),
+      );
+    } else {
+      declarations.add(
+        builder.build(),
+      );
+    }
+
     _classLikeBuilder = null;
   }
 
@@ -5855,12 +5866,38 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
       finalKeyword: finalKeyword,
-      augmentKeyword: augmentKeyword,
       mixinKeyword: mixinKeyword,
       classKeyword: classKeyword,
       name: name,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
+      withClause: withClause,
+      implementsClause: implementsClause,
+      nativeClause: nativeClause,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+
+  ClassAugmentationDeclarationImpl buildAugmentation({
+    required Token augmentKeyword,
+  }) {
+    return ClassAugmentationDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      abstractKeyword: abstractKeyword,
+      macroKeyword: macroKeyword,
+      inlineKeyword: inlineKeyword,
+      sealedKeyword: sealedKeyword,
+      baseKeyword: baseKeyword,
+      interfaceKeyword: interfaceKeyword,
+      finalKeyword: finalKeyword,
+      augmentKeyword: augmentKeyword,
+      mixinKeyword: mixinKeyword,
+      classKeyword: classKeyword,
+      name: name,
+      typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
       nativeClause: nativeClause,

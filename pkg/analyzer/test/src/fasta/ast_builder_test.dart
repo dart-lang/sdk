@@ -41,27 +41,6 @@ ClassDeclaration
 ''');
   }
 
-  void test_class_augment() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-augment class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  augmentKeyword: augment
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_base() {
     var parseResult = parseStringWithErrors(r'''
 /// text
@@ -619,6 +598,27 @@ ClassTypeAlias
       NamedType
         name: M
   semicolon: ;
+''');
+  }
+
+  void test_classAugmentation() {
+    var parseResult = parseStringWithErrors(r'''
+/// text
+augment class A {}
+''');
+    parseResult.assertNoErrors();
+
+    var node = parseResult.findNode.singleClassAugmentationDeclaration;
+    assertParsedNodeText(node, r'''
+ClassAugmentationDeclaration
+  documentationComment: Comment
+    tokens
+      /// text
+  augmentKeyword: augment
+  classKeyword: class
+  name: A
+  leftBracket: {
+  rightBracket: }
 ''');
   }
 
