@@ -33,6 +33,19 @@ enum E {
       lint(75, 2),
     ]);
   }
+
+  /// https://github.com/dart-lang/linter/issues/4470
+  test_enum_constructorParams() async {
+    await assertNoDiagnostics(r'''
+class _O {    
+  const _O();
+}
+enum E {
+  a(_O());
+  const E(_O o);
+}
+''');
+  }
 }
 
 @reflectiveTest
