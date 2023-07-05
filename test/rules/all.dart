@@ -146,6 +146,8 @@ import 'unnecessary_new_test.dart' as unnecessary_new;
 import 'unnecessary_null_aware_assignments_test.dart'
     as unnecessary_null_aware_assignments;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
+import 'unnecessary_null_in_if_null_operators_test.dart'
+    as unnecessary_null_in_if_null_operators;
 import 'unnecessary_nullable_for_final_variable_declarations_test.dart'
     as unnecessary_nullable_for_final_variable_declarations;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
@@ -285,6 +287,7 @@ void main() {
   unnecessary_new.main();
   unnecessary_null_aware_assignments.main();
   unnecessary_null_checks.main();
+  unnecessary_null_in_if_null_operators.main();
   unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_overrides.main();
   unnecessary_parenthesis.main();
