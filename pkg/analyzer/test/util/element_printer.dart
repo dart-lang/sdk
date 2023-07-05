@@ -69,7 +69,11 @@ class ElementPrinter {
 
   void writeElement(String name, Element? element) {
     _sink.writeWithIndent('$name: ');
+    writeElement0(element);
+  }
 
+  /// TODO(scheglov) rename [writeElement] to `writeNamedElement`, and this.
+  void writeElement0(Element? element) {
     switch (element) {
       case null:
         _sink.writeln('<null>');
