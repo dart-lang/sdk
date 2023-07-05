@@ -298,14 +298,14 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_recordType_andNot() {
-    _notEqual2('(int)', 'dynamic');
-    _notEqual2('(int)', 'int');
-    _notEqual2('(int)', 'void');
+    _notEqual2('(int,)', 'dynamic');
+    _notEqual2('(int,)', 'int');
+    _notEqual2('(int,)', 'void');
   }
 
   test_recordType_differentShape() {
-    _notEqual2('(int)', '(int, int)');
-    _notEqual2('(int)', '({int f1})');
+    _notEqual2('(int,)', '(int, int)');
+    _notEqual2('(int,)', '({int f1})');
     _notEqual2('({int f1})', '({int f2})');
     _notEqual2('({int f1})', '({int f1, int f2})');
   }
@@ -319,11 +319,11 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_recordType_sameShape_positional() {
-    _equal2('(int)', '(int)');
-    _notEqual2('(int)', '(int?)');
-    _equal2('(int)', '(int*)');
+    _equal2('(int,)', '(int,)');
+    _notEqual2('(int,)', '(int?,)');
+    _equal2('(int,)', '(int*,)');
 
-    _notEqual2('(int)', '(double)');
+    _notEqual2('(int,)', '(double,)');
   }
 
   test_void() {

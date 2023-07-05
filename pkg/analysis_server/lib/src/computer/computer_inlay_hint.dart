@@ -132,6 +132,11 @@ class DartInlayHintComputer {
       parts.add(InlayHintLabelPart(value: '}'));
     }
 
+    // Add trailing comma for record types with only one position field.
+    if (positionalFields.length == 1 && namedFields.isEmpty) {
+      parts.add(InlayHintLabelPart(value: ','));
+    }
+
     parts.add(InlayHintLabelPart(value: ')'));
   }
 

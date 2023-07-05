@@ -483,7 +483,7 @@ void f() {
     final expected = '''
 void f() {
   final (int, {(int, ) test}) pattern = (test: (10,), 2);
-  if (pattern case final (Type:(int, {(int) test})) p) {}
+  if (pattern case final (Type:(int, {(int,) test})) p) {}
 }
 ''';
     await _expectHints(content, expected);
@@ -502,9 +502,25 @@ void f() {
 void f() {
   final (int, {(int, ) test}) pattern = (test: (10,), 2);
   final Null _switch = switch (pattern) {
-    (:final (Type:(int)) test, var (Type:int) i) => null,
+    (:final (Type:(int,)) test, var (Type:int) i) => null,
   };
 }
+''';
+    await _expectHints(content, expected);
+  }
+
+  Future<void> test_records_singlePositionalComma() async {
+    final content = '''
+final withComma = (1,);
+final noComma1 = (1, 2);
+final noComma2 = (a: '');
+final noComma3 = (1, a: '');
+''';
+    final expected = '''
+final (Type:(int,)) withComma = (1,);
+final (Type:(int, int)) noComma1 = (1, 2);
+final (Type:({String a})) noComma2 = (a: '');
+final (Type:(int, {String a})) noComma3 = (1, a: '');
 ''';
     await _expectHints(content, expected);
   }

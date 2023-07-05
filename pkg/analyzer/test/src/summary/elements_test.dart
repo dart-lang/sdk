@@ -130,7 +130,7 @@ library
                     SimpleStringLiteral
                       literal: '' @10
                   rightParenthesis: ) @13
-                  staticType: (String)
+                  staticType: (String,)
               rightParenthesis: ) @14
             element: self::@class::A::@constructor::new
         constructors
@@ -13536,7 +13536,7 @@ library
   definingUnit
     topLevelVariables
       static const v @6
-        type: (int)
+        type: (int,)
         shouldUseTypeForInitializerInference: false
         constantInitializer
           SimpleIdentifier
@@ -13545,7 +13545,7 @@ library
             staticType: null
     accessors
       synthetic static get v @-1
-        returnType: (int)
+        returnType: (int,)
 ''');
   }
 
@@ -37610,7 +37610,7 @@ library
   definingUnit
     functions
       f @7
-        returnType: (int)
+        returnType: (int,)
 ''');
   }
 

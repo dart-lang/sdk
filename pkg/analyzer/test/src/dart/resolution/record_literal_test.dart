@@ -74,7 +74,7 @@ RecordLiteral
         staticType: int
       staticType: int
   rightParenthesis: )
-  staticType: (int)
+  staticType: (int,)
 ''');
   }
 
@@ -135,7 +135,7 @@ RecordLiteral
       staticElement: self::@class::A::@method::call
       staticType: void Function()
   rightParenthesis: )
-  staticType: (void Function())
+  staticType: (void Function(),)
 ''');
   }
 
@@ -182,7 +182,7 @@ RecordLiteral
       staticElement: self::@getter::a
       staticType: int
   rightParenthesis: )
-  staticType: (int)
+  staticType: (int,)
 ''');
   }
 
