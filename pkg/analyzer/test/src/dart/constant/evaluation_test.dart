@@ -1507,6 +1507,16 @@ const x = {1: null, if (true) for (final i in const []) i: null};
     _assertNull('x');
   }
 
+  test_visitSetOrMapLiteral_map_ifElement_nonBoolCondition() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = null;
+const c = const {if (nonBool) 'a' : 1};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
+    ]);
+    _assertNull('c');
+  }
+
   test_visitSetOrMapLiteral_set_forElement() async {
     await assertErrorsInCode(r'''
 const Set set = {};
@@ -1517,6 +1527,16 @@ const x = {for (final i in set) i};
       error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
     ]);
     _assertNull('x');
+  }
+
+  test_visitSetOrMapLiteral_set_ifElement_nonBoolCondition() async {
+    await assertErrorsInCode(r'''
+const dynamic nonBool = 'a';
+const c = const {if (nonBool) 3};
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
+    ]);
+    _assertNull('c');
   }
 
   test_visitSimpleIdentifier_className() async {
