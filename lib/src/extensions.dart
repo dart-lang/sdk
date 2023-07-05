@@ -21,34 +21,32 @@ class EnumLikeClassDescription {
   Map<DartObject, Set<FieldElement>> get enumConstants => {..._enumConstants};
 }
 
-extension AstNodeNullableExtension on AstNode? {
-  bool get isFieldNameShortcut {
-    var node = this;
-    if (node is NullCheckPattern) node = node.parent;
-    if (node is NullAssertPattern) node = node.parent;
-    return node is PatternField && node.name != null && node.name?.name == null;
-  }
+extension AstNodeExtension on AstNode {
+  Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
 
-  /// Return `true` if the expression is null aware, or if one of its recursive
-  /// targets is null aware.
-  bool containsNullAwareInvocationInChain() {
+  bool get isEffectivelyPrivate {
     var node = this;
-    if (node is PropertyAccess) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
-    } else if (node is MethodInvocation) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
-    } else if (node is IndexExpression) {
-      if (node.isNullAware) return true;
-      return node.target.containsNullAwareInvocationInChain();
+    if (node.isInternal) return true;
+    if (node is ClassDeclaration) {
+      var classElement = node.declaredElement;
+      if (classElement != null) {
+        if (classElement.isSealed) return true;
+        if (classElement.isAbstract) {
+          if (classElement.isFinal) return true;
+          if (classElement.isInterface) return true;
+        }
+      }
     }
     return false;
   }
-}
 
-extension AstNodeExtension on AstNode {
-  Iterable<AstNode> get childNodes => childEntities.whereType<AstNode>();
+  bool get isInternal {
+    var parent = thisOrAncestorOfType<CompilationUnitMember>();
+    if (parent == null) return false;
+
+    var element = parent.declaredElement;
+    return element != null && element.hasInternal;
+  }
 
   /// Builds the list resulting from traversing the node in DFS and does not
   /// include the node itself.
@@ -76,6 +74,32 @@ extension AstNodeExtension on AstNode {
     }
 
     return nodes;
+  }
+}
+
+extension AstNodeNullableExtension on AstNode? {
+  bool get isFieldNameShortcut {
+    var node = this;
+    if (node is NullCheckPattern) node = node.parent;
+    if (node is NullAssertPattern) node = node.parent;
+    return node is PatternField && node.name != null && node.name?.name == null;
+  }
+
+  /// Return `true` if the expression is null aware, or if one of its recursive
+  /// targets is null aware.
+  bool containsNullAwareInvocationInChain() {
+    var node = this;
+    if (node is PropertyAccess) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain();
+    } else if (node is MethodInvocation) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain();
+    } else if (node is IndexExpression) {
+      if (node.isNullAware) return true;
+      return node.target.containsNullAwareInvocationInChain();
+    }
+    return false;
   }
 }
 

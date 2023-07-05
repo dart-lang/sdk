@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 
 import '../analyzer.dart';
+import '../extensions.dart';
 
 const _desc = r'Avoid using private types in public APIs.';
 
@@ -95,18 +96,13 @@ class Validator extends SimpleAstVisitor<void> {
       return;
     }
 
+    var parent = node.parent;
+
     // Enum constructors are effectively private so don't visit their params.
-    if (node.parent is EnumDeclaration) return;
+    if (parent is EnumDeclaration) return;
 
     // Select modified class types are also effectively private.
-    var enclosingElement = node.declaredElement?.enclosingElement;
-    if (enclosingElement is ClassElement) {
-      if (enclosingElement.isSealed) return;
-      if (enclosingElement.isAbstract) {
-        if (enclosingElement.isInterface) return;
-        if (enclosingElement.isFinal) return;
-      }
-    }
+    if (parent != null && parent.isEffectivelyPrivate) return;
 
     node.parameters.accept(this);
   }

@@ -166,6 +166,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitClassDeclaration(ClassDeclaration node) {
+    var element = node.declaredElement;
+    if (element == null || element.hasInternal) return;
     _visitMembers(node, node.name, node.members);
   }
 
@@ -229,22 +231,16 @@ class _Visitor extends SimpleAstVisitor {
     if (inPrivateMember(node) || isPrivate(node.name)) return;
     var parent = node.parent;
     if (parent is EnumDeclaration) return;
-    if (parent is ClassDeclaration) {
-      var classElement = parent.declaredElement;
-      if (classElement != null) {
-        if (classElement.isSealed) return;
-        if (classElement.isAbstract) {
-          if (classElement.isFinal) return;
-          if (classElement.isInterface) return;
-        }
-      }
-    }
+    if (parent != null && parent.isEffectivelyPrivate) return;
 
     check(node);
   }
 
   @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
+    // todo(pq): update this to be called from the parent (like with visitMembers)
+    if (node.isInternal) return;
+
     if (!inPrivateMember(node) && !isPrivate(node.name)) {
       check(node);
     }
@@ -253,6 +249,7 @@ class _Visitor extends SimpleAstVisitor {
   @override
   void visitEnumDeclaration(EnumDeclaration node) {
     if (isPrivate(node.name)) return;
+    if (node.isInternal) return;
 
     check(node);
     checkMethods(node.members);
@@ -260,9 +257,8 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (node.name == null || isPrivate(node.name)) {
-      return;
-    }
+    if (node.name == null || isPrivate(node.name)) return;
+    if (node.isInternal) return;
 
     check(node);
     checkMethods(node.members);
@@ -270,11 +266,13 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitFieldDeclaration(FieldDeclaration node) {
-    if (!inPrivateMember(node)) {
-      for (var field in node.fields.variables) {
-        if (!isPrivate(field.name)) {
-          check(field);
-        }
+    // todo(pq): update this to be called from the parent (like with visitMembers)
+    if (node.isInternal) return;
+    if (inPrivateMember(node)) return;
+
+    for (var field in node.fields.variables) {
+      if (!isPrivate(field.name)) {
+        check(field);
       }
     }
   }
@@ -295,6 +293,7 @@ class _Visitor extends SimpleAstVisitor {
 
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
+    if (node.isInternal) return;
     _visitMembers(node, node.name, node.members);
   }
 
