@@ -153,7 +153,7 @@ def monorepo_builder(name, short_name, console):
         bucket = "try.monorepo",
         executable = dart.flutter_recipe("engine_v2/builder"),
         execution_timeout = 60 * time.minute,
-        dimensions = {"pool": "dart.tests"},
+        pool = "dart.tests",
         on_cq = False,
         cq_branches = [],
     )
@@ -230,7 +230,7 @@ def monorepo_tester(name, short_name, console):
         bucket = "try.monorepo",
         executable = dart.flutter_recipe("engine_v2/tester"),
         execution_timeout = 90 * time.minute,
-        dimensions = {"pool": "dart.tests"},
+        pool = "dart.tests",
         on_cq = False,
         cq_branches = [],
     )

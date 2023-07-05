@@ -10,7 +10,6 @@ load("//lib/dart.star", "dart")
 load(
     "//lib/defaults.star",
     "arm64",
-    "flutter_pool",
     "focal",
     "mac",
     "no_android",
@@ -171,19 +170,14 @@ _builder(
     category = "vm|jit|wr",
     dimensions = windows,
 )
-_extra_builder(
-    "vm-win-debug-arm64",
-    category = "vm|jit|wad",
-    channels = ["try"],
-    dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-)
-_extra_builder(
+dart.try_builder(
     "vm-win-release-arm64",
-    category = "vm|jit|war",
-    channels = ["try"],
-    dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+    dimensions = [windows11, arm64],
+    # TODO(https://github.com/flutter/flutter/issues/127691): Remove filtering of host_class.
+    no_host_class = True,
+    pool = "luci.flutter.staging",
+    # no such package: infra_internal/goma/client/windows-arm64
+    goma = False,
 )
 
 # vm|appjit
@@ -257,20 +251,6 @@ _extra_builder(
     "vm-aot-win-release-x64",
     category = "vm|aot|wr",
     dimensions = windows,
-)
-_extra_builder(
-    "vm-aot-win-debug-arm64",
-    category = "vm|aot|wad",
-    channels = ["try"],
-    dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
-)
-_extra_builder(
-    "vm-aot-win-release-arm64",
-    category = "vm|aot|war",
-    channels = ["try"],
-    dimensions = [windows11, arm64, flutter_pool],
-    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
 )
 
 # vm|aot|android
