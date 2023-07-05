@@ -102,6 +102,39 @@ class DartInlayHintComputer {
     ));
   }
 
+  /// Adds labels to [parts] for each element of [type], formatted as
+  /// a record type.
+  void _appendRecordParts(List<InlayHintLabelPart> parts, RecordType type) {
+    parts.add(InlayHintLabelPart(value: '('));
+
+    final positionalFields = type.positionalFields;
+    final namedFields = type.namedFields;
+    final fieldCount = positionalFields.length + namedFields.length;
+    var index = 0;
+
+    for (final field in positionalFields) {
+      _appendTypePart(parts, field.type);
+      final isLast = index++ == fieldCount - 1;
+      if (!isLast) {
+        parts.add(InlayHintLabelPart(value: ', '));
+      }
+    }
+    if (namedFields.isNotEmpty) {
+      parts.add(InlayHintLabelPart(value: '{'));
+      for (final field in namedFields) {
+        _appendTypePart(parts, field.type);
+        parts.add(InlayHintLabelPart(value: ' ${field.name}'));
+        final isLast = index++ == fieldCount - 1;
+        if (!isLast) {
+          parts.add(InlayHintLabelPart(value: ', '));
+        }
+      }
+      parts.add(InlayHintLabelPart(value: '}'));
+    }
+
+    parts.add(InlayHintLabelPart(value: ')'));
+  }
+
   /// Adds labels to [parts] for each of [types], formatted as type arguments.
   ///
   /// If any of [types] have their own type arguments, will run recursively.
@@ -126,16 +159,20 @@ class DartInlayHintComputer {
   ///
   /// If [type] has type arguments, will run recursively.
   void _appendTypePart(List<InlayHintLabelPart> parts, DartType type) {
-    parts.add(InlayHintLabelPart(
-      // Write type without type args or nullability suffix. Type args need
-      // adding as their own parts, and the nullability suffix does after them.
-      value:
-          type.element?.name ?? type.getDisplayString(withNullability: false),
-      location: _locationForElement(type.element),
-    ));
-    // Call recursively for any nested type arguments.
-    if (type is InterfaceType && type.typeArguments.isNotEmpty) {
-      _appendTypeArgumentParts(parts, type.typeArguments);
+    if (type is RecordType) {
+      _appendRecordParts(parts, type);
+    } else {
+      parts.add(InlayHintLabelPart(
+        // Write type without type args or nullability suffix. Type args need
+        // adding as their own parts, and the nullability suffix does after them.
+        value:
+            type.element?.name ?? type.getDisplayString(withNullability: false),
+        location: _locationForElement(type.element),
+      ));
+      // Call recursively for any nested type arguments.
+      if (type is InterfaceType && type.typeArguments.isNotEmpty) {
+        _appendTypeArgumentParts(parts, type.typeArguments);
+      }
     }
     // Finally add any nullability suffix.
     if (_isNonNullableByDefault) {
@@ -201,6 +238,21 @@ class _DartInlayHintComputerVisitor extends GeneralizingAstVisitor<void> {
     // Call super last, to ensure parameter names are always added before
     // any other hints that may be produced (such as list literal Type hints).
     super.visitArgumentList(node);
+  }
+
+  @override
+  void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
+    super.visitDeclaredVariablePattern(node);
+
+    // Has explicit type.
+    if (node.type != null) {
+      return;
+    }
+
+    final declaration = node.declaredElement;
+    if (declaration != null) {
+      _computer._addTypePrefix(node.name, declaration.type);
+    }
   }
 
   @override
