@@ -494,95 +494,151 @@ const v2 = v1 + v1;
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 94, 7),
     ]);
-    _assertNull('v2');
+    final result = _getTopVar('v2');
+    _assertNull(result);
   }
 
   test_visitBinaryExpression_gtGtGt_negative_fewerBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFFFFFFFF >>> 8;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFFFFFF);
+    final result = _getTopVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+int 0xffffff
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFFFFFFFF >>> 33;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_negative_moreThan64Bits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFFFFFFFF >>> 65;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_negative_negativeBits() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 0xFFFFFFFF >>> -2;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 17),
+    ]);
+    final result = _getTopVar('c');
+    _assertNull(result);
   }
 
   test_visitBinaryExpression_gtGtGt_negative_zeroBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFFFFFFFF >>> 0;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFFFFFFFF);
+    final result = _getTopVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+int 0xffffffff
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_positive_fewerBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFF >>> 3;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0x1F);
+    final result = _getTopVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+int 0x1f
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFF >>> 9;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_positive_moreThan64Bits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFF >>> 65;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
+''');
   }
 
   test_visitBinaryExpression_gtGtGt_positive_negativeBits() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 0xFF >>> -2;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 10, 11),
+    ]);
+    final result = _getTopVar('c');
+    _assertNull(result);
   }
 
   test_visitBinaryExpression_gtGtGt_positive_zeroBits() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = 0xFF >>> 0;
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0xFF);
+    final result = _getTopVar('c');
+    dartObjectPrinterConfiguration.withHexIntegers = true;
+    assertDartObjectText(result, r'''
+int 0xff
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
+    await assertErrorsInCode('''
+final x = 0;
+const c = x ?? 1;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 23,
+          1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+    ]);
+  }
+
+  test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
+    await assertErrorsInCode('''
+final x = 1;
+const c = 0 ?? x;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 28,
+          1),
+      error(StaticWarningCode.DEAD_NULL_AWARE_EXPRESSION, 28, 1),
+    ]);
+  }
+
+  test_visitConditionalExpression_eager_invalid_int_int() async {
+    await assertErrorsInCode('''
+const c = null ? 1 : 0;
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 4),
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
+    ]);
   }
 
   test_visitConditionalExpression_instantiatedFunctionType_variable() async {
@@ -605,7 +661,8 @@ const void Function(int p) h = b ? g : g;
 const bool kIsWeb = identical(0, 0.0);
 const x = kIsWeb ? 0 : 1;
 ''');
-    _assertValue('x', r'''
+    final result = _getTopVar('x');
+    assertDartObjectText(result, r'''
 <unknown> int
   variable: self::@variable::x
 ''');
@@ -627,7 +684,8 @@ class A {
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 76,
           1),
     ]);
-    _assertValue('x', r'''
+    final result = _getTopVar('x');
+    assertDartObjectText(result, r'''
 A
   variable: self::@variable::x
 ''');
@@ -643,7 +701,8 @@ const x = kIsWeb ? a : b;
           1),
       error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 62, 1),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitConstructorDeclaration_field_asExpression_nonConst() async {
@@ -668,7 +727,8 @@ class C<T> {}
 typedef MyC = C<int>;
 const a = identical(MyC.new, C<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -680,7 +740,8 @@ class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -692,7 +753,8 @@ class C<T, U> {}
 typedef MyC<T> = C<T, int>;
 const a = identical(MyC.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -704,7 +766,8 @@ class C<T, U> {}
 typedef MyC<T> = C;
 const a = identical(MyC.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -716,7 +779,8 @@ class C<T, U> {}
 typedef MyC<T, U> = C<U, T>;
 const a = identical(MyC.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -728,7 +792,8 @@ class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, C<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -740,7 +805,8 @@ class C<T> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -752,7 +818,8 @@ class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -764,7 +831,8 @@ class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC<int>.new, (MyC.new)<int>);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -776,7 +844,8 @@ class C<T> {}
 typedef MyC<T extends Object?> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -789,7 +858,8 @@ class C<T extends FutureOr<num>> {}
 typedef MyC<T extends num> = C<T>;
 const a = identical(MyC<int>.new, MyC<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -801,7 +871,8 @@ class C<T> {}
 typedef MyC<T> = C<T>;
 const a = identical(MyC.new, MyC.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -813,7 +884,8 @@ class C<T> {}
 class D<T> {}
 const a = identical(C<int>.new, D<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -827,7 +899,8 @@ class C<T> {
 }
 const a = identical(C<int>.new, C<int>.named);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -838,7 +911,8 @@ bool false
 class C<T> {}
 const a = identical(C<int>.new, C<String>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -849,7 +923,8 @@ bool false
 class C<T> {}
 const a = identical(C<int>.new, C<int>.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -862,7 +937,8 @@ const C<int> Function() c1 = C.new;
 const c2 = C<int>.new;
 const a = identical(c1, c2);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -874,7 +950,8 @@ class C<T> {}
 class D<T> {}
 const a = identical(C.new, D.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -888,7 +965,8 @@ class C<T> {
 }
 const a = identical(C.new, C.named);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -899,7 +977,8 @@ bool false
 class C<T> {}
 const a = identical(C.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::a
 ''');
@@ -910,7 +989,8 @@ bool true
 class C<T> {}
 const a = identical(C<int>.new, C.new);
 ''');
-    _assertValue('a', r'''
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::a
 ''');
@@ -936,7 +1016,8 @@ void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function(int)
   element: self::@function::foo
   typeArguments
@@ -952,7 +1033,8 @@ void foo<T>(String a, T b) {}
 void bar<T>(T a, String b) {}
 const g = (b ? foo : bar)<int>;
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function(String, int)
   element: self::@function::foo
   typeArguments
@@ -966,7 +1048,8 @@ void Function(String, int)
 void f<T>(T a) {}
 const g = f<int>;
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function(int)
   element: self::@function::f
   typeArguments
@@ -982,7 +1065,8 @@ const g = f<String>;
 ''', [
       error(CompileTimeErrorCode.TYPE_ARGUMENT_NOT_MATCHING_BOUNDS, 42, 6),
     ]);
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function(String)
   element: self::@function::f
   typeArguments
@@ -1000,10 +1084,9 @@ const g = foo<true>;
       error(CompileTimeErrorCode.UNDEFINED_OPERATOR, 33, 1),
       error(ParserErrorCode.EQUALITY_CANNOT_BE_EQUALITY_OPERAND, 38, 1),
       error(ParserErrorCode.MISSING_IDENTIFIER, 39, 1),
-      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 39,
-          0),
     ]);
-    _assertNull('g');
+    final result = _getTopVar('g');
+    _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooFew() async {
@@ -1014,7 +1097,8 @@ const g = foo<int>;
       error(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 41, 5),
     ]);
-    _assertNull('g');
+    final result = _getTopVar('g');
+    _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_tooMany() async {
@@ -1025,7 +1109,8 @@ const g = foo<int, String>;
       error(
           CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS_FUNCTION, 33, 13),
     ]);
-    _assertNull('g');
+    final result = _getTopVar('g');
+    _assertNull(result);
   }
 
   test_visitFunctionReference_explicitTypeArgs_functionName_typeParameter() async {
@@ -1052,52 +1137,57 @@ void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_differentTypeArgs() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_onlyOneHasTypeArgs() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::g
 ''');
   }
 
   test_visitFunctionReference_explicitTypeArgs_identical_sameElement_runtimeTypeEquality() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::g
 ''');
@@ -1109,7 +1199,8 @@ void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = identical(foo<int>, bar<int>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
@@ -1120,7 +1211,8 @@ bool false
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<String>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
@@ -1131,7 +1223,8 @@ bool false
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::g
 ''');
@@ -1142,7 +1235,8 @@ bool false
 void foo<T>(T a) {}
 const g = identical(foo<int>, foo<int>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::g
 ''');
@@ -1154,7 +1248,8 @@ import 'dart:async';
 void foo<T>(T a) {}
 const g = identical(foo<Object>, foo<FutureOr<Object>>);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::g
 ''');
@@ -1167,7 +1262,8 @@ const void Function(int) f = foo;
 const void Function(String) g = foo;
 const c = identical(f, g);
 ''');
-    _assertValue('c', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::c
 ''');
@@ -1180,7 +1276,8 @@ const void Function(int) f = foo;
 const void Function(int) g = foo;
 const c = identical(f, g);
 ''');
-    _assertValue('c', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::c
 ''');
@@ -1189,35 +1286,38 @@ bool true
   test_visitFunctionReference_identical_uninstantiated_sameElement() async {
     await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
-const g = identical(foo, foo);
+const c = identical(foo, foo);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool true
-  variable: self::@variable::g
+  variable: self::@variable::c
 ''');
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_differentTypes() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(String) g = foo;
 const c = identical(f, g);
 ''');
-    _assertValue('c', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool false
   variable: self::@variable::c
 ''');
   }
 
   test_visitFunctionReference_implicitTypeArgs_identical_sameTypes() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
 const void Function(int) f = foo;
 const void Function(int) g = foo;
 const c = identical(f, g);
 ''');
-    _assertValue('c', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool true
   variable: self::@variable::c
 ''');
@@ -1230,7 +1330,8 @@ void foo<T>(T a) {}
 void bar<T>(T a) {}
 const g = b ? foo : bar;
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function<T>(T)
   element: self::@function::foo
   variable: self::@variable::g
@@ -1242,7 +1343,8 @@ void Function<T>(T)
 void f<T>(T a) {}
 const g = f;
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('g');
+    assertDartObjectText(result, r'''
 void Function<T>(T)
   element: self::@function::f
   variable: self::@variable::g
@@ -1250,13 +1352,14 @@ void Function<T>(T)
   }
 
   test_visitFunctionReference_uninstantiated_identical_sameElement() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 void foo<T>(T a) {}
-const g = identical(foo, foo);
+const c = identical(foo, foo);
 ''');
-    _assertValue('g', r'''
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
 bool true
-  variable: self::@variable::g
+  variable: self::@variable::c
 ''');
   }
 
@@ -1268,47 +1371,143 @@ const x = '${const [2]}';
     ]);
   }
 
+  test_visitIsExpression_is_functionType_correctTypes() async {
+    await assertErrorsInCode('''
+void foo(int a) {}
+const c = foo is void Function(int);
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 29, 25),
+    ]);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitIsExpression_is_instanceOfSameClass() async {
+    await assertErrorsInCode('''
+const a = const A();
+const b = a is A;
+class A {
+  const A();
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
+  }
+
+  test_visitIsExpression_is_instanceOfSubclass() async {
+    await assertErrorsInCode('''
+const a = const B();
+const b = a is A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 31, 6),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
+  }
+
   test_visitIsExpression_is_null() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is A;
 class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_is_null_nullable() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is A?;
 class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_is_null_object() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is Object;
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
+  }
+
+  test_visitIsExpression_isNot_instanceOfSameClass() async {
+    await assertErrorsInCode('''
+const a = const A();
+const b = a is! A;
+class A {
+  const A();
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
+  }
+
+  test_visitIsExpression_isNot_instanceOfSubclass() async {
+    await assertErrorsInCode('''
+const a = const B();
+const b = a is! A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_FALSE, 31, 7),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_isNot_null() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is! A;
 class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
   }
 
   test_visitListLiteral_forElement() async {
@@ -1319,7 +1518,8 @@ const x = [for (int i = 0; i < 3; i++) i];
           31),
       error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 11, 29),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition() async {
@@ -1329,7 +1529,8 @@ const x = [1, if (c) 2 else 3, 4];
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 39, 1),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitListLiteral_ifElement_nonBoolCondition_static() async {
@@ -1338,7 +1539,8 @@ const x = [1, if (1) 2 else 3, 4];
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 18, 1),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitListLiteral_spreadElement() async {
@@ -1348,7 +1550,8 @@ const x = <int>[...a];
 ''', [
       error(CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET, 40, 1),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitMethodInvocation_notIdentical() async {
@@ -1434,7 +1637,8 @@ const v2 = -v1;
 ''', [
       error(CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD, 82, 3),
     ]);
-    _assertNull('v2');
+    final result = _getTopVar('v2');
+    _assertNull(result);
   }
 
   test_visitPropertyAccess_genericFunction_instantiated() async {
@@ -1493,7 +1697,8 @@ const x = {1: null, for (final i in const []) i: null};
           44),
       error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 20, 33),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_forElement_nested() async {
@@ -1504,7 +1709,8 @@ const x = {1: null, if (true) for (final i in const []) i: null};
           54),
       error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 30, 33),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_map_ifElement_nonBoolCondition() async {
@@ -1514,7 +1720,8 @@ const c = const {if (nonBool) 'a' : 1};
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 51, 7),
     ]);
-    _assertNull('c');
+    final result = _getTopVar('c');
+    _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_forElement() async {
@@ -1526,7 +1733,8 @@ const x = {for (final i in set) i};
           24),
       error(CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, 31, 22),
     ]);
-    _assertNull('x');
+    final result = _getTopVar('x');
+    _assertNull(result);
   }
 
   test_visitSetOrMapLiteral_set_ifElement_nonBoolCondition() async {
@@ -1536,7 +1744,8 @@ const c = const {if (nonBool) 3};
 ''', [
       error(CompileTimeErrorCode.NON_BOOL_CONDITION, 50, 7),
     ]);
-    _assertNull('c');
+    final result = _getTopVar('c');
+    _assertNull(result);
   }
 
   test_visitSimpleIdentifier_className() async {
@@ -1642,24 +1851,6 @@ const void Function(int a) h = g;
     final featureSet = result.libraryElement.featureSet;
     final has = value.hasPrimitiveEquality(featureSet);
     expect(has, isTrue);
-  }
-
-  void _assertNull(String variableName) {
-    final variable = findElement.topVar(variableName) as ConstVariableElement;
-    final evaluationResult = variable.evaluationResult;
-    if (evaluationResult == null) {
-      fail('Not evaluated: $this');
-    }
-    expect(evaluationResult.value, isNull);
-  }
-
-  void _assertValue(String variableName, String expectedText) {
-    final variable = findElement.topVar(variableName) as ConstVariableElement;
-    final evaluationResult = variable.evaluationResult;
-    if (evaluationResult == null) {
-      fail('Not evaluated: $this');
-    }
-    assertDartObjectText(evaluationResult.value, expectedText);
   }
 }
 
@@ -1946,36 +2137,34 @@ class MyClass {
   }
 
   test_visitBinaryExpression_and_bool_false_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = false && a;
-''');
-    DartObjectImpl result = _evaluateConstant('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(WarningCode.DEAD_CODE, 33, 4),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 36,
+          1),
     ]);
-    _assertBoolValue(result, false);
   }
 
   test_visitBinaryExpression_and_bool_invalid_false() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = a && false;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_and_bool_invalid_true() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = a && true;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_and_bool_known_known() async {
@@ -1996,15 +2185,15 @@ const c = false & b;
   }
 
   test_visitBinaryExpression_and_bool_true_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = true && a;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          9),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_and_bool_unknown_known() async {
@@ -2035,45 +2224,44 @@ const c = 3 & 5;
   }
 
   test_visitBinaryExpression_and_mixed() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 3 & false;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+    ]);
   }
 
   test_visitBinaryExpression_or_bool_false_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = false || a;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL,
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          10),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 36,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_or_bool_invalid_false() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = a || false;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_or_bool_invalid_true() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = a || true;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 27,
+          1),
     ]);
-    expect(result, isNull);
   }
 
   test_visitBinaryExpression_or_bool_known_known() async {
@@ -2094,14 +2282,14 @@ const c = false | b;
   }
 
   test_visitBinaryExpression_or_bool_true_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 final a = false;
 const c = true || a;
-''');
-    var result = _evaluateConstant('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(WarningCode.DEAD_CODE, 32, 4),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 35,
+          1),
     ]);
-    _assertBoolValue(result, true);
   }
 
   test_visitBinaryExpression_or_bool_unknown_known() async {
@@ -2132,33 +2320,12 @@ const c = 3 | 5;
   }
 
   test_visitBinaryExpression_or_mixed() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 3 | false;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
-  }
-
-  test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
-    await resolveTestCode('''
-final x = 0;
-const c = x ?? 1;
-''');
-    var result = _evaluateConstantOrNull('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
     ]);
-    expect(result, isNull);
-  }
-
-  test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
-    await resolveTestCode('''
-final x = 1;
-const c = 0 ?? x;
-''');
-    var result = _evaluateConstant('c', errorCodes: [
-      CompileTimeErrorCode.INVALID_CONSTANT,
-    ]);
-    _assertIntValue(result, 0);
   }
 
   test_visitBinaryExpression_questionQuestion_notNull_notNull() async {
@@ -2171,12 +2338,13 @@ const c = 'a' ?? 'b';
   }
 
   test_visitBinaryExpression_questionQuestion_null_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = null ?? new C();
 class C {}
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 18,
+          7),
+    ]);
   }
 
   test_visitBinaryExpression_questionQuestion_null_notNull() async {
@@ -2241,141 +2409,157 @@ const c = 3 ^ 5;
   }
 
   test_visitBinaryExpression_xor_mixed() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 3 ^ false;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT]);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT, 10, 9),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 14, 5),
+    ]);
   }
 
   test_visitConditionalExpression_eager_false_int_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = false ? 1 : 0;
+''', [
+      error(WarningCode.DEAD_CODE, 18, 1),
+    ]);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
-  }
-
-  test_visitConditionalExpression_eager_invalid_int_int() async {
-    await resolveTestCode('''
-const c = null ? 1 : 0;
-''');
-    var result = _evaluateConstantOrNull(
-      'c',
-      errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL],
-    );
-    expect(result, isNull);
   }
 
   test_visitConditionalExpression_eager_true_int_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? 1 : 0;
+''', [
+      error(WarningCode.DEAD_CODE, 21, 1),
+    ]);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 1
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 1);
   }
 
   test_visitConditionalExpression_eager_true_int_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? 1 : x;
-''');
-    DartObjectImpl result = _evaluateConstant(
-      'c',
-      errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
-    );
-    expect(result.toIntValue(), 1);
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 21, 1),
+      error(WarningCode.DEAD_CODE, 21, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 21,
+          1),
+    ]);
   }
 
   test_visitConditionalExpression_eager_true_invalid_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? x : 0;
-''');
-    var result = _evaluateConstantOrNull(
-      'c',
-      errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT],
-    );
-    expect(result, isNull);
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_IDENTIFIER, 17, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 17,
+          1),
+      error(WarningCode.DEAD_CODE, 21, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_false_int_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = false ? 1 : 0;
+''', [
+      error(WarningCode.DEAD_CODE, 18, 1),
+    ]);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 0
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
   }
 
   test_visitConditionalExpression_lazy_false_int_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = false ? 1 : new C();
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+''', [
+      error(WarningCode.DEAD_CODE, 18, 1),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 22,
+          7),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 26, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_false_invalid_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = false ? new C() : 0;
-''');
-    DartObjectImpl result = _evaluateConstant('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 0);
+''', [
+      error(WarningCode.DEAD_CODE, 18, 7),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 18,
+          7),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 22, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_invalid_int_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = 3 ? 1 : 0;
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL]);
+''', [
+      error(CompileTimeErrorCode.NON_BOOL_CONDITION, 10, 1),
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_true_int_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? 1 : 0;
+''', [
+      error(WarningCode.DEAD_CODE, 21, 1),
+    ]);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+int 1
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 1);
   }
 
   test_visitConditionalExpression_lazy_true_int_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? 1: new C();
-''');
-    DartObjectImpl result = _evaluateConstant('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 1);
+''', [
+      error(WarningCode.DEAD_CODE, 20, 7),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 20,
+          7),
+      error(CompileTimeErrorCode.NEW_WITH_NON_TYPE, 24, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_true_invalid_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = true ? new C() : 0;
 class C {}
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 17,
+          7),
+      error(WarningCode.DEAD_CODE, 27, 1),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_unknown_int_invalid() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = identical(0, 0.0) ? 1 : new Object();
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 34,
+          12),
+    ]);
   }
 
   test_visitConditionalExpression_lazy_unknown_invalid_int() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const c = identical(0, 0.0) ? 1 : new Object();
-''');
-    _evaluateConstantOrNull('c',
-        errorCodes: [CompileTimeErrorCode.INVALID_CONSTANT]);
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 34,
+          12),
+    ]);
   }
 
   test_visitIntegerLiteral() async {
@@ -2388,65 +2572,30 @@ const double d = 3;
   }
 
   test_visitIsExpression_is_functionType_badTypes() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 void foo(int a) {}
 const c = foo is void Function(String);
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
-  }
-
-  test_visitIsExpression_is_functionType_correctTypes() async {
-    await resolveTestCode('''
-void foo(int a) {}
-const c = foo is void Function(int);
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
   }
 
   test_visitIsExpression_is_functionType_nonFunction() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const c = false is void Function();
 ''');
-    DartObjectImpl result = _evaluateConstant('c');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
-  }
-
-  test_visitIsExpression_is_instanceOfSameClass() async {
-    await resolveTestCode('''
-const a = const A();
-const b = a is A;
-class A {
-  const A();
-}
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::c
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
-  }
-
-  test_visitIsExpression_is_instanceOfSubclass() async {
-    await resolveTestCode('''
-const a = const B();
-const b = a is A;
-class A {
-  const A();
-}
-class B extends A {
-  const B();
-}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
   }
 
   test_visitIsExpression_is_instanceOfSuperclass() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = const A();
 const b = a is B;
 class A {
@@ -2456,13 +2605,15 @@ class B extends A {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_is_instanceOfUnrelatedClass() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = const A();
 const b = a is B;
 class A {
@@ -2472,64 +2623,45 @@ class B {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_is_null_dynamic() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const a = null;
 const b = a is dynamic;
 class A {}
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 12),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
   }
 
   test_visitIsExpression_is_null_null() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const a = null;
 const b = a is Null;
 class A {}
+''', [
+      error(WarningCode.TYPE_CHECK_IS_NULL, 26, 9),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
-  }
-
-  test_visitIsExpression_isNot_instanceOfSameClass() async {
-    await resolveTestCode('''
-const a = const A();
-const b = a is! A;
-class A {
-  const A();
-}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
-  }
-
-  test_visitIsExpression_isNot_instanceOfSubclass() async {
-    await resolveTestCode('''
-const a = const B();
-const b = a is! A;
-class A {
-  const A();
-}
-class B extends A {
-  const B();
-}
-''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
   }
 
   test_visitIsExpression_isNot_instanceOfSuperclass() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -2539,13 +2671,15 @@ class B extends A {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_isNot_instanceOfUnrelatedClass() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = const A();
 const b = a is! B;
 class A {
@@ -2555,9 +2689,11 @@ class B {
   const B();
 }
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
   }
 
   test_visitPrefixedIdentifier_function() async {
@@ -2637,48 +2773,47 @@ const h = g;
   }
 
   test_visitSimpleIdentifier_inEnvironment() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const a = b;
 const b = 3;''');
     var environment = <String, DartObjectImpl>{
       'b': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
     };
     var result = _evaluateConstant('a', lexicalEnvironment: environment);
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 6);
+    assertDartObjectText(result, r'''
+int 6
+''');
   }
 
   test_visitSimpleIdentifier_notInEnvironment() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const a = b;
 const b = 3;''');
     var environment = <String, DartObjectImpl>{
       'c': DartObjectImpl(typeSystem, typeProvider.intType, IntState(6)),
     };
     var result = _evaluateConstant('a', lexicalEnvironment: environment);
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 3);
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::b
+''');
   }
 
   test_visitSimpleIdentifier_withoutEnvironment() async {
-    await resolveTestCode(r'''
+    await assertNoErrorsInCode(r'''
 const a = b;
 const b = 3;''');
-    var result = _evaluateConstant('a');
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), 3);
+    final result = _getTopVar('a');
+    assertDartObjectText(result, r'''
+int 3
+  variable: self::@variable::a
+''');
   }
 }
 
 class ConstantVisitorTestSupport extends PubPackageResolutionTest {
-  void _assertBoolValue(DartObjectImpl result, bool value) {
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), value);
-  }
-
-  void _assertIntValue(DartObjectImpl result, int value) {
-    expect(result.type, typeProvider.intType);
-    expect(result.toIntValue(), value);
+  void _assertNull(DartObjectImpl? result) {
+    expect(result, isNull);
   }
 
   void _assertTypeArguments(DartObject value, List<String>? typeArgumentNames) {
@@ -2799,6 +2934,15 @@ class ConstantVisitorTestSupport extends PubPackageResolutionTest {
     return result;
   }
 
+  DartObjectImpl? _getTopVar(String variableName) {
+    final variable = findElement.topVar(variableName) as ConstVariableElement;
+    final evaluationResult = variable.evaluationResult;
+    if (evaluationResult == null) {
+      fail('Not evaluated: $variableName');
+    }
+    return evaluationResult.value;
+  }
+
   DartObjectImpl _intValue(int value) {
     return DartObjectImpl(
       typeSystem,
@@ -2821,36 +2965,152 @@ class A {}
     expect(result.type, typeProvider.nullType);
   }
 
+  test_visitBinaryExpression_questionQuestion_invalid_notNull() async {
+    await assertErrorsInCode('''
+final x = 0;
+const c = x ?? 1;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 23,
+          1),
+    ]);
+  }
+
+  test_visitBinaryExpression_questionQuestion_notNull_invalid() async {
+    await assertErrorsInCode('''
+final x = 1;
+const c = 0 ?? x;
+''', [
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 28,
+          1),
+    ]);
+  }
+
+  test_visitConditionalExpression_eager_invalid_int_int() async {
+    await assertErrorsInCode('''
+const c = null ? 1 : 0;
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL, 10, 4),
+    ]);
+  }
+
+  test_visitIsExpression_is_functionType_correctTypes() async {
+    await assertNoErrorsInCode('''
+void foo(int a) {}
+const c = foo is void Function(int);
+''');
+    final result = _getTopVar('c');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::c
+''');
+  }
+
+  test_visitIsExpression_is_instanceOfSameClass() async {
+    await assertNoErrorsInCode(
+      '''
+const a = const A();
+const b = a is A;
+class A {
+  const A();
+}
+''',
+    );
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
+  }
+
+  test_visitIsExpression_is_instanceOfSubclass() async {
+    await assertNoErrorsInCode('''
+const a = const B();
+const b = a is A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
+  }
+
   test_visitIsExpression_is_null() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is A;
 class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_is_null_object() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 const a = null;
 const b = a is Object;
+''', [
+      error(WarningCode.UNNECESSARY_TYPE_CHECK_TRUE, 26, 11),
+    ]);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool true
+  variable: self::@variable::b
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), true);
+  }
+
+  test_visitIsExpression_isNot_instanceOfSameClass() async {
+    await assertNoErrorsInCode('''
+const a = const A();
+const b = a is! A;
+class A {
+  const A();
+}
+''');
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
+  }
+
+  test_visitIsExpression_isNot_instanceOfSubclass() async {
+    await assertNoErrorsInCode('''
+const a = const B();
+const b = a is! A;
+class A {
+  const A();
+}
+class B extends A {
+  const B();
+}
+''');
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 
   test_visitIsExpression_isNot_null() async {
-    await resolveTestCode('''
+    await assertNoErrorsInCode('''
 const a = null;
 const b = a is! A;
 class A {}
 ''');
-    DartObjectImpl result = _evaluateConstant('b');
-    expect(result.type, typeProvider.boolType);
-    expect(result.toBoolValue(), false);
+    final result = _getTopVar('b');
+    assertDartObjectText(result, r'''
+bool false
+  variable: self::@variable::b
+''');
   }
 }
 

@@ -37,8 +37,7 @@ class DartObjectPrinter {
         _sink.write('double ');
         _sink.writeln(object.toDoubleValue());
       } else if (type.isDartCoreInt) {
-        _sink.write('int ');
-        _sink.writeln(object.toIntValue());
+        _writeInteger(object);
       } else if (type.isDartCoreNull) {
         _sink.writeln('Null null');
       } else if (type.isDartCoreString) {
@@ -82,6 +81,16 @@ class DartObjectPrinter {
         write(entry.value);
       }
     });
+  }
+
+  void _writeInteger(DartObjectImpl object) {
+    _sink.write('int ');
+    final intValue = object.toIntValue();
+    if (_configuration.withHexIntegers && intValue != null) {
+      _sink.writeln('0x${intValue.toRadixString(16)}');
+    } else {
+      _sink.writeln(intValue);
+    }
   }
 
   void _writeListState(ListState state) {
@@ -160,5 +169,6 @@ class DartObjectPrinter {
 }
 
 class DartObjectPrinterConfiguration {
+  bool withHexIntegers = false;
   bool withTypeArguments = false;
 }
