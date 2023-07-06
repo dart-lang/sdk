@@ -71,6 +71,7 @@ final a = new Object();
 final b = new Set<String>();
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 final a = Object();
 final b = <String>{};
 ''';
@@ -102,6 +103,7 @@ void f() {
 }
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   const a = 'test';
 }
@@ -134,6 +136,7 @@ void f() {
 }
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   const a = 'test';
 }
@@ -263,6 +266,7 @@ import 'dart:async';
 int? a;
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 int? a;
 ''';
 
@@ -292,6 +296,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 import 'dart:async';
 import 'dart:math';
 
@@ -320,6 +325,7 @@ Completer foo;
 int minified(int x, int y) => min(x, y);
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 import 'dart:async';
 import 'dart:math';
 
@@ -489,6 +495,7 @@ String b;
 String a;
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 String a;
 String b;
 ''';
@@ -510,6 +517,7 @@ String b;
 String a;
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 String a;
 String b;
 ''';

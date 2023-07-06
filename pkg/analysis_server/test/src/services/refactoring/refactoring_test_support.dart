@@ -16,20 +16,9 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// The range of characters that were selected.
   Range? _range;
 
-  /// A map of file paths to their current content.
-  ///
-  /// Methods like [executeRefactor] will update this as workspace edits are
-  /// sent from the server back to the client.
-  Map<String, String> content = {};
-
   /// Return the title of the refactoring command that is expected to be
   /// available.
   String get refactoringName;
-
-  void addSource(String filePath, String code) {
-    var file = newFile(filePath, code);
-    content[file.path] = code;
-  }
 
   void addTestSource(String markedCode) {
     var testCode = TestCode.parse(markedCode);
@@ -42,7 +31,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
         _range = ranges[0].range;
       }
     }
-    addSource(mainFilePath, testCode.code);
+    newFile(mainFilePath, testCode.code);
   }
 
   void assertTextExpectation(String actual, String expected) {
@@ -54,11 +43,11 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
     expect(actual, expected);
   }
 
-  /// Executes the [action], updating [content] with edits sent by the server.
+  /// Executes the refactor in [action].
   Future<void> executeRefactor(CodeAction action) async {
     await executeCommandForEdits(
       action.command!,
-      content,
+      {},
       expectDocumentChanges: true,
     );
   }

@@ -23,10 +23,20 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   final Map<num, Completer<ResponseMessage>> _completers = {};
   String dartSdkPath = dirname(dirname(Platform.resolvedExecutable));
 
+  /// Tracks the current overlay content so that when we apply edits they can
+  /// be applied in the same way a real client would apply them.
+  final _overlayContent = <Uri, String>{};
+
   LspByteStreamServerChannel get channel => client!.channel!;
 
   @override
   Stream<Message> get serverToClient => client!.serverToClient;
+
+  @override
+  Future<void> closeFile(Uri uri) {
+    _overlayContent.remove(uri);
+    return super.closeFile(uri);
+  }
 
   /// Sends a request to the server and unwraps the result. Throws if the
   /// response was not successful or returned an error.
@@ -46,10 +56,37 @@ abstract class AbstractLspAnalysisServerIntegrationTest
     }
   }
 
+  @override
+  String? getCurrentFileContent(Uri uri) {
+    // First try and overlay the test has set.
+    if (_overlayContent.containsKey(uri)) {
+      return _overlayContent[uri];
+    }
+
+    // Otherwise fall back to the disk.
+    try {
+      return File(uri.toFilePath()).readAsStringSync();
+    } catch (_) {
+      return null;
+    }
+  }
+
   void newFile(String path, String content) =>
       File(path).writeAsStringSync(content);
 
   void newFolder(String path) => Directory(path).createSync(recursive: true);
+
+  @override
+  Future<void> openFile(Uri uri, String content, {int version = 1}) {
+    _overlayContent[uri] = content;
+    return super.openFile(uri, content, version: version);
+  }
+
+  @override
+  Future<void> replaceFile(int newVersion, Uri uri, String content) {
+    _overlayContent[uri] = content;
+    return super.replaceFile(newVersion, uri, content);
+  }
 
   @override
   void sendNotificationToServer(NotificationMessage notification) =>
