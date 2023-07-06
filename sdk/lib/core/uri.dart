@@ -2935,11 +2935,11 @@ class _Uri implements Uri {
       _writeAuthority(sb);
     }
     sb.write(path);
-    if (_query != null)
+    if (_query != null && _query.isNotEmpty)
       sb
         ..write("?")
         ..write(_query);
-    if (_fragment != null)
+    if (_fragment != null && _fragment.isNotEmpty)
       sb
         ..write("#")
         ..write(_fragment);
