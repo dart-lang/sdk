@@ -913,6 +913,12 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     Iterable<Supertype> transitiveImplementedTypes(Class cls) {
       var allImplementedTypes = <Supertype>{};
       var toVisit = ListQueue<Supertype>()..addAll(cls.implementedTypes);
+      if (cls.isMixinApplication) {
+        // Implemented types can come through the immediate mixin so we seed
+        // the search with it as well.
+        var mixedInType = cls.mixedInType;
+        if (mixedInType != null) toVisit.add(mixedInType);
+      }
       while (toVisit.isNotEmpty) {
         var supertype = toVisit.removeFirst();
         var superclass = supertype.classNode;
