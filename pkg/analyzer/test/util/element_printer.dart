@@ -101,7 +101,7 @@ class ElementPrinter {
 
   void writeReference(Reference reference) {
     final str = _referenceToString(reference);
-    _sink.writeln(str);
+    _sink.write(str);
   }
 
   void writeType(DartType? type) {

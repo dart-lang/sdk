@@ -238,33 +238,6 @@ class _ElementWriter {
     );
   }
 
-  /// TODO(scheglov) Replace with reference?
-  String _getElementLocationString(Element? element) {
-    if (element == null || element is MultiplyDefinedElement) {
-      return 'null';
-    }
-
-    String onlyName(String uri) {
-      if (uri.startsWith('file:///')) {
-        return uri.substring(uri.lastIndexOf('/') + 1);
-      }
-      return uri;
-    }
-
-    var location = element.location!;
-    List<String> components = location.components.toList();
-    if (components.isNotEmpty) {
-      components[0] = onlyName(components[0]);
-    }
-    if (components.length >= 2) {
-      components[1] = onlyName(components[1]);
-      if (components[0] == components[1]) {
-        components.removeAt(0);
-      }
-    }
-    return components.join(';');
-  }
-
   void _writeAugmentationElement(LibraryAugmentationElementImpl e) {
     _writeLibraryOrAugmentationElement(e);
   }
@@ -540,8 +513,7 @@ class _ElementWriter {
         } else if (exported is ExportedReferenceExported) {
           _sink.write('exported${exported.locations} ');
         }
-        // TODO(scheglov) Use the same writer as for resolved AST.
-        _sink.write(exported.reference);
+        _elementPrinter.writeReference(exported.reference);
       });
     }
   }
@@ -562,12 +534,10 @@ class _ElementWriter {
   }
 
   void _writeExportNamespace(LibraryElement e) {
-    var map = e.exportNamespace.definedNames;
-    var names = map.keys.toList()..sort();
-    for (var name in names) {
-      var element = map[name];
-      var elementLocationStr = _getElementLocationString(element);
-      _sink.writelnWithIndent('$name: $elementLocationStr');
+    final map = e.exportNamespace.definedNames;
+    final sortedEntries = map.entries.sortedBy((entry) => entry.key);
+    for (final entry in sortedEntries) {
+      _elementPrinter.writeNamedElement(entry.key, entry.value);
     }
   }
 
