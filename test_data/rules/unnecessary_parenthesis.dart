@@ -145,7 +145,24 @@ main() async {
   a2 = (1 == 1); // OK
   a2 = (1 == 1) || "".isEmpty; // OK
   var a3 = (1 + 1); // LINT
+
+  // Tests for Literal and PrefixedIdentifier
+  var a4 = (''); // LINT
+  var a5 = ((a4.isEmpty), 2); // LINT
+  var a6 = (1, (2)); // LINT
+
+  withManyArgs((''), false, 1); // LINT
+  withManyArgs('', (a4.isEmpty), 1); // LINT
+  withManyArgs('', (''.isEmpty), 1); // LINT
+  withManyArgs('', false, (1)); // LINT
+
+  var a7 = (double.infinity).toString(); // LINT
+
+  var list2 = ["a", null];
+  var a8 = (list2.first)!.length; // LINT
 }
+
+void withManyArgs(String a, bool b, int c) {}
 
 bool testTernaryAndEquality() {
   if ((1 == 1 ? true : false)) // LINT

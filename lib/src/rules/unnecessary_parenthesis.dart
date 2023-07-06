@@ -219,12 +219,12 @@ class _Visitor extends SimpleAstVisitor<void> {
       // TODO an API to the AST for better usage
       // Precedence isn't sufficient (e.g. PostfixExpression requires parenthesis)
       if (expression is PropertyAccess ||
+          expression is ConstructorReference ||
+          expression is PrefixedIdentifier ||
           expression is MethodInvocation ||
-          expression is IndexExpression) {
-        rule.reportLint(node);
-      }
-
-      if (parent.precedence < expression.precedence) {
+          expression is IndexExpression ||
+          expression is Literal ||
+          parent.precedence < expression.precedence) {
         rule.reportLint(node);
       }
     } else {
