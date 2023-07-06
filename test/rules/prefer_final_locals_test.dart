@@ -147,11 +147,33 @@ f() {
 ''');
   }
 
+  test_destructured_recordPattern_forLoop() async {
+    await assertDiagnostics(r'''
+f() {
+  for (var (a, b) in [(1, 2)]) { }
+}
+''', [
+      lint(18, 1),
+      lint(21, 1),
+    ]);
+  }
+
   /// https://github.com/dart-lang/linter/issues/4286
   test_destructured_recordPattern_forLoop_final() async {
     await assertNoDiagnostics(r'''
 f() {
   for (final (a, b) in [(1, 2), (3, 4), (5, 6)]) { }
+}
+''');
+  }
+
+  /// https://github.com/dart-lang/linter/issues/4539
+  test_destructured_recordPattern_forLoop_mutated() async {
+    await assertNoDiagnostics(r'''
+f() {
+  for (var (a, b) in [(1, 2)]) { 
+    ++a;
+  }
 }
 ''');
   }
