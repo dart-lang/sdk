@@ -1730,6 +1730,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         } else {
           type = visitFunctionType(reifiedType);
           if (_options.newRuntimeTypes &&
+              !member.isStatic &&
               reifiedType.typeParameters.isNotEmpty) {
             // Instance methods with generic type parameters require extra
             // information to support dynamic calls. The default values for the
@@ -1739,8 +1740,18 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
               for (var parameter in reifiedType.typeParameters)
                 _emitType(parameter.defaultType)
             ]);
-            var property = js_ast.Property(memberName, defaultTypeArgs);
-            instanceMethodsDefaultTypeArgs.add(property);
+            instanceMethodsDefaultTypeArgs
+                .add(js_ast.Property(memberName, defaultTypeArgs));
+            // As seen below, sometimes the member signatures are added again
+            // using the extension symbol as the name. That logic is duplicated
+            // here to ensure there are always default type arguments accessible
+            // via the same name as the signature.
+            // TODO(52867): Cleanup default type argument duplication.
+            if (extMethods.contains(name) || extAccessors.contains(name)) {
+              instanceMethodsDefaultTypeArgs.add(js_ast.Property(
+                  _declareMemberName(member, useExtension: true),
+                  defaultTypeArgs));
+            }
           }
         }
         var property = js_ast.Property(memberName, type);
@@ -1748,6 +1759,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         signatures.add(property);
         if (!member.isStatic &&
             (extMethods.contains(name) || extAccessors.contains(name))) {
+          // TODO(52867): Cleanup signature duplication.
           signatures.add(js_ast.Property(
               _declareMemberName(member, useExtension: true), type));
         }
