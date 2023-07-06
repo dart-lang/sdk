@@ -34,6 +34,9 @@ Iterable<T> convert<T, E>(Iterable<E> items, T? Function(E) converter) {
 /// not supported over the legacy protocol.
 typedef LspMessageHandler<P, R> = MessageHandler<P, R, LspAnalysisServer>;
 
+/// A base class for LSP handlers that work with any [AnalysisServer].
+typedef SharedMessageHandler<P, R> = MessageHandler<P, R, AnalysisServer>;
+
 abstract class CommandHandler<P, R> with Handler<R>, HandlerHelperMixin {
   @override
   final LspAnalysisServer server;
@@ -65,33 +68,16 @@ mixin Handler<T> {
       'Request not valid before server is initialized');
 }
 
-/// Providers some helpers for request handlers to produce common errors or
+/// Provides some helpers for request handlers to produce common errors or
 /// obtain resolved results after waiting for in-progress analysis.
-mixin HandlerHelperMixin {
-  LspAnalysisServer get server;
+mixin HandlerHelperMixin<S extends AnalysisServer> {
+  S get server;
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
       ServerErrorCodes.FileAnalysisFailed, 'Analysis failed for file', path);
 
-  bool fileHasBeenModified(String path, num? clientVersion) {
-    final serverDocIdentifier = server.getVersionedDocumentIdentifier(path);
-    return clientVersion != null &&
-        clientVersion != serverDocIdentifier.version;
-  }
-
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
       ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
-
-  ErrorOr<LineInfo> getLineInfo(String path) {
-    final lineInfo = server.getLineInfo(path);
-
-    if (lineInfo == null) {
-      return error(ServerErrorCodes.InvalidFilePath,
-          'Unable to obtain line information for file', path);
-    } else {
-      return success(lineInfo);
-    }
-  }
 
   /// Attempts to get a [ResolvedLibraryResult] for the library the includes the
   /// file at [path] or an error.
@@ -177,6 +163,28 @@ mixin HandlerHelperMixin {
   }
 }
 
+/// Provides some helpers for request handlers to produce common errors or
+/// obtain resolved results after waiting for in-progress analysis.
+mixin LspHandlerHelperMixin {
+  LspAnalysisServer get server;
+
+  bool fileHasBeenModified(String path, int? clientVersion) {
+    final serverDocumentVersion = server.getDocumentVersion(path);
+    return clientVersion != null && clientVersion != serverDocumentVersion;
+  }
+
+  ErrorOr<LineInfo> getLineInfo(String path) {
+    final lineInfo = server.getLineInfo(path);
+
+    if (lineInfo == null) {
+      return error(ServerErrorCodes.InvalidFilePath,
+          'Unable to obtain line information for file', path);
+    } else {
+      return success(lineInfo);
+    }
+  }
+}
+
 mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
     on RequestHandlerMixin<T> {
   Future<List<Response>> requestFromPlugins(
@@ -194,7 +202,7 @@ mixin LspPluginRequestHandlerMixin<T extends AnalysisServer>
 /// An object that can handle messages and produce responses for requests.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MessageHandler<P, R, S extends LspAnalysisServer>
+abstract class MessageHandler<P, R, S extends AnalysisServer>
     with Handler<R>, HandlerHelperMixin, RequestHandlerMixin<S> {
   @override
   final S server;
@@ -257,7 +265,8 @@ mixin PositionalArgCommandHandler {
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
   final LspAnalysisServer server;
-  final Map<Method, LspMessageHandler<Object?, Object?>> _messageHandlers = {};
+  final Map<Method, SharedMessageHandler<Object?, Object?>> _messageHandlers =
+      {};
   final CancelRequestHandler _cancelHandler;
   final NotCancelableToken _notCancelableToken = NotCancelableToken();
 
@@ -307,7 +316,8 @@ abstract class ServerStateMessageHandler {
         : error(ErrorCodes.MethodNotFound, 'Unknown method ${message.method}');
   }
 
-  void registerHandler(LspMessageHandler<Object?, Object?> handler) {
+  void registerHandler(
+      MessageHandler<Object?, Object?, AnalysisServer> handler) {
     _messageHandlers[handler.handlesMessage] = handler;
   }
 

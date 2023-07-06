@@ -70,6 +70,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// Configuration for the workspace from the client. This is similar to
   /// initializationOptions but can be updated dynamically rather than set
   /// only when the server starts.
+  @override
   final LspClientConfiguration lspClientConfiguration =
       LspClientConfiguration();
 
@@ -119,11 +120,6 @@ class LspAnalysisServer extends AnalysisServer {
 
   /// The subscription to the stream of incoming messages from the client.
   late final StreamSubscription<void> _channelSubscription;
-
-  /// A completer that tracks in-progress analysis context rebuilds.
-  ///
-  /// Starts completed and will be replaced each time a context rebuild starts.
-  Completer<void> _analysisContextRebuildCompleter = Completer()..complete();
 
   /// An optional manager to handle file systems which may not always be
   /// available.
@@ -190,14 +186,6 @@ class LspAnalysisServer extends AnalysisServer {
     }
   }
 
-  /// A [Future] that completes when any in-progress analysis context rebuild
-  /// completes.
-  ///
-  /// If no context rebuild is in progress, will return an already complete
-  /// [Future].
-  Future<void> get analysisContextsRebuilt =>
-      _analysisContextRebuildCompleter.future;
-
   /// The hosted location of the client application.
   ///
   /// This information is not part of the LSP spec so is only provided for
@@ -233,6 +221,7 @@ class LspAnalysisServer extends AnalysisServer {
       _initializationOptions as LspInitializationOptions;
 
   /// The capabilities of the LSP client. Will be null prior to initialization.
+  @override
   LspClientCapabilities? get lspClientCapabilities => _clientCapabilities;
 
   @override
@@ -359,6 +348,9 @@ class LspAnalysisServer extends AnalysisServer {
     unawaited(capabilitiesComputer.performDynamicRegistration());
   }
 
+  /// Gets the current version number of a document.
+  int? getDocumentVersion(String path) => documentVersions[path]?.version;
+
   /// Return a [LineInfo] for the file with the given [path].
   ///
   /// If the file does not exist or cannot be read, returns `null`.
@@ -384,7 +376,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: Uri.file(path), version: documentVersions[path]?.version);
+        uri: Uri.file(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -1047,7 +1039,7 @@ class LspAnalysisServer extends AnalysisServer {
                 (root) => resourceProvider.pathContext.join(root, excludePath)))
         .toSet();
 
-    final completer = _analysisContextRebuildCompleter = Completer();
+    final completer = analysisContextRebuildCompleter = Completer();
     try {
       var includedPathsList = includedPaths.toList();
       var excludedPathsList = excludedPaths.toList();
