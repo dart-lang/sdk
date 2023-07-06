@@ -89,7 +89,7 @@ class StreamInfo {
  private:
   const char* id_;
   std::atomic<intptr_t> enabled_;
-  bool include_private_members_;
+  std::atomic<bool> include_private_members_;
 };
 
 class Service : public AllStatic {
