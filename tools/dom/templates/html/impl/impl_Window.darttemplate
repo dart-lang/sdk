@@ -56,11 +56,9 @@ $(CLASS_MODIFIERS)class $CLASSNAME$EXTENDS$IMPLEMENTS {
    *   from MDN.
    */
   WindowBase open(String url, String name, [String$NULLABLE options]) {
-    if (options == null) {
-      return _DOMWindowCrossFrame._createSafe(_open2(url, name));
-    } else {
-      return _DOMWindowCrossFrame._createSafe(_open3(url, name, options));
-    }
+    final win =
+        options == null ? _open2(url, name) : _open3(url, name, options);
+    return _DOMWindowCrossFrame._createSafe(win);
   }
 
   // API level getter and setter for Location.
@@ -253,4 +251,11 @@ $!MEMBERS
   int get scrollY => JS<bool>('bool', '("scrollY" in #)', this) ?
       JS<num>('num', '#.scrollY', this).round() :
       document.documentElement$NULLASSERT.scrollTop;
+}
+
+class NullWindowException implements Exception {
+  @override
+  String toString() {
+    return 'Attempting to use a null window opened in Window.open.';
+  }
 }
