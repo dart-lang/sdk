@@ -446,13 +446,16 @@ class _ElementWriter {
         final enclosingElement = superConstructor.enclosingElement2;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
-          _elementPrinter.writeElement('superConstructor', superConstructor);
+          _elementPrinter.writeNamedElement(
+            'superConstructor',
+            superConstructor,
+          );
         }
       }
 
       var redirectedConstructor = e.redirectedConstructor;
       if (redirectedConstructor != null) {
-        _elementPrinter.writeElement(
+        _elementPrinter.writeNamedElement(
           'redirectedConstructor',
           redirectedConstructor,
         );
@@ -593,7 +596,7 @@ class _ElementWriter {
     if (e is FieldFormalParameterElement) {
       var field = e.field;
       if (field != null) {
-        _elementPrinter.writeElement('field', field);
+        _elementPrinter.writeNamedElement('field', field);
       } else {
         _sink.writelnWithIndent('field: <null>');
       }
@@ -653,7 +656,7 @@ class _ElementWriter {
         _sink.withIndent(() {
           for (final element in augmentations) {
             _sink.writeIndent();
-            _elementPrinter.writeElement0(element);
+            _elementPrinter.writeElement(element);
           }
         });
       }
@@ -767,7 +770,7 @@ class _ElementWriter {
 
   void _writeNonSyntheticElement(Element e) {
     if (configuration.withNonSynthetic) {
-      _elementPrinter.writeElement('nonSynthetic', e.nonSynthetic);
+      _elementPrinter.writeNamedElement('nonSynthetic', e.nonSynthetic);
     }
   }
 
@@ -994,7 +997,7 @@ class _ElementWriter {
     if (e is SuperFormalParameterElement) {
       var superParameter = e.superConstructorParameter;
       if (superParameter != null) {
-        _elementPrinter.writeElement(
+        _elementPrinter.writeNamedElement(
           'superConstructorParameter',
           superParameter,
         );

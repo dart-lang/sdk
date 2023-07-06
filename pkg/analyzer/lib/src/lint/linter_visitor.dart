@@ -1945,11 +1945,6 @@ class NodeLintRegistry {
     _forTypeLiteral.add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
-  @Deprecated('Use addNamedType() instead')
-  void addTypeName(LintRule linter, AstVisitor visitor) {
-    addNamedType(linter, visitor);
-  }
-
   void addTypeParameter(LintRule linter, AstVisitor visitor) {
     _forTypeParameter.add(_Subscription(linter, visitor, _getTimer(linter)));
   }

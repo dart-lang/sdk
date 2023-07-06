@@ -52,6 +52,8 @@ class DartUnitHoverComputer {
       locationEntity = node.name2;
     } else if (node is ConstructorDeclaration) {
       locationEntity = node.name ?? node.returnType;
+    } else if (node is DeclaredIdentifier) {
+      locationEntity = node.name;
     } else if (node is VariableDeclaration) {
       locationEntity = node.name;
     } else if (node is VariablePattern) {
@@ -84,6 +86,7 @@ class DartUnitHoverComputer {
             node is MethodDeclaration ||
             node is NamedType ||
             node is ConstructorDeclaration ||
+            node is DeclaredIdentifier ||
             node is VariableDeclaration ||
             node is VariablePattern ||
             node is PatternFieldName)) {

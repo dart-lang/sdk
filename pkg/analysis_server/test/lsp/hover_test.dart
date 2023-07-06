@@ -159,6 +159,36 @@ class HoverTest extends AbstractLspAnalysisServerTest {
   Future<void> test_dartDocPreference_unset() =>
       assertDocumentation(null, includesSummary: true, includesFull: true);
 
+  Future<void> test_forLoop_declaredVariable() async {
+    final content = '''
+void f() {
+  for (var [!ii^i!] in <String>[]) {}
+}
+''';
+    final expected = '''
+```dart
+String iii
+```
+Type: `String`''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_forLoop_variableReference() async {
+    final content = '''
+void f() {
+  for (var iii in <String>[]) {
+    print([!ii^i!]);
+  }
+}
+''';
+    final expected = '''
+```dart
+String iii
+```
+Type: `String`''';
+    await assertStringContents(content, equals(expected));
+  }
+
   Future<void> test_function_startOfParameterList() => assertStringContents(
         '''
     /// This is a function.
@@ -596,22 +626,41 @@ Type: `String`
     expect(contents, contains('Updated'));
   }
 
-  Future<void> test_string_simple() => assertStringContents(
-        '''
-    /// This is a string.
-    String [!a^bc!];
-    ''',
-        contains('This is a string.'),
-      );
+  Future<void> test_string_simple() async {
+    final content = '''
+/// This is a string.
+String [!a^bc!];
+''';
+    final expected = '''
+```dart
+String abc
+```
+Type: `String`
 
-  Future<void> test_unopenFile() => assertStringContents(
-        withOpenFile: false,
-        '''
-    /// This is a string.
-    String [!a^bc!];
-    ''',
-        contains('This is a string.'),
-      );
+*package:test/main.dart*
+
+---
+This is a string.''';
+    await assertStringContents(content, equals(expected));
+  }
+
+  Future<void> test_unopenFile() async {
+    final content = '''
+/// This is a string.
+String [!a^bc!];
+''';
+    final expected = '''
+```dart
+String abc
+```
+Type: `String`
+
+*package:test/main.dart*
+
+---
+This is a string.''';
+    await assertStringContents(withOpenFile: false, content, equals(expected));
+  }
 
   MarkupContent _getMarkupContents(Hover hover) {
     return hover.contents.map(

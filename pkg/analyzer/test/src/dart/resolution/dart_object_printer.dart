@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:collection/collection.dart';
 
 import '../../../util/element_printer.dart';
@@ -45,42 +44,14 @@ class DartObjectPrinter {
       } else if (type.isDartCoreString) {
         _sink.write('String ');
         _sink.writeln(object.toStringValue());
-      } else if (type is InterfaceType && state is ListState) {
-        _sink.writeln('List');
-        _sink.withIndent(() {
-          // TODO(scheglov) ListState must know its element type.
-          _elementPrinter.writeNamedType(
-            'elementType',
-            type.typeArguments[0],
-          );
-          final elements = object.toListValue()!;
-          if (elements.isNotEmpty) {
-            _sink.writelnWithIndent('elements');
-            _sink.withIndent(() {
-              for (final element in elements) {
-                _sink.writeIndent();
-                write(element);
-              }
-            });
-          }
-        });
-      } else if (object.isUserDefinedObject) {
-        _writelnType(type);
-        _sink.withIndent(() {
-          final fields = object.fields;
-          if (fields != null) {
-            final sortedFields = fields.entries.sortedBy((e) => e.key);
-            for (final entry in sortedFields) {
-              _sink.writeIndent();
-              _sink.write('${entry.key}: ');
-              write(entry.value);
-            }
-          }
-        });
+      } else if (state is ListState) {
+        _writeListState(state);
+      } else if (state is GenericState) {
+        _writeGenericState(type, state);
       } else if (state is RecordState) {
-        _writeRecord(type, state);
+        _writeRecordState(type, state);
       } else if (state is FunctionState) {
-        _writeFunction(type, state);
+        _writeFunctionState(type, state);
       } else {
         throw UnimplementedError();
       }
@@ -90,14 +61,44 @@ class DartObjectPrinter {
     }
   }
 
-  void _writeFunction(DartType type, FunctionState state) {
+  void _writeFunctionState(DartType type, FunctionState state) {
     _elementPrinter.writeType(type);
 
     _sink.withIndent(() {
-      _elementPrinter.writeElement('element', state.element);
+      _elementPrinter.writeNamedElement('element', state.element);
     });
 
     _writeTypeArguments(state.typeArguments);
+  }
+
+  void _writeGenericState(DartType type, GenericState state) {
+    _writelnType(type);
+    _sink.withIndent(() {
+      final fields = state.fields;
+      final sortedFields = fields.entries.sortedBy((e) => e.key);
+      for (final entry in sortedFields) {
+        _sink.writeIndent();
+        _sink.write('${entry.key}: ');
+        write(entry.value);
+      }
+    });
+  }
+
+  void _writeListState(ListState state) {
+    _sink.writeln('List');
+    _sink.withIndent(() {
+      _elementPrinter.writeNamedType('elementType', state.elementType);
+      final elements = state.elements;
+      if (elements.isNotEmpty) {
+        _sink.writelnWithIndent('elements');
+        _sink.withIndent(() {
+          for (final element in elements) {
+            _sink.writeIndent();
+            write(element);
+          }
+        });
+      }
+    });
   }
 
   void _writelnType(DartType type) {
@@ -110,7 +111,7 @@ class DartObjectPrinter {
     }
   }
 
-  void _writeRecord(DartType type, RecordState state) {
+  void _writeRecordState(DartType type, RecordState state) {
     _sink.write('Record');
     _elementPrinter.writeType(type);
 
@@ -150,10 +151,9 @@ class DartObjectPrinter {
 
   void _writeVariable(DartObjectImpl object) {
     final variable = object.variable;
-    // TODO(scheglov) must be always
-    if (variable is VariableElementImpl) {
+    if (variable != null) {
       _sink.withIndent(() {
-        _elementPrinter.writeElement('variable', variable);
+        _elementPrinter.writeNamedElement('variable', variable);
       });
     }
   }

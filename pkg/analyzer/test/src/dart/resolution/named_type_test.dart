@@ -18,7 +18,7 @@ main() {
 
 @reflectiveTest
 class NamedTypeResolutionTest extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases {
+    with NamedTypeResolutionTestCases {
   ImportFindElement get import_a {
     return findElement.importFind('package:test/a.dart');
   }
@@ -1175,9 +1175,9 @@ NamedType
 
 @reflectiveTest
 class NamedTypeResolutionTest_WithoutNullSafety extends PubPackageResolutionTest
-    with TypeNameResolutionTestCases, WithoutNullSafetyMixin {}
+    with NamedTypeResolutionTestCases, WithoutNullSafetyMixin {}
 
-mixin TypeNameResolutionTestCases on PubPackageResolutionTest {
+mixin NamedTypeResolutionTestCases on PubPackageResolutionTest {
   test_class() async {
     await assertNoErrorsInCode(r'''
 class A {}

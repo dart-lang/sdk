@@ -516,11 +516,19 @@ class _MixinsInference {
   _MixinsInference(this._linker);
 
   void perform(List<AstNode> declarations) {
-    for (var node in declarations) {
-      if (node is ClassDeclaration || node is ClassTypeAlias) {
-        var element = (node as Declaration).declaredElement as ClassElementImpl;
-        element.mixinInferenceCallback = _callbackWhenRecursion;
+    for (var declaration in declarations) {
+      InterfaceElementImpl declaredElement;
+      switch (declaration) {
+        case ClassDeclarationImpl():
+          declaredElement = declaration.declaredElement!;
+        case ClassTypeAliasImpl():
+          declaredElement = declaration.declaredElement!;
+        case EnumDeclarationImpl():
+          declaredElement = declaration.declaredElement!;
+        default:
+          continue;
       }
+      declaredElement.mixinInferenceCallback = _callbackWhenRecursion;
     }
 
     for (var declaration in declarations) {
@@ -566,15 +574,13 @@ class _MixinsInference {
   }
 
   void _inferDeclaration(AstNode node) {
-    if (node is ClassDeclaration) {
-      var element = node.declaredElement as ClassElementImpl;
-      _infer(element, node.withClause);
-    } else if (node is ClassTypeAlias) {
-      var element = node.declaredElement as ClassElementImpl;
-      _infer(element, node.withClause);
-    } else if (node is EnumDeclaration) {
-      var element = node.declaredElement as EnumElementImpl;
-      _infer(element, node.withClause);
+    switch (node) {
+      case ClassDeclarationImpl():
+        _infer(node.declaredElement!, node.withClause);
+      case ClassTypeAliasImpl():
+        _infer(node.declaredElement!, node.withClause);
+      case EnumDeclarationImpl():
+        _infer(node.declaredElement!, node.withClause);
     }
   }
 
@@ -583,14 +589,21 @@ class _MixinsInference {
   /// class hierarchy, we cache such incomplete hierarchy. So, here we reset
   /// hierarchies for all classes being linked, indiscriminately.
   void _resetHierarchies(List<AstNode> declarations) {
-    for (var declaration in declarations) {
-      if (declaration is ClassDeclaration) {
-        var element = declaration.declaredElement as ClassElementImpl;
-        element.library.session.classHierarchy.remove(element);
-      } else if (declaration is MixinDeclaration) {
-        var element = declaration.declaredElement as MixinElementImpl;
-        element.library.session.classHierarchy.remove(element);
+    for (final declaration in declarations) {
+      InterfaceElementImpl declaredElement;
+      switch (declaration) {
+        case ClassDeclarationImpl():
+          declaredElement = declaration.declaredElement!;
+        case ClassTypeAliasImpl():
+          declaredElement = declaration.declaredElement!;
+        case EnumDeclarationImpl():
+          declaredElement = declaration.declaredElement!;
+        default:
+          continue;
       }
+      final analysisSession = declaredElement.library.session;
+      final classHierarchy = analysisSession.classHierarchy;
+      classHierarchy.remove(declaredElement);
     }
   }
 }
