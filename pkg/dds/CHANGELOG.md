@@ -2,6 +2,7 @@
 - [DAP] Fixed an issue that could cause breakpoints to become unresolved when there are multiple isolates (such as during a test run).
 - [DAP] Fixed an issue where stack frames parsed in test failures could produce incorrect absolute paths in the `source.path` field if the working directory of the debug adapter did not match that of the launch/attach request.
 - [DAP] A new configuration option `bool? allowAnsiColorOutput` can enable using ansi color codes in `Output` events to improve readability of stack traces (fading out frames that are not user code).
+- Increase minimum Dart SDK version to 3.0.0.
 
 # 2.9.1
 - [DAP] A new configuration option `bool? showGettersInDebugViews` allows getters to be shown wrapped in Variables/Evaluation responses so that they can be lazily expanded by the user. `evaluateGettersInDebugViews` must be `false` for this behaviour.
