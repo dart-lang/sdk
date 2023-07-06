@@ -119,6 +119,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
     bool? sendCustomProgressEvents,
+    bool? allowAnsiColorOutput,
   }) : super(
           name: name,
           cwd: cwd,
@@ -133,6 +134,7 @@ class DartAttachRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
           sendCustomProgressEvents: sendCustomProgressEvents,
+          allowAnsiColorOutput: allowAnsiColorOutput,
         );
 
   DartAttachRequestArguments.fromMap(Map<String, Object?> obj)
@@ -226,6 +228,14 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
   /// service traffic in a unified log file.
   final bool? sendLogsToClient;
 
+  /// Whether to allow ansi color codes in OutputEvents. These may be used to
+  /// highlight user code in stack traces.
+  ///
+  /// Generally, we should only output codes that work equally with both dark
+  /// and light themes because we don't know what the clients colour scheme
+  /// looks like.
+  final bool? allowAnsiColorOutput;
+
   DartCommonLaunchAttachRequestArguments({
     required this.restart,
     required this.name,
@@ -237,6 +247,9 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
     // TODO(dantup): Make this 'required' after Flutter subclasses have been
     //  updated.
     this.showGettersInDebugViews,
+    // TODO(dantup): Make this 'required' after Flutter subclasses have been
+    //  updated.
+    this.allowAnsiColorOutput,
     required this.evaluateGettersInDebugViews,
     required this.evaluateToStringInDebugViews,
     required this.sendLogsToClient,
@@ -261,7 +274,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
             arg.read<bool?>(obj, 'evaluateToStringInDebugViews'),
         sendLogsToClient = arg.read<bool?>(obj, 'sendLogsToClient'),
         sendCustomProgressEvents =
-            arg.read<bool?>(obj, 'sendCustomProgressEvents');
+            arg.read<bool?>(obj, 'sendCustomProgressEvents'),
+        allowAnsiColorOutput = arg.read<bool?>(obj, 'allowAnsiColorOutput');
 
   Map<String, Object?> toJson() => {
         if (restart != null) 'restart': restart,
@@ -282,6 +296,8 @@ class DartCommonLaunchAttachRequestArguments extends RequestArguments {
         if (sendLogsToClient != null) 'sendLogsToClient': sendLogsToClient,
         if (sendCustomProgressEvents != null)
           'sendCustomProgressEvents': sendCustomProgressEvents,
+        if (allowAnsiColorOutput != null)
+          'allowAnsiColorOutput': allowAnsiColorOutput,
       };
 }
 
@@ -1150,14 +1166,21 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return false;
     }
 
+    return !isInUserProject(packagePath);
+  }
+
+  /// Checks whether [path] is inside the users project. This is used to support
+  /// debugging "Just My Code" (via [isExternalPackageLibrary]) and also for
+  /// stack trace highlighting, where non-user code will be faded.
+  bool isInUserProject(String targetPath) {
     // Always compare paths case-insensitively to avoid any issues where APIs
     // may have returned different casing (e.g. Windows drive letters). It's
     // almost certain a user wouldn't have a "local" package and an "external"
     // package with paths differing only be case.
-    final packagePathLower = packagePath.toLowerCase();
-    return !projectPaths
+    targetPath = targetPath.toLowerCase();
+    return projectPaths
         .map((projectPath) => projectPath.toLowerCase())
-        .any((projectPath) => path.isWithin(projectPath, packagePathLower));
+        .any((projectPath) => path.isWithin(projectPath, targetPath));
   }
 
   /// Checks whether this library is from the SDK.
@@ -1311,8 +1334,9 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// Sends an OutputEvent (without a newline, since calls to this method
   /// may be using buffered data that is not split cleanly on newlines).
   ///
-  /// If [category] is `stderr`, will also look for stack traces and extract
-  /// file/line information to add to the metadata of the event.
+  /// If [parseStackFrames] is set, it controls whether to look for stack traces
+  /// and extract file/line information to add to the metadata of the event. If
+  /// it is `null` then parsing will occur only if [category] is `"stderr"`.
   ///
   /// To ensure output is sent to the client in the correct order even if
   /// processing stack frames requires async calls, this function will insert
@@ -1322,6 +1346,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String category,
     String message, {
     int? variablesReference,
+    bool? parseStackFrames,
   }) async {
     // Reserve our place in the queue be inserting a future that we can complete
     // after we have sent the output event.
@@ -1334,6 +1359,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         category,
         message,
         variablesReference: variablesReference,
+        parseStackFrames: parseStackFrames,
       );
 
       // Chain our sends onto the end of the previous one, and complete our Future
@@ -1983,10 +2009,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     String category,
     String message, {
     int? variablesReference,
+    bool? parseStackFrames,
   }) async {
+    parseStackFrames ??= category == 'stderr';
     try {
-      if (category == 'stderr') {
-        return await _buildStdErrOutputEvents(message);
+      if (parseStackFrames) {
+        return await _buildErrorOutputEvents(category, message);
       } else {
         return [
           OutputEventBody(
@@ -2005,11 +2033,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     }
   }
 
-  /// Builds OutputEvents for stderr.
+  /// Builds OutputEvents for errors.
   ///
   /// If a stack trace can be parsed from [message], file/line information will
   /// be included in the metadata of the event.
-  Future<List<OutputEventBody>> _buildStdErrOutputEvents(String message) async {
+  Future<List<OutputEventBody>> _buildErrorOutputEvents(
+      String category, String message) async {
     final events = <OutputEventBody>[];
 
     // Extract all the URIs so we can send a batch request for resolving them.
@@ -2025,9 +2054,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     // Send a batch request. This will cache the results so we can easily use
     // them in the loop below by calling the method again.
-    if (uris.isNotEmpty) {
+    if (uris.isNotEmpty && thread != null) {
       try {
-        await thread?.resolveUrisToPathsBatch(uris);
+        await Future.wait<void>([
+          // Used to resolve paths to make them clickable.
+          thread.resolveUrisToPathsBatch(uris),
+          // We'll also want to use isExternalPackageLibrary to fade out non-user
+          // stack frames, so cache the result for the lib paths in bulk too.
+          thread.resolveUrisToPackageLibPathsBatch(uris),
+        ]);
       } catch (e, s) {
         // Ignore errors that may occur if the VM is shutting down before we got
         // this request out. In most cases we will have pre-cached the results
@@ -2039,14 +2074,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       }
     }
 
-    // Convert any URIs to paths.
+    // Convert any URIs to paths and if we successfully get a path, check
+    // whether it's inside the users workspace so we can fade out unrelated
+    // frames.
     final paths = await Future.wait(frames.map((frame) async {
       final uri = frame?.uri;
-      if (uri == null) return null;
-      if (uri.isScheme('file')) return uri.toFilePath();
+      if (uri == null || thread == null) return null;
+      if (uri.isScheme('file')) {
+        final path = uri.toFilePath();
+        return _PathInfo(path, isUserCode: isInUserProject(path));
+      }
       if (isResolvableUri(uri)) {
         try {
-          return await thread?.resolveUriToPath(uri);
+          final path = await thread.resolveUriToPath(uri);
+          return path != null
+              ? _PathInfo(path, isUserCode: isInUserProject(path))
+              : null;
         } catch (e, s) {
           // Swallow errors for the same reason noted above.
           logger?.call('Failed to resolve URIs: $e\n$s');
@@ -2055,11 +2098,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       return null;
     }));
 
+    final supportsAnsiColors = args.allowAnsiColorOutput ?? false;
     for (var i = 0; i < lines.length; i++) {
       final line = lines[i];
       final frame = frames[i];
       final uri = frame?.uri;
-      final path = paths[i];
+      final pathInfo = paths[i];
+      final path = pathInfo?.path;
+
+      // Default to true so that if we don't know whether this is user-project
+      // then we leave the formatting as-is and don't fade anything out.
+      final isUserProject = pathInfo?.isUserCode ?? true;
+
       // For the name, we usually use the package URI, but if we only ended up
       // with a file URI, try to make it relative to cwd so it's not so long.
       final name = uri != null && path != null
@@ -2067,12 +2117,22 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
               ? _converter.convertToRelativePath(path)
               : uri.toString())
           : null;
+
+      // If this is non-user code, fade out the stack frame line so that user
+      // lines are more visible.
+      final linePrefix =
+          !isUserProject && supportsAnsiColors ? '\u001B[2m' : ''; // 2=dim
+      final lineSuffix =
+          !isUserProject && supportsAnsiColors ? '\u001B[0m' : ''; // 0=reset
+
       // Because we split on newlines, all items except the last one need to
       // have their trailing newlines added back.
-      final output = i == lines.length - 1 ? line : '$line\n';
+      final lineEnd = i != lines.length - 1 ? '\n' : '';
+      final output = '$linePrefix$line$lineSuffix$lineEnd';
+
       events.add(
         OutputEventBody(
-          category: 'stderr',
+          category: category,
           output: output,
           source: path != null ? Source(name: name, path: path) : null,
           line: frame?.line,
@@ -2344,6 +2404,14 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       await _configurationDoneCompleter.future;
     }
 
+    // Change our current directory to match that of the request. This solves
+    // some issues parsing stack traces because `package:stack_trace` will
+    // convert relative to absolute paths using `path.absolute()`.
+    final cwd = args.cwd;
+    if (cwd != null) {
+      Directory.current = Directory(cwd);
+    }
+
     // Notify IsolateManager if we'll be debugging so it knows whether to set
     // up breakpoints etc. when isolates are registered.
     final debug = !(noDebug ?? false);
@@ -2593,6 +2661,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
     bool? sendCustomProgressEvents,
+    bool? allowAnsiColorOutput,
   }) : super(
           restart: restart,
           name: name,
@@ -2606,6 +2675,7 @@ class DartLaunchRequestArguments extends DartCommonLaunchAttachRequestArguments
           evaluateToStringInDebugViews: evaluateToStringInDebugViews,
           sendLogsToClient: sendLogsToClient,
           sendCustomProgressEvents: sendCustomProgressEvents,
+          allowAnsiColorOutput: allowAnsiColorOutput,
         );
 
   DartLaunchRequestArguments.fromMap(Map<String, Object?> obj)
@@ -2663,4 +2733,14 @@ class _DdsCapabilities {
       return false;
     }
   }
+}
+
+/// Information about the path to a Dart script.
+class _PathInfo {
+  // TODO(dantup): Remove this and just use a record
+  // `({String? path, bool isUserCode})` when DDS is >= Dart 3.0.0.
+  final String? path;
+  final bool isUserCode;
+
+  _PathInfo(this.path, {required this.isUserCode});
 }

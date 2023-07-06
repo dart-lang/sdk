@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
 
@@ -19,15 +20,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
-}
-
-@reflectiveTest
-class ApplyCheckElementTextReplacements {
-  test_applyReplacements() {
-    applyCheckElementTextReplacements();
-  }
 }
 
 @reflectiveTest
@@ -13482,7 +13476,7 @@ library
 ''');
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
+  @SkippedTest(issue: 'https://github.com/dart-lang/sdk/issues/44522')
   test_const_invalid_intLiteral() async {
     var library = await buildLibrary(r'''
 const int x = 0x;
@@ -23058,9 +23052,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
-    C: package:test/a.dart;C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -23078,9 +23072,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
-    C: package:test/a.dart;C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -23103,9 +23097,9 @@ library
     package:test/foo.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/foo.dart::@unit::package:test/foo.dart::@class::A
+    exported[(0, 0)] package:test/foo.dart::@class::A
   exportNamespace
-    A: package:test/foo.dart;A
+    A: package:test/foo.dart::@class::A
 ''');
     expect(library.libraryExports[0].exportedLibrary!.source.shortName,
         'foo.dart');
@@ -23131,9 +23125,9 @@ library
     package:test/foo_io.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/foo_io.dart::@unit::package:test/foo_io.dart::@class::A
+    exported[(0, 0)] package:test/foo_io.dart::@class::A
   exportNamespace
-    A: package:test/foo_io.dart;A
+    A: package:test/foo_io.dart::@class::A
 ''');
     expect(library.libraryExports[0].exportedLibrary!.source.shortName,
         'foo_io.dart');
@@ -23159,9 +23153,9 @@ library
     package:test/foo_html.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/foo_html.dart::@unit::package:test/foo_html.dart::@class::A
+    exported[(0, 0)] package:test/foo_html.dart::@class::A
   exportNamespace
-    A: package:test/foo_html.dart;A
+    A: package:test/foo_html.dart::@class::A
 ''');
     final export = library.libraryExports[0];
     expect(export.exportedLibrary!.source.shortName, 'foo_html.dart');
@@ -23188,11 +23182,11 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(0, 0)] package:test/a.dart::@class::A
+    declared self::@class::X
   exportNamespace
-    A: package:test/a.dart;A
-    X: package:test/test.dart;X
+    A: package:test/a.dart::@class::A
+    X: self::@class::X
 ''');
   }
 
@@ -23206,9 +23200,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@function::f
+    exported[(0, 0)] package:test/a.dart::@function::f
   exportNamespace
-    f: package:test/a.dart;f
+    f: package:test/a.dart::@function::f
 ''');
   }
 
@@ -23242,11 +23236,11 @@ library
         hide: A, C
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::B
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::D
+    exported[(0, 0)] package:test/a.dart::@class::B
+    exported[(0, 0)] package:test/a.dart::@class::D
   exportNamespace
-    B: package:test/a.dart;B
-    D: package:test/a.dart;D
+    B: package:test/a.dart::@class::B
+    D: package:test/a.dart::@class::D
 ''');
   }
 
@@ -23270,9 +23264,9 @@ library
         show: C
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
-    C: package:test/a.dart;C
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -23309,15 +23303,15 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(0, 0), (0, 1)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[(0, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
-    exported[(0, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(0, 0), (0, 1)] package:test/a.dart::@class::A
+    exported[(0, 0)] package:test/b.dart::@class::B
+    exported[(0, 1)] package:test/c.dart::@class::C
+    declared self::@class::X
   exportNamespace
-    A: package:test/a.dart;A
-    B: package:test/b.dart;B
-    C: package:test/c.dart;C
-    X: package:test/test.dart;X
+    A: package:test/a.dart::@class::A
+    B: package:test/b.dart::@class::B
+    C: package:test/c.dart::@class::C
+    X: self::@class::X
 ''');
   }
 
@@ -23331,9 +23325,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
-    f=: package:test/a.dart;f=
+    f=: package:test/a.dart::@setter::f
 ''');
   }
 
@@ -23356,11 +23350,11 @@ library
         show: A, C
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::C
+    exported[(0, 0)] package:test/a.dart::@class::A
+    exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
-    A: package:test/a.dart;A
-    C: package:test/a.dart;C
+    A: package:test/a.dart::@class::A
+    C: package:test/a.dart::@class::C
 ''');
   }
 
@@ -23379,11 +23373,11 @@ library
         show: f
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::f
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::f
+    exported[(0, 0)] package:test/a.dart::@getter::f
+    exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
-    f: package:test/a.dart;f?
-    f=: package:test/a.dart;f=
+    f: package:test/a.dart::@getter::f
+    f=: package:test/a.dart::@setter::f
 ''');
   }
 
@@ -23397,9 +23391,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@typeAlias::F
+    exported[(0, 0)] package:test/a.dart::@typeAlias::F
   exportNamespace
-    F: package:test/a.dart;F
+    F: package:test/a.dart::@typeAlias::F
 ''');
   }
 
@@ -23422,11 +23416,11 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@setter::x
+    exported[(0, 0)] package:test/a.dart::@getter::x
+    exported[(0, 0)] package:test/a.dart::@setter::x
   exportNamespace
-    x: package:test/a.dart;x?
-    x=: package:test/a.dart;x=
+    x: package:test/a.dart::@getter::x
+    x=: package:test/a.dart::@setter::x
 ''');
   }
 
@@ -23440,9 +23434,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
-    x: package:test/a.dart;x?
+    x: package:test/a.dart::@getter::x
 ''');
   }
 
@@ -23456,9 +23450,9 @@ library
     package:test/a.dart
   definingUnit
   exportedReferences
-    exported[(0, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@getter::x
+    exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
-    x: package:test/a.dart;x?
+    x: package:test/a.dart::@getter::x
 ''');
   }
 
@@ -23601,11 +23595,11 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::B
+    declared self::@augmentation::package:test/a.dart::@class::A
+    declared self::@class::B
   exportNamespace
-    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
-    B: package:test/test.dart;B
+    A: self::@augmentation::package:test/a.dart::@class::A
+    B: self::@class::B
 ''');
   }
 
@@ -23653,17 +23647,17 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B1
-    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B2
-    exported[(2, 1)] root::package:test/c.dart::@unit::package:test/c.dart::@class::C
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(1, 0)] package:test/a.dart::@class::A
+    exported[(2, 0)] package:test/b.dart::@class::B1
+    exported[(2, 0)] package:test/b.dart::@class::B2
+    exported[(2, 1)] package:test/c.dart::@class::C
+    declared self::@class::X
   exportNamespace
-    A: package:test/a.dart;A
-    B1: package:test/b.dart;B1
-    B2: package:test/b.dart;B2
-    C: package:test/c.dart;C
-    X: package:test/test.dart;X
+    A: package:test/a.dart::@class::A
+    B1: package:test/b.dart::@class::B1
+    B2: package:test/b.dart::@class::B2
+    C: package:test/c.dart::@class::C
+    X: self::@class::X
 ''');
   }
 
@@ -23698,13 +23692,13 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(1, 0)] package:test/a.dart::@class::A1
+    exported[(1, 0)] package:test/a.dart::@class::A3
+    declared self::@class::X
   exportNamespace
-    A1: package:test/a.dart;A1
-    A3: package:test/a.dart;A3
-    X: package:test/test.dart;X
+    A1: package:test/a.dart::@class::A1
+    A3: package:test/a.dart::@class::A3
+    X: self::@class::X
 ''');
   }
 
@@ -23738,13 +23732,13 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A1
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A3
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(1, 0)] package:test/a.dart::@class::A1
+    exported[(1, 0)] package:test/a.dart::@class::A3
+    declared self::@class::X
   exportNamespace
-    A1: package:test/a.dart;A1
-    A3: package:test/a.dart;A3
-    X: package:test/test.dart;X
+    A1: package:test/a.dart::@class::A1
+    A3: package:test/a.dart::@class::A3
+    X: self::@class::X
 ''');
   }
 
@@ -23785,13 +23779,13 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@class::A
-    declared root::package:test/test.dart::@augmentation::package:test/b.dart::@class::B
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::C
+    declared self::@augmentation::package:test/a.dart::@class::A
+    declared self::@augmentation::package:test/b.dart::@class::B
+    declared self::@class::C
   exportNamespace
-    A: package:test/test.dart;package:test/a.dart;package:test/a.dart;A
-    B: package:test/test.dart;package:test/a.dart;package:test/b.dart;package:test/b.dart;B
-    C: package:test/test.dart;C
+    A: self::@augmentation::package:test/a.dart::@class::A
+    B: self::@augmentation::package:test/b.dart::@class::B
+    C: self::@class::C
 ''');
   }
 
@@ -23834,13 +23828,13 @@ library
         constructors
           synthetic @-1
   exportedReferences
-    exported[(1, 0)] root::package:test/a.dart::@unit::package:test/a.dart::@class::A
-    exported[(2, 0)] root::package:test/b.dart::@unit::package:test/b.dart::@class::B
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::X
+    exported[(1, 0)] package:test/a.dart::@class::A
+    exported[(2, 0)] package:test/b.dart::@class::B
+    declared self::@class::X
   exportNamespace
-    A: package:test/a.dart;A
-    B: package:test/b.dart;B
-    X: package:test/test.dart;X
+    A: package:test/a.dart::@class::A
+    B: package:test/b.dart::@class::B
+    X: self::@class::X
 ''');
   }
 
@@ -23872,11 +23866,11 @@ library
             returnType: void
   definingUnit
   exportedReferences
-    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
-    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@setter::a
+    declared self::@augmentation::package:test/a.dart::@getter::a
+    declared self::@augmentation::package:test/a.dart::@setter::a
   exportNamespace
-    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
-    a=: package:test/test.dart;package:test/a.dart;package:test/a.dart;a=
+    a: self::@augmentation::package:test/a.dart::@getter::a
+    a=: self::@augmentation::package:test/a.dart::@setter::a
 ''');
   }
 
@@ -23907,9 +23901,9 @@ library
             returnType: int
   definingUnit
   exportedReferences
-    declared root::package:test/test.dart::@augmentation::package:test/a.dart::@getter::a
+    declared self::@augmentation::package:test/a.dart::@getter::a
   exportNamespace
-    a: package:test/test.dart;package:test/a.dart;package:test/a.dart;a?
+    a: self::@augmentation::package:test/a.dart::@getter::a
 ''');
   }
 
@@ -35481,7 +35475,7 @@ library
 ''');
   }
 
-  @FailingTest(reason: 'Out-of-order inference is not specified yet')
+  @SkippedTest(reason: 'Out-of-order inference is not specified yet')
   test_mixin_inference_nullSafety_mixed_outOfOrder() async {
     addSource('$testPackageLibPath/a.dart', r'''
 // @dart = 2.8
@@ -42111,7 +42105,7 @@ library
 ''');
   }
 
-  @FailingTest(
+  @SkippedTest(
     issue: 'https://github.com/dart-lang/sdk/issues/45291',
     reason: 'Type dynamic is special, no support for its aliases yet',
   )
@@ -42208,7 +42202,7 @@ library
 ''');
   }
 
-  @FailingTest(
+  @SkippedTest(
     issue: 'https://github.com/dart-lang/sdk/issues/45291',
     reason: 'Type Never is special, no support for its aliases yet',
   )
@@ -42298,7 +42292,7 @@ library
 ''');
   }
 
-  @FailingTest(
+  @SkippedTest(
     issue: 'https://github.com/dart-lang/sdk/issues/45291',
     reason: 'Type void is special, no support for its aliases yet',
   )

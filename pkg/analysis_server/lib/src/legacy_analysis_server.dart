@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:io' as io;
 import 'dart:math' show max;
 
+import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart'
@@ -75,6 +76,10 @@ import 'package:analysis_server/src/handler/legacy/server_set_client_capabilitie
 import 'package:analysis_server/src/handler/legacy/server_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
+import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
+import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
+import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -169,6 +174,9 @@ class AnalysisServerOptions {
 class LegacyAnalysisServer extends AnalysisServer {
   /// A map from the name of a request to a function used to create a request
   /// handler.
+  ///
+  /// Requests that don't match anything in this map will be passed to
+  /// [_LspOverLegacyHandler] for possible handling before returning an error.
   static final Map<String, HandlerGenerator> requestHandlerGenerators = {
     ANALYSIS_REQUEST_GET_ERRORS: AnalysisGetErrorsHandler.new,
     ANALYSIS_REQUEST_GET_HOVER: AnalysisGetHoverHandler.new,
@@ -284,6 +292,22 @@ class LegacyAnalysisServer extends AnalysisServer {
   ServerSetClientCapabilitiesParams clientCapabilities =
       ServerSetClientCapabilitiesParams([]);
 
+  @override
+  final lspClientCapabilities = lsp.LspClientCapabilities(
+    lsp.ClientCapabilities(
+      textDocument: lsp.TextDocumentClientCapabilities(
+        hover: lsp.HoverClientCapabilities(
+          contentFormat: [
+            lsp.MarkupKind.Markdown,
+          ],
+        ),
+      ),
+    ),
+  );
+
+  @override
+  final lspClientConfiguration = lsp.LspClientConfiguration();
+
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
   Map<FlutterService, Set<String>> flutterServices = {};
@@ -341,6 +365,10 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// that have not yet received a response, to the completer used to return the
   /// response when it has been received.
   Map<String, Completer<Response>> pendingServerRequests = {};
+
+  /// A lazy-initialized handler for LSP requests through the legacy-protocol
+  /// server.
+  late final _LspOverLegacyHandler _lspHandler = _LspOverLegacyHandler(this);
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -518,7 +546,8 @@ class LegacyAnalysisServer extends AnalysisServer {
           var handler =
               generator(this, request, cancellationToken, performance);
           await handler.handle();
-        } else {
+        } else if (!(await _lspHandler.handle(
+            request, cancellationToken, performance))) {
           sendResponse(Response.unknownRequest(request));
         }
       });
@@ -704,14 +733,19 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// projects/contexts support.
   Future<void> setAnalysisRoots(String requestId, List<String> includedPaths,
       List<String> excludedPaths) async {
-    notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+    final completer = analysisContextRebuildCompleter = Completer();
     try {
-      await contextManager.setRoots(includedPaths, excludedPaths);
-    } on UnimplementedError catch (e) {
-      throw RequestFailure(Response.unsupportedFeature(
-          requestId, e.message ?? 'Unsupported feature.'));
+      notificationManager.setAnalysisRoots(includedPaths, excludedPaths);
+      try {
+        await contextManager.setRoots(includedPaths, excludedPaths);
+      } on UnimplementedError catch (e) {
+        throw RequestFailure(Response.unsupportedFeature(
+            requestId, e.message ?? 'Unsupported feature.'));
+      }
+      analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
+    } finally {
+      completer.complete();
     }
-    analysisDriverScheduler.transitionToAnalyzingToIdleIfNoFilesToAnalyze();
   }
 
   /// Implementation for `analysis.setSubscriptions`.
@@ -1125,5 +1159,51 @@ class ServerPerformance {
         ++slowRequestCount;
       }
     }
+  }
+}
+
+/// A request handler for the legacy server that can delegate to LSP handlers
+/// that are written to support either kind of server.
+class _LspOverLegacyHandler {
+  final LegacyAnalysisServer server;
+
+  final Map<String, lsp.SharedMessageHandler<Object?, Object?>>
+      _messageHandlers = {};
+
+  _LspOverLegacyHandler(this.server) {
+    final generators =
+        lsp.InitializedStateMessageHandler.sharedHandlerGenerators;
+    for (final generator in generators) {
+      final handler = generator(server);
+      _messageHandlers[handler.handlesMessage.toString()] = handler;
+    }
+  }
+
+  Future<bool> handle(
+    Request request,
+    CancellationToken cancellationToken,
+    OperationPerformanceImpl performance,
+  ) async {
+    final handler = _messageHandlers[request.method];
+    if (handler == null) {
+      return false;
+    }
+
+    final message = lsp.MessageInfo(
+      performance: performance,
+      timeSinceRequest: request.timeSinceRequest,
+    );
+    final params = handler.jsonHandler.convertParams(request.params);
+    final result = await handler.handle(params, message, cancellationToken);
+
+    server.sendResponse(Response(
+      request.id,
+      result: lsp.specToJson(result.resultOrNull) as Map<String, Object?>?,
+      error: result.isError
+          ? RequestError(RequestErrorCode.INVALID_REQUEST, result.error.message)
+          : null,
+    ));
+
+    return true;
   }
 }

@@ -3,30 +3,26 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../dart/resolution/context_collection_resolution.dart';
-import 'element_text.dart';
+import '../dart/resolution/node_text_expectations.dart';
+import 'elements_base.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(TopLevelInferenceTest);
     defineReflectiveTests(TopLevelInferenceErrorsTest);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 @reflectiveTest
-class ApplyCheckElementTextReplacements {
-  test_applyReplacements() {
-    applyCheckElementTextReplacements();
-  }
-}
+class TopLevelInferenceErrorsTest extends ElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
 
-@reflectiveTest
-class TopLevelInferenceErrorsTest extends PubPackageResolutionTest {
   test_initializer_additive() async {
     await _assertErrorOnlyLeft(['+', '-']);
   }
@@ -352,14 +348,9 @@ class C implements A, B {
 }
 
 @reflectiveTest
-class TopLevelInferenceTest extends PubPackageResolutionTest {
-  void checkElementText(LibraryElement library, String expected) {
-    checkElementTextWithConfiguration(
-      library,
-      expected,
-      configuration: ElementTextConfiguration(),
-    );
-  }
+class TopLevelInferenceTest extends ElementsBaseTest {
+  @override
+  bool get keepLinkingLibraries => true;
 
   test_initializer_additive() async {
     var library = await _encodeDecodeLibrary(r'''
@@ -2288,7 +2279,7 @@ library
     // TODO(scheglov) I don't understand this yet
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_instanceCreation_hasTypeParameter() async {
     var library = await _encodeDecodeLibrary(r'''
 class A<T> {}
@@ -2445,7 +2436,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_literal() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNull = null;
@@ -2572,7 +2563,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_literal_list_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = [];
@@ -2694,7 +2685,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_literal_map_untyped_empty() async {
     var library = await _encodeDecodeLibrary(r'''
 var vNonConst = {};
@@ -2772,7 +2763,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_methodInvocation_hasTypeParameters() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -3277,7 +3268,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_prefix_incDec_custom() async {
     var library = await _encodeDecodeLibrary(r'''
 class A {
@@ -3600,7 +3591,7 @@ library
 ''');
   }
 
-  @failingTest
+  @skippedTest
   test_initializer_throw() async {
     var library = await _encodeDecodeLibrary(r'''
 var V = throw 42;
@@ -6382,12 +6373,12 @@ library
 ''');
   }
 
-  Future<LibraryElement> _encodeDecodeLibrary(String text) async {
+  Future<LibraryElementImpl> _encodeDecodeLibrary(String text) async {
     newFile(testFile.path, text);
 
     var analysisSession = contextFor(testFile).currentSession;
     var result = await analysisSession.getUnitElement(testFile.path);
     result as UnitElementResult;
-    return result.element.library;
+    return result.element.library as LibraryElementImpl;
   }
 }

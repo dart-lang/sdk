@@ -57,9 +57,9 @@ const simpleArgPrintingProgram = r'''
 
 /// A simple Dart script that prints to stderr without throwing/terminating.
 ///
-/// The output will contain stack traces include both the supplied file and
-/// package URIs.
-String stderrPrintingProgram(Uri fileUri, Uri packageUri) {
+/// The output will contain stack traces include both the supplied file, package
+/// and dart URIs.
+String stderrPrintingProgram(Uri fileUri, Uri packageUri, Uri dartUri) {
   return '''
   import 'dart:io';
   import '$packageUri';
@@ -67,8 +67,10 @@ String stderrPrintingProgram(Uri fileUri, Uri packageUri) {
   void main(List<String> args) async {
     stderr.writeln('Start');
     stderr.writeln('#0      main ($fileUri:1:2)');
-    stderr.writeln('#1      main2 ($packageUri:1:2)');
+    stderr.writeln('#1      main2 ($packageUri:3:4)');
+    stderr.writeln('#2      main3 ($dartUri:5:6)');
     stderr.write('End');
+    await Future.delayed(const Duration(seconds: 1));
   }
 ''';
 }
@@ -234,6 +236,17 @@ const simpleTestProgram = '''
       test('skipped test', () {
         expect(1, equals(2));
       }, skip: true);
+    });
+  }
+''';
+
+/// A simple package:test script with a single failing test.
+const simpleFailingTestProgram = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    test('failing test', () {
+      expect(1, equals(2));
     });
   }
 ''';

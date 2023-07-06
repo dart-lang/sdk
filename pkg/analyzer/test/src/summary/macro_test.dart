@@ -10,6 +10,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../dart/resolution/node_text_expectations.dart';
 import 'elements_base.dart';
 import 'macros_environment.dart';
 
@@ -25,6 +26,7 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroElementsKeepLinkingTest);
     defineReflectiveTests(MacroElementsFromBytesTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -138,11 +140,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -200,11 +202,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -270,11 +272,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -340,11 +342,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -403,11 +405,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -474,11 +476,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -544,11 +546,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -619,11 +621,11 @@ library
           constructors
             synthetic @-1
   exportedReferences
-    declared root::package:test/test.dart::@unit::package:test/_macro_types.dart::@class::MyClass
-    declared root::package:test/test.dart::@unit::package:test/test.dart::@class::A
+    declared self::@class::MyClass
+    declared self::@class::A
   exportNamespace
-    A: package:test/test.dart;A
-    MyClass: package:test/test.dart;package:test/_macro_types.dart;MyClass
+    A: self::@class::A
+    MyClass: self::@class::MyClass
 ''');
   }
 
@@ -865,7 +867,7 @@ foo: aaabbbccc
 
   /// TODO(scheglov) Not quite correct - we should not add a synthetic one.
   /// Fix it when adding actual augmentation libraries.
-  @FailingTest(reason: 'Class augmentation are broken currently')
+  @SkippedTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_constructor() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -918,7 +920,7 @@ library
 ''');
   }
 
-  @FailingTest(reason: 'Class augmentation are broken currently')
+  @SkippedTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_field() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -979,7 +981,7 @@ library
 ''');
   }
 
-  @FailingTest(reason: 'Class augmentation are broken currently')
+  @SkippedTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_getter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1034,7 +1036,7 @@ library
 ''');
   }
 
-  @FailingTest(reason: 'Class augmentation are broken currently')
+  @SkippedTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_method() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';
@@ -1089,7 +1091,7 @@ library
 ''');
   }
 
-  @FailingTest(reason: 'Class augmentation are broken currently')
+  @SkippedTest(reason: 'Class augmentation are broken currently')
   test_declarationsPhase_class_setter() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'package:_fe_analyzer_shared/src/macros/api.dart';

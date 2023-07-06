@@ -12,7 +12,7 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/source/line_info.dart';
 
 class HoverHandler
-    extends LspMessageHandler<TextDocumentPositionParams, Hover?> {
+    extends SharedMessageHandler<TextDocumentPositionParams, Hover?> {
   HoverHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_hover;

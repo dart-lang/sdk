@@ -34,7 +34,7 @@ import 'package:meta/meta.dart';
 
 class CompletionHandler
     extends LspMessageHandler<CompletionParams, CompletionList>
-    with LspPluginRequestHandlerMixin {
+    with LspPluginRequestHandlerMixin, LspHandlerHelperMixin {
   /// A [Future] used by tests to allow inserting a delay between resolving
   /// the initial unit and the completion code running.
   @visibleForTesting

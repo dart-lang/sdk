@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:collection/collection.dart';
 import 'package:dap/dap.dart';
 import 'package:test/test.dart';
 
@@ -97,6 +98,27 @@ main() {
 
       expect(testsNames, contains('group 1 passing test'));
       expect(testsNames, isNot(contains('group 1 failing test')));
+    });
+
+    test('includes absolute paths in OutputEvent metadata', () async {
+      final client = dap.client;
+      final testFile = dap.createTestFile(simpleFailingTestProgram);
+
+      // Collect output and test events while running the script.
+      final outputEvents = await client.collectTestOutput(
+        launch: () => client.launch(
+          testFile.path,
+          cwd: dap.testAppDir.path,
+        ),
+      );
+
+      // Collect paths from any OutputEvents that had them.
+      final stackFramePaths = outputEvents.output
+          .map((event) => event.source?.path)
+          .whereNotNull()
+          .toList();
+      // Ensure we had a frame with the absolute path of the test script.
+      expect(stackFramePaths, contains(testFile.path));
     });
 
     test('can hit and resume from a breakpoint', () async {

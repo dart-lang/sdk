@@ -18,6 +18,7 @@ import 'domain_execution_test.dart' as domain_execution;
 import 'domain_server_test.dart' as domain_server;
 import 'edit/test_all.dart' as edit;
 import 'lsp/test_all.dart' as lsp;
+import 'lsp_over_legacy/test_all.dart' as lsp_over_legacy;
 import 'plugin/test_all.dart' as plugin;
 import 'protocol_server_test.dart' as protocol_server;
 import 'protocol_test.dart' as protocol;
@@ -47,6 +48,7 @@ void main() {
     domain_server.main();
     edit.main();
     lsp.main();
+    lsp_over_legacy.main();
     plugin.main();
     protocol_server.main();
     protocol.main();

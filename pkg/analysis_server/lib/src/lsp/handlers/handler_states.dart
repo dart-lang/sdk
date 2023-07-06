@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_diagnostic_server.dart';
 import 'package:analysis_server/src/lsp/handlers/custom/handler_reanalyze.dart';
@@ -45,7 +46,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_workspace_symbols.dart'
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 
-typedef _RequestHandlerGenerator<T extends LspAnalysisServer>
+typedef _RequestHandlerGenerator<T extends AnalysisServer>
     = MessageHandler<Object?, Object?, T> Function(T);
 
 /// The server moves to this state when a critical unrecoverable error (for
@@ -64,9 +65,15 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
 }
 
 class InitializedStateMessageHandler extends ServerStateMessageHandler {
+  /// Generators for handlers that work with any [AnalysisServer].
+  static const sharedHandlerGenerators =
+      <_RequestHandlerGenerator<AnalysisServer>>[
+    HoverHandler.new,
+  ];
+
+  /// Generators for handlers that require an [LspAnalysisServer].
   static const lspHandlerGenerators =
       <_RequestHandlerGenerator<LspAnalysisServer>>[
-    HoverHandler.new,
     ShutdownMessageHandler.new,
     ExitMessageHandler.new,
     TextDocumentOpenHandler.new,
@@ -118,6 +125,9 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     reject(Method.initialized, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
 
+    for (final generator in sharedHandlerGenerators) {
+      registerHandler(generator(server));
+    }
     for (final generator in lspHandlerGenerators) {
       registerHandler(generator(server));
     }

@@ -11485,6 +11485,7 @@ FfiTrampolineDataPtr FfiTrampolineData::New() {
   FfiTrampolineDataPtr data = static_cast<FfiTrampolineDataPtr>(raw);
   data->untag()->callback_id_ = -1;
   data->untag()->is_leaf_ = false;
+  data->untag()->callback_kind_ = 0;
   return data;
 }
 

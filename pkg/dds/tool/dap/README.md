@@ -32,6 +32,7 @@ Arguments common to both `launchRequest` and `attachRequest` are:
 - `String? cwd` - the working directory for the Dart process to be spawned in
 - `Map<String, String>? env` - environment variables to be passed to any spawned process
 - `bool? sendCustomProgressEvents` - whether to send custom `dart.progressStart`, `dart.progressUpdate`, `dart.progressEnd` progress events in place of standard DAP `progressStart`, `progressUpdate`, `progressEnd` events. When this is set, only standard events will not be sent regardless of the `supportsProgressReporting` capability.
+- `bool? allowAnsiColorOutput` - whether to allow ansi color codes in Output events
 
 Arguments specific to `launchRequest` are:
 

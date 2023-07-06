@@ -16,7 +16,8 @@ import 'package:analysis_server/src/services/correction/bulk_fix_processor.dart'
 import 'package:analysis_server/src/utilities/source_change_merger.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
-class FixAllCommandHandler extends SimpleEditCommandHandler {
+class FixAllCommandHandler extends SimpleEditCommandHandler
+    with LspHandlerHelperMixin {
   FixAllCommandHandler(super.server);
 
   @override
@@ -84,7 +85,7 @@ class FixAllCommandHandler extends SimpleEditCommandHandler {
 
 /// Computes edits for iterative fix-all using temporary overlays.
 class _FixAllOperation extends TemporaryOverlayOperation
-    with HandlerHelperMixin {
+    with HandlerHelperMixin<LspAnalysisServer> {
   final MessageInfo message;
   final CancellationToken cancellationToken;
   final String path;

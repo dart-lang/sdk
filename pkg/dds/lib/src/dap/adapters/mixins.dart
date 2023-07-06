@@ -61,7 +61,12 @@ mixin TestAdapter {
   final Map<int, String> _testNames = {};
 
   void sendEvent(EventBody body, {String? eventType});
-  void sendOutput(String category, String message, {int? variablesReference});
+  void sendOutput(
+    String category,
+    String message, {
+    int? variablesReference,
+    bool? parseStackFrames,
+  });
 
   void sendTestEvents(Object testNotification) {
     // Send the JSON package as a raw notification so the client can interpret
