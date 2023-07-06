@@ -57,7 +57,7 @@ class KeywordContributor extends DartCompletionContributor {
 }
 
 /// A visitor for generating keyword suggestions.
-class _KeywordVisitor extends GeneralizingAstVisitor<void> {
+class _KeywordVisitor extends SimpleAstVisitor<void> {
   /// The keywords that are valid at the beginning of a pattern (and hence a
   /// guarded pattern).
   static const List<Keyword> patternKeywords = [
@@ -128,6 +128,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitBlock(Block node) {
     var prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
@@ -168,6 +183,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (node.inCatchClause) {
       _addSuggestion(Keyword.RETHROW);
     }
+  }
+
+  @override
+  void visitBooleanLiteral(BooleanLiteral node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitCascadeExpression(CascadeExpression node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -301,6 +326,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitConditionalExpression(ConditionalExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     if (node.initializers.isNotEmpty) {
       if (entity is ConstructorInitializer) {
@@ -328,6 +358,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitConstructorReference(ConstructorReference node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     if (node.name is SyntheticStringToken) {
       return;
@@ -343,6 +378,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     if (entity == node.defaultValue) {
       _addExpressionKeywords(node);
     }
+  }
+
+  @override
+  void visitDoubleLiteral(DoubleLiteral node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -369,11 +409,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitExpression(Expression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitExpressionFunctionBody(ExpressionFunctionBody node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
@@ -393,6 +428,11 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else {
       _addExtensionDeclarationKeywords(node);
     }
+  }
+
+  @override
+  void visitExtensionOverride(ExtensionOverride node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -447,28 +487,24 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitForEachParts(ForEachParts node) {
-    if (entity == node.inKeyword) {
-      var previous = node.findPrevious(node.inKeyword);
-      if (previous is SyntheticStringToken && previous.lexeme == 'in') {
-        previous = node.findPrevious(previous);
-      }
-      if (previous != null && previous.type == TokenType.EQ) {
-        _addSuggestions(
-            [Keyword.CONST, Keyword.FALSE, Keyword.NULL, Keyword.TRUE]);
-      } else {
-        _addSuggestion(Keyword.IN);
-      }
-    } else if (!node.inKeyword.isSynthetic && node.iterable.isSynthetic) {
-      _addSuggestion(Keyword.AWAIT);
-    }
+  void visitForEachPartsWithDeclaration(ForEachPartsWithDeclaration node) {
+    _visitForEachParts(node);
+  }
+
+  @override
+  void visitForEachPartsWithIdentifier(ForEachPartsWithIdentifier node) {
+    _visitForEachParts(node);
+  }
+
+  @override
+  void visitForEachPartsWithPattern(ForEachPartsWithPattern node) {
+    _visitForEachParts(node);
   }
 
   @override
   void visitForElement(ForElement node) {
     _addCollectionElementKeywords();
     _addExpressionKeywords(node);
-    return super.visitForElement(node);
   }
 
   @override
@@ -553,17 +589,18 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitForParts(ForParts node) {
-    // Actual: for (int x i^)
-    // Parsed: for (int x; i^;)
-    // Handle the degenerate case while typing - for (int x i^)
-    if (node.condition == entity &&
-        entity is SimpleIdentifier &&
-        node is ForPartsWithDeclarations) {
-      if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
-        _addSuggestion(Keyword.IN);
-      }
-    }
+  void visitForPartsWithDeclarations(ForPartsWithDeclarations node) {
+    _visitForParts(node);
+  }
+
+  @override
+  void visitForPartsWithExpression(ForPartsWithExpression node) {
+    _visitForParts(node);
+  }
+
+  @override
+  void visitForPartsWithPattern(ForPartsWithPattern node) {
+    _visitForParts(node);
   }
 
   @override
@@ -624,6 +661,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitFunctionReference(FunctionReference node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitGenericTypeAlias(GenericTypeAlias node) {
     if (entity == node.type) {
       _addSuggestion(Keyword.DYNAMIC);
@@ -651,7 +698,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
-    return super.visitIfElement(node);
   }
 
   @override
@@ -696,12 +742,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitInstanceCreationExpression(InstanceCreationExpression node) {
     if (entity == node.constructorName) {
       // no keywords in 'new ^' expression
     } else {
-      super.visitInstanceCreationExpression(node);
+      _addExpressionKeywords(node);
     }
+  }
+
+  @override
+  void visitIntegerLiteral(IntegerLiteral node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -722,7 +778,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitListLiteral(ListLiteral node) {
     _addCollectionElementKeywords();
     _addElseElementKeyword(node.elements);
-    super.visitListLiteral(node);
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -743,14 +799,12 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitMapPattern(MapPattern node) {
     _addConstantExpressionKeywords(node);
-    super.visitMapPattern(node);
   }
 
   @override
   void visitMapPatternEntry(MapPatternEntry node) {
     _addSuggestions([Keyword.FINAL, Keyword.VAR]);
     _addExpressionKeywords(node);
-    super.visitMapPatternEntry(node);
   }
 
   @override
@@ -788,7 +842,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestion(Keyword.DYNAMIC);
       _addSuggestion(Keyword.VOID);
     } else {
-      super.visitMethodInvocation(node);
+      _addExpressionKeywords(node);
     }
   }
 
@@ -823,8 +877,8 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitNode(AstNode node) {
-    // ignored
+  void visitNullLiteral(NullLiteral node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -850,13 +904,22 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitPatternAssignment(PatternAssignment node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitPatternField(PatternField node) {
     _addSuggestions(patternKeywords);
-    super.visitPatternField(node);
   }
 
   @override
   void visitPatternVariableDeclaration(PatternVariableDeclaration node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
     _addExpressionKeywords(node);
   }
 
@@ -868,18 +931,27 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitPrefixExpression(PrefixExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
   void visitPropertyAccess(PropertyAccess node) {
     // suggestions before '.' but not after
     if (entity != node.propertyName) {
-      super.visitPropertyAccess(node);
+      _addExpressionKeywords(node);
     }
+  }
+
+  @override
+  void visitRecordLiteral(RecordLiteral node) {
+    _addExpressionKeywords(node);
   }
 
   @override
   void visitRecordPattern(RecordPattern node) {
     _addExpressionKeywords(node);
     _addSuggestions([Keyword.DYNAMIC]);
-    return super.visitRecordPattern(node);
   }
 
   @override
@@ -894,12 +966,16 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addConstantExpressionKeywords(node);
       _addSuggestions([Keyword.DYNAMIC, Keyword.VOID]);
     }
-    super.visitRelationalPattern(node);
   }
 
   @override
   void visitRestPatternElement(RestPatternElement node) {
     _addSuggestions(patternKeywords);
+  }
+
+  @override
+  void visitRethrowExpression(RethrowExpression node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -913,7 +989,7 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _addCollectionElementKeywords();
     _addElseElementKeyword(node.elements);
-    super.visitSetOrMapLiteral(node);
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -933,20 +1009,23 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSpreadElement(SpreadElement node) {
+  void visitSimpleIdentifier(SimpleIdentifier node) {
     _addExpressionKeywords(node);
-    return super.visitSpreadElement(node);
   }
 
   @override
-  void visitStringLiteral(StringLiteral node) {
-    // ignored
+  void visitSpreadElement(SpreadElement node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitSuperExpression(SuperExpression node) {
+    _addExpressionKeywords(node);
   }
 
   @override
   void visitSwitchCase(SwitchCase node) {
     _addStatementKeywords(node);
-    return super.visitSwitchCase(node);
   }
 
   @override
@@ -983,7 +1062,6 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
     } else {
       _addStatementKeywords(node);
     }
-    return super.visitSwitchPatternCase(node);
   }
 
   @override
@@ -1004,6 +1082,21 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
         _addStatementKeywords(node);
       }
     }
+  }
+
+  @override
+  void visitSymbolLiteral(SymbolLiteral node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitThisExpression(ThisExpression node) {
+    _addExpressionKeywords(node);
+  }
+
+  @override
+  void visitThrowExpression(ThrowExpression node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -1038,13 +1131,17 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       _addSuggestion(Keyword.CATCH);
       return;
     }
-    return visitStatement(node);
   }
 
   @override
   void visitTypeArgumentList(TypeArgumentList node) {
     _addSuggestion(Keyword.DYNAMIC);
     _addSuggestion(Keyword.VOID);
+  }
+
+  @override
+  void visitTypeLiteral(TypeLiteral node) {
+    _addExpressionKeywords(node);
   }
 
   @override
@@ -1370,6 +1467,36 @@ class _KeywordVisitor extends GeneralizingAstVisitor<void> {
       return _isTokenAfterIfElementWithoutElse(token, element.body);
     }
     return false;
+  }
+
+  void _visitForEachParts(ForEachParts node) {
+    if (entity == node.inKeyword) {
+      var previous = node.findPrevious(node.inKeyword);
+      if (previous is SyntheticStringToken && previous.lexeme == 'in') {
+        previous = node.findPrevious(previous);
+      }
+      if (previous != null && previous.type == TokenType.EQ) {
+        _addSuggestions(
+            [Keyword.CONST, Keyword.FALSE, Keyword.NULL, Keyword.TRUE]);
+      } else {
+        _addSuggestion(Keyword.IN);
+      }
+    } else if (!node.inKeyword.isSynthetic && node.iterable.isSynthetic) {
+      _addSuggestion(Keyword.AWAIT);
+    }
+  }
+
+  void _visitForParts(ForParts node) {
+    // Actual: for (int x i^)
+    // Parsed: for (int x; i^;)
+    // Handle the degenerate case while typing - for (int x i^)
+    if (node.condition == entity &&
+        entity is SimpleIdentifier &&
+        node is ForPartsWithDeclarations) {
+      if (_isPreviousTokenSynthetic(entity, TokenType.SEMICOLON)) {
+        _addSuggestion(Keyword.IN);
+      }
+    }
   }
 
   static bool _isPreviousTokenSynthetic(Object? entity, TokenType type) {
