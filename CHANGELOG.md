@@ -1,3 +1,12 @@
+## 3.0.6
+
+This is a patch release that:
+
+- Fixes a flow in flow analysis that causes it to sometimes ignore destructuring
+  assignments (issue [#52767]).
+
+[#52767]: https://github.com/dart-lang/sdk/issues/52767
+
 ## 3.0.5 - 2023-06-14
 
 This is a patch release that:
