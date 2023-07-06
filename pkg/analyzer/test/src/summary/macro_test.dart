@@ -10,7 +10,7 @@ import 'package:analyzer/src/test_utilities/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'element_text.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import 'elements_base.dart';
 import 'macros_environment.dart';
 
@@ -26,15 +26,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(MacroElementsKeepLinkingTest);
     defineReflectiveTests(MacroElementsFromBytesTest);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
-}
-
-@reflectiveTest
-class ApplyCheckElementTextReplacements {
-  test_applyReplacements() {
-    applyCheckElementTextReplacements();
-  }
 }
 
 @reflectiveTest

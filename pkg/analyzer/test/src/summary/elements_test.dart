@@ -12,6 +12,7 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 import 'element_text.dart';
 import 'elements_base.dart';
 
@@ -19,15 +20,8 @@ main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
-    // defineReflectiveTests(ApplyCheckElementTextReplacements);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
-}
-
-@reflectiveTest
-class ApplyCheckElementTextReplacements {
-  test_applyReplacements() {
-    applyCheckElementTextReplacements();
-  }
 }
 
 @reflectiveTest

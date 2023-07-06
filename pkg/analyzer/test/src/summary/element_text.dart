@@ -2,13 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:collection/collection.dart';
@@ -18,39 +15,9 @@ import '../../util/element_printer.dart';
 import '../../util/tree_string_sink.dart';
 import 'resolved_ast_printer.dart';
 
-/// Set this path to automatically replace expectations in invocations of
-/// [checkElementText] with the new actual texts.
-const String? _testPath = null;
-
-/// The list of replacements that update expectations.
-final List<_Replacement> _replacements = [];
-
-/// The cached content of the file with the [_testPath].
-String? _testCode;
-
-/// The cache line information for the [_testPath] file.
-LineInfo? _testCodeLines;
-
-void applyCheckElementTextReplacements() {
-  if (_testPath != null && _replacements.isNotEmpty) {
-    _replacements.sort((a, b) => b.offset - a.offset);
-    String newCode = _testCode!;
-    for (var replacement in _replacements) {
-      newCode = newCode.substring(0, replacement.offset) +
-          replacement.text +
-          newCode.substring(replacement.end);
-    }
-    File(_testPath!).writeAsStringSync(newCode);
-  }
-}
-
-/// Write the given [library] elements into the canonical text presentation
-/// taking into account the [configuration]. Then compare the actual text with
-/// the given [expected] one.
-void checkElementTextWithConfiguration(
-  LibraryElement library,
-  String expected, {
-  ElementTextConfiguration? configuration,
+String getLibraryText({
+  required LibraryElementImpl library,
+  required ElementTextConfiguration configuration,
 }) {
   final buffer = StringBuffer();
   final sink = TreeStringSink(
@@ -62,68 +29,13 @@ void checkElementTextWithConfiguration(
     configuration: ElementPrinterConfiguration(),
     selfUriStr: '${library.source.uri}',
   );
-  var writer = _ElementWriter(
+  final writer = _ElementWriter(
     sink: sink,
     elementPrinter: elementPrinter,
-    configuration: configuration ?? ElementTextConfiguration(),
+    configuration: configuration,
   );
   writer.writeLibraryElement(library);
-
-  String actualText = buffer.toString();
-  actualText =
-      actualText.split('\n').map((line) => line.trimRight()).join('\n');
-
-  if (_testPath != null && actualText != expected) {
-    if (_testCode == null) {
-      _testCode = File(_testPath!).readAsStringSync();
-      _testCodeLines = LineInfo.fromContent(_testCode!);
-    }
-
-    try {
-      throw 42;
-    } catch (e, trace) {
-      String traceString = trace.toString();
-
-      // Assuming traceString contains "$_testPath:$invocationLine:$column",
-      // figure out the value of invocationLine.
-
-      String testUriString = Uri.file(_testPath!).toString();
-      int testFileUriOffset = traceString.lastIndexOf(testUriString);
-      int testFileUriEnd = testFileUriOffset + testUriString.length;
-      expect(testFileUriOffset, isNonNegative);
-
-      // Sanity check: there must be ':' after the path.
-      expect(traceString[testFileUriEnd], ':');
-
-      int lineOffset = testFileUriEnd + ':'.length;
-      int invocationLine = int.parse(traceString.substring(
-          lineOffset, traceString.indexOf(':', lineOffset)));
-      int invocationOffset =
-          _testCodeLines!.getOffsetOfLine(invocationLine - 1);
-
-      const String rawStringPrefix = "r'''";
-      int expectationOffset =
-          _testCode!.indexOf(rawStringPrefix, invocationOffset);
-
-      // Sanity check: there must be no other strings or blocks.
-      expect(_testCode!.substring(invocationOffset, expectationOffset),
-          isNot(anyOf(contains("'"), contains('"'), contains('}'))));
-
-      expectationOffset += rawStringPrefix.length;
-      int expectationEnd = _testCode!.indexOf("'''", expectationOffset);
-
-      _replacements.add(
-          _Replacement(expectationOffset, expectationEnd, '\n$actualText'));
-    }
-  }
-
-  // Print the actual text to simplify copy/paste into the expectation.
-  // if (actualText != expected) {
-  //   print('-------- Actual --------');
-  //   print('$actualText------------------------');
-  // }
-
-  expect(actualText, expected);
+  return buffer.toString();
 }
 
 class ElementTextConfiguration {
@@ -1115,14 +1027,6 @@ class _IdMap {
       return '???';
     }
   }
-}
-
-class _Replacement {
-  final int offset;
-  final int end;
-  final String text;
-
-  _Replacement(this.offset, this.end, this.text);
 }
 
 extension on ClassElement {
