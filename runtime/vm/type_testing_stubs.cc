@@ -619,25 +619,39 @@ void TypeTestingStubGenerator::
     // Only build type argument checking if any checked cid ranges require it.
     __ Bind(&load_succeeded);
 
-    // b) We check for "rare" types, where the instance type arguments are null.
-    //
-    // The kernel frontend should fill in any non-assigned type parameters on
-    // construction with dynamic/Object, so we should never get the null type
-    // argument vector in created instances.
-    //
-    // TODO(kustermann): We could consider not using "null" as type argument
-    // vector representing all-dynamic to avoid this extra check (which will be
-    // uncommon because most Dart code in 2.0 will be strongly typed)!
-    __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
-                     Object::null_object());
+    // The rare type of the class is guaranteed to be a supertype of the
+    // runtime type of any instance..
     const Type& rare_type = Type::Handle(type_class.RareType());
-    if (rare_type.IsSubtypeOf(type, Heap::kNew)) {
-      compiler::Label process_done;
-      __ BranchIf(NOT_EQUAL, &process_done, compiler::Assembler::kNearJump);
-      __ Ret();
-      __ Bind(&process_done);
-    } else {
+    // If the rare type is a subtype of the type being checked, then the runtime
+    // type of the instance is also a subtype and we shouldn't need to perform
+    // checks for the instance type arguments.
+    ASSERT(!rare_type.IsSubtypeOf(type, Heap::kNew));
+    // b) We check if the type arguments of the rare type are all dynamic
+    // (that is, the type arguments vector is null).
+    if (rare_type.arguments() == TypeArguments::null()) {
+      // If it is, then the instance could have a null instance TAV. However,
+      // if the instance TAV is null, then the runtime type of the instance is
+      // the rare type, which means it cannot be a subtype of the checked type.
+      __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
+                       Object::null_object());
       __ BranchIf(EQUAL, &check_failed);
+    } else {
+      // If the TAV of the rare type is not null, at least one type argument
+      // of the rare type is a non-top type. This means no instance can have
+      // a null instance TAV, as the dynamic type cannot be a subtype of
+      // a non-top type and each type argument of an instance must be
+      // a subtype of the corresponding type argument for the rare type.
+#if defined(DEBUG)
+      // Add the check for null in DEBUG mode, but instead of failing, create a
+      // breakpoint to make it obvious that the assumption above has failed.
+      __ CompareObject(TTSInternalRegs::kInstanceTypeArgumentsReg,
+                       Object::null_object());
+      compiler::Label check_instance_tav;
+      __ BranchIf(NOT_EQUAL, &check_instance_tav,
+                  compiler::Assembler::kNearJump);
+      __ Breakpoint();
+      __ Bind(&check_instance_tav);
+#endif
     }
 
     // c) Then we'll check each value of the type argument.

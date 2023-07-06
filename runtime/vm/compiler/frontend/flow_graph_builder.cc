@@ -380,17 +380,18 @@ bool SimpleInstanceOfType(const AbstractType& type) {
   }
 
   ASSERT(type.HasTypeClass());
-  const Class& type_class = Class::Handle(type.type_class());
+  auto* const zone = Thread::Current()->zone();
+  const Class& type_class = Class::Handle(zone, type.type_class());
 
   // Bail if the type has any type parameters.
   if (type_class.IsGeneric()) {
-    // If the interface type we check against is generic but has all-dynamic
-    // type arguments, then we can still use the _simpleInstanceOf
-    // implementation (see also runtime/lib/object.cc:Object_SimpleInstanceOf).
-    const auto& rare_type = AbstractType::Handle(type_class.RareType());
-    // TODO(regis): Revisit the usage of TypeEquality::kSyntactical when
-    // implementing strong mode.
-    return rare_type.IsEquivalent(type, TypeEquality::kSyntactical);
+    // If the interface type is a supertype of the rare type, as any instances
+    // are guaranteed to be subtypes of the rare type, then we can still use
+    // the _simpleInstanceOf implementation (see also
+    // runtime/lib/object.cc:Object_SimpleInstanceOf).
+    // See #52848 for why the type might be a supertype and not strictly equal.
+    const auto& rare_type = Type::Handle(zone, type_class.RareType());
+    return rare_type.IsSubtypeOf(type, Heap::kNew);
   }
 
   // Finally a simple class for instance of checking.
