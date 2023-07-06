@@ -162,6 +162,22 @@ void run() {
   notEqual("Typedef<Object?>?", "Typedef<dynamic>", equateTopTypes: true);
   areEqual("Typedef<Object?>?", "Typedef<dynamic>",
       equateTopTypes: true, ignoreTopLevelNullability: true);
+
+  // Record types.
+  areEqual("(int, bool)", "(int, bool)");
+  notEqual("(int, bool)", "(int?, bool)");
+  notEqual("(int, bool)", "(int, bool?)");
+  notEqual("(int, bool)", "({int i, bool b})");
+  areEqual("({int i, bool b})", "({int i, bool b})");
+  areEqual("({int i, bool b})", "({bool b ,int i})");
+  notEqual("({int i, bool b})", "({int? i, bool b})");
+  notEqual("({int i, bool b})", "({int i, bool? b})");
+  notEqual("({int i, bool b})", "({int n, bool b})");
+  notEqual("({int i, bool b})", "({int i, bool t})");
+  areEqual("(int, {bool b})", "(int, {bool b})");
+  notEqual("(int, {bool b})", "(int?, {bool b})");
+  notEqual("(int, {bool b})", "(int, {bool? b})");
+  notEqual("(int, {bool b})", "(int, {bool t})");
 }
 
 void areEqual(String type1, String type2,
