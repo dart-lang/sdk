@@ -37,8 +37,6 @@ class C {
 ''');
   }
 
-  /// https://github.com/dart-lang/linter/issues/4381
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4381')
   test_shadowInObjectPattern() async {
     await assertNoDiagnostics(r'''
 class C {

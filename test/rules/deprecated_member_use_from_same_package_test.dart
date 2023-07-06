@@ -338,6 +338,7 @@ late E e = E.two;
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4541')
   test_deprecatedExtension_usedInExtensionOverride() async {
     await assertDiagnostics(r'''
 @deprecated
@@ -351,6 +352,7 @@ var x = E(0).f();
     ]);
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4541')
   test_deprecatedExtension_usedInOverride() async {
     await assertDiagnostics(r'''
 @deprecated
