@@ -1053,7 +1053,7 @@ ObjectPattern
   type: NamedType
     name: A
     element: self::@typeAlias::A
-    type: (int)
+    type: (int,)
       alias: self::@typeAlias::A
   leftParenthesis: (
   fields

@@ -240,7 +240,7 @@ Future<SerializableResponse> _executeTypesPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeTypesMacro(
-        instance, request.declaration, identifierResolver);
+        instance, request.target, identifierResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
         response: result,
@@ -283,7 +283,7 @@ Future<SerializableResponse> _executeDeclarationsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDeclarationsMacro(
-        instance, request.declaration, identifierResolver, typeIntrospector,
+        instance, request.target, identifierResolver, typeIntrospector,
         typeDeclarationResolver, typeResolver);
     return new SerializableResponse(
         responseType: MessageType.macroExecutionResult,
@@ -335,7 +335,7 @@ Future<SerializableResponse> _executeDefinitionsPhase(
         serializationZoneId: request.serializationZoneId);
 
     var result = await executeDefinitionMacro(
-        instance, request.declaration, identifierResolver, typeIntrospector,
+        instance, request.target, identifierResolver, typeIntrospector,
         typeResolver, typeDeclarationResolver, typeInferrer,
         libraryDeclarationsResolver);
     return new SerializableResponse(

@@ -993,7 +993,8 @@ class CommonMasks with AbstractValueDomain {
   }
 
   @override
-  bool isValidRefinement(covariant TypeMask before, covariant TypeMask after) {
+  bool isInvalidRefinement(
+      covariant TypeMask before, covariant TypeMask after) {
     // Consider a typegraph node which simply outputs the union of its inputs,
     // and suppose such a node has K inputs with types: A, B, C, and D. The
     // union would flatten to a common supertype, e.g. `Object`. However, a
@@ -1014,7 +1015,13 @@ class CommonMasks with AbstractValueDomain {
     // (i.e. omit UnionTypeMask type check). But since it is only the behavior
     // of UnionTypeMask that can lead to a narrowing, we save work by only doing
     // the subtype check when a UnionTypeMask is involved.
-    return after is! UnionTypeMask || before.isInMask(after, _closedWorld);
+    //
+    // Note: [UnionTypeMask.isInMask] can return false negatives. We have to
+    // ensure we take the conservative action when we get a false negative and
+    // treat those as valid refinements. Invoking `after.isInMask` instead of
+    // `!before.isInMask` ensures that the false negatives are handled
+    // correctly.
+    return after is UnionTypeMask && after.isInMask(before, _closedWorld);
   }
 
   @override

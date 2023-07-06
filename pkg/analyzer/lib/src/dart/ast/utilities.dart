@@ -262,6 +262,24 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    final other = _other as ClassAugmentationDeclaration;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
+        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
+        isEqualTokens(node.classKeyword, other.classKeyword) &&
+        isEqualTokens(node.name, other.name) &&
+        isEqualNodes(node.typeParameters, other.typeParameters) &&
+        isEqualNodes(node.withClause, other.withClause) &&
+        isEqualNodes(node.implementsClause, other.implementsClause) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.members, other.members) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = _other as ClassDeclaration;
     return isEqualNodes(
@@ -2150,9 +2168,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.implementsClause, _oldNode)) {
       node.implementsClause = _newNode as ImplementsClauseImpl;
-      return true;
-    } else if (identical(node.nativeClause, _oldNode)) {
-      node.nativeClause = _newNode as NativeClauseImpl;
       return true;
     } else if (_replaceInList(node.members)) {
       return true;

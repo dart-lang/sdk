@@ -178,25 +178,23 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitClassAugmentationDeclaration(
+    covariant ClassAugmentationDeclarationImpl node,
+  ) {
+    _classOrAugmentationDeclaration(
+      node,
+      augmentKeyword: node.augmentKeyword,
+      extendsClause: null,
+    );
+  }
+
+  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.augmentKeyword, suffix: ' ');
-    _visitToken(node.abstractKeyword, suffix: ' ');
-    _visitToken(node.macroKeyword, suffix: ' ');
-    _visitToken(node.sealedKeyword, suffix: ' ');
-    _visitToken(node.baseKeyword, suffix: ' ');
-    _visitToken(node.interfaceKeyword, suffix: ' ');
-    _visitToken(node.finalKeyword, suffix: ' ');
-    _visitToken(node.mixinKeyword, suffix: ' ');
-    sink.write('class ');
-    _visitToken(node.name);
-    _visitNode(node.typeParameters);
-    _visitNode(node.extendsClause, prefix: ' ');
-    _visitNode(node.withClause, prefix: ' ');
-    _visitNode(node.implementsClause, prefix: ' ');
-    sink.write(' {');
-    _visitNodeList(node.members, separator: ' ');
-    sink.write('}');
+    _classOrAugmentationDeclaration(
+      node,
+      augmentKeyword: null,
+      extendsClause: node.extendsClause,
+    );
   }
 
   @override
@@ -1421,6 +1419,31 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
     _visitNode(node.expression);
     sink.write(';');
+  }
+
+  void _classOrAugmentationDeclaration(
+    ClassOrAugmentationDeclarationImpl node, {
+    required Token? augmentKeyword,
+    required ExtendsClause? extendsClause,
+  }) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(augmentKeyword, suffix: ' ');
+    _visitToken(node.abstractKeyword, suffix: ' ');
+    _visitToken(node.macroKeyword, suffix: ' ');
+    _visitToken(node.sealedKeyword, suffix: ' ');
+    _visitToken(node.baseKeyword, suffix: ' ');
+    _visitToken(node.interfaceKeyword, suffix: ' ');
+    _visitToken(node.finalKeyword, suffix: ' ');
+    _visitToken(node.mixinKeyword, suffix: ' ');
+    sink.write('class ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(extendsClause, prefix: ' ');
+    _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
   }
 
   /// Visit the given function [body], printing a prefix before if the body

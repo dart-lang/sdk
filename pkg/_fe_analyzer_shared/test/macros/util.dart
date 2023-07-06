@@ -393,10 +393,9 @@ class Fixtures {
       returnType: voidType,
       typeParameters: []);
 
-  static final allDeclarationsVariable = VariableDeclarationImpl(
+  static final libraryVariable = VariableDeclarationImpl(
       id: RemoteInstance.uniqueId,
-      identifier: IdentifierImpl(
-          id: RemoteInstance.uniqueId, name: 'allLibraryDeclarations'),
+      identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'library'),
       library: Fixtures.library,
       isExternal: false,
       isFinal: true,
@@ -404,8 +403,9 @@ class Fixtures {
       type: NamedTypeAnnotationImpl(
           id: RemoteInstance.uniqueId,
           isNullable: false,
-          identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'List'),
-          typeArguments: [stringType]));
+          identifier:
+              IdentifierImpl(id: RemoteInstance.uniqueId, name: 'LibraryInfo'),
+          typeArguments: []));
 
   // Class and member declarations
   static final myInterfaceType = NamedTypeAnnotationImpl(
@@ -645,6 +645,7 @@ class Fixtures {
       myMixin,
       myFunction,
       myVariable,
+      libraryVariable,
     ],
   });
 }

@@ -389,7 +389,7 @@ class SubstituteTest extends _Base {
       positionalTypes: [intNone],
     );
 
-    assertType(type, '(int)');
+    assertType(type, '(int,)');
     _assertIdenticalType(type, {T: intNone});
   }
 

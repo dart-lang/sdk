@@ -393,39 +393,6 @@ void f() {
     );
   }
 
-  void test_classDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
-/// Comment A.
-@myA1
-@myA2
-class A<T> extends A0 with M implements I {
-  void foo() {}
-  void bar() {}
-}
-
-/// Comment B.
-class B<U> extends B0 with N implements J {}
-''');
-    var A = findNode.classDeclaration('A<T>');
-    _assertAnnotatedNode(A);
-    _assertReplaceInList(
-      destination: A,
-      child: A.members[0],
-      replacement: A.members[1],
-    );
-    _assertReplacementForChildren<ClassDeclaration>(
-      destination: findNode.classDeclaration('A<T>'),
-      source: findNode.classDeclaration('B<U>'),
-      childAccessors: [
-        (node) => node.documentationComment!,
-        (node) => node.extendsClause!,
-        (node) => node.implementsClause!,
-        (node) => node.typeParameters!,
-        (node) => node.withClause!,
-      ],
-    );
-  }
-
   void test_classTypeAlias() {
     var findNode = _parseStringToFindNode(r'''
 /// Comment A.

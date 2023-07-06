@@ -442,20 +442,20 @@ mixin StringTypes on AbstractTypeSystemTest {
       _defineType(str, type);
     }
 
-    allPositional('(double)', [doubleNone]);
-    allPositional('(int)', [intNone]);
-    allPositional('(int?)', [intQuestion]);
-    allPositional('(int*)', [intStar]);
-    allPositional('(num)', [numNone]);
-    allPositional('(Never)', [neverNone]);
+    allPositional('(double,)', [doubleNone]);
+    allPositional('(int,)', [intNone]);
+    allPositional('(int?,)', [intQuestion]);
+    allPositional('(int*,)', [intStar]);
+    allPositional('(num,)', [numNone]);
+    allPositional('(Never,)', [neverNone]);
 
-    allPositionalQuestion('(int)?', [intNone]);
-    allPositionalQuestion('(int?)?', [intQuestion]);
-    allPositionalQuestion('(int*)?', [intStar]);
+    allPositionalQuestion('(int,)?', [intNone]);
+    allPositionalQuestion('(int?,)?', [intQuestion]);
+    allPositionalQuestion('(int*,)?', [intStar]);
 
-    allPositionalStar('(int)*', [intNone]);
-    allPositionalStar('(int?)*', [intQuestion]);
-    allPositionalStar('(int*)*', [intStar]);
+    allPositionalStar('(int,)*', [intNone]);
+    allPositionalStar('(int?,)*', [intQuestion]);
+    allPositionalStar('(int*,)*', [intStar]);
 
     allPositional('(double, int)', [doubleNone, intNone]);
     allPositional('(int, double)', [intNone, doubleNone]);

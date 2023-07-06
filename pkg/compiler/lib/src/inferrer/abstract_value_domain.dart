@@ -660,7 +660,7 @@ abstract class AbstractValueDomain {
   /// Serializes this [value] for this domain to [sink].
   void writeAbstractValueToDataSink(DataSinkWriter sink, AbstractValue? value);
 
-  bool isValidRefinement(AbstractValue before, AbstractValue after);
+  bool isInvalidRefinement(AbstractValue before, AbstractValue after);
 
   void finalizeMetrics() {}
 

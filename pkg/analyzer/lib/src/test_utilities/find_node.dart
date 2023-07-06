@@ -44,6 +44,9 @@ class FindNode {
 
   CascadeExpression get singleCascadeExpression => _single();
 
+  ClassAugmentationDeclaration get singleClassAugmentationDeclaration =>
+      _single();
+
   ConditionalExpression get singleConditionalExpression => _single();
 
   ConstructorFieldInitializer get singleConstructorFieldInitializer =>
@@ -245,6 +248,10 @@ class FindNode {
 
   CatchClauseParameter catchClauseParameter(String search) {
     return _node(search, (n) => n is CatchClauseParameter);
+  }
+
+  ClassAugmentationDeclaration classAugmentationDeclaration(String search) {
+    return _node(search, (n) => n is ClassAugmentationDeclaration);
   }
 
   ClassDeclaration classDeclaration(String search) {

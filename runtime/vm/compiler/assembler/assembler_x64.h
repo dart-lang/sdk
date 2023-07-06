@@ -1198,7 +1198,7 @@ class Assembler : public AssemblerBase {
     }
   }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Address addr);
   void TsanStoreRelease(Address addr);
 #endif
@@ -1210,7 +1210,7 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadFromOffset(dst, Address(address, offset), size);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
   }
@@ -1220,7 +1220,7 @@ class Assembler : public AssemblerBase {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
     LoadCompressed(dst, Address(address, offset));
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
   }
@@ -1230,7 +1230,7 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     movq(Address(address, offset), src);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(Address(address, offset));
 #endif
   }
@@ -1240,7 +1240,7 @@ class Assembler : public AssemblerBase {
     // On intel stores have store-release behavior (i.e. stores are not
     // re-ordered with other stores).
     OBJ(mov)(Address(address, offset), src);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(Address(address, offset));
 #endif
   }

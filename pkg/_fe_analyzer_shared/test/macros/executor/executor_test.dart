@@ -253,6 +253,27 @@ void main() {
                     equalsIgnoringWhitespace(
                         'class GeneratedByMyMixinOnMyClass {}'));
               });
+
+              test('on libraries', () async {
+                var result = await executor.executeTypesPhase(
+                  instanceId,
+                  Fixtures.library,
+                  FakeIdentifierResolver(),
+                );
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace('''
+class LibraryInfo {
+  final Uri uri;
+  final String languageVersion;
+  final List<Type> definedTypes;
+  const LibraryInfo(this.uri, this.languageVersion, this.definedTypes);
+}
+'''),
+                );
+              });
             });
 
             group('in the declaration phase', () {
@@ -398,18 +419,6 @@ void main() {
                     equalsIgnoringWhitespace('''
                 static const List<String> fieldNames = ['myField',];
               '''));
-                expect(
-                    result.libraryAugmentations
-                        .map((code) => code.debugString().toString())
-                        .toList(),
-                    [
-                      equalsIgnoringWhitespace(
-                          "const library = 'package:foo/bar.dart';"),
-                      equalsIgnoringWhitespace(
-                          "const languageVersion = '3.0';"),
-                      equalsIgnoringWhitespace("const definedTypes = "
-                          "['MyClass','MyEnum','MyMixin',];"),
-                    ]);
               });
 
               test('on enums', () async {
@@ -471,6 +480,22 @@ void main() {
                 static const List<String> methodNames = ['myMixinMethod',];
               '''));
                 expect(result.libraryAugmentations, isEmpty);
+              });
+
+              test('on libraries', () async {
+                var result = await executor.executeDeclarationsPhase(
+                    instanceId,
+                    Fixtures.library,
+                    FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                  result.libraryAugmentations.single.debugString().toString(),
+                  equalsIgnoringWhitespace('final LibraryInfo library;'),
+                );
               });
             });
 
@@ -626,27 +651,6 @@ void main() {
                 augment final /*inferred*/String _myVariable = 'new initial value' + augment super;
                 '''),
                     ]));
-
-                result = await executor.executeDefinitionsPhase(
-                    instanceId,
-                    Fixtures.allDeclarationsVariable,
-                    FakeIdentifierResolver(),
-                    Fixtures.testTypeDeclarationResolver,
-                    Fixtures.testTypeResolver,
-                    Fixtures.testTypeIntrospector,
-                    Fixtures.testTypeInferrer,
-                    Fixtures.testLibraryDeclarationsResolver);
-                expect(result.enumValueAugmentations, isEmpty);
-                expect(result.typeAugmentations, isEmpty);
-                expect(
-                    result.libraryAugmentations
-                        .map((a) => a.debugString().toString()),
-                    unorderedEquals([
-                      equalsIgnoringWhitespace(
-                          "augment final List<String> allLibraryDeclarations = "
-                          "['MyClass','MyEnum','MyMixin','myFunction',"
-                          "'_myVariable',];"),
-                    ]));
               });
 
               test('on fields', () async {
@@ -775,6 +779,25 @@ void main() {
                     unorderedEquals(
                       mixinMethodDefinitionMatchers,
                     ));
+              });
+
+              test('on libraries', () async {
+                var result = await executor.executeDefinitionsPhase(
+                    instanceId,
+                    Fixtures.library,
+                    FakeIdentifierResolver(),
+                    Fixtures.testTypeDeclarationResolver,
+                    Fixtures.testTypeResolver,
+                    Fixtures.testTypeIntrospector,
+                    Fixtures.testTypeInferrer,
+                    Fixtures.testLibraryDeclarationsResolver);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
+                    equalsIgnoringWhitespace('''
+augment final LibraryInfo library = LibraryInfo(Uri.parse('package:foo/bar.dart'), '3.0', [MyClass, MyEnum, MyMixin, ]);
+'''));
               });
             });
           });

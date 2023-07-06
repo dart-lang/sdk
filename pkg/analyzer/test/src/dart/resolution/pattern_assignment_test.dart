@@ -325,14 +325,14 @@ PatternAssignment
           matchedValueType: int
         element: <null>
     rightParenthesis: )
-    matchedValueType: (int)
+    matchedValueType: (int,)
   equals: =
   expression: SimpleIdentifier
     token: x
     staticElement: self::@function::f::@parameter::x
-    staticType: (int)
-  patternTypeSchema: (num)
-  staticType: (int)
+    staticType: (int,)
+  patternTypeSchema: (num,)
+  staticType: (int,)
 ''');
   }
 

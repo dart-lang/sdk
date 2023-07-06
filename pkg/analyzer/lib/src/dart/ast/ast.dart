@@ -1287,6 +1287,8 @@ abstract class AstVisitor<R> {
 
   R? visitCatchClauseParameter(CatchClauseParameter node);
 
+  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node);
+
   R? visitClassDeclaration(ClassDeclaration node);
 
   R? visitClassTypeAlias(ClassTypeAlias node);
@@ -2696,6 +2698,44 @@ abstract final class ClassAugmentationDeclaration
   ClassAugmentationElement? get declaredElement;
 }
 
+final class ClassAugmentationDeclarationImpl
+    extends ClassOrAugmentationDeclarationImpl
+    implements ClassAugmentationDeclaration {
+  @override
+  final Token augmentKeyword;
+
+  @override
+  ClassAugmentationElement? declaredElement;
+
+  ClassAugmentationDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required super.abstractKeyword,
+    required super.macroKeyword,
+    required super.inlineKeyword,
+    required super.sealedKeyword,
+    required super.baseKeyword,
+    required super.interfaceKeyword,
+    required super.finalKeyword,
+    required super.mixinKeyword,
+    required super.classKeyword,
+    required super.name,
+    required super.typeParameters,
+    required super.withClause,
+    required super.implementsClause,
+    required super.nativeClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  });
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitClassAugmentationDeclaration(this);
+  }
+}
+
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
@@ -2710,6 +2750,10 @@ abstract final class ClassDeclaration
     implements ClassOrAugmentationDeclaration {
   @override
   ClassElement? get declaredElement;
+
+  /// Returns the `extends` clause for this class, or `null` if the class
+  /// does not extend any other class.
+  ExtendsClause? get extendsClause;
 
   /// Returns the implements clause for the class/mixin, or `null` if the
   /// class/mixin does not implement any interfaces.
@@ -2742,225 +2786,39 @@ abstract final class ClassDeclaration
   TypeParameterList? get typeParameters;
 }
 
-/// The declaration of a class.
-///
-///    classDeclaration ::=
-///        classModifiers 'class' [SimpleIdentifier] [TypeParameterList]?
-///        ([ExtendsClause] [WithClause]?)?
-///        [ImplementsClause]?
-///        '{' [ClassMember]* '}'
-///
-///    classModifiers ::= 'sealed'
-///      | 'abstract'? ('base' | 'interface' | 'final')?
-///      | 'abstract'? 'base'? 'mixin'
-///
-final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class ClassDeclarationImpl extends ClassOrAugmentationDeclarationImpl
     implements ClassDeclaration {
-  /// The 'abstract' keyword, or `null` if the keyword was absent.
   @override
-  final Token? abstractKeyword;
-
-  /// The 'macro' keyword, or `null` if the keyword was absent.
-  final Token? macroKeyword;
-
-  /// The 'inline' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? inlineKeyword;
-
-  /// The 'sealed' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? sealedKeyword;
-
-  /// The 'base' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? baseKeyword;
-
-  /// The 'interface' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? interfaceKeyword;
-
-  /// The 'final' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? finalKeyword;
-
-  /// The 'augment' keyword, or `null` if the keyword was absent.
-  final Token? augmentKeyword;
-
-  /// The 'mixin' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? mixinKeyword;
-
-  /// The token representing the 'class' keyword.
-  @override
-  final Token classKeyword;
-
-  /// The extends clause for the class, or `null` if the class does not extend
-  /// any other class.
-  ExtendsClauseImpl? _extendsClause;
-
-  /// The type parameters for the class or mixin,
-  /// or `null` if the declaration does not have any type parameters.
-  TypeParameterListImpl? _typeParameters;
-
-  /// The with clause for the class, or `null` if the class does not have a with
-  /// clause.
-  WithClauseImpl? _withClause;
-
-  /// The implements clause for the class or mixin,
-  /// or `null` if the declaration does not implement any interfaces.
-  ImplementsClauseImpl? _implementsClause;
-
-  /// The native clause for the class, or `null` if the class does not have a
-  /// native clause.
-  NativeClauseImpl? _nativeClause;
+  ExtendsClauseImpl? extendsClause;
 
   @override
   ClassElementImpl? declaredElement;
 
-  /// The left curly bracket.
-  @override
-  final Token leftBracket;
-
-  /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
-
-  /// The right curly bracket.
-  @override
-  final Token rightBracket;
-
-  /// Initialize a newly created class declaration. Either or both of the
-  /// [comment] and [metadata] can be `null` if the class does not have the
-  /// corresponding attribute. The [abstractKeyword] can be `null` if the class
-  /// is not abstract. The [typeParameters] can be `null` if the class does not
-  /// have any type parameters. Any or all of the [extendsClause], [withClause],
-  /// and [implementsClause] can be `null` if the class does not have the
-  /// corresponding clause. The list of [members] can be `null` if the class
-  /// does not have any members.
   ClassDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.abstractKeyword,
-    required this.macroKeyword,
-    required this.inlineKeyword,
-    required this.sealedKeyword,
-    required this.baseKeyword,
-    required this.interfaceKeyword,
-    required this.finalKeyword,
-    required this.augmentKeyword,
-    required this.mixinKeyword,
-    required this.classKeyword,
+    required super.abstractKeyword,
+    required super.macroKeyword,
+    required super.inlineKeyword,
+    required super.sealedKeyword,
+    required super.baseKeyword,
+    required super.interfaceKeyword,
+    required super.finalKeyword,
+    required super.mixinKeyword,
+    required super.classKeyword,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
-    required ExtendsClauseImpl? extendsClause,
-    required WithClauseImpl? withClause,
-    required ImplementsClauseImpl? implementsClause,
-    required NativeClauseImpl? nativeClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _extendsClause = extendsClause,
-        _withClause = withClause,
-        _implementsClause = implementsClause,
-        _nativeClause = nativeClause {
-    _becomeParentOf(_typeParameters);
-    _becomeParentOf(_extendsClause);
-    _becomeParentOf(_withClause);
-    _becomeParentOf(_implementsClause);
-    _becomeParentOf(_nativeClause);
-    _members._initialize(this, members);
-  }
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  ExtendsClauseImpl? get extendsClause => _extendsClause;
-
-  set extendsClause(ExtendsClauseImpl? extendsClause) {
-    _extendsClause = _becomeParentOf(extendsClause);
-  }
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata {
-    return abstractKeyword ??
-        macroKeyword ??
-        inlineKeyword ??
-        sealedKeyword ??
-        baseKeyword ??
-        interfaceKeyword ??
-        finalKeyword ??
-        augmentKeyword ??
-        mixinKeyword ??
-        classKeyword;
-  }
-
-  @override
-  ImplementsClauseImpl? get implementsClause => _implementsClause;
-
-  set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
-  }
-
-  @override
-  NodeListImpl<ClassMemberImpl> get members => _members;
-
-  @override
-  NativeClauseImpl? get nativeClause => _nativeClause;
-
-  set nativeClause(NativeClauseImpl? nativeClause) {
-    _nativeClause = _becomeParentOf(nativeClause);
-  }
-
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
-  }
-
-  @override
-  WithClauseImpl? get withClause => _withClause;
-
-  set withClause(WithClauseImpl? withClause) {
-    _withClause = _becomeParentOf(withClause);
-  }
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('abstractKeyword', abstractKeyword)
-    ..addToken('macroKeyword', macroKeyword)
-    ..addToken('inlineKeyword', inlineKeyword)
-    ..addToken('sealedKeyword', sealedKeyword)
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('interfaceKeyword', interfaceKeyword)
-    ..addToken('finalKeyword', finalKeyword)
-    ..addToken('augmentKeyword', augmentKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('classKeyword', classKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('extendsClause', extendsClause)
-    ..addNode('withClause', withClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addNode('nativeClause', nativeClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    required super.typeParameters,
+    required this.extendsClause,
+    required super.withClause,
+    required super.implementsClause,
+    required super.nativeClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  });
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _typeParameters?.accept(visitor);
-    _extendsClause?.accept(visitor);
-    _withClause?.accept(visitor);
-    _implementsClause?.accept(visitor);
-    _nativeClause?.accept(visitor);
-    members.accept(visitor);
-  }
 }
 
 /// A node that declares a name within the scope of a class declarations.
@@ -2999,12 +2857,6 @@ abstract final class ClassOrAugmentationDeclaration
   @override
   ClassOrAugmentationElement? get declaredElement;
 
-  /// Returns the `extends` clause for this class, or `null` if the class
-  /// does not extend any other class.
-  ///
-  /// In valid code only [ClassDeclaration] can specify it.
-  ExtendsClause? get extendsClause;
-
   /// Return the 'final' keyword, or `null` if the keyword was absent.
   Token? get finalKeyword;
 
@@ -3037,6 +2889,138 @@ abstract final class ClassOrAugmentationDeclaration
   /// Returns the `with` clause for the class, or `null` if the class does not
   /// have a `with` clause.
   WithClause? get withClause;
+}
+
+sealed class ClassOrAugmentationDeclarationImpl
+    extends NamedCompilationUnitMemberImpl
+    implements ClassOrAugmentationDeclaration {
+  @override
+  final Token? abstractKeyword;
+
+  /// The 'macro' keyword, or `null` if the keyword was absent.
+  final Token? macroKeyword;
+
+  @override
+  final Token? sealedKeyword;
+
+  @override
+  final Token? baseKeyword;
+
+  @override
+  final Token? interfaceKeyword;
+
+  @override
+  final Token? finalKeyword;
+
+  @override
+  final Token? mixinKeyword;
+
+  /// The 'inline' keyword, or `null` if the keyword was absent.
+  final Token? inlineKeyword;
+
+  @override
+  final Token classKeyword;
+
+  @override
+  TypeParameterListImpl? typeParameters;
+
+  @override
+  WithClauseImpl? withClause;
+
+  @override
+  ImplementsClauseImpl? implementsClause;
+
+  final NativeClauseImpl? nativeClause;
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
+
+  ClassOrAugmentationDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.abstractKeyword,
+    required this.macroKeyword,
+    required this.sealedKeyword,
+    required this.baseKeyword,
+    required this.interfaceKeyword,
+    required this.finalKeyword,
+    required this.mixinKeyword,
+    required this.inlineKeyword,
+    required this.classKeyword,
+    required super.name,
+    required this.typeParameters,
+    required this.withClause,
+    required this.implementsClause,
+    required this.nativeClause,
+    required this.leftBracket,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    _becomeParentOf(typeParameters);
+    _becomeParentOf(extendsClause);
+    _becomeParentOf(withClause);
+    _becomeParentOf(implementsClause);
+    _becomeParentOf(nativeClause);
+    this.members._initialize(this, members);
+  }
+
+  Token? get augmentKeyword => null;
+
+  @override
+  Token get endToken => rightBracket;
+
+  ExtendsClauseImpl? get extendsClause => null;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    return abstractKeyword ??
+        macroKeyword ??
+        sealedKeyword ??
+        baseKeyword ??
+        interfaceKeyword ??
+        finalKeyword ??
+        augmentKeyword ??
+        mixinKeyword ??
+        classKeyword;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('abstractKeyword', abstractKeyword)
+    ..addToken('macroKeyword', macroKeyword)
+    ..addToken('inlineKeyword', inlineKeyword)
+    ..addToken('sealedKeyword', sealedKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('interfaceKeyword', interfaceKeyword)
+    ..addToken('finalKeyword', finalKeyword)
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('classKeyword', classKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('extendsClause', extendsClause)
+    ..addNode('withClause', withClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    typeParameters?.accept(visitor);
+    extendsClause?.accept(visitor);
+    withClause?.accept(visitor);
+    implementsClause?.accept(visitor);
+    nativeClause?.accept(visitor);
+    members.accept(visitor);
+  }
 }
 
 /// A class type alias.

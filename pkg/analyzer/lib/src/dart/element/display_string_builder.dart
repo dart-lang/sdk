@@ -223,6 +223,11 @@ class ElementDisplayStringBuilder {
       _write('}');
     }
 
+    // Add trailing comma for record types with only one position field.
+    if (positionalFields.length == 1 && namedFields.isEmpty) {
+      _write(',');
+    }
+
     _write(')');
     _writeNullability(type.nullabilitySuffix);
   }

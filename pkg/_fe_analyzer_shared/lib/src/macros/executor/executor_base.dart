@@ -319,14 +319,14 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
+          MacroTarget target,
           IdentifierResolver identifierResolver,
           TypeDeclarationResolver typeDeclarationResolver,
           TypeResolver typeResolver,
           TypeIntrospector typeIntrospector) =>
       _sendRequest((zoneId) => new ExecuteDeclarationsPhaseRequest(
           macro,
-          declaration,
+          target as RemoteInstance,
           new RemoteInstanceImpl(
               instance: identifierResolver,
               id: RemoteInstance.uniqueId,
@@ -348,7 +348,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
+          MacroTarget target,
           IdentifierResolver identifierResolver,
           TypeDeclarationResolver typeDeclarationResolver,
           TypeResolver typeResolver,
@@ -357,7 +357,7 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           LibraryDeclarationsResolver libraryDeclarationsResolver) =>
       _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
           macro,
-          declaration,
+          target as RemoteInstance,
           new RemoteInstanceImpl(
               instance: identifierResolver,
               id: RemoteInstance.uniqueId,
@@ -386,10 +386,10 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-          DeclarationImpl declaration, IdentifierResolver identifierResolver) =>
+          MacroTarget target, IdentifierResolver identifierResolver) =>
       _sendRequest((zoneId) => new ExecuteTypesPhaseRequest(
           macro,
-          declaration,
+          target as RemoteInstance,
           new RemoteInstanceImpl(
               instance: identifierResolver,
               id: RemoteInstance.uniqueId,

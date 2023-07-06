@@ -88,6 +88,12 @@ config("dart_precompiler_config") {
   if (is_clang) {
     cflags = [ "-fno-omit-frame-pointer" ]
   }
+
+  # In our GN build rules we'll always compile AOT compiler & AOT runtime in
+  # the same mode (TSAN or non-TSAN).
+  if (is_tsan) {
+    defines += [ "TARGET_USES_THREAD_SANITIZER" ]
+  }
 }
 
 config("dart_os_config") {

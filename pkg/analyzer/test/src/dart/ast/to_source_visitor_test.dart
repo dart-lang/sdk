@@ -336,32 +336,28 @@ void f() {
     _assertSource(code, findNode.catchClause(code));
   }
 
+  void test_visitClassAugmentationDeclaration_abstract() {
+    final code = 'augment abstract class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassAugmentationDeclaration);
+  }
+
+  void test_visitClassAugmentationDeclaration_augment() {
+    final code = 'augment class A {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassAugmentationDeclaration);
+  }
+
   void test_visitClassDeclaration_abstract() {
     final code = 'abstract class C {}';
     final findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.classDeclaration(code));
   }
 
-  void test_visitClassDeclaration_abstractAugment() {
-    final code = 'augment abstract class C {}';
-    final findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.classDeclaration('class C'));
-  }
-
   void test_visitClassDeclaration_abstractMacro() {
     final code = 'abstract macro class C {}';
     final findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.classDeclaration(code));
-  }
-
-  void test_visitClassDeclaration_augment() {
-    var findNode = _parseStringToFindNode(r'''
-augment class A {}
-''');
-    _assertSource(
-      'augment class A {}',
-      findNode.classDeclaration('class A'),
-    );
   }
 
   void test_visitClassDeclaration_base() {

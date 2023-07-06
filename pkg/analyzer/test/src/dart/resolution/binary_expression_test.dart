@@ -122,7 +122,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: self::@function::f::@parameter::a
-    staticType: (String)
+    staticType: (String,)
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
@@ -149,7 +149,7 @@ BinaryExpression
   leftOperand: SimpleIdentifier
     token: a
     staticElement: self::@function::f::@parameter::a
-    staticType: (String)
+    staticType: (String,)
   operator: +
   rightOperand: IntegerLiteral
     literal: 0

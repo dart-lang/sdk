@@ -87,13 +87,15 @@ void checkElementTextWithConfiguration(
       // Assuming traceString contains "$_testPath:$invocationLine:$column",
       // figure out the value of invocationLine.
 
-      int testFilePathOffset = traceString.lastIndexOf(_testPath!);
-      expect(testFilePathOffset, isNonNegative);
+      String testUriString = Uri.file(_testPath!).toString();
+      int testFileUriOffset = traceString.lastIndexOf(testUriString);
+      int testFileUriEnd = testFileUriOffset + testUriString.length;
+      expect(testFileUriOffset, isNonNegative);
 
       // Sanity check: there must be ':' after the path.
-      expect(traceString[testFilePathOffset + _testPath!.length], ':');
+      expect(traceString[testFileUriEnd], ':');
 
-      int lineOffset = testFilePathOffset + _testPath!.length + ':'.length;
+      int lineOffset = testFileUriEnd + ':'.length;
       int invocationLine = int.parse(traceString.substring(
           lineOffset, traceString.indexOf(':', lineOffset)));
       int invocationOffset =

@@ -6,7 +6,6 @@ import 'dart:async';
 
 import '../api.dart';
 import '../executor/augmentation_library.dart';
-import '../executor/introspection_impls.dart';
 import '../executor.dart';
 
 /// A [MacroExecutor] implementation which delegates most work to other
@@ -97,24 +96,19 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
   @override
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
+          MacroTarget target,
           IdentifierResolver identifierResolver,
           TypeDeclarationResolver typeDeclarationResolver,
           TypeResolver typeResolver,
           TypeIntrospector typeIntrospector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeDeclarationsPhase(
-              macro,
-              declaration,
-              identifierResolver,
-              typeDeclarationResolver,
-              typeResolver,
-              typeIntrospector));
+          executor.executeDeclarationsPhase(macro, target, identifierResolver,
+              typeDeclarationResolver, typeResolver, typeIntrospector));
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
-          DeclarationImpl declaration,
+          MacroTarget target,
           IdentifierResolver identifierResolver,
           TypeDeclarationResolver typeDeclarationResolver,
           TypeResolver typeResolver,
@@ -124,7 +118,7 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
       _instanceExecutors[macro]!._withInstance((executor) =>
           executor.executeDefinitionsPhase(
               macro,
-              declaration,
+              target,
               identifierResolver,
               typeDeclarationResolver,
               typeResolver,
@@ -134,9 +128,9 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-          DeclarationImpl declaration, IdentifierResolver identifierResolver) =>
+          MacroTarget target, IdentifierResolver identifierResolver) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeTypesPhase(macro, declaration, identifierResolver));
+          executor.executeTypesPhase(macro, target, identifierResolver));
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(
