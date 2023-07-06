@@ -6075,6 +6075,38 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
         // Optimize some internal SDK calls by avoiding the insertion of a
         // runtime cast.
         return args.positional.single.accept(this);
+      } else if (_options.newRuntimeTypes &&
+          node.arguments.positional.length == 2 &&
+          node.arguments.types.length == 1 &&
+          node.arguments.named.isEmpty &&
+          target.name.text == 'extractTypeArguments') {
+        // Inline the extraction and method call at compile time because we
+        // don't preserve the original type argument names into the runtime.
+        // Those names are needed in the evaluation string used to extract the
+        // types from the provided instance.
+        var extractionType = node.arguments.types.single;
+        if (extractionType is! InterfaceType) {
+          throw UnsupportedError(
+              'Type arguments can only be extracted from interface types.');
+        }
+        var extractionTypeParameters = extractionType.classNode.typeParameters;
+        if (extractionTypeParameters.isEmpty) {
+          throw UnsupportedError(
+              'The extraction type must have type arguments to be extracted.');
+        }
+        var extractionTypeParameterNames = extractionTypeParameters
+            .map((p) => '${extractionType.classNode.name}.${p.name!}');
+        var instance = node.arguments.positional.first.accept(this);
+        var function = node.arguments.positional.last.accept(this);
+        var extractedTypeArgs = js_ast.ArrayInitializer([
+          for (var recipe in extractionTypeParameterNames)
+            js.call('#.#(#, "$recipe")', [
+              emitLibraryName(rtiLibrary),
+              _emitMemberName('evalInInstance', memberClass: rtiClass),
+              instance
+            ])
+        ]);
+        return runtimeCall('dgcall(#, #, [])', [function, extractedTypeArgs]);
       }
     }
 
