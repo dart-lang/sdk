@@ -254,7 +254,7 @@ void Assembler::Bind(Label* label) {
   label->BindTo(bound_pc, lr_state());
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(R0, addr);

@@ -6227,7 +6227,7 @@ IMMEDIATE_TEST(AddrImmRAXByte,
                __ popq(RAX))
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire, assembler) {
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   // On TSAN builds StoreRelease/LoadAcquire will do a runtime
   // call to tell TSAN about our action.
   __ MoveRegister(THR, CallingConventions::kArg2Reg);
@@ -6306,7 +6306,7 @@ ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire, test) {
 }
 
 ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   // On TSAN builds StoreRelease/LoadAcquire will do a runtime
   // call to tell TSAN about our action.
   __ MoveRegister(THR, CallingConventions::kArg2Reg);
@@ -6327,7 +6327,7 @@ ASSEMBLER_TEST_GENERATE(StoreReleaseLoadAcquire1024, assembler) {
 ASSEMBLER_TEST_RUN(StoreReleaseLoadAcquire1024, test) {
   const intptr_t res = test->InvokeWithCodeAndThread<intptr_t>(123);
   EXPECT_EQ(123, res);
-#if !defined(USING_THREAD_SANITIZER)
+#if !defined(TARGET_USES_THREAD_SANITIZER)
   EXPECT_DISASSEMBLY_NOT_WINDOWS(
       "push rcx\n"
       "xorq rcx,rcx\n"

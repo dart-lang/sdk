@@ -570,7 +570,7 @@ class Assembler : public AssemblerBase {
     StoreToOffset(src, base, offset, kEightBytes);
   }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Register addr);
   void TsanStoreRelease(Register addr);
 #endif
@@ -585,7 +585,7 @@ class Assembler : public AssemblerBase {
       src = TMP2;
     }
     ldar(dst, src, size);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanLoadAcquire(src);
 #endif
   }
@@ -608,7 +608,7 @@ class Assembler : public AssemblerBase {
       AddImmediate(kDestReg, address, offset);
     }
     stlr(src, kDestReg);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(kDestReg);
 #endif
   }
@@ -622,7 +622,7 @@ class Assembler : public AssemblerBase {
       AddImmediate(kResultReg, address, offset);
     }
     stlr(src, kResultReg, kObjectBytes);
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
     TsanStoreRelease(kResultReg);
 #endif
   }

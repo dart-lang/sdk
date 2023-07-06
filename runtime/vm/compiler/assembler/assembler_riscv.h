@@ -872,7 +872,7 @@ class Assembler : public MicroAssembler {
     StoreToOffset(src, base, offset, kWordBytes);
   }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   void TsanLoadAcquire(Register addr);
   void TsanStoreRelease(Register addr);
 #endif

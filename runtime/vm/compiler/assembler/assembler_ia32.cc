@@ -2237,7 +2237,7 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
   // We don't run TSAN on 32 bit systems.
   // Don't call StoreRelease here because we would have to load the immediate
   // into a temp register which causes spilling.
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   if (memory_order == kRelease) {
     UNIMPLEMENTED();
   }

@@ -2571,7 +2571,7 @@ void Assembler::LoadField(Register dst, const FieldAddress& address) {
   lx(dst, address);
 }
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
 void Assembler::TsanLoadAcquire(Register addr) {
   LeafRuntimeScope rt(this, /*frame_size=*/0, /*preserve_registers=*/true);
   MoveRegister(A0, addr);
@@ -2592,7 +2592,7 @@ void Assembler::LoadAcquire(Register dst,
   LoadFromOffset(dst, address, offset, size);
   fence(HartEffects::kRead, HartEffects::kMemory);
 
-#if defined(USING_THREAD_SANITIZER)
+#if defined(TARGET_USES_THREAD_SANITIZER)
   if (offset == 0) {
     TsanLoadAcquire(address);
   } else {
