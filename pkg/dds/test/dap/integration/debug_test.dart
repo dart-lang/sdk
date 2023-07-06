@@ -131,10 +131,13 @@ main() {
       // - non stack frame lines
       // - stack frames with file:// URIs
       // - stack frames with package URIs (that need asynchronously resolving)
+      // - stack frames with dart URIs (that need asynchronously resolving)
       final fileUri = Uri.file(dap.createTestFile('').path);
       final packageUri = await dap.createFooPackage();
-      final testFile =
-          dap.createTestFile(stderrPrintingProgram(fileUri, packageUri));
+      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+      final testFile = dap.createTestFile(
+        stderrPrintingProgram(fileUri, packageUri, dartUri),
+      );
 
       var outputEvents = await dap.client.collectOutput(
         launch: () => dap.client.launch(testFile.path),
@@ -149,7 +152,8 @@ main() {
       expectLines(output, [
         'Start',
         '#0      main ($fileUri:1:2)',
-        '#1      main2 ($packageUri:1:2)',
+        '#1      main2 ($packageUri:3:4)',
+        '#2      main3 ($dartUri:5:6)',
         'End',
       ]);
 
@@ -163,6 +167,45 @@ main() {
         hasLength(2),
         reason: 'Expected two frames within path ${dap.testDir.path}',
       );
+    });
+
+    test(
+        'fades stack frames that are not part of our project when allowAnsiColorOutput=true',
+        () async {
+      // Use a sample program that prints output to stderr that includes:
+      // - non stack frame lines
+      // - stack frames with file:// URIs
+      // - stack frames with package URIs (that need asynchronously resolving)
+      // - stack frames with dart URIs (that need asynchronously resolving)
+      final fileUri = Uri.file(dap.createTestFile('').path);
+      final packageUri = await dap.createFooPackage();
+      final dartUri = Uri.parse('dart:isolate-patch/isolate_patch.dart');
+      final testFile = dap.createTestFile(
+        stderrPrintingProgram(fileUri, packageUri, dartUri),
+      );
+
+      var outputEvents = await dap.client.collectOutput(
+        launch: () => dap.client.launch(testFile.path,
+            allowAnsiColorOutput: true,
+            // Include package:foo as being user-code, to ensure it's not faded.
+            additionalProjectPaths: [
+              path.join(dap.testPackagesDir.path, 'foo'),
+            ]),
+      );
+      outputEvents = outputEvents.where((e) => e.category == 'stderr').toList();
+
+      // Verify the order of the stderr output events.
+      final output = outputEvents
+          .map((e) => e.output.trim())
+          .where((output) => output.isNotEmpty)
+          .join('\n');
+      expectLines(output, [
+        'Start',
+        '#0      main ($fileUri:1:2)',
+        '#1      main2 ($packageUri:3:4)',
+        '\u001B[2m#2      main3 ($dartUri:5:6)\u001B[0m',
+        'End',
+      ]);
     });
 
     group('progress notifications', () {

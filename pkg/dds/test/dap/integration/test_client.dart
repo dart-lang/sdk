@@ -297,6 +297,7 @@ class DapTestClient {
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
     bool? sendCustomProgressEvents,
+    bool? allowAnsiColorOutput,
   }) {
     return sendRequest(
       DartLaunchRequestArguments(
@@ -318,6 +319,7 @@ class DapTestClient {
         // traffic in a custom event.
         sendLogsToClient: sendLogsToClient ?? captureVmServiceTraffic,
         sendCustomProgressEvents: sendCustomProgressEvents,
+        allowAnsiColorOutput: allowAnsiColorOutput,
       ),
       // We can't automatically pick the command when using a custom type
       // (DartLaunchRequestArguments).
