@@ -51,52 +51,6 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     );
   }
 
-  /// Executes [command] which is expected to call back to the client to apply
-  /// a [WorkspaceEdit].
-  ///
-  /// Changes are applied to [contents] to be verified by the caller.
-  Future<void> executeCommandForEdits(
-    Command command,
-    // TODO(dantup): Change this map to use Uris for files.
-    Map<String, String> contents, {
-    bool expectDocumentChanges = false,
-    ProgressToken? workDoneToken,
-  }) async {
-    ApplyWorkspaceEditParams? editParams;
-
-    final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(command, workDoneToken: workDoneToken),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified by the caller).
-        editParams = edit;
-        return ApplyWorkspaceEditResult(applied: true);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back, and using the expected change type.
-    expect(editParams, isNotNull);
-    final edit = editParams!.edit;
-    if (expectDocumentChanges) {
-      expect(edit.changes, isNull);
-      expect(edit.documentChanges, isNotNull);
-    } else {
-      expect(edit.changes, isNotNull);
-      expect(edit.documentChanges, isNull);
-    }
-
-    if (expectDocumentChanges) {
-      applyDocumentChanges(contents, edit.documentChanges!);
-    } else {
-      applyChanges(contents, edit.changes!);
-    }
-  }
-
   /// Expects that command [commandName] was logged to the analytics manager.
   void expectCommandLogged(String commandName) {
     expect(
@@ -155,32 +109,8 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
       (codeAction) => codeAction.command!,
     );
 
-    await verifyCommandEdits(command, content, expectedContent,
+    await verifyCommandEdits(command, expectedContent,
         expectDocumentChanges: expectDocumentChanges,
         workDoneToken: workDoneToken);
-  }
-
-  /// Verifies that executing the given command on the server results in an edit
-  /// being sent in the client that updates the main file to match the expected
-  /// content.
-  Future<void> verifyCommandEdits(
-    Command command,
-    String content,
-    String expectedContent, {
-    bool expectDocumentChanges = false,
-    ProgressToken? workDoneToken,
-  }) async {
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-
-    await executeCommandForEdits(
-      command,
-      contents,
-      expectDocumentChanges: expectDocumentChanges,
-      workDoneToken: workDoneToken,
-    );
-
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 }

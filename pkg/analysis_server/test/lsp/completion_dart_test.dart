@@ -97,7 +97,7 @@ class MyClass {}
 void f() {
   MyClass^
 }
-    ''';
+''';
 
     await initializeServer();
 
@@ -123,7 +123,7 @@ class MyClass {
 void f() {
   MyClass^
 }
-    ''';
+''';
 
     await initializeServer();
 
@@ -149,7 +149,7 @@ class MyClass {
 void f() {
   MyClass^
 }
-    ''';
+''';
 
     await initializeServer();
 
@@ -173,7 +173,7 @@ enum MyEnum {}
 void f() {
   MyEnum^
 }
-    ''';
+''';
 
     await initializeServer();
 
@@ -210,7 +210,7 @@ import 'func.dart';
 void f() {
   enumFunc(MyEnum^)
 }
-    ''';
+''';
 
     await initializeServer();
 
@@ -238,7 +238,7 @@ class CompletionTest extends AbstractCompletionTest {
 class A {}
 
 A^
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
@@ -289,7 +289,7 @@ A^
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
@@ -385,7 +385,7 @@ class B {
   @^
   int a = 1;
 }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -402,7 +402,7 @@ class B {
 class B {
   @^
 }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -418,7 +418,7 @@ class B {
     final content = '''
     // foo ^
     void f() {}
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -431,7 +431,7 @@ class B {
     // at the end of a file would return results.
     final content = '''
     // foo ^
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -650,7 +650,7 @@ class _MyWidgetState extends State<MyWidget> {
     return const Placeholder();
   }
 }
-    ''';
+''';
 
     await provideConfig(
       () => initialize(
@@ -700,7 +700,7 @@ class _MyWidgetState extends State<MyWidget> {
     void f() {
       [[myFu^]]
     }
-    ''';
+''';
 
     await checkCompleteFunctionCallInsertText(
       content,
@@ -717,7 +717,7 @@ class _MyWidgetState extends State<MyWidget> {
     void f() {
       [[myFu^]]
     }
-    ''';
+''';
 
     await checkCompleteFunctionCallInsertText(
       content,
@@ -735,7 +735,7 @@ class _MyWidgetState extends State<MyWidget> {
     void f() {
       [[myFu^]]
     }
-    ''';
+''';
 
     await provideConfig(
       () => initialize(
@@ -768,7 +768,7 @@ class _MyWidgetState extends State<MyWidget> {
     void f() {
       [[myFu^]]
     }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
@@ -814,7 +814,7 @@ class _MyWidgetState extends State<MyWidget> {
     // Now, we never supply `insertText` and always use `textEdit`.
     final content = '''
 final a = Stri^
-    ''';
+''';
 
     /// Helper to verify a completion is as expected.
     void expectCorrectCompletion(CompletionItem item) {
@@ -852,7 +852,7 @@ final a = Stri^
   Future<void> test_completeFunctionCalls_show() async {
     final content = '''
     import 'dart:math' show mi^
-    ''';
+''';
 
     await provideConfig(
       () => initialize(
@@ -953,7 +953,7 @@ final a = Stri^
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     // Tell the server we only support the Field CompletionItemKind.
     await initialize(
@@ -975,7 +975,7 @@ final a = Stri^
     // Brace should not trigger completion if a normal code block.
     final content = r'''
     main () {^}
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, ['{'], isEmpty);
   }
 
@@ -984,7 +984,7 @@ final a = Stri^
     // Brace should trigger completion if at the start of an interpolated expression
     final content = r'''
     var a = '${^';
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isNotEmpty);
   }
 
@@ -992,7 +992,7 @@ final a = Stri^
     // Brace should not trigger completion if in a raw string.
     final content = r'''
     var a = r'${^';
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
   }
 
@@ -1001,7 +1001,7 @@ final a = Stri^
     // expression.
     final content = r'''
     var a = '{^';
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r'{'], isEmpty);
   }
 
@@ -1011,7 +1011,7 @@ final a = Stri^
 void f({int? a}) {
   f(a:^
 }
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r':'], isNotEmpty);
   }
 
@@ -1023,7 +1023,7 @@ void f(int a) {
     case:^
   }
 }
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r':'], isEmpty);
   }
 
@@ -1035,7 +1035,7 @@ void f(int a) {
     default:^
   }
 }
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r':'], isEmpty);
   }
 
@@ -1043,7 +1043,7 @@ void f(int a) {
     // Colons should trigger completion after argument names.
     final content = r'''
 import 'package:^';
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r':'], isNotEmpty);
   }
 
@@ -1076,7 +1076,7 @@ import 'package:^';
     // after typing 'package:foo/' completion should give the next folder segments.
     final content = r'''
     import 'package:test/^';
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r'/'], isNotEmpty);
   }
 
@@ -1084,7 +1084,7 @@ import 'package:^';
     // Slashes should not trigger completion when typing in a normal expression.
     final content = r'''
     var a = 1 /^
-    ''';
+''';
     await _checkResultsForTriggerCharacters(content, [r'/'], isEmpty);
   }
 
@@ -1151,7 +1151,7 @@ import 'package:^';
     class Student extends Person {
       nam^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -1174,7 +1174,7 @@ import 'package:^';
       var x = '';
       print(^);
     }
-    ''';
+''';
 
     final pluginResult = plugin.CompletionGetSuggestionsResult(
       content.indexOf('^'),
@@ -1210,7 +1210,7 @@ import 'package:^';
 void f() {
   ^
 }
-    ''';
+''';
 
     final pluginResult = plugin.CompletionGetSuggestionsResult(
       content.indexOf('^'),
@@ -1253,7 +1253,7 @@ import 'dart:io';
 void f() {
   fooFromDartIO
 }
-    '''));
+'''));
   }
 
   Future<void> test_fromPlugin_nonDartFile() async {
@@ -1266,7 +1266,7 @@ void f() {
     );
 
     query: SELECT ^ FROM foo;
-    ''';
+''';
 
     final pluginResult = plugin.CompletionGetSuggestionsResult(
       content.indexOf('^'),
@@ -1304,7 +1304,7 @@ void f() {
       var x = '';
       print(^);
     }
-    ''';
+''';
 
     final pluginResult = plugin.CompletionGetSuggestionsResult(
       content.indexOf('^'),
@@ -1361,7 +1361,7 @@ abstract class NotNullableName implements NullableName {
 }
 
 abstract class MyItem implements NotNullableName, NullableName {}
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -1383,7 +1383,7 @@ abstract class MyItem implements NotNullableName, NullableName {}
       MyClass a;
       a.^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -1475,7 +1475,7 @@ import 'dart:^';
       MyClass a;
       a.abc^def
     }
-    ''';
+''';
 
     await initialize(
       textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
@@ -1512,7 +1512,7 @@ import 'dart:^';
         return const Placeholder();
       }
     }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
@@ -1533,7 +1533,7 @@ import 'dart:^';
     void foo() {
       ^
     }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
@@ -1553,7 +1553,7 @@ import 'dart:^';
   Future<void> test_insideString() async {
     final content = '''
     var a = "This is ^a test"
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -1572,7 +1572,7 @@ import 'dart:^';
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -1595,7 +1595,7 @@ import 'dart:^';
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemDeprecatedFlagSupport(
@@ -1620,7 +1620,7 @@ import 'dart:^';
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemTagSupport(
@@ -1642,7 +1642,7 @@ void f() {
   A a = A();
   a.^
 }
-    ''';
+''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
     newFile(
@@ -1675,7 +1675,7 @@ void f() {
   A a = A();
   a.^
 }
-    ''';
+''';
 
     // Create a class with fields aaa1 to aaa500 in the other file.
     newFile(
@@ -1714,7 +1714,7 @@ void f() {
     void myFunction() {
       [[myFunctio^]]
     }
-    ''';
+''';
 
     await initialize(
       textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
@@ -1756,7 +1756,7 @@ void f() {
 void f(String a, {String? b}) {
   f([[^b]]);
 }
-    ''';
+''';
 
     await initialize(
       textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
@@ -1811,7 +1811,7 @@ void f(String a, {String? b}) {
         return const Placeholder();
       }
     }
-    ''';
+''';
 
     await initialize(
       textDocumentCapabilities: withCompletionItemInsertTextModeSupport(
@@ -1840,7 +1840,7 @@ import 'a.dart';
 void f() {
   var a = Item^
 }
-    ''';
+''';
 
     // Create classes `Item1` to `Item20` along with a field named `item`.
     // The classes will rank higher in the position above and push
@@ -1886,7 +1886,7 @@ import 'a.dart';
 void f() {
   fo^
 }
-    ''';
+''';
 
     // Create fields for1 to for20 in the other file.
     newFile(
@@ -2077,7 +2077,7 @@ void f() { }
     }
 
     void myFunction({String aaaa, String aaab, String aaac}) {}
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2090,7 +2090,7 @@ void f() { }
     class A { const A({int one}); }
     @A(^)
     void f() { }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2114,7 +2114,7 @@ void f() { }
     class A { const A({int one}); }
     @A(^)
     void f() { }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
@@ -2147,7 +2147,7 @@ void f() { }
         two: 2,
       );
     }
-    ''';
+''';
 
     await initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
@@ -2186,7 +2186,7 @@ void f() { }
     void f() {
       fo^
     }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize();
@@ -2205,7 +2205,7 @@ void f() { }
     void f() {
       MyClass a = new MyCla^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2228,7 +2228,7 @@ void f() { }
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2255,7 +2255,7 @@ void f() { }
       // Should match only Two and Three
       UniqueNamedClassForLspT^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2275,7 +2275,7 @@ void f() { }
       // Should match only Two and Three
       UniqueNamedClassForLspT^hree
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2295,7 +2295,7 @@ void f() { }
       // Should match all three
       ^UniqueNamedClassForLspT
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2318,7 +2318,7 @@ void f() { }
       MyClass a;
       a.^
     }
-    ''';
+''';
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -2353,7 +2353,7 @@ void f() { }
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2410,7 +2410,7 @@ import '../other_file.dart';
 void f() {
   InOtherFile
 }
-    '''));
+'''));
   }
 
   Future<void> test_unimportedSymbols_dartDocPreference_full() =>
@@ -2460,7 +2460,7 @@ import 'reexport2.dart';
 void f() {
   MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2504,7 +2504,7 @@ import 'reexport1.dart';
 void f() {
   MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2538,7 +2538,7 @@ void f() {
 void f() {
   MyDuplicated^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2585,7 +2585,7 @@ import 'package:test/function_x.dart';
 void f() {
   x(MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2637,7 +2637,7 @@ import 'package:test/function_x.dart';
 void f() {
   x(MyExportedEnum.One
 }
-    '''));
+'''));
   }
 
   Future<void> test_unimportedSymbols_enumValuesAlreadyImported() async {
@@ -2668,7 +2668,7 @@ import 'reexport1.dart';
 void f() {
   x(MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2712,7 +2712,7 @@ import 'reexport1.dart';
 void f() {
   MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2739,7 +2739,7 @@ void f() {
 void f() {
   MyClas^
 }
-    ''';
+''';
 
     final expectedContent = '''
 import 'package:test/my_class.dart';
@@ -2747,7 +2747,7 @@ import 'package:test/my_class.dart';
 void f() {
   MyClass
 }
-    ''';
+''';
 
     final completionLabel = 'MyClass';
 
@@ -2771,7 +2771,7 @@ extension MyExtension on String {
 void f() {
   ''.myExtensionMet^
 }
-    ''';
+''';
 
     final expectedContent = '''
 import 'package:test/my_extension.dart';
@@ -2779,7 +2779,7 @@ import 'package:test/my_extension.dart';
 void f() {
   ''.myExtensionMethod
 }
-    ''';
+''';
 
     final completionLabel = 'myExtensionMethod()';
     await _checkCompletionEdits(
@@ -2815,7 +2815,7 @@ void f() {
 void f() {
   MyExported^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2850,7 +2850,7 @@ void f() {
 void f() {
   InOtherF^il
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2918,7 +2918,7 @@ import '../other_file.dart';
 void f() {
   InOtherFile
 }
-    '''));
+'''));
     // In insert mode, we'd have the trailing "il" still after the caret.
     expect(newContentInsertMode, equals('''
 import '../other_file.dart';
@@ -2926,22 +2926,26 @@ import '../other_file.dart';
 void f() {
   InOtherFileil
 }
-    '''));
+'''));
   }
 
   Future<void> test_unimportedSymbols_insertsIntoPartFiles() async {
     // File we'll be adding an import for.
     newFile(
       join(projectFolderPath, 'other_file.dart'),
-      'class InOtherFile {}',
+      ''''
+class InOtherFile {}
+''',
     );
 
     // File that will have the import added.
-    final parentContent = '''part 'main.dart';''';
-    final parentFilePath = newFile(
+    final parentContent = '''
+part 'main.dart';
+''';
+    newFile(
       join(projectFolderPath, 'lib', 'parent.dart'),
       parentContent,
-    ).path;
+    );
 
     // File that we're invoking completion in.
     final content = '''
@@ -2949,7 +2953,7 @@ part of 'parent.dart';
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -2983,41 +2987,14 @@ part of 'parent.dart';
 void f() {
   InOtherFile
 }
-    '''));
+'''));
 
-    // Execute the associated command (which will handle edits in other files).
-    ApplyWorkspaceEditParams? editParams;
-    final commandResponse = await handleExpectedRequest<Object?,
-        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
-      Method.workspace_applyEdit,
-      ApplyWorkspaceEditParams.fromJson,
-      () => executeCommand(resolved.command!),
-      handler: (edit) {
-        // When the server sends the edit back, just keep a copy and say we
-        // applied successfully (it'll be verified below).
-        editParams = edit;
-        return ApplyWorkspaceEditResult(applied: true);
-      },
-    );
-    // Successful edits return an empty success() response.
-    expect(commandResponse, isNull);
-
-    // Ensure the edit came back.
-    expect(editParams, isNotNull);
-    expect(editParams!.edit.changes, isNotNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      parentFilePath: withoutMarkers(parentContent),
-    };
-    applyChanges(contents, editParams!.edit.changes!);
-
-    // Check the parent file was modified to include the import by the edits
-    // that came from the server.
-    expect(contents[parentFilePath], equals('''
+    await verifyCommandEdits(resolved.command!, '''
+>>>>>>>>>> lib/parent.dart
 import '../other_file.dart';
 
-part 'main.dart';'''));
+part 'main.dart';
+''');
   }
 
   Future<void>
@@ -3026,7 +3003,7 @@ part 'main.dart';'''));
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -3056,7 +3033,7 @@ void f() {
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -3127,7 +3104,7 @@ void f() {
 void f() {
   var a = InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -3168,7 +3145,7 @@ import '../other_file.dart';
 void f() {
   var a = InOtherFile.fromJson
 }
-    '''));
+'''));
   }
 
   Future<void> test_unimportedSymbols_overrides() async {
@@ -3202,7 +3179,7 @@ import 'package:test/base.dart';
 class BaseImpl extends Base {
   myMet^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
@@ -3238,7 +3215,7 @@ class BaseImpl extends Base {
     return super.myMethod(a, b, c);
   }
 }
-    '''));
+'''));
   }
 
   Future<void>
@@ -3257,7 +3234,7 @@ class BaseImpl extends Base {
 void f() {
   MyClas^
 }
-    ''';
+''';
 
     final expectedContent = '''
 import '../nested2/imported.dart';
@@ -3265,7 +3242,7 @@ import '../nested2/imported.dart';
 void f() {
   MyClass
 }
-    ''';
+''';
 
     final completionLabel = 'MyClass';
 
@@ -3295,7 +3272,7 @@ void f() {
 void f() {
   MyClas^
 }
-    ''';
+''';
 
     final expectedContent = '''
 import 'package:test/nested2/imported.dart';
@@ -3303,7 +3280,7 @@ import 'package:test/nested2/imported.dart';
 void f() {
   MyClass
 }
-    ''';
+''';
 
     final completionLabel = 'MyClass';
 
@@ -3325,7 +3302,7 @@ void f() {
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     // Support applyEdit, but explicitly disable the suggestions.
@@ -3360,7 +3337,7 @@ void f() {
 void f() {
   InOtherF^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize();
@@ -3384,7 +3361,7 @@ void f() {
       MyClass a;
       a.abc^
     }
-    ''';
+''';
 
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
@@ -3533,7 +3510,7 @@ void f() {
 void f() {
   ^
 }
-    ''';
+''';
 
     final initialAnalysis = waitForAnalysisComplete();
     await initializeWithSnippetSupport();

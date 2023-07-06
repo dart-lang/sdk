@@ -281,9 +281,11 @@ void f(List<int> values) {
             withResourceOperationKinds(emptyWorkspaceClientCapabilities,
                 [ResourceOperationKind.Rename])),
       );
-      // Ensure we now only have the newly-renamed file and not the old one
-      // (its contents will have been checked by the function above).
-      expect(contents.keys.single, equals(newMainFilePath));
+
+      expect(contents, hasLength(2));
+      expect(contents[newMainFilePath], expectedContent);
+      expect(contents.containsKey(mainFilePath), isTrue);
+      expect(contents[mainFilePath], isNull); // Deleted (renamed)
     }
 
     /// Helper that will respond to the window/showMessageRequest request from
@@ -337,9 +339,11 @@ void f(List<int> values) {
               withResourceOperationKinds(emptyWorkspaceClientCapabilities,
                   [ResourceOperationKind.Rename])),
         );
-        // Ensure we now only have the newly-renamed file and not the old one
-        // (its contents will have been checked by the function above).
-        expect(contents.keys.single, equals(newMainFilePath));
+
+        expect(contents, hasLength(2));
+        expect(contents[newMainFilePath], expectedContent);
+        expect(contents.containsKey(mainFilePath), isTrue);
+        expect(contents[mainFilePath], isNull); // Deleted (renamed)
       },
       {'renameFilesWithClasses': 'always'},
     );
@@ -387,9 +391,8 @@ void f(List<int> values) {
         );
         // Expect that main was renamed to my_new_main and the other file was
         // updated.
-        expect(contents.containsKey(mainFilePath), isFalse);
-        expect(contents.containsKey(newMainFilePath), isTrue);
-        expect(contents.containsKey(otherFilePath), isTrue);
+        expect(contents.containsKey(mainFilePath), isTrue);
+        expect(contents[mainFilePath], isNull); // Deleted (renamed)
         expect(contents[newMainFilePath], expectedContent);
         expect(contents[otherFilePath], expectedOtherContent);
       },
@@ -1013,7 +1016,7 @@ void f(List<int> values) {
     );
   }
 
-  Future<Map<String, String>> _test_rename_withDocumentChanges(
+  Future<Map<String, String?>> _test_rename_withDocumentChanges(
     String content,
     String newName,
     String? expectedContent, {
@@ -1022,7 +1025,7 @@ void f(List<int> values) {
     bool sendRenameVersion = true,
     WorkspaceClientCapabilities? workspaceCapabilities,
     bool supportsWindowShowMessageRequest = true,
-    Map<String, String>? contents,
+    Map<String, String?>? contents,
   }) async {
     contents ??= {};
     filePath ??= mainFilePath;

@@ -101,9 +101,98 @@ abstract class AbstractLspAnalysisServerTest
     return info;
   }
 
+  /// Executes [command] which is expected to call back to the client to apply
+  /// a [WorkspaceEdit].
+  ///
+  /// Changes are applied to [contents] to be verified by the caller.
+  Future<void> executeCommandForEdits(
+    Command command,
+    Map<String, String?> contents, {
+    bool expectDocumentChanges = false,
+    ProgressToken? workDoneToken,
+  }) async {
+    ApplyWorkspaceEditParams? editParams;
+
+    final commandResponse = await handleExpectedRequest<Object?,
+        ApplyWorkspaceEditParams, ApplyWorkspaceEditResult>(
+      Method.workspace_applyEdit,
+      ApplyWorkspaceEditParams.fromJson,
+      () => executeCommand(command, workDoneToken: workDoneToken),
+      handler: (edit) {
+        // When the server sends the edit back, just keep a copy and say we
+        // applied successfully (it'll be verified by the caller).
+        editParams = edit;
+        return ApplyWorkspaceEditResult(applied: true);
+      },
+    );
+    // Successful edits return an empty success() response.
+    expect(commandResponse, isNull);
+
+    // Ensure the edit came back, and using the expected change type.
+    expect(editParams, isNotNull);
+    final edit = editParams!.edit;
+    if (expectDocumentChanges) {
+      expect(edit.changes, isNull);
+      expect(edit.documentChanges, isNotNull);
+      applyDocumentChanges(contents, edit.documentChanges!);
+    } else {
+      expect(edit.changes, isNotNull);
+      expect(edit.documentChanges, isNull);
+      applyChanges(contents, edit.changes!);
+    }
+  }
+
+  void expectChanges(Map<Uri, List<TextEdit>> changes, String expected) {
+    final editedContents = <String, String?>{};
+    applyChanges(editedContents, changes);
+    expectEditedContent(editedContents, expected);
+  }
+
   void expectContextBuilds() =>
       expect(server.contextBuilds - _previousContextBuilds, greaterThan(0),
           reason: 'Contexts should have been rebuilt');
+
+  Map<String, String?> expectDocumentChanges(
+    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
+    String expected,
+  ) {
+    final editedContents = <String, String?>{};
+    applyDocumentChanges(editedContents, changes);
+    expectEditedContent(editedContents, expected);
+    return editedContents;
+  }
+
+  void expectEditedContent(
+      Map<String, String?> editedContents, String expected) {
+    final buffer = StringBuffer();
+    for (final entry in editedContents.entries.sortedBy((entry) => entry.key)) {
+      // Write the path in a common format for Windows/non-Windows.
+      final relativePath = path
+          .relative(
+            entry.key,
+            from: projectFolderPath,
+          )
+          .replaceAll(r'\', '/');
+      final content = entry.value;
+      // TODO(dantup): Extract this (and the applying of edits) to a class
+      //  that can also update the test expectations, and record renames better
+      //  than just a delete/create.
+      if (content == null) {
+        buffer.write('>>>>>>>>>> $relativePath deleted\n');
+      } else if (content.trim().isEmpty) {
+        buffer.write('>>>>>>>>>> $relativePath empty\n');
+      } else {
+        buffer.write('>>>>>>>>>> $relativePath\n$content');
+        // If the content didn't end with a newline we need to add one, but
+        // add a marked so it's clear there was no trailing newline.
+        if (!content.endsWith('\n')) {
+          buffer.write('<<<<<<<<<<\n');
+        }
+      }
+    }
+
+    expect(buffer.toString().trim(), equals(expected.trim()));
+  }
 
   void expectNoContextBuilds() =>
       expect(server.contextBuilds - _previousContextBuilds, equals(0),
@@ -121,6 +210,17 @@ abstract class AbstractLspAnalysisServerTest
     } else {
       // resp.result should only be null when error != null if T allows null.
       return resp.result == null ? null as T : fromJson(resp.result as R);
+    }
+  }
+
+  @override
+  String? getCurrentFileContent(Uri uri) {
+    try {
+      return server.resourceProvider
+          .getFile(uri.toFilePath())
+          .readAsStringSync();
+    } catch (_) {
+      return null;
     }
   }
 
@@ -237,6 +337,27 @@ analyzer:
   Future<void> tearDown() async {
     channel.close();
     await server.shutdown();
+  }
+
+  /// Verifies that executing the given command on the server results in an edit
+  /// being sent in the client that updates the files to match the expected
+  /// content.
+  Future<void> verifyCommandEdits(
+    Command command,
+    String expectedContent, {
+    bool expectDocumentChanges = false,
+    ProgressToken? workDoneToken,
+  }) async {
+    final contents = <String, String?>{};
+
+    await executeCommandForEdits(
+      command,
+      contents,
+      expectDocumentChanges: expectDocumentChanges,
+      workDoneToken: workDoneToken,
+    );
+
+    expectEditedContent(contents, expectedContent);
   }
 
   /// Adds a trailing slash (direction based on path context) to [path].
@@ -771,17 +892,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   Stream<Message> get serverToClient;
 
   void applyChanges(
-    Map<String, String> fileContents,
+    Map<String, String?> editedContents,
     Map<Uri, List<TextEdit>> changes,
   ) {
     changes.forEach((fileUri, edits) {
-      final path = fileUri.toFilePath();
-      fileContents[path] = applyTextEdits(fileContents[path]!, edits);
+      final filePath = fileUri.toFilePath();
+      final currentContent = editedContents.containsKey(filePath)
+          ? editedContents[filePath]
+          : getCurrentFileContent(fileUri);
+      editedContents[filePath] = applyTextEdits(currentContent!, edits);
     });
   }
 
   void applyDocumentChanges(
-    Map<String, String> fileContents,
+    Map<String, String?> editedContent,
     List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
         documentChanges, {
     Map<String, int>? expectedVersions,
@@ -791,41 +915,72 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     if (expectedVersions != null) {
       expectDocumentVersions(documentChanges, expectedVersions);
     }
-    applyResourceChanges(fileContents, documentChanges);
+    applyResourceChanges(editedContent, documentChanges);
   }
 
   void applyResourceChanges(
-    Map<String, String> oldFileContent,
+    Map<String, String?> editedContent,
     List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
   ) {
     for (final change in changes) {
       change.map(
-        (create) => applyResourceCreate(oldFileContent, create),
-        (delete) => throw 'applyResourceChanges:Delete not currently supported',
-        (rename) => applyResourceRename(oldFileContent, rename),
-        (textDocEdit) => applyTextDocumentEdits(oldFileContent, [textDocEdit]),
+        (create) => applyResourceCreate(editedContent, create),
+        (delete) => applyResourceDelete(editedContent, delete),
+        (rename) => applyResourceRename(editedContent, rename),
+        (textDocEdit) => applyTextDocumentEdits(editedContent, [textDocEdit]),
       );
     }
   }
 
   void applyResourceCreate(
-      Map<String, String> oldFileContent, CreateFile create) {
-    final path = create.uri.toFilePath();
-    if (oldFileContent.containsKey(path)) {
-      throw 'Received create instruction for $path which already existed.';
+      Map<String, String?> editedContent, CreateFile create) {
+    final uri = create.uri;
+    final path = uri.toFilePath();
+    final currentContent = editedContent.containsKey(path)
+        ? editedContent[path]
+        : getCurrentFileContent(uri);
+    if (currentContent != null) {
+      throw 'Received create instruction for $path which already exists';
     }
-    oldFileContent[path] = '';
+    editedContent[path] = '';
+  }
+
+  void applyResourceDelete(
+      Map<String, String?> editedContent, DeleteFile delete) {
+    final uri = delete.uri;
+    final path = uri.toFilePath();
+    final currentContent = editedContent.containsKey(path)
+        ? editedContent[path]
+        : getCurrentFileContent(uri);
+
+    if (currentContent == null) {
+      throw 'Received delete instruction for $path which does not exist';
+    }
+
+    editedContent[path] = null;
   }
 
   void applyResourceRename(
-      Map<String, String> oldFileContent, RenameFile rename) {
-    final oldPath = rename.oldUri.toFilePath();
-    final newPath = rename.newUri.toFilePath();
-    if (!oldFileContent.containsKey(oldPath)) {
-      throw 'Received rename instruction for $oldPath which did not exist.';
+      Map<String, String?> editedContent, RenameFile rename) {
+    final oldUri = rename.oldUri;
+    final newUri = rename.newUri;
+    final oldPath = oldUri.toFilePath();
+    final newPath = newUri.toFilePath();
+
+    final oldContent = editedContent.containsKey(oldPath)
+        ? editedContent[oldPath]
+        : getCurrentFileContent(oldUri);
+    final newContent = editedContent.containsKey(newPath)
+        ? editedContent[newPath]
+        : getCurrentFileContent(newUri);
+
+    if (oldContent == null) {
+      throw 'Received rename instruction from $oldPath which did not exist';
+    } else if (newContent != null) {
+      throw 'Received rename instruction to $newPath which already exists';
     }
-    oldFileContent[newPath] = oldFileContent[oldPath]!;
-    oldFileContent.remove(oldPath);
+    editedContent[newPath] = oldContent;
+    editedContent[oldPath] = null;
   }
 
   String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
@@ -843,14 +998,19 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 
   void applyTextDocumentEdits(
-      Map<String, String> oldFileContent, List<TextDocumentEdit> edits) {
+      Map<String, String?> editedContent, List<TextDocumentEdit> edits) {
     for (var edit in edits) {
-      final path = edit.textDocument.uri.toFilePath();
-      if (!oldFileContent.containsKey(path)) {
-        throw 'Received edits for $path which was not provided as a file to be edited. '
+      final uri = edit.textDocument.uri;
+      final path = uri.toFilePath();
+
+      final currentContent = editedContent.containsKey(path)
+          ? editedContent[path]
+          : getCurrentFileContent(uri);
+      if (currentContent == null) {
+        throw 'Received edits for $path which does not exist. '
             'Perhaps a CreateFile change was missing from the edits?';
       }
-      oldFileContent[path] = applyTextDocumentEdit(oldFileContent[path]!, edit);
+      editedContent[path] = applyTextDocumentEdit(currentContent, edit);
     }
   }
 
@@ -1201,6 +1361,13 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     );
     return expectSuccessfulResponseTo(request, CompletionList.fromJson);
   }
+
+  /// Gets the current contents of a file.
+  ///
+  /// This is used to apply edits when the server sends workspace/applyEdit. It
+  /// should reflect the content that the client would have in this case, which
+  /// would be an overlay (if the file is open) or the underlying file.
+  String? getCurrentFileContent(Uri uri);
 
   Future<Either2<List<Location>, List<LocationLink>>> getDefinition(
       Uri uri, Position pos) {

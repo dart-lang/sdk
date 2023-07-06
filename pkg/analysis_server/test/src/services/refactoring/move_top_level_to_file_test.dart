@@ -5,7 +5,6 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/services/refactoring/move_top_level_to_file.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'refactoring_test_support.dart';
@@ -40,10 +39,10 @@ class ^A {}
   /// Test that references to getter/setters in different libraries used in
   /// a compound assignment are both imported into the destination file.
   Future<void> test_compoundAssignment_multipleLibraries() async {
-    addSource('$projectFolderPath/lib/getter.dart', '''
+    newFile('$projectFolderPath/lib/getter.dart', '''
 int get splitVariable => 0;
 ''');
-    addSource('$projectFolderPath/lib/setter.dart', '''
+    newFile('$projectFolderPath/lib/setter.dart', '''
 set splitVariable(num _) {}
 ''');
 
@@ -55,26 +54,26 @@ void function^ToMove() {
   splitVariable += 1;
 }
 ''';
-    var modifiedSource = '''
-import 'package:test/getter.dart';
-import 'package:test/setter.dart';
-''';
     var declarationName = 'functionToMove';
-    var newFileName = 'function_to_move.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/function_to_move.dart
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
 
 void functionToMove() {
   splitVariable += 1;
 }
+>>>>>>>>>> lib/main.dart
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_copyFileHeader() async {
@@ -87,26 +86,25 @@ class ClassToMove^ {}
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'ClassToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
+// File header.
+
+class ClassToMove {}
+>>>>>>>>>> lib/main.dart
 // File header.
 
 class A {}
 
 class B {}
 ''';
-    var declarationName = 'ClassToMove';
-    var newFileName = 'class_to_move.dart';
-    var newFileContent = '''
-// File header.
-
-class ClassToMove {}
-''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_existingFile() async {
@@ -114,22 +112,23 @@ class ClassToMove {}
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
     final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
-    addSource(newFilePath, '''
+    newFile(newFilePath, '''
 int? a;
 ''');
 
     /// Expected updated new file contents.
-    const expectedNewFileContent = '''
+    const expected = '''
+>>>>>>>>>> lib/a.dart
 int? a;
 
 class A {}
+>>>>>>>>>> lib/main.dart empty
 ''';
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await executeRefactor(action);
-
-    expect(content[newFilePath], expectedNewFileContent);
+    await verifyCommandEdits(action.command!, expected,
+        expectDocumentChanges: true);
   }
 
   Future<void> test_existingFile_withHeader() async {
@@ -137,26 +136,27 @@ class A {}
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
     final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
-    addSource(newFilePath, '''
+    newFile(newFilePath, '''
 // This is a file header
 
 int? a;
 ''');
 
     /// Expected updated new file contents.
-    const expectedNewFileContent = '''
+    const expected = '''
+>>>>>>>>>> lib/a.dart
 // This is a file header
 
 int? a;
 
 class A {}
+>>>>>>>>>> lib/main.dart empty
 ''';
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await executeRefactor(action);
-
-    expect(content[newFilePath], expectedNewFileContent);
+    await verifyCommandEdits(action.command!, expected,
+        expectDocumentChanges: true);
   }
 
   Future<void> test_existingFile_withImports() async {
@@ -164,57 +164,58 @@ class A {}
 
     /// Existing new file contents where 'ClassToMove' will be moved to.
     final newFilePath = join(projectFolderPath, 'lib', 'a.dart');
-    addSource(newFilePath, '''
+    newFile(newFilePath, '''
 import 'dart:async';
 
 FutureOr<int>? a;
 ''');
 
     /// Expected updated new file contents.
-    const expectedNewFileContent = '''
+    const expected = '''
+>>>>>>>>>> lib/a.dart
 import 'dart:async';
 
 FutureOr<int>? a;
 
 class A {}
+>>>>>>>>>> lib/main.dart empty
 ''';
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await executeRefactor(action);
-
-    expect(content[newFilePath], expectedNewFileContent);
+    await verifyCommandEdits(action.command!, expected,
+        expectDocumentChanges: true);
   }
 
   Future<void> test_imports_declarationInSrc() async {
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
-    addSource(libFilePath, 'export "src/a.dart";');
-    addSource(srcFilePath, 'class A {}');
+    newFile(libFilePath, 'export "src/a.dart";');
+    newFile(srcFilePath, 'class A {}');
     var originalSource = '''
 import 'package:test/a.dart';
 
 A? staying;
 A? mov^ing;
 ''';
-    var modifiedSource = '''
+    var declarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/a.dart';
 
 A? staying;
-''';
-    var declarationName = 'moving';
-    var newFileName = 'moving.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/a.dart';
 
 A? moving;
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_imports_extensionMethod() async {
@@ -236,28 +237,26 @@ void ^f() {
   A().extensionMethod();
 }
 ''';
-    var modifiedSource = '''
-import 'package:test/extensions.dart';
-
-class A {}
-''';
     var declarationName = 'f';
-    var newFileName = 'f.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/f.dart
 import 'package:test/extensions.dart';
 import 'package:test/main.dart';
 
 void f() {
   A().extensionMethod();
 }
+>>>>>>>>>> lib/main.dart
+import 'package:test/extensions.dart';
+
+class A {}
 ''';
 
     await _singleDeclaration(
         originalSource: originalSource,
-        modifiedSource: modifiedSource,
+        expected: expected,
         declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
         otherFilePath: otherFilePath,
         otherFileContent: otherFileContent);
   }
@@ -281,28 +280,26 @@ void ^f() {
   A() + A();
 }
 ''';
-    var modifiedSource = '''
-import 'package:test/extensions.dart';
-
-class A {}
-''';
     var declarationName = 'f';
-    var newFileName = 'f.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/f.dart
 import 'package:test/extensions.dart';
 import 'package:test/main.dart';
 
 void f() {
   A() + A();
 }
+>>>>>>>>>> lib/main.dart
+import 'package:test/extensions.dart';
+
+class A {}
 ''';
 
     await _singleDeclaration(
         originalSource: originalSource,
-        modifiedSource: modifiedSource,
+        expected: expected,
         declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
         otherFilePath: otherFilePath,
         otherFileContent: otherFileContent);
   }
@@ -457,27 +454,26 @@ void ^moving() {
   A().extensionMethod();
 }
 ''';
-    var modifiedSource = '''
+    var movingDeclarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/extensions.dart' as other;
 
 class A {}
-''';
-    var movingDeclarationName = 'moving';
-    var newFileName = 'moving.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
   A().extensionMethod();
 }
+
 ''';
     await _singleDeclaration(
         originalSource: originalSource,
-        modifiedSource: modifiedSource,
+        expected: expected,
         declarationName: movingDeclarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
         otherFilePath: otherFilePath,
         otherFileContent: otherFileContent);
   }
@@ -501,27 +497,26 @@ void ^moving() {
   A() + A();
 }
 ''';
-    var modifiedSource = '''
+    var movingDeclarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/extensions.dart' as other;
 
 class A {}
-''';
-    var movingDeclarationName = 'moving';
-    var newFileName = 'moving.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
   A() + A();
 }
+
 ''';
     await _singleDeclaration(
         originalSource: originalSource,
-        modifiedSource: modifiedSource,
+        expected: expected,
         declarationName: movingDeclarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
         otherFilePath: otherFilePath,
         otherFileContent: otherFileContent);
   }
@@ -757,26 +752,27 @@ class B^ {
   File? f;
 }
 ''';
-    var modifiedSource = '''
-import 'dart:io';
-
-class A {}
-''';
     var declarationName = 'B';
-    var newFileName = 'b.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
 import 'dart:io';
 
 class B {
   File? f;
 }
+>>>>>>>>>> lib/main.dart
+import 'dart:io';
+
+class A {}
+
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_imports_referenceFromMovingToStaying() async {
@@ -785,22 +781,23 @@ class A {}
 
 class ClassToMove^ extends A {}
 ''';
-    var modifiedSource = '''
-class A {}
-''';
     var declarationName = 'ClassToMove';
-    var newFileName = 'class_to_move.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
 import 'package:test/main.dart';
 
 class ClassToMove extends A {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_imports_referenceFromStayingToMoving() async {
@@ -809,22 +806,22 @@ class A extends B {}
 
 class B^ {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'B';
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
+class B {}
+>>>>>>>>>> lib/main.dart
 import 'package:test/b.dart';
 
 class A extends B {}
-''';
-    var declarationName = 'B';
-    var newFileName = 'b.dart';
-    var newFileContent = '''
-class B {}
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_imports_referenceInThirdFile_noPrefix() async {
@@ -833,35 +830,34 @@ class A {}
 
 class B^ {}
 ''';
-    var modifiedSource = '''
-class A {}
-''';
     var declarationName = 'B';
-    var newFileName = 'b.dart';
-    var newFileContent = '''
-class B {}
-''';
     var otherFilePath = '$projectFolderPath/lib/c.dart';
     var otherFileContent = '''
 import 'package:test/main.dart';
 
 B? b;
 ''';
-    var modifiedOtherFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
+class B {}
+>>>>>>>>>> lib/c.dart
 import 'package:test/b.dart';
 import 'package:test/main.dart';
 
 B? b;
+>>>>>>>>>> lib/main.dart
+class A {}
+
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent,
-        modifiedOtherFileContent: modifiedOtherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_referenceInThirdFile_withMultiplePrefixes() async {
@@ -870,14 +866,7 @@ class A {}
 
 class B^ {}
 ''';
-    var modifiedSource = '''
-class A {}
-''';
     var declarationName = 'B';
-    var newFileName = 'b.dart';
-    var newFileContent = '''
-class B {}
-''';
     var otherFilePath = '$projectFolderPath/lib/c.dart';
     var otherFileContent = '''
 import 'package:test/main.dart';
@@ -886,7 +875,11 @@ import 'package:test/main.dart' as q;
 
 void f(p.B b, q.B b, B b) {}
 ''';
-    var modifiedOtherFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
+class B {}
+>>>>>>>>>> lib/c.dart
 import 'package:test/b.dart';
 import 'package:test/b.dart' as p;
 import 'package:test/b.dart' as q;
@@ -895,16 +888,18 @@ import 'package:test/main.dart' as p;
 import 'package:test/main.dart' as q;
 
 void f(p.B b, q.B b, B b) {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent,
-        modifiedOtherFileContent: modifiedOtherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   Future<void> test_imports_referenceInThirdFile_withSinglePrefix() async {
@@ -913,35 +908,34 @@ class A {}
 
 class B^ {}
 ''';
-    var modifiedSource = '''
-class A {}
-''';
     var declarationName = 'B';
-    var newFileName = 'b.dart';
-    var newFileContent = '''
-class B {}
-''';
     var otherFilePath = '$projectFolderPath/lib/c.dart';
     var otherFileContent = '''
 import 'package:test/main.dart' as p;
 
 p.B? b;
 ''';
-    var modifiedOtherFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/b.dart
+class B {}
+>>>>>>>>>> lib/c.dart
 import 'package:test/b.dart' as p;
 import 'package:test/main.dart' as p;
 
 p.B? b;
+>>>>>>>>>> lib/main.dart
+class A {}
+
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent,
-        modifiedOtherFileContent: modifiedOtherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   /// Test moving declarations to a file that imports a library that exports a
@@ -952,9 +946,9 @@ p.B? b;
     var destinationFileName = 'moving.dart';
     var destinationFilePath =
         join(projectFolderPath, 'lib', destinationFileName);
-    addSource(libFilePath, 'export "src/a.dart";');
-    addSource(srcFilePath, 'class A {}');
-    addSource(destinationFilePath, '''
+    newFile(libFilePath, 'export "src/a.dart";');
+    newFile(srcFilePath, 'class A {}');
+    newFile(destinationFilePath, '''
 import 'package:test/a.dart' hide A;
 ''');
     var originalSource = '''
@@ -963,25 +957,25 @@ import 'package:test/a.dart';
 A? staying;
 A? mov^ing;
 ''';
-    var modifiedSource = '''
+    var declarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/a.dart';
 
 A? staying;
-''';
-    var declarationName = 'moving';
-
-    var expectedDestinationContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/a.dart' hide A;
 import 'package:test/a.dart';
 
 A? moving;
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: destinationFileName,
-        newFileContent: expectedDestinationContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   /// Test moving declarations to a file that imports a library that exports a
@@ -992,9 +986,9 @@ A? moving;
     var destinationFileName = 'moving.dart';
     var destinationFilePath =
         join(projectFolderPath, 'lib', destinationFileName);
-    addSource(libFilePath, 'export "src/a.dart";');
-    addSource(srcFilePath, 'class A {}');
-    addSource(destinationFilePath, '''
+    newFile(libFilePath, 'export "src/a.dart";');
+    newFile(srcFilePath, 'class A {}');
+    newFile(destinationFilePath, '''
 import 'package:test/a.dart' hide A;
 ''');
     var originalSource = '''
@@ -1003,25 +997,25 @@ import 'package:test/a.dart' show A;
 A? staying;
 A? mov^ing;
 ''';
-    var modifiedSource = '''
+    var declarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/a.dart' show A;
 
 A? staying;
-''';
-    var declarationName = 'moving';
-
-    var expectedDestinationContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/a.dart' hide A;
 import 'package:test/a.dart' show A;
 
 A? moving;
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: destinationFileName,
-        newFileContent: expectedDestinationContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   /// Test that if the moving declaration was imported with 'show' that any new
@@ -1029,32 +1023,32 @@ A? moving;
   Future<void> test_imports_showHide_sourceShows() async {
     var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
     var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
-    addSource(libFilePath, 'export "src/a.dart";');
-    addSource(srcFilePath, 'class A {}');
+    newFile(libFilePath, 'export "src/a.dart";');
+    newFile(srcFilePath, 'class A {}');
     var originalSource = '''
 import 'package:test/a.dart' show A;
 
 A? staying;
 A? mov^ing;
 ''';
-    var modifiedSource = '''
+    var declarationName = 'moving';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/a.dart' show A;
 
 A? staying;
-''';
-    var declarationName = 'moving';
-    var newFileName = 'moving.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/a.dart' show A;
 
 A? moving;
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_kind_class() async {
@@ -1065,22 +1059,22 @@ class ClassToMove^ {}
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'ClassToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
+class ClassToMove {}
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'ClassToMove';
-    var newFileName = 'class_to_move.dart';
-    var newFileContent = '''
-class ClassToMove {}
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_logsAction() async {
@@ -1102,23 +1096,23 @@ class ClassTo!]Move2 {}
 
 class B {}
 ''';
-    var modifiedSource = '''
-class A {}
 
-class B {}
-''';
-    var newFileName = 'class_to_move1.dart';
-    var newFileContent = '''
+    var expected = '''
+>>>>>>>>>> lib/class_to_move1.dart
 class ClassToMove1 {}
 
 class ClassToMove2 {}
+>>>>>>>>>> lib/main.dart
+class A {}
+
+class B {}
+
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 2,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 2,
+    );
   }
 
   Future<void> test_none_comment() async {
@@ -1126,6 +1120,7 @@ class ClassToMove2 {}
 // Comm^ent
 
 class A {}
+
 ''');
     await initializeServer(experimentalOptInFlag: false);
     await expectNoCodeAction(null);
@@ -1136,6 +1131,7 @@ class A {}
 imp^ort 'dart:core';
 
 class A {}
+
 ''');
     await initializeServer(experimentalOptInFlag: false);
     await expectNoCodeAction(null);
@@ -1144,12 +1140,12 @@ class A {}
   /// Test that references to getter/setters in different libraries used in
   /// a postfix increment are both imported into the destination file.
   Future<void> test_postfixIncrement_multipleLibraries() async {
-    addSource('$projectFolderPath/lib/getter.dart', '''
-int get splitVariable => 0;
-''');
-    addSource('$projectFolderPath/lib/setter.dart', '''
-set splitVariable(num _) {}
-''');
+    newFile('$projectFolderPath/lib/getter.dart', '''
+    int get splitVariable => 0;
+    ''');
+    newFile('$projectFolderPath/lib/setter.dart', '''
+    set splitVariable(num _) {}
+    ''');
 
     var originalSource = '''
 import 'package:test/getter.dart';
@@ -1159,26 +1155,26 @@ void function^ToMove() {
   splitVariable++;
 }
 ''';
-    var modifiedSource = '''
-import 'package:test/getter.dart';
-import 'package:test/setter.dart';
-''';
     var declarationName = 'functionToMove';
-    var newFileName = 'function_to_move.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/function_to_move.dart
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
 
 void functionToMove() {
   splitVariable++;
 }
+>>>>>>>>>> lib/main.dart
+import 'package:test/getter.dart';
+import 'package:test/setter.dart';
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void>
@@ -1211,7 +1207,9 @@ void functionToMove() {
     final newFileUri = Uri.file(newFilePath);
 
     /// Expected new file content.
-    const expectedNewFileContent = '''
+    const expected = '''
+>>>>>>>>>> lib/main.dart empty
+>>>>>>>>>> lib/my_new_class.dart
 class A {}
 ''';
 
@@ -1219,9 +1217,8 @@ class A {}
     final action = await expectCodeAction(simpleClassRefactorTitle);
     // Replace the file URI argument with our custom path.
     replaceSaveUriArgument(action, newFileUri);
-    await executeRefactor(action);
-
-    expect(content[newFilePath], expectedNewFileContent);
+    await verifyCommandEdits(action.command!, expected,
+        expectDocumentChanges: true);
   }
 
   Future<void> test_protocol_unavailable_withoutFileCreateSupport() async {
@@ -1239,23 +1236,23 @@ class Right extends Either {}
 
 class Neither {}
 ''';
-    var modifiedSource = '''
 
-class Neither {}
-''';
-    var newFileName = 'either.dart';
-    var newFileContent = '''
+    var expected = '''
+>>>>>>>>>> lib/either.dart
 sealed class Either {}
 
 class Left extends Either {}
 class Right extends Either {}
+>>>>>>>>>> lib/main.dart
+
+class Neither {}
+
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 3,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
   }
 
   /// The code action is not available if you select a subclass of a sealed
@@ -1286,7 +1283,7 @@ part of 'main.dart';
 class Left extends Either {}
 ''';
 
-    addSource(otherFilePath, otherFileContent);
+    newFile(otherFilePath, otherFileContent);
 
     await initializeServer();
     await expectNoCodeAction(null);
@@ -1304,28 +1301,28 @@ class LeftSub extends Left {}
 
 class Neither {}
 ''';
+
     // TODO(dantup): Track down where this extra newline is coming from.
-    var modifiedSource = '''
+    var expected = '''
+>>>>>>>>>> lib/either.dart
+sealed class Either {}
+
+class Left extends Either {}
+class Right extends Either {}
+>>>>>>>>>> lib/main.dart
 import 'package:test/either.dart';
 
 
 class LeftSub extends Left {}
 
 class Neither {}
-''';
-    var newFileName = 'either.dart';
-    var newFileContent = '''
-sealed class Either {}
 
-class Left extends Either {}
-class Right extends Either {}
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 3,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
   }
 
   Future<void> test_sealedClass_extends_superclassAndSubclass() async {
@@ -1337,23 +1334,23 @@ class Right extends Either {}
 
 class Neither {}
 ''';
-    var modifiedSource = '''
 
-class Neither {}
-''';
-    var newFileName = 'either.dart';
-    var newFileContent = '''
+    var expected = '''
+>>>>>>>>>> lib/either.dart
 sealed class Either {}
 
 class Left extends Either {}
 class Right extends Either {}
+>>>>>>>>>> lib/main.dart
+
+class Neither {}
+
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 3,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
   }
 
   Future<void> test_sealedClass_implements() async {
@@ -1365,23 +1362,23 @@ class Right implements Either {}
 
 class Neither {}
 ''';
-    var modifiedSource = '''
 
-class Neither {}
-''';
-    var newFileName = 'either.dart';
-    var newFileContent = '''
+    var expected = '''
+>>>>>>>>>> lib/either.dart
 sealed class Either {}
 
 class Left implements Either {}
 class Right implements Either {}
+>>>>>>>>>> lib/main.dart
+
+class Neither {}
+
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 3,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 3,
+    );
   }
 
   Future<void> test_sealedClass_sealedSubclass_extends_superclass() async {
@@ -1395,27 +1392,27 @@ class SubSubclass extends SealedSubclass {}
 
 class SubSubSubclass extends SubSubclass {}
 ''';
-    var modifiedSource = '''
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/sealed_root.dart';
 
 
 class SubSubSubclass extends SubSubclass {}
-''';
-    var newFileName = 'sealed_root.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/sealed_root.dart
 sealed class SealedRoot {}
 
 class Subclass extends SealedRoot {}
 sealed class SealedSubclass extends SealedRoot {}
 
 class SubSubclass extends SealedSubclass {}
+
 ''';
     await _multipleDeclarations(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        count: 4,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      count: 4,
+    );
   }
 
   Future<void> test_single_class_withTypeParameters() async {
@@ -1426,22 +1423,22 @@ class ClassToMove^<T> {}
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'ClassToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
+class ClassToMove<T> {}
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'ClassToMove';
-    var newFileName = 'class_to_move.dart';
-    var newFileContent = '''
-class ClassToMove<T> {}
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_enum() async {
@@ -1452,22 +1449,22 @@ enum EnumToMove^ { a, b }
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'EnumToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/enum_to_move.dart
+enum EnumToMove { a, b }
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'EnumToMove';
-    var newFileName = 'enum_to_move.dart';
-    var newFileContent = '''
-enum EnumToMove { a, b }
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_extension() async {
@@ -1478,22 +1475,22 @@ extension ExtensionToMove^ on int { }
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'ExtensionToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/extension_to_move.dart
+extension ExtensionToMove on int { }
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'ExtensionToMove';
-    var newFileName = 'extension_to_move.dart';
-    var newFileContent = '''
-extension ExtensionToMove on int { }
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_function_endOfName() async {
@@ -1504,22 +1501,22 @@ void functionToMove^() { }
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'functionToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/function_to_move.dart
+void functionToMove() { }
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'functionToMove';
-    var newFileName = 'function_to_move.dart';
-    var newFileContent = '''
-void functionToMove() { }
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_function_middleOfName() async {
@@ -1530,22 +1527,22 @@ void functionToMo^ve() { }
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'functionToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/function_to_move.dart
+void functionToMove() { }
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'functionToMove';
-    var newFileName = 'function_to_move.dart';
-    var newFileContent = '''
-void functionToMove() { }
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_mixin() async {
@@ -1556,22 +1553,22 @@ mixin MixinToMove^ { }
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'MixinToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'MixinToMove';
-    var newFileName = 'mixin_to_move.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/mixin_to_move.dart
 mixin MixinToMove { }
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_parts_libraryToPart() async {
@@ -1580,28 +1577,29 @@ part 'class_to_move.dart';
 
 class Clas^sToMove {}
 ''';
-    var modifiedSource = '''
-part 'class_to_move.dart';
-''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
     var destinationFilePath =
         join(projectFolderPath, 'lib', destinationFileName);
-    addSource(destinationFilePath, '''
+    newFile(destinationFilePath, '''
 part of 'main.dart';
 ''');
-    var destinationFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
 part of 'main.dart';
 
 class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+part 'class_to_move.dart';
+
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: destinationFileName,
-        newFileContent: destinationFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_parts_partToLibrary() async {
@@ -1610,28 +1608,29 @@ part of 'class_to_move.dart';
 
 class Clas^sToMove {}
 ''';
-    var modifiedSource = '''
-part of 'class_to_move.dart';
-''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
     var destinationFilePath =
         join(projectFolderPath, 'lib', destinationFileName);
-    addSource(destinationFilePath, '''
+    newFile(destinationFilePath, '''
 part 'main.dart';
 ''');
-    var destinationFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
 part 'main.dart';
 
 class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+part of 'class_to_move.dart';
+
 ''';
 
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: destinationFileName,
-        newFileContent: destinationFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_parts_partToPart() async {
@@ -1640,21 +1639,13 @@ part of 'containing_library.dart';
 
 class Clas^sToMove {}
 ''';
-    var modifiedSource = '''
-part of 'containing_library.dart';
-''';
     var declarationName = 'ClassToMove';
     var destinationFileName = 'class_to_move.dart';
     var destinationFilePath =
         join(projectFolderPath, 'lib', destinationFileName);
-    addSource(destinationFilePath, '''
+    newFile(destinationFilePath, '''
 part of 'containing_library.dart';
 ''');
-    var destinationFileContent = '''
-part of 'containing_library.dart';
-
-class ClassToMove {}
-''';
     var containingLibraryFilePath =
         join(projectFolderPath, 'lib', 'containing_library.dart');
     var containingLibraryFileContent = '''
@@ -1662,12 +1653,19 @@ part 'main.dart';
 part 'class_to_move.dart';
 ''';
 
+    var expected = '''
+>>>>>>>>>> lib/class_to_move.dart
+part of 'containing_library.dart';
+
+class ClassToMove {}
+>>>>>>>>>> lib/main.dart
+part of 'containing_library.dart';
+
+''';
     await _singleDeclaration(
         originalSource: originalSource,
-        modifiedSource: modifiedSource,
+        expected: expected,
         declarationName: declarationName,
-        newFileName: destinationFileName,
-        newFileContent: destinationFileContent,
         otherFilePath: containingLibraryFilePath,
         otherFileContent: containingLibraryFileContent);
   }
@@ -1680,48 +1678,49 @@ typedef TypeToMove^ = void Function();
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'TypeToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'TypeToMove';
-    var newFileName = 'type_to_move.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/type_to_move.dart
 typedef TypeToMove = void Function();
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_variable() async {
     var originalSource = '''
 class A {}
 
+
 int variableT^oMove = 3;
 
 class B {}
 ''';
-    var modifiedSource = '''
+    var declarationName = 'variableToMove';
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-''';
-    var declarationName = 'variableToMove';
-    var newFileName = 'variable_to_move.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/variable_to_move.dart
 int variableToMove = 3;
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
   Future<void> test_single_variable_firstDartDoc() async {
@@ -1731,93 +1730,76 @@ class ^A {}
 
 class B {}
 ''';
-    var modifiedSource = '''
-
-class B {}
-''';
     var declarationName = 'A';
-    var newFileName = 'a.dart';
-    var newFileContent = '''
+
+    var expected = '''
+>>>>>>>>>> lib/a.dart
 ///
 class A {}
+>>>>>>>>>> lib/main.dart
+
+class B {}
+
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: declarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: declarationName,
+    );
   }
 
-  Future<void> _multipleDeclarations(
-      {required String originalSource,
-      required String modifiedSource,
-      required int count,
-      required String newFileName,
-      required String newFileContent,
-      String? otherFilePath,
-      String? otherFileContent,
-      String? modifiedOtherFileContent}) async {
+  Future<void> _multipleDeclarations({
+    required String originalSource,
+    required int count,
+    required String expected,
+    String? otherFilePath,
+    String? otherFileContent,
+  }) async {
     await _refactor(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        actionTitle: "Move $count declarations to file",
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent,
-        modifiedOtherFileContent: modifiedOtherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      actionTitle: "Move $count declarations to file",
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
-  Future<void> _refactor(
-      {required String originalSource,
-      required String modifiedSource,
-      required String actionTitle,
-      required String newFileName,
-      required String newFileContent,
-      String? otherFilePath,
-      String? otherFileContent,
-      String? modifiedOtherFileContent}) async {
+  Future<void> _refactor({
+    required String originalSource,
+    required String actionTitle,
+    required String expected,
+    String? otherFilePath,
+    String? otherFileContent,
+  }) async {
+    if (originalSource.contains('>>>>') ||
+        (otherFileContent?.contains('>>>>>') ?? false)) {
+      throw '>>>>>';
+    }
     addTestSource(originalSource);
     if (otherFilePath != null) {
-      addSource(otherFilePath, otherFileContent!);
+      newFile(otherFilePath, otherFileContent!);
     }
-
-    /// Expected new file path/content.
-    final expectedNewFilePath = join(projectFolderPath, 'lib', newFileName);
 
     await initializeServer();
     final action = await expectCodeAction(actionTitle);
-    await executeRefactor(action);
-
-    expect(content[mainFilePath], modifiedSource);
-    // Check the new file was added to `content`. If no CreateFile resource
-    // was sent, the executeRefactor helper would've thrown when trying to
-    // apply the changes.
-    expect(content[expectedNewFilePath], newFileContent);
-    if (modifiedOtherFileContent != null) {
-      expect(content[convertPath(otherFilePath!)], modifiedOtherFileContent);
-    }
+    await verifyCommandEdits(action.command!, expected,
+        expectDocumentChanges: true);
   }
 
-  Future<void> _singleDeclaration(
-      {required String originalSource,
-      required String modifiedSource,
-      required String declarationName,
-      required String newFileName,
-      required String newFileContent,
-      String? otherFilePath,
-      String? otherFileContent,
-      String? modifiedOtherFileContent}) async {
+  Future<void> _singleDeclaration({
+    required String originalSource,
+    required String declarationName,
+    required String expected,
+    String? otherFilePath,
+    String? otherFileContent,
+  }) async {
     await _refactor(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        actionTitle: "Move '$declarationName' to file",
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent,
-        modifiedOtherFileContent: modifiedOtherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      actionTitle: "Move '$declarationName' to file",
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 
   /// Tests that prefixes are included in imports copied to the new code.
@@ -1838,22 +1820,21 @@ import 'package:test/other.dart' as other;
 
 ${code.rawCode}
 ''';
-    var modifiedSource = '''
+
+    var expected = '''
+>>>>>>>>>> lib/main.dart
 import 'package:test/other.dart' as other;
-''';
-    var newFileName = 'moving.dart';
-    var newFileContent = '''
+>>>>>>>>>> lib/moving.dart
 import 'package:test/other.dart' as other;
 
 ${code.code}
 ''';
     await _singleDeclaration(
-        originalSource: originalSource,
-        modifiedSource: modifiedSource,
-        declarationName: movingDeclarationName,
-        newFileName: newFileName,
-        newFileContent: newFileContent,
-        otherFilePath: otherFilePath,
-        otherFileContent: otherFileContent);
+      originalSource: originalSource,
+      expected: expected,
+      declarationName: movingDeclarationName,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+    );
   }
 }

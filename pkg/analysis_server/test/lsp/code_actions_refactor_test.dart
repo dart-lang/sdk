@@ -40,6 +40,7 @@ void f() {
 }
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 int test() => 42;
 void f() {
   var a = test();
@@ -105,6 +106,7 @@ void f() {
 }
 ''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 int get test => 42;
 void f() {
   var a = test;
@@ -168,8 +170,9 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print('Test!');
   newMethod();
@@ -178,7 +181,7 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -197,7 +200,7 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     const expectedContent = '''
 void f() {
   print('Test!');
@@ -207,7 +210,7 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -251,7 +254,7 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
 
@@ -276,7 +279,7 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
@@ -326,8 +329,9 @@ Object F() {
 
 Object Container(Object text) => null;
 Object Text(Object text) => null;
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 Object F() {
   return Container(text());
 }
@@ -336,7 +340,7 @@ Object text() => Text('Test!');
 
 Object Container(Object text) => null;
 Object Text(Object text) => null;
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -354,7 +358,7 @@ Object Text(Object text) => null;
 import 'dart:convert';
 ^
 void f() {}
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -370,7 +374,7 @@ void f() {}
 import 'dart:io' as io;
 
 i^o.File a;
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -408,8 +412,9 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print('Test!');
   newMethod();
@@ -418,7 +423,7 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
@@ -444,8 +449,9 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print('Test!');
   newMethod();
@@ -454,7 +460,7 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -480,8 +486,9 @@ void f() {
   print('Test!');
   [[print('Test!');]]
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print('Test!');
   newMethod();
@@ -490,7 +497,7 @@ void f() {
 void newMethod() {
   print('Test!');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
         windowCapabilities:
@@ -518,7 +525,7 @@ f() {
 
 void doFoo(void Function() a) => a();
 
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -559,7 +566,7 @@ f() {
 
 void doFoo(void Function() a) => a();
 
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize(
       // We expect an error notification so don't fail on it.
@@ -601,7 +608,7 @@ f() {
 
 void doFoo(void Function() a) => a();
 
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -644,15 +651,16 @@ void f() {
 }
 
 void foo(int arg) {}
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   var arg = 1 + 2;
   foo(arg);
 }
 
 void foo(int arg) {}
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -673,8 +681,9 @@ void f() {
 }
 
 void foo(int arg) {}
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   var arg = "test";
   var arg2 = 1 + 2;
@@ -682,7 +691,7 @@ void f() {
 }
 
 void foo(int arg) {}
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -704,13 +713,14 @@ test[[]](a, b) {
 void f() {
   test(1, 2);
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print(1);
   print(2);
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -732,13 +742,14 @@ test[[]]<T>(T a, T b) {
 void f() {
   test(1, 2);
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print(1);
   print(2);
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -762,15 +773,16 @@ class A {
     test(1, 2);
   }
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 class A {
   void f() {
     print(1);
     print(2);
   }
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -794,15 +806,16 @@ class A {
     test(1, 2);
   }
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 class A {
   void f() {
     print(1);
     print(2);
   }
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -818,10 +831,11 @@ class A {
   Future<void> test_methodToGetter_function_startOfParameterList() async {
     const content = '''
 int test[[]]() => 42;
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 int get test => 42;
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -837,10 +851,11 @@ int get test => 42;
   Future<void> test_methodToGetter_function_startOfTypeParameterList() async {
     const content = '''
 int test[[]]<T>() => 42;
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 int get test<T> => 42;
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -858,12 +873,13 @@ int get test<T> => 42;
 class A {
   int test[[]]() => 42;
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 class A {
   int get test => 42;
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -881,12 +897,13 @@ class A {
 class A {
   int test[[]]<T>() => 42;
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 class A {
   int get test<T> => 42;
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -939,8 +956,9 @@ class MyWidget extends StatelessWidget {
     );
   }
 }
-    ''';
+''';
     final expectedContent = '''
+>>>>>>>>>> lib/main.dart
 import 'package:flutter/material.dart';
 
 class MyWidget extends StatelessWidget {
@@ -968,7 +986,7 @@ class NewWidget extends StatelessWidget {
     );
   }
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -986,7 +1004,7 @@ class NewWidget extends StatelessWidget {
 import 'dart:convert';
 ^
 void f() {}
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -1025,14 +1043,15 @@ void f() {
   print(a);
   print(a);
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void f() {
   print(1);
   print(1);
   print(1);
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -1063,8 +1082,9 @@ void foo2() {
 void bar() {
   print('test');
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void foo1() {
   print('test');
 }
@@ -1076,7 +1096,7 @@ void foo2() {
 void bar() {
   print('test');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
@@ -1102,8 +1122,9 @@ void foo2() {
 void ba^r() {
   print('test');
 }
-    ''';
+''';
     const expectedContent = '''
+>>>>>>>>>> lib/main.dart
 void foo1() {
   print('test');
 }
@@ -1111,7 +1132,7 @@ void foo1() {
 void foo2() {
   print('test');
 }
-    ''';
+''';
     newFile(mainFilePath, withoutMarkers(content));
     await initialize();
 
