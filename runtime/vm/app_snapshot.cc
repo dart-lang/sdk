@@ -6937,11 +6937,6 @@ bool Serializer::CreateArtificialNodeIfNeeded(ObjectPtr obj) {
       links.Add(
           {patch_cls->untag()->wrapped_class(),
            V8SnapshotProfileWriter::Reference::Property("wrapped_class_")});
-      // Remove following link once flutter migrates away from 0.7.2 of
-      // vm_snapshot_analysis package.
-      links.Add(
-          {patch_cls->untag()->wrapped_class(),
-           V8SnapshotProfileWriter::Reference::Property("patched_class_")});
       break;
     }
     case kLibraryCid: {
