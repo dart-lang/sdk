@@ -133,7 +133,7 @@ abstract class IOOverrides {
       stdout,
       stderr,
     );
-    return runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async.runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
@@ -141,7 +141,7 @@ abstract class IOOverrides {
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
   static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
-    return runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async.runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   // Directory
