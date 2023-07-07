@@ -72,17 +72,15 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node is DartPattern) {
-      var parent = node.parent;
-      if (parent is ForEachPartsWithPattern) {
-        await builder.addDartFileEdit(file, (builder) {
-          var keyword = parent.keyword;
-          if (keyword.keyword == Keyword.VAR) {
-            builder.addSimpleReplacement(range.token(keyword), 'final');
-          }
-        });
-        return;
-      }
+    var forPattern = node.forEachPartsParent;
+    if (forPattern is ForEachPartsWithPattern) {
+      await builder.addDartFileEdit(file, (builder) {
+        var keyword = forPattern.keyword;
+        if (keyword.keyword == Keyword.VAR) {
+          builder.addSimpleReplacement(range.token(keyword), 'final');
+        }
+      });
+      return;
     }
 
     if (node is DeclaredVariablePattern) {
@@ -135,5 +133,12 @@ class MakeFinal extends ResolvedCorrectionProducer {
     }
 
     return null;
+  }
+}
+
+extension on AstNode {
+  AstNode? get forEachPartsParent {
+    var parent = this.parent;
+    return parent is ForEachPartsWithPattern ? parent : parent?.parent;
   }
 }
