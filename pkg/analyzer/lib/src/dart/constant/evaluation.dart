@@ -195,7 +195,7 @@ class ConstantEvaluationEngine {
         var result = evaluateConstructorCall(
             library,
             constNode,
-            element.returnType2.typeArguments,
+            element.returnType2.ifTypeOrNull<InterfaceType>()?.typeArguments,
             constNode.arguments!.arguments,
             element,
             constantVisitor,
@@ -891,7 +891,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     return evaluationEngine.evaluateConstructorCall(
       _library,
       node,
-      constructor.returnType2.typeArguments,
+      constructor.returnType2.ifTypeOrNull<InterfaceType>()?.typeArguments,
       node.argumentList.arguments,
       constructor,
       this,
@@ -2432,7 +2432,9 @@ class _InstanceCreationEvaluator {
         _argumentValues = argumentValues,
         _invocation = invocation;
 
-  NamedInstanceType get definingType => _constructor.returnType2;
+  NamedInstanceType get definingType =>
+      _constructor.returnType2.ifTypeOrNull<InterfaceType>() ??
+      typeProvider.objectType;
 
   DartObjectImpl? get firstArgument => _argumentValues[0];
 
@@ -2572,7 +2574,7 @@ class _InstanceCreationEvaluator {
           continue;
         }
         // Match the value and the type.
-        var fieldType = FieldMember.from(field, _constructor.returnType2).type;
+        var fieldType = FieldMember.from(field, definingType).type;
         if (!typeSystem.runtimeTypeMatch(fieldValue, fieldType)) {
           _errorReporter.reportErrorForNode(
               CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH,

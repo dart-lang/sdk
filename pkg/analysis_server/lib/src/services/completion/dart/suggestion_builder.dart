@@ -420,7 +420,12 @@ class SuggestionBuilder {
     // If the class name is already in the text, then we don't support
     // prepending a prefix.
     assert(!hasClassName || prefix == null);
-    var enclosingClass = constructor.enclosingElement2;
+
+    var enclosingClass = constructor.enclosingElement2.augmentedDeclaration;
+    if (enclosingClass == null) {
+      return;
+    }
+
     var className = enclosingClass.name;
     if (className.isEmpty) {
       return;
@@ -828,7 +833,8 @@ class SuggestionBuilder {
     var element = parameter.enclosingElement2;
     // If appendColon is false, default values should never be appended.
     if (element is ConstructorElement && appendColon) {
-      if (Flutter.instance.isWidget(element.enclosingElement2)) {
+      if (Flutter.instance
+          .isWidget(element.enclosingElement2.augmentedDeclaration)) {
         var codeStyleOptions = request
             .analysisSession.analysisContext.analysisOptions.codeStyleOptions;
         // Don't bother with nullability. It won't affect default list values.

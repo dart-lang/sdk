@@ -31,6 +31,8 @@ class NullSafeApiVerifier {
     if (constructor == null) return;
 
     final type = constructor.returnType2;
+    if (type is! InterfaceType) return;
+
     final isFutureValue = type.isDartAsyncFuture && constructor.name == 'value';
 
     if (isFutureValue) {

@@ -6,6 +6,20 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 
+class ClassAugmentationElementFlags {
+  static void read(
+    SummaryDataReader reader,
+    ClassAugmentationElementImpl element,
+  ) {
+    reader.readUInt30();
+  }
+
+  static void write(BufferedSink sink, ClassAugmentationElementImpl element) {
+    var result = 0;
+    sink.writeUInt30(result);
+  }
+}
+
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
   static const int _isBase = 1 << 1;

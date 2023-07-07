@@ -116,8 +116,13 @@ class TypeArgumentsVerifier {
       return;
     }
 
+    var returnType = constructorElement.returnType2;
+    if (returnType is! InterfaceType) {
+      return;
+    }
+
     // Check that type arguments are regular-bounded.
-    var typeArguments = constructorElement.returnType2.typeArguments;
+    var typeArguments = returnType.typeArguments;
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];

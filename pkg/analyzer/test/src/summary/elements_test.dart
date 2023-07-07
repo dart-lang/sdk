@@ -24,14 +24,61 @@ main() {
   });
 }
 
+mixin ClassAugmentationElementsMixin on ElementsBaseTest {
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  augmentationImports
+    package:test/a.dart
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classAugmentations
+              augment class A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+      definingUnit
+        classAugmentations
+          augment class A @68
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+''');
+  }
+}
+
 @reflectiveTest
-class ElementsFromBytesTest extends ElementsTest {
+class ElementsFromBytesTest extends ElementsTest
+    with ClassAugmentationElementsMixin {
   @override
   bool get keepLinkingLibraries => false;
 }
 
 @reflectiveTest
-class ElementsKeepLinkingTest extends ElementsTest {
+class ElementsKeepLinkingTest extends ElementsTest
+    with ClassAugmentationElementsMixin {
   @override
   bool get keepLinkingLibraries => true;
 }

@@ -2705,7 +2705,7 @@ final class ClassAugmentationDeclarationImpl
   final Token augmentKeyword;
 
   @override
-  ClassAugmentationElement? declaredElement;
+  ClassAugmentationElementImpl? declaredElement;
 
   ClassAugmentationDeclarationImpl({
     required super.comment,

@@ -40,6 +40,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
+    // TODO: implement visitClassAugmentationDeclaration
+    // super.visitClassAugmentationDeclaration(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);

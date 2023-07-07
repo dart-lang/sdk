@@ -55,7 +55,8 @@ class RedirectingContributor extends DartCompletionContributor {
         var containingConstructor =
             parent.thisOrAncestorOfType<ConstructorDeclaration>();
         var constructorElement = containingConstructor?.declaredElement;
-        var classElement = constructorElement?.enclosingElement2;
+        var classElement =
+            constructorElement?.enclosingElement2.augmentedDeclaration;
         var libraryElement = request.libraryElement;
         if (classElement == null) {
           return;

@@ -122,7 +122,13 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
   }
 
   set augmentationTarget(ClassOrAugmentationElementMixin? value) {
+    value?._augmentation = this;
     _augmentationTarget = value;
+  }
+
+  @override
+  ClassElementImpl? get augmentedDeclaration {
+    return augmentationTarget?.augmentedDeclaration;
   }
 
   @override
@@ -136,6 +142,7 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
 
 /// An [InterfaceElementImpl] which is a class.
 class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
+    with ClassOrAugmentationElementMixin<ClassElementLinkedData>
     implements ClassElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -198,16 +205,13 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 
   @override
-  ClassAugmentationElement? get augmentation {
+  AugmentedClassElement get augmented {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
 
   @override
-  AugmentedClassElement get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
+  ClassElementImpl get augmentedDeclaration => this;
 
   @override
   List<ConstructorElementImpl> get constructors {
@@ -656,10 +660,13 @@ mixin ClassOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
   ClassAugmentationElementImpl? _augmentation;
 
   @override
-  ClassAugmentationElement? get augmentation {
+  ClassAugmentationElementImpl? get augmentation {
     linkedData?.read(this);
     return _augmentation;
   }
+
+  @override
+  ClassElementImpl? get augmentedDeclaration;
 }
 
 abstract class ClassOrMixinElementImpl<LinkedData extends ElementLinkedData>
@@ -703,8 +710,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// contained in this compilation unit.
   List<PropertyAccessorElementImpl> _accessors = const [];
 
-  /// A list containing all of the classes contained in this compilation unit.
   List<ClassElementImpl> _classes = const [];
+  List<ClassAugmentationElementImpl> _classAugmentations = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
   List<EnumElementImpl> _enums = const [];
@@ -763,6 +770,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         ...typeAliases,
         ...topLevelVariables,
       ];
+
+  @override
+  List<ClassAugmentationElementImpl> get classAugmentations {
+    return _classAugmentations;
+  }
+
+  set classAugmentations(List<ClassAugmentationElementImpl> elements) {
+    for (final element in elements) {
+      element.enclosingElement = this;
+    }
+    _classAugmentations = elements;
+  }
 
   @override
   List<ClassElementImpl> get classes {
@@ -1037,8 +1056,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       super.enclosingElement2 as InterfaceElementImpl;
 
   @override
-  NamedInstanceElement get enclosingElement2 =>
-      super.enclosingElement2 as NamedInstanceElement;
+  NamedInstanceOrAugmentationElement get enclosingElement2 =>
+      super.enclosingElement2 as NamedInstanceOrAugmentationElement;
 
   @override
   bool get isConst {
@@ -1100,13 +1119,20 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  NamedInstanceType get returnType2 =>
-      ElementTypeProvider.current.getExecutableReturnType(this)
-          as NamedInstanceType;
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal {
-    return _returnType ??= enclosingElement2.thisType;
+    var result = _returnType;
+    if (result != null) {
+      return result;
+    }
+
+    final augmentedDeclaration = enclosingElement2.augmentedDeclaration;
+    result = augmentedDeclaration?.thisType;
+    result ??= InvalidTypeImpl.instance;
+    return _returnType = result;
   }
 
   ConstructorElement? get superConstructor {
@@ -2597,6 +2623,9 @@ class EnumElementImpl extends InterfaceElementImpl<EnumElementLinkedData>
     throw UnimplementedError();
   }
 
+  @override
+  EnumElementImpl get augmentedDeclaration => this;
+
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
   }
@@ -2880,6 +2909,9 @@ class ExtensionElementImpl extends _ExistingElementImpl
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
+
+  @override
+  ExtensionElementImpl get augmentedDeclaration => this;
 
   @override
   List<Element> get children => [
@@ -3372,6 +3404,9 @@ class InlineClassElementImpl extends NamedInstanceElementImpl
   }
 
   @override
+  InlineClassElementImpl get augmentedDeclaration => this;
+
+  @override
   List<InlineClassType> get implemented {
     // TODO(scheglov) implement
     throw UnimplementedError();
@@ -3408,8 +3443,12 @@ mixin InlineClassOrAugmentationElementMixin
     on NamedInstanceOrAugmentationElementMixin
     implements InlineClassOrAugmentationElement {}
 
-abstract class InstanceAugmentationElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin {
+abstract class InstanceAugmentationElementImpl<
+        LinkedData extends ElementLinkedData> extends _ExistingElementImpl
+    with
+        TypeParameterizedElementMixin,
+        InstanceOrAugmentationElementMixin<LinkedData>
+    implements InstanceAugmentationElement {
   InstanceAugmentationElementImpl(super.name, super.offset);
 }
 
@@ -3418,7 +3457,7 @@ abstract class InstanceElementImpl<LinkedData extends ElementLinkedData>
     with
         TypeParameterizedElementMixin,
         InstanceOrAugmentationElementMixin<LinkedData>
-    implements InstanceOrAugmentationElement {
+    implements InstanceElement {
   InstanceElementImpl(super.name, super.nameOffset);
 }
 
@@ -4971,6 +5010,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl<MixinElementLinkedData>
   }
 
   @override
+  MixinElementImpl get augmentedDeclaration => this;
+
+  @override
   List<InterfaceType> get mixins => const [];
 
   @override
@@ -5437,7 +5479,7 @@ abstract class NamedInstanceAugmentationElementImpl
 abstract class NamedInstanceElementImpl<LinkedData extends ElementLinkedData>
     extends InstanceElementImpl<LinkedData>
     with NamedInstanceOrAugmentationElementMixin<LinkedData>
-    implements NamedInstanceOrAugmentationElement {
+    implements NamedInstanceElement {
   NamedInstanceElementImpl(super.name, super.nameOffset);
 }
 

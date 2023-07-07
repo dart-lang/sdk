@@ -175,6 +175,7 @@ class LibraryBuilder {
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
     }
+    _mergeAugmentations();
     _declareDartCoreDynamicNever();
   }
 
@@ -756,6 +757,21 @@ class LibraryBuilder {
       var neverRef = reference.getChild('Never');
       neverRef.element = NeverElementImpl.instance;
       declare('Never', neverRef);
+    }
+  }
+
+  void _mergeAugmentations() {
+    final targets = <String, ClassOrAugmentationElementMixin>{};
+    for (final unitElement in element.units) {
+      for (final classElement in unitElement.classes) {
+        targets[classElement.name] = classElement;
+      }
+      for (final augmentation in unitElement.classAugmentations) {
+        final name = augmentation.name;
+        // TODO(scheglov) create synthetic instead of null assert
+        augmentation.augmentationTarget = targets[name]!;
+        targets[augmentation.name] = augmentation;
+      }
     }
   }
 

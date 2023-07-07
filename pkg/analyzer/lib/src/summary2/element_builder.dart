@@ -48,6 +48,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
+    _unitElement.classAugmentations = _enclosingContext.classAugmentations;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
@@ -83,9 +84,48 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
-    // TODO: implement visitClassAugmentationDeclaration
-    // super.visitClassAugmentationDeclaration(node);
+  void visitClassAugmentationDeclaration(
+    covariant ClassAugmentationDeclarationImpl node,
+  ) {
+    final nameToken = node.name;
+    final name = nameToken.lexeme;
+
+    final element = ClassAugmentationElementImpl(name, nameToken.offset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+    _setDocumentation(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    final reference = _enclosingContext.addClassAugmentation(name, element);
+    _libraryBuilder.declare(name, reference);
+
+    final holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      final typeParameters = node.typeParameters;
+      if (typeParameters != null) {
+        typeParameters.accept(this);
+        element.typeParameters = holder.typeParameters;
+      }
+    });
+
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+
+    _withEnclosing(holder, () {
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
+
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
+    // At the time when we build, we don't know all fields yet.
+    // _resolveConstructorFieldFormals(element);
   }
 
   @override
@@ -1341,6 +1381,7 @@ class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
   final List<ClassElementImpl> _classes = [];
+  final List<ClassAugmentationElementImpl> _classAugmentations = [];
   final List<ConstructorElementImpl> _constructors = [];
   final List<EnumElementImpl> _enums = [];
   final List<ExtensionElementImpl> _extensions = [];
@@ -1367,6 +1408,10 @@ class _EnclosingContext {
     this.hasConstConstructor = false,
     this.hasDefaultFormalParameters = false,
   });
+
+  List<ClassAugmentationElementImpl> get classAugmentations {
+    return _classAugmentations.toFixedList();
+  }
 
   List<ClassElementImpl> get classes {
     return _classes.toFixedList();
@@ -1430,6 +1475,14 @@ class _EnclosingContext {
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
     return _bindReference('@class', name, element);
+  }
+
+  Reference addClassAugmentation(
+    String name,
+    ClassAugmentationElementImpl element,
+  ) {
+    _classAugmentations.add(element);
+    return _bindReference('@classAugmentation', name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {

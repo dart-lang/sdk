@@ -102,7 +102,7 @@ class ClassAugmentationElementLinkedData
     );
     _readTypeParameters(reader, element.typeParameters);
     element.augmentationTarget =
-        reader.readElement() as ClassOrAugmentationElementMixin?;
+        reader.readElement() as ClassOrAugmentationElementMixin;
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
@@ -620,6 +620,50 @@ class LibraryReader {
     );
   }
 
+  ClassAugmentationElementImpl _readClassAugmentationElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@classAugmentation').getChild(name);
+
+    var element = ClassAugmentationElementImpl(name, -1);
+
+    var linkedData = ClassAugmentationElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+    ClassAugmentationElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
+  }
+
+  void _readClassAugmentations(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    unitElement.classAugmentations = _reader.readTypedList(() {
+      return _readClassAugmentationElement(unitElement, unitReference);
+    });
+  }
+
   ClassElementImpl _readClassElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -693,7 +737,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    InterfaceElementImpl classElement,
+    NamedInstanceOrAugmentationElementMixin classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
@@ -1522,6 +1566,7 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
 
     _readClasses(unitElement, unitReference);
+    _readClassAugmentations(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);

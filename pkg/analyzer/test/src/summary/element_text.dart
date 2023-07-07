@@ -150,6 +150,15 @@ class _ElementWriter {
     );
   }
 
+  void _writeAugmentation(InterfaceOrAugmentationElementMixin e) {
+    if (e case ClassOrAugmentationElementMixin e) {
+      final augmentation = e.augmentation;
+      if (augmentation != null) {
+        _elementPrinter.writeNamedElement('augmentation', augmentation);
+      }
+    }
+  }
+
   void _writeAugmentationElement(LibraryAugmentationElementImpl e) {
     _writeLibraryOrAugmentationElement(e);
   }
@@ -168,6 +177,27 @@ class _ElementWriter {
     });
   }
 
+  void _writeAugmentationTarget(InterfaceOrAugmentationElementMixin e) {
+    if (e case InstanceAugmentationElementImpl e) {
+      _elementPrinter.writeNamedElement(
+        'augmentationTarget',
+        e.augmentationTarget,
+      );
+    }
+  }
+
+  void _writeAugmentedDeclaration(InterfaceOrAugmentationElementMixin e) {
+    final augmentedDeclaration = e.augmentedDeclaration;
+    if (identical(augmentedDeclaration, e)) {
+      return;
+    }
+
+    _elementPrinter.writeNamedElement(
+      'augmentedDeclaration',
+      augmentedDeclaration,
+    );
+  }
+
   void _writeBodyModifiers(ExecutableElement e) {
     if (e.isAsynchronous) {
       expect(e.isSynchronous, isFalse);
@@ -184,79 +214,6 @@ class _ElementWriter {
     if (e is ExecutableElementImpl && e.invokesSuperSelf) {
       _sink.write(' invokesSuperSelf');
     }
-  }
-
-  void _writeClassElement(InterfaceElement e) {
-    _sink.writeIndentedLine(() {
-      if (e is ClassElement) {
-        _sink.writeIf(e.isAbstract, 'abstract ');
-        _sink.writeIf(e.isMacro, 'macro ');
-        _sink.writeIf(e.isSealed, 'sealed ');
-        _sink.writeIf(e.isBase, 'base ');
-        _sink.writeIf(e.isInterface, 'interface ');
-        _sink.writeIf(e.isFinal, 'final ');
-        _sink.writeIf(e.isInline, 'inline ');
-        _sink.writeIf(e.isMixinClass, 'mixin ');
-      }
-      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
-
-      if (e is EnumElement) {
-        _sink.write('enum ');
-      } else if (e is MixinElement) {
-        _sink.writeIf(e.isBase, 'base ');
-        _sink.write('mixin ');
-      } else {
-        _sink.write('class ');
-      }
-      if (e is ClassElement) {
-        _sink.writeIf(e.isMixinApplication, 'alias ');
-      }
-
-      _writeName(e);
-    });
-
-    _sink.withIndent(() {
-      _writeDocumentation(e);
-      _writeMetadata(e);
-      _writeSinceSdkVersion(e);
-      _writeCodeRange(e);
-      _writeTypeParameterElements(e.typeParameters);
-
-      final supertype = e.supertype;
-      if (supertype != null &&
-          (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
-        _writeType('supertype', supertype);
-      }
-
-      if (e is MixinElement) {
-        var superclassConstraints = e.superclassConstraints;
-        if (superclassConstraints.isEmpty) {
-          throw StateError('At least Object is expected.');
-        }
-        _elementPrinter.writeTypeList(
-          'superclassConstraints',
-          superclassConstraints,
-        );
-      }
-
-      _elementPrinter.writeTypeList('mixins', e.mixins);
-      _elementPrinter.writeTypeList('interfaces', e.interfaces);
-
-      _writeElements('fields', e.fields, _writePropertyInducingElement);
-
-      var constructors = e.constructors;
-      if (e is MixinElement) {
-        expect(constructors, isEmpty);
-      } else if (configuration.withConstructors) {
-        expect(constructors, isNotEmpty);
-        _writeElements('constructors', constructors, _writeConstructorElement);
-      }
-
-      _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
-      _writeElements('methods', e.methods, _writeMethodElement);
-    });
-
-    _assertNonSyntheticElementSelf(e);
   }
 
   void _writeCodeRange(Element e) {
@@ -532,6 +489,92 @@ class _ElementWriter {
     }
   }
 
+  void _writeInterfaceOrAugmentationElement(
+    InterfaceOrAugmentationElementMixin e,
+  ) {
+    _sink.writeIndentedLine(() {
+      if (e is InstanceAugmentationElementImpl) {
+        _sink.write('augment ');
+      }
+
+      if (e is ClassElementImpl) {
+        _sink.writeIf(e.isAbstract, 'abstract ');
+        _sink.writeIf(e.isMacro, 'macro ');
+        _sink.writeIf(e.isSealed, 'sealed ');
+        _sink.writeIf(e.isBase, 'base ');
+        _sink.writeIf(e.isInterface, 'interface ');
+        _sink.writeIf(e.isFinal, 'final ');
+        _sink.writeIf(e.isInline, 'inline ');
+        _sink.writeIf(e.isMixinClass, 'mixin ');
+      }
+      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+
+      if (e is EnumElementImpl) {
+        _sink.write('enum ');
+      } else if (e is MixinElementImpl) {
+        _sink.writeIf(e.isBase, 'base ');
+        _sink.write('mixin ');
+      } else {
+        _sink.write('class ');
+      }
+      if (e is ClassElementImpl) {
+        _sink.writeIf(e.isMixinApplication, 'alias ');
+      }
+
+      _writeName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeDocumentation(e);
+      _writeMetadata(e);
+      _writeSinceSdkVersion(e);
+      _writeCodeRange(e);
+      _writeTypeParameterElements(e.typeParameters);
+      _writeAugmentationTarget(e);
+      _writeAugmentedDeclaration(e);
+      _writeAugmentation(e);
+
+      if (e is InterfaceElementImpl) {
+        final supertype = e.supertype;
+        if (supertype != null &&
+            (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
+          _writeType('supertype', supertype);
+        }
+      }
+
+      if (e is MixinElementImpl) {
+        var superclassConstraints = e.superclassConstraints;
+        if (superclassConstraints.isEmpty) {
+          throw StateError('At least Object is expected.');
+        }
+        _elementPrinter.writeTypeList(
+          'superclassConstraints',
+          superclassConstraints,
+        );
+      }
+
+      _elementPrinter.writeTypeList('mixins', e.mixins);
+      _elementPrinter.writeTypeList('interfaces', e.interfaces);
+
+      _writeElements('fields', e.fields, _writePropertyInducingElement);
+
+      var constructors = e.constructors;
+      if (e is MixinOrAugmentationElement) {
+        expect(constructors, isEmpty);
+      } else if (configuration.withConstructors) {
+        if (e is NamedInstanceElement) {
+          expect(constructors, isNotEmpty);
+        }
+        _writeElements('constructors', constructors, _writeConstructorElement);
+      }
+
+      _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
+      _writeElements('methods', e.methods, _writeMethodElement);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
   void _writeLibraryAugmentations(LibraryElementImpl e) {
     if (configuration.withLibraryAugmentations) {
       final augmentations = e.augmentations;
@@ -723,7 +766,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _writeMetadata(e);
-      if (uri is DirectiveUriWithUnit) {
+      if (uri is DirectiveUriWithUnitImpl) {
         _writeUnitElement(uri.unit);
       }
     });
@@ -999,11 +1042,16 @@ class _ElementWriter {
     _writeElements('typeParameters', elements, _writeTypeParameterElement);
   }
 
-  void _writeUnitElement(CompilationUnitElement e) {
-    _writeElements('classes', e.classes, _writeClassElement);
-    _writeElements('enums', e.enums, _writeClassElement);
+  void _writeUnitElement(CompilationUnitElementImpl e) {
+    _writeElements('classes', e.classes, _writeInterfaceOrAugmentationElement);
+    _writeElements(
+      'classAugmentations',
+      e.classAugmentations,
+      _writeInterfaceOrAugmentationElement,
+    );
+    _writeElements('enums', e.enums, _writeInterfaceOrAugmentationElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements('mixins', e.mixins, _writeClassElement);
+    _writeElements('mixins', e.mixins, _writeInterfaceOrAugmentationElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',
@@ -1036,12 +1084,5 @@ class _IdMap {
     } else {
       return '???';
     }
-  }
-}
-
-extension on ClassElement {
-  bool get isMacro {
-    final self = this;
-    return self is ClassElementImpl && self.isMacro;
   }
 }

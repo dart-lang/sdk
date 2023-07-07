@@ -49,7 +49,9 @@ class ConstructorMember extends ExecutableMember
   InterfaceElement get enclosingElement => declaration.enclosingElement;
 
   @override
-  NamedInstanceElement get enclosingElement2 => declaration.enclosingElement2;
+  NamedInstanceOrAugmentationElement get enclosingElement2 {
+    return declaration.enclosingElement2;
+  }
 
   @override
   bool get isConst => declaration.isConst;
