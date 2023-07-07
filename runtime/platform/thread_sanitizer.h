@@ -40,7 +40,8 @@ constexpr bool kUsingThreadSanitizer = false;
 // Though in our AOT compiler we don't know whether the target AOT runtime will
 // use TSAN or not, so we'll rely on the build rules telling us that
 // information.
-#if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILER)
+#if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILER) &&           \
+    !defined(TARGET_USES_THREAD_SANITIZER)
 #define TARGET_USES_THREAD_SANITIZER
 #endif
 
