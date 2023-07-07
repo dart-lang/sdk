@@ -98,8 +98,15 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
+    switch (_libraryBuilder.getAugmentationTarget(name)) {
+      case ClassOrAugmentationElementMixin target:
+        element.augmentationTarget = target;
+        target.augmentation = element;
+    }
+
     final reference = _enclosingContext.addClassAugmentation(name, element);
     _libraryBuilder.declare(name, reference);
+    _libraryBuilder.putAugmentationTarget(name, element);
 
     final holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -154,6 +161,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var reference = _enclosingContext.addClass(name, element);
     _libraryBuilder.declare(name, reference);
+    _libraryBuilder.putAugmentationTarget(name, element);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {

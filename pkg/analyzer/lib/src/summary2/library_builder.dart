@@ -60,6 +60,9 @@ class LibraryBuilder {
 
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
+  /// The top-level elements that can be augmented.
+  final Map<String, ElementImpl> _augmentationTargets = {};
+
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
 
@@ -175,7 +178,6 @@ class LibraryBuilder {
       }
       elementBuilder.buildDeclarationElements(linkingUnit.node);
     }
-    _mergeAugmentations();
     _declareDartCoreDynamicNever();
   }
 
@@ -404,6 +406,14 @@ class LibraryBuilder {
     );
   }
 
+  ElementImpl? getAugmentationTarget(String name) {
+    return _augmentationTargets[name];
+  }
+
+  void putAugmentationTarget(String name, ElementImpl element) {
+    _augmentationTargets[name] = element;
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -481,6 +491,15 @@ class LibraryBuilder {
         augmentation.definingCompilationUnit = unitElement;
         augmentation.reference = unitElement.reference!;
 
+        units.add(
+          DefiningLinkingUnit(
+            reference: unitReference,
+            node: unitNode,
+            element: unitElement,
+            container: augmentation,
+          ),
+        );
+
         _buildDirectives(
           kind: importedAugmentation,
           container: augmentation,
@@ -491,15 +510,6 @@ class LibraryBuilder {
           relativeUri: state.uri.relativeUri,
           source: importedFile.source,
           augmentation: augmentation,
-        );
-
-        units.add(
-          DefiningLinkingUnit(
-            reference: unitReference,
-            node: unitNode,
-            element: unitElement,
-            container: augmentation,
-          ),
         );
       } else {
         uri = DirectiveUriWithSourceImpl(
@@ -757,23 +767,6 @@ class LibraryBuilder {
       var neverRef = reference.getChild('Never');
       neverRef.element = NeverElementImpl.instance;
       declare('Never', neverRef);
-    }
-  }
-
-  /// TODO(scheglov) merge while building
-  void _mergeAugmentations() {
-    final targets = <String, ClassOrAugmentationElementMixin>{};
-    for (final unitElement in element.units) {
-      for (final classElement in unitElement.classes) {
-        targets[classElement.name] = classElement;
-      }
-      for (final augmentation in unitElement.classAugmentations) {
-        final name = augmentation.name;
-        final target = targets[name]!;
-        augmentation.augmentationTarget = target;
-        target.augmentation = augmentation;
-        targets[augmentation.name] = augmentation;
-      }
     }
   }
 
