@@ -609,11 +609,11 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyAnd(TypeSystemImpl typeSystem,
-      DartObjectImpl? Function() rightOperandComputer) {
+      DartObjectImpl Function() rightOperandComputer) {
     return DartObjectImpl(
       typeSystem,
       typeSystem.typeProvider.boolType,
-      state.lazyAnd(() => rightOperandComputer()?.state),
+      state.lazyAnd(() => rightOperandComputer().state),
     );
   }
 
@@ -623,12 +623,13 @@ class DartObjectImpl implements DartObject, Constant {
   /// Throws an [EvaluationException] if the operator is not appropriate for an
   /// object of this kind.
   DartObjectImpl lazyOr(TypeSystemImpl typeSystem,
-          DartObjectImpl? Function() rightOperandComputer) =>
-      DartObjectImpl(
-        typeSystem,
-        typeSystem.typeProvider.boolType,
-        state.lazyOr(() => rightOperandComputer()?.state),
-      );
+      DartObjectImpl Function() rightOperandComputer) {
+    return DartObjectImpl(
+      typeSystem,
+      typeSystem.typeProvider.boolType,
+      state.lazyOr(() => rightOperandComputer().state),
+    );
+  }
 
   /// Return the result of invoking the '&lt;' operator on this object with the
   /// [rightOperand].
