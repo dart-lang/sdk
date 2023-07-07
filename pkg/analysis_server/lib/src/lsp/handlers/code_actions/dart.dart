@@ -198,6 +198,12 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
   @override
   Future<List<Either2<CodeAction, Command>>> getRefactorActions() async {
+    // If the client does not support workspace/applyEdit, we won't be able to
+    // run any of these.
+    if (!supportsApplyEdit) {
+      return const [];
+    }
+
     final refactorActions = <Either2<CodeAction, Command>>[];
 
     try {

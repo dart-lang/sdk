@@ -45,11 +45,7 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
 
   /// Executes the refactor in [action].
   Future<void> executeRefactor(CodeAction action) async {
-    await executeCommandForEdits(
-      action.command!,
-      {},
-      expectDocumentChanges: true,
-    );
+    await executeCommandForEdits(action.command!);
   }
 
   /// Expects to find a refactor [CodeAction] in [mainFileUri] at the offset of
@@ -107,39 +103,11 @@ abstract class RefactoringTest extends AbstractCodeActionsTest {
   /// corresponding flags are set to `false`.
   Future<void> initializeServer({
     bool experimentalOptInFlag = true,
-    Set<String>? commandParameterSupportedKinds,
-    bool fileCreateSupport = true,
-    bool applyEditSupport = true,
   }) async {
     final config = {
       if (experimentalOptInFlag) 'experimentalRefactors': true,
     };
-    final experimentalCapabilities = {
-      if (commandParameterSupportedKinds != null)
-        'dartCodeAction': {
-          'commandParameterSupport': {
-            'supportedKinds': commandParameterSupportedKinds.toList()
-          },
-        }
-    };
 
-    var workspaceCapabilities =
-        withConfigurationSupport(emptyWorkspaceClientCapabilities);
-    if (applyEditSupport) {
-      workspaceCapabilities = withApplyEditSupport(workspaceCapabilities);
-    }
-    if (fileCreateSupport) {
-      workspaceCapabilities = withDocumentChangesSupport(
-          withResourceOperationKinds(
-              workspaceCapabilities, [ResourceOperationKind.Create]));
-    }
-
-    await provideConfig(
-      () => initialize(
-        workspaceCapabilities: workspaceCapabilities,
-        experimentalCapabilities: experimentalCapabilities,
-      ),
-      config,
-    );
+    await provideConfig(super.initialize, config);
   }
 }

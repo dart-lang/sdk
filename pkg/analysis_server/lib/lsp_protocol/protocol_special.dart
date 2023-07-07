@@ -62,6 +62,9 @@ Null _alwaysNull(_, [__]) => null;
 
 bool _alwaysTrue(_, [__]) => true;
 
+typedef DocumentChanges
+    = List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>;
+
 class Either2<T1, T2> implements ToJsonable {
   final int _which;
   final T1? _t1;

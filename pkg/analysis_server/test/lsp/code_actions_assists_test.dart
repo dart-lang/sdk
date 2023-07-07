@@ -6,12 +6,13 @@ import 'dart:convert';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analysis_server.dart';
+import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
-import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../utils/test_code_extensions.dart';
 import 'code_actions_abstract.dart';
 
 void main() {
@@ -29,12 +30,13 @@ class AssistsCodeActionsTest extends AbstractCodeActionsTest {
       projectFolderPath,
       flutter: true,
     );
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
   }
 
   Future<void> test_appliesCorrectEdits_withDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
-import '[[dart:async]]';
+import '[!dart:async!]';
 
 Future f;
 ''';
@@ -44,38 +46,18 @@ import 'dart:async' show Future;
 
 Future f;
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.add.showCombinator'),
+      title: "Add explicit 'show' combinator",
     );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assist = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.add.showCombinator'),
-        "Add explicit 'show' combinator")!;
-
-    // Ensure the edit came back, and using documentChanges.
-    final edit = assist.edit!;
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, edit.documentChanges!);
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_appliesCorrectEdits_withoutDocumentChangesSupport() async {
     // This code should get an assist to add a show combinator.
     const content = '''
-import '[[dart:async]]';
+import '[!dart:async!]';
 
 Future f;
 ''';
@@ -85,30 +67,14 @@ import 'dart:async' show Future;
 
 Future f;
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+
+    setDocumentChangesSupport(false);
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.add.showCombinator'),
+      title: "Add explicit 'show' combinator",
     );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assistAction = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.add.showCombinator'),
-        "Add explicit 'show' combinator")!;
-
-    // Ensure the edit came back, and using changes.
-    final edit = assistAction.edit!;
-    expect(edit.changes, isNotNull);
-    expect(edit.documentChanges, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_errorMessage_invalidIntegers() async {
@@ -145,7 +111,7 @@ Future f;
           }
         }
       }
-      '''),
+'''),
     );
     final resp = await sendRequestToServer(request);
     final error = resp.error!;
@@ -164,7 +130,7 @@ import 'package:flutter/widgets.dart';
 Widget build() {
   return Te^xt('');
 }
-    ''';
+''';
 
     // For testing, the snippet will be inserted literally into the text, as
     // this requires some magic on the client. The expected text should
@@ -174,52 +140,31 @@ import 'package:flutter/widgets.dart';
 Widget build() {
   return Center($0child: Text(''));
 }
-    ''';
+''';
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
-      experimentalCapabilities: {
-        'snippetTextEdit': true,
-      },
+    setSnippetTextEditSupport();
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.flutter.wrap.center'),
+      title: 'Wrap with Center',
     );
-
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('refactor.flutter.wrap.center'), 'Wrap with Center')!;
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, assist.edit!.documentChanges!);
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_logsExecution() async {
     const content = '''
-import '[[dart:async]]';
+import '[!dart:async!]';
 
 Future f;
 ''';
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+
+    final action = await expectAction(
+      content,
+      kind: CodeActionKind('refactor.add.showCombinator'),
+      title: "Add explicit 'show' combinator",
     );
 
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assistAction = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.add.showCombinator'),
-        "Add explicit 'show' combinator")!;
-
-    await executeCommand(assistAction.command!);
+    await executeCommand(action.command!);
     expectCommandLogged('dart.assist.add.showCombinator');
   }
 
@@ -238,8 +183,12 @@ Future f;
   Future<void> test_plugin() async {
     if (!AnalysisServer.supportsPlugins) return;
     // This code should get an assist to replace 'foo' with 'bar'.'
-    const content = '[[foo]]';
-    const expectedContent = 'bar';
+    const content = '''
+[!foo!]
+''';
+    const expectedContent = '''
+bar
+''';
 
     final pluginResult = plugin.EditGetAssistsResult([
       plugin.PrioritizedSourceChange(
@@ -259,33 +208,19 @@ Future f;
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.fooToBar'),
+      title: "Change 'foo' to 'bar'",
     );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('refactor.fooToBar'), "Change 'foo' to 'bar'")!;
-
-    final edit = assist.edit!;
-    expect(edit.changes, isNotNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_plugin_sortsWithServer() async {
     if (!AnalysisServer.supportsPlugins) return;
     // Produces a server assist of "Convert to single quoted string" (with a
     // priority of 30).
-    const content = 'import "[[dart:async]]";';
+    final code = TestCode.parse('import "[!dart:async!]";');
 
     // Provide two plugin results that should sort either side of the server assist.
     final pluginResult = plugin.EditGetAssistsResult([
@@ -297,14 +232,14 @@ Future f;
           request is plugin.EditGetAssistsParams ? pluginResult : null,
     );
 
-    newFile(mainFilePath, withoutMarkers(content));
+    newFile(mainFilePath, code.code);
     await initialize(
       textDocumentCapabilities: withCodeActionKinds(
           emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
     );
 
     final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
+        await getCodeActions(mainFileUri, range: code.range.range);
     final codeActionTitles = codeActions.map((action) =>
         action.map((command) => command.title, (action) => action.title));
 
@@ -354,31 +289,13 @@ build() {
 }
 ''';
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
-      experimentalCapabilities: {
-        'snippetTextEdit': true,
-      },
+    setSnippetTextEditSupport();
+    await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.flutter.wrap.generic'),
+      title: 'Wrap with widget...',
     );
-
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final assist = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.flutter.wrap.generic'),
-        'Wrap with widget...')!;
-
-    // Ensure applying the changes will give us the expected content.
-    final edit = assist.edit!;
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, edit.documentChanges!);
-    expect(contents[mainFilePath], equals(expectedContent));
   }
 
   Future<void> test_snippetTextEdits_singleEditGroup() async {
@@ -426,39 +343,17 @@ build() {
 }
 ''';
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
-      experimentalCapabilities: {
-        'snippetTextEdit': true,
-      },
+    setSnippetTextEditSupport();
+    final verifier = await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.flutter.wrap.generic'),
+      title: 'Wrap with widget...',
     );
-
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final assist = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.flutter.wrap.generic'),
-        'Wrap with widget...')!;
-
-    // Ensure the edit came back, and using documentChanges.
-    final edit = assist.edit!;
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, edit.documentChanges!);
-    expect(contents[mainFilePath], equals(expectedContent));
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
+    final textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
@@ -490,28 +385,15 @@ build() {
 }
 ''';
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
+    final assist = await expectAction(
+      content,
+      kind: CodeActionKind('refactor.flutter.wrap.generic'),
+      title: 'Wrap with widget...',
     );
 
-    final codeActions = await getCodeActions(mainFileUri,
-        position: positionFromMarker(content));
-    final assist = findEditAction(
-        codeActions,
-        CodeActionKind('refactor.flutter.wrap.generic'),
-        'Wrap with widget...')!;
-
-    // Ensure the edit came back, and using documentChanges.
-    final edit = assist.edit!;
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-
     // Extract just TextDocumentEdits, create/rename/delete are not relevant.
-    final textDocumentEdits = _extractTextDocumentEdits(edit.documentChanges!);
+    final edit = assist.edit!;
+    final textDocumentEdits = extractTextDocumentEdits(edit.documentChanges!);
     final textEdits = textDocumentEdits
         .expand((tde) => tde.edits)
         .map((edit) => edit.map((e) => e, (e) => e, (e) => e))
@@ -561,7 +443,7 @@ build() => Contai^ner(child: Container());
   Future<void> test_surround_editGroupsAndSelection() async {
     const content = '''
 void f() {
-  [[print(0);]]
+  [!print(0);!]
 }
 ''';
 
@@ -573,37 +455,17 @@ void f() {
 }
 ''';
 
-    newFile(mainFilePath, withoutMarkers(content));
-    await initialize(
-      textDocumentCapabilities: withCodeActionKinds(
-          emptyTextDocumentClientCapabilities, [CodeActionKind.Refactor]),
-      workspaceCapabilities:
-          withDocumentChangesSupport(emptyWorkspaceClientCapabilities),
-      experimentalCapabilities: {
-        'snippetTextEdit': true,
-      },
+    setSnippetTextEditSupport();
+    final verifier = await verifyActionEdits(
+      content,
+      expectedContent,
+      kind: CodeActionKind('refactor.surround.if'),
+      title: "Surround with 'if'",
     );
-
-    final codeActions =
-        await getCodeActions(mainFileUri, range: rangeFromMarkers(content));
-    final assist = findEditAction(codeActions,
-        CodeActionKind('refactor.surround.if'), "Surround with 'if'")!;
-
-    // Ensure the edit came back, and using documentChanges.
-    final edit = assist.edit!;
-    expect(edit.documentChanges, isNotNull);
-    expect(edit.changes, isNull);
-
-    // Ensure applying the changes will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(content),
-    };
-    applyDocumentChanges(contents, edit.documentChanges!);
-    expect(contents[mainFilePath], equals(expectedContent));
 
     // Also ensure there was a single edit that was correctly marked
     // as a SnippetTextEdit.
-    final textEdits = _extractTextDocumentEdits(edit.documentChanges!)
+    final textEdits = extractTextDocumentEdits(verifier.edit.documentChanges!)
         .expand((tde) => tde.edits)
         .map((edit) => edit.map(
               (e) => throw 'Expected SnippetTextEdit, got AnnotatedTextEdit',
@@ -614,22 +476,6 @@ void f() {
     expect(textEdits, hasLength(1));
     expect(textEdits.first.insertTextFormat, equals(InsertTextFormat.Snippet));
   }
-
-  List<TextDocumentEdit> _extractTextDocumentEdits(
-          List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
-              documentChanges) =>
-      // Extract TextDocumentEdits from union of resource changes
-      documentChanges
-          .map(
-            (change) => change.map(
-              (create) => null,
-              (delete) => null,
-              (rename) => null,
-              (textDocEdit) => textDocEdit,
-            ),
-          )
-          .whereNotNull()
-          .toList();
 }
 
 class _RawParams extends ToJsonable {
