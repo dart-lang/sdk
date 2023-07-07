@@ -440,7 +440,10 @@ class _ProgramInfoBuilder {
             type: NodeType.functionNode);
 
       case 'PatchClass':
-        return getInfoNodeFor(node['wrapped_class_']!);
+        // Allow the old patched_class_ field if the wrapped_class_ field does
+        //not exist.
+        final wrappedClass = node['wrapped_class_'] ?? node['patched_class_']!;
+        return getInfoNodeFor(wrappedClass);
 
       case 'Class':
         // Default to root node. Some builtin classes (void, dynamic) don't have

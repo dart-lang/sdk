@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.7.6
+
+- Allow the old `'patched_class_'` field for `PatchClass` until we change the
+  SDK lower bound for this package to a version that does not have it.
+
 ## 0.7.5
 
 - Fix for flutter/flutter#130009 where an attempt to lookup the owner info
