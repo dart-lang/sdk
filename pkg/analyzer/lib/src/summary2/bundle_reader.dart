@@ -123,12 +123,12 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
-  /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement.methods], and
-  /// as well access them through their [Reference]s. For a class declaration
-  /// this means reading them, for a named mixin application this means
-  /// computing constructors.
-  void readMembers(ClassElementImpl element) {
+  @override
+  void readMembers(InstanceOrAugmentationElementMixin element) {
+    if (element is! ClassElementImpl) {
+      return;
+    }
+
     if (element.isMixinApplication) {
       element.constructors;
     } else {
@@ -227,6 +227,13 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
     _read(element as E, reader);
   }
+
+  /// Ensure that all members of the [element] are available. This includes
+  /// being able to ask them for example using [ClassElement.methods], and
+  /// as well access them through their [Reference]s. For a class declaration
+  /// this means reading them, for a named mixin application this means
+  /// computing constructors.
+  void readMembers(InstanceOrAugmentationElementMixin element) {}
 
   void _addEnclosingElementTypeParameters(
     ResolutionReader reader,

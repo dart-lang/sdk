@@ -140,22 +140,12 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
 }
 
 /// An [InterfaceElementImpl] which is a class.
-class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
-    with ClassOrAugmentationElementMixin<ClassElementLinkedData>
+class ClassElementImpl extends ClassOrMixinElementImpl
+    with ClassOrAugmentationElementMixin
     implements ClassElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(super.name, super.offset);
-
-  @override
-  List<PropertyAccessorElementImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    linkedData?.readMembers(this);
-    return _accessors;
-  }
 
   @override
   set accessors(List<PropertyAccessorElementImpl> accessors) {
@@ -221,22 +211,11 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
     if (isMixinApplication) {
       // Assign to break a possible infinite recursion during computing.
       _constructors = const <ConstructorElementImpl>[];
+      // TODO(scheglov) Try to rewrite into "build", and move this method.
       return _constructors = _computeMixinAppConstructors();
     }
 
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      linkedData.readMembers(this);
-      return _constructors;
-    }
-
-    if (_constructors.isEmpty) {
-      var constructor = ConstructorElementImpl('', -1);
-      constructor.isSynthetic = true;
-      constructor.enclosingElement = this;
-      _constructors = <ConstructorElementImpl>[constructor];
-    }
-
+    linkedData?.readMembers(this);
     return _constructors;
   }
 
@@ -244,16 +223,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
-  }
-
-  @override
-  List<FieldElementImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    linkedData?.readMembers(this);
-    return _fields;
   }
 
   @override
@@ -452,16 +421,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 
   @override
-  List<MethodElementImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    linkedData?.readMembers(this);
-    return _methods;
-  }
-
-  @override
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
@@ -653,8 +612,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 }
 
-mixin ClassOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
-    on InterfaceOrAugmentationElementMixin<LinkedData>
+mixin ClassOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
     implements ClassOrAugmentationElement {
   ClassAugmentationElementImpl? _augmentation;
 
@@ -672,8 +630,7 @@ mixin ClassOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
   ClassElementImpl? get augmentedDeclaration;
 }
 
-abstract class ClassOrMixinElementImpl<LinkedData extends ElementLinkedData>
-    extends InterfaceElementImpl<LinkedData> {
+abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassOrMixinElementImpl(super.name, super.offset);
@@ -2608,8 +2565,7 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /// An [InterfaceElementImpl] which is an enum.
-class EnumElementImpl extends InterfaceElementImpl<EnumElementLinkedData>
-    implements EnumElement {
+class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
@@ -3446,20 +3402,14 @@ mixin InlineClassOrAugmentationElementMixin
     on NamedInstanceOrAugmentationElementMixin
     implements InlineClassOrAugmentationElement {}
 
-abstract class InstanceAugmentationElementImpl<
-        LinkedData extends ElementLinkedData> extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin,
-        InstanceOrAugmentationElementMixin<LinkedData>
+abstract class InstanceAugmentationElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
     implements InstanceAugmentationElement {
   InstanceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class InstanceElementImpl<LinkedData extends ElementLinkedData>
-    extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin,
-        InstanceOrAugmentationElementMixin<LinkedData>
+abstract class InstanceElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
     implements InstanceElement {
   InstanceElementImpl(super.name, super.nameOffset);
 }
@@ -3470,10 +3420,10 @@ abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
   InstanceOrAugmentationElementImpl(super.name, super.nameOffset);
 }
 
-mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
+mixin InstanceOrAugmentationElementMixin
     on _ExistingElementImpl, TypeParameterizedElementMixin
     implements InstanceOrAugmentationElement {
-  LinkedData? linkedData;
+  ElementLinkedData? linkedData;
 
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
   List<PropertyAccessorElementImpl> _accessors =
@@ -3482,6 +3432,11 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
 
   @override
   List<PropertyAccessorElementImpl> get accessors {
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
+    }
+
+    linkedData?.readMembers(this);
     return _accessors;
   }
 
@@ -3504,7 +3459,14 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
   }
 
   @override
-  List<FieldElementImpl> get fields => _fields;
+  List<FieldElementImpl> get fields {
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
+    }
+
+    linkedData?.readMembers(this);
+    return _fields;
+  }
 
   set fields(List<FieldElementImpl> fields) {
     for (var field in fields) {
@@ -3521,6 +3483,11 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
 
   @override
   List<MethodElementImpl> get methods {
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
+    }
+
+    linkedData?.readMembers(this);
     return _methods;
   }
 
@@ -3531,7 +3498,7 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
     _methods = methods;
   }
 
-  void setLinkedData(Reference reference, LinkedData linkedData) {
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
 
@@ -3545,12 +3512,11 @@ abstract class InterfaceAugmentationElementImpl
   InterfaceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class InterfaceElementImpl<LinkedData extends ElementLinkedData>
-    extends NamedInstanceElementImpl<LinkedData>
+abstract class InterfaceElementImpl extends NamedInstanceElementImpl
     with
         HasCompletionData,
         MacroTargetElement,
-        InterfaceOrAugmentationElementMixin<LinkedData>
+        InterfaceOrAugmentationElementMixin
     implements InterfaceElement {
   InterfaceType? _supertype;
 
@@ -3877,8 +3843,8 @@ abstract class InterfaceElementImpl<LinkedData extends ElementLinkedData>
   }
 }
 
-mixin InterfaceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
-    on NamedInstanceOrAugmentationElementMixin<LinkedData>
+mixin InterfaceOrAugmentationElementMixin
+    on NamedInstanceOrAugmentationElementMixin
     implements InterfaceOrAugmentationElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -4985,8 +4951,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl<MixinElementLinkedData>
-    implements MixinElement {
+class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   /// A list containing all of the superclass constraints that are defined for
   /// the mixin.
   List<InterfaceType> _superclassConstraints = const [];
@@ -5479,16 +5444,14 @@ abstract class NamedInstanceAugmentationElementImpl
   NamedInstanceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class NamedInstanceElementImpl<LinkedData extends ElementLinkedData>
-    extends InstanceElementImpl<LinkedData>
-    with NamedInstanceOrAugmentationElementMixin<LinkedData>
+abstract class NamedInstanceElementImpl extends InstanceElementImpl
+    with NamedInstanceOrAugmentationElementMixin
     implements NamedInstanceElement {
   NamedInstanceElementImpl(super.name, super.nameOffset);
 }
 
-mixin NamedInstanceOrAugmentationElementMixin<
-        LinkedData extends ElementLinkedData>
-    on InstanceOrAugmentationElementMixin<LinkedData>
+mixin NamedInstanceOrAugmentationElementMixin
+    on InstanceOrAugmentationElementMixin
     implements NamedInstanceOrAugmentationElement {
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
