@@ -97,6 +97,96 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
       visitor.visitAugmentationImportElement(this);
 }
 
+class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedClassElement {}
+
+class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedEnumElement {}
+
+class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
+    implements AugmentedExtensionElement {}
+
+class AugmentedInlineClassElementImpl extends AugmentedNamedInstanceElementImpl
+    implements AugmentedInlineClassElement {}
+
+abstract class AugmentedInstanceElementImpl
+    implements AugmentedInstanceElement {
+  @override
+  // TODO: implement accessors
+  List<PropertyAccessorElement> get accessors => throw UnimplementedError();
+
+  @override
+  // TODO: implement fields
+  List<FieldElement> get fields => throw UnimplementedError();
+
+  @override
+  // TODO: implement metadata
+  List<ElementAnnotation> get metadata => throw UnimplementedError();
+
+  @override
+  // TODO: implement methods
+  List<MethodElement> get methods => throw UnimplementedError();
+
+  @override
+  FieldElement? getField(String name) {
+    // TODO: implement getField
+    throw UnimplementedError();
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    // TODO: implement getGetter
+    throw UnimplementedError();
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    // TODO: implement getMethod
+    throw UnimplementedError();
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    // TODO: implement getSetter
+    throw UnimplementedError();
+  }
+}
+
+abstract class AugmentedInterfaceElementImpl
+    extends AugmentedNamedInstanceElementImpl
+    implements AugmentedInterfaceElement {
+  @override
+  List<InterfaceType> interfaces = [];
+
+  @override
+  List<InterfaceType> mixins = [];
+}
+
+class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedMixinElement {
+  @override
+  // TODO: implement superclassConstraints
+  List<InterfaceType> get superclassConstraints => throw UnimplementedError();
+}
+
+abstract class AugmentedNamedInstanceElementImpl
+    extends AugmentedInstanceElementImpl
+    implements AugmentedNamedInstanceElement {
+  @override
+  // TODO: implement constructors
+  List<ConstructorElement> get constructors => throw UnimplementedError();
+
+  @override
+  // TODO: implement unnamedConstructor
+  ConstructorElement? get unnamedConstructor => throw UnimplementedError();
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    // TODO: implement getNamedConstructor
+    throw UnimplementedError();
+  }
+}
+
 class BindPatternVariableElementImpl extends PatternVariableElementImpl
     implements BindPatternVariableElement {
   final DeclaredVariablePatternImpl node;
@@ -143,6 +233,9 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
 class ClassElementImpl extends ClassOrMixinElementImpl
     with ClassOrAugmentationElementMixin
     implements ClassElement {
+  @override
+  final AugmentedClassElementImpl augmented = AugmentedClassElementImpl();
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(super.name, super.offset);
@@ -191,12 +284,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     }
 
     return null;
-  }
-
-  @override
-  AugmentedClassElement get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
   }
 
   @override
@@ -3309,16 +3396,37 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
+class InlineClassAugmentationElementImpl
+    extends NamedInstanceAugmentationElementImpl
+    with InlineClassOrAugmentationElementMixin
+    implements InlineClassAugmentationElement {
+  InlineClassAugmentationElementImpl(super.name, super.offset);
+
+  @override
+  // TODO: implement augmentationTarget
+  InlineClassOrAugmentationElement? get augmentationTarget =>
+      throw UnimplementedError();
+
+  @override
+  // TODO: implement augmentedDeclaration
+  InlineClassElementImpl? get augmentedDeclaration =>
+      throw UnimplementedError();
+
+  @override
+  // TODO: implement kind
+  ElementKind get kind => throw UnimplementedError();
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO: implement accept
+    throw UnimplementedError();
+  }
+}
+
 class InlineClassElementImpl extends NamedInstanceElementImpl
     with InlineClassOrAugmentationElementMixin
     implements InlineClassElement {
   InlineClassElementImpl(super.name, super.nameOffset);
-
-  @override
-  InlineClassAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
 
   @override
   AugmentedInlineClassElement get augmented {
@@ -3364,7 +3472,22 @@ class InlineClassElementImpl extends NamedInstanceElementImpl
 
 mixin InlineClassOrAugmentationElementMixin
     on NamedInstanceOrAugmentationElementMixin
-    implements InlineClassOrAugmentationElement {}
+    implements InlineClassOrAugmentationElement {
+  InlineClassAugmentationElementImpl? _augmentation;
+
+  @override
+  InlineClassAugmentationElementImpl? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(InlineClassAugmentationElementImpl? value) {
+    _augmentation = value;
+  }
+
+  @override
+  InlineClassElementImpl? get augmentedDeclaration;
+}
 
 abstract class InstanceAugmentationElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
@@ -3376,6 +3499,8 @@ abstract class InstanceElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
     implements InstanceElement {
   InstanceElementImpl(super.name, super.nameOffset);
+
+  InstanceAugmentationElementImpl? get augmentation;
 }
 
 abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
@@ -3498,6 +3623,11 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   @override
   List<InterfaceType> get allSupertypes {
     return library.session.classHierarchy.implementedInterfaces(this);
+  }
+
+  @override
+  AugmentedInterfaceElementImpl get augmented {
+    throw UnimplementedError();
   }
 
   /// Return `true` if this class represents the class '_Enum' defined in the

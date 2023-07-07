@@ -49,9 +49,26 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
-    // TODO: implement visitClassAugmentationDeclaration
-    // super.visitClassAugmentationDeclaration(node);
+  void visitClassAugmentationDeclaration(
+    covariant ClassAugmentationDeclarationImpl node,
+  ) {
+    var outerScope = scope;
+
+    var element = node.declaredElement!;
+
+    scope = TypeParameterScope(scope, element.typeParameters);
+
+    node.typeParameters?.accept(this);
+    node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
+
+    // TODO(scheglov) implements
+    // scope = InterfaceScope(scope, element);
+    // LinkingNodeContext(node, scope);
+    // node.members.accept(this);
+
+    nodesToBuildType.addDeclaration(node);
+    scope = outerScope;
   }
 
   @override
@@ -64,8 +81,8 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     node.typeParameters?.accept(this);
     node.extendsClause?.accept(this);
-    node.implementsClause?.accept(this);
     node.withClause?.accept(this);
+    node.implementsClause?.accept(this);
 
     scope = InterfaceScope(scope, element);
     LinkingNodeContext(node, scope);

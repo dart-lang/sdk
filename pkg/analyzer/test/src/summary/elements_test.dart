@@ -50,6 +50,7 @@ library
         augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
         constructors
           synthetic @-1
+        augmented
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -65,6 +66,222 @@ library
               augment class A @40
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
                 augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_augmented_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A implements I2 {}
+class I2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        interfaces
+          I1
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            I1
+            I2
+      class I1 @56
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @68
+            constructors
+              synthetic @-1
+        classAugmentations
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            interfaces
+              I2
+''');
+  }
+
+  test_augmented_interfaces_chain() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment class A implements I2 {}
+class I2 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment class A implements I3 {}
+class I3 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        interfaces
+          I1
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            I1
+            I2
+            I3
+      class I1 @56
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @93
+            constructors
+              synthetic @-1
+        classAugmentations
+          augment class A @68
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            interfaces
+              I2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class I3 @65
+                constructors
+                  synthetic @-1
+            classAugmentations
+              augment class A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+                interfaces
+                  I3
+''');
+  }
+
+  test_augmented_interfaces_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> implements I2<T2> {}
+class I2<E> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        interfaces
+          I1
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            I1
+            I2<T>
+      class I1 @59
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @76
+            typeParameters
+              covariant E @79
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            interfaces
+              I2<T2>
+''');
+  }
+
+  test_augmented_mixins() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A with M2 {}
+mixin M2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A with M1 {}
+mixin M1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        supertype: Object
+        mixins
+          M1
+        constructors
+          synthetic @-1
+        augmented
+          mixins
+            M1
+            M2
+    mixins
+      mixin M1 @50
+        superclassConstraints
+          Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            mixins
+              M2
+        mixins
+          mixin M2 @62
+            superclassConstraints
+              Object
 ''');
   }
 }

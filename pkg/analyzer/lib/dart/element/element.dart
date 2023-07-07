@@ -213,7 +213,8 @@ abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement
     implements InterfaceElement, ClassOrAugmentationElement {
-  /// The result of applying augmentations.
+  @experimental
+  @override
   AugmentedClassElement get augmented;
 
   /// Whether the class or its superclass declares a non-final instance field.
@@ -1209,7 +1210,8 @@ abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement
     implements InterfaceElement, EnumOrAugmentationElement {
-  /// The result of applying augmentations.
+  @experimental
+  @override
   AugmentedEnumElement get augmented;
 }
 
@@ -1310,8 +1312,8 @@ abstract class ExtensionAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExtensionElement
     implements ExtensionOrAugmentationElement, InstanceElement {
-  /// The result of applying augmentations.
   @experimental
+  @override
   AugmentedExtensionElement get augmented;
 
   /// The type that is extended by this extension.
@@ -1512,8 +1514,8 @@ abstract class InlineClassAugmentationElement
 @experimental
 abstract class InlineClassElement
     implements NamedInstanceElement, InlineClassOrAugmentationElement {
-  /// The result of applying augmentations.
   @experimental
+  @override
   AugmentedInlineClassElement get augmented;
 
   /// The direct [InlineClassType]s that are implemented by this inline class.
@@ -1559,6 +1561,10 @@ abstract class InstanceAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
     implements InstanceOrAugmentationElement, TypeDefiningElement {
+  /// The result of applying augmentations.
+  @experimental
+  AugmentedInstanceElement get augmented;
+
   /// The type of `this` expression.
   ///
   /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
@@ -1606,6 +1612,10 @@ abstract class InterfaceElement
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
+
+  @experimental
+  @override
+  AugmentedInterfaceElement get augmented;
 
   /// The superclass of this element.
   ///
@@ -2163,7 +2173,8 @@ abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement
     implements InterfaceElement, MixinOrAugmentationElement {
-  /// The result of applying augmentations.
+  @experimental
+  @override
   AugmentedMixinElement get augmented;
 
   /// Whether the mixin is a base mixin.
@@ -2234,6 +2245,10 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 @experimental
 abstract class NamedInstanceElement
     implements InstanceElement, NamedInstanceOrAugmentationElement {
+  @experimental
+  @override
+  AugmentedNamedInstanceElement get augmented;
+
   /// Create the [DartType] for this element with the given [typeArguments]
   /// and [nullabilitySuffix].
   DartType instantiate({
