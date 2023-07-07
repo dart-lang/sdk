@@ -86,7 +86,7 @@ dart.try_builder(
     "dart-sdk-linux-riscv64",
     properties = {
         "$dart/build": {
-            "timeout": 100 * 60,  # 100 minutes,
+            "timeout": 120 * 60,  # 120 minutes,
         },
         "archs": ["riscv64"],
         "args": ["--no-clang"],
