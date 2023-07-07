@@ -52,7 +52,7 @@ abstract class HttpOverrides {
           findProxyFromEnvironment}) {
     HttpOverrides overrides =
         _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
-    return runZoned<R>(body,
+    return dart_async.runZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
 
