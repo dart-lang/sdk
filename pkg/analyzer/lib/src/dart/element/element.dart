@@ -203,23 +203,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   ClassElementImpl get augmentedDeclaration => this;
 
   @override
-  List<ConstructorElementImpl> get constructors {
-    if (!identical(_constructors, _Sentinel.constructorElement)) {
-      return _constructors;
-    }
-
-    if (isMixinApplication) {
-      // Assign to break a possible infinite recursion during computing.
-      _constructors = const <ConstructorElementImpl>[];
-      // TODO(scheglov) Try to rewrite into "build", and move this method.
-      return _constructors = _computeMixinAppConstructors();
-    }
-
-    linkedData?.readMembers(this);
-    return _constructors;
-  }
-
-  @override
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
@@ -462,49 +445,31 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     return true;
   }
 
-  /// Compute a list of constructors for this class, which is a mixin
-  /// application.  If specified, [visitedClasses] is a list of the other mixin
-  /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect cycles).
-  List<ConstructorElementImpl> _computeMixinAppConstructors(
-      [List<ClassElementImpl>? visitedClasses]) {
+  @override
+  void _buildMixinAppConstructors() {
+    // Do nothing if not a mixin application.
+    if (!isMixinApplication) {
+      return;
+    }
+
+    // Assign to break a possible infinite recursion during computing.
+    _constructors = const <ConstructorElementImpl>[];
+
     final superType = supertype;
     if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
       assert(false);
-      return <ConstructorElementImpl>[];
+      _constructors = <ConstructorElementImpl>[];
+      return;
     }
 
     final superElement = superType.element as ClassElementImpl;
 
-    // First get the list of constructors of the superclass which need to be
-    // forwarded to this class.
-    Iterable<ConstructorElement> constructorsToForward;
-    if (!superElement.isMixinApplication) {
-      final library = this.library;
-      constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library))
-          .where((constructor) => !constructor.isFactory);
-    } else {
-      if (visitedClasses == null) {
-        visitedClasses = <ClassElementImpl>[this];
-      } else {
-        if (visitedClasses.contains(this)) {
-          // Loop in the class hierarchy.  Don't try to forward any
-          // constructors.
-          return <ConstructorElementImpl>[];
-        }
-        visitedClasses.add(this);
-      }
-      try {
-        constructorsToForward =
-            superElement._computeMixinAppConstructors(visitedClasses);
-      } finally {
-        visitedClasses.removeLast();
-      }
-    }
+    final constructorsToForward = superElement.constructors
+        .where((constructor) => constructor.isAccessibleIn(library))
+        .where((constructor) => !constructor.isFactory);
 
     // Figure out the type parameter substitution we need to perform in order
     // to produce constructors for this class.  We want to be robust in the
@@ -527,8 +492,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
-    return constructorsToForward
-        .map((ConstructorElement superclassConstructor) {
+    _constructors = constructorsToForward.map((superclassConstructor) {
       var name = superclassConstructor.name;
       var implicitConstructor = ConstructorElementImpl(name, -1);
       implicitConstructor.isSynthetic = true;
@@ -5457,6 +5421,12 @@ mixin NamedInstanceOrAugmentationElementMixin
 
   @override
   List<ConstructorElementImpl> get constructors {
+    if (!identical(_constructors, _Sentinel.constructorElement)) {
+      return _constructors;
+    }
+
+    _buildMixinAppConstructors();
+    linkedData?.readMembers(this);
     return _constructors;
   }
 
@@ -5474,6 +5444,9 @@ mixin NamedInstanceOrAugmentationElementMixin
   String get name {
     return super.name!;
   }
+
+  /// Builds constructors for this mixin application.
+  void _buildMixinAppConstructors() {}
 }
 
 /// The synthetic element representing the declaration of the type `Never`.
