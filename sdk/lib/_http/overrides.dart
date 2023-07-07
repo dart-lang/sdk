@@ -61,7 +61,7 @@ abstract class HttpOverrides {
   /// Note that [overrides] should be an instance of a class that extends
   /// [HttpOverrides].
   static R runWithHttpOverrides<R>(R Function() body, HttpOverrides overrides) {
-    return runZoned<R>(body,
+    return dart_async.runZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
 
