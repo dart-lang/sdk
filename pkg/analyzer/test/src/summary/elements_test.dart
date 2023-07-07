@@ -44,8 +44,20 @@ class A {}
 
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @68
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
       augmentationImports
         package:test/b.dart
           definingUnit
@@ -53,18 +65,6 @@ library
               augment class A @40
                 augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
                 augmentedDeclaration: self::@class::A
-      definingUnit
-        classAugmentations
-          augment class A @68
-            augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
-  definingUnit
-    classes
-      class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
-        constructors
-          synthetic @-1
 ''');
   }
 }
@@ -201,8 +201,18 @@ class C {}
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
       augmentationImports
         package:test/b.dart
           definingUnit
@@ -210,16 +220,6 @@ library
               class B @32
                 constructors
                   synthetic @-1
-      definingUnit
-        classes
-          class A @60
-            constructors
-              synthetic @-1
-  definingUnit
-    classes
-      class C @31
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -238,17 +238,6 @@ class A<T> {
 ''');
     checkElementText(library, r'''
 library
-  augmentationImports
-    package:test/a.dart
-      definingUnit
-        classes
-          class B @35
-            supertype: A<int>
-            constructors
-              @56
-                superConstructor: ConstructorMember
-                  base: self::@class::A::@constructor::named
-                  substitution: {T: int}
   definingUnit
     classes
       class A @31
@@ -262,6 +251,17 @@ library
             parameters
               requiredPositional a @50
                 type: T
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B @35
+            supertype: A<int>
+            constructors
+              @56
+                superConstructor: ConstructorMember
+                  base: self::@class::A::@constructor::named
+                  substitution: {T: int}
 ''');
   }
 
@@ -280,6 +280,13 @@ class A {
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class A @31
+        constructors
+          named @39
+            periodOffset: 38
+            nameEnd: 44
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -289,13 +296,6 @@ library
             constructors
               @51
                 superConstructor: self::@class::A::@constructor::named
-  definingUnit
-    classes
-      class A @31
-        constructors
-          named @39
-            periodOffset: 38
-            nameEnd: 44
 ''');
   }
 
@@ -312,6 +312,11 @@ class A {}
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class A @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -321,11 +326,6 @@ library
             constructors
               @51
                 superConstructor: self::@class::A::@constructor::new
-  definingUnit
-    classes
-      class A @31
-        constructors
-          synthetic @-1
 ''');
   }
 
@@ -342,6 +342,15 @@ typedef F(C value);
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
+    typeAliases
+      functionTypeAliasBased notSimplyBounded F @33
+        aliasedType: dynamic Function(C<dynamic>)
+        aliasedElement: GenericFunctionTypeElement
+          parameters
+            requiredPositional value @37
+              type: C<dynamic>
+          returnType: dynamic
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -353,15 +362,6 @@ library
                 defaultType: dynamic
             constructors
               synthetic @-1
-  definingUnit
-    typeAliases
-      functionTypeAliasBased notSimplyBounded F @33
-        aliasedType: dynamic Function(C<dynamic>)
-        aliasedElement: GenericFunctionTypeElement
-          parameters
-            requiredPositional value @37
-              type: C<dynamic>
-          returnType: dynamic
 ''');
   }
 
@@ -375,6 +375,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -386,7 +387,6 @@ library
                 defaultType: dynamic
             constructors
               synthetic @-1
-  definingUnit
 ''');
   }
 
@@ -409,6 +409,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -433,7 +434,6 @@ library
                     staticElement: package:test/a.dart::@class::A::@getter::a
                     staticType: int
             returnType: void
-  definingUnit
 ''');
   }
 
@@ -456,6 +456,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -487,7 +488,6 @@ library
                       staticType: int
                     staticType: int
             returnType: void
-  definingUnit
 ''');
   }
 
@@ -501,11 +501,11 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       documentationComment: /// My documentation.
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -526,6 +526,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -543,7 +544,6 @@ library
         accessors
           synthetic static get b @-1
             returnType: int
-  definingUnit
 ''');
   }
 
@@ -566,6 +566,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -591,7 +592,6 @@ library
         accessors
           synthetic static get b @-1
             returnType: int
-  definingUnit
 ''');
   }
 
@@ -614,6 +614,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -638,7 +639,6 @@ library
         accessors
           synthetic static get a @-1
             returnType: A
-  definingUnit
 ''');
   }
 
@@ -661,6 +661,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -693,7 +694,6 @@ library
         accessors
           synthetic static get b @-1
             returnType: int
-  definingUnit
 ''');
   }
 
@@ -714,6 +714,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -722,7 +723,6 @@ library
         functions
           f @65
             returnType: A
-  definingUnit
 ''');
   }
 
@@ -743,6 +743,7 @@ import augment 'b.dart';
 
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
       imports
@@ -755,7 +756,6 @@ library
         accessors
           synthetic static get b @-1
             returnType: int
-  definingUnit
 ''');
   }
 
@@ -779,6 +779,10 @@ A f() {}
     // But the library does not import, so there `A` is unresolved.
     checkElementText(library, r'''
 library
+  definingUnit
+    functions
+      f @27
+        returnType: InvalidType
   augmentationImports
     package:test/b.dart
       imports
@@ -787,10 +791,6 @@ library
         functions
           f @48
             returnType: A
-  definingUnit
-    functions
-      f @27
-        returnType: InvalidType
 ''');
   }
 
@@ -816,16 +816,16 @@ A f() {}
 library
   imports
     package:test/a.dart
+  definingUnit
+    functions
+      f @44
+        returnType: A
   augmentationImports
     package:test/b.dart
       definingUnit
         functions
           f @31
             returnType: InvalidType
-  definingUnit
-    functions
-      f @44
-        returnType: A
 ''');
   }
 
@@ -848,6 +848,7 @@ import augment 'b.dart';
 library
   imports
     dart:io
+  definingUnit
   augmentationImports
     package:test/a.dart
       exports
@@ -858,7 +859,6 @@ library
         dart:collection
         dart:math
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -881,6 +881,7 @@ import augment 'b.dart';
 library
   imports
     dart:io
+  definingUnit
   augmentationImports
     package:test/a.dart
       imports
@@ -891,7 +892,6 @@ library
         dart:collection
         dart:math
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -910,6 +910,10 @@ A f() {}
     // The augmentation declares `A`, and can it be used in the library.
     checkElementText(library, r'''
 library
+  definingUnit
+    functions
+      f @27
+        returnType: A
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -920,10 +924,6 @@ library
         functions
           f @42
             returnType: A
-  definingUnit
-    functions
-      f @27
-        returnType: A
 ''');
   }
 
@@ -942,12 +942,6 @@ A f() {}
     // The library declares `A`, and can it be used in the augmentation.
     checkElementText(library, r'''
 library
-  augmentationImports
-    package:test/a.dart
-      definingUnit
-        functions
-          f @31
-            returnType: A
   definingUnit
     classes
       class A @31
@@ -956,6 +950,12 @@ library
     functions
       f @38
         returnType: A
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        functions
+          f @31
+            returnType: A
 ''');
   }
 
@@ -23629,6 +23629,11 @@ class B {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -23636,11 +23641,6 @@ library
           class A @35
             constructors
               synthetic @-1
-  definingUnit
-    classes
-      class B @31
-        constructors
-          synthetic @-1
   exportedReferences
     declared self::@augmentation::package:test/a.dart::@class::A
     declared self::@class::B
@@ -23678,6 +23678,11 @@ class X {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class X @56
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/d.dart
       exports
@@ -23688,11 +23693,6 @@ library
         package:test/b.dart
         package:test/c.dart
       definingUnit
-  definingUnit
-    classes
-      class X @56
-        constructors
-          synthetic @-1
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B1
@@ -23726,6 +23726,11 @@ class X {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/b.dart
       exports
@@ -23733,11 +23738,6 @@ library
           combinators
             hide: A2, A4
       definingUnit
-  definingUnit
-    classes
-      class X @31
-        constructors
-          synthetic @-1
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
@@ -23766,6 +23766,11 @@ class X {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class X @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/b.dart
       exports
@@ -23773,11 +23778,6 @@ library
           combinators
             show: A1, A3
       definingUnit
-  definingUnit
-    classes
-      class X @31
-        constructors
-          synthetic @-1
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
@@ -23806,8 +23806,18 @@ class C {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class C @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
+      definingUnit
+        classes
+          class A @60
+            constructors
+              synthetic @-1
       augmentationImports
         package:test/b.dart
           definingUnit
@@ -23815,16 +23825,6 @@ library
               class B @32
                 constructors
                   synthetic @-1
-      definingUnit
-        classes
-          class A @60
-            constructors
-              synthetic @-1
-  definingUnit
-    classes
-      class C @31
-        constructors
-          synthetic @-1
   exportedReferences
     declared self::@augmentation::package:test/a.dart::@class::A
     declared self::@augmentation::package:test/b.dart::@class::B
@@ -23859,21 +23859,21 @@ class X {}
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
-  augmentationImports
-    package:test/c.dart
-      exports
-        package:test/a.dart
-      augmentationImports
-        package:test/d.dart
-          exports
-            package:test/b.dart
-          definingUnit
-      definingUnit
   definingUnit
     classes
       class X @31
         constructors
           synthetic @-1
+  augmentationImports
+    package:test/c.dart
+      exports
+        package:test/a.dart
+      definingUnit
+      augmentationImports
+        package:test/d.dart
+          exports
+            package:test/b.dart
+          definingUnit
   exportedReferences
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B
@@ -23896,6 +23896,7 @@ import augment 'a.dart';
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -23911,7 +23912,6 @@ library
               requiredPositional _a @-1
                 type: int
             returnType: void
-  definingUnit
   exportedReferences
     declared self::@augmentation::package:test/a.dart::@getter::a
     declared self::@augmentation::package:test/a.dart::@setter::a
@@ -23932,6 +23932,7 @@ import augment 'a.dart';
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -23946,7 +23947,6 @@ library
         accessors
           synthetic static get a @-1
             returnType: int
-  definingUnit
   exportedReferences
     declared self::@augmentation::package:test/a.dart::@getter::a
   exportNamespace
@@ -29095,6 +29095,11 @@ class B {}
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -29102,11 +29107,6 @@ library
           class A @35
             constructors
               synthetic @-1
-  definingUnit
-    classes
-      class B @31
-        constructors
-          synthetic @-1
 ''');
 
     final import_0 = library.augmentationImports[0];
@@ -29136,19 +29136,19 @@ import augment 'c.dart';
     configuration.withLibraryAugmentations = true;
     checkElementText(library, r'''
 library
-  augmentationImports
-    package:test/a.dart
-      augmentationImports
-        package:test/b.dart
-          definingUnit
-      definingUnit
-    package:test/c.dart
-      definingUnit
   definingUnit
   augmentations
     self::@augmentation::package:test/a.dart
     self::@augmentation::package:test/b.dart
     self::@augmentation::package:test/c.dart
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+    package:test/c.dart
+      definingUnit
 ''');
 
     final import_0 = library.augmentationImports[0];
@@ -29162,9 +29162,9 @@ import augment '${'foo'}.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     noRelativeUriString
-  definingUnit
 ''');
   }
 
@@ -29174,9 +29174,9 @@ import augment '';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     source 'package:test/test.dart'
-  definingUnit
 ''');
   }
 
@@ -29186,9 +29186,9 @@ import augment 'foo:bar';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     relativeUri 'foo:bar'
-  definingUnit
 ''');
   }
 
@@ -29201,9 +29201,9 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     source 'package:test/a.dart'
-  definingUnit
 ''');
   }
 
@@ -29216,9 +29216,9 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     source 'package:test/a.dart'
-  definingUnit
 ''');
   }
 
@@ -29228,9 +29228,9 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     source 'package:test/a.dart'
-  definingUnit
 ''');
   }
 
@@ -29240,9 +29240,9 @@ import augment ':';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     relativeUriString ':'
-  definingUnit
 ''');
   }
 
@@ -29949,6 +29949,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -29964,7 +29965,6 @@ library
                 element: dart:core::@getter::deprecated
             constructors
               synthetic @-1
-  definingUnit
 ''');
   }
 
@@ -29978,6 +29978,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       metadata
@@ -29989,7 +29990,6 @@ library
             staticType: null
           element: dart:core::@getter::deprecated
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -30004,6 +30004,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       exports
@@ -30017,7 +30018,6 @@ library
                 staticType: null
               element: dart:core::@getter::deprecated
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -30035,8 +30035,10 @@ import augment 'b.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/b.dart
+      definingUnit
       augmentationImports
         package:test/a.dart
           metadata
@@ -30048,8 +30050,6 @@ library
                 staticType: null
               element: dart:core::@getter::deprecated
           definingUnit
-      definingUnit
-  definingUnit
 ''');
   }
 
@@ -30064,6 +30064,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       imports
@@ -30077,7 +30078,6 @@ library
                 staticType: null
               element: dart:core::@getter::deprecated
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -30091,6 +30091,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       metadata
@@ -30102,7 +30103,6 @@ library
             staticType: null
           element: dart:core::@getter::deprecated
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -32695,6 +32695,7 @@ import augment 'a.dart';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     package:test/a.dart
       metadata
@@ -32706,7 +32707,6 @@ library
             staticType: null
           element: dart:core::@getter::deprecated
       definingUnit
-  definingUnit
 ''');
   }
 
@@ -32718,6 +32718,7 @@ import augment 'dart:math';
 ''');
     checkElementText(library, r'''
 library
+  definingUnit
   augmentationImports
     source 'dart:math'
       metadata
@@ -32728,7 +32729,6 @@ library
             staticElement: dart:core::@getter::deprecated
             staticType: null
           element: dart:core::@getter::deprecated
-  definingUnit
 ''');
   }
 

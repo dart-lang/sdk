@@ -101,10 +101,12 @@ class ClassAugmentationElementLinkedData
       unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.augmentationTarget =
-        reader.readElement() as ClassOrAugmentationElementMixin;
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget =
+        reader.readElement() as ClassOrAugmentationElementMixin?;
+    element.augmentation =
+        reader.readElement() as ClassAugmentationElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -147,6 +149,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentation =
+        reader.readElement() as ClassAugmentationElementImpl?;
     applyConstantOffsets?.perform();
   }
 }

@@ -760,6 +760,7 @@ class LibraryBuilder {
     }
   }
 
+  /// TODO(scheglov) merge while building
   void _mergeAugmentations() {
     final targets = <String, ClassOrAugmentationElementMixin>{};
     for (final unitElement in element.units) {
@@ -768,8 +769,9 @@ class LibraryBuilder {
       }
       for (final augmentation in unitElement.classAugmentations) {
         final name = augmentation.name;
-        // TODO(scheglov) create synthetic instead of null assert
-        augmentation.augmentationTarget = targets[name]!;
+        final target = targets[name]!;
+        augmentation.augmentationTarget = target;
+        target.augmentation = augmentation;
         targets[augmentation.name] = augmentation;
       }
     }

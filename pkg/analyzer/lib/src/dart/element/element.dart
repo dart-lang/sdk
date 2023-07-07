@@ -122,7 +122,6 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
   }
 
   set augmentationTarget(ClassOrAugmentationElementMixin? value) {
-    value?._augmentation = this;
     _augmentationTarget = value;
   }
 
@@ -663,6 +662,10 @@ mixin ClassOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
   ClassAugmentationElementImpl? get augmentation {
     linkedData?.read(this);
     return _augmentation;
+  }
+
+  set augmentation(ClassAugmentationElementImpl? value) {
+    _augmentation = value;
   }
 
   @override

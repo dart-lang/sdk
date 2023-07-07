@@ -146,9 +146,10 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeElement(element.augmentationTarget);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentationTarget);
+      _resolutionSink.writeElement(element.augmentation);
 
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
@@ -180,6 +181,7 @@ class BundleWriter {
       _resolutionSink.writeType(element.supertype);
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
+      _resolutionSink.writeElement(element.augmentation);
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;

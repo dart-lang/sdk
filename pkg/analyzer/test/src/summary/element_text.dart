@@ -604,9 +604,6 @@ class _ElementWriter {
 
     _writeElements('exports', e.libraryExports, _writeExportElement);
 
-    _writeElements('augmentationImports', e.augmentationImports,
-        _writeAugmentationImportElement);
-
     _sink.writelnWithIndent('definingUnit');
     _sink.withIndent(() {
       _writeUnitElement(e.definingCompilationUnit);
@@ -615,6 +612,9 @@ class _ElementWriter {
     if (e is LibraryElementImpl) {
       _writeLibraryAugmentations(e);
     }
+
+    _writeElements('augmentationImports', e.augmentationImports,
+        _writeAugmentationImportElement);
   }
 
   void _writeMetadata(Element element) {
