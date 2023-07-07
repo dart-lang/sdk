@@ -191,6 +191,7 @@
 library dart.io;
 
 import 'dart:async';
+import 'dart:async' as dart_async show runZoned;
 import 'dart:_internal' hide Symbol;
 import 'dart:collection'
     show HashMap, HashSet, Queue, ListQueue, MapBase, UnmodifiableMapView;
