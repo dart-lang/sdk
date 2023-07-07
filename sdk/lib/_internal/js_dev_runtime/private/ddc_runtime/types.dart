@@ -1832,6 +1832,10 @@ bool _isInterfaceSubtype(t1, t2, @notNull bool strictMode) {
   return false;
 }
 
+// TODO(48585) Replace with external stub after removing old type system.
+// The extraction and function call are inlined directly by the compiler
+// when running with the new type system (See compiler.dart,
+// `visitStaticInvocation()`).
 Object? extractTypeArguments<T>(T instance, Function f) {
   if (instance == null) {
     throw ArgumentError('Cannot extract type of null instance.');

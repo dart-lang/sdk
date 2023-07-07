@@ -282,6 +282,7 @@ condensed
 config
 configs
 configured
+connecting
 connectivity
 consecutive
 considerable
@@ -476,6 +477,7 @@ en
 encapsulation
 end'ed
 end's
+endpoint
 enforce
 enforced
 enforces
@@ -752,6 +754,7 @@ inspector
 inspired
 inst
 instanceof
+instantiable
 instantiator
 integrate
 intends
@@ -813,6 +816,7 @@ k
 kallentu
 kb
 kernel's
+keyed
 kick
 kill
 klass

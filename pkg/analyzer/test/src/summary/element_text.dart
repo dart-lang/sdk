@@ -622,8 +622,18 @@ class _ElementWriter {
   }
 
   void _writeName(Element e) {
-    // TODO(scheglov) Use 'name' everywhere.
-    var name = e is ConstructorElement ? e.name : e.displayName;
+    final String name;
+    switch (e) {
+      case ExtensionElement(name: null):
+        name = '<null>';
+      default:
+        name = e.name!;
+    }
+
+    if (e is PropertyAccessorElement && e.isSetter) {
+      expect(name, endsWith('='));
+    }
+
     _sink.write(name);
     _sink.write(name.isNotEmpty ? ' @' : '@');
     _sink.write(e.nameOffset);
