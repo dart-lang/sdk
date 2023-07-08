@@ -151,6 +151,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
     element.augmentation =
         reader.readElement() as ClassAugmentationElementImpl?;
+    element.augmented.mixins = reader._readInterfaceTypeList();
+    element.augmented.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
   }
 }

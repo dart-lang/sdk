@@ -186,6 +186,29 @@ class _ElementWriter {
     }
   }
 
+  void _writeAugmented(InstanceElementImpl e) {
+    // TODO(scheglov) enable for other types
+    if (e is! ClassElementImpl) {
+      return;
+    }
+
+    // No augmentation, not interesting.
+    if (e.augmentation == null) {
+      return;
+    }
+
+    _sink.writelnWithIndent('augmented');
+    _sink.withIndent(() {
+      final augmented = e.augmented;
+      switch (augmented) {
+        case AugmentedInterfaceElementImpl():
+          _elementPrinter.writeTypeList('mixins', augmented.mixins);
+          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+      }
+      // TODO(scheglov) Add other types and properties
+    });
+  }
+
   void _writeAugmentedDeclaration(InterfaceOrAugmentationElementMixin e) {
     final augmentedDeclaration = e.augmentedDeclaration;
     if (identical(augmentedDeclaration, e)) {
@@ -570,6 +593,10 @@ class _ElementWriter {
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeElements('methods', e.methods, _writeMethodElement);
+
+      if (e is InterfaceElementImpl) {
+        _writeAugmented(e);
+      }
     });
 
     _assertNonSyntheticElementSelf(e);

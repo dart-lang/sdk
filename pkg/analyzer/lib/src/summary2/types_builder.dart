@@ -11,6 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -116,6 +117,32 @@ class TypesBuilder {
     );
   }
 
+  void _classAugmentationDeclaration(ClassAugmentationDeclarationImpl node) {
+    final element = node.declaredElement!;
+
+    element.mixins = _toInterfaceTypeList(
+      node.withClause?.mixinTypes,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
+
+    _updatedAugmented(
+      element,
+      element.augmentedDeclaration,
+      (declaration, substitution) {
+        final augmented = declaration.augmented;
+        augmented.mixins.addAll(
+          substitution.mapInterfaceTypes(element.mixins),
+        );
+        augmented.interfaces.addAll(
+          substitution.mapInterfaceTypes(element.interfaces),
+        );
+      },
+    );
+  }
+
   void _classDeclaration(ClassDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
 
@@ -140,6 +167,10 @@ class TypesBuilder {
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
+
+    final augmented = element.augmented;
+    augmented.mixins.addAll(element.mixins);
+    augmented.interfaces.addAll(element.interfaces);
   }
 
   void _classTypeAlias(ClassTypeAlias node) {
@@ -164,6 +195,8 @@ class TypesBuilder {
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
       _classDeclaration(node);
+    } else if (node is ClassAugmentationDeclarationImpl) {
+      _classAugmentationDeclaration(node);
     } else if (node is ClassTypeAlias) {
       _classTypeAlias(node);
     } else if (node is EnumDeclaration) {
@@ -349,6 +382,33 @@ class TypesBuilder {
     return node.typeParameters
         .map<TypeParameterElement>((p) => p.declaredElement!)
         .toFixedList();
+  }
+
+  void _updatedAugmented<Declaration extends InstanceElementImpl>(
+    InstanceAugmentationElementImpl element,
+    Declaration? declaration,
+    void Function(Declaration declaration, Substitution substitution) f,
+  ) {
+    if (declaration == null) {
+      return;
+    }
+
+    final elementTypeParameters = element.typeParameters;
+    final declarationTypeParameters = declaration.typeParameters;
+    if (elementTypeParameters.length != declarationTypeParameters.length) {
+      return;
+    }
+
+    final substitution = Substitution.fromPairs(
+      elementTypeParameters,
+      declarationTypeParameters.map((e) {
+        return e.instantiate(
+          nullabilitySuffix: NullabilitySuffix.none,
+        );
+      }).toList(),
+    );
+
+    f(declaration, substitution);
   }
 
   /// The [FunctionType] to use when a function type is expected for a type

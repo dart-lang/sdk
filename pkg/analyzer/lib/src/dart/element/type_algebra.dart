@@ -160,6 +160,10 @@ abstract class Substitution {
 
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound);
 
+  Iterable<InterfaceType> mapInterfaceTypes(Iterable<InterfaceType> types) {
+    return types.map(substituteType).whereType();
+  }
+
   DartType substituteType(DartType type, {bool contravariant = false}) {
     var visitor = _TopSubstitutor(this, contravariant);
     return type.accept(visitor);

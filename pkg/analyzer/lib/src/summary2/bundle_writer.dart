@@ -182,6 +182,8 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentation);
+      _resolutionSink._writeTypeList(element.augmented.mixins);
+      _resolutionSink._writeTypeList(element.augmented.interfaces);
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;
