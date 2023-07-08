@@ -231,6 +231,7 @@ class UseResultVerifier {
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
         parent is NamedExpression ||
+        parent is PatternVariableDeclaration ||
         parent is PropertyAccess ||
         parent is RecordLiteral ||
         parent is ReturnStatement ||

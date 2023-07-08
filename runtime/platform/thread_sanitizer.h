@@ -17,10 +17,8 @@
 #define NO_SANITIZE_THREAD __attribute__((no_sanitize("thread")))
 extern "C" void __tsan_acquire(void* addr);
 extern "C" void __tsan_release(void* addr);
-constexpr bool kUsingThreadSanitizer = true;
 #else
 #define NO_SANITIZE_THREAD
-constexpr bool kUsingThreadSanitizer = false;
 #endif
 
 #if defined(USING_THREAD_SANITIZER)
@@ -40,9 +38,14 @@ constexpr bool kUsingThreadSanitizer = false;
 // Though in our AOT compiler we don't know whether the target AOT runtime will
 // use TSAN or not, so we'll rely on the build rules telling us that
 // information.
-#if defined(USING_THREAD_SANITIZER) && !defined(DART_PRECOMPILER) &&           \
-    !defined(TARGET_USES_THREAD_SANITIZER)
+#if defined(USING_THREAD_SANITIZER) && !defined(TARGET_USES_THREAD_SANITIZER)
 #define TARGET_USES_THREAD_SANITIZER
+#endif
+
+#if defined(TARGET_USES_THREAD_SANITIZER)
+constexpr bool kTargetUsesThreadSanitizer = true;
+#else
+constexpr bool kTargetUsesThreadSanitizer = false;
 #endif
 
 #endif  // RUNTIME_PLATFORM_THREAD_SANITIZER_H_

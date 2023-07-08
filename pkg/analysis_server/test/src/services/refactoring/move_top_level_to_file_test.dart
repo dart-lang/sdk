@@ -36,6 +36,13 @@ class ^A {}
     arguments[0] = newFileUri.toString();
   }
 
+  @override
+  void setUp() {
+    super.setUp();
+
+    setFileCreateSupport();
+  }
+
   /// Test that references to getter/setters in different libraries used in
   /// a compound assignment are both imported into the destination file.
   Future<void> test_compoundAssignment_multipleLibraries() async {
@@ -57,7 +64,7 @@ void function^ToMove() {
     var declarationName = 'functionToMove';
 
     var expected = '''
->>>>>>>>>> lib/function_to_move.dart
+>>>>>>>>>> lib/function_to_move.dart created
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
 
@@ -67,7 +74,6 @@ void functionToMove() {
 >>>>>>>>>> lib/main.dart
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -89,7 +95,7 @@ class B {}
     var declarationName = 'ClassToMove';
 
     var expected = '''
->>>>>>>>>> lib/class_to_move.dart
+>>>>>>>>>> lib/class_to_move.dart created
 // File header.
 
 class ClassToMove {}
@@ -127,8 +133,7 @@ class A {}
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await verifyCommandEdits(action.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(action.command!, expected);
   }
 
   Future<void> test_existingFile_withHeader() async {
@@ -155,8 +160,7 @@ class A {}
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await verifyCommandEdits(action.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(action.command!, expected);
   }
 
   Future<void> test_existingFile_withImports() async {
@@ -183,8 +187,7 @@ class A {}
 
     await initializeServer();
     final action = await expectCodeAction(simpleClassRefactorTitle);
-    await verifyCommandEdits(action.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(action.command!, expected);
   }
 
   Future<void> test_imports_declarationInSrc() async {
@@ -205,11 +208,10 @@ A? mov^ing;
 import 'package:test/a.dart';
 
 A? staying;
->>>>>>>>>> lib/moving.dart
+>>>>>>>>>> lib/moving.dart created
 import 'package:test/a.dart';
 
 A? moving;
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -240,7 +242,7 @@ void ^f() {
     var declarationName = 'f';
 
     var expected = '''
->>>>>>>>>> lib/f.dart
+>>>>>>>>>> lib/f.dart created
 import 'package:test/extensions.dart';
 import 'package:test/main.dart';
 
@@ -283,7 +285,7 @@ void ^f() {
     var declarationName = 'f';
 
     var expected = '''
->>>>>>>>>> lib/f.dart
+>>>>>>>>>> lib/f.dart created
 import 'package:test/extensions.dart';
 import 'package:test/main.dart';
 
@@ -461,14 +463,13 @@ void ^moving() {
 import 'package:test/extensions.dart' as other;
 
 class A {}
->>>>>>>>>> lib/moving.dart
+>>>>>>>>>> lib/moving.dart created
 import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
   A().extensionMethod();
 }
-
 ''';
     await _singleDeclaration(
         originalSource: originalSource,
@@ -504,14 +505,13 @@ void ^moving() {
 import 'package:test/extensions.dart' as other;
 
 class A {}
->>>>>>>>>> lib/moving.dart
+>>>>>>>>>> lib/moving.dart created
 import 'package:test/extensions.dart' as other;
 import 'package:test/main.dart';
 
 void moving() {
   A() + A();
 }
-
 ''';
     await _singleDeclaration(
         originalSource: originalSource,
@@ -755,7 +755,7 @@ class B^ {
     var declarationName = 'B';
 
     var expected = '''
->>>>>>>>>> lib/b.dart
+>>>>>>>>>> lib/b.dart created
 import 'dart:io';
 
 class B {
@@ -765,8 +765,6 @@ class B {
 import 'dart:io';
 
 class A {}
-
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -784,14 +782,12 @@ class ClassToMove^ extends A {}
     var declarationName = 'ClassToMove';
 
     var expected = '''
->>>>>>>>>> lib/class_to_move.dart
+>>>>>>>>>> lib/class_to_move.dart created
 import 'package:test/main.dart';
 
 class ClassToMove extends A {}
 >>>>>>>>>> lib/main.dart
 class A {}
-
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -809,13 +805,12 @@ class B^ {}
     var declarationName = 'B';
 
     var expected = '''
->>>>>>>>>> lib/b.dart
+>>>>>>>>>> lib/b.dart created
 class B {}
 >>>>>>>>>> lib/main.dart
 import 'package:test/b.dart';
 
 class A extends B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -839,7 +834,7 @@ B? b;
 ''';
 
     var expected = '''
->>>>>>>>>> lib/b.dart
+>>>>>>>>>> lib/b.dart created
 class B {}
 >>>>>>>>>> lib/c.dart
 import 'package:test/b.dart';
@@ -848,8 +843,6 @@ import 'package:test/main.dart';
 B? b;
 >>>>>>>>>> lib/main.dart
 class A {}
-
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -877,7 +870,7 @@ void f(p.B b, q.B b, B b) {}
 ''';
 
     var expected = '''
->>>>>>>>>> lib/b.dart
+>>>>>>>>>> lib/b.dart created
 class B {}
 >>>>>>>>>> lib/c.dart
 import 'package:test/b.dart';
@@ -890,8 +883,6 @@ import 'package:test/main.dart' as q;
 void f(p.B b, q.B b, B b) {}
 >>>>>>>>>> lib/main.dart
 class A {}
-
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -917,7 +908,7 @@ p.B? b;
 ''';
 
     var expected = '''
->>>>>>>>>> lib/b.dart
+>>>>>>>>>> lib/b.dart created
 class B {}
 >>>>>>>>>> lib/c.dart
 import 'package:test/b.dart' as p;
@@ -926,8 +917,6 @@ import 'package:test/main.dart' as p;
 p.B? b;
 >>>>>>>>>> lib/main.dart
 class A {}
-
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -969,7 +958,6 @@ import 'package:test/a.dart' hide A;
 import 'package:test/a.dart';
 
 A? moving;
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1009,7 +997,6 @@ import 'package:test/a.dart' hide A;
 import 'package:test/a.dart' show A;
 
 A? moving;
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1038,11 +1025,10 @@ A? mov^ing;
 import 'package:test/a.dart' show A;
 
 A? staying;
->>>>>>>>>> lib/moving.dart
+>>>>>>>>>> lib/moving.dart created
 import 'package:test/a.dart' show A;
 
 A? moving;
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1062,13 +1048,12 @@ class B {}
     var declarationName = 'ClassToMove';
 
     var expected = '''
->>>>>>>>>> lib/class_to_move.dart
+>>>>>>>>>> lib/class_to_move.dart created
 class ClassToMove {}
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1098,7 +1083,7 @@ class B {}
 ''';
 
     var expected = '''
->>>>>>>>>> lib/class_to_move1.dart
+>>>>>>>>>> lib/class_to_move1.dart created
 class ClassToMove1 {}
 
 class ClassToMove2 {}
@@ -1106,7 +1091,6 @@ class ClassToMove2 {}
 class A {}
 
 class B {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1122,7 +1106,7 @@ class B {}
 class A {}
 
 ''');
-    await initializeServer(experimentalOptInFlag: false);
+    await initializeServer();
     await expectNoCodeAction(null);
   }
 
@@ -1133,7 +1117,7 @@ imp^ort 'dart:core';
 class A {}
 
 ''');
-    await initializeServer(experimentalOptInFlag: false);
+    await initializeServer();
     await expectNoCodeAction(null);
   }
 
@@ -1158,7 +1142,7 @@ void function^ToMove() {
     var declarationName = 'functionToMove';
 
     var expected = '''
->>>>>>>>>> lib/function_to_move.dart
+>>>>>>>>>> lib/function_to_move.dart created
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
 
@@ -1168,7 +1152,6 @@ void functionToMove() {
 >>>>>>>>>> lib/main.dart
 import 'package:test/getter.dart';
 import 'package:test/setter.dart';
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1187,7 +1170,7 @@ import 'package:test/setter.dart';
   Future<void>
       test_protocol_available_withoutClientCommandParameterSupport() async {
     addTestSource(simpleClassContent);
-    await initializeServer(commandParameterSupportedKinds: null);
+    await initializeServer();
     // This refactor is available without command parameter support because
     // it has defaults.
     await expectCodeAction(simpleClassRefactorTitle);
@@ -1209,7 +1192,7 @@ import 'package:test/setter.dart';
     /// Expected new file content.
     const expected = '''
 >>>>>>>>>> lib/main.dart empty
->>>>>>>>>> lib/my_new_class.dart
+>>>>>>>>>> lib/my_new_class.dart created
 class A {}
 ''';
 
@@ -1217,13 +1200,13 @@ class A {}
     final action = await expectCodeAction(simpleClassRefactorTitle);
     // Replace the file URI argument with our custom path.
     replaceSaveUriArgument(action, newFileUri);
-    await verifyCommandEdits(action.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(action.command!, expected);
   }
 
   Future<void> test_protocol_unavailable_withoutFileCreateSupport() async {
     addTestSource(simpleClassContent);
-    await initializeServer(fileCreateSupport: false);
+    setFileCreateSupport(false);
+    await initializeServer();
     await expectNoCodeAction(simpleClassRefactorTitle);
   }
 
@@ -1238,7 +1221,7 @@ class Neither {}
 ''';
 
     var expected = '''
->>>>>>>>>> lib/either.dart
+>>>>>>>>>> lib/either.dart created
 sealed class Either {}
 
 class Left extends Either {}
@@ -1246,7 +1229,6 @@ class Right extends Either {}
 >>>>>>>>>> lib/main.dart
 
 class Neither {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1304,7 +1286,7 @@ class Neither {}
 
     // TODO(dantup): Track down where this extra newline is coming from.
     var expected = '''
->>>>>>>>>> lib/either.dart
+>>>>>>>>>> lib/either.dart created
 sealed class Either {}
 
 class Left extends Either {}
@@ -1316,7 +1298,6 @@ import 'package:test/either.dart';
 class LeftSub extends Left {}
 
 class Neither {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1336,7 +1317,7 @@ class Neither {}
 ''';
 
     var expected = '''
->>>>>>>>>> lib/either.dart
+>>>>>>>>>> lib/either.dart created
 sealed class Either {}
 
 class Left extends Either {}
@@ -1344,7 +1325,6 @@ class Right extends Either {}
 >>>>>>>>>> lib/main.dart
 
 class Neither {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1364,7 +1344,7 @@ class Neither {}
 ''';
 
     var expected = '''
->>>>>>>>>> lib/either.dart
+>>>>>>>>>> lib/either.dart created
 sealed class Either {}
 
 class Left implements Either {}
@@ -1372,7 +1352,6 @@ class Right implements Either {}
 >>>>>>>>>> lib/main.dart
 
 class Neither {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1399,14 +1378,13 @@ import 'package:test/sealed_root.dart';
 
 
 class SubSubSubclass extends SubSubclass {}
->>>>>>>>>> lib/sealed_root.dart
+>>>>>>>>>> lib/sealed_root.dart created
 sealed class SealedRoot {}
 
 class Subclass extends SealedRoot {}
 sealed class SealedSubclass extends SealedRoot {}
 
 class SubSubclass extends SealedSubclass {}
-
 ''';
     await _multipleDeclarations(
       originalSource: originalSource,
@@ -1426,13 +1404,12 @@ class B {}
     var declarationName = 'ClassToMove';
 
     var expected = '''
->>>>>>>>>> lib/class_to_move.dart
+>>>>>>>>>> lib/class_to_move.dart created
 class ClassToMove<T> {}
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1452,13 +1429,12 @@ class B {}
     var declarationName = 'EnumToMove';
 
     var expected = '''
->>>>>>>>>> lib/enum_to_move.dart
+>>>>>>>>>> lib/enum_to_move.dart created
 enum EnumToMove { a, b }
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1478,13 +1454,12 @@ class B {}
     var declarationName = 'ExtensionToMove';
 
     var expected = '''
->>>>>>>>>> lib/extension_to_move.dart
+>>>>>>>>>> lib/extension_to_move.dart created
 extension ExtensionToMove on int { }
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1504,13 +1479,12 @@ class B {}
     var declarationName = 'functionToMove';
 
     var expected = '''
->>>>>>>>>> lib/function_to_move.dart
+>>>>>>>>>> lib/function_to_move.dart created
 void functionToMove() { }
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1530,13 +1504,12 @@ class B {}
     var declarationName = 'functionToMove';
 
     var expected = '''
->>>>>>>>>> lib/function_to_move.dart
+>>>>>>>>>> lib/function_to_move.dart created
 void functionToMove() { }
 >>>>>>>>>> lib/main.dart
 class A {}
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1560,9 +1533,8 @@ class B {}
 class A {}
 
 class B {}
->>>>>>>>>> lib/mixin_to_move.dart
+>>>>>>>>>> lib/mixin_to_move.dart created
 mixin MixinToMove { }
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1592,7 +1564,6 @@ part of 'main.dart';
 class ClassToMove {}
 >>>>>>>>>> lib/main.dart
 part 'class_to_move.dart';
-
 ''';
 
     await _singleDeclaration(
@@ -1623,7 +1594,6 @@ part 'main.dart';
 class ClassToMove {}
 >>>>>>>>>> lib/main.dart
 part of 'class_to_move.dart';
-
 ''';
 
     await _singleDeclaration(
@@ -1660,7 +1630,6 @@ part of 'containing_library.dart';
 class ClassToMove {}
 >>>>>>>>>> lib/main.dart
 part of 'containing_library.dart';
-
 ''';
     await _singleDeclaration(
         originalSource: originalSource,
@@ -1685,9 +1654,8 @@ class B {}
 class A {}
 
 class B {}
->>>>>>>>>> lib/type_to_move.dart
+>>>>>>>>>> lib/type_to_move.dart created
 typedef TypeToMove = void Function();
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1712,9 +1680,8 @@ class B {}
 class A {}
 
 class B {}
->>>>>>>>>> lib/variable_to_move.dart
+>>>>>>>>>> lib/variable_to_move.dart created
 int variableToMove = 3;
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1733,13 +1700,12 @@ class B {}
     var declarationName = 'A';
 
     var expected = '''
->>>>>>>>>> lib/a.dart
+>>>>>>>>>> lib/a.dart created
 ///
 class A {}
 >>>>>>>>>> lib/main.dart
 
 class B {}
-
 ''';
     await _singleDeclaration(
       originalSource: originalSource,
@@ -1782,8 +1748,7 @@ class B {}
 
     await initializeServer();
     final action = await expectCodeAction(actionTitle);
-    await verifyCommandEdits(action.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(action.command!, expected);
   }
 
   Future<void> _singleDeclaration({
@@ -1824,7 +1789,7 @@ ${code.rawCode}
     var expected = '''
 >>>>>>>>>> lib/main.dart
 import 'package:test/other.dart' as other;
->>>>>>>>>> lib/moving.dart
+>>>>>>>>>> lib/moving.dart created
 import 'package:test/other.dart' as other;
 
 ${code.code}

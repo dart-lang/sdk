@@ -7,6 +7,7 @@
 
 #include "vm/dart.h"
 
+#include "platform/thread_sanitizer.h"
 #include "platform/unwinding_records.h"
 
 #include "vm/app_snapshot.h"
@@ -1070,6 +1071,8 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
 
   if (Snapshot::IncludesCode(kind)) {
     VM_GLOBAL_FLAG_LIST(ADD_P, ADD_R, ADD_C, ADD_D);
+
+    ADD_FLAG(tsan, kTargetUsesThreadSanitizer)
 
     // Enabling assertions affects deopt ids.
     ADD_ISOLATE_GROUP_FLAG(asserts, enable_asserts, FLAG_enable_asserts);

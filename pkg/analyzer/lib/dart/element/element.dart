@@ -212,7 +212,7 @@ abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement
-    implements ClassOrAugmentationElement, InterfaceElement {
+    implements InterfaceElement, ClassOrAugmentationElement {
   /// The result of applying augmentations.
   AugmentedClassElement get augmented;
 
@@ -343,6 +343,9 @@ abstract class ClassOrAugmentationElement
   /// [ClassAugmentationElement.augmentationTarget] is the back pointer that
   /// will point at this element.
   ClassAugmentationElement? get augmentation;
+
+  @override
+  ClassElement? get augmentedDeclaration;
 }
 
 /// An element representing a compilation unit.
@@ -352,6 +355,9 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
+
+  /// The class augmentations declared in this compilation unit.
+  List<ClassAugmentationElement> get classAugmentations;
 
   /// The classes declared in this compilation unit.
   List<ClassElement> get classes;
@@ -439,7 +445,7 @@ abstract class ConstructorElement
   InterfaceElement get enclosingElement;
 
   @override
-  NamedInstanceElement get enclosingElement2;
+  NamedInstanceOrAugmentationElement get enclosingElement2;
 
   /// Whether the constructor is a const constructor.
   bool get isConst;
@@ -477,7 +483,7 @@ abstract class ConstructorElement
   InterfaceType get returnType;
 
   @override
-  NamedInstanceType get returnType2;
+  DartType get returnType2;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -1202,7 +1208,7 @@ abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class EnumElement
-    implements EnumOrAugmentationElement, InterfaceElement {
+    implements InterfaceElement, EnumOrAugmentationElement {
   /// The result of applying augmentations.
   AugmentedEnumElement get augmented;
 }
@@ -1219,6 +1225,9 @@ abstract class EnumOrAugmentationElement
   /// [EnumAugmentationElement.augmentationTarget] is the back pointer that
   /// will point at this element.
   EnumAugmentationElement? get augmentation;
+
+  @override
+  EnumElement? get augmentedDeclaration;
 }
 
 /// An element representing an executable object, including functions, methods,
@@ -1502,7 +1511,7 @@ abstract class InlineClassAugmentationElement
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class InlineClassElement
-    implements InlineClassOrAugmentationElement, NamedInstanceElement {
+    implements NamedInstanceElement, InlineClassOrAugmentationElement {
   /// The result of applying augmentations.
   @experimental
   AugmentedInlineClassElement get augmented;
@@ -1524,6 +1533,25 @@ abstract class InlineClassOrAugmentationElement
   /// [InlineClassAugmentationElement.augmentationTarget] is the back pointer
   /// that will point at this element.
   InlineClassAugmentationElement? get augmentation;
+
+  @override
+  InlineClassElement? get augmentedDeclaration;
+}
+
+/// [InstanceElement] augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class InstanceAugmentationElement
+    implements InstanceOrAugmentationElement {
+  /// The element that is augmented by this augmentation; or `null` if
+  /// there is no corresponding element to be augmented.
+  ///
+  /// The chain of augmentations should normally end with a [InstanceElement],
+  /// but might end with `null` immediately or after a few intermediate
+  /// [InstanceAugmentationElement]s in case of invalid code when an
+  /// augmentation is declared without the corresponding declaration.
+  InstanceOrAugmentationElement? get augmentationTarget;
 }
 
 /// An element that has `this`.
@@ -1550,6 +1578,11 @@ abstract class InstanceOrAugmentationElement
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
+  /// The declaration in the main library, the start of the augmentation chain.
+  ///
+  /// [InstanceElement] returns itself.
+  InstanceElement? get augmentedDeclaration;
+
   @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElement get enclosingElement;
@@ -1568,7 +1601,7 @@ abstract class InstanceOrAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InterfaceElement
-    implements InterfaceOrAugmentationElement, NamedInstanceElement {
+    implements NamedInstanceElement, InterfaceOrAugmentationElement {
   /// All the supertypes defined for this element and its supertypes.
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
@@ -1800,6 +1833,9 @@ abstract class InterfaceElement
 @experimental
 abstract class InterfaceOrAugmentationElement
     implements NamedInstanceOrAugmentationElement {
+  @override
+  InterfaceElement? get augmentedDeclaration;
+
   /// The interfaces that are implemented by this class.
   ///
   /// <b>Note:</b> Because the element model represents the state of the code,
@@ -2126,7 +2162,7 @@ abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MixinElement
-    implements MixinOrAugmentationElement, InterfaceElement {
+    implements InterfaceElement, MixinOrAugmentationElement {
   /// The result of applying augmentations.
   AugmentedMixinElement get augmented;
 
@@ -2166,6 +2202,9 @@ abstract class MixinOrAugmentationElement
   /// [MixinAugmentationElement.augmentationTarget] is the back pointer that
   /// will point at this element.
   MixinAugmentationElement? get augmentation;
+
+  @override
+  MixinElement? get augmentedDeclaration;
 }
 
 /// A pseudo-element that represents multiple elements defined within a single
@@ -2194,7 +2233,7 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class NamedInstanceElement
-    implements NamedInstanceOrAugmentationElement, InstanceElement {
+    implements InstanceElement, NamedInstanceOrAugmentationElement {
   /// Create the [DartType] for this element with the given [typeArguments]
   /// and [nullabilitySuffix].
   DartType instantiate({
@@ -2209,6 +2248,9 @@ abstract class NamedInstanceElement
 @experimental
 abstract class NamedInstanceOrAugmentationElement
     implements InstanceOrAugmentationElement {
+  @override
+  NamedInstanceElement? get augmentedDeclaration;
+
   /// The declared constructors.
   ///
   /// The list is empty for [MixinElement].

@@ -126,6 +126,11 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
   }
 
   @override
+  ClassElementImpl? get augmentedDeclaration {
+    return augmentationTarget?.augmentedDeclaration;
+  }
+
+  @override
   ElementKind get kind => ElementKind.CLASS_AUGMENTATION;
 
   @override
@@ -135,21 +140,12 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
 }
 
 /// An [InterfaceElementImpl] which is a class.
-class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
+class ClassElementImpl extends ClassOrMixinElementImpl
+    with ClassOrAugmentationElementMixin
     implements ClassElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassElementImpl(super.name, super.offset);
-
-  @override
-  List<PropertyAccessorElementImpl> get accessors {
-    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
-      return _accessors;
-    }
-
-    linkedData?.readMembers(this);
-    return _accessors;
-  }
 
   @override
   set accessors(List<PropertyAccessorElementImpl> accessors) {
@@ -198,59 +194,18 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 
   @override
-  ClassAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
   AugmentedClassElement get augmented {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
 
   @override
-  List<ConstructorElementImpl> get constructors {
-    if (!identical(_constructors, _Sentinel.constructorElement)) {
-      return _constructors;
-    }
-
-    if (isMixinApplication) {
-      // Assign to break a possible infinite recursion during computing.
-      _constructors = const <ConstructorElementImpl>[];
-      return _constructors = _computeMixinAppConstructors();
-    }
-
-    final linkedData = this.linkedData;
-    if (linkedData != null) {
-      linkedData.readMembers(this);
-      return _constructors;
-    }
-
-    if (_constructors.isEmpty) {
-      var constructor = ConstructorElementImpl('', -1);
-      constructor.isSynthetic = true;
-      constructor.enclosingElement = this;
-      _constructors = <ConstructorElementImpl>[constructor];
-    }
-
-    return _constructors;
-  }
+  ClassElementImpl get augmentedDeclaration => this;
 
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
     assert(!isMixinApplication);
     super.constructors = constructors;
-  }
-
-  @override
-  List<FieldElementImpl> get fields {
-    if (!identical(_fields, _Sentinel.fieldElement)) {
-      return _fields;
-    }
-
-    linkedData?.readMembers(this);
-    return _fields;
   }
 
   @override
@@ -449,16 +404,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 
   @override
-  List<MethodElementImpl> get methods {
-    if (!identical(_methods, _Sentinel.methodElement)) {
-      return _methods;
-    }
-
-    linkedData?.readMembers(this);
-    return _methods;
-  }
-
-  @override
   set methods(List<MethodElementImpl> methods) {
     assert(!isMixinApplication);
     super.methods = methods;
@@ -500,49 +445,31 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
     return true;
   }
 
-  /// Compute a list of constructors for this class, which is a mixin
-  /// application.  If specified, [visitedClasses] is a list of the other mixin
-  /// application classes which have been visited on the way to reaching this
-  /// one (this is used to detect cycles).
-  List<ConstructorElementImpl> _computeMixinAppConstructors(
-      [List<ClassElementImpl>? visitedClasses]) {
+  @override
+  void _buildMixinAppConstructors() {
+    // Do nothing if not a mixin application.
+    if (!isMixinApplication) {
+      return;
+    }
+
+    // Assign to break a possible infinite recursion during computing.
+    _constructors = const <ConstructorElementImpl>[];
+
     final superType = supertype;
     if (superType == null) {
       // Shouldn't ever happen, since the only classes with no supertype are
       // Object and mixins, and they aren't a mixin application. But for
       // safety's sake just assume an empty list.
       assert(false);
-      return <ConstructorElementImpl>[];
+      _constructors = <ConstructorElementImpl>[];
+      return;
     }
 
     final superElement = superType.element as ClassElementImpl;
 
-    // First get the list of constructors of the superclass which need to be
-    // forwarded to this class.
-    Iterable<ConstructorElement> constructorsToForward;
-    if (!superElement.isMixinApplication) {
-      final library = this.library;
-      constructorsToForward = superElement.constructors
-          .where((constructor) => constructor.isAccessibleIn(library))
-          .where((constructor) => !constructor.isFactory);
-    } else {
-      if (visitedClasses == null) {
-        visitedClasses = <ClassElementImpl>[this];
-      } else {
-        if (visitedClasses.contains(this)) {
-          // Loop in the class hierarchy.  Don't try to forward any
-          // constructors.
-          return <ConstructorElementImpl>[];
-        }
-        visitedClasses.add(this);
-      }
-      try {
-        constructorsToForward =
-            superElement._computeMixinAppConstructors(visitedClasses);
-      } finally {
-        visitedClasses.removeLast();
-      }
-    }
+    final constructorsToForward = superElement.constructors
+        .where((constructor) => constructor.isAccessibleIn(library))
+        .where((constructor) => !constructor.isFactory);
 
     // Figure out the type parameter substitution we need to perform in order
     // to produce constructors for this class.  We want to be robust in the
@@ -565,8 +492,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
 
     // Now create an implicit constructor for every constructor found above,
     // substituting type parameters as appropriate.
-    return constructorsToForward
-        .map((ConstructorElement superclassConstructor) {
+    _constructors = constructorsToForward.map((superclassConstructor) {
       var name = superclassConstructor.name;
       var implicitConstructor = ConstructorElementImpl(name, -1);
       implicitConstructor.isSynthetic = true;
@@ -650,20 +576,25 @@ class ClassElementImpl extends ClassOrMixinElementImpl<ClassElementLinkedData>
   }
 }
 
-mixin ClassOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
-    on InterfaceOrAugmentationElementMixin<LinkedData>
+mixin ClassOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
     implements ClassOrAugmentationElement {
   ClassAugmentationElementImpl? _augmentation;
 
   @override
-  ClassAugmentationElement? get augmentation {
+  ClassAugmentationElementImpl? get augmentation {
     linkedData?.read(this);
     return _augmentation;
   }
+
+  set augmentation(ClassAugmentationElementImpl? value) {
+    _augmentation = value;
+  }
+
+  @override
+  ClassElementImpl? get augmentedDeclaration;
 }
 
-abstract class ClassOrMixinElementImpl<LinkedData extends ElementLinkedData>
-    extends InterfaceElementImpl<LinkedData> {
+abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   ClassOrMixinElementImpl(super.name, super.offset);
@@ -703,8 +634,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// contained in this compilation unit.
   List<PropertyAccessorElementImpl> _accessors = const [];
 
-  /// A list containing all of the classes contained in this compilation unit.
   List<ClassElementImpl> _classes = const [];
+  List<ClassAugmentationElementImpl> _classAugmentations = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
   List<EnumElementImpl> _enums = const [];
@@ -763,6 +694,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         ...typeAliases,
         ...topLevelVariables,
       ];
+
+  @override
+  List<ClassAugmentationElementImpl> get classAugmentations {
+    return _classAugmentations;
+  }
+
+  set classAugmentations(List<ClassAugmentationElementImpl> elements) {
+    for (final element in elements) {
+      element.enclosingElement = this;
+    }
+    _classAugmentations = elements;
+  }
 
   @override
   List<ClassElementImpl> get classes {
@@ -1037,8 +980,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       super.enclosingElement2 as InterfaceElementImpl;
 
   @override
-  NamedInstanceElement get enclosingElement2 =>
-      super.enclosingElement2 as NamedInstanceElement;
+  NamedInstanceOrAugmentationElement get enclosingElement2 =>
+      super.enclosingElement2 as NamedInstanceOrAugmentationElement;
 
   @override
   bool get isConst {
@@ -1100,13 +1043,20 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  NamedInstanceType get returnType2 =>
-      ElementTypeProvider.current.getExecutableReturnType(this)
-          as NamedInstanceType;
+  DartType get returnType2 =>
+      ElementTypeProvider.current.getExecutableReturnType(this);
 
   @override
   DartType get returnTypeInternal {
-    return _returnType ??= enclosingElement2.thisType;
+    var result = _returnType;
+    if (result != null) {
+      return result;
+    }
+
+    final augmentedDeclaration = enclosingElement2.augmentedDeclaration;
+    result = augmentedDeclaration?.thisType;
+    result ??= InvalidTypeImpl.instance;
+    return _returnType = result;
   }
 
   ConstructorElement? get superConstructor {
@@ -2579,8 +2529,7 @@ class ElementLocationImpl implements ElementLocation {
 }
 
 /// An [InterfaceElementImpl] which is an enum.
-class EnumElementImpl extends InterfaceElementImpl<EnumElementLinkedData>
-    implements EnumElement {
+class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
@@ -2596,6 +2545,9 @@ class EnumElementImpl extends InterfaceElementImpl<EnumElementLinkedData>
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
+
+  @override
+  EnumElementImpl get augmentedDeclaration => this;
 
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
@@ -2880,6 +2832,9 @@ class ExtensionElementImpl extends _ExistingElementImpl
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
+
+  @override
+  ExtensionElementImpl get augmentedDeclaration => this;
 
   @override
   List<Element> get children => [
@@ -3372,6 +3327,9 @@ class InlineClassElementImpl extends NamedInstanceElementImpl
   }
 
   @override
+  InlineClassElementImpl get augmentedDeclaration => this;
+
+  @override
   List<InlineClassType> get implemented {
     // TODO(scheglov) implement
     throw UnimplementedError();
@@ -3409,16 +3367,14 @@ mixin InlineClassOrAugmentationElementMixin
     implements InlineClassOrAugmentationElement {}
 
 abstract class InstanceAugmentationElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin {
+    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
+    implements InstanceAugmentationElement {
   InstanceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class InstanceElementImpl<LinkedData extends ElementLinkedData>
-    extends _ExistingElementImpl
-    with
-        TypeParameterizedElementMixin,
-        InstanceOrAugmentationElementMixin<LinkedData>
-    implements InstanceOrAugmentationElement {
+abstract class InstanceElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
+    implements InstanceElement {
   InstanceElementImpl(super.name, super.nameOffset);
 }
 
@@ -3428,10 +3384,10 @@ abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
   InstanceOrAugmentationElementImpl(super.name, super.nameOffset);
 }
 
-mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
+mixin InstanceOrAugmentationElementMixin
     on _ExistingElementImpl, TypeParameterizedElementMixin
     implements InstanceOrAugmentationElement {
-  LinkedData? linkedData;
+  ElementLinkedData? linkedData;
 
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
   List<PropertyAccessorElementImpl> _accessors =
@@ -3440,6 +3396,11 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
 
   @override
   List<PropertyAccessorElementImpl> get accessors {
+    if (!identical(_accessors, _Sentinel.propertyAccessorElement)) {
+      return _accessors;
+    }
+
+    linkedData?.readMembers(this);
     return _accessors;
   }
 
@@ -3462,7 +3423,14 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
   }
 
   @override
-  List<FieldElementImpl> get fields => _fields;
+  List<FieldElementImpl> get fields {
+    if (!identical(_fields, _Sentinel.fieldElement)) {
+      return _fields;
+    }
+
+    linkedData?.readMembers(this);
+    return _fields;
+  }
 
   set fields(List<FieldElementImpl> fields) {
     for (var field in fields) {
@@ -3479,6 +3447,11 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
 
   @override
   List<MethodElementImpl> get methods {
+    if (!identical(_methods, _Sentinel.methodElement)) {
+      return _methods;
+    }
+
+    linkedData?.readMembers(this);
     return _methods;
   }
 
@@ -3489,7 +3462,7 @@ mixin InstanceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
     _methods = methods;
   }
 
-  void setLinkedData(Reference reference, LinkedData linkedData) {
+  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
     this.reference = reference;
     reference.element = this;
 
@@ -3503,12 +3476,11 @@ abstract class InterfaceAugmentationElementImpl
   InterfaceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class InterfaceElementImpl<LinkedData extends ElementLinkedData>
-    extends NamedInstanceElementImpl<LinkedData>
+abstract class InterfaceElementImpl extends NamedInstanceElementImpl
     with
         HasCompletionData,
         MacroTargetElement,
-        InterfaceOrAugmentationElementMixin<LinkedData>
+        InterfaceOrAugmentationElementMixin
     implements InterfaceElement {
   InterfaceType? _supertype;
 
@@ -3835,8 +3807,8 @@ abstract class InterfaceElementImpl<LinkedData extends ElementLinkedData>
   }
 }
 
-mixin InterfaceOrAugmentationElementMixin<LinkedData extends ElementLinkedData>
-    on NamedInstanceOrAugmentationElementMixin<LinkedData>
+mixin InterfaceOrAugmentationElementMixin
+    on NamedInstanceOrAugmentationElementMixin
     implements InterfaceOrAugmentationElement {
   /// A list containing all of the mixins that are applied to the class being
   /// extended in order to derive the superclass of this class.
@@ -4943,8 +4915,7 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl<MixinElementLinkedData>
-    implements MixinElement {
+class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   /// A list containing all of the superclass constraints that are defined for
   /// the mixin.
   List<InterfaceType> _superclassConstraints = const [];
@@ -4969,6 +4940,9 @@ class MixinElementImpl extends ClassOrMixinElementImpl<MixinElementLinkedData>
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
+
+  @override
+  MixinElementImpl get augmentedDeclaration => this;
 
   @override
   List<InterfaceType> get mixins => const [];
@@ -5434,21 +5408,25 @@ abstract class NamedInstanceAugmentationElementImpl
   NamedInstanceAugmentationElementImpl(super.name, super.offset);
 }
 
-abstract class NamedInstanceElementImpl<LinkedData extends ElementLinkedData>
-    extends InstanceElementImpl<LinkedData>
-    with NamedInstanceOrAugmentationElementMixin<LinkedData>
-    implements NamedInstanceOrAugmentationElement {
+abstract class NamedInstanceElementImpl extends InstanceElementImpl
+    with NamedInstanceOrAugmentationElementMixin
+    implements NamedInstanceElement {
   NamedInstanceElementImpl(super.name, super.nameOffset);
 }
 
-mixin NamedInstanceOrAugmentationElementMixin<
-        LinkedData extends ElementLinkedData>
-    on InstanceOrAugmentationElementMixin<LinkedData>
+mixin NamedInstanceOrAugmentationElementMixin
+    on InstanceOrAugmentationElementMixin
     implements NamedInstanceOrAugmentationElement {
   List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
 
   @override
   List<ConstructorElementImpl> get constructors {
+    if (!identical(_constructors, _Sentinel.constructorElement)) {
+      return _constructors;
+    }
+
+    _buildMixinAppConstructors();
+    linkedData?.readMembers(this);
     return _constructors;
   }
 
@@ -5466,6 +5444,9 @@ mixin NamedInstanceOrAugmentationElementMixin<
   String get name {
     return super.name!;
   }
+
+  /// Builds constructors for this mixin application.
+  void _buildMixinAppConstructors() {}
 }
 
 /// The synthetic element representing the declaration of the type `Never`.

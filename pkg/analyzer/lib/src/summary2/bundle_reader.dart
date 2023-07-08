@@ -101,10 +101,12 @@ class ClassAugmentationElementLinkedData
       unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
-    element.augmentationTarget =
-        reader.readElement() as ClassOrAugmentationElementMixin?;
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget =
+        reader.readElement() as ClassOrAugmentationElementMixin?;
+    element.augmentation =
+        reader.readElement() as ClassAugmentationElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -121,12 +123,12 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     required int offset,
   }) : super(reference, libraryReader, unitElement, offset);
 
-  /// Ensure that all members of the [element] are available. This includes
-  /// being able to ask them for example using [ClassElement.methods], and
-  /// as well access them through their [Reference]s. For a class declaration
-  /// this means reading them, for a named mixin application this means
-  /// computing constructors.
-  void readMembers(ClassElementImpl element) {
+  @override
+  void readMembers(InstanceOrAugmentationElementMixin element) {
+    if (element is! ClassElementImpl) {
+      return;
+    }
+
     if (element.isMixinApplication) {
       element.constructors;
     } else {
@@ -147,6 +149,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentation =
+        reader.readElement() as ClassAugmentationElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -223,6 +227,13 @@ abstract class ElementLinkedData<E extends ElementImpl> {
 
     _read(element as E, reader);
   }
+
+  /// Ensure that all members of the [element] are available. This includes
+  /// being able to ask them for example using [ClassElement.methods], and
+  /// as well access them through their [Reference]s. For a class declaration
+  /// this means reading them, for a named mixin application this means
+  /// computing constructors.
+  void readMembers(InstanceOrAugmentationElementMixin element) {}
 
   void _addEnclosingElementTypeParameters(
     ResolutionReader reader,
@@ -620,6 +631,50 @@ class LibraryReader {
     );
   }
 
+  ClassAugmentationElementImpl _readClassAugmentationElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@classAugmentation').getChild(name);
+
+    var element = ClassAugmentationElementImpl(name, -1);
+
+    var linkedData = ClassAugmentationElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+    ClassAugmentationElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
+  }
+
+  void _readClassAugmentations(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    unitElement.classAugmentations = _reader.readTypedList(() {
+      return _readClassAugmentationElement(unitElement, unitReference);
+    });
+  }
+
   ClassElementImpl _readClassElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -693,7 +748,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    InterfaceElementImpl classElement,
+    NamedInstanceOrAugmentationElementMixin classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
@@ -1522,6 +1577,7 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
 
     _readClasses(unitElement, unitReference);
+    _readClassAugmentations(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);

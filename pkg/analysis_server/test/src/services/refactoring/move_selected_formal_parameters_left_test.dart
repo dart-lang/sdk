@@ -370,8 +370,7 @@ void f() {
       MoveSelectedFormalParametersLeft.constTitle,
     );
 
-    await verifyCommandEdits(codeAction.command!, expected,
-        expectDocumentChanges: true);
+    await verifyCommandEdits(codeAction.command!, expected);
   }
 
   Future<void> _assertNoRefactoring() async {

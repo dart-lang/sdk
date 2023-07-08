@@ -248,12 +248,16 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // evaluation.
       var constructor = node.constructorName.staticElement;
       if (constructor != null) {
+        var returnType = constructor.returnType2;
+        if (returnType is! InterfaceType) {
+          return;
+        }
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
         _evaluationEngine.evaluateConstructorCall(
             _currentLibrary,
             node,
-            constructor.returnType2.typeArguments,
+            returnType.typeArguments,
             node.argumentList.arguments,
             constructor,
             constantVisitor,

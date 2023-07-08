@@ -898,6 +898,34 @@ void f(A a, List<int> list) {
 ''');
   }
 
+  test_method_result_listPattern_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var [a] = g();
+  print(a);
+}
+
+@useResult
+List<String> g() => [];
+''');
+  }
+
+  test_method_result_mapPattern_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var {'a' : a} = g();
+  print(a);
+}
+
+@useResult
+Map<String, String> g() => {};
+''');
+  }
+
   test_method_result_nullCheck_isUsed() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -930,6 +958,24 @@ void f(A a) {
     ]);
   }
 
+  test_method_result_objectPattern_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  int a;
+  A(this.a);
+}
+f() {
+  var A(a: b) = g();
+  print(b);
+}
+
+@useResult
+A g() => A(1);
+''');
+  }
+
   test_method_result_passed() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -942,6 +988,35 @@ class A {
 void main() {
   print(A().foo()); // OK
 }
+''');
+  }
+
+  test_method_result_recordPattern() async {
+    await assertErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  g();
+}
+
+@useResult
+(int, int) g() => (0, 0);
+''', [
+      error(WarningCode.UNUSED_RESULT, 42, 1),
+    ]);
+  }
+
+  test_method_result_recordPattern_assigned() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+f() {
+  var (x, y) = g();
+  print('$x$y');
+}
+
+@useResult
+(int, int) g() => (0, 0);
 ''');
   }
 

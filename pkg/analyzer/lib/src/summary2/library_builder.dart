@@ -60,6 +60,9 @@ class LibraryBuilder {
 
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
+  /// The top-level elements that can be augmented.
+  final Map<String, ElementImpl> _augmentationTargets = {};
+
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
 
@@ -403,6 +406,14 @@ class LibraryBuilder {
     );
   }
 
+  ElementImpl? getAugmentationTarget(String name) {
+    return _augmentationTargets[name];
+  }
+
+  void putAugmentationTarget(String name, ElementImpl element) {
+    _augmentationTargets[name] = element;
+  }
+
   void resolveConstructors() {
     ConstructorInitializerResolver(linker, element).resolve();
   }
@@ -480,6 +491,15 @@ class LibraryBuilder {
         augmentation.definingCompilationUnit = unitElement;
         augmentation.reference = unitElement.reference!;
 
+        units.add(
+          DefiningLinkingUnit(
+            reference: unitReference,
+            node: unitNode,
+            element: unitElement,
+            container: augmentation,
+          ),
+        );
+
         _buildDirectives(
           kind: importedAugmentation,
           container: augmentation,
@@ -490,15 +510,6 @@ class LibraryBuilder {
           relativeUri: state.uri.relativeUri,
           source: importedFile.source,
           augmentation: augmentation,
-        );
-
-        units.add(
-          DefiningLinkingUnit(
-            reference: unitReference,
-            node: unitNode,
-            element: unitElement,
-            container: augmentation,
-          ),
         );
       } else {
         uri = DirectiveUriWithSourceImpl(

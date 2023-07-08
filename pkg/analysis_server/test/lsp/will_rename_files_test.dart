@@ -102,7 +102,8 @@ final a = A();
 class A {}
 ''';
 
-    final expectedMainContent = '''
+    final expectedContent = '''
+>>>>>>>>>> lib/main.dart
 import 'other_new.dart';
 
 final a = A();
@@ -118,12 +119,7 @@ final a = A();
       ),
     ]);
 
-    // Ensure applying the edit will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(mainContent),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedMainContent));
+    verifyEdit(edit, expectedContent);
   }
 
   Future<void> test_renameFolder_updatesImports() async {
@@ -143,6 +139,7 @@ class A {}
 ''';
 
     final expectedMainContent = '''
+>>>>>>>>>> lib/main.dart
 import 'folder_new/other.dart';
 
 final a = A();
@@ -158,11 +155,6 @@ final a = A();
       ),
     ]);
 
-    // Ensure applying the edit will give us the expected content.
-    final contents = {
-      mainFilePath: withoutMarkers(mainContent),
-    };
-    applyChanges(contents, edit.changes!);
-    expect(contents[mainFilePath], equals(expectedMainContent));
+    verifyEdit(edit, expectedMainContent);
   }
 }

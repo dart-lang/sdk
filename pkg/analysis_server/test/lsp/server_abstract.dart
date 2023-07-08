@@ -34,6 +34,7 @@ import 'package:test/test.dart' as test show expect;
 import '../mocks.dart';
 import '../mocks_lsp.dart';
 import '../src/utilities/mock_packages.dart';
+import 'change_verifier.dart';
 
 const dartLanguageId = 'dart';
 
@@ -104,11 +105,9 @@ abstract class AbstractLspAnalysisServerTest
   /// Executes [command] which is expected to call back to the client to apply
   /// a [WorkspaceEdit].
   ///
-  /// Changes are applied to [contents] to be verified by the caller.
-  Future<void> executeCommandForEdits(
-    Command command,
-    Map<String, String?> contents, {
-    bool expectDocumentChanges = false,
+  /// Returns a [LspChangeVerifier] that can be used to verify changes.
+  Future<LspChangeVerifier> executeCommandForEdits(
+    Command command, {
     ProgressToken? workDoneToken,
   }) async {
     ApplyWorkspaceEditParams? editParams;
@@ -131,68 +130,18 @@ abstract class AbstractLspAnalysisServerTest
     // Ensure the edit came back, and using the expected change type.
     expect(editParams, isNotNull);
     final edit = editParams!.edit;
-    if (expectDocumentChanges) {
-      expect(edit.changes, isNull);
-      expect(edit.documentChanges, isNotNull);
-      applyDocumentChanges(contents, edit.documentChanges!);
-    } else {
-      expect(edit.changes, isNotNull);
-      expect(edit.documentChanges, isNull);
-      applyChanges(contents, edit.changes!);
-    }
-  }
 
-  void expectChanges(Map<Uri, List<TextEdit>> changes, String expected) {
-    final editedContents = <String, String?>{};
-    applyChanges(editedContents, changes);
-    expectEditedContent(editedContents, expected);
+    final expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    return LspChangeVerifier(this, edit);
   }
 
   void expectContextBuilds() =>
       expect(server.contextBuilds - _previousContextBuilds, greaterThan(0),
           reason: 'Contexts should have been rebuilt');
-
-  Map<String, String?> expectDocumentChanges(
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
-    String expected,
-  ) {
-    final editedContents = <String, String?>{};
-    applyDocumentChanges(editedContents, changes);
-    expectEditedContent(editedContents, expected);
-    return editedContents;
-  }
-
-  void expectEditedContent(
-      Map<String, String?> editedContents, String expected) {
-    final buffer = StringBuffer();
-    for (final entry in editedContents.entries.sortedBy((entry) => entry.key)) {
-      // Write the path in a common format for Windows/non-Windows.
-      final relativePath = path
-          .relative(
-            entry.key,
-            from: projectFolderPath,
-          )
-          .replaceAll(r'\', '/');
-      final content = entry.value;
-      // TODO(dantup): Extract this (and the applying of edits) to a class
-      //  that can also update the test expectations, and record renames better
-      //  than just a delete/create.
-      if (content == null) {
-        buffer.write('>>>>>>>>>> $relativePath deleted\n');
-      } else if (content.trim().isEmpty) {
-        buffer.write('>>>>>>>>>> $relativePath empty\n');
-      } else {
-        buffer.write('>>>>>>>>>> $relativePath\n$content');
-        // If the content didn't end with a newline we need to add one, but
-        // add a marked so it's clear there was no trailing newline.
-        if (!content.endsWith('\n')) {
-          buffer.write('<<<<<<<<<<\n');
-        }
-      }
-    }
-
-    expect(buffer.toString().trim(), equals(expected.trim()));
-  }
 
   void expectNoContextBuilds() =>
       expect(server.contextBuilds - _previousContextBuilds, equals(0),
@@ -212,6 +161,21 @@ abstract class AbstractLspAnalysisServerTest
       return resp.result == null ? null as T : fromJson(resp.result as R);
     }
   }
+
+  List<TextDocumentEdit> extractTextDocumentEdits(
+          DocumentChanges documentChanges) =>
+      // Extract TextDocumentEdits from union of resource changes
+      documentChanges
+          .map(
+            (change) => change.map(
+              (create) => null,
+              (delete) => null,
+              (rename) => null,
+              (textDocEdit) => textDocEdit,
+            ),
+          )
+          .whereNotNull()
+          .toList();
 
   @override
   String? getCurrentFileContent(Uri uri) {
@@ -342,22 +306,33 @@ analyzer:
   /// Verifies that executing the given command on the server results in an edit
   /// being sent in the client that updates the files to match the expected
   /// content.
-  Future<void> verifyCommandEdits(
+  Future<LspChangeVerifier> verifyCommandEdits(
     Command command,
     String expectedContent, {
-    bool expectDocumentChanges = false,
     ProgressToken? workDoneToken,
   }) async {
-    final contents = <String, String?>{};
-
-    await executeCommandForEdits(
+    final verifier = await executeCommandForEdits(
       command,
-      contents,
-      expectDocumentChanges: expectDocumentChanges,
       workDoneToken: workDoneToken,
     );
 
-    expectEditedContent(contents, expectedContent);
+    verifier.verifyFiles(expectedContent);
+    return verifier;
+  }
+
+  LspChangeVerifier verifyEdit(
+    WorkspaceEdit edit,
+    String expected, {
+    Map<Uri, int>? expectedVersions,
+  }) {
+    final expectDocumentChanges =
+        workspaceCapabilities.workspaceEdit?.documentChanges ?? false;
+    expect(edit.documentChanges, expectDocumentChanges ? isNotNull : isNull);
+    expect(edit.changes, expectDocumentChanges ? isNull : isNotNull);
+
+    final verifier = LspChangeVerifier(this, edit);
+    verifier.verifyFiles(expected, expectedVersions: expectedVersions);
+    return verifier;
   }
 
   /// Adds a trailing slash (direction based on path context) to [path].
@@ -384,6 +359,22 @@ mixin ClientCapabilitiesHelperMixin {
   final emptyWorkspaceClientCapabilities = WorkspaceClientCapabilities();
 
   final emptyWindowClientCapabilities = WindowClientCapabilities();
+
+  /// The set of TextDocument capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var textDocumentCapabilities = TextDocumentClientCapabilities();
+
+  /// The set of Workspace capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var workspaceCapabilities = WorkspaceClientCapabilities();
+
+  /// The set of Window capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var windowCapabilities = WindowClientCapabilities();
+
+  /// The set of experimental capabilities used if no explicit instance is
+  /// passed to [initialize].
+  var experimentalCapabilities = <String, Object?>{};
 
   TextDocumentClientCapabilities extendTextDocumentCapabilities(
     TextDocumentClientCapabilities source,
@@ -423,6 +414,61 @@ mixin ClientCapabilitiesHelperMixin {
         dest[key] = source[key];
       }
     }
+  }
+
+  void setApplyEditSupport([bool supported = true]) {
+    workspaceCapabilities =
+        withApplyEditSupport(workspaceCapabilities, supported);
+  }
+
+  void setConfigurationSupport() {
+    workspaceCapabilities = withConfigurationSupport(workspaceCapabilities);
+  }
+
+  void setDocumentChangesSupport([bool supported = true]) {
+    workspaceCapabilities =
+        withDocumentChangesSupport(workspaceCapabilities, supported);
+  }
+
+  void setFileCreateSupport([bool supported = true]) {
+    if (supported) {
+      workspaceCapabilities = withDocumentChangesSupport(
+          withResourceOperationKinds(
+              workspaceCapabilities, [ResourceOperationKind.Create]));
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Create);
+    }
+  }
+
+  void setFileRenameSupport([bool supported = true]) {
+    if (supported) {
+      workspaceCapabilities = withDocumentChangesSupport(
+          withResourceOperationKinds(
+              workspaceCapabilities, [ResourceOperationKind.Rename]));
+    } else {
+      workspaceCapabilities.workspaceEdit?.resourceOperations
+          ?.remove(ResourceOperationKind.Rename);
+    }
+  }
+
+  void setSnippetTextEditSupport([bool supported = true]) {
+    experimentalCapabilities['snippetTextEdit'] = supported;
+  }
+
+  void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
+    textDocumentCapabilities =
+        withCodeActionKinds(textDocumentCapabilities, kinds);
+  }
+
+  void setSupportedCommandParameterKinds(Set<String>? kinds) {
+    experimentalCapabilities['dartCodeAction'] = {
+      'commandParameterSupport': {'supportedKinds': kinds?.toList()},
+    };
+  }
+
+  void setWorkDoneProgressSupport() {
+    windowCapabilities = withWorkDoneProgressSupport(windowCapabilities);
   }
 
   TextDocumentClientCapabilities
@@ -474,20 +520,24 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   WorkspaceClientCapabilities withApplyEditSupport(
-    WorkspaceClientCapabilities source,
-  ) {
-    return extendWorkspaceCapabilities(source, {'applyEdit': true});
+      WorkspaceClientCapabilities source,
+      [bool supported = true]) {
+    return extendWorkspaceCapabilities(source, {'applyEdit': supported});
   }
 
   TextDocumentClientCapabilities withCodeActionKinds(
     TextDocumentClientCapabilities source,
-    List<CodeActionKind> kinds,
+    List<CodeActionKind>? kinds,
   ) {
     return extendTextDocumentCapabilities(source, {
       'codeAction': {
-        'codeActionLiteralSupport': {
-          'codeActionKind': {'valueSet': kinds.map((k) => k.toJson()).toList()}
-        }
+        'codeActionLiteralSupport': kinds != null
+            ? {
+                'codeActionKind': {
+                  'valueSet': kinds.map((k) => k.toJson()).toList()
+                }
+              }
+            : null,
       }
     });
   }
@@ -613,10 +663,11 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   WorkspaceClientCapabilities withDocumentChangesSupport(
-    WorkspaceClientCapabilities source,
-  ) {
+    WorkspaceClientCapabilities source, [
+    bool supported = true,
+  ]) {
     return extendWorkspaceCapabilities(source, {
-      'workspaceEdit': {'documentChanges': true}
+      'workspaceEdit': {'documentChanges': supported}
     });
   }
 
@@ -891,129 +942,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
   Stream<Message> get serverToClient;
 
-  void applyChanges(
-    Map<String, String?> editedContents,
-    Map<Uri, List<TextEdit>> changes,
-  ) {
-    changes.forEach((fileUri, edits) {
-      final filePath = fileUri.toFilePath();
-      final currentContent = editedContents.containsKey(filePath)
-          ? editedContents[filePath]
-          : getCurrentFileContent(fileUri);
-      editedContents[filePath] = applyTextEdits(currentContent!, edits);
-    });
-  }
-
-  void applyDocumentChanges(
-    Map<String, String?> editedContent,
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
-        documentChanges, {
-    Map<String, int>? expectedVersions,
-  }) {
-    // If we were supplied with expected versions, ensure that all returned
-    // edits match the versions.
-    if (expectedVersions != null) {
-      expectDocumentVersions(documentChanges, expectedVersions);
-    }
-    applyResourceChanges(editedContent, documentChanges);
-  }
-
-  void applyResourceChanges(
-    Map<String, String?> editedContent,
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>> changes,
-  ) {
-    for (final change in changes) {
-      change.map(
-        (create) => applyResourceCreate(editedContent, create),
-        (delete) => applyResourceDelete(editedContent, delete),
-        (rename) => applyResourceRename(editedContent, rename),
-        (textDocEdit) => applyTextDocumentEdits(editedContent, [textDocEdit]),
-      );
-    }
-  }
-
-  void applyResourceCreate(
-      Map<String, String?> editedContent, CreateFile create) {
-    final uri = create.uri;
-    final path = uri.toFilePath();
-    final currentContent = editedContent.containsKey(path)
-        ? editedContent[path]
-        : getCurrentFileContent(uri);
-    if (currentContent != null) {
-      throw 'Received create instruction for $path which already exists';
-    }
-    editedContent[path] = '';
-  }
-
-  void applyResourceDelete(
-      Map<String, String?> editedContent, DeleteFile delete) {
-    final uri = delete.uri;
-    final path = uri.toFilePath();
-    final currentContent = editedContent.containsKey(path)
-        ? editedContent[path]
-        : getCurrentFileContent(uri);
-
-    if (currentContent == null) {
-      throw 'Received delete instruction for $path which does not exist';
-    }
-
-    editedContent[path] = null;
-  }
-
-  void applyResourceRename(
-      Map<String, String?> editedContent, RenameFile rename) {
-    final oldUri = rename.oldUri;
-    final newUri = rename.newUri;
-    final oldPath = oldUri.toFilePath();
-    final newPath = newUri.toFilePath();
-
-    final oldContent = editedContent.containsKey(oldPath)
-        ? editedContent[oldPath]
-        : getCurrentFileContent(oldUri);
-    final newContent = editedContent.containsKey(newPath)
-        ? editedContent[newPath]
-        : getCurrentFileContent(newUri);
-
-    if (oldContent == null) {
-      throw 'Received rename instruction from $oldPath which did not exist';
-    } else if (newContent != null) {
-      throw 'Received rename instruction to $newPath which already exists';
-    }
-    editedContent[newPath] = oldContent;
-    editedContent[oldPath] = null;
-  }
-
-  String applyTextDocumentEdit(String content, TextDocumentEdit edit) {
-    // To simulate the behaviour we'll get from an LSP client, apply edits from
-    // the latest offset to the earliest, but with items at the same offset
-    // being reversed so that when applied sequentially they appear in the
-    // document in-order.
-    //
-    // This is essentially a stable sort over the offset (descending), but since
-    // List.sort() is not stable so we additionally sort by index).
-    final indexedEdits =
-        edit.edits.mapIndexed(_TextEditWithIndex.fromUnion).toList();
-    indexedEdits.sort(_TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
-  }
-
-  void applyTextDocumentEdits(
-      Map<String, String?> editedContent, List<TextDocumentEdit> edits) {
-    for (var edit in edits) {
-      final uri = edit.textDocument.uri;
-      final path = uri.toFilePath();
-
-      final currentContent = editedContent.containsKey(path)
-          ? editedContent[path]
-          : getCurrentFileContent(uri);
-      if (currentContent == null) {
-        throw 'Received edits for $path which does not exist. '
-            'Perhaps a CreateFile change was missing from the edits?';
-      }
-      editedContent[path] = applyTextDocumentEdit(currentContent, edit);
-    }
-  }
-
   String applyTextEdit(String content, TextEdit edit) {
     final startPos = edit.range.start;
     final endPos = edit.range.end;
@@ -1068,8 +996,8 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
 
     validateChangesCanBeApplied();
 
-    final indexedEdits = changes.mapIndexed(_TextEditWithIndex.new).toList();
-    indexedEdits.sort(_TextEditWithIndex.compare);
+    final indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
+    indexedEdits.sort(TextEditWithIndex.compare);
     return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
   }
 
@@ -1173,35 +1101,6 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   void expect(Object? actual, Matcher matcher, {String? reason}) =>
       test.expect(actual, matcher, reason: reason);
 
-  void expectDocumentVersion(
-    TextDocumentEdit edit,
-    Map<String, int> expectedVersions,
-  ) {
-    final path = edit.textDocument.uri.toFilePath();
-    final expectedVersion = expectedVersions[path];
-
-    expect(edit.textDocument.version, equals(expectedVersion));
-  }
-
-  /// Validates the document versions for a set of edits match the versions in
-  /// the supplied map.
-  void expectDocumentVersions(
-    List<Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>
-        documentChanges,
-    Map<String, int> expectedVersions,
-  ) {
-    // For resource changes, we only need to validate changes since
-    // creates/renames/deletes do not supply versions.
-    for (var change in documentChanges) {
-      change.map(
-        (create) {},
-        (delete) {},
-        (rename) {},
-        (edit) => expectDocumentVersion(edit, expectedVersions),
-      );
-    }
-  }
-
   Future<ShowMessageParams> expectErrorNotification(
     FutureOr<void> Function() f, {
     Duration timeout = const Duration(seconds: 5),
@@ -1301,6 +1200,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     Position? position,
     List<CodeActionKind>? kinds,
     CodeActionTriggerKind? triggerKind,
+    ProgressToken? workDoneToken,
   }) {
     range ??= position != null
         ? Range(start: position, end: position)
@@ -1318,6 +1218,7 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
           only: kinds,
           triggerKind: triggerKind,
         ),
+        workDoneToken: workDoneToken,
       ),
     );
     return expectSuccessfulResponseTo(
@@ -1726,6 +1627,9 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     String? rootPath,
     Uri? rootUri,
     List<Uri>? workspaceFolders,
+    // TODO(dantup): Remove these capabilities fields in favour of methods like
+    //  [setApplyEditSupport] which allows extracting initialization in tests
+    //  without needing to pass capabilities these all the way through.
     TextDocumentClientCapabilities? textDocumentCapabilities,
     WorkspaceClientCapabilities? workspaceCapabilities,
     WindowClientCapabilities? windowCapabilities,
@@ -1745,10 +1649,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     }
 
     final clientCapabilities = ClientCapabilities(
-      workspace: workspaceCapabilities,
-      textDocument: textDocumentCapabilities,
-      window: windowCapabilities,
-      experimental: experimentalCapabilities,
+      workspace: workspaceCapabilities ?? this.workspaceCapabilities,
+      textDocument: textDocumentCapabilities ?? this.textDocumentCapabilities,
+      window: windowCapabilities ?? this.windowCapabilities,
+      experimental: experimentalCapabilities ?? this.experimentalCapabilities,
     );
     _clientCapabilities = clientCapabilities;
 
@@ -1968,6 +1872,10 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
     FutureOr<Map<String, Object?>> globalConfig, {
     FutureOr<Map<String, Map<String, Object?>>>? folderConfig,
   }) {
+    final self = this;
+    if (self is AbstractLspAnalysisServerTest) {
+      self.setConfigurationSupport();
+    }
     return handleExpectedRequest<T, ConfigurationParams,
         List<Map<String, Object?>>>(
       Method.workspace_configuration,
@@ -2078,6 +1986,17 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
       end: positionFromOffset(end, content),
     );
   }
+
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativePath(String filePath) =>
+      path.relative(filePath, from: projectFolderPath).replaceAll(r'\', '/');
+
+  /// Formats a path relative to the project root always using forward slashes.
+  ///
+  /// This is used in the text format for comparing edits.
+  String relativeUri(Uri uri) => relativePath(uri.toFilePath());
 
   Future<WorkspaceEdit?> rename(
     Uri uri,
@@ -2413,20 +2332,20 @@ mixin LspAnalysisServerTestMixin implements ClientCapabilitiesHelperMixin {
   }
 }
 
-class _TextEditWithIndex {
+class TextEditWithIndex {
   final int index;
   final TextEdit edit;
 
-  _TextEditWithIndex(this.index, this.edit);
+  TextEditWithIndex(this.index, this.edit);
 
-  _TextEditWithIndex.fromUnion(
+  TextEditWithIndex.fromUnion(
       this.index, Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit)
       : edit = edit.map((e) => e, (e) => e, (e) => e);
 
-  /// Compares two [_TextEditWithIndex] to sort them by the order in which they
+  /// Compares two [TextEditWithIndex] to sort them by the order in which they
   /// can be sequentially applied to a String to match the behaviour of an LSP
   /// client.
-  static int compare(_TextEditWithIndex edit1, _TextEditWithIndex edit2) {
+  static int compare(TextEditWithIndex edit1, TextEditWithIndex edit2) {
     final end1 = edit1.edit.range.end;
     final end2 = edit2.edit.range.end;
 
