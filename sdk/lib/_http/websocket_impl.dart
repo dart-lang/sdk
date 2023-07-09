@@ -1061,7 +1061,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           !connectionHeader.any((value) => value.toLowerCase() == "upgrade") ||
           response.headers.value(HttpHeaders.upgradeHeader)!.toLowerCase() !=
               "websocket") {
-        return error("Connection to '$uri' was not upgraded to websocket");
+        final stringData = await response.transform(utf8.decoder).join();
+        return error("Connection to '$uri' was not upgraded to websocket, statusCode: '${response.statusCode}' response:'$stringData'");
       }
       String? accept = response.headers.value("Sec-WebSocket-Accept");
       if (accept == null) {
