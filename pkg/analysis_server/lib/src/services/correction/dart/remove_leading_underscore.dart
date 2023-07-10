@@ -42,6 +42,9 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
     } else if (node is DeclaredVariablePattern) {
       nameToken = node.name;
       element = node.declaredElement;
+    } else if (node is FunctionDeclaration) {
+      nameToken = node.name;
+      element = node.declaredElement;
     } else {
       return;
     }
@@ -59,10 +62,10 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
 
     // Find references to the identifier.
     List<SimpleIdentifier>? references;
-    if (element is LocalVariableElement) {
+    if (element is LocalVariableElement || element is FunctionElement) {
       var block = node.thisOrAncestorOfType<Block>();
       if (block != null) {
-        references = findLocalElementReferences(block, element);
+        references = findLocalElementReferences(block, element as LocalElement);
 
         var declaration = block.thisOrAncestorOfType<MethodDeclaration>() ??
             block.thisOrAncestorOfType<FunctionDeclaration>();
