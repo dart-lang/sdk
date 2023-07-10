@@ -637,11 +637,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     if (enableDds) {
       logger?.call('Starting a DDS instance for $uri');
       try {
-        final dds = await DartDevelopmentService.startDartDevelopmentService(
-          vmServiceUriToHttp(uri),
-          enableAuthCodes: enableAuthCodes,
-          ipv6: ipv6,
-        );
+        final dds = await startDds(uri, uriConverter());
         _dds = dds;
         uri = dds.wsUri!;
       } on DartDevelopmentServiceException catch (e) {
@@ -725,6 +721,12 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     _debuggerInitializedCompleter.complete();
   }
 
+  // This is intended for subclasses to override to provide a URI converter to
+  // resolve package URIs to local paths.
+  UriConverter? uriConverter() {
+    return null;
+  }
+
   void sendDebuggerUris(Uri uri) {
     // Send a custom event with the VM Service URI as the editor might want to
     // know about this (for example so it can connect an embedded DevTools to
@@ -734,6 +736,15 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         'vmServiceUri': uri.toString(),
       }),
       eventType: 'dart.debuggerUris',
+    );
+  }
+
+  Future<DartDevelopmentService> startDds(Uri uri, UriConverter? uriConverter) {
+    return DartDevelopmentService.startDartDevelopmentService(
+      vmServiceUriToHttp(uri),
+      enableAuthCodes: enableAuthCodes,
+      ipv6: ipv6,
+      uriConverter: uriConverter,
     );
   }
 
