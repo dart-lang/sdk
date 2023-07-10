@@ -1332,9 +1332,6 @@ class CallSiteInliner : public ValueObject {
         ParsedFunction* parsed_function =
             GetParsedFunction(function, &in_cache);
 
-        // Building flow graph of a function should not change its inlinability.
-        ASSERT(function.CanBeInlined());
-
         // Build the callee graph.
         InlineExitCollector* exit_collector =
             new (Z) InlineExitCollector(caller_graph_, call);

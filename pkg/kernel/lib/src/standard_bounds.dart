@@ -689,9 +689,35 @@ mixin StandardBounds {
       if (coreTypes.isNull(type2)) {
         return morebottom(type1, type2) ? type2 : type1;
       }
-      return type2.withDeclaredNullability(Nullability.nullable);
+      if (type2 is IntersectionType) {
+        // Intersection types are treated specially because of the semantics of
+        // the declared nullability and the fact that the point of declaration
+        // of the intersection type is taken as the point of declaration of the
+        // corresponding type-parameter type.
+        //
+        // In case of the upper bound, both the left-hand side and the
+        // right-hand side should be updated.
+        return new IntersectionType(
+            type2.left.withDeclaredNullability(Nullability.nullable),
+            type2.right.withDeclaredNullability(Nullability.nullable));
+      } else {
+        return type2.withDeclaredNullability(Nullability.nullable);
+      }
     } else if (coreTypes.isNull(type2)) {
-      return type1.withDeclaredNullability(Nullability.nullable);
+      if (type1 is IntersectionType) {
+        // Intersection types are treated specially because of the semantics of
+        // the declared nullability and the fact that the point of declaration
+        // of the intersection type is taken as the point of declaration of the
+        // corresponding type-parameter type.
+        //
+        // In case of the upper bound, both the left-hand side and the
+        // right-hand side should be updated.
+        return new IntersectionType(
+            type1.left.withDeclaredNullability(Nullability.nullable),
+            type1.right.withDeclaredNullability(Nullability.nullable));
+      } else {
+        return type1.withDeclaredNullability(Nullability.nullable);
+      }
     }
 
     // UP(T1, T2) where OBJECT(T1) and OBJECT(T2) =
