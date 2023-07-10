@@ -126,7 +126,7 @@ DEFINE_FLAG(charp,
 
 std::atomic<RecorderSynchronizationLock::RecorderState>
     RecorderSynchronizationLock::recorder_state_ = {
-        RecorderSynchronizationLock::kUnInitialized};
+        RecorderSynchronizationLock::kUninitialized};
 std::atomic<intptr_t> RecorderSynchronizationLock::outstanding_event_writes_ = {
     0};
 
@@ -316,11 +316,7 @@ void Timeline::Cleanup() {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   RecorderSynchronizationLock::WaitForShutdown();
-  // Timeline::Clear() is guarded by the recorder lock and will return
-  // immediately if we've started the shutdown sequence, leaking the recorder.
-  // All outstanding work has already been completed, so we're safe to call this
-  // without explicitly grabbing a recorder lock.
-  Timeline::ClearUnsafe();
+  Timeline::Clear();
   delete recorder_;
   recorder_ = nullptr;
   if (enabled_streams_ != nullptr) {
@@ -332,14 +328,9 @@ void Timeline::Cleanup() {
 void Timeline::ReclaimCachedBlocksFromThreads() {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || !ls.IsActive()) {
+  if (recorder == nullptr || ls.IsUninitialized()) {
     return;
   }
-  ReclaimCachedBlocksFromThreadsUnsafe();
-}
-
-void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
   ASSERT(recorder != nullptr);
   // Iterate over threads.
   OSThreadIterator it;
@@ -397,16 +388,11 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 void Timeline::Clear() {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || !ls.IsActive()) {
+  if (recorder == nullptr || ls.IsUninitialized()) {
     return;
   }
-  ClearUnsafe();
-}
-
-void Timeline::ClearUnsafe() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
   ASSERT(recorder != nullptr);
-  ReclaimCachedBlocksFromThreadsUnsafe();
+  ReclaimCachedBlocksFromThreads();
   recorder->Clear();
 }
 

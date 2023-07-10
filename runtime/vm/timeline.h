@@ -164,6 +164,10 @@ class RecorderSynchronizationLock : public AllStatic {
     ASSERT(count >= 0);
   }
 
+  static bool IsUninitialized() {
+    return (recorder_state_.load(std::memory_order_acquire) == kUninitialized);
+  }
+
   static bool IsActive() {
     return (recorder_state_.load(std::memory_order_acquire) == kActive);
   }
@@ -176,7 +180,7 @@ class RecorderSynchronizationLock : public AllStatic {
   }
 
  private:
-  typedef enum { kUnInitialized = 0, kActive, kShuttingDown } RecorderState;
+  typedef enum { kUninitialized = 0, kActive, kShuttingDown } RecorderState;
   static std::atomic<RecorderState> recorder_state_;
   static std::atomic<intptr_t> outstanding_event_writes_;
 
@@ -196,7 +200,11 @@ class RecorderSynchronizationLockScope {
     RecorderSynchronizationLock::ExitLock();
   }
 
-  bool IsActive() { return RecorderSynchronizationLock::IsActive(); }
+  bool IsUninitialized() const {
+    return RecorderSynchronizationLock::IsUninitialized();
+  }
+
+  bool IsActive() const { return RecorderSynchronizationLock::IsActive(); }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RecorderSynchronizationLockScope);
@@ -251,9 +259,6 @@ class Timeline : public AllStatic {
 #undef TIMELINE_STREAM_FLAGS
 
  private:
-  static void ClearUnsafe();
-  static void ReclaimCachedBlocksFromThreadsUnsafe();
-
   static TimelineEventRecorder* recorder_;
   static Dart_TimelineRecorderCallback callback_;
   static MallocGrowableArray<char*>* enabled_streams_;
