@@ -9,6 +9,7 @@ valid_source_locations_test: Pass, Slow
 add_breakpoint_rpc_kernel_test: SkipByDesign # No incremental compiler available.
 async_generator_breakpoint_test: SkipByDesign # No incremental compiler available.
 break_on_activation_test: SkipByDesign # No incremental compiler available.
+breakpoint_in_package_parts_class_file_uri_test: SkipByDesign # incorrect url used for breakpoint in app-jit mode
 debugger_inspect_test: SkipByDesign # No incremental compiler available.
 debugger_location_second_test: SkipByDesign # No script sources available.
 eval_internal_class_test: SkipByDesign # No incremental compiler available.
