@@ -315,6 +315,9 @@ WasmExternRef? callMethodVarArgsRaw(
         WasmExternRef? o, WasmExternRef? method, WasmExternRef? args) =>
     JS<WasmExternRef?>("(o, m, a) => o[m].apply(o, a)", o, method, args);
 
+String typeof(WasmExternRef? object) =>
+    js_types.JSStringImpl(JS<WasmExternRef?>("o => typeof o", object));
+
 String stringify(WasmExternRef? object) =>
     js_types.JSStringImpl(JS<WasmExternRef?>("o => String(o)", object));
 

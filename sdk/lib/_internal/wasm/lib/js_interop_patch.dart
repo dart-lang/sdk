@@ -63,7 +63,14 @@ extension JSObjectUtilExtension on JSObject {
 @patch
 extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  Function get toDart => unwrapJSWrappedDartFunction(toExternRef);
+  Function get toDart {
+    final ref = toExternRef;
+    if (!js_helper.isJSWrappedDartFunction(ref)) {
+      throw 'Expected JS wrapped function, but got type '
+          '${js_helper.typeof(ref)}.';
+    }
+    return unwrapJSWrappedDartFunction(ref);
+  }
 }
 
 @patch
