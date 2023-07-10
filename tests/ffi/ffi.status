@@ -73,13 +73,10 @@ vmspecific_regress_37511_test: SkipByDesign # Symbols are not exposed on purpose
 vmspecific_regress_37780_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 vmspecific_regress_51794_test: SkipByDesign # Symbols are not exposed on purpose and are not linked in Windows Precompiled. dartbug.com/40579
 
-[ $builder_tag == asan || $builder_tag == msan || $builder_tag == tsan ]
-data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.
-
 # These tests trigger and catch an abort (intentionally) and terminate the VM.
 # They're incompatible with ASAN because not all memory is freed when aborting and
 # with AppJit because the abort the VM before it can generate a snapshot.
-[ $builder_tag == asan || $compiler == app_jitk ]
+[ $compiler == app_jitk || $sanitizer == asan ]
 vmspecific_function_callbacks_exit_test: SkipByDesign
 
 [ $compiler == dart2analyzer || $compiler == fasta ]
@@ -96,3 +93,6 @@ abi_specific_int_incomplete_jit_test: SkipByDesign # Only intended to run in JIT
 
 [ $compiler != dartkp || $arch == arm64 && $system == fuchsia ]
 abi_specific_int_incomplete_aot_test: SkipByDesign # Only intended to run in AOT mode.
+
+[ $sanitizer == asan || $sanitizer == msan || $sanitizer == tsan ]
+data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.

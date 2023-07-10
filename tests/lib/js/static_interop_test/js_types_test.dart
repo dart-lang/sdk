@@ -131,6 +131,8 @@ void syncTests() {
               'foo'.toJS, 'bar'.toJS)
           .toDart,
       'foobar');
+  // Converting a non-function should throw.
+  Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;

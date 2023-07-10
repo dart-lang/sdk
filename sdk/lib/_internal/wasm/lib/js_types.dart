@@ -8,13 +8,16 @@
 /// library.
 library dart._js_types;
 
-import 'dart:_internal' show CodeUnits;
+import 'dart:_internal' show CodeUnits, FixedLengthListMixin;
 import 'dart:_js_helper' as js;
 import 'dart:_string_helper';
 import 'dart:_wasm';
+import 'dart:collection';
+import 'dart:typed_data';
 import 'dart:js_interop';
 
 part 'js_string.dart';
+part 'js_typed_array.dart';
 
 /// Note that the semantics of JS types on Wasm backends are slightly different
 /// from the JS backends. They all use `@staticInterop` currently, but Wasm

@@ -7,6 +7,7 @@ import 'dart:math';
 import 'package:dart2wasm/translator.dart';
 
 import 'package:kernel/ast.dart';
+import 'package:kernel/library_index.dart';
 
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -242,9 +243,36 @@ class ClassInfoCollector {
       cls: cls
   };
 
-  late final Set<Class> _neverMasquerades = {
-    translator.jsStringImplClass,
-  };
+  late final Set<Class> _neverMasquerades = _computeNeverMasquerades();
+
+  Set<Class> _computeNeverMasquerades() {
+    // The JS types do not masquerade, but they aren't always used so we have to
+    // construct this set programmatically.
+    final jsTypesLibraryIndex =
+        LibraryIndex(translator.component, ["dart:_js_types"]);
+    final neverMasquerades = [
+      "JSArrayBufferImpl",
+      "JSArrayBufferViewImpl",
+      "JSDataViewImpl",
+      "JSStringImpl",
+      "JSInt8ArrayImpl",
+      "JSUint8ArrayImpl",
+      "JSUint8ClampedArrayImpl",
+      "JSInt16ArrayImpl",
+      "JSUint16ArrayImpl",
+      "JSInt32ArrayImpl",
+      "JSInt32x4ArrayImpl",
+      "JSUint32ArrayImpl",
+      "JSFloat32ArrayImpl",
+      "JSFloat32x4ArrayImpl",
+      "JSFloat64ArrayImpl",
+      "JSFloat64x2ArrayImpl",
+    ]
+        .map((name) => jsTypesLibraryIndex.tryGetClass("dart:_js_types", name))
+        .toSet();
+    neverMasquerades.removeWhere((c) => c == null);
+    return neverMasquerades.cast<Class>();
+  }
 
   /// Wasm field type for fields with type [_Type]. Fields of this type are
   /// added to classes for type parameters.

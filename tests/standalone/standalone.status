@@ -14,9 +14,6 @@ io/non_utf8_link_test: Skip # Issue 33519. Temp files causing bots to go purple.
 packages_file_test: Skip # Issue 26715
 packages_file_test/none: Skip # contains no tests.
 
-[ $builder_tag == asan ]
-io/process_detached_test: Slow, Pass
-
 [ $builder_tag == dwarf ]
 io/socket_connect_stacktrace_test: SkipByDesign # Assumes stacktrace can be inspected directly, without decoding
 stack_trace/full1_test: SkipByDesign # Relies on symbolic stack traces.
@@ -77,6 +74,9 @@ io/wait_for_event_zone_caught_error_test: SkipByDesign # Uses mirrors.
 io/wait_for_event_zone_test: SkipByDesign # Uses mirrors.
 io/wait_for_test: SkipByDesign # Uses mirrors.
 verbose_gc_to_bmu_test: Skip # Attempts to spawn dart using Platform.executable
+
+[ $sanitizer == asan ]
+io/process_detached_test: Slow, Pass
 
 [ $system != macos ]
 io/https_connection_closed_during_handshake_test: SkipByDesign # long_ssl_cert_evaluation needed for long handshake is only supported on mac.

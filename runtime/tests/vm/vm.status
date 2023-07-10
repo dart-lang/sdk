@@ -59,10 +59,6 @@ dart_2/disassemble_aot_test: SkipByDesign # IA32 does not support AOT.
 dart_2/regress32597_2_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 dart_2/regress38467_test: Pass, Slow # Uses --optimization-counter-threshold=10 without a kernel service snapshot.
 
-[ $builder_tag == asan ]
-dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
-dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
-
 [ $builder_tag == obfuscated ]
 dart/heapsnapshot_cli_test: SkipByDesign # Relies on symbol names
 dart/isolate_exit_unsendable_test: SkipByDesign # Relies on symbol names
@@ -83,34 +79,6 @@ dart_2/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # GC happens
 dart_2/kernel_determinism_test: SkipSlow
 dart_2/minimal_kernel_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
 dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipSlow # gen_kernel is too slow with optimization_counter_threshold
-
-[ $builder_tag == tsan ]
-dart/analyze_snapshot_binary_test: SkipSlow
-dart/appjit_cha_deopt_test: SkipSlow
-dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
-dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
-dart/gc/scavenger_abort_test: SkipSlow
-dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
-dart/regress_40462_test: SkipSlow
-dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-dart/regress_48523_test: Pass, Slow
-dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
-dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
-dart/v8_snapshot_profile_writer_test: SkipSlow
-dart/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
-dart_2/analyze_snapshot_binary_test: SkipSlow
-dart_2/appjit_cha_deopt_test: SkipSlow
-dart_2/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
-dart_2/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
-dart_2/gc/scavenger_abort_test: SkipSlow
-dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
-dart_2/regress_40462_test: SkipSlow
-dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
-dart_2/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
-dart_2/v8_snapshot_profile_writer_test: SkipSlow
-dart_2/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
 
 [ $compiler == app_jitk ]
 dart/snapshot_version_test: RuntimeError
@@ -198,6 +166,38 @@ dart_2/reachability_test: SkipByDesign # Developer API not supported in product 
 [ $nnbd == legacy ]
 dart/*: SkipByDesign # Migrated tests are not supposed to run on non-NNBD bots.
 
+[ $sanitizer == asan ]
+dart/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
+dart_2/transferable_throws_oom_test: SkipByDesign # This test tries to allocate too much memory on purpose. Still dartbug.com/37188
+
+[ $sanitizer == tsan ]
+dart/analyze_snapshot_binary_test: SkipSlow
+dart/appjit_cha_deopt_test: SkipSlow
+dart/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart/gc/scavenger_abort_test: SkipSlow
+dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart/regress_40462_test: SkipSlow
+dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart/regress_48523_test: Pass, Slow
+dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
+dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
+dart/v8_snapshot_profile_writer_test: SkipSlow
+dart/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
+dart_2/analyze_snapshot_binary_test: SkipSlow
+dart_2/appjit_cha_deopt_test: SkipSlow
+dart_2/gc/fragmentation*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart_2/gc/out_of_memory*: Skip # Uses too much memory with TSAN overhead and kills bot
+dart_2/gc/scavenger_abort_test: SkipSlow
+dart_2/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
+dart_2/regress_40462_test: SkipSlow
+dart_2/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart_2/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart_2/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
+dart_2/v8_snapshot_profile_writer_test: SkipSlow
+dart_2/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
+
 [ $system == android ]
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # On android this test does not work due to not being able to identify library uri.
 dart/sdk_hash_test: SkipByDesign # The test doesn't know location of cross-platform gen_snapshot
@@ -267,6 +267,7 @@ cc/Service_Profile: SkipByDesign
 dart/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
@@ -276,6 +277,7 @@ dart/unboxed_param_test: SkipByDesign # https://dartbug.com/37299 FFI helper not
 dart_2/gc/splay_c_finalizer_test: SkipByDesign # No FFI on simulators
 dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
 dart_2/isolates/thread_pool_test: SkipByDesign # https://dartbug.com/37299 Test uses dart:ffi which is not supported on simulators.
+dart_2/reachability_test: SkipByDesign # Test takes too long on the simulator
 dart_2/regress_41971_test: SkipByDesign # https://dartbug.com/37299 dart:ffi is not supported on simulator
 dart_2/regress_b_216834909_test: SkipByDesign # No FFI on simulators
 dart_2/sdk_hash_test: SkipSlow # gen_kernel is slow to run on simarm
@@ -393,13 +395,13 @@ dart/isolates/fast_object_copy_test*: SkipSlow
 dart_2/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart_2/isolates/fast_object_copy_test*: SkipSlow
 
-[ $compiler == dartkp && ($builder_tag == tsan || $simulator) ]
-dart/regress_45898_test: Pass, Slow
-dart_2/regress_45898_test: Pass, Slow
-
 [ $compiler == dartkp && ($runtime == dart_precompiled || $runtime == vm) ]
 dart/spawn_shutdown_test: SkipSlow
 dart_2/spawn_shutdown_test: SkipSlow
+
+[ $compiler == dartkp && ($sanitizer == tsan || $simulator) ]
+dart/regress_45898_test: Pass, Slow
+dart_2/regress_45898_test: Pass, Slow
 
 [ $mode == debug && $system == windows ]
 dart/spawn_shutdown_test: Skip # Flaky crashes unable to start thread; likely low memory on the bot.

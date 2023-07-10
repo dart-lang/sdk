@@ -320,7 +320,7 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
       multiplier *= 2;
     }
     if (_configuration.sanitizer != Sanitizer.none) {
-      multiplier *= 2;
+      multiplier *= 4;
     }
     if (_configuration.rr) {
       multiplier *= 2;
