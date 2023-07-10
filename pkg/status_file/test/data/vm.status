@@ -131,7 +131,7 @@ dart/spawn_infinite_loop_test: Skip  # VM shutdown test
 dart/spawn_shutdown_test: Skip  # VM Shutdown test
 dart/hello_fuchsia_test: SkipByDesign # This is a test for fuchsia OS
 
-[ $builder_tag == asan ]
+[ $sanitizer == asan ]
 cc/CodeImmutability: Fail,OK # Address Sanitizer turns a crash into a failure.
 cc/IsolateReload_DanglingGetter_Class: Fail # Issue 28349
 cc/IsolateReload_DanglingGetter_Instance: Fail # Issue 28349

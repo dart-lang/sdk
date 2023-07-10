@@ -98,11 +98,11 @@ io/web_socket_test: Skip # Flaky.
 map_insert_remove_oom_test: Skip # Heap limit too low.
 no_support_debugger_test: Skip # kernel-service snapshot not compatible with flag disabled
 
-[ $builder_tag == asan || $builder_tag == lsan || $builder_tag == msan || $builder_tag == tsan ]
-regress_52715_test/measure: Skip # Shadow memory and scudo quarantine interfere with measuring RSS
-
 [ $builder_tag == crossword || $compiler != dartk && $compiler != dartkp || $compiler == dartkp && $system == windows ]
 entrypoints_verification_test: SkipByDesign # Requires VM to run. Cannot run in precompiled Windows because the DLL is linked against dart.exe instead of dart_precompiled_runtime.exe. Cannot run in cross-word environment as native extension is not built.
 
 [ $compiler != dartk || $runtime != vm ]
 check_for_aot_snapshot_jit_test: SkipByDesign # Test relies on paths, requires JIT test environment.
+
+[ $sanitizer == asan || $sanitizer == lsan || $sanitizer == msan || $sanitizer == tsan ]
+regress_52715_test/measure: Skip # Shadow memory and scudo quarantine interfere with measuring RSS
