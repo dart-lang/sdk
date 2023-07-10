@@ -147,6 +147,13 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
       return instance;
     });
   }
+
+  @override
+  void disposeMacro(MacroInstanceIdentifier instance) {
+    _instanceExecutors[instance]!._withInstance((executor) {
+      executor.disposeMacro(instance);
+    });
+  }
 }
 
 /// A token to track registered [MacroExecutor] factories.
@@ -163,17 +170,9 @@ class ExecutorFactoryToken {
   /// Runs [callback] with an actual instance once available.
   ///
   /// This will spin up an instance if one is not currently running.
-  Future<T> _withInstance<T>(Future<T> Function(MacroExecutor) callback) {
-    FutureOr<MacroExecutor>? instance = _instance;
-    if (instance == null) {
-      instance = _instance = _factory();
-    }
-    if (instance is Future<MacroExecutor>) {
-      return instance.then(callback);
-    } else {
-      return callback(instance);
-    }
-  }
+  Future<T> _withInstance<T>(
+          FutureOr<T> Function(MacroExecutor) callback) async =>
+      callback(await (_instance ??= _factory()));
 
   /// Closes [_instance] if non-null, and sets it to `null`.
   Future<void> _close() async {

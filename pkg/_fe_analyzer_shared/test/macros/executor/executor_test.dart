@@ -7,6 +7,7 @@ import 'dart:isolate';
 
 import 'package:_fe_analyzer_shared/src/macros/bootstrap.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
+import 'package:_fe_analyzer_shared/src/macros/executor/protocol.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/isolated_executor.dart'
     as isolatedExecutor;
@@ -83,11 +84,13 @@ void main() {
                 macroUri, macroName, '', Arguments([], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with no arguments.');
+            executor.disposeMacro(instanceId);
 
             instanceId = await executor.instantiateMacro(
                 macroUri, macroName, '', Arguments([IntArgument(1)], {}));
             expect(instanceId, isNotNull,
                 reason: 'Can create an instance with positional arguments.');
+            executor.disposeMacro(instanceId);
 
             instanceId = await executor.instantiateMacro(
                 macroUri,
@@ -126,14 +129,21 @@ void main() {
                 reason: 'Can create an instance with named arguments.');
           });
 
-          tearDownAll(() {
+          tearDownAll(() async {
+            executor.disposeMacro(instanceId);
+            await expectLater(
+                () => executor.executeTypesPhase(
+                    instanceId, Fixtures.myFunction, FakeIdentifierResolver()),
+                throwsA(isA<RemoteException>().having((e) => e.error, 'error',
+                    contains('Unrecognized macro instance'))),
+                reason: 'Should be able to dispose macro instances');
             if (tmpDir.existsSync()) {
               try {
                 // Fails flakily on windows if a process still has the file open
                 tmpDir.deleteSync(recursive: true);
               } catch (_) {}
             }
-            executor.close();
+            await executor.close();
           });
 
           group('run macros', () {

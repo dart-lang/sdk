@@ -403,6 +403,11 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
           library, name, constructor, arguments, RemoteInstance.uniqueId,
           serializationZoneId: zoneId));
 
+  @override
+  void disposeMacro(MacroInstanceIdentifier instance) =>
+      _sendRequest((zoneId) =>
+          new DisposeMacroRequest(instance, serializationZoneId: zoneId));
+
   /// Sends [serializer.result] to [sendPort], possibly wrapping it in a
   /// [TransferableTypedData] object.
   void sendResult(Serializer serializer);

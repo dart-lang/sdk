@@ -343,6 +343,8 @@ class MacroApplications {
               benchmarker?.beginSubdivide(BenchmarkSubdivides
                   .macroApplications_macroExecutorInstantiateMacro);
               application.instanceIdentifier = instanceIdCache[application] ??=
+                  // TODO: Dispose of these instances using
+                  // `macroExecutor.disposeMacro` once we are done with them.
                   await macroExecutor.instantiateMacro(
                       libraryUri,
                       macroClassName,

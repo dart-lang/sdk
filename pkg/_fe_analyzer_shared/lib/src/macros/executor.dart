@@ -32,6 +32,16 @@ abstract class MacroExecutor {
   Future<MacroInstanceIdentifier> instantiateMacro(
       Uri library, String name, String constructor, Arguments arguments);
 
+  /// Disposes a macro [instance] by its identifier.
+  ///
+  /// All macros should be disposed once expanded to prevent memory leaks in the
+  /// client macro executor.
+  ///
+  /// This is a fire and forget API, it does not happen synchronously but there
+  /// is no reason to wait for it to complete, and the client does not send a
+  /// response.
+  void disposeMacro(MacroInstanceIdentifier instance);
+
   /// Runs the type phase for [macro] on a given [declaration].
   ///
   /// Throws an exception if there is an error executing the macro.
