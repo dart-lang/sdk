@@ -1447,6 +1447,8 @@ abstract class AstVisitor<R> {
 
   R? visitMethodInvocation(MethodInvocation node);
 
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node);
+
   R? visitMixinDeclaration(MixinDeclaration node);
 
   R? visitNamedExpression(NamedExpression node);
@@ -12389,6 +12391,35 @@ abstract final class MixinAugmentationDeclaration
   MixinAugmentationElement? get declaredElement;
 }
 
+final class MixinAugmentationDeclarationImpl
+    extends MixinOrAugmentationDeclarationImpl
+    implements MixinAugmentationDeclaration {
+  @override
+  MixinAugmentationElementImpl? declaredElement;
+
+  @override
+  final Token augmentKeyword;
+
+  MixinAugmentationDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.augmentKeyword,
+    required super.baseKeyword,
+    required super.mixinKeyword,
+    required super.name,
+    required super.typeParameters,
+    required super.onClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  });
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitMixinAugmentationDeclaration(this);
+}
+
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
@@ -12422,134 +12453,27 @@ abstract final class MixinDeclaration
   TypeParameterList? get typeParameters;
 }
 
-/// The declaration of a mixin.
-///
-///    mixinDeclaration ::=
-///        metadata? 'base'? 'mixin' [SimpleIdentifier]
-///        [TypeParameterList]? [RequiresClause]? [ImplementsClause]?
-///        '{' [ClassMember]* '}'
-final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+final class MixinDeclarationImpl extends MixinOrAugmentationDeclarationImpl
     implements MixinDeclaration {
-  /// Return the 'augment' keyword, or `null` if the keyword was absent.
-  final Token? augmentKeyword;
-
-  /// Return the 'base' keyword, or `null` if the keyword was absent.
-  @override
-  final Token? baseKeyword;
-
-  @override
-  final Token mixinKeyword;
-
-  /// The type parameters for the class or mixin,
-  /// or `null` if the declaration does not have any type parameters.
-  TypeParameterListImpl? _typeParameters;
-
-  /// The on clause for the mixin, or `null` if the mixin does not have any
-  /// super-class constraints.
-  OnClauseImpl? _onClause;
-
-  /// The implements clause for the class or mixin,
-  /// or `null` if the declaration does not implement any interfaces.
-  ImplementsClauseImpl? _implementsClause;
-
   @override
   MixinElementImpl? declaredElement;
 
-  /// The left curly bracket.
-  @override
-  final Token leftBracket;
-
-  /// The members defined by the class or mixin.
-  final NodeListImpl<ClassMemberImpl> _members = NodeListImpl._();
-
-  /// The right curly bracket.
-  @override
-  final Token rightBracket;
-
-  /// Initialize a newly created mixin declaration. Either or both of the
-  /// [comment] and [metadata] can be `null` if the mixin does not have the
-  /// corresponding attribute. The [typeParameters] can be `null` if the mixin
-  /// does not have any type parameters. Either or both of the [onClause],
-  /// and [implementsClause] can be `null` if the mixin does not have the
-  /// corresponding clause. The list of [members] can be `null` if the mixin
-  /// does not have any members.
   MixinDeclarationImpl({
     required super.comment,
     required super.metadata,
-    required this.augmentKeyword,
-    required this.baseKeyword,
-    required this.mixinKeyword,
+    required super.baseKeyword,
+    required super.mixinKeyword,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
-    required OnClauseImpl? onClause,
-    required ImplementsClauseImpl? implementsClause,
-    required this.leftBracket,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  })  : _typeParameters = typeParameters,
-        _onClause = onClause,
-        _implementsClause = implementsClause {
-    _becomeParentOf(_typeParameters);
-    _becomeParentOf(_onClause);
-    _becomeParentOf(_implementsClause);
-    _members._initialize(this, members);
-  }
-
-  @override
-  Token get endToken => rightBracket;
-
-  @override
-  Token get firstTokenAfterCommentAndMetadata {
-    return baseKeyword ?? mixinKeyword;
-  }
-
-  @override
-  ImplementsClauseImpl? get implementsClause => _implementsClause;
-
-  set implementsClause(ImplementsClauseImpl? implementsClause) {
-    _implementsClause = _becomeParentOf(implementsClause);
-  }
-
-  @override
-  NodeListImpl<ClassMemberImpl> get members => _members;
-
-  @override
-  OnClauseImpl? get onClause => _onClause;
-
-  set onClause(OnClauseImpl? onClause) {
-    _onClause = _becomeParentOf(onClause);
-  }
-
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
-  }
-
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('baseKeyword', baseKeyword)
-    ..addToken('mixinKeyword', mixinKeyword)
-    ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('onClause', onClause)
-    ..addNode('implementsClause', implementsClause)
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
+    required super.typeParameters,
+    required super.onClause,
+    required super.implementsClause,
+    required super.leftBracket,
+    required super.members,
+    required super.rightBracket,
+  });
 
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    _typeParameters?.accept(visitor);
-    _onClause?.accept(visitor);
-    _implementsClause?.accept(visitor);
-    members.accept(visitor);
-  }
 }
 
 /// Shared interface between [MixinDeclaration] and
@@ -12586,6 +12510,85 @@ abstract final class MixinOrAugmentationDeclaration
   /// Returns the type parameters for the mixin, or `null` if the mixin does
   /// not have any type parameters.
   TypeParameterList? get typeParameters;
+}
+
+sealed class MixinOrAugmentationDeclarationImpl
+    extends NamedCompilationUnitMemberImpl
+    implements MixinOrAugmentationDeclaration {
+  @override
+  final Token? baseKeyword;
+
+  @override
+  final Token mixinKeyword;
+
+  @override
+  final TypeParameterListImpl? typeParameters;
+
+  @override
+  final OnClauseImpl? onClause;
+
+  @override
+  final ImplementsClauseImpl? implementsClause;
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
+
+  MixinOrAugmentationDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.baseKeyword,
+    required this.mixinKeyword,
+    required super.name,
+    required this.typeParameters,
+    required this.onClause,
+    required this.implementsClause,
+    required this.leftBracket,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    _becomeParentOf(typeParameters);
+    _becomeParentOf(onClause);
+    _becomeParentOf(implementsClause);
+    this.members._initialize(this, members);
+  }
+
+  Token? get augmentKeyword => null;
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    return augmentKeyword ?? baseKeyword ?? mixinKeyword;
+  }
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('baseKeyword', baseKeyword)
+    ..addToken('mixinKeyword', mixinKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('onClause', onClause)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    typeParameters?.accept(visitor);
+    onClause?.accept(visitor);
+    implementsClause?.accept(visitor);
+    members.accept(visitor);
+  }
 }
 
 /// A node that declares a single name within the scope of a compilation unit.

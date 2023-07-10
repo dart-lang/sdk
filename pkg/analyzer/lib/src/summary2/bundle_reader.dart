@@ -1198,6 +1198,49 @@ class LibraryReader {
     });
   }
 
+  MixinAugmentationElementImpl _readMixinAugmentationElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    var name = _reader.readStringReference();
+    var reference = unitReference.getChild('@mixinAugmentation').getChild(name);
+
+    var element = MixinAugmentationElementImpl(name, -1);
+
+    var linkedData = MixinAugmentationElementLinkedData(
+      reference: reference,
+      libraryReader: this,
+      unitElement: unitElement,
+      offset: resolutionOffset,
+    );
+    element.setLinkedData(reference, linkedData);
+    MixinAugmentationElementFlags.read(_reader, element);
+
+    element.typeParameters = _readTypeParameters();
+
+    var fields = <FieldElementImpl>[];
+    var accessors = <PropertyAccessorElementImpl>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields.toFixedList();
+    element.accessors = accessors.toFixedList();
+
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
+  }
+
+  void _readMixinAugmentations(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    unitElement.mixinAugmentations = _reader.readTypedList(() {
+      return _readMixinAugmentationElement(unitElement, unitReference);
+    });
+  }
+
   MixinElementImpl _readMixinElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -1584,6 +1627,7 @@ class LibraryReader {
     _readExtensions(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);
     _readMixins(unitElement, unitReference);
+    _readMixinAugmentations(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
 
     var accessors = <PropertyAccessorElementImpl>[];
@@ -1636,6 +1680,33 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
   }
 }
 
+class MixinAugmentationElementLinkedData
+    extends ElementLinkedData<MixinAugmentationElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  MixinAugmentationElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement2,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    element.superclassConstraints = reader._readInterfaceTypeList();
+    element.interfaces = reader._readInterfaceTypeList();
+    element.augmentationTarget =
+        reader.readElement() as MixinOrAugmentationElementMixin?;
+    element.augmentation =
+        reader.readElement() as MixinAugmentationElementImpl?;
+    applyConstantOffsets?.perform();
+  }
+}
+
 class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
@@ -1654,6 +1725,10 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
+    element.augmentation =
+        reader.readElement() as MixinAugmentationElementImpl?;
+    element.augmented.superclassConstraints = reader._readInterfaceTypeList();
+    element.augmented.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
   }
 }

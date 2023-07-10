@@ -109,6 +109,9 @@ class FindNode {
 
   MethodInvocation get singleMethodInvocation => _single();
 
+  MixinAugmentationDeclaration get singleMixinAugmentationDeclaration =>
+      _single();
+
   MixinDeclaration get singleMixinDeclaration => _single();
 
   OnClause get singleOnClause => _single();
@@ -572,6 +575,10 @@ class FindNode {
 
   MixinDeclaration mixin(String search) {
     return _node(search, (n) => n is MixinDeclaration);
+  }
+
+  MixinAugmentationDeclaration mixinAugmentationDeclaration(String search) {
+    return _node(search, (n) => n is MixinAugmentationDeclaration);
   }
 
   MixinDeclaration mixinDeclaration(String search) {

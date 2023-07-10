@@ -2654,6 +2654,24 @@ void f() {
     _assertSource(code, findNode.methodInvocation(code));
   }
 
+  void test_visitMixinAugmentationDeclaration() {
+    final code = 'augment mixin M {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(
+      code,
+      findNode.singleMixinAugmentationDeclaration,
+    );
+  }
+
+  void test_visitMixinAugmentationDeclaration_base() {
+    final code = 'augment base mixin M {}';
+    var findNode = _parseStringToFindNode(code);
+    _assertSource(
+      code,
+      findNode.singleMixinAugmentationDeclaration,
+    );
+  }
+
   void test_visitMixinDeclaration_base() {
     var findNode = _parseStringToFindNode(r'''
 base mixin M {}

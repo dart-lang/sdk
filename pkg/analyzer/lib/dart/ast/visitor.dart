@@ -509,6 +509,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitInvocationExpression(node);
 
   @override
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
+
+  @override
   R? visitMixinDeclaration(MixinDeclaration node) =>
       visitNamedCompilationUnitMember(node);
 
@@ -1386,6 +1390,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitMixinDeclaration(MixinDeclaration node) {
     node.visitChildren(this);
     return null;
@@ -2115,6 +2125,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitMethodInvocation(MethodInvocation node) => null;
 
   @override
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) =>
+      null;
+
+  @override
   R? visitMixinDeclaration(MixinDeclaration node) => null;
 
   @override
@@ -2651,6 +2665,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitMethodInvocation(MethodInvocation node) => _throw(node);
+
+  @override
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) =>
+      _throw(node);
 
   @override
   R? visitMixinDeclaration(MixinDeclaration node) => _throw(node);
@@ -3694,6 +3712,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitMixinAugmentationDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitMixinDeclaration(MixinDeclaration node) {
     stopwatch.start();
     T? result = _baseVisitor.visitMixinDeclaration(node);
@@ -4577,6 +4603,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitMethodInvocation(MethodInvocation node) => visitNode(node);
+
+  @override
+  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) =>
+      visitNode(node);
 
   @override
   R? visitMixinDeclaration(MixinDeclaration node) => visitNode(node);

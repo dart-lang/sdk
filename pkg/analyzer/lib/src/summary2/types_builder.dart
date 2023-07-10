@@ -237,6 +237,8 @@ class TypesBuilder {
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       _mixinDeclaration(node);
+    } else if (node is MixinAugmentationDeclarationImpl) {
+      _mixinAugmentationDeclaration(node);
     } else if (node is SimpleFormalParameter) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
@@ -330,6 +332,32 @@ class TypesBuilder {
     return unit!.featureSet.isEnabled(Feature.non_nullable);
   }
 
+  void _mixinAugmentationDeclaration(MixinAugmentationDeclarationImpl node) {
+    final element = node.declaredElement!;
+
+    element.superclassConstraints = _toInterfaceTypeList(
+      node.onClause?.superclassConstraints,
+    );
+
+    element.interfaces = _toInterfaceTypeList(
+      node.implementsClause?.interfaces,
+    );
+
+    _updatedAugmented(
+      element,
+      element.augmentedDeclaration,
+      (declaration, substitution) {
+        final augmented = declaration.augmented;
+        augmented.superclassConstraints.addAll(
+          substitution.mapInterfaceTypes(element.superclassConstraints),
+        );
+        augmented.interfaces.addAll(
+          substitution.mapInterfaceTypes(element.interfaces),
+        );
+      },
+    );
+  }
+
   void _mixinDeclaration(MixinDeclaration node) {
     var element = node.declaredElement as MixinElementImpl;
 
@@ -344,6 +372,10 @@ class TypesBuilder {
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
+
+    final augmented = element.augmented;
+    augmented.superclassConstraints.addAll(element.superclassConstraints);
+    augmented.interfaces.addAll(element.interfaces);
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
