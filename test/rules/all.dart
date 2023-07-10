@@ -174,6 +174,8 @@ import 'use_key_in_widget_constructors_test.dart'
 import 'use_late_for_private_fields_and_variables_test.dart'
     as use_late_for_private_fields_and_variables;
 import 'use_named_constants_test.dart' as use_named_constants;
+import 'use_setters_to_change_properties_test.dart'
+    as use_setters_to_change_properties;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'void_checks_test.dart' as void_checks;
@@ -305,6 +307,7 @@ void main() {
   use_key_in_widget_constructors.main();
   use_late_for_private_fields_and_variables.main();
   use_named_constants.main();
+  use_setters_to_change_properties.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
   void_checks.main();
