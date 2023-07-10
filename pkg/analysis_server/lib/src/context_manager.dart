@@ -643,11 +643,13 @@ class ContextManagerImpl implements ContextManager {
   }
 
   Future<void> _destroyAnalysisContexts() async {
+    for (final subscription in watcherSubscriptions) {
+      await subscription.cancel();
+    }
+    watcherSubscriptions.clear();
+
     final collection = _collection;
     if (collection != null) {
-      for (final subscription in watcherSubscriptions) {
-        await subscription.cancel();
-      }
       for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }

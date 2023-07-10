@@ -4,8 +4,10 @@ This is a patch release that:
 
 - Fixes a flow in flow analysis that causes it to sometimes ignore destructuring
   assignments (issue [#52767]).
+- Fixes a memory leak in Dart analyzer's file-watching (issue [#52791]).
 
 [#52767]: https://github.com/dart-lang/sdk/issues/52767
+[#52791]: https://github.com/dart-lang/sdk/issues/52791
 
 ## 3.0.5 - 2023-06-14
 
