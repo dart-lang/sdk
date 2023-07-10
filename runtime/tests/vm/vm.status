@@ -374,6 +374,7 @@ dart/heapsnapshot_cli_test: SkipSlow
 dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
+dart/regress_52703_test: SkipSlow
 dart_2/data_uri_spawn_test: Skip # Timeout
 dart_2/heap_snapshot_referrers_test: SkipSlow
 dart_2/heapsnapshot_cli_test: SkipSlow
