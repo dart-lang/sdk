@@ -41,16 +41,18 @@ class DartObjectPrinter {
       } else if (type.isDartCoreNull) {
         _sink.writeln('Null null');
       } else if (type.isDartCoreString) {
-        _sink.write('String ');
-        _sink.writeln(object.toStringValue());
-      } else if (state is ListState) {
-        _writeListState(state);
-      } else if (state is GenericState) {
-        _writeGenericState(type, state);
-      } else if (state is RecordState) {
-        _writeRecordState(type, state);
+        _writeString(object);
       } else if (state is FunctionState) {
         _writeFunctionState(type, state);
+      } else if (state is GenericState) {
+        _writeGenericState(type, state);
+      } else if (state is ListState) {
+        _writeListState(state);
+      } else if (state is RecordState) {
+        _writeRecordState(type, state);
+      } else if (state is TypeState) {
+        _sink.write('Type ');
+        _sink.writeln(state);
       } else {
         throw UnimplementedError();
       }
@@ -150,6 +152,17 @@ class DartObjectPrinter {
         });
       }
     });
+  }
+
+  void _writeString(DartObjectImpl object) {
+    _sink.write('String ');
+
+    final stringValue = object.toStringValue();
+    if (stringValue == null || stringValue.isEmpty) {
+      _sink.writeln('<empty>');
+    } else {
+      _sink.writeln(stringValue);
+    }
   }
 
   void _writeTypeArguments(List<DartType>? typeArguments) {
