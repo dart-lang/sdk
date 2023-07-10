@@ -298,6 +298,20 @@ extension NamedTypeExtension on NamedType {
   }
 }
 
+extension NodeListExtension<E extends AstNode> on NodeList<E> {
+  /// Return the first element of the list whose end is at or before the
+  /// [offset], or `null` if the list is empty or if the offset is before the
+  /// end of the first element.
+  E? elementBefore(int offset) {
+    for (var element in this) {
+      if (element.end <= offset) {
+        return element;
+      }
+    }
+    return null;
+  }
+}
+
 extension StatementExtension on Statement {
   ThrowStatement? get followingThrow {
     final block = parent;
