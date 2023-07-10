@@ -299,10 +299,17 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 
     // TODO(dart-engprod): Remove after replacing Cavium with GCE instances.
     if (arch == Architecture.arm64 && system == System.linux) {
-      multiplier *= 2;
+      multiplier *= 4;
     }
 
     if (_configuration.useQemu) {
+      multiplier *= 2;
+    }
+
+    // Configurations where `kernel-service` doesn't run from AppJIT snapshot
+    // will make tests run very slow due to the `kernel-service` code slowly
+    // warming up the JIT. This is especially noticable in `debug` mode.
+    if (arch == Architecture.ia32) {
       multiplier *= 2;
     }
 
