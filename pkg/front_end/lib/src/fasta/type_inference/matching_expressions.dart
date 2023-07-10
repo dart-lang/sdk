@@ -423,6 +423,10 @@ class MatchingExpressionVisitor
               typedMatchedExpression, field.target!, field.resultType!,
               isObjectAccess: false, fileOffset: field.fileOffset);
           break;
+        case ObjectAccessKind.Direct:
+          expression = new DelayedAsExpression(
+              typedMatchedExpression, field.resultType!,
+              isUnchecked: true, fileOffset: field.fileOffset);
         case ObjectAccessKind.Static:
           expression = new DelayedExtensionInvocation(field.target as Procedure,
               [typedMatchedExpression], field.typeArguments!, field.resultType!,

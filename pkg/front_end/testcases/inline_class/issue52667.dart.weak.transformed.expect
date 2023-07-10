@@ -1,0 +1,49 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    : super core::Object::•()
+    ;
+}
+inline class FooBar /* declaredRepresentationType = core::int */ {
+  constructor • = self::FooBar|;
+  tearoff • = self::FooBar|_#new#tearOff;
+}
+inline class FooBaz /* declaredRepresentationType = core::int */ {
+  constructor • = self::FooBaz|;
+  tearoff • = self::FooBaz|_#new#tearOff;
+}
+static inline-class-member method FooBar|(core::int i) → self::FooBar {
+  lowered final self::FooBar #this = i;
+  return #this;
+}
+static inline-class-member method FooBar|_#new#tearOff(core::int i) → self::FooBar
+  return self::FooBar|(i);
+static inline-class-member method FooBaz|(core::int i) → self::FooBaz {
+  lowered final self::FooBaz #this = i;
+  return #this;
+}
+static inline-class-member method FooBaz|_#new#tearOff(core::int i) → self::FooBaz
+  return self::FooBaz|(i);
+static method main() → void {
+  final self::FooBar a = self::FooBar|(0);
+  #L1:
+  {
+    final synthesized self::FooBar #0#0 = a;
+    {
+      final hoisted core::int a;
+      if(let final core::int #t1 = a = #0#0 as{Unchecked} core::int in true) {
+        {
+          core::print("FooBar ${a}");
+        }
+      }
+    }
+  }
+}
+
+
+Extra constant evaluation status:
+Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52667.dart:20:13 -> IntConstant(0)
+Extra constant evaluation: evaluated: 17, effectively constant: 1

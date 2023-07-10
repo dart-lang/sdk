@@ -1604,6 +1604,9 @@ enum ObjectAccessKind {
 
   /// Erroneous property access.
   Error,
+
+  /// Access of an inline class representation field.
+  Direct,
 }
 
 /// A [Pattern] with an optional guard [Expression].

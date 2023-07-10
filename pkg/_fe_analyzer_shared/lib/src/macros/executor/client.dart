@@ -123,6 +123,11 @@ final class MacroExpansionClient {
           InstantiateMacroRequest request =
               new InstantiateMacroRequest.deserialize(deserializer, zoneId);
           (await _instantiateMacro(request)).serialize(serializer);
+        case MessageType.disposeMacroRequest:
+          DisposeMacroRequest request =
+              new DisposeMacroRequest.deserialize(deserializer, zoneId);
+          _macroInstances.remove(request.identifier);
+          return;
         case MessageType.executeDeclarationsPhaseRequest:
           ExecuteDeclarationsPhaseRequest request =
               new ExecuteDeclarationsPhaseRequest.deserialize(

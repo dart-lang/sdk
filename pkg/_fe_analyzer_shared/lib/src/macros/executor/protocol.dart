@@ -257,6 +257,24 @@ class InstantiateMacroRequest extends Request {
   }
 }
 
+/// A request to dispose a macro instance by ID.
+class DisposeMacroRequest extends Request {
+  final MacroInstanceIdentifier identifier;
+
+  DisposeMacroRequest(this.identifier, {required super.serializationZoneId});
+
+  DisposeMacroRequest.deserialize(super.deserializer, super.serializationZoneId)
+      : identifier = new MacroInstanceIdentifierImpl.deserialize(deserializer),
+        super.deserialize();
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(MessageType.disposeMacroRequest.index);
+    serializer..addSerializable(identifier);
+    super.serialize(serializer);
+  }
+}
+
 /// A request to execute a macro on a particular declaration in the types phase.
 class ExecuteTypesPhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
@@ -892,6 +910,7 @@ enum MessageType {
   declarationOfRequest,
   declarationList,
   destroyRemoteInstanceZoneRequest,
+  disposeMacroRequest,
   valuesOfRequest,
   fieldsOfRequest,
   methodsOfRequest,

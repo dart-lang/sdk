@@ -103,16 +103,20 @@ final class _BoxedDouble extends double {
   }
 
   static double _modulo(double a, double b) {
-    double rem = a - (a / b).truncateToDouble() * b;
-    if (rem == 0.0) return 0.0;
-    if (rem < 0.0) {
-      if (b < 0.0) {
-        return rem - b;
+    double remainder = _remainder(a, b);
+
+    if (remainder == 0.0) {
+      // explicitly switch to positive version of 0.0
+      remainder = 0.0;
+    } else if (remainder < 0.0) {
+      if (b < 0) {
+        remainder -= b;
       } else {
-        return rem + b;
+        remainder += b;
       }
     }
-    return rem;
+
+    return remainder;
   }
 
   @pragma("wasm:prefer-inline")
@@ -121,7 +125,104 @@ final class _BoxedDouble extends double {
   }
 
   static double _remainder(double a, double b) {
-    return a - (a / b).truncateToDouble() * b;
+    if (a.isInfinite || a.isNaN || b.isNaN) {
+      return (a * b) / (a * b);
+    }
+
+    int aBits = doubleToIntBits(a);
+    int bBits = doubleToIntBits(b);
+
+    int aExponent = (aBits & _exponentMask) >> _mantissaBits;
+    int bExponent = (bBits & _exponentMask) >> _mantissaBits;
+    final int aSign = (aBits) >> (_exponentBits + _mantissaBits);
+
+    // checks if b = 0.0
+    if ((bBits << 1) == 0) {
+      return (a * b) / (a * b);
+    }
+
+    if ((aBits << 1)._le_u(bBits << 1)) {
+      if ((aBits << 1) == (bBits << 1)) {
+        // abs(a) == abs(b), so remainder = +/- 0.0 depending on sign of a
+        return 0.0._copysign(a);
+      }
+
+      // abs(a) < abs(b), so b = 0 * a rem. a
+      return a;
+    }
+
+    // normalises aBits to a number of the form 2^-1022 x 1.f
+    if (aExponent == 0) {
+      // a is of the form (-1)^s × 2^-1022 x 0.f (subnormal numbers)
+      for (int i = aBits << 12; i >> 63 == 0; aExponent--, i <<= 1) {}
+      aBits = aBits << -aExponent + 1;
+    } else {
+      // a is of the form (-1)^s × 2^(e-1023) x 1.f (normal numbers)
+      aBits &= _mantissaMask;
+      aBits |= 1 << 52;
+    }
+
+    // normalises bBits to a number of the form 2^-1022 x 1.f
+    if (bExponent == 0) {
+      // b is of the form (-1)^s × 2^-1022 x 0.f (subnormal numbers)
+      for (int i = bBits << 12; i >> 63 == 0; bExponent--, i <<= 1) {}
+      bBits = bBits << -bExponent + 1;
+    } else {
+      // b is of the form (-1)^s × 2^(e-1023) x 1.f (normal numbers)
+      bBits &= _mantissaMask;
+      bBits |= 1 << 52;
+    }
+
+    int remainder = 0;
+
+    // calculates a mod b
+    while (aExponent > bExponent) {
+      remainder = aBits - bBits;
+
+      if (remainder >> 63 == 0) {
+        // remainder is positive
+        if (remainder == 0) {
+          // a divides into b exactly, so remainder = +/- 0.0 depending on sign of a
+          return 0.0._copysign(a);
+        }
+
+        aBits = remainder;
+      }
+
+      aBits <<= 1;
+      aExponent--;
+    }
+
+    remainder = aBits - bBits;
+
+    if (remainder >> 63 == 0) {
+      // remainder is positive
+      if (remainder == 0) {
+        // a divides into b exactly, so remainder = +/- 0.0 depending on sign of a
+        return 0.0._copysign(a);
+      }
+
+      aBits = remainder;
+    }
+
+    // normalises aBits to a number of the form 2^-1022 x 1.f
+    while (aBits >> 52 == 0) {
+      aBits <<= 1;
+      aExponent--;
+    }
+
+    // scales aBits with exponent to convert to IEEE floating point representation
+    if (aExponent > 0) {
+      aBits -= 1 << 52;
+      aBits |= aExponent << 52;
+    } else {
+      aBits >>= -aExponent + 1;
+    }
+
+    // replaces sign
+    aBits |= aSign << 63;
+
+    return intBitsToDouble(aBits);
   }
 
   external double operator -();

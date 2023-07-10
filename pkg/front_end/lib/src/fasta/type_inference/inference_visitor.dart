@@ -10429,6 +10429,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.nullableCallFunction:
         case ObjectAccessTargetKind.missing:
         case ObjectAccessTargetKind.ambiguous:
+        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
                   field.fileOffset, node.requiredType, field.fieldName),
@@ -10443,9 +10444,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.callFunction:
           field.accessKind = ObjectAccessKind.FunctionTearOff;
           break;
-        case ObjectAccessTargetKind.superMember:
         case ObjectAccessTargetKind.inlineClassRepresentation:
-        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+          field.accessKind = ObjectAccessKind.Direct;
+          field.resultType = fieldTarget.getGetterType(this);
+        case ObjectAccessTargetKind.superMember:
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:

@@ -424,6 +424,9 @@ discussion
 disjoint
 disjointness
 dispatched
+dispose
+disposed
+disposes
 distribute
 diverged
 divided

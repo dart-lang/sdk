@@ -1,0 +1,26 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class Foo extends core::Object {
+  synthetic constructor •() → self::Foo
+    ;
+}
+inline class FooBar /* declaredRepresentationType = core::int */ {
+  constructor • = self::FooBar|;
+  tearoff • = self::FooBar|_#new#tearOff;
+}
+inline class FooBaz /* declaredRepresentationType = core::int */ {
+  constructor • = self::FooBaz|;
+  tearoff • = self::FooBaz|_#new#tearOff;
+}
+static inline-class-member method FooBar|(core::int i) → self::FooBar
+  ;
+static inline-class-member method FooBar|_#new#tearOff(core::int i) → self::FooBar
+  return self::FooBar|(i);
+static inline-class-member method FooBaz|(core::int i) → self::FooBaz
+  ;
+static inline-class-member method FooBaz|_#new#tearOff(core::int i) → self::FooBaz
+  return self::FooBaz|(i);
+static method main() → void
+  ;

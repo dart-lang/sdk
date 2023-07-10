@@ -89,6 +89,21 @@ f() {
 ''');
   }
 
+  Future<void> test_localFunction() async {
+    await resolveTestCode(r'''
+void f() {
+  int _foo() => 1;
+  print(_foo());
+}
+''');
+    await assertHasFix('''
+void f() {
+  int foo() => 1;
+  print(foo());
+}
+''');
+  }
+
   Future<void> test_localVariable() async {
     await resolveTestCode('''
 void f() {
