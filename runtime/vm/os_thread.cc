@@ -96,6 +96,11 @@ OSThread::~OSThread() {
   log_ = nullptr;
 #if defined(SUPPORT_TIMELINE)
   if (Timeline::recorder() != nullptr) {
+    // Acquire the recorder's lock so that |timeline_block_| cannot be given to
+    // another thread until the call to |TimelineEventRecorder::FinishBlock| is
+    // complete.
+    MutexLocker recorder_lock_locker(&Timeline::recorder()->lock_);
+    MutexLocker timeline_block_lock_locker(timeline_block_lock());
     Timeline::recorder()->FinishBlock(timeline_block_);
   }
 #endif
