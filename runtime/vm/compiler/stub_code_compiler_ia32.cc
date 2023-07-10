@@ -1011,15 +1011,16 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   __ pushl(AllocateArrayABI::kLengthReg);         // Array length as Smi.
   __ pushl(AllocateArrayABI::kTypeArgumentsReg);  // Type arguments.
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
-  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
-  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
-  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
 
   // Write-barrier elimination might be enabled for this array (depending on the
   // array length). To be sure we will check if the allocated object is in old
   // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
+  __ movl(AllocateArrayABI::kResultReg, Address(ESP, 2 * target::kWordSize));
+  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
 
+  __ popl(AllocateArrayABI::kTypeArgumentsReg);  // Pop type arguments.
+  __ popl(AllocateArrayABI::kLengthReg);         // Pop array length argument.
+  __ popl(AllocateArrayABI::kResultReg);  // Pop return value from return slot.
   __ LeaveFrame();
   __ ret();
 }
