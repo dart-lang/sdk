@@ -1788,6 +1788,8 @@
           "script": "tools/build.py",
           "arguments": [
             "--no-goma",
+            "dart_precompiled_runtime",
+            "gen_snapshot",
             "runtime"
           ]
         },
