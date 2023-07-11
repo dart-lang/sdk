@@ -88,15 +88,20 @@ class BaseTextBuffer;
 // ContainsCompressedPointers() returns the same value for AllStatic class and
 // class used for handles.
 #define ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(object, handle)           \
-  static_assert(std::is_base_of<dart::handle##Ptr, dart::object##Ptr>::value,  \
+ public: /* NOLINT */                                                          \
+  using UntaggedObjectType = dart::Untagged##object;                           \
+  using ObjectPtrType = dart::object##Ptr;                                     \
+  static_assert(std::is_base_of<dart::handle##Ptr, ObjectPtrType>::value,      \
                 #object "Ptr must be a subtype of " #handle "Ptr");            \
   static_assert(dart::handle::ContainsCompressedPointers() ==                  \
-                    dart::Untagged##object::kContainsCompressedPointers,       \
+                    UntaggedObjectType::kContainsCompressedPointers,           \
                 "Pointer compression in Untagged" #object                      \
                 " must match pointer compression in Untagged" #handle);        \
   static constexpr bool ContainsCompressedPointers() {                         \
-    return dart::Untagged##object::kContainsCompressedPointers;                \
-  }
+    return UntaggedObjectType::kContainsCompressedPointers;                    \
+  }                                                                            \
+                                                                               \
+ private: /* NOLINT */
 
 #define BASE_OBJECT_IMPLEMENTATION(object, super)                              \
  public: /* NOLINT */                                                          \
@@ -701,7 +706,49 @@ class Object {
   static ObjectPtr Allocate(intptr_t cls_id,
                             intptr_t size,
                             Heap::Space space,
-                            bool compressed);
+                            bool compressed,
+                            uword ptr_field_start_offset,
+                            uword ptr_field_end_offset);
+
+  // Templates of Allocate that retrieve the appropriate values to pass from
+  // the class.
+
+  template <typename T>
+  DART_FORCE_INLINE static typename T::ObjectPtrType Allocate(
+      Heap::Space space) {
+    return static_cast<typename T::ObjectPtrType>(Allocate(
+        T::kClassId, T::InstanceSize(), space, T::ContainsCompressedPointers(),
+        Object::from_offset<T>(), Object::to_offset<T>()));
+  }
+  template <typename T>
+  DART_FORCE_INLINE static typename T::ObjectPtrType Allocate(
+      Heap::Space space,
+      intptr_t elements) {
+    return static_cast<typename T::ObjectPtrType>(
+        Allocate(T::kClassId, T::InstanceSize(elements), space,
+                 T::ContainsCompressedPointers(), Object::from_offset<T>(),
+                 Object::to_offset<T>(elements)));
+  }
+
+  // Additional versions that also take a class_id for types like Array, Map,
+  // and Set that have more than one possible class id.
+
+  template <typename T>
+  DART_FORCE_INLINE static typename T::ObjectPtrType AllocateVariant(
+      intptr_t class_id,
+      Heap::Space space) {
+    return static_cast<typename T::ObjectPtrType>(Allocate(
+        class_id, T::InstanceSize(), space, T::ContainsCompressedPointers(),
+        Object::from_offset<T>(), Object::to_offset<T>()));
+  }
+  template <typename T>
+  DART_FORCE_INLINE static typename T::ObjectPtrType
+  AllocateVariant(intptr_t class_id, Heap::Space space, intptr_t elements) {
+    return static_cast<typename T::ObjectPtrType>(
+        Allocate(class_id, T::InstanceSize(elements), space,
+                 T::ContainsCompressedPointers(), Object::from_offset<T>(),
+                 Object::to_offset<T>(elements)));
+  }
 
   static constexpr intptr_t RoundedAllocationSize(intptr_t size) {
     return Utils::RoundUp(size, kObjectAlignment);
@@ -818,6 +865,30 @@ class Object {
   ObjectPtr ptr_;  // The raw object reference.
 
  protected:
+  // The first offset in an allocated object of the given type that contains a
+  // (possibly compressed) object pointer. Used to initialize object pointer
+  // fields to Object::null() instead of 0.
+  //
+  // Always returns an offset after the object header tags.
+  template <typename T>
+  DART_FORCE_INLINE static uword from_offset() {
+    return UntaggedObject::from_offset<typename T::UntaggedObjectType>();
+  }
+
+  // The last offset in an allocated object of the given type that contains a
+  // (possibly compressed) object pointer. Used to initialize object pointer
+  // fields to Object::null() instead of 0.
+  //
+  // Takes an optional argument that is the number of elements in the payload,
+  // which is ignored if the object never contains a payload.
+  //
+  // If there are no pointer fields in the object, then
+  // to_offset<T>() < from_offset<T>().
+  template <typename T>
+  DART_FORCE_INLINE static uword to_offset(intptr_t length = 0) {
+    return UntaggedObject::to_offset<typename T::UntaggedObjectType>(length);
+  }
+
   void AddCommonObjectProperties(JSONObject* jsobj,
                                  const char* protocol_type,
                                  bool ref) const;
@@ -831,7 +902,47 @@ class Object {
   static void InitializeObject(uword address,
                                intptr_t id,
                                intptr_t size,
-                               bool compressed);
+                               bool compressed,
+                               uword ptr_field_start_offset,
+                               uword ptr_field_end_offset);
+
+  // Templates of InitializeObject that retrieve the appropriate values to pass
+  // from the class.
+
+  template <typename T>
+  DART_FORCE_INLINE static void InitializeObject(uword address) {
+    return InitializeObject(address, T::kClassId, T::InstanceSize(),
+                            T::ContainsCompressedPointers(),
+                            Object::from_offset<T>(), Object::to_offset<T>());
+  }
+  template <typename T>
+  DART_FORCE_INLINE static void InitializeObject(uword address,
+                                                 intptr_t elements) {
+    return InitializeObject(address, T::kClassId, T::InstanceSize(elements),
+                            T::ContainsCompressedPointers(),
+                            Object::from_offset<T>(),
+                            Object::to_offset<T>(elements));
+  }
+
+  // Additional versions that also take a class_id for types like Array, Map,
+  // and Set that have more than one possible class id.
+
+  template <typename T>
+  DART_FORCE_INLINE static void InitializeObjectVariant(uword address,
+                                                        intptr_t class_id) {
+    return InitializeObject(address, class_id, T::InstanceSize(),
+                            T::ContainsCompressedPointers(),
+                            Object::from_offset<T>(), Object::to_offset<T>());
+  }
+  template <typename T>
+  DART_FORCE_INLINE static void InitializeObjectVariant(uword address,
+                                                        intptr_t class_id,
+                                                        intptr_t elements) {
+    return InitializeObject(address, class_id, T::InstanceSize(elements),
+                            T::ContainsCompressedPointers(),
+                            Object::from_offset<T>(),
+                            Object::to_offset<T>(elements));
+  }
 
   static void RegisterClass(const Class& cls,
                             const String& name,
@@ -10309,8 +10420,6 @@ class StringHasher : public ValueObject {
 
 class OneByteString : public AllStatic {
  public:
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
-
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsOneByteString());
     return OneByteString::CharAt(static_cast<OneByteStringPtr>(str.ptr()),
@@ -10434,6 +10543,8 @@ class OneByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(OneByteString, String);
+
   friend class Class;
   friend class ExternalOneByteString;
   friend class FlowGraphSerializer;
@@ -10449,8 +10560,6 @@ class OneByteString : public AllStatic {
 
 class TwoByteString : public AllStatic {
  public:
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(TwoByteString, String);
-
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsTwoByteString());
     return TwoByteString::CharAt(static_cast<TwoByteStringPtr>(str.ptr()),
@@ -10558,6 +10667,8 @@ class TwoByteString : public AllStatic {
     return &str.UnsafeMutableNonPointer(untag(str)->data())[0];
   }
 
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(TwoByteString, String);
+
   friend class Class;
   friend class FlowGraphSerializer;
   friend class ImageWriter;
@@ -10570,8 +10681,6 @@ class TwoByteString : public AllStatic {
 
 class ExternalOneByteString : public AllStatic {
  public:
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalOneByteString, String);
-
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalOneByteString());
     return ExternalOneByteString::CharAt(
@@ -10653,6 +10762,8 @@ class ExternalOneByteString : public AllStatic {
     return -kWordSize;
   }
 
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalOneByteString, String);
+
   friend class Class;
   friend class String;
   friend class StringHasher;
@@ -10663,8 +10774,6 @@ class ExternalOneByteString : public AllStatic {
 
 class ExternalTwoByteString : public AllStatic {
  public:
-  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalTwoByteString, String);
-
   static uint16_t CharAt(const String& str, intptr_t index) {
     ASSERT(str.IsExternalTwoByteString());
     return ExternalTwoByteString::CharAt(
@@ -10741,6 +10850,8 @@ class ExternalTwoByteString : public AllStatic {
     // Indicates this class cannot be extended by dart code.
     return -kWordSize;
   }
+
+  ALLSTATIC_CONTAINS_COMPRESSED_IMPLEMENTATION(ExternalTwoByteString, String);
 
   friend class Class;
   friend class String;

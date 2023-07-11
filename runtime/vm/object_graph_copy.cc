@@ -255,7 +255,24 @@ ObjectPtr AllocateObject(intptr_t cid,
   const intptr_t kLargeMessageThreshold = 16 * MB;
   const Heap::Space space =
       allocated_bytes > kLargeMessageThreshold ? Heap::kOld : Heap::kNew;
-  return Object::Allocate(cid, size, space, compressed);
+  // Mimic the old initialization behavior of Object::InitializeObject where
+  // the contents are initialized to Object::null(), except for TypedDataBase
+  // subclasses which are initialized to 0, as the contents of the original
+  // are translated and copied over prior to returning the object graph root.
+  if (IsTypedDataBaseClassId(cid)) {
+    return Object::Allocate(cid, size, space, compressed,
+                            Object::from_offset<TypedDataBase>(),
+                            Object::to_offset<TypedDataBase>());
+
+  } else {
+    // Remember that ptr_field_end_offset is the offset to the last Ptr
+    // field, not the offset just past it.
+    const uword ptr_field_end_offset =
+        size - (compressed ? kCompressedWordSize : kWordSize);
+    return Object::Allocate(cid, size, space, compressed,
+                            Object::from_offset<Object>(),
+                            ptr_field_end_offset);
+  }
 }
 
 DART_FORCE_INLINE
@@ -2458,8 +2475,28 @@ class ObjectGraphCopier : public StackResource {
 #else
         const bool compressed = false;
 #endif
-        Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
-                                 from.untag()->HeapSize(), compressed);
+        // Mimic the old initialization behavior of Object::InitializeObject
+        // where the contents are initialized to Object::null(), except for
+        // TypedDataBase subclasses which are initialized to 0, as the contents
+        // of the original are translated and copied over prior to returning
+        // the object graph root.
+        if (IsTypedDataBaseClassId(cid)) {
+          Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
+                                   from.untag()->HeapSize(), compressed,
+                                   Object::from_offset<TypedDataBase>(),
+                                   Object::to_offset<TypedDataBase>());
+
+        } else {
+          // Remember that ptr_field_end_offset is the offset to the last Ptr
+          // field, not the offset just past it.
+          const uword ptr_field_end_offset =
+              from.untag()->HeapSize() -
+              (compressed ? kCompressedWordSize : kWordSize);
+          Object::InitializeObject(reinterpret_cast<uword>(to.untag()), cid,
+                                   from.untag()->HeapSize(), compressed,
+                                   Object::from_offset<Object>(),
+                                   ptr_field_end_offset);
+        }
         UpdateLengthField(cid, from, to);
       }
     }

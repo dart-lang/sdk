@@ -6,8 +6,6 @@ part of dart._http;
 
 final _httpOverridesToken = Object();
 
-const _asyncRunZoned = runZoned;
-
 /// This class facilitates overriding [HttpClient] with a mock implementation.
 /// It should be extended by another class in client code with overrides
 /// that construct a mock implementation. The implementation in this base class
@@ -54,7 +52,7 @@ abstract class HttpOverrides {
           findProxyFromEnvironment}) {
     HttpOverrides overrides =
         _HttpOverridesScope(createHttpClient, findProxyFromEnvironment);
-    return _asyncRunZoned<R>(body,
+    return dart_async.runZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
 
@@ -63,7 +61,7 @@ abstract class HttpOverrides {
   /// Note that [overrides] should be an instance of a class that extends
   /// [HttpOverrides].
   static R runWithHttpOverrides<R>(R Function() body, HttpOverrides overrides) {
-    return _asyncRunZoned<R>(body,
+    return dart_async.runZoned<R>(body,
         zoneValues: {_httpOverridesToken: overrides});
   }
 
