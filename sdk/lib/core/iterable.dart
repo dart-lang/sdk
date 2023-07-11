@@ -412,6 +412,7 @@ abstract mixin class Iterable<E> {
   ///
   /// Checks every element in iteration order, and returns `false` if
   /// any of them make [test] return `false`, otherwise returns `true`.
+  /// Returns `true` if the iterable is empty.
   ///
   /// Example:
   /// ```dart
@@ -465,6 +466,7 @@ abstract mixin class Iterable<E> {
   ///
   /// Checks every element in iteration order, and returns `true` if
   /// any of them make [test] return `true`, otherwise returns false.
+  /// Returns `false` if the iterable is empty.
   ///
   /// Example:
   /// ```dart
