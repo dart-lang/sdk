@@ -110,15 +110,6 @@ DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
 DECLARE_FLAG(bool, reload_every_back_off);
 
-#if defined(TESTING) || defined(DEBUG)
-void VerifyOnTransition() {
-  Thread* thread = Thread::Current();
-  TransitionGeneratedToVM transition(thread);
-  VerifyPointersVisitor::VerifyPointers("VerifyOnTransition");
-  thread->isolate_group()->heap()->Verify("VerifyOnTransition");
-}
-#endif
-
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));

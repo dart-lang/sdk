@@ -41,8 +41,6 @@ class Thread;
   }
 #endif
 
-void VerifyOnTransition();
-
 #define DEOPTIMIZE_ALOT                                                        \
   if (FLAG_deoptimize_alot) {                                                  \
     DeoptimizeFunctionsOnStack();                                              \
