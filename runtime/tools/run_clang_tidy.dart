@@ -35,6 +35,13 @@ Future<void> generatePerfettoBuildFlags() async {
 const String clangTidy = './buildtools/linux-x64/clang/bin/clang-tidy';
 
 List<String> compilerFlagsForFile(String filepath) {
+  String arch = "X64";
+  if (filepath.contains("_arm.")) arch = "ARM";
+  if (filepath.contains("_arm64.")) arch = "ARM64";
+  if (filepath.contains("_riscv.")) arch = "RISCV64";
+  // Skipping IA32 because it neither has a simulator nor works with crossword
+  // and the host architecture is fixed.
+
   final flags = <String>[
     '-Iruntime',
     '-Ithird_party',
@@ -43,22 +50,13 @@ List<String> compilerFlagsForFile(String filepath) {
     '-Ithird_party/perfetto/include',
     '-Ithird_party/zlib',
     '-Iout/DebugX64/gen/third_party/perfetto/build_config',
-    '-DTARGET_ARCH_X64',
-    '-DDEBUG',
-    '-DDART_TARGET_OS_LINUX',
+    '-DTARGET_ARCH_$arch',
     '-DTESTING',
     '-std=c++17',
     '-x',
     'c++',
   ];
   return flags;
-}
-
-Future<ProcessResult> runClangTidyOn(String filepath) async {
-  // The `runtime/.clang-tidy` file has the enabled checks in it.
-  final args = <String>['-quiet', filepath, '--']
-    ..addAll(compilerFlagsForFile(filepath));
-  return await Process.run(clangTidy, args);
 }
 
 final pool = new Pool(max(1, Platform.numberOfProcessors ~/ 2));
@@ -84,6 +82,8 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/bin/namespace_linux.h',
   'runtime/bin/namespace_macos.h',
   'runtime/bin/namespace_win.h',
+  'runtime/bin/platform_macos.h',
+  'runtime/bin/platform_macos_cocoa.h',
   'runtime/bin/socket_base_android.h',
   'runtime/bin/socket_base_fuchsia.h',
   'runtime/bin/socket_base_linux.h',
@@ -133,9 +133,10 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/vm/os_thread_macos.h',
   'runtime/vm/os_thread_win.h',
   'runtime/vm/regexp_assembler_bytecode_inl.h',
-  'runtime/vm/simulator_arm64.h',
   'runtime/vm/simulator_arm.h',
+  'runtime/vm/simulator_arm64.h',
   'runtime/vm/simulator_riscv.h',
+  'runtime/vm/simulator_x64.h',
   'runtime/vm/stack_frame_arm.h',
   'runtime/vm/stack_frame_arm64.h',
   'runtime/vm/stack_frame_ia32.h',
@@ -148,6 +149,32 @@ final Set<String> excludedFiles = Set<String>.from([
   'runtime/vm/compiler/backend/locations_helpers_arm.h',
 ]);
 
+final defineSets = [
+  [
+    '-DDEBUG',
+  ],
+  [
+    '-DNDEBUG',
+  ],
+  [
+    '-DNDEBUG',
+    '-DPRODUCT',
+  ],
+  [
+    '-DDART_PRECOMPILER',
+    '-DDEBUG',
+  ],
+  [
+    '-DDART_PRECOMPILER',
+    '-DNDEBUG',
+  ],
+  [
+    '-DDART_PRECOMPILER',
+    '-DNDEBUG',
+    '-DPRODUCT',
+  ],
+];
+
 main(List<String> files) async {
   await generatePerfettoBuildFlags();
 
@@ -156,32 +183,39 @@ main(List<String> files) async {
   files = files.where((filepath) => !excludedFiles.contains(filepath)).toList();
 
   // Analyze the [files] in parallel.
-  await Future.wait(files.map((String filepath) async {
-    final processResult =
-        await pool.withResource(() => runClangTidyOn(filepath));
+  for (List<String> defines in defineSets) {
+    await Future.wait(files.map((String filepath) async {
+      // The `runtime/.clang-tidy` file has the enabled checks in it.
+      final args = <String>['-quiet', filepath, '--']
+        ..addAll(compilerFlagsForFile(filepath))
+        ..addAll(defines);
+      final processResult =
+          await pool.withResource(() => Process.run(clangTidy, args));
 
-    final int exitCode = processResult.exitCode;
-    final String stdout = processResult.stdout.trim();
-    final String stderr = processResult.stderr.trim();
+      final int exitCode = processResult.exitCode;
+      final String stdout = processResult.stdout.trim();
+      final String stderr = processResult.stderr.trim();
 
-    if (exitCode != 0 || stdout.isNotEmpty) {
-      if (!isFirstFailure) {
-        print('');
-        print('--------------------------------------------------------------');
-        print('');
+      if (exitCode != 0 || stdout.isNotEmpty) {
+        if (!isFirstFailure) {
+          print('');
+          print('------------------------------------------------------------');
+          print('');
+        }
+        isFirstFailure = false;
       }
-      isFirstFailure = false;
-    }
 
-    if (exitCode != 0) {
-      print('exit-code: $exitCode');
-      print('stdout:');
-      print('${stdout}');
-      print('stderr:');
-      print('${stderr}');
-    } else if (stdout.isNotEmpty) {
-      // The actual lints go to stdout.
-      print(stdout);
-    }
-  }));
+      if (exitCode != 0) {
+        print('command: $clangTidy ${args.join(" ")}');
+        print('exit-code: $exitCode');
+        print('stdout:');
+        print('${stdout}');
+        print('stderr:');
+        print('${stderr}');
+      } else if (stdout.isNotEmpty) {
+        // The actual lints go to stdout.
+        print(stdout);
+      }
+    }));
+  }
 }

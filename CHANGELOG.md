@@ -4,6 +4,14 @@
 
 ### Libraries
 
+#### `dart:convert`
+
+- **Breaking change** [#52801][]:
+  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
+    `List<int>` to `Uint8List`.
+
+[#52801]: https://dartbug.com/52801
+
 #### `dart:async`
 
 - **Breaking change** [#52334][]:
@@ -35,6 +43,10 @@
 
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
+
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
 
 #### `dart:js_interop`
 

@@ -11,6 +11,7 @@ import 'package:vm_service/vm_service.dart' as vm;
 
 import '../rpc_error_codes.dart';
 import 'adapters/dart.dart';
+import 'adapters/mixins.dart';
 import 'utils.dart';
 import 'variables.dart';
 
@@ -173,6 +174,10 @@ class IsolateManager {
       count: count,
     );
     return res as T;
+  }
+
+  Future<vm.ScriptList> getScripts(vm.IsolateRef isolate) async {
+    return (await _adapter.vmService?.getScripts(isolate.id!)) as vm.ScriptList;
   }
 
   /// Retrieves some basic data indexed by an integer for use in "reference"
@@ -984,7 +989,7 @@ class IsolateManager {
 }
 
 /// Holds state for a single Isolate/Thread.
-class ThreadInfo {
+class ThreadInfo with FileUtils {
   final IsolateManager _manager;
   final vm.IsolateRef isolate;
   final int isolateNumber;
@@ -1046,6 +1051,11 @@ class ThreadInfo {
   /// all use the same script.
   Future<vm.Script> getScript(vm.ScriptRef script) {
     return _scripts.putIfAbsent(script.id!, () => getObject<vm.Script>(script));
+  }
+
+  /// Fetches scripts for a given isolate.
+  Future<vm.ScriptList> getScripts() {
+    return _manager.getScripts(isolate);
   }
 
   /// Resolves a source file path into a URI for the VM.
@@ -1290,6 +1300,33 @@ class ThreadInfo {
   /// References to stored data become invalid when the thread is resumed.
   void clearStoredData() {
     _manager.clearStoredData(this);
+  }
+
+  /// Attempts to get a [vm.LibraryRef] for the given [scriptFileUri].
+  ///
+  /// This involves fetching all scripts for this isolate and looking for a
+  /// match and then returning the relevant library reference.
+  Future<vm.LibraryRef?> getLibraryForFileUri(Uri scriptFileUri) async {
+    // We start with a file URI and need to find the Library (via the script).
+    //
+    // We need to handle msimatched drive letters, and also file vs package
+    // URIs.
+    final scriptResolvedUri =
+        await resolvePathToUri(scriptFileUri.toFilePath());
+    final candidateUris = {
+      scriptFileUri.toString(),
+      normalizeUri(scriptFileUri).toString(),
+      if (scriptResolvedUri != null) scriptResolvedUri.toString(),
+      if (scriptResolvedUri != null) normalizeUri(scriptResolvedUri).toString(),
+    };
+
+    // Find the matching script/library.
+    final scriptRefs = (await getScripts()).scripts ?? const [];
+    final scriptRef = scriptRefs
+        .singleWhereOrNull((script) => candidateUris.contains(script.uri));
+    final script = scriptRef != null ? await getScript(scriptRef) : null;
+
+    return script?.library;
   }
 }
 

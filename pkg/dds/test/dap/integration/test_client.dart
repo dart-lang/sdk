@@ -1176,4 +1176,27 @@ extension DapTestClientExtension on DapTestClient {
 
     return body;
   }
+
+  /// Evaluates [expression] without a frame and  expects a specific
+  /// [expectedResult].
+  Future<EvaluateResponseBody> expectGlobalEvalResult(
+    String expression,
+    String expectedResult, {
+    String? context,
+    ValueFormat? format,
+  }) async {
+    final response = await evaluate(
+      expression,
+      context: context,
+      format: format,
+    );
+    expect(response.success, isTrue);
+    expect(response.command, equals('evaluate'));
+    final body =
+        EvaluateResponseBody.fromJson(response.body as Map<String, Object?>);
+
+    expect(body.result, equals(expectedResult));
+
+    return body;
+  }
 }

@@ -10,7 +10,8 @@
 #include <atomic>
 
 #include "include/dart_api.h"
-
+#include "vm/allocation.h"
+#include "vm/globals.h"
 
 namespace dart {
 
