@@ -380,10 +380,11 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   for (IP_ADAPTER_ADDRESSES* a = addrs; a != nullptr; a = a->Next) {
     for (IP_ADAPTER_UNICAST_ADDRESS* u = a->FirstUnicastAddress; u != nullptr;
          u = u->Next) {
-      addresses->SetAt(
-          i, new InterfaceSocketAddress(
-                 u->Address.lpSockaddr,
-                 StringUtilsWin::WideToUtf8(a->FriendlyName), a->Ipv6IfIndex));
+      addresses->SetAt(i,
+                       new InterfaceSocketAddress(
+                           u->Address.lpSockaddr,
+                           StringUtilsWin::WideToUtf8(a->FriendlyName),
+                           a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex));
       i++;
     }
   }
