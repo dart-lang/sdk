@@ -12866,44 +12866,11 @@ TypedDataPtr Script::kernel_string_offsets() const {
   return program_info.string_offsets();
 }
 
-void Script::LookupSourceAndLineStarts(Zone* zone) const {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  if (!IsLazyLookupSourceAndLineStarts()) {
-    return;
-  }
-  const String& uri = String::Handle(zone, resolved_url());
-  ASSERT(uri.IsSymbol());
-  if (uri.Length() > 0) {
-    // Entry included only to provide URI - actual source should already exist
-    // in the VM, so try to find it.
-    Library& lib = Library::Handle(zone);
-    Script& script = Script::Handle(zone);
-    const GrowableObjectArray& libs = GrowableObjectArray::Handle(
-        zone, IsolateGroup::Current()->object_store()->libraries());
-    for (intptr_t i = 0; i < libs.Length(); i++) {
-      lib ^= libs.At(i);
-      script = lib.LookupScript(uri, /* useResolvedUri = */ true);
-      if (!script.IsNull()) {
-        const auto& source = String::Handle(zone, script.Source());
-        const auto& starts = TypedData::Handle(zone, script.line_starts());
-        if (!source.IsNull() || !starts.IsNull()) {
-          set_source(source);
-          set_line_starts(starts);
-          break;
-        }
-      }
-    }
-  }
-  SetLazyLookupSourceAndLineStarts(false);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-}
-
 GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
   const GrowableObjectArray& info =
       GrowableObjectArray::Handle(zone, GrowableObjectArray::New());
   const Object& line_separator = Object::Handle(zone);
-  LookupSourceAndLineStarts(zone);
   if (line_starts() == TypedData::null()) {
     // Scripts in the AOT snapshot do not have a line starts array.
     // A well-formed line number array has a leading null.
@@ -12958,7 +12925,6 @@ TokenPosition Script::MaxPosition() const {
             untag()->flags_and_max_position_));
   }
   auto const zone = Thread::Current()->zone();
-  LookupSourceAndLineStarts(zone);
   if (!HasCachedMaxPosition() && line_starts() != TypedData::null()) {
     const auto& starts = TypedData::Handle(zone, line_starts());
     kernel::KernelLineStartsReader reader(starts, zone);
@@ -13017,17 +12983,6 @@ ArrayPtr Script::debug_positions() const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-void Script::SetLazyLookupSourceAndLineStarts(bool value) const {
-  StoreNonPointer(&untag()->flags_and_max_position_,
-                  UntaggedScript::LazyLookupSourceAndLineStartsBit::update(
-                      value, untag()->flags_and_max_position_));
-}
-
-bool Script::IsLazyLookupSourceAndLineStarts() const {
-  return UntaggedScript::LazyLookupSourceAndLineStartsBit::decode(
-      untag()->flags_and_max_position_);
-}
-
 bool Script::HasCachedMaxPosition() const {
   return UntaggedScript::HasCachedMaxPositionBit::decode(
       untag()->flags_and_max_position_);
@@ -13088,7 +13043,6 @@ bool Script::GetTokenLocation(const TokenPosition& token_pos,
   if (!token_pos.IsReal()) return false;
 
   auto const zone = Thread::Current()->zone();
-  LookupSourceAndLineStarts(zone);
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   if (line_starts_data.IsNull()) return false;
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
@@ -13103,7 +13057,6 @@ intptr_t Script::GetTokenLength(const TokenPosition& token_pos) const {
 #else
   if (!HasSource() || !token_pos.IsReal()) return -1;
   auto const zone = Thread::Current()->zone();
-  LookupSourceAndLineStarts(zone);
   // We don't explicitly save this data: Load the source and find it from there.
   const String& source = String::Handle(zone, Source());
   const intptr_t start = token_pos.Pos();
@@ -13129,7 +13082,6 @@ bool Script::TokenRangeAtLine(intptr_t line_number,
   // Line numbers are 1-indexed.
   if (line_number <= 0) return false;
   Zone* zone = Thread::Current()->zone();
-  LookupSourceAndLineStarts(zone);
   const TypedData& line_starts_data = TypedData::Handle(zone, line_starts());
   kernel::KernelLineStartsReader line_starts_reader(line_starts_data, zone);
   if (!line_starts_reader.TokenRangeAtLine(line_number, first_token_index,
@@ -13267,7 +13219,6 @@ ScriptPtr Script::New(const String& url,
   result.set_resolved_url(
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
-  NOT_IN_PRECOMPILED(result.SetLazyLookupSourceAndLineStarts(false));
   NOT_IN_PRECOMPILED(result.SetHasCachedMaxPosition(false));
   result.set_kernel_script_index(0);
   result.set_load_timestamp(

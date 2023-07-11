@@ -4934,7 +4934,6 @@ static bool GetHeapObjectCommon(Thread* thread,
     // load the source before sending the response.
     if (obj->IsScript()) {
       const Script& script = Script::Cast(*obj);
-      script.LookupSourceAndLineStarts(thread->zone());
       if (!script.HasSource() && script.IsPartOfDartColonLibrary() &&
           Service::HasDartLibraryKernelForSources()) {
         const uint8_t* kernel_buffer = Service::dart_library_kernel();

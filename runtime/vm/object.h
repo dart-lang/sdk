@@ -4862,7 +4862,6 @@ class Script : public Object {
   StringPtr Source() const;
   bool IsPartOfDartColonLibrary() const;
 
-  void LookupSourceAndLineStarts(Zone* zone) const;
   GrowableObjectArrayPtr GenerateLineNumberArray() const;
 
   intptr_t line_offset() const { return 0; }
@@ -4949,7 +4948,6 @@ class Script : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasCachedMaxPosition() const;
 
-  void SetLazyLookupSourceAndLineStarts(bool value) const;
   void SetHasCachedMaxPosition(bool value) const;
   void SetCachedMaxPosition(intptr_t value) const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

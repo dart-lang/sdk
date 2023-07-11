@@ -206,7 +206,6 @@ static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
 static void CollectKernelDataTokenPositions(
     const ExternalTypedData& kernel_data,
     const Script& script,
-    const Script& entry_script,
     intptr_t kernel_offset,
     intptr_t data_kernel_offset,
     Zone* zone,
@@ -218,7 +217,7 @@ static void CollectKernelDataTokenPositions(
 
   KernelTokenPositionCollector token_position_collector(
       zone, helper, script, kernel_data, data_kernel_offset,
-      entry_script.kernel_script_index(), script.kernel_script_index(),
+      script.kernel_script_index(), script.kernel_script_index(),
       token_positions);
 
   token_position_collector.CollectTokenPositions(kernel_offset);
@@ -227,7 +226,6 @@ static void CollectKernelDataTokenPositions(
 void CollectTokenPositionsFor(const Script& interesting_script) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  interesting_script.LookupSourceAndLineStarts(zone);
   TranslationHelper helper(thread);
   helper.InitFromScript(interesting_script);
 
@@ -271,8 +269,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             }
             data = temp_field.KernelData();
             CollectKernelDataTokenPositions(
-                data, interesting_script, entry_script,
-                temp_field.kernel_offset(),
+                data, interesting_script, temp_field.kernel_offset(),
                 temp_field.KernelDataProgramOffset(), zone, &helper,
                 &token_positions);
           }
@@ -285,8 +282,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
             }
             data = temp_function.KernelData();
             CollectKernelDataTokenPositions(
-                data, interesting_script, entry_script,
-                temp_function.kernel_offset(),
+                data, interesting_script, temp_function.kernel_offset(),
                 temp_function.KernelDataProgramOffset(), zone, &helper,
                 &token_positions);
           }
@@ -303,9 +299,9 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           if (entry_script.ptr() != interesting_script.ptr()) {
             continue;
           }
-          CollectKernelDataTokenPositions(
-              data, interesting_script, entry_script, class_offset,
-              library_kernel_offset, zone, &helper, &token_positions);
+          CollectKernelDataTokenPositions(data, interesting_script,
+                                          class_offset, library_kernel_offset,
+                                          zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.ptr();
@@ -314,7 +310,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
           continue;
         }
         data = temp_function.KernelData();
-        CollectKernelDataTokenPositions(data, interesting_script, entry_script,
+        CollectKernelDataTokenPositions(data, interesting_script,
                                         temp_function.kernel_offset(),
                                         temp_function.KernelDataProgramOffset(),
                                         zone, &helper, &token_positions);
@@ -330,7 +326,7 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
         }
         data = field.KernelData();
         CollectKernelDataTokenPositions(
-            data, interesting_script, entry_script, field.kernel_offset(),
+            data, interesting_script, field.kernel_offset(),
             field.KernelDataProgramOffset(), zone, &helper, &token_positions);
       }
     }
@@ -346,7 +342,6 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  interesting_script.LookupSourceAndLineStarts(zone);
   TranslationHelper helper(thread);
   helper.InitFromScript(interesting_script);
 
