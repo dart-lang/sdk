@@ -151,8 +151,14 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
     element.augmentation =
         reader.readElement() as ClassAugmentationElementImpl?;
-    element.augmented.mixins = reader._readInterfaceTypeList();
-    element.augmented.interfaces = reader._readInterfaceTypeList();
+
+    if (reader.readBool()) {
+      final augmented = AugmentedClassElementImpl();
+      element.augmentedInternal = augmented;
+      augmented.mixins = reader._readInterfaceTypeList();
+      augmented.interfaces = reader._readInterfaceTypeList();
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -1727,8 +1733,14 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     element.interfaces = reader._readInterfaceTypeList();
     element.augmentation =
         reader.readElement() as MixinAugmentationElementImpl?;
-    element.augmented.superclassConstraints = reader._readInterfaceTypeList();
-    element.augmented.interfaces = reader._readInterfaceTypeList();
+
+    if (reader.readBool()) {
+      final augmented = AugmentedMixinElementImpl();
+      element.augmentedInternal = augmented;
+      augmented.superclassConstraints = reader._readInterfaceTypeList();
+      augmented.interfaces = reader._readInterfaceTypeList();
+    }
+
     applyConstantOffsets?.perform();
   }
 }
@@ -1780,6 +1792,10 @@ class ResolutionReader {
 
   LibraryElementImpl libraryOfUri(Uri uri) {
     return _elementFactory.libraryOfUri2(uri);
+  }
+
+  bool readBool() {
+    return _reader.readBool();
   }
 
   int readByte() {

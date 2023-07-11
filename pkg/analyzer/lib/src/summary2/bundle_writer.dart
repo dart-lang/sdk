@@ -182,8 +182,13 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink._writeTypeList(element.augmented.mixins);
-      _resolutionSink._writeTypeList(element.augmented.interfaces);
+      _resolutionSink.writeIfType<AugmentedClassElementImpl>(
+        element.augmented,
+        (augmented) {
+          _resolutionSink._writeTypeList(augmented.mixins);
+          _resolutionSink._writeTypeList(augmented.interfaces);
+        },
+      );
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -466,8 +471,13 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink._writeTypeList(element.augmented.superclassConstraints);
-      _resolutionSink._writeTypeList(element.augmented.interfaces);
+      _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
+        element.augmented,
+        (augmented) {
+          _resolutionSink._writeTypeList(augmented.superclassConstraints);
+          _resolutionSink._writeTypeList(augmented.interfaces);
+        },
+      );
 
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),

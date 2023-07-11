@@ -121,6 +121,18 @@ class BufferedSink {
     addByte(byte);
   }
 
+  void writeIfType<T extends Object>(
+    Object? object,
+    void Function(T t) ifTrue,
+  ) {
+    if (object is T) {
+      writeBool(true);
+      ifTrue(object);
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeList<T>(List<T> items, void Function(T x) writeItem) {
     writeUInt30(items.length);
     for (var i = 0; i < items.length; i++) {
