@@ -2757,35 +2757,13 @@ abstract final class ClassDeclaration
   /// does not extend any other class.
   ExtendsClause? get extendsClause;
 
-  /// Returns the implements clause for the class/mixin, or `null` if the
-  /// class/mixin does not implement any interfaces.
-  @override
-  ImplementsClause? get implementsClause;
-
   /// Return the 'inline' keyword, or `null` if the keyword was absent.
   @experimental
   Token? get inlineKeyword;
 
-  /// Returns the left curly bracket.
-  @override
-  Token get leftBracket;
-
-  /// Returns the members defined by the class/mixin.
-  @override
-  NodeList<ClassMember> get members;
-
   /// Return the native clause for this class, or `null` if the class does not
   /// have a native clause.
   NativeClause? get nativeClause;
-
-  /// Returns the right curly bracket.
-  @override
-  Token get rightBracket;
-
-  /// Returns the type parameters for the class/mixin, or `null` if the
-  /// class/mixin does not have any type parameters.
-  @override
-  TypeParameterList? get typeParameters;
 }
 
 final class ClassDeclarationImpl extends ClassOrAugmentationDeclarationImpl
@@ -12429,28 +12407,6 @@ abstract final class MixinDeclaration
     implements MixinOrAugmentationDeclaration {
   @override
   MixinElement? get declaredElement;
-
-  /// Returns the implements clause for the class/mixin, or `null` if the
-  /// class/mixin does not implement any interfaces.
-  @override
-  ImplementsClause? get implementsClause;
-
-  /// Returns the left curly bracket.
-  @override
-  Token get leftBracket;
-
-  /// Returns the members defined by the class/mixin.
-  @override
-  NodeList<ClassMember> get members;
-
-  /// Returns the right curly bracket.
-  @override
-  Token get rightBracket;
-
-  /// Returns the type parameters for the class/mixin, or `null` if the
-  /// class/mixin does not have any type parameters.
-  @override
-  TypeParameterList? get typeParameters;
 }
 
 final class MixinDeclarationImpl extends MixinOrAugmentationDeclarationImpl
