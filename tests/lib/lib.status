@@ -115,7 +115,6 @@ isolate/int32_length_overflow_test: SkipSlow
 [ $compiler != dartk || $runtime != vm ]
 isolate/package_config_test: SkipByDesign # Uses Isolate.packageConfig
 isolate/package_resolve_test: SkipByDesign # Uses Isolate.resolvePackageUri
-isolate/package_root_test: SkipByDesign # Uses Isolate.packageRoot
 isolate/scenarios/*: SkipByDesign # Use automatic package resolution, spawnFunction and .dart URIs.
 isolate/spawn_uri_fail_test: SkipByDesign # Uses dart:io.
 

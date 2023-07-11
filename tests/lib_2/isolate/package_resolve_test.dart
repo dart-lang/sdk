@@ -56,8 +56,14 @@ testPackageResolution(port) async {
   try {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
+    if (packageConfig != Isolate.packageConfigSync) {
+      throw "Isolate.packageConfig != Isolate.packageConfigSync";
+    }
     var resolvedPkg =
         await Isolate.resolvePackageUri(Uri.parse(packageUriToResolve));
+    if (resolvedPkg != Isolate.resolvePackageUriSync(packageUriToResolve)) {
+      throw "Isolate.resolvePackageUri != Isolate.resolvePackageUriSync";
+    }
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");

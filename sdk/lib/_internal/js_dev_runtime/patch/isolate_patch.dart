@@ -23,7 +23,13 @@ class Isolate {
   static Future<Uri?> get packageConfig => _unsupported();
 
   @patch
+  static Uri? get packageConfigSync => _unsupported();
+
+  @patch
   static Future<Uri?> resolvePackageUri(Uri packageUri) => _unsupported();
+
+  @patch
+  static Uri? resolvePackageUriSync(Uri packageUri) => _unsupported();
 
   @patch
   static Future<Isolate> spawn<T>(void entryPoint(T message), T message,

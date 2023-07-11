@@ -86,8 +86,8 @@ class VMLibraryHooks {
   // Implementation of package root/map provision.
   static String? packageRootString;
   static String? packageConfigString;
-  static Future<Uri?> Function()? packageConfigUriFuture;
-  static Future<Uri?> Function(Uri)? resolvePackageUriFuture;
+  static Uri? Function()? packageConfigUriSync;
+  static Uri? Function(Uri)? resolvePackageUriSync;
 
   static Uri Function()? _computeScriptUri;
   static Uri? _cachedScript;

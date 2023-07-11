@@ -7,9 +7,11 @@
 import 'dart:io';
 import 'dart:isolate';
 
+final packageUriToResolve = Uri.parse("package:asdf/qwerty.dart");
+
 main([args, port]) async {
   if (port != null) {
-    testBadResolvePackage(port);
+    testPackageResolution(port);
     return;
   }
   var p = new RawReceivePort();
@@ -21,7 +23,7 @@ main([args, port]) async {
       throw "Failure return from spawned isolate:\n\n$msg";
     }
     // Expecting a null resolution for inexistent package mapping.
-    if (msg[0] != null) {
+    if (msg[1] != null) {
       throw "Bad package config in child isolate: ${msg[0]}\n"
           "Expected: 'Foo'";
     }
@@ -29,16 +31,21 @@ main([args, port]) async {
   };
 }
 
-testBadResolvePackage(port) async {
+testPackageResolution(port) async {
   try {
     var packageConfigStr = Platform.packageConfig;
     var packageConfig = await Isolate.packageConfig;
-    var badPackageUri = Uri.parse("package:asdf/qwerty.dart");
-    var resolvedPkg = await Isolate.resolvePackageUri(badPackageUri);
+    if (packageConfig != Isolate.packageConfigSync) {
+      throw "Isolate.packageConfig != Isolate.packageConfigSync";
+    }
+    var resolvedPkg = await Isolate.resolvePackageUri(packageUriToResolve);
+    if (resolvedPkg != Isolate.resolvePackageUriSync(packageUriToResolve)) {
+      throw "Isolate.resolvePackageUri != Isolate.resolvePackageUriSync";
+    }
     print("Spawned isolate's package config flag: $packageConfigStr");
     print("Spawned isolate's loaded package config: $packageConfig");
     print("Spawned isolate's resolved package path: $resolvedPkg");
-    port.send([resolvedPkg?.toString()]);
+    port.send([packageConfig?.toString(), resolvedPkg?.toString()]);
   } catch (e, s) {
     port.send("$e\n$s\n");
   }

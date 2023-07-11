@@ -36,6 +36,10 @@
 [#51486]: https://github.com/dart-lang/sdk/issues/51486
 [#52027]: https://github.com/dart-lang/sdk/issues/52027
 
+#### `dart:isolate`
+
+- Added `Isolate.packageConfigSync` and `Isolate.resolvePackageUriSync` APIs.
+
 #### `dart:js_interop`
 
 - **Object literal constructors**:
