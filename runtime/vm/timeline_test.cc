@@ -47,21 +47,23 @@ class TimelineTestHelper : public AllStatic {
     event->StreamInit(stream);
   }
 
+  static Mutex& GetRecorderLock(TimelineEventRecorder& recorder) {
+    return recorder.lock_;
+  }
+
   static void FakeThreadEvent(TimelineEventBlock* block,
                               intptr_t ftid,
                               const char* label = "fake",
                               TimelineStream* stream = nullptr) {
-    TimelineEvent* event = block->StartEvent();
+    OSThread& current_thread = *OSThread::Current();
+    MutexLocker ml(current_thread.timeline_block_lock());
+    TimelineEvent* event = block->StartEventLocked();
     ASSERT(event != nullptr);
     event->DurationBegin(label);
     event->thread_ = OSThread::ThreadIdFromIntPtr(ftid);
     if (stream != nullptr) {
       event->StreamInit(stream);
     }
-  }
-
-  static void SetBlockThread(TimelineEventBlock* block, intptr_t ftid) {
-    block->thread_id_ = OSThread::ThreadIdFromIntPtr(ftid);
   }
 
   static void FakeDuration(TimelineEventRecorder* recorder,
@@ -74,7 +76,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != nullptr);
     event->Duration(label, start, end);
-    event->Complete();
+    recorder->CompleteEvent(event);
   }
 
   static void FakeBegin(TimelineEventRecorder* recorder,
@@ -86,7 +88,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != nullptr);
     event->Begin(label, /*id=*/-1, start);
-    event->Complete();
+    recorder->CompleteEvent(event);
   }
 
   static void FakeEnd(TimelineEventRecorder* recorder,
@@ -98,7 +100,7 @@ class TimelineTestHelper : public AllStatic {
     TimelineEvent* event = recorder->StartEvent();
     ASSERT(event != nullptr);
     event->End(label, end);
-    event->Complete();
+    recorder->CompleteEvent(event);
   }
 
   static void FinishBlock(TimelineEventBlock* block) { block->Finish(); }
@@ -346,21 +348,25 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
       new TimelineEventRingRecorder(TimelineEventBlock::kBlockSize * 2);
   TimelineRecorderOverride<TimelineEventRingRecorder> override(recorder);
 
-  TimelineEventBlock* block_0 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_0 != nullptr);
-  TimelineEventBlock* block_1 = Timeline::recorder()->GetNewBlock();
-  EXPECT(block_1 != nullptr);
-  // Test that we wrapped.
-  EXPECT(block_0 == Timeline::recorder()->GetNewBlock());
+  {
+    Mutex& recorder_lock = TimelineTestHelper::GetRecorderLock(*recorder);
+    MutexLocker ml(&recorder_lock);
+    TimelineEventBlock* block_0 = Timeline::recorder()->GetNewBlockLocked();
+    EXPECT(block_0 != nullptr);
+    TimelineEventBlock* block_1 = Timeline::recorder()->GetNewBlockLocked();
+    EXPECT(block_1 != nullptr);
+    // Test that we wrapped.
+    EXPECT(block_0 == Timeline::recorder()->GetNewBlockLocked());
 
-  // Emit the earlier event into block_1.
-  TimelineTestHelper::FakeThreadEvent(block_1, 2, "Alpha", &stream);
-  OS::Sleep(32);
-  // Emit the later event into block_0.
-  TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
+    // Emit the earlier event into block_1.
+    TimelineTestHelper::FakeThreadEvent(block_1, 2, "Alpha", &stream);
+    OS::Sleep(32);
+    // Emit the later event into block_0.
+    TimelineTestHelper::FakeThreadEvent(block_0, 2, "Beta", &stream);
 
-  TimelineTestHelper::FinishBlock(block_0);
-  TimelineTestHelper::FinishBlock(block_1);
+    TimelineTestHelper::FinishBlock(block_0);
+    TimelineTestHelper::FinishBlock(block_1);
+  }
 
   JSONStream js;
   TimelineEventFilter filter;
@@ -372,6 +378,72 @@ TEST_CASE(TimelineRingRecorderJSONOrder) {
   const char* alpha = strstr(js.ToCString(), "Alpha");
   const char* beta = strstr(js.ToCString(), "Beta");
   EXPECT(alpha < beta);
+}
+
+TEST_CASE(TimelineRingRecorderRace) {
+  struct ReportEventsArguments {
+    Monitor& synchronization_monitor;
+    TimelineEventRecorder& recorder;
+    ThreadJoinId join_id = OSThread::kInvalidThreadJoinId;
+  };
+
+  // Note that |recorder| will be freed by |TimelineRecorderOverride|'s
+  // destructor.
+  TimelineEventRingRecorder& recorder =
+      *(new TimelineEventRingRecorder(2 * TimelineEventBlock::kBlockSize));
+  TimelineRecorderOverride<TimelineEventRingRecorder> override(&recorder);
+  Monitor synchronization_monitor;
+  JSONStream js;
+  TimelineEventFilter filter;
+  ReportEventsArguments report_events_1_arguments{synchronization_monitor,
+                                                  recorder};
+  ReportEventsArguments report_events_2_arguments{synchronization_monitor,
+                                                  recorder};
+
+  // Try concurrently writing events, serializing them, and clearing the
+  // timeline. It is not possible to assert anything about the outcome, because
+  // of scheduling uncertainty. This test is just used to ensure that TSAN
+  // checks the ring recorder code.
+  OSThread::Start(
+      "ReportEvents1",
+      [](uword arguments_ptr) {
+        ReportEventsArguments& arguments =
+            *reinterpret_cast<ReportEventsArguments*>(arguments_ptr);
+        for (intptr_t i = 0; i < 2 * TimelineEventBlock::kBlockSize; ++i) {
+          TimelineTestHelper::FakeDuration(&arguments.recorder, "testEvent",
+                                           /*start=*/0, /*end=*/1);
+        }
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_events_1_arguments));
+  OSThread::Start(
+      "ReportEvents2",
+      [](uword arguments_ptr) {
+        ReportEventsArguments& arguments =
+            *reinterpret_cast<ReportEventsArguments*>(arguments_ptr);
+        for (intptr_t i = 0; i < 2 * TimelineEventBlock::kBlockSize; ++i) {
+          TimelineTestHelper::FakeDuration(&arguments.recorder, "testEvent",
+                                           /*start=*/0, /*end=*/1);
+        }
+        MonitorLocker ml(&arguments.synchronization_monitor);
+        arguments.join_id =
+            OSThread::GetCurrentThreadJoinId(OSThread::Current());
+        ml.Notify();
+      },
+      reinterpret_cast<uword>(&report_events_2_arguments));
+  Timeline::Clear();
+  recorder.PrintJSON(&js, &filter);
+
+  MonitorLocker ml(&synchronization_monitor);
+  while (report_events_1_arguments.join_id == OSThread::kInvalidThreadJoinId ||
+         report_events_2_arguments.join_id == OSThread::kInvalidThreadJoinId) {
+    ml.Wait();
+  }
+  OSThread::Join(report_events_1_arguments.join_id);
+  OSThread::Join(report_events_2_arguments.join_id);
 }
 
 // |OSThread::Start()| takes in a function pointer, and only lambdas that don't

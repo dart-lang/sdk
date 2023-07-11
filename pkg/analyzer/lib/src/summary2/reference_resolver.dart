@@ -331,6 +331,29 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMixinAugmentationDeclaration(
+    covariant MixinAugmentationDeclarationImpl node,
+  ) {
+    var outerScope = scope;
+
+    var element = node.declaredElement!;
+
+    scope = TypeParameterScope(scope, element.typeParameters);
+
+    node.typeParameters?.accept(this);
+    node.onClause?.accept(this);
+    node.implementsClause?.accept(this);
+
+    // TODO(scheglov) implements
+    // scope = InterfaceScope(scope, element);
+    // LinkingNodeContext(node, scope);
+    // node.members.accept(this);
+
+    nodesToBuildType.addDeclaration(node);
+    scope = outerScope;
+  }
+
+  @override
   void visitMixinDeclaration(MixinDeclaration node) {
     var outerScope = scope;
 

@@ -381,11 +381,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitDoubleLiteral(DoubleLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitEnumDeclaration(EnumDeclaration node) {
     if (!request.featureSet.isEnabled(Feature.enhanced_enums)) {
       return;
@@ -756,11 +751,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitIntegerLiteral(IntegerLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitIsExpression(IsExpression node) {
     if (entity == node.isOperator) {
       _addSuggestion(Keyword.IS);
@@ -772,39 +762,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   @override
   void visitLibraryIdentifier(LibraryIdentifier node) {
     // no suggestions
-  }
-
-  @override
-  void visitListLiteral(ListLiteral node) {
-    _addCollectionElementKeywords();
-    _addElseElementKeyword(node.elements);
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitListPattern(ListPattern node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitLogicalAndPattern(LogicalAndPattern node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitLogicalOrPattern(LogicalOrPattern node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitMapPattern(MapPattern node) {
-    _addConstantExpressionKeywords(node);
-  }
-
-  @override
-  void visitMapPatternEntry(MapPatternEntry node) {
-    _addSuggestions([Keyword.FINAL, Keyword.VAR]);
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -899,18 +856,8 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitParenthesizedPattern(ParenthesizedPattern node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
   void visitPatternAssignment(PatternAssignment node) {
     _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitPatternField(PatternField node) {
-    _addSuggestions(patternKeywords);
   }
 
   @override
@@ -944,11 +891,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRecordLiteral(RecordLiteral node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitRecordPattern(RecordPattern node) {
     _addExpressionKeywords(node);
     _addSuggestions([Keyword.DYNAMIC]);
@@ -969,27 +911,10 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRestPatternElement(RestPatternElement node) {
-    _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitRethrowExpression(RethrowExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitReturnStatement(ReturnStatement node) {
     if (entity == node.expression) {
       _addExpressionKeywords(node);
     }
-  }
-
-  @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    _addCollectionElementKeywords();
-    _addElseElementKeyword(node.elements);
-    _addExpressionKeywords(node);
   }
 
   @override
@@ -1257,20 +1182,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
     }
   }
 
-  void _addElseElementKeyword(NodeList<CollectionElement> elements) {
-    final entity = this.entity;
-    var token = entity is AstNode ? entity.beginToken : entity as Token;
-    // Walk through the elements, looking for the element which precedes the
-    // cursor, backwards with the notion that a user is more likely to be typing
-    // at the end of the collection than at the beginning.
-    for (var i = elements.length - 1; i >= 0; i--) {
-      if (_isTokenAfterIfElementWithoutElse(token, elements[i])) {
-        _addSuggestions([Keyword.ELSE]);
-        break;
-      }
-    }
-  }
-
   void _addEnumBodyKeywords() {
     _addSuggestions([
       Keyword.CONST,
@@ -1436,35 +1347,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
           return statement is IfStatement && statement.elseStatement == null;
         }
       }
-    }
-    return false;
-  }
-
-  /// Returns whether [token] follows an 'if element' which does not have an
-  /// 'else element', either at [element] or at a descendant of [element].
-  bool _isTokenAfterIfElementWithoutElse(
-      Token token, CollectionElement element) {
-    if (element is IfElement) {
-      var tokenAfterIf = element.endToken.next!;
-      // The parser recovers an identifier (non-'else') after an if-element
-      // by inserting a synthetic comma. `[if (true) 1 e]` becomes
-      // `[if (true) 1, e]`.
-      if (element.elseElement == null &&
-          (tokenAfterIf == token ||
-              (tokenAfterIf.isSynthetic && tokenAfterIf.next == token))) {
-        return true;
-      } else {
-        if (_isTokenAfterIfElementWithoutElse(token, element.thenElement)) {
-          return true;
-        }
-        if (element.elseElement != null) {
-          if (_isTokenAfterIfElementWithoutElse(token, element.elseElement!)) {
-            return true;
-          }
-        }
-      }
-    } else if (element is ForElement) {
-      return _isTokenAfterIfElementWithoutElse(token, element.body);
     }
     return false;
   }

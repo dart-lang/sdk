@@ -94,12 +94,11 @@ DEFINE_FLAG(charp,
 // busy if blocks are being reclaimed by the reporting system.
 //
 // Reporting:
-// When requested, the timeline is serialized in the trace-event format
-// (https://goo.gl/hDZw5M). The request can be for a VM-wide timeline or an
-// isolate specific timeline. In both cases it may be that a thread has
-// a |TimelineEventBlock| cached in TLS partially filled with events. In order
-// to report a complete timeline the cached |TimelineEventBlock|s need to be
-// reclaimed.
+// When requested, the timeline is serialized in either Chrome's JSON trace
+// format (https://goo.gl/hDZw5M) or Perfetto's proto trace format. In both
+// cases, it may be that a thread has a |TimelineEventBlock| cached in TLS
+// partially filled with events. In order to report a complete timeline, the
+// cached |TimelineEventBlock|s need to be reclaimed.
 //
 // Reclaiming open |TimelineEventBlock|s from threads:
 //
@@ -108,6 +107,9 @@ DEFINE_FLAG(charp,
 // To reclaim blocks, we iterate over all threads and remove the cached
 // |TimelineEventBlock| from each thread. This is safe because we hold the
 // |Thread|'s |timeline_block_lock_| meaning the block can't be being modified.
+// When clearing the reclaimed blocks, or serializing the events in them, we
+// hold |TimelineEventRecorder::lock_| before reclaiming the blocks, to prevent
+// reclaimed blocks from being handed out again until we release it.
 //
 // Locking notes:
 // The following locks are used by the timeline system:
@@ -120,13 +122,13 @@ DEFINE_FLAG(charp,
 //
 // Locks must always be taken in the following order:
 //   |Thread::thread_list_lock_|
-//     |Thread::timeline_block_lock_|
-//       |TimelineEventRecorder::lock_|
+//     |TimelineEventRecorder::lock_|
+//       |Thread::timeline_block_lock_|
 //
 
 std::atomic<RecorderSynchronizationLock::RecorderState>
     RecorderSynchronizationLock::recorder_state_ = {
-        RecorderSynchronizationLock::kUnInitialized};
+        RecorderSynchronizationLock::kUninitialized};
 std::atomic<intptr_t> RecorderSynchronizationLock::outstanding_event_writes_ = {
     0};
 
@@ -316,11 +318,7 @@ void Timeline::Cleanup() {
   TIMELINE_STREAM_LIST(TIMELINE_STREAM_DISABLE)
 #undef TIMELINE_STREAM_DISABLE
   RecorderSynchronizationLock::WaitForShutdown();
-  // Timeline::Clear() is guarded by the recorder lock and will return
-  // immediately if we've started the shutdown sequence, leaking the recorder.
-  // All outstanding work has already been completed, so we're safe to call this
-  // without explicitly grabbing a recorder lock.
-  Timeline::ClearUnsafe();
+  Timeline::Clear();
   delete recorder_;
   recorder_ = nullptr;
   if (enabled_streams_ != nullptr) {
@@ -332,14 +330,9 @@ void Timeline::Cleanup() {
 void Timeline::ReclaimCachedBlocksFromThreads() {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || !ls.IsActive()) {
+  if (recorder == nullptr || ls.IsUninitialized()) {
     return;
   }
-  ReclaimCachedBlocksFromThreadsUnsafe();
-}
-
-void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
   ASSERT(recorder != nullptr);
   // Iterate over threads.
   OSThreadIterator it;
@@ -347,11 +340,8 @@ void Timeline::ReclaimCachedBlocksFromThreadsUnsafe() {
     OSThread* thread = it.Next();
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
-    TimelineEventBlock* block = thread->timeline_block();
-    thread->set_timeline_block(nullptr);
-    // TODO(johnmccutchan): Consider dropping the timeline_block_lock here
-    // if we can do it everywhere. This would simplify the lock ordering
-    // requirements.
+    TimelineEventBlock* block = thread->TimelineBlockLocked();
+    thread->SetTimelineBlockLocked(nullptr);
     recorder->FinishBlock(block);
   }
 }
@@ -397,17 +387,15 @@ void Timeline::PrintFlagsToJSON(JSONStream* js) {
 void Timeline::Clear() {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
-  if (recorder == nullptr || !ls.IsActive()) {
+  if (recorder == nullptr || ls.IsUninitialized()) {
     return;
   }
-  ClearUnsafe();
-}
-
-void Timeline::ClearUnsafe() {
-  TimelineEventRecorder* recorder = Timeline::recorder();
   ASSERT(recorder != nullptr);
-  ReclaimCachedBlocksFromThreadsUnsafe();
-  recorder->Clear();
+  // Acquire the recorder's lock to prevent the reclaimed blocks from being
+  // handed out again until they have been cleared.
+  MutexLocker ml(&recorder->lock_);
+  ReclaimCachedBlocksFromThreads();
+  recorder->ClearLocked();
 }
 
 void TimelineEventArguments::SetNumArguments(intptr_t length) {
@@ -1262,11 +1250,6 @@ bool TimelineEventBlock::ContainsEventsThatCanBeSerializedLocked() const {
   return !InUseLocked() && !IsEmpty();
 }
 
-ThreadId TimelineEventBlock::ThreadIdLocked() const {
-  ASSERT(Timeline::recorder()->lock_.IsOwnedByCurrentThread());
-  return thread_id_;
-}
-
 TimelineEventFilter::TimelineEventFilter(int64_t time_origin_micros,
                                          int64_t time_extent_micros)
     : time_origin_micros_(time_origin_micros),
@@ -1374,6 +1357,11 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   // Grab the current thread.
   OSThread* thread = OSThread::Current();
   ASSERT(thread != nullptr);
+  // Acquire the recorder lock in case we need to call |GetNewBlockLocked|. We
+  // acquire the lock here and not directly before calls to |GetNewBlockLocked|
+  // due to locking order restrictions.
+  Mutex& recorder_lock = lock_;
+  recorder_lock.Lock();
   Mutex* thread_block_lock = thread->timeline_block_lock();
   ASSERT(thread_block_lock != nullptr);
   // We are accessing the thread's timeline block- so take the lock here.
@@ -1386,26 +1374,34 @@ TimelineEvent* TimelineEventRecorder::ThreadBlockStartEvent() {
   }
 #endif  // defined(DEBUG)
 
-  TimelineEventBlock* thread_block = thread->timeline_block();
+  TimelineEventBlock* thread_block = thread->TimelineBlockLocked();
 
   if ((thread_block != nullptr) && thread_block->IsFull()) {
-    MutexLocker ml(&lock_);
     // Thread has a block and it is full:
     // 1) Mark it as finished.
-    thread_block->Finish();
+    thread->SetTimelineBlockLocked(nullptr);
+    FinishBlock(thread_block);
     // 2) Allocate a new block.
+    // We release |thread_block_lock| before calling |GetNewBlockLocked| to
+    // avoid TSAN warnings about lock order inversion.
+    thread_block_lock->Unlock();
     thread_block = GetNewBlockLocked();
-    thread->set_timeline_block(thread_block);
+    thread_block_lock->Lock();
+    thread->SetTimelineBlockLocked(thread_block);
   } else if (thread_block == nullptr) {
-    MutexLocker ml(&lock_);
     // Thread has no block. Attempt to allocate one.
+    // We release |thread_block_lock| before calling |GetNewBlockLocked| to
+    // avoid TSAN warnings about lock order inversion.
+    thread_block_lock->Unlock();
     thread_block = GetNewBlockLocked();
-    thread->set_timeline_block(thread_block);
+    thread_block_lock->Lock();
+    thread->SetTimelineBlockLocked(thread_block);
   }
+  recorder_lock.Unlock();
   if (thread_block != nullptr) {
     // NOTE: We are exiting this function with the thread's block lock held.
     ASSERT(!thread_block->IsFull());
-    TimelineEvent* event = thread_block->StartEvent();
+    TimelineEvent* event = thread_block->StartEventLocked();
     return event;
   }
 // Drop lock here as no event is being handed out.
@@ -1485,6 +1481,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
     return;
   }
 
+  // Acquire the recorder's lock to prevent the reclaimed blocks from being
+  // handed out again until the trace has been serialized.
+  MutexLocker ml(&lock_);
   Timeline::ReclaimCachedBlocksFromThreads();
 
   intptr_t pid = OS::ProcessId();
@@ -1515,16 +1514,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 #endif
 
 void TimelineEventRecorder::FinishBlock(TimelineEventBlock* block) {
-  if (block == nullptr) {
-    return;
+  if (block != nullptr) {
+    block->Finish();
   }
-  MutexLocker ml(&lock_);
-  block->Finish();
-}
-
-TimelineEventBlock* TimelineEventRecorder::GetNewBlock() {
-  MutexLocker ml(&lock_);
-  return GetNewBlockLocked();
 }
 
 void TimelineEventRecorder::AddTrackMetadataBasedOnThread(
@@ -1605,11 +1597,9 @@ TimelineEventFixedBufferRecorder::TimelineEventFixedBufferRecorder(
 }
 
 TimelineEventFixedBufferRecorder::~TimelineEventFixedBufferRecorder() {
-  MutexLocker ml(&lock_);
-  // Delete all blocks.
-  for (intptr_t i = 0; i < num_blocks_; i++) {
-    blocks_[i].Reset();
-  }
+  // We do not need to acquire any locks, because at this point we must have
+  // reclaimed all the blocks, and |RecorderSynchronizationLock| must have been
+  // put in a state that prevents blocks from being given out.
   delete memory_;
 }
 
@@ -1621,8 +1611,10 @@ intptr_t TimelineEventFixedBufferRecorder::Size() {
 void TimelineEventFixedBufferRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)>&& print_impl) {
-  Timeline::ReclaimCachedBlocksFromThreads();
+  // Acquire the recorder's lock to prevent the reclaimed blocks from being
+  // handed out again until the trace has been serialized.
   MutexLocker ml(&lock_);
+  Timeline::ReclaimCachedBlocksFromThreads();
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndexLocked();
   if (block_offset == -1) {
@@ -1773,11 +1765,12 @@ void TimelineEventFixedBufferRecorder::PrintTraceEvent(
 #endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventFixedBufferRecorder::GetHeadBlockLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   return &blocks_[0];
 }
 
-void TimelineEventFixedBufferRecorder::Clear() {
-  MutexLocker ml(&lock_);
+void TimelineEventFixedBufferRecorder::ClearLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   for (intptr_t i = 0; i < num_blocks_; i++) {
     TimelineEventBlock* block = &blocks_[i];
     block->Reset();
@@ -1814,18 +1807,25 @@ void TimelineEventFixedBufferRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 TimelineEventBlock* TimelineEventRingRecorder::GetNewBlockLocked() {
-  // TODO(johnmccutchan): This function should only hand out blocks
-  // which have been marked as finished.
+  ASSERT(lock_.IsOwnedByCurrentThread());
   if (block_cursor_ == num_blocks_) {
     block_cursor_ = 0;
   }
   TimelineEventBlock* block = &blocks_[block_cursor_++];
-  block->Reset();
-  block->Open();
+  if (block->current_owner_ != nullptr) {
+    MutexLocker ml(block->current_owner_->timeline_block_lock());
+    block->current_owner_->SetTimelineBlockLocked(nullptr);
+    block->Reset();
+    block->Open();
+  } else {
+    block->Reset();
+    block->Open();
+  }
   return block;
 }
 
 TimelineEventBlock* TimelineEventStartupRecorder::GetNewBlockLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   if (block_cursor_ == num_blocks_) {
     return nullptr;
   }
@@ -2202,14 +2202,18 @@ void TimelineEventPerfettoFileRecorder::DrainImpl(const TimelineEvent& event) {
 TimelineEventEndlessRecorder::TimelineEventEndlessRecorder()
     : head_(nullptr), tail_(nullptr), block_index_(0) {}
 
-TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {}
+TimelineEventEndlessRecorder::~TimelineEventEndlessRecorder() {
+  ASSERT(head_ == nullptr);
+}
 
 #ifndef PRODUCT
 void TimelineEventEndlessRecorder::PrintEventsCommon(
     const TimelineEventFilter& filter,
     std::function<void(const TimelineEvent&)>&& print_impl) {
-  Timeline::ReclaimCachedBlocksFromThreads();
+  // Acquire the recorder's lock to prevent the reclaimed blocks from being
+  // handed out again until the trace has been serialized.
   MutexLocker ml(&lock_);
+  Timeline::ReclaimCachedBlocksFromThreads();
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;
        current = current->next()) {
@@ -2287,6 +2291,7 @@ void TimelineEventEndlessRecorder::PrintTraceEvent(
 #endif  // !defined(PRODUCT)
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetHeadBlockLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   return head_;
 }
 
@@ -2302,6 +2307,7 @@ void TimelineEventEndlessRecorder::CompleteEvent(TimelineEvent* event) {
 }
 
 TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   TimelineEventBlock* block = new TimelineEventBlock(block_index_++);
   block->Open();
   if (head_ == nullptr) {
@@ -2316,8 +2322,8 @@ TimelineEventBlock* TimelineEventEndlessRecorder::GetNewBlockLocked() {
   return block;
 }
 
-void TimelineEventEndlessRecorder::Clear() {
-  MutexLocker ml(&lock_);
+void TimelineEventEndlessRecorder::ClearLocked() {
+  ASSERT(lock_.IsOwnedByCurrentThread());
   TimelineEventBlock* current = head_;
   while (current != nullptr) {
     TimelineEventBlock* next = current->next();
@@ -2333,7 +2339,7 @@ TimelineEventBlock::TimelineEventBlock(intptr_t block_index)
     : next_(nullptr),
       length_(0),
       block_index_(block_index),
-      thread_id_(OSThread::kInvalidThreadId),
+      current_owner_(nullptr),
       in_use_(false) {}
 
 TimelineEventBlock::~TimelineEventBlock() {
@@ -2353,11 +2359,13 @@ void TimelineEventBlock::PrintJSON(JSONStream* js) const {
 }
 #endif
 
-TimelineEvent* TimelineEventBlock::StartEvent() {
+TimelineEvent* TimelineEventBlock::StartEventLocked() {
+  OSThread* os_thread = OSThread::Current();
+  ASSERT(os_thread != nullptr);
+  ASSERT(os_thread == current_owner_);
+  ASSERT(os_thread->timeline_block_lock()->IsOwnedByCurrentThread());
   ASSERT(!IsFull());
   if (FLAG_trace_timeline) {
-    OSThread* os_thread = OSThread::Current();
-    ASSERT(os_thread != nullptr);
     intptr_t tid = OSThread::ThreadIdToIntPtr(os_thread->id());
     OS::PrintErr("StartEvent in block %p for thread %" Pd "\n", this, tid);
   }
@@ -2378,14 +2386,14 @@ void TimelineEventBlock::Reset() {
     events_[i].Reset();
   }
   length_ = 0;
-  thread_id_ = OSThread::kInvalidThreadId;
+  current_owner_ = nullptr;
   in_use_ = false;
 }
 
 void TimelineEventBlock::Open() {
   OSThread* os_thread = OSThread::Current();
   ASSERT(os_thread != nullptr);
-  thread_id_ = os_thread->trace_id();
+  current_owner_ = os_thread;
   in_use_ = true;
 }
 
@@ -2393,6 +2401,7 @@ void TimelineEventBlock::Finish() {
   if (FLAG_trace_timeline) {
     OS::PrintErr("Finish block %p\n", this);
   }
+  current_owner_ = nullptr;
   in_use_ = false;
 #ifndef PRODUCT
   if (Service::timeline_stream.enabled()) {

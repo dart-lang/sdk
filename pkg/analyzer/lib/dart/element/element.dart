@@ -358,6 +358,7 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   List<PropertyAccessorElement> get accessors;
 
   /// The class augmentations declared in this compilation unit.
+  @experimental
   List<ClassAugmentationElement> get classAugmentations;
 
   /// The classes declared in this compilation unit.
@@ -383,6 +384,10 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The [LineInfo] for the [source].
   LineInfo get lineInfo;
+
+  /// The mixin augmentations declared in this compilation unit.
+  @experimental
+  List<MixinAugmentationElement> get mixinAugmentations;
 
   /// The mixins declared in this compilation unit.
   List<MixinElement> get mixins;
@@ -1168,6 +1173,8 @@ abstract class ElementVisitor<R> {
   R? visitLocalVariableElement(LocalVariableElement element);
 
   R? visitMethodElement(MethodElement element);
+
+  R? visitMixinAugmentationElement(MixinAugmentationElement element);
 
   R? visitMixinElement(MixinElement element);
 
@@ -2177,25 +2184,6 @@ abstract class MixinElement
   @override
   AugmentedMixinElement get augmented;
 
-  /// Whether the mixin is a base mixin.
-  ///
-  /// A mixin is a base mixin if it has an explicit `base` modifier, or the
-  /// mixin has a `base` induced modifier and [isSealed] is `true` as well.
-  /// The base modifier allows a mixin to be mixed in but not implemented.
-  bool get isBase;
-
-  /// The superclass constraints defined for this mixin.
-  ///
-  /// If the declaration does not have an `on` clause, then the list will
-  /// contain the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get superclassConstraints;
-
   /// Whether the element, assuming that it is within scope, is
   /// implementable to classes, mixins, and enums in the given [library].
   bool isImplementableIn(LibraryElement library);
@@ -2216,6 +2204,24 @@ abstract class MixinOrAugmentationElement
 
   @override
   MixinElement? get augmentedDeclaration;
+
+  /// Whether the mixin is a base mixin.
+  ///
+  /// A mixin is a base mixin if it has an explicit `base` modifier.
+  /// The base modifier allows a mixin to be mixed in, but not implemented.
+  bool get isBase;
+
+  /// The superclass constraints defined for this mixin.
+  ///
+  /// If the declaration does not have an `on` clause, then the list will
+  /// contain the type for the class `Object`.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
+  List<InterfaceType> get superclassConstraints;
 }
 
 /// A pseudo-element that represents multiple elements defined within a single

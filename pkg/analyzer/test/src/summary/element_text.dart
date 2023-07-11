@@ -151,11 +151,17 @@ class _ElementWriter {
   }
 
   void _writeAugmentation(InterfaceOrAugmentationElementMixin e) {
-    if (e case ClassOrAugmentationElementMixin e) {
-      final augmentation = e.augmentation;
-      if (augmentation != null) {
-        _elementPrinter.writeNamedElement('augmentation', augmentation);
-      }
+    switch (e) {
+      case ClassOrAugmentationElementMixin e:
+        final augmentation = e.augmentation;
+        if (augmentation != null) {
+          _elementPrinter.writeNamedElement('augmentation', augmentation);
+        }
+      case MixinOrAugmentationElementMixin e:
+        final augmentation = e.augmentation;
+        if (augmentation != null) {
+          _elementPrinter.writeNamedElement('augmentation', augmentation);
+        }
     }
   }
 
@@ -188,7 +194,7 @@ class _ElementWriter {
 
   void _writeAugmented(InstanceElementImpl e) {
     // TODO(scheglov) enable for other types
-    if (e is! ClassElementImpl) {
+    if (!(e is ClassElementImpl || e is MixinElementImpl)) {
       return;
     }
 
@@ -201,8 +207,14 @@ class _ElementWriter {
     _sink.withIndent(() {
       final augmented = e.augmented;
       switch (augmented) {
-        case AugmentedInterfaceElementImpl():
+        case AugmentedClassElementImpl():
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
+          _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+        case AugmentedMixinElementImpl():
+          _elementPrinter.writeTypeList(
+            'superclassConstraints',
+            augmented.superclassConstraints,
+          );
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
       }
       // TODO(scheglov) Add other types and properties
@@ -534,7 +546,7 @@ class _ElementWriter {
 
       if (e is EnumElementImpl) {
         _sink.write('enum ');
-      } else if (e is MixinElementImpl) {
+      } else if (e is MixinOrAugmentationElementMixin) {
         _sink.writeIf(e.isBase, 'base ');
         _sink.write('mixin ');
       } else {
@@ -565,10 +577,12 @@ class _ElementWriter {
         }
       }
 
-      if (e is MixinElementImpl) {
-        var superclassConstraints = e.superclassConstraints;
-        if (superclassConstraints.isEmpty) {
-          throw StateError('At least Object is expected.');
+      if (e is MixinOrAugmentationElementMixin) {
+        final superclassConstraints = e.superclassConstraints;
+        if (e is MixinElementImpl) {
+          if (superclassConstraints.isEmpty) {
+            throw StateError('At least Object is expected.');
+          }
         }
         _elementPrinter.writeTypeList(
           'superclassConstraints',
@@ -1079,6 +1093,11 @@ class _ElementWriter {
     _writeElements('enums', e.enums, _writeInterfaceOrAugmentationElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
     _writeElements('mixins', e.mixins, _writeInterfaceOrAugmentationElement);
+    _writeElements(
+      'mixinAugmentations',
+      e.mixinAugmentations,
+      _writeInterfaceOrAugmentationElement,
+    );
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',

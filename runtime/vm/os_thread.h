@@ -60,6 +60,7 @@ class Mutex {
   friend class SafepointMutexLocker;
   friend class OSThreadIterator;
   friend class TimelineEventRecorder;
+  friend class TimelineEventRingRecorder;
   friend class PageSpace;
   friend void Dart_TestMutex();
   DISALLOW_COPY_AND_ASSIGN(Mutex);
@@ -111,10 +112,14 @@ class OSThread : public BaseThread {
   Mutex* timeline_block_lock() const { return &timeline_block_lock_; }
 
   // Only safe to access when holding |timeline_block_lock_|.
-  TimelineEventBlock* timeline_block() const { return timeline_block_; }
+  TimelineEventBlock* TimelineBlockLocked() const {
+    ASSERT(timeline_block_lock()->IsOwnedByCurrentThread());
+    return timeline_block_;
+  }
 
   // Only safe to access when holding |timeline_block_lock_|.
-  void set_timeline_block(TimelineEventBlock* block) {
+  void SetTimelineBlockLocked(TimelineEventBlock* block) {
+    ASSERT(timeline_block_lock()->IsOwnedByCurrentThread());
     timeline_block_ = block;
   }
 
@@ -284,6 +289,8 @@ class OSThread : public BaseThread {
   char* name_;  // A name for this thread.
 
   mutable Mutex timeline_block_lock_;
+  // The block that the timeline recorder has permitted this thread to write
+  // events to.
   TimelineEventBlock* timeline_block_;
 
   // All |Thread|s are registered in the thread list.

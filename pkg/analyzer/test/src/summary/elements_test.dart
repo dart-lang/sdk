@@ -230,6 +230,63 @@ library
           augment class A @43
             typeParameters
               covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            interfaces
+              I2<T2>
+''');
+  }
+
+  test_augmented_interfaces_generic_mismatch() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2, T3> implements I2<T2> {}
+class I2<E> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        interfaces
+          I1
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            I1
+      class I1 @59
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @80
+            typeParameters
+              covariant E @83
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+              covariant T3 @49
+                defaultType: dynamic
             augmentationTarget: self::@class::A
             augmentedDeclaration: self::@class::A
             interfaces
@@ -284,18 +341,98 @@ library
               Object
 ''');
   }
+
+  test_notSimplyBounded_self() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T extends A> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T extends A> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      notSimplyBounded class A @31
+        typeParameters
+          covariant T @33
+            bound: A<dynamic>
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T @45
+                bound: A<dynamic>
+                defaultType: A<dynamic>
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_typeParameters_defaultType() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T extends B> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T extends B> {}
+class B {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            bound: B
+            defaultType: B
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+      class B @55
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T @45
+                bound: B
+                defaultType: B
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
 }
 
 @reflectiveTest
 class ElementsFromBytesTest extends ElementsTest
-    with ClassAugmentationElementsMixin {
+    with ClassAugmentationElementsMixin, MixinAugmentationElementsMixin {
   @override
   bool get keepLinkingLibraries => false;
 }
 
 @reflectiveTest
 class ElementsKeepLinkingTest extends ElementsTest
-    with ClassAugmentationElementsMixin {
+    with ClassAugmentationElementsMixin, MixinAugmentationElementsMixin {
   @override
   bool get keepLinkingLibraries => true;
 }
@@ -44837,6 +44974,410 @@ library
     final libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element as LibraryElementImpl;
+  }
+}
+
+mixin MixinAugmentationElementsMixin on ElementsBaseTest {
+  test_augmentationTarget() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment mixin A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment mixin A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        augmented
+          superclassConstraints
+            Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @68
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            mixinAugmentations
+              augment mixin A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                augmentedDeclaration: self::@mixin::A
+''');
+  }
+
+  test_augmented_interfaces() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A implements I2 {}
+class I2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @56
+        constructors
+          synthetic @-1
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        interfaces
+          I1
+        augmented
+          superclassConstraints
+            Object
+          interfaces
+            I1
+            I2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @68
+            constructors
+              synthetic @-1
+        mixinAugmentations
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            interfaces
+              I2
+''');
+  }
+
+  test_augmented_interfaces_chain() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment mixin A implements I2 {}
+class I2 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment mixin A implements I3 {}
+class I3 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A implements I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @56
+        constructors
+          synthetic @-1
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        interfaces
+          I1
+        augmented
+          superclassConstraints
+            Object
+          interfaces
+            I1
+            I2
+            I3
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @93
+            constructors
+              synthetic @-1
+        mixinAugmentations
+          augment mixin A @68
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            interfaces
+              I2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class I3 @65
+                constructors
+                  synthetic @-1
+            mixinAugmentations
+              augment mixin A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                augmentedDeclaration: self::@mixin::A
+                interfaces
+                  I3
+''');
+  }
+
+  test_augmented_superclassConstraints() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A on B2 {}
+class B2 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A on B1 {}
+class B1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B1 @48
+        constructors
+          synthetic @-1
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          B1
+        augmented
+          superclassConstraints
+            B1
+            B2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class B2 @60
+            constructors
+              synthetic @-1
+        mixinAugmentations
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            superclassConstraints
+              B2
+''');
+  }
+
+  test_augmented_superclassConstraints_chain() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment mixin A on I2 {}
+class I2 {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment mixin A on I3 {}
+class I3 {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A on I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @48
+        constructors
+          synthetic @-1
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          I1
+        augmented
+          superclassConstraints
+            I1
+            I2
+            I3
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @85
+            constructors
+              synthetic @-1
+        mixinAugmentations
+          augment mixin A @68
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            superclassConstraints
+              I2
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              class I3 @57
+                constructors
+                  synthetic @-1
+            mixinAugmentations
+              augment mixin A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                augmentedDeclaration: self::@mixin::A
+                superclassConstraints
+                  I3
+''');
+  }
+
+  test_augmented_superclassConstraints_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A<T2> on I2<T2> {}
+class I2<E> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A<T> on I1 {}
+class I1 {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I1 @51
+        constructors
+          synthetic @-1
+    mixins
+      mixin A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          I1
+        augmented
+          superclassConstraints
+            I1
+            I2<T>
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          class I2 @68
+            typeParameters
+              covariant E @71
+                defaultType: dynamic
+            constructors
+              synthetic @-1
+        mixinAugmentations
+          augment mixin A @43
+            typeParameters
+              covariant T2 @45
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            superclassConstraints
+              I2<T2>
+''');
+  }
+
+  test_modifiers_base() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment base mixin A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+base mixin A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      base mixin A @36
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        augmented
+          superclassConstraints
+            Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment base mixin A @48
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+''');
+  }
+
+  test_notSimplyBounded_self() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A<T extends A> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A<T extends A> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      notSimplyBounded mixin A @31
+        typeParameters
+          covariant T @33
+            bound: A<dynamic>
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        augmented
+          superclassConstraints
+            Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @43
+            typeParameters
+              covariant T @45
+                bound: A<dynamic>
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+''');
   }
 }
 

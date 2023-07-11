@@ -133,8 +133,8 @@ class MockVmService implements VmServiceInterface {
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
-  final isolate1 = IsolateRef(id: 'isolate1');
-  final isolate2 = IsolateRef(id: 'isolate2');
+  final isolate1 = IsolateRef(id: 'isolate1', number: '1');
+  final isolate2 = IsolateRef(id: 'isolate2', number: '2');
   final sdkLibrary = LibraryRef(id: 'libSdk', uri: 'dart:core');
   final externalPackageLibrary =
       LibraryRef(id: 'libPkgExternal', uri: 'package:external/foo.dart');

@@ -260,6 +260,24 @@ class MethodElementFlags {
   }
 }
 
+class MixinAugmentationElementFlags {
+  static const int _isBase = 1 << 0;
+
+  static void read(
+    SummaryDataReader reader,
+    MixinAugmentationElementImpl element,
+  ) {
+    final byte = reader.readByte();
+    element.isBase = (byte & _isBase) != 0;
+  }
+
+  static void write(BufferedSink sink, MixinAugmentationElementImpl element) {
+    var result = 0;
+    result |= element.isBase ? _isBase : 0;
+    sink.writeUInt30(result);
+  }
+}
+
 class MixinElementFlags {
   static const int _isBase = 1 << 0;
   static const int _isSimplyBounded = 1 << 1;

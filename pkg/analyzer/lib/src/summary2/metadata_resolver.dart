@@ -204,6 +204,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
+    // TODO: implement visitMixinAugmentationDeclaration
+    // super.visitMixinAugmentationDeclaration(node);
+  }
+
+  @override
   void visitMixinDeclaration(MixinDeclaration node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);

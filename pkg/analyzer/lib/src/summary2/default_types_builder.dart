@@ -28,6 +28,11 @@ class DefaultTypesBuilder {
         _breakSelfCycles(node.typeParameters);
         _breakRawTypeCycles(element, node.typeParameters);
         _computeBounds(element, node.typeParameters);
+      } else if (node is ClassAugmentationDeclaration) {
+        var element = node.declaredElement!;
+        _breakSelfCycles(node.typeParameters);
+        _breakRawTypeCycles(element, node.typeParameters);
+        _computeBounds(element, node.typeParameters);
       } else if (node is ClassTypeAlias) {
         var element = node.declaredElement!;
         _breakSelfCycles(node.typeParameters);
@@ -72,6 +77,8 @@ class DefaultTypesBuilder {
     }
     for (var node in nodes) {
       if (node is ClassDeclaration) {
+        _build(node.typeParameters);
+      } else if (node is ClassAugmentationDeclaration) {
         _build(node.typeParameters);
       } else if (node is ClassTypeAlias) {
         _build(node.typeParameters);

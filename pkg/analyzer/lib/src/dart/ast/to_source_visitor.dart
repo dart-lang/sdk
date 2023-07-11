@@ -891,17 +891,16 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
+    _mixinOrAugmentationDeclaration(
+      node,
+      augmentKeyword: node.augmentKeyword,
+    );
+  }
+
+  @override
   void visitMixinDeclaration(MixinDeclaration node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.baseKeyword, suffix: ' ');
-    sink.write('mixin ');
-    _visitToken(node.name);
-    _visitNode(node.typeParameters);
-    _visitNode(node.onClause, prefix: ' ');
-    _visitNode(node.implementsClause, prefix: ' ');
-    sink.write(' {');
-    _visitNodeList(node.members, separator: ' ');
-    sink.write('}');
+    _mixinOrAugmentationDeclaration(node);
   }
 
   @override
@@ -1440,6 +1439,23 @@ class ToSourceVisitor implements AstVisitor<void> {
     _visitNode(node.typeParameters);
     _visitNode(extendsClause, prefix: ' ');
     _visitNode(node.withClause, prefix: ' ');
+    _visitNode(node.implementsClause, prefix: ' ');
+    sink.write(' {');
+    _visitNodeList(node.members, separator: ' ');
+    sink.write('}');
+  }
+
+  void _mixinOrAugmentationDeclaration(
+    MixinOrAugmentationDeclaration node, {
+    Token? augmentKeyword,
+  }) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(augmentKeyword, suffix: ' ');
+    _visitToken(node.baseKeyword, suffix: ' ');
+    sink.write('mixin ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.onClause, prefix: ' ');
     _visitNode(node.implementsClause, prefix: ' ');
     sink.write(' {');
     _visitNodeList(node.members, separator: ' ');

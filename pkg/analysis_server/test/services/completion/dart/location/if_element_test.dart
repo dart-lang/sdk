@@ -140,10 +140,11 @@ void f(int i, int j) {
   [if (true) i ^, j];
 }
 ''');
-    // TODO(brianwilkerson) This should be suggesting `else`.
     assertResponse(r'''
 suggestions
   const
+    kind: keyword
+  else
     kind: keyword
   false
     kind: keyword

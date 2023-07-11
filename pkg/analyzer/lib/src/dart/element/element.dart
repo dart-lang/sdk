@@ -165,8 +165,7 @@ abstract class AugmentedInterfaceElementImpl
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedMixinElement {
   @override
-  // TODO: implement superclassConstraints
-  List<InterfaceType> get superclassConstraints => throw UnimplementedError();
+  List<InterfaceType> superclassConstraints = [];
 }
 
 abstract class AugmentedNamedInstanceElementImpl
@@ -735,8 +734,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// compilation unit.
   List<FunctionElementImpl> _functions = const [];
 
-  /// A list containing all of the mixins contained in this compilation unit.
   List<MixinElementImpl> _mixins = const [];
+  List<MixinAugmentationElementImpl> _mixinAugmentations = const [];
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
@@ -875,6 +874,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ElementAnnotation> get metadata {
     linkedData?.read(this);
     return super.metadata;
+  }
+
+  @override
+  List<MixinAugmentationElementImpl> get mixinAugmentations {
+    return _mixinAugmentations;
+  }
+
+  set mixinAugmentations(List<MixinAugmentationElementImpl> elements) {
+    for (final element in elements) {
+      element.enclosingElement = this;
+    }
+    _mixinAugmentations = elements;
   }
 
   @override
@@ -5044,31 +5055,57 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
 
-/// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
-  /// A list containing all of the superclass constraints that are defined for
-  /// the mixin.
-  List<InterfaceType> _superclassConstraints = const [];
+class MixinAugmentationElementImpl extends InterfaceAugmentationElementImpl
+    with MixinOrAugmentationElementMixin
+    implements MixinAugmentationElement {
+  MixinOrAugmentationElementMixin? _augmentationTarget;
 
+  MixinAugmentationElementImpl(super.name, super.offset);
+
+  @override
+  MixinOrAugmentationElementMixin? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(MixinOrAugmentationElementMixin? value) {
+    _augmentationTarget = value;
+  }
+
+  @override
+  MixinElementImpl? get augmentedDeclaration {
+    return augmentationTarget?.augmentedDeclaration;
+  }
+
+  @override
+  ElementKind get kind => ElementKind.CLASS_AUGMENTATION;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    return visitor.visitMixinAugmentationElement(this);
+  }
+}
+
+/// A [ClassElementImpl] representing a mixin declaration.
+class MixinElementImpl extends ClassOrMixinElementImpl
+    with MixinOrAugmentationElementMixin
+    implements MixinElement {
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
+
+  final AugmentedMixinElementImpl augmentedInternal =
+      AugmentedMixinElementImpl();
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
 
   @override
-  Never get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  Never get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  AugmentedMixinElementImpl get augmented {
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -5080,16 +5117,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   @override
   set mixins(List<InterfaceType> mixins) {
     throw StateError('Attempt to set mixins for a mixin declaration.');
-  }
-
-  @override
-  List<InterfaceType> get superclassConstraints {
-    linkedData?.read(this);
-    return _superclassConstraints;
-  }
-
-  set superclassConstraints(List<InterfaceType> superclassConstraints) {
-    _superclassConstraints = superclassConstraints;
   }
 
   @override
@@ -5116,6 +5143,44 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
       return true;
     }
     return !isBase;
+  }
+}
+
+mixin MixinOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
+    implements MixinOrAugmentationElement {
+  MixinAugmentationElementImpl? _augmentation;
+  List<InterfaceType> _superclassConstraints = const [];
+
+  @override
+  MixinAugmentationElementImpl? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(MixinAugmentationElementImpl? value) {
+    _augmentation = value;
+  }
+
+  @override
+  MixinElementImpl? get augmentedDeclaration;
+
+  @override
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
+  }
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    linkedData?.read(this);
+    return _superclassConstraints;
+  }
+
+  set superclassConstraints(List<InterfaceType> superclassConstraints) {
+    _superclassConstraints = superclassConstraints;
   }
 }
 
