@@ -106,6 +106,21 @@ const infiniteRunningProgram = '''
   }
 ''';
 
+/// A Dart script that loops forever sleeping for 1 second each
+/// iteration.
+///
+/// A top-level String variable `myGlobal` is available with the value
+/// `"Hello, world!"`.
+const globalEvaluationProgram = '''
+  var myGlobal = 'Hello, world!';
+  void main(List<String> args) async {
+    while (true) {
+      print('.');
+      await Future.delayed(const Duration(seconds: 1));
+    }
+  }
+''';
+
 /// A simple async Dart script that when stopped at the line of '// BREAKPOINT'
 /// will contain multiple stack frames across some async boundaries.
 const simpleAsyncProgram = '''

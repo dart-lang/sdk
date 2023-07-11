@@ -969,11 +969,18 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       }
     }
 
-    if (thread == null || frameIndex == null) {
-      // TODO(dantup): Dart-Code evaluates these in the context of the rootLib
-      // rather than just not supporting it. Consider something similar (or
-      // better here).
-      throw UnimplementedError('Global evaluation not currently supported');
+    // To support global evaluation, we allow passing a file:/// URI in the
+    // context argument.
+    final context = args.context;
+    final targetScriptFileUri = context != null &&
+            context.startsWith('file://') &&
+            context.endsWith('.dart')
+        ? Uri.tryParse(context)
+        : null;
+
+    if ((thread == null || frameIndex == null) && targetScriptFileUri == null) {
+      throw UnimplementedError(
+          'Global evaluation not currently supported without a Dart script context');
     }
 
     // Parse the expression for trailing format specifiers.
@@ -991,7 +998,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         // the arguments.
         VariableFormat.fromDapValueFormat(args.format);
 
-    final exceptionReference = thread.exceptionReference;
+    final exceptionReference = thread?.exceptionReference;
     // The value in the constant `frameExceptionExpression` is used as a special
     // expression that evaluates to the exception on the current thread. This
     // allows us to construct evaluateNames that evaluate to the fields down the
@@ -1002,16 +1009,35 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
     vm.Response? result;
     try {
-      if (exceptionReference != null && isExceptionExpression) {
+      if (thread != null &&
+          exceptionReference != null &&
+          isExceptionExpression) {
         result = await _evaluateExceptionExpression(
           exceptionReference,
           expression,
           thread,
         );
-      } else {
+      } else if (thread != null && frameIndex != null) {
         result = await vmService?.evaluateInFrame(
           thread.isolate.id!,
           frameIndex,
+          expression,
+          disableBreakpoints: true,
+        );
+      } else if (targetScriptFileUri != null &&
+          // Since we can't currently get a thread, we assume the first thread is
+          // a reasonable target for global evaluation.
+          (thread = isolateManager.threads.firstOrNull) != null &&
+          thread != null) {
+        final library = await thread.getLibraryForFileUri(targetScriptFileUri);
+        if (library == null) {
+          // Wrapped in DebugAdapterException in the catch below.
+          throw 'Unable to find the library for $targetScriptFileUri';
+        }
+
+        result = await vmService?.evaluate(
+          thread.isolate.id!,
+          library.id!,
           expression,
           disableBreakpoints: true,
         );
@@ -1039,7 +1065,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
       throw DebugAdapterException(result.message ?? '<error ref>');
     } else if (result is vm.Sentinel) {
       throw DebugAdapterException(result.valueAsString ?? '<collected>');
-    } else if (result is vm.InstanceRef) {
+    } else if (result is vm.InstanceRef && thread != null) {
       final resultString = await _converter.convertVmInstanceRefToDisplayString(
         thread,
         result,
