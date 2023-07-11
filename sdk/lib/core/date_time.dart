@@ -384,7 +384,7 @@ class DateTime implements Comparable<DateTime> {
   /// time zone (local or UTC).
   /// ```dart
   /// final newYearsDay =
-  ///     DateTime.fromMillisecondsSinceEpoch(1640979000000, isUtc:true);
+  ///     DateTime.fromMillisecondsSinceEpoch(1641031200000, isUtc:true);
   /// print(newYearsDay); // 2022-01-01 10:00:00.000Z
   /// ```
   external DateTime.fromMillisecondsSinceEpoch(int millisecondsSinceEpoch,
@@ -400,7 +400,7 @@ class DateTime implements Comparable<DateTime> {
   /// time zone (local or UTC).
   /// ```dart
   /// final newYearsEve =
-  ///     DateTime.fromMicrosecondsSinceEpoch(1640901600000000, isUtc:true);
+  ///     DateTime.fromMicrosecondsSinceEpoch(1640979000000000, isUtc:true);
   /// print(newYearsEve); // 2021-12-31 19:30:00.000Z
   /// ```
   external DateTime.fromMicrosecondsSinceEpoch(int microsecondsSinceEpoch,
