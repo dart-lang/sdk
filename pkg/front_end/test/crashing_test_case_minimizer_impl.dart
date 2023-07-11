@@ -293,7 +293,7 @@ class TestMinimizer {
   Future _tryToMinimizeImpl() async {
     // Set main to be basically empty up front.
     _settings._useInitialFs = true;
-    _fs.data[_mainUri] = utf8.encode("main() {}") as Uint8List;
+    _fs.data[_mainUri] = utf8.encode("main() {}");
     Component initialComponent = await _getInitialComponent();
     print("Compiled initially (without data)");
     // Remove fake cache.
@@ -326,7 +326,7 @@ class TestMinimizer {
           if (_knownByCompiler(uri!)) {
             String parsedString =
                 _getFileAsStringContent(_fs.data[uri]!, _isUriNnbd(uri));
-            _fs.data[uri] = utf8.encode(parsedString) as Uint8List;
+            _fs.data[uri] = utf8.encode(parsedString);
           }
         } catch (e) {
           // crash in scanner/parser --- keep original file. This crash might
@@ -628,8 +628,7 @@ class TestMinimizer {
       for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
         builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
       }
-      final Uint8List inlinedWithoutChange =
-          utf8.encode(builder.toString()) as Uint8List;
+      final Uint8List inlinedWithoutChange = utf8.encode(builder.toString());
 
       if (!_parsesWithoutError(inlinedWithoutChange, _isUriNnbd(uri))) {
         print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -669,8 +668,7 @@ class TestMinimizer {
         for (int i = offsetOfLast; i < withoutInlineableString.length; i++) {
           builder.writeCharCode(withoutInlineableString.codeUnitAt(i));
         }
-        Uint8List inlinedWithChange =
-            utf8.encode(builder.toString()) as Uint8List;
+        Uint8List inlinedWithChange = utf8.encode(builder.toString());
 
         if (!_parsesWithoutError(inlinedWithChange, _isUriNnbd(uri))) {
           print("WARNING: Parser error after stuff at ${StackTrace.current}");
@@ -1015,7 +1013,7 @@ worlds:
 
         bool outlined = false;
         if (textualOutlined != null) {
-          Uint8List candidate = utf8.encode(textualOutlined) as Uint8List;
+          Uint8List candidate = utf8.encode(textualOutlined);
           // Because textual outline doesn't do the right thing for nnbd, only
           // replace if it's syntactically valid.
           if (candidate.length != _fs.data[uri]!.length &&
@@ -1041,8 +1039,7 @@ worlds:
               if (!string.trim().startsWith("//")) stringsLeft.add(string);
             }
 
-            Uint8List candidate =
-                utf8.encode(stringsLeft.join("\n")) as Uint8List;
+            Uint8List candidate = utf8.encode(stringsLeft.join("\n"));
             if (candidate.length != _fs.data[uri]!.length) {
               if (await _shouldQuit()) return;
               _fs.data[uri] = candidate;
@@ -1088,7 +1085,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      _fs.data[uri] = utf8.encode(string) as Uint8List;
+      _fs.data[uri] = utf8.encode(string);
       if (!await _crashesOnCompile(initialComponent)) {
         // For some reason that didn't work.
         _fs.data[uri] = data;
@@ -1226,7 +1223,7 @@ worlds:
         }
       }
       string = lines.join("\n");
-      Uint8List candidate = utf8.encode(string) as Uint8List;
+      Uint8List candidate = utf8.encode(string);
       if (candidate.length != data.length) {
         _fs.data[uri] = candidate;
         if (!await _crashesOnCompile(initialComponent)) {
@@ -1248,7 +1245,7 @@ worlds:
         while (i < packagesModified.length) {
           var oldEntry = packagesModified.removeAt(i);
           String jsonString = jsonEncoder.convert(jsonModified);
-          candidate = utf8.encode(jsonString) as Uint8List;
+          candidate = utf8.encode(jsonString);
           Uint8List? previous = _fs.data[uri];
           _fs.data[uri] = candidate;
           if (!await _crashesOnCompile(initialComponent)) {
@@ -2071,7 +2068,7 @@ worlds:
       builder.writeCharCode(_dataCacheString!.codeUnitAt(j));
     }
 
-    Uint8List candidate = utf8.encode(builder.toString()) as Uint8List;
+    Uint8List candidate = utf8.encode(builder.toString());
     return candidate;
   }
 }
@@ -2130,7 +2127,7 @@ class _FakeFileSystem extends FileSystem {
       if (tmp[i + 1] == null) {
         data[key] = null;
       } else if (tmp[i + 1] is String) {
-        data[key] = utf8.encode(tmp[i + 1]) as Uint8List;
+        data[key] = utf8.encode(tmp[i + 1]);
       } else {
         data[key] = Uint8List.fromList(new List<int>.from(tmp[i + 1]));
       }

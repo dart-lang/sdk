@@ -145,14 +145,14 @@ class MemoryResourceProvider implements ResourceProvider {
     }
 
     _pathToData[path] = _FileData(
-      bytes: utf8.encode(content) as Uint8List,
+      bytes: const Utf8Encoder().convert(content),
       timeStamp: nextStamp++,
     );
     _notifyWatchers(path, ChangeType.MODIFY);
   }
 
   File newFile(String path, String content) {
-    var bytes = utf8.encode(content) as Uint8List;
+    var bytes = const Utf8Encoder().convert(content);
     return newFileWithBytes(path, bytes);
   }
 
@@ -422,7 +422,7 @@ class _MemoryFile extends _MemoryResource implements File {
 
   @override
   void writeAsStringSync(String content) {
-    var bytes = utf8.encode(content) as Uint8List;
+    var bytes = const Utf8Encoder().convert(content);
     writeAsBytesSync(bytes);
   }
 }

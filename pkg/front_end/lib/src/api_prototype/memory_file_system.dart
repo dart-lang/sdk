@@ -131,10 +131,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   /// If no file exists, one is created.  If a file exists already, it is
   /// overwritten.
   void writeAsStringSync(String s) {
-    // Note: the return type of utf8.encode is List<int>, but in practice it
-    // always returns Uint8List.  We rely on that for efficiency, so that we
-    // don't have to make an extra copy.
-    _update(uri, utf8.encode(s) as Uint8List);
+    _update(uri, const Utf8Encoder().convert(s));
   }
 
   void _update(Uri uri, Uint8List data) {

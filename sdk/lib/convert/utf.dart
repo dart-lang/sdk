@@ -63,6 +63,11 @@ final class Utf8Codec extends Encoding {
     return decoder.convert(codeUnits);
   }
 
+  /// Encodes the [string] as UTF-8.
+  Uint8List encode(String string) {
+    return const Utf8Encoder().convert(string);
+  }
+
   Utf8Encoder get encoder => const Utf8Encoder();
   Utf8Decoder get decoder {
     // Switch between const objects to avoid allocation.

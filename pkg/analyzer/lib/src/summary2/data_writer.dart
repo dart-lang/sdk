@@ -178,8 +178,7 @@ class BufferedSink {
 
   /// Write the [value] as UTF8 encoded byte array.
   void writeStringUtf8(String value) {
-    var bytes = utf8.encode(value);
-    writeUint8List(bytes as Uint8List);
+    writeUint8List(const Utf8Encoder().convert(value));
   }
 
   void writeStringUtf8Iterable(Iterable<String> items) {
