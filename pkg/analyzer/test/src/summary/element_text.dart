@@ -536,28 +536,30 @@ class _ElementWriter {
         _sink.write('augment ');
       }
 
-      if (e is ClassElementImpl) {
-        _sink.writeIf(e.isAbstract, 'abstract ');
-        _sink.writeIf(e.isMacro, 'macro ');
-        _sink.writeIf(e.isSealed, 'sealed ');
-        _sink.writeIf(e.isBase, 'base ');
-        _sink.writeIf(e.isInterface, 'interface ');
-        _sink.writeIf(e.isFinal, 'final ');
-        _sink.writeIf(e.isInline, 'inline ');
-        _sink.writeIf(e.isMixinClass, 'mixin ');
-      }
-      _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
-
-      if (e is EnumElementImpl) {
-        _sink.write('enum ');
-      } else if (e is MixinOrAugmentationElementMixin) {
-        _sink.writeIf(e.isBase, 'base ');
-        _sink.write('mixin ');
-      } else {
-        _sink.write('class ');
-      }
-      if (e is ClassElementImpl) {
-        _sink.writeIf(e.isMixinApplication, 'alias ');
+      switch (e) {
+        case ClassOrAugmentationElementMixin():
+          _sink.writeIf(e.isAbstract, 'abstract ');
+          _sink.writeIf(e.isMacro, 'macro ');
+          _sink.writeIf(e.isSealed, 'sealed ');
+          _sink.writeIf(e.isBase, 'base ');
+          _sink.writeIf(e.isInterface, 'interface ');
+          _sink.writeIf(e.isFinal, 'final ');
+          if (e is ClassElementImpl) {
+            _sink.writeIf(e.isInline, 'inline ');
+          }
+          _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+          _sink.writeIf(e.isMixinClass, 'mixin ');
+          _sink.write('class ');
+          if (e is ClassElementImpl) {
+            _sink.writeIf(e.isMixinApplication, 'alias ');
+          }
+        case EnumElementImpl():
+          _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+          _sink.write('enum ');
+        case MixinOrAugmentationElementMixin():
+          _sink.writeIf(e.isBase, 'base ');
+          _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
+          _sink.write('mixin ');
       }
 
       _writeName(e);

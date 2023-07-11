@@ -141,7 +141,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
-    ClassAugmentationElementFlags.write(_sink, element);
+    ClassElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
@@ -438,7 +438,7 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
-    MixinAugmentationElementFlags.write(_sink, element);
+    MixinElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
 
