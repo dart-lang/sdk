@@ -701,7 +701,7 @@ String _escapeDependency(Uri uri) {
 }
 
 Uint8List _serializeDependencies(List<Uri> uris) {
-  return utf8.encode(uris.map(_escapeDependency).join(" ")) as Uint8List;
+  return utf8.encode(uris.map(_escapeDependency).join(" "));
 }
 
 Future _processListDependenciesRequest(
