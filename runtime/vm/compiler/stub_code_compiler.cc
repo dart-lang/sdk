@@ -1311,97 +1311,100 @@ void StubCodeCompiler::GenerateAllocateRecordStub() {
   const Register shape_reg = AllocateRecordABI::kShapeReg;
   const Register temp_reg = AllocateRecordABI::kTemp1Reg;
   const Register new_top_reg = AllocateRecordABI::kTemp2Reg;
-  Label slow_case;
 
-  // Check for allocation tracing.
-  NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
+  if (!FLAG_use_slow_path && FLAG_inline_alloc) {
+    Label slow_case;
 
-  // Extract number of fields from the shape.
-  __ AndImmediate(
-      temp_reg, shape_reg,
-      compiler::target::RecordShape::kNumFieldsMask << kSmiTagShift);
+    // Check for allocation tracing.
+    NOT_IN_PRODUCT(__ MaybeTraceAllocation(kRecordCid, &slow_case, temp_reg));
 
-  // Compute the rounded instance size.
-  const intptr_t fixed_size_plus_alignment_padding =
-      (target::Record::field_offset(0) +
-       target::ObjectAlignment::kObjectAlignment - 1);
-  __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
-               fixed_size_plus_alignment_padding);
-  __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
+    // Extract number of fields from the shape.
+    __ AndImmediate(
+        temp_reg, shape_reg,
+        compiler::target::RecordShape::kNumFieldsMask << kSmiTagShift);
 
-  // Now allocate the object.
-  __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
-  __ MoveRegister(new_top_reg, temp_reg);
-  __ AddRegisters(new_top_reg, result_reg);
-  // Check if the allocation fits into the remaining space.
-  __ CompareWithMemoryValue(new_top_reg,
-                            Address(THR, target::Thread::end_offset()));
-  __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
+    // Compute the rounded instance size.
+    const intptr_t fixed_size_plus_alignment_padding =
+        (target::Record::field_offset(0) +
+         target::ObjectAlignment::kObjectAlignment - 1);
+    __ AddScaled(temp_reg, temp_reg, TIMES_COMPRESSED_HALF_WORD_SIZE,
+                 fixed_size_plus_alignment_padding);
+    __ AndImmediate(temp_reg, -target::ObjectAlignment::kObjectAlignment);
 
-  // Successfully allocated the object, now update top to point to
-  // next object start and initialize the object.
-  __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
-  __ AddImmediate(result_reg, kHeapObjectTag);
+    // Now allocate the object.
+    __ LoadFromOffset(result_reg, Address(THR, target::Thread::top_offset()));
+    __ MoveRegister(new_top_reg, temp_reg);
+    __ AddRegisters(new_top_reg, result_reg);
+    // Check if the allocation fits into the remaining space.
+    __ CompareWithMemoryValue(new_top_reg,
+                              Address(THR, target::Thread::end_offset()));
+    __ BranchIf(UNSIGNED_GREATER_EQUAL, &slow_case);
 
-  // Calculate the size tag.
-  {
-    Label size_tag_overflow, done;
-    __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
-    __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
-    __ LslImmediate(temp_reg,
-                    target::UntaggedObject::kTagBitsSizeTagPos -
-                        target::ObjectAlignment::kObjectAlignmentLog2);
-    __ Jump(&done, Assembler::kNearJump);
+    // Successfully allocated the object, now update top to point to
+    // next object start and initialize the object.
+    __ StoreToOffset(new_top_reg, Address(THR, target::Thread::top_offset()));
+    __ AddImmediate(result_reg, kHeapObjectTag);
 
-    __ Bind(&size_tag_overflow);
-    // Set overflow size tag value.
-    __ LoadImmediate(temp_reg, 0);
+    // Calculate the size tag.
+    {
+      Label size_tag_overflow, done;
+      __ CompareImmediate(temp_reg, target::UntaggedObject::kSizeTagMaxSizeTag);
+      __ BranchIf(UNSIGNED_GREATER, &size_tag_overflow, Assembler::kNearJump);
+      __ LslImmediate(temp_reg,
+                      target::UntaggedObject::kTagBitsSizeTagPos -
+                          target::ObjectAlignment::kObjectAlignmentLog2);
+      __ Jump(&done, Assembler::kNearJump);
 
-    __ Bind(&done);
-    uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
-    __ OrImmediate(temp_reg, tags);
-    __ StoreToOffset(
-        temp_reg,
-        FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
-  }
+      __ Bind(&size_tag_overflow);
+      // Set overflow size tag value.
+      __ LoadImmediate(temp_reg, 0);
 
-  __ StoreCompressedIntoObjectNoBarrier(
-      result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
-      shape_reg);
+      __ Bind(&done);
+      uword tags = target::MakeTagWordForNewSpaceObject(kRecordCid, 0);
+      __ OrImmediate(temp_reg, tags);
+      __ StoreToOffset(
+          temp_reg,
+          FieldAddress(result_reg, target::Object::tags_offset()));  // Tags.
+    }
 
-  // Initialize the remaining words of the object.
-  {
-    const Register field_reg = shape_reg;
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg, FieldAddress(result_reg, target::Record::shape_offset()),
+        shape_reg);
+
+    // Initialize the remaining words of the object.
+    {
+      const Register field_reg = shape_reg;
 #if defined(TARGET_ARCH_ARM64) || defined(TARGET_ARCH_RISCV32) ||              \
     defined(TARGET_ARCH_RISCV64)
-    const Register null_reg = NULL_REG;
+      const Register null_reg = NULL_REG;
 #else
-    const Register null_reg = temp_reg;
-    __ LoadObject(null_reg, NullObject());
+      const Register null_reg = temp_reg;
+      __ LoadObject(null_reg, NullObject());
 #endif
 
-    Label loop, done;
-    __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
-    __ CompareRegisters(field_reg, new_top_reg);
-    __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
+      Label loop, done;
+      __ AddImmediate(field_reg, result_reg, target::Record::field_offset(0));
+      __ CompareRegisters(field_reg, new_top_reg);
+      __ BranchIf(UNSIGNED_GREATER_EQUAL, &done, Assembler::kNearJump);
 
-    __ Bind(&loop);
-    for (intptr_t offset = 0; offset < target::kObjectAlignment;
-         offset += target::kCompressedWordSize) {
-      __ StoreCompressedIntoObjectNoBarrier(
-          result_reg, FieldAddress(field_reg, offset), null_reg);
+      __ Bind(&loop);
+      for (intptr_t offset = 0; offset < target::kObjectAlignment;
+           offset += target::kCompressedWordSize) {
+        __ StoreCompressedIntoObjectNoBarrier(
+            result_reg, FieldAddress(field_reg, offset), null_reg);
+      }
+      // Safe to only check every kObjectAlignment bytes instead of each word.
+      ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
+      __ AddImmediate(field_reg, target::kObjectAlignment);
+      __ CompareRegisters(field_reg, new_top_reg);
+      __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
+      __ Bind(&done);
     }
-    // Safe to only check every kObjectAlignment bytes instead of each word.
-    ASSERT(kAllocationRedZoneSize >= target::kObjectAlignment);
-    __ AddImmediate(field_reg, target::kObjectAlignment);
-    __ CompareRegisters(field_reg, new_top_reg);
-    __ BranchIf(UNSIGNED_LESS, &loop, Assembler::kNearJump);
-    __ Bind(&done);
+
+    __ Ret();
+
+    __ Bind(&slow_case);
   }
-
-  __ Ret();
-
-  __ Bind(&slow_case);
 
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
@@ -1781,6 +1784,11 @@ static void GenerateAllocateSuspendState(Assembler* assembler,
                                          Register result_reg,
                                          Register frame_size_reg,
                                          Register temp_reg) {
+  if (FLAG_use_slow_path || !FLAG_inline_alloc) {
+    __ Jump(slow_case);
+    return;
+  }
+
   // Check for allocation tracing.
   NOT_IN_PRODUCT(
       __ MaybeTraceAllocation(kSuspendStateCid, slow_case, temp_reg));

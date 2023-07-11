@@ -27,6 +27,7 @@
 // VMOptions=--profiler --verify_store_buffer
 // VMOptions=--profiler --verify_after_marking
 // VMOptions=--profiler --stress_write_barrier_elimination
+// VMOptions=--profiler --no_inline_alloc
 // VMOptions=--profiler --old_gen_heap_size=100
 // VMOptions=--profiler --mark_when_idle
 // VMOptions=--profiler --no_load_cse

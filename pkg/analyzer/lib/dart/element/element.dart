@@ -1644,13 +1644,6 @@ abstract class InterfaceElement
   @override
   InterfaceType get thisType;
 
-  /// The unnamed constructor declared directly in this class.
-  ///
-  /// If the class does not declare any constructors, a synthetic default
-  /// constructor will be returned.
-  /// TODO(scheglov) Deprecate and remove it.
-  ConstructorElement? get unnamedConstructor;
-
   /// The field (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   /// TODO(scheglov) Deprecate and remove it.
@@ -1665,11 +1658,6 @@ abstract class InterfaceElement
   /// given [name].
   /// TODO(scheglov) Deprecate and remove it.
   MethodElement? getMethod(String name);
-
-  /// The constructor defined directly in this class or augmentation
-  /// that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
-  ConstructorElement? getNamedConstructor(String name);
 
   /// The setter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
@@ -2254,6 +2242,18 @@ abstract class NamedInstanceElement
   @experimental
   @override
   AugmentedNamedInstanceElement get augmented;
+
+  /// The unnamed constructor declared directly in this class.
+  ///
+  /// If the class does not declare any constructors, a synthetic default
+  /// constructor will be returned.
+  /// TODO(scheglov) Deprecate and remove it.
+  ConstructorElement? get unnamedConstructor;
+
+  /// The constructor defined directly in this class or augmentation
+  /// that has the given [name].
+  /// TODO(scheglov) Deprecate and remove it.
+  ConstructorElement? getNamedConstructor(String name);
 
   /// Create the [DartType] for this element with the given [typeArguments]
   /// and [nullabilitySuffix].

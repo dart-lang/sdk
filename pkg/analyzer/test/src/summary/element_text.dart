@@ -40,6 +40,7 @@ String getLibraryText({
 
 class ElementTextConfiguration {
   bool Function(Object) filter;
+  bool withAugmentedWithoutAugmentation = false;
   bool withCodeRanges = false;
   bool withConstantInitializers = true;
   bool withConstructors = true;
@@ -200,17 +201,20 @@ class _ElementWriter {
 
     // No augmentation, not interesting.
     if (e.augmentation == null) {
-      return;
+      expect(e.augmented, TypeMatcher<NotAugmentedInstanceElementImpl>());
+      if (!configuration.withAugmentedWithoutAugmentation) {
+        return;
+      }
     }
 
     _sink.writelnWithIndent('augmented');
     _sink.withIndent(() {
       final augmented = e.augmented;
       switch (augmented) {
-        case AugmentedClassElementImpl():
+        case AugmentedClassElement():
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
-        case AugmentedMixinElementImpl():
+        case AugmentedMixinElement():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
             augmented.superclassConstraints,

@@ -168,9 +168,12 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    final augmented = element.augmented;
-    augmented.mixins.addAll(element.mixins);
-    augmented.interfaces.addAll(element.interfaces);
+    if (element.augmentation != null) {
+      final augmented = AugmentedClassElementImpl();
+      element.augmentedInternal = augmented;
+      augmented.mixins.addAll(element.mixins);
+      augmented.interfaces.addAll(element.interfaces);
+    }
   }
 
   void _classTypeAlias(ClassTypeAlias node) {
@@ -373,9 +376,12 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    final augmented = element.augmented;
-    augmented.superclassConstraints.addAll(element.superclassConstraints);
-    augmented.interfaces.addAll(element.interfaces);
+    if (element.augmentation != null) {
+      final augmented = AugmentedMixinElementImpl();
+      element.augmentedInternal = augmented;
+      augmented.superclassConstraints.addAll(element.superclassConstraints);
+      augmented.interfaces.addAll(element.interfaces);
+    }
   }
 
   NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {

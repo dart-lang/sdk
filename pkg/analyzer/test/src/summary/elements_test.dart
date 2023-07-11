@@ -26,19 +26,43 @@ main() {
 
 mixin ClassAugmentationElementsMixin on ElementsBaseTest {
   test_augmentationTarget() async {
-    newFile('$testPackageLibPath/a.dart', r'''
+    newFile('$testPackageLibPath/a1.dart', r'''
 library augment 'test.dart';
-import augment 'b.dart';
+import augment 'a11.dart';
+import augment 'a12.dart';
 augment class A {}
 ''');
 
-    newFile('$testPackageLibPath/b.dart', r'''
-library augment 'a.dart';
+    newFile('$testPackageLibPath/a11.dart', r'''
+library augment 'a1.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/a12.dart', r'''
+library augment 'a1.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/a2.dart', r'''
+library augment 'test.dart';
+import augment 'a21.dart';
+import augment 'a22.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/a21.dart', r'''
+library augment 'a2.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/a22.dart', r'''
+library augment 'a2.dart';
 augment class A {}
 ''');
 
     var library = await buildLibrary(r'''
-import augment 'a.dart';
+import augment 'a1.dart';
+import augment 'a2.dart';
 class A {}
 ''');
 
@@ -46,25 +70,54 @@ class A {}
 library
   definingUnit
     classes
-      class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+      class A @58
+        augmentation: self::@augmentation::package:test/a1.dart::@classAugmentation::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
-    package:test/a.dart
+    package:test/a1.dart
       definingUnit
         classAugmentations
-          augment class A @68
+          augment class A @97
             augmentationTarget: self::@class::A
             augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: self::@augmentation::package:test/a11.dart::@classAugmentation::A
       augmentationImports
-        package:test/b.dart
+        package:test/a11.dart
           definingUnit
             classAugmentations
-              augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+              augment class A @41
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+                augmentation: self::@augmentation::package:test/a12.dart::@classAugmentation::A
+        package:test/a12.dart
+          definingUnit
+            classAugmentations
+              augment class A @41
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+                augmentation: self::@augmentation::package:test/a2.dart::@classAugmentation::A
+    package:test/a2.dart
+      definingUnit
+        classAugmentations
+          augment class A @97
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@classAugmentation::A
+            augmentedDeclaration: self::@class::A
+            augmentation: self::@augmentation::package:test/a21.dart::@classAugmentation::A
+      augmentationImports
+        package:test/a21.dart
+          definingUnit
+            classAugmentations
+              augment class A @41
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+                augmentation: self::@augmentation::package:test/a22.dart::@classAugmentation::A
+        package:test/a22.dart
+          definingUnit
+            classAugmentations
+              augment class A @41
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@classAugmentation::A
                 augmentedDeclaration: self::@class::A
 ''');
   }
@@ -339,6 +392,61 @@ library
           mixin M2 @62
             superclassConstraints
               Object
+''');
+  }
+
+  test_notAugmented_interfaces() async {
+    var library = await buildLibrary(r'''
+class A implements I {}
+class I {}
+''');
+
+    configuration.withAugmentedWithoutAugmentation = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        interfaces
+          I
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            I
+      class I @30
+        constructors
+          synthetic @-1
+        augmented
+''');
+  }
+
+  test_notAugmented_mixins() async {
+    var library = await buildLibrary(r'''
+class A implements M {}
+mixin M {}
+''');
+
+    configuration.withAugmentedWithoutAugmentation = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+        interfaces
+          M
+        constructors
+          synthetic @-1
+        augmented
+          interfaces
+            M
+    mixins
+      mixin M @30
+        superclassConstraints
+          Object
+        augmented
+          superclassConstraints
+            Object
 ''');
   }
 
@@ -45338,6 +45446,60 @@ library
           augment base mixin A @48
             augmentationTarget: self::@mixin::A
             augmentedDeclaration: self::@mixin::A
+''');
+  }
+
+  test_notAugmented_interfaces() async {
+    var library = await buildLibrary(r'''
+mixin A implements I {}
+class I {}
+''');
+
+    configuration.withAugmentedWithoutAugmentation = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class I @30
+        constructors
+          synthetic @-1
+        augmented
+    mixins
+      mixin A @6
+        superclassConstraints
+          Object
+        interfaces
+          I
+        augmented
+          superclassConstraints
+            Object
+          interfaces
+            I
+''');
+  }
+
+  test_notAugmented_superclassConstraints() async {
+    var library = await buildLibrary(r'''
+mixin A on B {}
+class B {}
+''');
+
+    configuration.withAugmentedWithoutAugmentation = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @22
+        constructors
+          synthetic @-1
+        augmented
+    mixins
+      mixin A @6
+        superclassConstraints
+          B
+        augmented
+          superclassConstraints
+            B
 ''');
   }
 

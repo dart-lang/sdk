@@ -232,8 +232,8 @@ class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
 class ClassElementImpl extends ClassOrMixinElementImpl
     with ClassOrAugmentationElementMixin
     implements ClassElement {
-  @override
-  final AugmentedClassElementImpl augmented = AugmentedClassElementImpl();
+  late AugmentedClassElement augmentedInternal =
+      NotAugmentedClassElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -283,6 +283,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl
     }
 
     return null;
+  }
+
+  @override
+  AugmentedClassElement get augmented {
+    linkedData?.read(this);
+    return augmentedInternal;
   }
 
   @override
@@ -3637,7 +3643,7 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   }
 
   @override
-  AugmentedInterfaceElementImpl get augmented {
+  AugmentedInterfaceElement get augmented {
     throw UnimplementedError();
   }
 
@@ -3692,11 +3698,6 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   }
 
   @override
-  ConstructorElement? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
-  @override
   FieldElement? getField(String name) {
     return fields.firstWhereOrNull((fieldElement) => name == fieldElement.name);
   }
@@ -3710,15 +3711,6 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   @override
   MethodElement? getMethod(String methodName) {
     return methods.firstWhereOrNull((method) => method.name == methodName);
-  }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   @override
@@ -5095,15 +5087,15 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   /// The list will be empty if this class is not a mixin declaration.
   late List<String> superInvokedNames;
 
-  final AugmentedMixinElementImpl augmentedInternal =
-      AugmentedMixinElementImpl();
+  late AugmentedMixinElement augmentedInternal =
+      NotAugmentedMixinElementImpl(this);
 
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
 
   @override
-  AugmentedMixinElementImpl get augmented {
+  AugmentedMixinElement get augmented {
     linkedData?.read(this);
     return augmentedInternal;
   }
@@ -5607,6 +5599,20 @@ abstract class NamedInstanceElementImpl extends InstanceElementImpl
     with NamedInstanceOrAugmentationElementMixin
     implements NamedInstanceElement {
   NamedInstanceElementImpl(super.name, super.nameOffset);
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    return constructors.firstWhereOrNull((element) => element.name == name);
+  }
 }
 
 mixin NamedInstanceOrAugmentationElementMixin
@@ -5698,6 +5704,155 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
   /// Set whether this variable has an initializer.
   set hasInitializer(bool hasInitializer) {
     setModifier(Modifier.HAS_INITIALIZER, hasInitializer);
+  }
+}
+
+class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
+    implements AugmentedClassElement {
+  @override
+  final ClassElementImpl element;
+
+  NotAugmentedClassElementImpl(this.element);
+}
+
+class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
+    implements AugmentedEnumElement {
+  @override
+  final EnumElementImpl element;
+
+  NotAugmentedEnumElementImpl(this.element);
+}
+
+class NotAugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
+    implements AugmentedExtensionElement {
+  final ExtensionElementImpl element;
+
+  NotAugmentedExtensionElementImpl(this.element);
+}
+
+class NotAugmentedInlineClassElementImpl
+    extends NotAugmentedNamedInstanceElementImpl
+    implements AugmentedInlineClassElement {
+  @override
+  final InlineClassElementImpl element;
+
+  NotAugmentedInlineClassElementImpl(this.element);
+}
+
+abstract class NotAugmentedInstanceElementImpl
+    implements AugmentedInstanceElement {
+  @override
+  List<PropertyAccessorElement> get accessors {
+    return element.accessors;
+  }
+
+  InstanceElementImpl get element;
+
+  @override
+  List<FieldElement> get fields {
+    return element.fields;
+  }
+
+  @override
+  List<ElementAnnotation> get metadata {
+    return element.metadata;
+  }
+
+  @override
+  List<MethodElement> get methods {
+    return element.methods;
+  }
+
+  @override
+  FieldElement? getField(String name) {
+    for (final field in fields) {
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getGetter(String name) {
+    for (final getter in accessors) {
+      if (getter.isGetter && getter.name == name) {
+        return getter;
+      }
+    }
+    return null;
+  }
+
+  @override
+  MethodElement? getMethod(String name) {
+    for (final method in methods) {
+      if (method.name == name) {
+        return method;
+      }
+    }
+    return null;
+  }
+
+  @override
+  PropertyAccessorElement? getSetter(String name) {
+    for (final setter in accessors) {
+      if (setter.isSetter && setter.name == name) {
+        return setter;
+      }
+    }
+    return null;
+  }
+}
+
+abstract class NotAugmentedInterfaceElementImpl
+    extends NotAugmentedNamedInstanceElementImpl
+    implements AugmentedInterfaceElement {
+  @override
+  InterfaceElementImpl get element;
+
+  @override
+  List<InterfaceType> get interfaces {
+    return element.interfaces;
+  }
+
+  @override
+  List<InterfaceType> get mixins {
+    return element.mixins;
+  }
+}
+
+class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
+    implements AugmentedMixinElement {
+  @override
+  final MixinElementImpl element;
+
+  NotAugmentedMixinElementImpl(this.element);
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    return element.superclassConstraints;
+  }
+}
+
+abstract class NotAugmentedNamedInstanceElementImpl
+    extends NotAugmentedInstanceElementImpl
+    implements AugmentedNamedInstanceElement {
+  @override
+  List<ConstructorElement> get constructors {
+    return element.constructors;
+  }
+
+  @override
+  NamedInstanceElementImpl get element;
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return element.unnamedConstructor;
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    return element.getNamedConstructor(name);
   }
 }
 

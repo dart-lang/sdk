@@ -1524,17 +1524,18 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
   __ Push(AllocateArrayABI::kLengthReg);
   __ Push(AllocateArrayABI::kTypeArgumentsReg);
   __ CallRuntime(kAllocateArrayRuntimeEntry, 2);
+
+  // Write-barrier elimination might be enabled for this array (depending on the
+  // array length). To be sure we will check if the allocated object is in old
+  // space and if so call a leaf runtime to add it to the remembered set.
+  __ ldr(AllocateArrayABI::kResultReg, Address(SP, 2 * target::kWordSize));
+  EnsureIsNewOrRemembered(/*preserve_registers=*/false);
+
   // Pop arguments; result is popped in IP.
   __ Pop(AllocateArrayABI::kTypeArgumentsReg);
   __ Pop(AllocateArrayABI::kLengthReg);
   __ Pop(AllocateArrayABI::kResultReg);
   __ LeaveStubFrame();
-
-  // Write-barrier elimination might be enabled for this array (depending on the
-  // array length). To be sure we will check if the allocated object is in old
-  // space and if so call a leaf runtime to add it to the remembered set.
-  EnsureIsNewOrRemembered(assembler);
-
   __ ret();
 }
 

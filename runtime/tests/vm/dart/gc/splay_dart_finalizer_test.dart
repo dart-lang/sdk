@@ -27,6 +27,7 @@
 // VMOptions=--verify_store_buffer
 // VMOptions=--verify_after_marking
 // VMOptions=--stress_write_barrier_elimination
+// VMOptions=--no_inline_alloc
 // VMOptions=--old_gen_heap_size=150
 
 import "splay_common.dart";
