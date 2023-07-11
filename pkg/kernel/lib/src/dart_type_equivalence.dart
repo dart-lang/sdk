@@ -129,18 +129,19 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
         }
       }
 
-      // The named fields of [RecordType]s are supposed to be sorted, so we can
-      // use a linear search to compare them.
-      int nodeIndex = 0;
-      int otherIndex = 0;
-      while (result && nodeIndex < node.named.length) {
-        NamedType nodeNamedType = node.named[nodeIndex];
-        NamedType otherNamedType = other.named[otherIndex];
+      // The named fields of [RecordType]s are supposed to be sorted and we know
+      // there are the same number of named fields, so we can use a linear
+      // search to compare them.
+      int i = 0;
+      while (result && i < node.named.length) {
+        NamedType nodeNamedType = node.named[i];
+        NamedType otherNamedType = other.named[i];
         if (nodeNamedType.name != otherNamedType.name) {
           result = false;
         } else {
           result = nodeNamedType.type.accept1(this, otherNamedType.type);
         }
+        i++;
       }
 
       return result;
