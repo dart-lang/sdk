@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers,sealed-class
-
 // Error when subtyping a base class where the subtype is not base, final or
 // sealed.
 
@@ -32,7 +30,12 @@ class Implements implements BaseClass {}
 mixin MixinImplements implements BaseMixin {}
 //    ^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'MixinImplements' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixin' is 'base'.
+// [cfe] The mixin 'MixinImplements' must be 'base' because the supertype 'BaseMixin' is 'base'.
+
+mixin MixinImplementsIndirect implements SubtypeOfBase {}
+//    ^^^^^^^^^^^^^^^^^^^^^^^
+// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [cfe] The mixin 'MixinImplementsIndirect' must be 'base' because the supertype 'BaseClass' is 'base'.
 
 class With with BaseMixin {}
 //    ^^^^
@@ -47,7 +50,7 @@ class With2 with BaseMixin, BaseMixin2 {}
 mixin On on BaseClass {}
 //    ^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'On' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.
+// [cfe] The mixin 'On' must be 'base' because the supertype 'BaseClass' is 'base'.
 
 class ExtendsExtends extends Extends {}
 

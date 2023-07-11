@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,10 +13,10 @@ extension Extension<T extends core::Object? = dynamic> on self::A<self::A<T%>> {
   method method2 = self::Extension|method2;
   tearoff method2 = self::Extension|get#method2;
 }
-static method Extension|method1<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|method1::T%>> #this) → dynamic {}
-static method Extension|get#method1<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|get#method1::T%>> #this) → () → dynamic
+static extension-member method Extension|method1<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|method1::T%>> #this) → dynamic {}
+static extension-member method Extension|get#method1<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|get#method1::T%>> #this) → () → dynamic
   return () → dynamic => self::Extension|method1<self::Extension|get#method1::T%>(#this);
-static method Extension|method2<T extends core::Object? = dynamic, A extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|method2::T%>> #this, self::Extension|method2::A% a) → dynamic {}
-static method Extension|get#method2<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|get#method2::T%>> #this) → <A extends core::Object? = dynamic>(A%) → dynamic
+static extension-member method Extension|method2<T extends core::Object? = dynamic, A extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|method2::T%>> #this, self::Extension|method2::A% a) → dynamic {}
+static extension-member method Extension|get#method2<T extends core::Object? = dynamic>(lowered final self::A<self::A<self::Extension|get#method2::T%>> #this) → <A extends core::Object? = dynamic>(A%) → dynamic
   return <A extends core::Object? = dynamic>(A% a) → dynamic => self::Extension|method2<self::Extension|get#method2::T%, A%>(#this, a);
 static method main() → dynamic {}

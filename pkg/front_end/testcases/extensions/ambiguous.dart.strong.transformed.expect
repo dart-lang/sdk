@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -174,32 +174,32 @@ extension B on self::C {
   set setter = self::B|set#setter;
   set property = self::B|set#property;
 }
-static method A|method(lowered final self::C #this) → void {}
-static method A|get#method(lowered final self::C #this) → () → void
+static extension-member method A|method(lowered final self::C #this) → void {}
+static extension-member method A|get#method(lowered final self::C #this) → () → void
   return () → void => self::A|method(#this);
-static method A|get#getter(lowered final self::C #this) → core::int
+static extension-member method A|get#getter(lowered final self::C #this) → core::int
   return 42;
-static method A|set#setter(lowered final self::C #this, core::int value) → void {}
-static method A|get#property(lowered final self::C #this) → core::int
+static extension-member method A|set#setter(lowered final self::C #this, core::int value) → void {}
+static extension-member method A|get#property(lowered final self::C #this) → core::int
   return 42;
-static method A|+(lowered final self::C #this, core::int i) → core::int
+static extension-member method A|+(lowered final self::C #this, core::int i) → core::int
   return i;
-static method A|unary-(lowered final self::C #this) → core::int
+static extension-member method A|unary-(lowered final self::C #this) → core::int
   return 0;
-static method A|[](lowered final self::C #this, core::int i) → core::int
+static extension-member method A|[](lowered final self::C #this, core::int i) → core::int
   return i;
-static method B|method(lowered final self::C #this) → void {}
-static method B|get#method(lowered final self::C #this) → () → void
+static extension-member method B|method(lowered final self::C #this) → void {}
+static extension-member method B|get#method(lowered final self::C #this) → () → void
   return () → void => self::B|method(#this);
-static method B|get#getter(lowered final self::C #this) → core::int
+static extension-member method B|get#getter(lowered final self::C #this) → core::int
   return 42;
-static method B|set#setter(lowered final self::C #this, core::int value) → void {}
-static method B|set#property(lowered final self::C #this, core::int value) → void {}
-static method B|+(lowered final self::C #this, core::int i) → core::int
+static extension-member method B|set#setter(lowered final self::C #this, core::int value) → void {}
+static extension-member method B|set#property(lowered final self::C #this, core::int value) → void {}
+static extension-member method B|+(lowered final self::C #this, core::int i) → core::int
   return i;
-static method B|unary-(lowered final self::C #this) → core::int
+static extension-member method B|unary-(lowered final self::C #this) → core::int
   return 0;
-static method B|[]=(lowered final self::C #this, core::int i, core::int j) → void {}
+static extension-member method B|[]=(lowered final self::C #this, core::int i, core::int j) → void {}
 static method errors(self::C c) → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/ambiguous.dart:28:5: Error: The method 'method' is defined in multiple extensions for 'C' and neither is more specific.
  - 'C' is from 'pkg/front_end/testcases/extensions/ambiguous.dart'.

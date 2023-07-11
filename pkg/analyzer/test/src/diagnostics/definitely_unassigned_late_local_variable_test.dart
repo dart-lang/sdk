@@ -44,6 +44,18 @@ void f() {
     ]);
   }
 
+  test_mightBeAssigned_byPatternAssignment() async {
+    await assertNoErrorsInCode('''
+void main() {
+  late String s;
+  () {
+    (s,) = ('',);
+  }();
+  s;
+}
+''');
+  }
+
   test_mightBeAssigned_if_else() async {
     await assertNoErrorsInCode(r'''
 void f(bool c) {

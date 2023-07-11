@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -20,7 +20,6 @@ abstract class A extends core::Object {
     ;
 }
 abstract class B extends core::Object implements self::A {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
   static factory •() → self::B
     return invalid-expression "pkg/front_end/testcases/general/abstract_instantiation.dart:8:17: Error: The constructor function type 'A Function()' isn't a subtype of 'B Function()'.
  - 'A' is from 'pkg/front_end/testcases/general/abstract_instantiation.dart'.
@@ -32,8 +31,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///abstract_instantiation.dart:7:16 -> ConstructorTearOffConstant(B.)
-Extra constant evaluation: evaluated: 2, effectively constant: 1

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,5 +28,5 @@ static method main() → dynamic {
 static method error() → dynamic {
   new self::Class::•(invalid-expression "pkg/front_end/testcases/general/mixin_application_inferred_parameter_type.dart:20:13: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
   new Class('');
-            ^" in "" as{TypeError,ForNonNullableByDefault} core::int);
+            ^" in "" as{TypeError} core::int);
 }

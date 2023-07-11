@@ -8,22 +8,13 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ConvertToWildcardPattern extends CorrectionProducer {
+class ConvertToWildcardPattern extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_WILDCARD_PATTERN;
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var namedType = node;
-
-    // TODO(scheglov) Remove after https://dart-review.googlesource.com/c/sdk/+/303280
-    if (namedType is! NamedType) {
-      final parent = node.parent;
-      if (parent is NamedType) {
-        namedType = parent;
-      }
-    }
-
+    final namedType = node;
     if (namedType is! NamedType) {
       return;
     }

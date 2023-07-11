@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
@@ -484,7 +483,10 @@ class PropertyElementResolver with ScopeHelpers {
           result.getter?.returnType ?? _typeSystem.typeProvider.dynamicType;
       getType = _resolver.flowAnalysis.flow?.propertyGet(
               node,
-              ExpressionPropertyTarget(target),
+              isCascaded
+                  ? CascadePropertyTarget.singleton
+                      as PropertyTarget<Expression>
+                  : ExpressionPropertyTarget(target),
               propertyName.name,
               result.getter,
               unpromotedType) ??

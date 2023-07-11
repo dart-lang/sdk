@@ -78,7 +78,7 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
         stdout: stdout,
       );
       int kbNoCache = jsonDecode(stdout[1])["memory"] as int;
-      result.add('no-cache-memory', BenchMarkResult('kb', kbNoCache));
+      result.add('no-cache-memory', BenchMarkResult('bytes', kbNoCache * 1024));
 
       stdout = [];
       await runProcess(
@@ -96,7 +96,8 @@ abstract class AbstractCmdLineBenchmark extends Benchmark {
         stdout: stdout,
       );
       int kbWithCache = jsonDecode(stdout[1])["memory"] as int;
-      result.add('with-cache-memory', BenchMarkResult('kb', kbWithCache));
+      result.add(
+          'with-cache-memory', BenchMarkResult('bytes', kbWithCache * 1024));
     }
 
     cleanup();

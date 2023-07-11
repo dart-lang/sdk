@@ -8,8 +8,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
       ;
   }
   abstract class BarX extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
-    static factory •({required lib::HelperClassX bar = #C1}) → lib::BarX
+    static factory •({required lib::HelperClassX bar = #C1}) → lib::BarX /* redirection-target: lib::FooX::• */
       return new lib::FooX::•(bar: bar);
   }
   class HelperClassX extends dart.core::Object {
@@ -45,8 +44,7 @@ library from "org-dartlang-test:///main.dart" as main {
     }
   }
   abstract class Bar extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
-    static factory •({required main::HelperClass bar = #C1}) → main::Bar
+    static factory •({required main::HelperClass bar = #C1}) → main::Bar /* redirection-target: main::Foo::• */
       return block {
         final synthesized main::Foo :expressionValueWrappedFinalizable = new main::Foo::•(bar: bar);
         dart._internal::reachabilityFence(bar);
@@ -60,6 +58,4 @@ library from "org-dartlang-test:///main.dart" as main {
 }
 constants  {
   #C1 = null
-  #C2 = constructor-tearoff lib::BarX::•
-  #C3 = constructor-tearoff main::Bar::•
 }

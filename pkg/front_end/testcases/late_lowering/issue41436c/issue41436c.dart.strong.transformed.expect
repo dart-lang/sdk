@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "issue41436c_lib.dart" as iss;
 import "dart:core" as core;
@@ -18,7 +18,7 @@ static method main() → dynamic {
   new self::C::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 import "dart:_internal" as _in;

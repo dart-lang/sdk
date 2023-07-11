@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "main_lib1.dart" as mai;
 import "dart:core" as core;
@@ -11,7 +11,7 @@ static method method1(mai::Class1<core::Object>* c1a, core::List<mai::Class1<cor
 static method method2(mai::Class1<core::int*>* t1a, core::List<mai::Class1<core::int*>*>* t1b, mai2::Class2<core::int*>* t2a, core::List<mai2::Class2<core::int*>*>* t2b) → dynamic {}
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 
@@ -24,7 +24,7 @@ class Class1<T extends core::Object> extends core::Object {
 static method _#Typedef1#new#tearOff<T extends core::int>() → mai::Class1<mai::_#Typedef1#new#tearOff::T>
   return new mai::Class1::•<mai::_#Typedef1#new#tearOff::T>();
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai2;
 import "dart:core" as core;
 

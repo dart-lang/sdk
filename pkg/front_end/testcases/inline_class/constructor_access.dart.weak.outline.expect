@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,17 +12,17 @@ inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresen
   constructor • = self::GenericClass|;
   tearoff • = self::GenericClass|_#new#tearOff;
 }
-static method Class|(core::int it) → self::Class
+static inline-class-member method Class|(core::int it) → self::Class
   ;
-static method Class|_#new#tearOff(core::int it) → self::Class
+static inline-class-member method Class|_#new#tearOff(core::int it) → self::Class
   return self::Class|(it);
-static method Class|named(core::int it) → self::Class
+static inline-class-member method Class|named(core::int it) → self::Class
   ;
-static method Class|_#named#tearOff(core::int it) → self::Class
+static inline-class-member method Class|_#named#tearOff(core::int it) → self::Class
   return self::Class|named(it);
-static method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%>
+static inline-class-member method GenericClass|<T extends core::Object? = dynamic>(self::GenericClass|::T% it) → self::GenericClass<self::GenericClass|::T%>
   ;
-static method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%>
+static inline-class-member method GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(self::GenericClass|_#new#tearOff::T% it) → self::GenericClass<self::GenericClass|_#new#tearOff::T%>
   return self::GenericClass|<self::GenericClass|_#new#tearOff::T%>(it);
 static method main() → dynamic
   ;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -28,7 +28,7 @@ static method not((core::String) → (self::Result<dynamic>, core::String) parse
     #L1:
     {
       {
-        if(#0#0.$1{self::Result<dynamic>} is{ForNonNullableByDefault} self::Ok<dynamic>) {
+        if(#0#0.$1{self::Result<dynamic>} is self::Ok<dynamic>) {
           #t1 = (#C2, input);
           break #L1;
         }

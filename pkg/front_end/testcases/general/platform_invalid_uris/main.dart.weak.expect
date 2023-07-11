@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:test" as test;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   new test::Class::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -58,26 +58,26 @@ export "org-dartlang-malformed-uri:?%3Ad";
 import "org-dartlang-malformed-uri:?%3Aa";
 export "org-dartlang-malformed-uri:?%3Ab";
 
-@#C1
+@/* from org-dartlang-testcase:///patch_lib.dart */ #C1
 class Class extends core::Object {
   synthetic constructor •() → test::Class
     : super core::Object::•()
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self4;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self5;
 
 

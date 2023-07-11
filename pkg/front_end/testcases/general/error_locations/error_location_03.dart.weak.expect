@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "error_location_03_lib1.dart" as err;
 import "dart:core" as core;
@@ -13,7 +13,7 @@ static method main() → dynamic {
   core::print(invalid-expression "This assertion failed.");
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as err;
 import "dart:core" as core;
 
@@ -26,7 +26,7 @@ static method foo() → dynamic {
   new err::Foo::•(0);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -47,7 +47,7 @@ import "org-dartlang-testcase:///error_location_03_lib1.dart";
 
 static const field err::Foo fooField = invalid-expression "This assertion failed.";
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

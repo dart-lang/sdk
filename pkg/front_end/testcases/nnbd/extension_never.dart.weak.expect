@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:_internal" as _in;
 
@@ -6,8 +6,8 @@ extension Extension on Never {
   method extensionMethod = self::Extension|extensionMethod;
   tearoff extensionMethod = self::Extension|get#extensionMethod;
 }
-static method Extension|extensionMethod(lowered final Never #this) → dynamic {}
-static method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
+static extension-member method Extension|extensionMethod(lowered final Never #this) → dynamic {}
+static extension-member method Extension|get#extensionMethod(lowered final Never #this) → () → dynamic
   return () → dynamic => self::Extension|extensionMethod(#this);
 static method implicitAccess(Never never) → dynamic {
   let final Never #t1 = (let final Never #t2 = never in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.")){Never}.extensionMethod() in throw new _in::ReachabilityError::•("`null` encountered as the result from expression with type `Never`.");

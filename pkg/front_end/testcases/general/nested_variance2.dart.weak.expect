@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -128,7 +128,7 @@ static method testTypeAliasAsTypeArgument(self::Acov<() → dynamic, dynamic> so
   <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void target2 = invalid-expression "pkg/front_end/testcases/general/nested_variance2.dart:84:42: Error: A value of type 'void Function<Y extends Acon<dynamic Function(Never), dynamic>>()' can't be assigned to a variable of type 'void Function<Y extends Acon<dynamic Function(Null), dynamic>>()' because 'Null' is nullable and 'Never' isn't.
  - 'Acon' is from 'pkg/front_end/testcases/general/nested_variance2.dart'.
   F<Acon<Fcon<Null>, dynamic>> target2 = fsource2;
-                                         ^" in fsource2 as{TypeError,ForNonNullableByDefault} <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void;
+                                         ^" in fsource2 as{TypeError} <Y extends self::Acon<(Null) → dynamic, dynamic> = dynamic>() → void;
   <Y extends self::Ainv<(dynamic) → dynamic, dynamic> = dynamic>() → void fsource3 = self::toF<self::Ainv<(dynamic) → dynamic, dynamic>>(source3);
   <Y extends self::Ainv<(dynamic) → dynamic, dynamic> = dynamic>() → void target3 = fsource3;
   <Y extends self::AcovBound<() → core::num, core::num> = dynamic>() → void fsource4 = self::toF<self::AcovBound<() → core::num, core::num>>(source4);

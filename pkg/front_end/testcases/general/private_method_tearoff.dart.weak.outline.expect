@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "private_method_tearoff_lib.dart" as pri;
@@ -18,7 +18,7 @@ class Baz extends self::Foo {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as pri;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -553,7 +553,7 @@ abstract class Mixin<T extends core::Object? = dynamic> extends core::Object /*i
     return invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:132:30: Error: The value 'null' can't be returned from a function with return type 'Mixin<T>' because 'Mixin<T>' is not nullable.
  - 'Mixin' is from 'pkg/front_end/testcases/general/type_variable_in_static_context.dart'.
   factory Mixin.fact(T t) => null;
-                             ^" in null as{TypeError,ForNonNullableByDefault} Never;
+                             ^" in null as{TypeError} Never;
   @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:137:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
@@ -588,7 +588,7 @@ static field invalid-type Extension|field1;
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:115:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static method Extension|staticMethod<S extends invalid-type>(invalid-type arg) → invalid-type {
+static extension-member method Extension|staticMethod<S extends invalid-type>(invalid-type arg) → invalid-type {
   invalid-type local;
   #C4;
   function fun<U extends invalid-type>() → void {}
@@ -596,11 +596,11 @@ static method Extension|staticMethod<S extends invalid-type>(invalid-type arg) �
 @invalid-expression "pkg/front_end/testcases/general/type_variable_in_static_context.dart:122:4: Error: Couldn't find constructor 'T'.
   @T()
    ^"
-static method Extension|instanceMethod<T extends core::Object? = dynamic, S extends self::Extension|instanceMethod::T% = dynamic>(lowered final self::Extension|instanceMethod::T% #this, self::Extension|instanceMethod::T% t) → self::Extension|instanceMethod::T% {
+static extension-member method Extension|instanceMethod<T extends core::Object? = dynamic, S extends self::Extension|instanceMethod::T% = dynamic>(lowered final self::Extension|instanceMethod::T% #this, self::Extension|instanceMethod::T% t) → self::Extension|instanceMethod::T% {
   self::Extension|instanceMethod::T%;
   return t;
 }
-static method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
+static extension-member method Extension|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::Extension|get#instanceMethod::T% #this) → <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T%) → self::Extension|get#instanceMethod::T%
   return <S extends self::Extension|get#instanceMethod::T% = dynamic>(self::Extension|get#instanceMethod::T% t) → self::Extension|get#instanceMethod::T% => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T%, S%>(#this, t);
 static method main() → dynamic {}
 static method _#B#new#tearOff<T extends core::num>() → self::Class<self::_#B#new#tearOff::T>

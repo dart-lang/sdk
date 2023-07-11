@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -115,9 +115,9 @@ extension ext<T extends core::Object? = dynamic> on self::C<T%> {
 static field core::int ext|field;
 static final field core::int ext|property = 42;
 static final field core::int ext|property2 = 42;
-static method ext|set#property<T extends core::Object? = dynamic>(lowered final self::C<self::ext|set#property::T%> #this, core::int value) → void {}
-static set ext|property2(core::int value) → void {}
-static method ext|method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|method::T%> #this) → dynamic {
+static extension-member method ext|set#property<T extends core::Object? = dynamic>(lowered final self::C<self::ext|set#property::T%> #this, core::int value) → void {}
+static extension-member set ext|property2(core::int value) → void {}
+static extension-member method ext|method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|method::T%> #this) → dynamic {
   invalid-expression "pkg/front_end/testcases/extensions/issue38745.dart:20:5: Error: Undefined name 'field'.
     field;
     ^^^^^";
@@ -135,7 +135,7 @@ static method ext|method<T extends core::Object? = dynamic>(lowered final self::
     property2 = 23;
     ^^^^^^^^^";
 }
-static method ext|get#method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|get#method::T%> #this) → () → dynamic
+static extension-member method ext|get#method<T extends core::Object? = dynamic>(lowered final self::C<self::ext|get#method::T%> #this) → () → dynamic
   return () → dynamic => self::ext|method<self::ext|get#method::T%>(#this);
 static method main() → dynamic {}
 static method errors() → dynamic {

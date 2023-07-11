@@ -13,7 +13,6 @@ import 'package:front_end/src/kernel_generator_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
-import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 typedef PerformAnalysisFunction = void Function(
@@ -50,7 +49,7 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   @override
   void visitProcedure(Procedure node) {
-    if (node.kind == ProcedureKind.Factory && isRedirectingFactory(node)) {
+    if (node.kind == ProcedureKind.Factory && node.isRedirectingFactory) {
       // Don't visit redirecting factories.
       return;
     }
@@ -61,10 +60,6 @@ class StaticTypeVisitorBase extends RecursiveVisitor {
 
   @override
   void visitField(Field node) {
-    if (isRedirectingFactoryField(node)) {
-      // Skip synthetic .dill members.
-      return;
-    }
     staticTypeContext = new StaticTypeContext(node, typeEnvironment);
     super.visitField(node);
     staticTypeContext = null;

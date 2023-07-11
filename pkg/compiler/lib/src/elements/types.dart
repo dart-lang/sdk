@@ -1511,7 +1511,9 @@ class SimpleDartTypeSubstitutionVisitor
   final List<DartType> parameters;
 
   SimpleDartTypeSubstitutionVisitor(
-      this.dartTypes, this.arguments, this.parameters);
+      this.dartTypes, this.arguments, this.parameters)
+      : assert(arguments.length == parameters.length,
+            'Type substitution mismatch\n  $arguments\n  $parameters');
 
   DartType substitute(DartType input) => visit(input, null);
 
@@ -1658,7 +1660,7 @@ class _DartTypeToStringVisitor extends DartTypeVisitor<void, void> {
 
   @override
   void visitTypeVariableType(covariant TypeVariableType type, _) {
-    _identifier(type.element.typeDeclaration!.name!);
+    _identifier(type.element.typeDeclaration.name!);
     _token('.');
     _identifier(type.element.name!);
   }

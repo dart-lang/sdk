@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -82,13 +82,13 @@ static method main() → void {
   self::D* d = new self::D::•(new self::C::•<core::num*>(#C1));
   let final self::D* #t1 = d in #t1.{self::D::value} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:51:44: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
   d.value /*@checkReturn=(num*) ->* num**/ += 1;
-                                           ^" in (#t1.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
+                                           ^" in (#t1.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck,ForLegacy} (core::num*) →* core::num*) as{TypeError,ForLegacy} (core::int*) →* core::int*;
   self::expect(let final self::D* #t2 = d in let final core::int* #t3 = 0 in #t2.{self::D::setValue}{(core::int*) →* core::int*}(#t3){(core::int*) →* core::int*}, 1);
   d = new self::D::•(new self::C::•<core::num*>(#C2));
   self::expectTypeError(() → Null {
     let final self::D* #t4 = d in #t4.{self::D::value} = invalid-expression "pkg/front_end/testcases/runtime_checks_new/contravariant_generic_return_with_compound_assign_implicit_downcast.dart:55:46: Error: A value of type 'num Function(num)' can't be assigned to a variable of type 'int Function(int)'.
     d.value /*@checkReturn=(num*) ->* num**/ += 1;
-                                             ^" in (#t4.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck} (core::num*) →* core::num*) as{TypeError} (core::int*) →* core::int*;
+                                             ^" in (#t4.{self::D::value}{self::C<core::num*>*}.{self::C::+}(1){(core::int*) →* (core::num*) →* core::num*} as{TypeError,CovarianceCheck,ForLegacy} (core::num*) →* core::num*) as{TypeError,ForLegacy} (core::int*) →* core::int*;
   });
   self::expect(d.{self::D::setValue}{(core::int*) →* core::int*}, null);
 }

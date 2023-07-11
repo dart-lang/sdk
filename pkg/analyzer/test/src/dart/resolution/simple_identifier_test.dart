@@ -134,15 +134,15 @@ main() {}
       error(CompileTimeErrorCode.COULD_NOT_INFER, 66, 5),
     ]);
 
-    var identifier = findNode.simple('min]');
-    assertElement(
-      identifier,
-      elementMatcher(
-        findElement.importFind('dart:math').topFunction('min'),
-        isLegacy: true,
-      ),
-    );
-    assertType(identifier, 'T* Function<T extends num*>(T*, T*)*');
+    final node = findNode.simple('min]');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: min
+  staticElement: FunctionMember
+    base: dart:math::@function::min
+    isLegacy: true
+  staticType: T* Function<T extends num*>(T*, T*)*
+''');
   }
 
   test_implicitCall_tearOff_nullable() async {

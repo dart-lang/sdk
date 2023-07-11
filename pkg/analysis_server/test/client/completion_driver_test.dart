@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analysis_server/src/legacy_analysis_server.dart';
-import 'package:analysis_server/src/services/completion/dart/utilities.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../analysis_server_base.dart';
 import '../services/completion/dart/completion_check.dart';
-import '../services/completion/dart/completion_contributor_util.dart';
 import '../services/completion/dart/completion_printer.dart' as printer;
 import '../services/completion/dart/text_expectations.dart';
 import 'impl/completion_driver.dart';
@@ -23,6 +20,8 @@ void main() {
     defineReflectiveTests(CompletionWithSuggestionsTest2);
   });
 }
+
+typedef SuggestionMatcher = bool Function(CompletionSuggestion suggestion);
 
 abstract class AbstractCompletionDriverTest
     extends PubPackageAnalysisServerTest {
@@ -68,13 +67,12 @@ abstract class AbstractCompletionDriverTest
     return protocol == TestingCompletionProtocol.version1;
   }
 
+  // ignore:unreachable_from_main
   bool get isProtocolVersion2 {
     return protocol == TestingCompletionProtocol.version2;
   }
 
   TestingCompletionProtocol get protocol;
-
-  AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
   Future<List<CompletionSuggestion>> addTestFile(String content,
@@ -157,6 +155,7 @@ $actual
   }
 
   /// TODO(scheglov) Use it everywhere instead of [addTestFile].
+  // ignore:unreachable_from_main
   Future<void> computeSuggestions(
     String content,
   ) async {
@@ -187,15 +186,6 @@ $actual
         suggestions = await driver.getSuggestions2();
     }
     return suggestions;
-  }
-
-  /// Display sorted suggestions.
-  void printSuggestions() {
-    suggestions.sort(completionComparator);
-    for (var s in suggestions) {
-      print(
-          '[${s.relevance}] ${s.completion} • ${s.element?.kind.name ?? ""} ${s.kind.name} ${s.element?.location?.file ?? ""}');
-    }
   }
 
   @override

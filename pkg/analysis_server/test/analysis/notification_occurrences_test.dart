@@ -12,7 +12,6 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../analysis_abstract.dart';
 import '../analysis_server_base.dart';
 
 void main() {
@@ -27,23 +26,6 @@ class AnalysisNotificationOccurrencesTest extends PubPackageAnalysisServerTest {
   late Occurrences testOccurrences;
 
   final Completer<void> _resultsAvailable = Completer();
-
-  /// Asserts that there is an offset of [search] in [testOccurrences].
-  void assertHasOffset(String search) {
-    var offset = findOffset(search);
-    expect(testOccurrences.offsets, contains(offset));
-  }
-
-  /// Validates that there is a region at the offset of [search] in [testFile].
-  /// If [length] is not specified explicitly, then length of an identifier
-  /// from [search] is used.
-  void assertHasRegion(String search, [int length = -1]) {
-    var offset = findOffset(search);
-    if (length == -1) {
-      length = findIdentifierLength(search);
-    }
-    findRegion(offset, length, true);
-  }
 
   Future<void> assertOccurrences(
     String content, {

@@ -6,12 +6,14 @@ import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 17;
-const LINE_B = 18;
-const LINE_C = 19;
-const LINE_D = 24;
-const LINE_E = 25;
-const LINE_F = 26;
+const LINE_A = 19;
+const LINE_B = 20;
+const LINE_C = 21;
+const LINE_D = 26;
+const LINE_E = 27;
+const LINE_F = 28;
+
+const LINE_0 = 25;
 
 helper() async {
   await null; // LINE_A.
@@ -20,13 +22,17 @@ helper() async {
 }
 
 testMain() async {
-  debugger();
+  debugger(); // LINE_0.
   print('mmmmm'); // LINE_D.
   await helper(); // LINE_E.
   print('z'); // LINE_F.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver, // debugger.
+
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_D),
   stepOver, // print.

@@ -19,14 +19,14 @@ void main() {
 @reflectiveTest
 class RuntimeCompletionComputerTest extends AbstractContextTest {
   late OverlayResourceProvider overlayResourceProvider;
-  late String contextFile;
+  late String contextFilePath;
   late int contextOffset;
 
   late RuntimeCompletionResult result;
 
   void addContextFile(String content) {
-    contextFile = convertPath('$testPackageLibPath/context.dart');
-    newFile(contextFile, content);
+    contextFilePath = convertPath('$testPackageLibPath/context.dart');
+    newFile(contextFilePath, content);
 
     contextOffset = content.indexOf('// context line');
     expect(contextOffset, isNonNegative,
@@ -55,8 +55,15 @@ class RuntimeCompletionComputerTest extends AbstractContextTest {
     expect(codeOffset, isNonNegative);
     code = code.replaceAll('^', '');
 
-    var computer = RuntimeCompletionComputer(overlayResourceProvider,
-        driverFor(contextFile), code, codeOffset, contextFile, contextOffset);
+    final contextFile = getFile(contextFilePath);
+    var computer = RuntimeCompletionComputer(
+      overlayResourceProvider,
+      driverFor(contextFile),
+      code,
+      codeOffset,
+      contextFilePath,
+      contextOffset,
+    );
     result = await computer.compute();
   }
 

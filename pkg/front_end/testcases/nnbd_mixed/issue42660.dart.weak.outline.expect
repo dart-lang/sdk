@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 
 import "org-dartlang-testcase:///issue42660_lib.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///issue42660_lib.dart";
 static method main() → void
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -28,9 +28,9 @@ extension E on core::int {
   method m = self2::E|m;
   tearoff m = self2::E|get#m;
 }
-static method E|m(lowered final core::int #this) → core::String
+static extension-member method E|m(lowered final core::int #this) → core::String
   ;
-static method E|get#m(lowered final core::int #this) → () → core::String
+static extension-member method E|get#m(lowered final core::int #this) → () → core::String
   return () → core::String => self2::E|m(#this);
 static method f() → core::int?
   ;

@@ -12,7 +12,8 @@ import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart'
     as macro;
 import 'package:front_end/src/fasta/kernel/benchmarker.dart'
     show BenchmarkSubdivides, Benchmarker;
-import 'package:kernel/ast.dart' show DartType;
+import 'package:kernel/ast.dart';
+import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/src/types.dart';
 import 'package:kernel/type_environment.dart' show SubtypeCheckMode;
 
@@ -28,6 +29,7 @@ import '../../builder/omitted_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
 import '../../builder/type_declaration_builder.dart';
+import '../../fasta_codes.dart';
 import '../../identifiers.dart';
 import '../../source/source_class_builder.dart';
 import '../../source/source_constructor_builder.dart';
@@ -63,11 +65,13 @@ class MacroDeclarationData {
 }
 
 class MacroApplication {
+  final int fileOffset;
   final ClassBuilder classBuilder;
   final String constructorName;
   final macro.Arguments arguments;
 
-  MacroApplication(this.classBuilder, this.constructorName, this.arguments);
+  MacroApplication(this.classBuilder, this.constructorName, this.arguments,
+      {required this.fileOffset});
 
   late macro.MacroInstanceIdentifier instanceIdentifier;
 
@@ -205,6 +209,108 @@ class NeededPrecompilations {
   NeededPrecompilations(this.macroDeclarations);
 }
 
+void checkMacroApplications(
+    ClassHierarchy hierarchy,
+    Class macroClass,
+    List<SourceLibraryBuilder> sourceLibraryBuilders,
+    MacroApplications? macroApplications) {
+  Map<Library, LibraryMacroApplicationData> libraryData = {};
+  if (macroApplications != null) {
+    for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
+        in macroApplications.libraryData.entries) {
+      libraryData[entry.key.library] = entry.value;
+    }
+  }
+  for (SourceLibraryBuilder libraryBuilder in sourceLibraryBuilders) {
+    void checkAnnotations(
+        List<Expression> annotations, ApplicationData? applicationData,
+        {required Uri fileUri}) {
+      if (annotations.isEmpty) {
+        return;
+      }
+      // We cannot currently identify macro applications by offsets because
+      // file offsets on annotations are not stable.
+      // TODO(johnniwinther): Handle file uri + offset on annotations.
+      Map<Class, List<MacroApplication>> macroApplications = {};
+      if (applicationData != null) {
+        for (MacroApplication application
+            in applicationData.macroApplications) {
+          (macroApplications[application.classBuilder.cls] ??= [])
+              .add(application);
+        }
+      }
+      for (Expression annotation in annotations) {
+        if (annotation is ConstantExpression) {
+          Constant constant = annotation.constant;
+          if (constant is InstanceConstant &&
+              hierarchy.isSubtypeOf(constant.classNode, macroClass)) {
+            List<MacroApplication>? applications =
+                macroApplications[constant.classNode];
+            if (applications != null) {
+              if (applications.length == 1) {
+                macroApplications.remove(constant.classNode);
+              } else {
+                applications.removeAt(0);
+              }
+            } else {
+              // TODO(johnniwinther): Improve the diagnostics about why the
+              // macro didn't apply here.
+              libraryBuilder.addProblem(messageUnsupportedMacroApplication,
+                  annotation.fileOffset, noLength, fileUri);
+            }
+          }
+        }
+      }
+    }
+
+    void checkMembers(Iterable<Member> members,
+        Map<Annotatable, ApplicationData> memberData) {
+      for (Member member in members) {
+        checkAnnotations(member.annotations, memberData[member],
+            fileUri: member.fileUri);
+      }
+    }
+
+    Map<Class, ClassMacroApplicationData> classData = {};
+    Map<Annotatable, ApplicationData> libraryMemberData = {};
+    LibraryMacroApplicationData? libraryMacroApplicationData =
+        libraryData[libraryBuilder.library];
+    if (libraryMacroApplicationData != null) {
+      for (MapEntry<SourceClassBuilder, ClassMacroApplicationData> entry
+          in libraryMacroApplicationData.classData.entries) {
+        classData[entry.key.cls] = entry.value;
+      }
+      for (MapEntry<MemberBuilder, ApplicationData> entry
+          in libraryMacroApplicationData.memberApplications.entries) {
+        for (Annotatable annotatable in entry.key.annotatables) {
+          libraryMemberData[annotatable] = entry.value;
+        }
+      }
+    }
+
+    Library library = libraryBuilder.library;
+    checkMembers(library.members, libraryMemberData);
+    for (Class cls in library.classes) {
+      ClassMacroApplicationData? classMacroApplications = classData[cls];
+      ApplicationData? macroApplications =
+          classMacroApplications?.classApplications;
+      checkAnnotations(cls.annotations, macroApplications,
+          fileUri: cls.fileUri);
+
+      Map<Annotatable, ApplicationData> classMemberData = {};
+      if (classMacroApplications != null) {
+        for (MapEntry<MemberBuilder, ApplicationData> entry
+            in classMacroApplications.memberApplications.entries) {
+          for (Annotatable annotatable in entry.key.annotatables) {
+            classMemberData[annotatable] = entry.value;
+          }
+        }
+      }
+      checkMembers(cls.members, classMemberData);
+    }
+  }
+}
+
 class MacroApplications {
   final macro.MacroExecutor _macroExecutor;
   final Map<SourceLibraryBuilder, LibraryMacroApplicationData> libraryData;
@@ -277,6 +383,7 @@ class MacroApplications {
   Map<macro.ParameterizedTypeDeclaration, ClassBuilder> _classBuilders = {};
   Map<TypeAliasBuilder, macro.TypeAliasDeclaration> _typeAliasDeclarations = {};
   Map<MemberBuilder, macro.Declaration?> _memberDeclarations = {};
+  Map<LibraryBuilder, macro.LibraryImpl> _libraries = {};
 
   // TODO(johnniwinther): Support all members.
   macro.Declaration? _getMemberDeclaration(MemberBuilder memberBuilder) {
@@ -684,6 +791,17 @@ class MacroApplications {
             .toList();
   }
 
+  macro.LibraryImpl _libraryFor(LibraryBuilder builder) {
+    return _libraries[builder] ??= () {
+      final Version version = builder.library.languageVersion;
+      return new macro.LibraryImpl(
+          id: macro.RemoteInstance.uniqueId,
+          uri: builder.importUri,
+          languageVersion:
+              new macro.LanguageVersionImpl(version.major, version.minor));
+    }();
+  }
+
   macro.ParameterizedTypeDeclaration _createClassDeclaration(
       ClassBuilder builder) {
     assert(
@@ -716,21 +834,28 @@ class MacroApplications {
     final List<macro.NamedTypeAnnotationImpl> interfaces =
         _typeBuildersToAnnotations(
             builder.libraryBuilder, builder.interfaceBuilders);
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
+
     macro.ParameterizedTypeDeclaration declaration = builder.isMixinDeclaration
         // TODO: These shouldn't always be introspectable. In the declarations
         // phase we need to limit the introspectable declarations to those that
         // are part of the super chain of the directly macro annotated class.
         ? new macro.IntrospectableMixinDeclarationImpl(
-            id: macro.RemoteInstance.uniqueId,
-            identifier: identifier,
-            typeParameters: typeParameters,
-            hasBase: builder.isBase,
-            interfaces: interfaces,
-            superclassConstraints: _typeBuildersToAnnotations(
-                builder.libraryBuilder, builder.onTypes))
+                id: macro.RemoteInstance.uniqueId,
+                identifier: identifier,
+                library: library,
+                typeParameters: typeParameters,
+                hasBase: builder.isBase,
+                interfaces: interfaces,
+                superclassConstraints: _typeBuildersToAnnotations(
+                    builder.libraryBuilder, builder.onTypes))
+            // This cast is not necessary but LUB doesn't give the desired type
+            // without it.
+            as macro.ParameterizedTypeDeclaration
         : new macro.IntrospectableClassDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             typeParameters: typeParameters,
             interfaces: interfaces,
             hasAbstract: builder.isAbstract,
@@ -752,6 +877,7 @@ class MacroApplications {
 
   macro.TypeAliasDeclaration _createTypeAliasDeclaration(
       TypeAliasBuilder builder) {
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     macro.TypeAliasDeclaration declaration = new macro.TypeAliasDeclarationImpl(
         id: macro.RemoteInstance.uniqueId,
         identifier: new TypeDeclarationBuilderIdentifier(
@@ -759,6 +885,7 @@ class MacroApplications {
             libraryBuilder: builder.libraryBuilder,
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
+        library: library,
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
         aliasedType:
@@ -775,6 +902,7 @@ class MacroApplications {
     } else {
       positionalParameters = [];
       namedParameters = [];
+      final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
       for (FormalParameterBuilder formal in formals) {
         macro.TypeAnnotationImpl type =
             computeTypeAnnotation(builder.libraryBuilder, formal.type);
@@ -787,6 +915,7 @@ class MacroApplications {
           namedParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
@@ -795,6 +924,7 @@ class MacroApplications {
           positionalParameters.add(new macro.ParameterDeclarationImpl(
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
+            library: library,
             isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
@@ -822,6 +952,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
+      library: _libraryFor(builder.libraryBuilder),
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -851,6 +982,7 @@ class MacroApplications {
           memberBuilder: builder,
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
+      library: _libraryFor(builder.libraryBuilder),
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -877,6 +1009,7 @@ class MacroApplications {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
@@ -886,6 +1019,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
@@ -906,6 +1040,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -927,6 +1062,7 @@ class MacroApplications {
       definingClass =
           getClassDeclaration(builder.classBuilder as SourceClassBuilder);
     }
+    final macro.LibraryImpl library = _libraryFor(builder.libraryBuilder);
     if (definingClass != null) {
       // TODO(johnniwinther): Should static fields be field or variable
       //  declarations?
@@ -936,6 +1072,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
@@ -949,6 +1086,7 @@ class MacroApplications {
               memberBuilder: builder,
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
+          library: library,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
@@ -1048,7 +1186,7 @@ class MacroApplications {
   }
 }
 
-class _StaticTypeImpl extends macro.StaticType {
+class _StaticTypeImpl implements macro.StaticType {
   final MacroApplications macroApplications;
   final DartType type;
 
@@ -1262,6 +1400,7 @@ extension on macro.MacroExecutionResult {
       typeAugmentations.isNotEmpty;
 }
 
+// ignore: missing_override_of_must_be_overridden
 class _OmittedTypeAnnotationImpl extends macro.OmittedTypeAnnotationImpl {
   final OmittedTypeBuilder typeBuilder;
 

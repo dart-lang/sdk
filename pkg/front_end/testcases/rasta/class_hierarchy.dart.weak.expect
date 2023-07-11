@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -45,7 +45,6 @@ class C extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class D extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   static factory •() → self::D
     return invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
   factory D() = Missing;
@@ -58,8 +57,4 @@ static method main() → void {
   invalid-expression "pkg/front_end/testcases/rasta/class_hierarchy.dart:12:17: Error: Redirection constructor target not found: 'Missing'
   factory D() = Missing;
                 ^";
-}
-
-constants  {
-  #C1 = constructor-tearoff self::D::•
 }

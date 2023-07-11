@@ -71,7 +71,7 @@ popd  # flutter
 git clone --single-branch --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/buildroot src
 pushd src
-git clone --single-branch --depth=1 -vv \
+git clone --single-branch --branch main --depth=1 -vv \
     https://dart.googlesource.com/external/github.com/flutter/engine flutter
 mkdir -p third_party
 pushd third_party

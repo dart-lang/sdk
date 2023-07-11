@@ -172,8 +172,6 @@ abstract class TreeNode extends Node {
   ///
   /// [replacement] must be non-null.
   void replaceChild(TreeNode child, TreeNode replacement) {
-    // ignore: unnecessary_null_comparison
-    assert(replacement != null);
     transformChildren(new _ChildReplacer(child, replacement));
   }
 
@@ -185,8 +183,6 @@ abstract class TreeNode extends Node {
   ///
   /// [replacement] must be non-null.
   void replaceWith(TreeNode replacement) {
-    // ignore: unnecessary_null_comparison
-    assert(replacement != null);
     parent!.replaceChild(this, replacement);
     parent = null;
   }
@@ -268,10 +264,6 @@ class Library extends NamedNode
   Version get languageVersion => _languageVersion ?? defaultLanguageVersion;
 
   void setLanguageVersion(Version languageVersion) {
-    // ignore: unnecessary_null_comparison
-    if (languageVersion == null) {
-      throw new StateError("Trying to set language version 'null'");
-    }
     _languageVersion = languageVersion;
   }
 
@@ -377,9 +369,7 @@ class Library extends NamedNode
       List<Field>? fields,
       required this.fileUri,
       Reference? reference})
-      // ignore: unnecessary_null_comparison
-      : assert(fileUri != null),
-        this.annotations = annotations ?? <Expression>[],
+      : this.annotations = annotations ?? <Expression>[],
         this.dependencies = dependencies ?? <LibraryDependency>[],
         this.parts = parts ?? <LibraryPart>[],
         this._typedefs = typedefs ?? <Typedef>[],
@@ -872,9 +862,7 @@ class Typedef extends NamedNode implements FileUriNode, Annotatable {
       List<TypeParameter>? typeParametersOfFunctionType,
       List<VariableDeclaration>? positionalParameters,
       List<VariableDeclaration>? namedParameters})
-      // ignore: unnecessary_null_comparison
-      : assert(fileUri != null),
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
         super(reference) {
     setParents(this.typeParameters, this);
   }
@@ -1269,30 +1257,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     _proceduresView = null;
   }
 
-  List<RedirectingFactory> _redirectingFactoriesInternal;
-  DirtifyingList<RedirectingFactory>? _redirectingFactoriesView;
-
-  /// Redirecting factory constructors declared in the class.
-  ///
-  /// For mixin applications this should be empty.
-  List<RedirectingFactory> get redirectingFactories {
-    ensureLoaded();
-    // If already dirty the caller just might as well add stuff directly too.
-    if (dirty) return _redirectingFactoriesInternal;
-    return _redirectingFactoriesView ??=
-        new DirtifyingList(this, _redirectingFactoriesInternal);
-  }
-
-  /// Internal. Should *ONLY* be used from within kernel.
-  ///
-  /// Used for adding redirecting factory constructor when reading the dill
-  /// file.
-  void set redirectingFactoryConstructorsInternal(
-      List<RedirectingFactory> redirectingFactoryConstructors) {
-    _redirectingFactoriesInternal = redirectingFactoryConstructors;
-    _redirectingFactoriesView = null;
-  }
-
   Class(
       {required this.name,
       bool isAbstract = false,
@@ -1304,26 +1268,18 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
       List<Constructor>? constructors,
       List<Procedure>? procedures,
       List<Field>? fields,
-      List<RedirectingFactory>? redirectingFactoryConstructors,
       required this.fileUri,
       Reference? reference})
-      // ignore: unnecessary_null_comparison
-      : assert(name != null),
-        // ignore: unnecessary_null_comparison
-        assert(fileUri != null),
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.implementedTypes = implementedTypes ?? <Supertype>[],
         this._fieldsInternal = fields ?? <Field>[],
         this._constructorsInternal = constructors ?? <Constructor>[],
         this._proceduresInternal = procedures ?? <Procedure>[],
-        this._redirectingFactoriesInternal =
-            redirectingFactoryConstructors ?? <RedirectingFactory>[],
         super(reference) {
     setParents(this.typeParameters, this);
     setParents(this._constructorsInternal, this);
     setParents(this._proceduresInternal, this);
     setParents(this._fieldsInternal, this);
-    setParents(this._redirectingFactoriesInternal, this);
     this.isAbstract = isAbstract;
     this.isAnonymousMixin = isAnonymousMixin;
   }
@@ -1345,9 +1301,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
     for (int i = 0; i < constructors.length; ++i) {
       constructors[i].bindCanonicalNames(canonicalName);
-    }
-    for (int i = 0; i < redirectingFactories.length; ++i) {
-      redirectingFactories[i].bindCanonicalNames(canonicalName);
     }
     dirty = false;
   }
@@ -1371,10 +1324,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     }
     for (int i = 0; i < constructors.length; ++i) {
       Constructor member = constructors[i];
-      member._relinkNode();
-    }
-    for (int i = 0; i < redirectingFactories.length; ++i) {
-      RedirectingFactory member = redirectingFactories[i];
       member._relinkNode();
     }
     dirty = false;
@@ -1418,7 +1367,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
         fields,
         constructors,
         procedures,
-        redirectingFactories
       ].expand((x) => x);
 
   /// The immediately extended, mixed-in, and implemented types.
@@ -1459,13 +1407,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     dirty = true;
     field.parent = this;
     _fieldsInternal.add(field);
-  }
-
-  /// Adds a field to this class.
-  void addRedirectingFactory(RedirectingFactory redirectingFactory) {
-    dirty = true;
-    redirectingFactory.parent = this;
-    _redirectingFactoriesInternal.add(redirectingFactory);
   }
 
   @override
@@ -1518,7 +1459,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     visitList(constructors, v);
     visitList(procedures, v);
     visitList(fields, v);
-    visitList(redirectingFactories, v);
   }
 
   @override
@@ -1535,7 +1475,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(constructors, this);
     v.transformList(procedures, this);
     v.transformList(fields, this);
-    v.transformList(redirectingFactories, this);
   }
 
   @override
@@ -1562,7 +1501,6 @@ class Class extends NamedNode implements Annotatable, FileUriNode {
     v.transformConstructorList(constructors, this);
     v.transformProcedureList(procedures, this);
     v.transformFieldList(fields, this);
-    v.transformRedirectingFactoryList(redirectingFactories, this);
   }
 
   @override
@@ -1637,11 +1575,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
       List<ExtensionMemberDescriptor>? members,
       required this.fileUri,
       Reference? reference})
-      // ignore: unnecessary_null_comparison
-      : assert(name != null),
-        // ignore: unnecessary_null_comparison
-        assert(fileUri != null),
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionMemberDescriptor>[],
         super(reference) {
     setParents(this.typeParameters, this);
@@ -1700,10 +1634,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformList(typeParameters, this);
-    // ignore: unnecessary_null_comparison
-    if (onType != null) {
-      onType = v.visitDartType(onType);
-    }
+    onType = v.visitDartType(onType);
     if (showHideClause != null) {
       v.transformSupertypeList(showHideClause!.shownSupertypes);
       v.transformSupertypeList(showHideClause!.hiddenSupertypes);
@@ -1714,10 +1645,7 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
-    // ignore: unnecessary_null_comparison
-    if (onType != null) {
-      onType = v.visitDartType(onType, cannotRemoveSentinel);
-    }
+    onType = v.visitDartType(onType, cannotRemoveSentinel);
     if (showHideClause != null) {
       v.transformSupertypeList(showHideClause!.shownSupertypes);
       v.transformSupertypeList(showHideClause!.hiddenSupertypes);
@@ -2055,11 +1983,7 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
       List<InlineType>? implements,
       required this.fileUri,
       Reference? reference})
-      // ignore: unnecessary_null_comparison
-      : assert(name != null),
-        // ignore: unnecessary_null_comparison
-        assert(fileUri != null),
-        this.typeParameters = typeParameters ?? <TypeParameter>[],
+      : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <InlineClassMemberDescriptor>[],
         this.implements = implements ?? <InlineType>[],
         super(reference) {
@@ -2095,21 +2019,15 @@ class InlineClass extends NamedNode implements Annotatable, FileUriNode {
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformList(typeParameters, this);
-    // ignore: unnecessary_null_comparison
-    if (declaredRepresentationType != null) {
-      declaredRepresentationType = v.visitDartType(declaredRepresentationType);
-    }
+    declaredRepresentationType = v.visitDartType(declaredRepresentationType);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
-    // ignore: unnecessary_null_comparison
-    if (declaredRepresentationType != null) {
-      declaredRepresentationType =
-          v.visitDartType(declaredRepresentationType, cannotRemoveSentinel);
-    }
+    declaredRepresentationType =
+        v.visitDartType(declaredRepresentationType, cannotRemoveSentinel);
   }
 
   @override
@@ -2137,6 +2055,7 @@ enum InlineClassMemberKind {
   Setter,
   Operator,
   TearOff,
+  RedirectingFactory,
 }
 
 /// Information about an member declaration in an inline class.
@@ -2243,12 +2162,7 @@ abstract class Member extends NamedNode implements Annotatable, FileUriNode {
   // TODO(asgerf): It might be worthwhile to put this on classes as well.
   int transformerFlags = 0;
 
-  Member(this.name, this.fileUri, Reference? reference)
-      // ignore: unnecessary_null_comparison
-      : assert(name != null),
-        // ignore: unnecessary_null_comparison
-        assert(fileUri != null),
-        super(reference);
+  Member(this.name, this.fileUri, Reference? reference) : super(reference);
 
   Class? get enclosingClass => parent is Class ? parent as Class : null;
   Library get enclosingLibrary =>
@@ -2485,8 +2399,6 @@ class Field extends Member {
         super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
     this.setterReference!.node = this;
-    // ignore: unnecessary_null_comparison
-    assert(type != null);
     initializer?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
@@ -2512,8 +2424,6 @@ class Field extends Member {
         this.setterReference = null,
         super(name, fileUri, fieldReference) {
     this.getterReference.node = this;
-    // ignore: unnecessary_null_comparison
-    assert(type != null);
     initializer?.parent = this;
     this.isCovariantByDeclaration = isCovariantByDeclaration;
     this.isFinal = isFinal;
@@ -2763,8 +2673,6 @@ class Constructor extends Member {
       required Uri fileUri,
       Reference? reference})
       : this.initializers = initializers ?? <Initializer>[],
-        // ignore: unnecessary_null_comparison
-        assert(function != null),
         super(name, fileUri, reference) {
     function.parent = this;
     setParents(this.initializers, this);
@@ -2858,196 +2766,21 @@ class Constructor extends Member {
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
     v.transformList(initializers, this);
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformInitializerList(initializers, this);
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
   }
 
   // TODO(johnniwinther): Provide the tear off type here.
   @override
   DartType get getterType => const NeverType.nonNullable();
-
-  @override
-  DartType get setterType => const NeverType.nonNullable();
-
-  @override
-  Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset);
-  }
-}
-
-/// Residue of a redirecting factory constructor for the linking phase.
-///
-/// In the following example, `bar` is a redirecting factory constructor.
-///
-///     class A {
-///       A.foo();
-///       factory A.bar() = A.foo;
-///     }
-///
-/// An invocation of `new A.bar()` has the same effect as an invocation of
-/// `new A.foo()`.  In Kernel, the invocations of `bar` are replaced with
-/// invocations of `foo`, and after it is done, the redirecting constructor can
-/// be removed from the class.  However, it is needed during the linking phase,
-/// because other modules can refer to that constructor.
-///
-/// [RedirectingFactory]s contain the necessary information for
-/// linking and are treated as non-runnable members of classes that merely serve
-/// as containers for that information.
-///
-/// Redirecting factory constructors can be unnamed.  In this case, the name is
-/// an empty string (in a [Name]).
-class RedirectingFactory extends Member {
-  int flags = 0;
-
-  /// [RedirectingFactory]s may redirect to constructors or factories
-  /// of instantiated generic types, that is, generic types with supplied type
-  /// arguments.  The supplied type arguments are stored in this field.
-  final List<DartType> typeArguments;
-
-  /// Reference to the constructor or the factory that this
-  /// [RedirectingFactory] redirects to.
-  // TODO(johnniwinther): Make this non-nullable.
-  Reference? targetReference;
-
-  /// [FunctionNode] that holds the type parameters, copied from the enclosing
-  /// class, and the parameters defined on the redirecting factory.
-  ///
-  /// The `FunctionNode.body` is `null` or a synthesized [ConstructorInvocation]
-  /// of the [targetReference] constructor using the [typeArguments] and
-  /// [VariableGet] of the parameters.
-  @override
-  FunctionNode function;
-
-  RedirectingFactory(this.targetReference,
-      {required Name name,
-      bool isConst = false,
-      bool isExternal = false,
-      int transformerFlags = 0,
-      List<DartType>? typeArguments,
-      required this.function,
-      required Uri fileUri,
-      Reference? reference})
-      : this.typeArguments = typeArguments ?? <DartType>[],
-        super(name, fileUri, reference) {
-    function.parent = this;
-    this.isConst = isConst;
-    this.isExternal = isExternal;
-    this.transformerFlags = transformerFlags;
-  }
-
-  @override
-  void bindCanonicalNames(CanonicalName parent) {
-    parent.getChildFromRedirectingFactory(this).bindTo(reference);
-  }
-
-  @override
-  Class get enclosingClass => parent as Class;
-
-  static const int FlagConst = 1 << 0; // Must match serialized bit positions.
-  static const int FlagExternal = 1 << 1;
-  static const int FlagNonNullableByDefault = 1 << 2;
-
-  @override
-  bool get isConst => flags & FlagConst != 0;
-
-  @override
-  bool get isExternal => flags & FlagExternal != 0;
-
-  void set isConst(bool value) {
-    flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
-  }
-
-  @override
-  void set isExternal(bool value) {
-    flags = value ? (flags | FlagExternal) : (flags & ~FlagExternal);
-  }
-
-  @override
-  bool get isInstanceMember => false;
-
-  @override
-  bool get hasGetter => false;
-
-  @override
-  bool get hasSetter => false;
-
-  @override
-  bool get isExtensionMember => false;
-
-  @override
-  bool get isInlineClassMember => false;
-
-  bool get isUnresolved => targetReference == null;
-
-  @override
-  bool get isNonNullableByDefault => flags & FlagNonNullableByDefault != 0;
-
-  @override
-  void set isNonNullableByDefault(bool value) {
-    flags = value
-        ? (flags | FlagNonNullableByDefault)
-        : (flags & ~FlagNonNullableByDefault);
-  }
-
-  Member? get target => targetReference?.asMember;
-
-  void set target(Member? member) {
-    assert(member is Constructor ||
-        (member is Procedure && member.kind == ProcedureKind.Factory));
-    targetReference = getMemberReferenceGetter(member);
-  }
-
-  @override
-  R accept<R>(MemberVisitor<R> v) => v.visitRedirectingFactory(this);
-
-  @override
-  R accept1<R, A>(MemberVisitor1<R, A> v, A arg) =>
-      v.visitRedirectingFactory(this, arg);
-
-  @override
-  R acceptReference<R>(MemberReferenceVisitor<R> v) =>
-      v.visitRedirectingFactoryReference(this);
-
-  @override
-  void visitChildren(Visitor v) {
-    visitList(annotations, v);
-    target?.acceptReference(v);
-    visitList(typeArguments, v);
-    name.accept(v);
-    function.accept(v);
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    v.transformList(annotations, this);
-    v.transformDartTypeList(typeArguments);
-    function = v.transform(function)..parent = this;
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformExpressionList(annotations, this);
-    v.transformDartTypeList(typeArguments);
-    function = v.transform(function)..parent = this;
-  }
-
-  @override
-  DartType get getterType =>
-      function.computeFunctionType(enclosingLibrary.nonNullable);
 
   @override
   DartType get setterType => const NeverType.nonNullable();
@@ -3345,11 +3078,7 @@ class Procedure extends Member {
       Reference? reference,
       this.stubKind = ProcedureStubKind.Regular,
       this.stubTargetReference})
-      // ignore: unnecessary_null_comparison
-      : assert(kind != null),
-        // ignore: unnecessary_null_comparison
-        assert(function != null),
-        super(name, fileUri, reference) {
+      : super(name, fileUri, reference) {
     function.parent = this;
     this.isAbstract = isAbstract;
     this.isStatic = isStatic;
@@ -3403,15 +3132,13 @@ class Procedure extends Member {
   static const int FlagAbstract = 1 << 1;
   static const int FlagExternal = 1 << 2;
   static const int FlagConst = 1 << 3; // Only for external const factories.
-  // TODO(29841): Remove this flag after the issue is resolved.
-  static const int FlagRedirectingFactory = 1 << 4;
-  static const int FlagExtensionMember = 1 << 5;
-  static const int FlagNonNullableByDefault = 1 << 6;
-  static const int FlagSynthetic = 1 << 7;
-  static const int FlagInternalImplementation = 1 << 8;
-  static const int FlagIsAbstractFieldAccessor = 1 << 9;
-  static const int FlagInlineMember = 1 << 10;
-  static const int FlagHasWeakTearoffReferencePragma = 1 << 11;
+  static const int FlagExtensionMember = 1 << 4;
+  static const int FlagNonNullableByDefault = 1 << 5;
+  static const int FlagSynthetic = 1 << 6;
+  static const int FlagInternalImplementation = 1 << 7;
+  static const int FlagIsAbstractFieldAccessor = 1 << 8;
+  static const int FlagInlineMember = 1 << 9;
+  static const int FlagHasWeakTearoffReferencePragma = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -3454,7 +3181,7 @@ class Procedure extends Member {
   // Indicates if this [Procedure] represents a redirecting factory constructor
   // and doesn't have a runnable body.
   bool get isRedirectingFactory {
-    return flags & FlagRedirectingFactory != 0;
+    return function.redirectingFactoryTarget != null;
   }
 
   /// If set, this flag indicates that this function was not present in the
@@ -3509,12 +3236,6 @@ class Procedure extends Member {
 
   void set isConst(bool value) {
     flags = value ? (flags | FlagConst) : (flags & ~FlagConst);
-  }
-
-  void set isRedirectingFactory(bool value) {
-    flags = value
-        ? (flags | FlagRedirectingFactory)
-        : (flags & ~FlagRedirectingFactory);
   }
 
   void set isExtensionMember(bool value) {
@@ -3606,11 +3327,8 @@ class Procedure extends Member {
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
     if (signatureType != null) {
       signatureType = v.visitDartType(signatureType!) as FunctionType;
     }
@@ -3619,11 +3337,8 @@ class Procedure extends Member {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
     if (signatureType != null) {
       DartType newSignatureType =
           v.visitDartType(signatureType!, dummyDartType);
@@ -3771,20 +3486,14 @@ class FieldInitializer extends Initializer {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -3844,20 +3553,14 @@ class SuperInitializer extends Initializer {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -3918,20 +3621,14 @@ class RedirectingInitializer extends Initializer {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -3975,20 +3672,14 @@ class LocalInitializer extends Initializer {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
   }
 
   @override
@@ -4098,6 +3789,10 @@ class FunctionNode extends TreeNode {
   /// type.
   DartType? futureValueType;
 
+  /// If the function is a redirecting factory constructor, this holds
+  /// the target and type arguments of the redirection.
+  RedirectingFactoryTarget? redirectingFactoryTarget;
+
   void Function()? lazyBuilder;
 
   void _buildLazy() {
@@ -4134,8 +3829,6 @@ class FunctionNode extends TreeNode {
         this.namedParameters = namedParameters ?? <VariableDeclaration>[],
         this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.dartAsyncMarker = dartAsyncMarker ?? asyncMarker {
-    // ignore: unnecessary_null_comparison
-    assert(returnType != null);
     setParents(this.typeParameters, this);
     setParents(this.positionalParameters, this);
     setParents(this.namedParameters, this);
@@ -4225,6 +3918,10 @@ class FunctionNode extends TreeNode {
     visitList(namedParameters, v);
     returnType.accept(v);
     futureValueType?.accept(v);
+    redirectingFactoryTarget?.target?.acceptReference(v);
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      visitList(redirectingFactoryTarget!.typeArguments!, v);
+    }
     body?.accept(v);
   }
 
@@ -4236,6 +3933,9 @@ class FunctionNode extends TreeNode {
     returnType = v.visitDartType(returnType);
     if (futureValueType != null) {
       futureValueType = v.visitDartType(futureValueType!);
+    }
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
     }
     if (body != null) {
       body = v.transform(body!);
@@ -4251,6 +3951,9 @@ class FunctionNode extends TreeNode {
     returnType = v.visitDartType(returnType, cannotRemoveSentinel);
     if (futureValueType != null) {
       futureValueType = v.visitDartType(futureValueType!, cannotRemoveSentinel);
+    }
+    if (redirectingFactoryTarget?.typeArguments != null) {
+      v.transformDartTypeList(redirectingFactoryTarget!.typeArguments!);
     }
     if (body != null) {
       body = v.transformOrRemoveStatement(body!);
@@ -4275,6 +3978,44 @@ enum AsyncMarker {
   SyncStar,
   Async,
   AsyncStar,
+}
+
+/// The target constructor and passed type arguments of a redirecting factory,
+/// or if erroneous, the message for the error.
+class RedirectingFactoryTarget {
+  /// The reference to the target constructor if this is a valid redirecting
+  /// factory. `null` otherwise.
+  final Reference? targetReference;
+
+  /// The type arguments passed to the target constructor if this is a valid
+  /// redirecting factory. `null` otherwise.
+  final List<DartType>? typeArguments;
+
+  /// The message for the error, if this is an erroneous redirection. `null`
+  /// otherwise.
+  final String? errorMessage;
+
+  RedirectingFactoryTarget(Member target, List<DartType> typeArguments)
+      : this.byReference(target.reference, typeArguments);
+
+  RedirectingFactoryTarget.byReference(
+      Reference this.targetReference, List<DartType> this.typeArguments)
+      : errorMessage = null;
+
+  RedirectingFactoryTarget.error(String this.errorMessage)
+      : targetReference = null,
+        typeArguments = null;
+
+  /// The target constructor if this is a valid redirecting factory. `null`
+  /// otherwise.
+  Member? get target => targetReference?.asMember;
+
+  /// If `true`, this is an erroneous redirection.
+  bool get isError => errorMessage != null;
+
+  @override
+  String toString() => 'RedirectingFactoryTarget('
+      '${isError ? '$errorMessage' : '$target,$typeArguments'})';
 }
 
 // ------------------------------------------------------------------------
@@ -4455,9 +4196,7 @@ class VariableGet extends Expression {
   VariableDeclaration variable;
   DartType? promotedType; // Null if not promoted.
 
-  VariableGet(this.variable, [this.promotedType])
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null);
+  VariableGet(this.variable, [this.promotedType]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -4522,9 +4261,7 @@ class VariableSet extends Expression {
   VariableDeclaration variable;
   Expression value;
 
-  VariableSet(this.variable, this.value)
-      // ignore: unnecessary_null_comparison
-      : assert(variable != null) {
+  VariableSet(this.variable, this.value) {
     value.parent = this;
   }
 
@@ -4550,20 +4287,14 @@ class VariableSet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -4766,20 +4497,14 @@ class DynamicGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
   }
 
   @override
@@ -4830,11 +4555,7 @@ class InstanceGet extends Expression {
             resultType: resultType);
 
   InstanceGet.byReference(this.kind, this.receiver, this.name,
-      {required this.interfaceTargetReference, required this.resultType})
-      // ignore: unnecessary_null_comparison
-      : assert(interfaceTargetReference != null),
-        // ignore: unnecessary_null_comparison
-        assert(resultType != null) {
+      {required this.interfaceTargetReference, required this.resultType}) {
     receiver.parent = this;
   }
 
@@ -4864,28 +4585,16 @@ class InstanceGet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (resultType != null) {
-      resultType = v.visitDartType(resultType);
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    resultType = v.visitDartType(resultType);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (resultType != null) {
-      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    resultType = v.visitDartType(resultType, cannotRemoveSentinel);
   }
 
   @override
@@ -4929,20 +4638,14 @@ class FunctionTearOff extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
   }
 
   @override
@@ -5022,28 +4725,16 @@ class InstanceTearOff extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (resultType != null) {
-      resultType = v.visitDartType(resultType);
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    resultType = v.visitDartType(resultType);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (resultType != null) {
-      resultType = v.visitDartType(resultType, cannotRemoveSentinel);
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    resultType = v.visitDartType(resultType, cannotRemoveSentinel);
   }
 
   @override
@@ -5091,30 +4782,18 @@ class DynamicSet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5153,9 +4832,7 @@ class InstanceSet extends Expression {
                 getNonNullableMemberReferenceSetter(interfaceTarget));
 
   InstanceSet.byReference(this.kind, this.receiver, this.name, this.value,
-      {required this.interfaceTargetReference})
-      // ignore: unnecessary_null_comparison
-      : assert(interfaceTargetReference != null) {
+      {required this.interfaceTargetReference}) {
     receiver.parent = this;
     value.parent = this;
   }
@@ -5187,30 +4864,18 @@ class InstanceSet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5448,20 +5113,14 @@ class AbstractSuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5524,20 +5183,14 @@ class SuperPropertySet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5695,20 +5348,14 @@ class StaticSet extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5848,20 +5495,14 @@ class NamedExpression extends TreeNode {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -5944,30 +5585,18 @@ class DynamicInvocation extends InstanceInvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -6087,11 +5716,7 @@ class InstanceInvocation extends InstanceInvocationExpression {
   InstanceInvocation.byReference(
       this.kind, this.receiver, this.name, this.arguments,
       {required this.interfaceTargetReference, required this.functionType})
-      // ignore: unnecessary_null_comparison
-      : assert(interfaceTargetReference != null),
-        // ignore: unnecessary_null_comparison
-        assert(functionType != null),
-        assert(functionType.typeParameters.isEmpty) {
+      : assert(functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -6159,39 +5784,21 @@ class InstanceInvocation extends InstanceInvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType = v.visitDartType(functionType) as FunctionType;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+    functionType = v.visitDartType(functionType) as FunctionType;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType =
-          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+    functionType =
+        v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
   }
 
   @override
@@ -6263,9 +5870,7 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
   InstanceGetterInvocation.byReference(
       this.kind, this.receiver, this.name, this.arguments,
       {required this.interfaceTargetReference, required this.functionType})
-      // ignore: unnecessary_null_comparison
-      : assert(interfaceTargetReference != null),
-        assert(functionType == null || functionType.typeParameters.isEmpty) {
+      : assert(functionType == null || functionType.typeParameters.isEmpty) {
     receiver.parent = this;
     arguments.parent = this;
   }
@@ -6333,16 +5938,11 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+
     if (functionType != null) {
       functionType = v.visitDartType(functionType!) as FunctionType;
     }
@@ -6350,16 +5950,10 @@ class InstanceGetterInvocation extends InstanceInvocationExpression {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
     if (functionType != null) {
       functionType =
           v.visitDartType(functionType!, cannotRemoveSentinel) as FunctionType;
@@ -6484,16 +6078,10 @@ class FunctionInvocation extends InstanceInvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
     FunctionType? type = functionType;
     if (type != null) {
       functionType = v.visitDartType(type) as FunctionType;
@@ -6502,16 +6090,10 @@ class FunctionInvocation extends InstanceInvocationExpression {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (receiver != null) {
-      receiver = v.transform(receiver);
-      receiver.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    receiver = v.transform(receiver);
+    receiver.parent = this;
+    arguments = v.transform(arguments);
+    arguments.parent = this;
     FunctionType? type = functionType;
     if (type != null) {
       functionType =
@@ -6555,9 +6137,7 @@ class LocalFunctionInvocation extends InvocationExpression {
   FunctionType functionType;
 
   LocalFunctionInvocation(this.variable, this.arguments,
-      {required this.functionType})
-      // ignore: unnecessary_null_comparison
-      : assert(functionType != null) {
+      {required this.functionType}) {
     arguments.parent = this;
   }
 
@@ -6587,29 +6167,17 @@ class LocalFunctionInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType = v.visitDartType(functionType) as FunctionType;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+    functionType = v.visitDartType(functionType) as FunctionType;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType =
-          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
+    functionType =
+        v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
   }
 
   @override
@@ -6653,20 +6221,14 @@ class EqualsNull extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -6747,39 +6309,21 @@ class EqualsCall extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType = v.visitDartType(functionType) as FunctionType;
-    }
+    left = v.transform(left);
+    left.parent = this;
+    right = v.transform(right);
+    right.parent = this;
+    functionType = v.visitDartType(functionType) as FunctionType;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (functionType != null) {
-      functionType =
-          v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
-    }
+    left = v.transform(left);
+    left.parent = this;
+    right = v.transform(right);
+    right.parent = this;
+    functionType =
+        v.visitDartType(functionType, cannotRemoveSentinel) as FunctionType;
   }
 
   @override
@@ -6880,20 +6424,14 @@ class AbstractSuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -6970,20 +6508,14 @@ class SuperMethodInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -7057,20 +6589,14 @@ class StaticInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
@@ -7147,20 +6673,14 @@ class ConstructorInvocation extends InvocationExpression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (arguments != null) {
-      arguments = v.transform(arguments);
-      arguments.parent = this;
-    }
+    arguments = v.transform(arguments);
+    arguments.parent = this;
   }
 
   // TODO(cstefantsova): Change the getter into a method that accepts a
@@ -7234,21 +6754,17 @@ class Instantiation extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
+
     v.transformDartTypeList(typeArguments);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
+
     v.transformDartTypeList(typeArguments);
   }
 
@@ -7296,20 +6812,14 @@ class Not extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
   }
 
   @override
@@ -7370,30 +6880,18 @@ class LogicalExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
+    left = v.transform(left);
+    left.parent = this;
+    right = v.transform(right);
+    right.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (left != null) {
-      left = v.transform(left);
-      left.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (right != null) {
-      right = v.transform(right);
-      right.parent = this;
-    }
+    left = v.transform(left);
+    left.parent = this;
+    right = v.transform(right);
+    right.parent = this;
   }
 
   @override
@@ -7450,48 +6948,24 @@ class ConditionalExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (otherwise != null) {
-      otherwise = v.transform(otherwise);
-      otherwise.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (staticType != null) {
-      staticType = v.visitDartType(staticType);
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
+    otherwise = v.transform(otherwise);
+    otherwise.parent = this;
+    staticType = v.visitDartType(staticType);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (otherwise != null) {
-      otherwise = v.transform(otherwise);
-      otherwise.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (staticType != null) {
-      staticType = v.visitDartType(staticType, cannotRemoveSentinel);
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
+    otherwise = v.transform(otherwise);
+    otherwise.parent = this;
+    staticType = v.visitDartType(staticType, cannotRemoveSentinel);
   }
 
   @override
@@ -7504,12 +6978,9 @@ class ConditionalExpression extends Expression {
     printer.writeExpression(condition,
         minimumPrecedence: astToText.Precedence.LOGICAL_OR);
     printer.write(' ?');
-    // ignore: unnecessary_null_comparison
-    if (staticType != null) {
-      printer.write('{');
-      printer.writeType(staticType);
-      printer.write('}');
-    }
+    printer.write('{');
+    printer.writeType(staticType);
+    printer.write('}');
     printer.write(' ');
     printer.writeExpression(then);
     printer.write(' : ');
@@ -7855,8 +7326,7 @@ class InstanceCreation extends Expression {
   void transformChildren(Transformer v) {
     fieldValues.forEach((Reference fieldRef, Expression value) {
       Expression transformed = v.transform(value);
-      // ignore: unnecessary_null_comparison
-      if (transformed != null && !identical(value, transformed)) {
+      if (!identical(value, transformed)) {
         fieldValues[fieldRef] = transformed;
         transformed.parent = this;
       }
@@ -8040,21 +7510,15 @@ class IsExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     type = v.visitDartType(type);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     type = v.visitDartType(type, cannotRemoveSentinel);
   }
 
@@ -8183,21 +7647,15 @@ class AsExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     type = v.visitDartType(type);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     type = v.visitDartType(type, cannotRemoveSentinel);
   }
 
@@ -8267,20 +7725,14 @@ class NullCheck extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
   }
 
   @override
@@ -8664,20 +8116,14 @@ class Throw extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -8699,8 +8145,6 @@ class ListLiteral extends Expression {
 
   ListLiteral(this.expressions,
       {this.typeArgument = const DynamicType(), this.isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(typeArgument != null);
     setParents(expressions, this);
   }
 
@@ -8763,8 +8207,6 @@ class SetLiteral extends Expression {
 
   SetLiteral(this.expressions,
       {this.typeArgument = const DynamicType(), this.isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(typeArgument != null);
     setParents(expressions, this);
   }
 
@@ -8830,10 +8272,6 @@ class MapLiteral extends Expression {
       {this.keyType = const DynamicType(),
       this.valueType = const DynamicType(),
       this.isConst = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(keyType != null);
-    // ignore: unnecessary_null_comparison
-    assert(valueType != null);
     setParents(entries, this);
   }
 
@@ -8924,30 +8362,18 @@ class MapLiteralEntry extends TreeNode {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (key != null) {
-      key = v.transform(key);
-      key.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (key != null) {
-      key = v.transform(key);
-      key.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    key = v.transform(key);
+    key.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -9124,11 +8550,8 @@ class AwaitExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     if (runtimeCheckType != null) {
       runtimeCheckType = v.visitDartType(runtimeCheckType!);
     }
@@ -9136,11 +8559,8 @@ class AwaitExpression extends Expression {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (operand != null) {
-      operand = v.transform(operand);
-      operand.parent = this;
-    }
+    operand = v.transform(operand);
+    operand.parent = this;
     if (runtimeCheckType != null) {
       runtimeCheckType = v.visitDartType(runtimeCheckType!, null);
     }
@@ -9193,20 +8613,14 @@ class FunctionExpression extends Expression implements LocalFunction {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    function = v.transform(function);
+    function.parent = this;
   }
 
   @override
@@ -9224,10 +8638,7 @@ class ConstantExpression extends Expression {
   Constant constant;
   DartType type;
 
-  ConstantExpression(this.constant, [this.type = const DynamicType()]) {
-    // ignore: unnecessary_null_comparison
-    assert(constant != null);
-  }
+  ConstantExpression(this.constant, [this.type = const DynamicType()]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -9272,6 +8683,16 @@ class ConstantExpression extends Expression {
   }
 }
 
+class FileUriConstantExpression extends ConstantExpression
+    implements FileUriNode {
+  @override
+  Uri fileUri;
+
+  FileUriConstantExpression(Constant constant,
+      {DartType type = const DynamicType(), required this.fileUri})
+      : super(constant, type);
+}
+
 /// Synthetic expression of form `let v = x in y`
 class Let extends Expression {
   VariableDeclaration variable; // Must have an initializer.
@@ -9304,30 +8725,18 @@ class Let extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -9376,30 +8785,18 @@ class BlockExpression extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (value != null) {
-      value = v.transform(value);
-      value.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    value = v.transform(value);
+    value.parent = this;
   }
 
   @override
@@ -9667,22 +9064,16 @@ class TypedefTearOff extends Expression {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
     v.transformList(typeParameters, this);
     v.transformDartTypeList(typeArguments);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
     v.transformList(typeParameters, this, dummyTypeParameter);
     v.transformDartTypeList(typeArguments);
   }
@@ -9742,20 +9133,14 @@ class ExpressionStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -9939,11 +9324,8 @@ class AssertStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
     if (message != null) {
       message = v.transform(message!);
       message?.parent = this;
@@ -9952,11 +9334,8 @@ class AssertStatement extends Statement {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
     if (message != null) {
       message = v.transformOrRemoveExpression(message!);
       message?.parent = this;
@@ -10008,20 +9387,14 @@ class LabeledStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10134,30 +9507,18 @@ class WhileStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10198,30 +9559,18 @@ class DoStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    condition = v.transform(condition);
+    condition.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    condition = v.transform(condition);
+    condition.parent = this;
   }
 
   @override
@@ -10275,11 +9624,8 @@ class ForStatement extends Statement {
       condition?.parent = this;
     }
     v.transformList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10290,11 +9636,8 @@ class ForStatement extends Statement {
       condition?.parent = this;
     }
     v.transformExpressionList(updates, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10358,40 +9701,22 @@ class ForInStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (iterable != null) {
-      iterable = v.transform(iterable);
-      iterable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    iterable = v.transform(iterable);
+    iterable.parent = this;
+    body = v.transform(body);
+    body.parent = this;
   }
 
   /// Returns the type of the iterator in this for-in statement.
@@ -10409,15 +9734,12 @@ class ForInStatement extends Statement {
   DartType getIteratorTypeInternal(StaticTypeContext context) {
     DartType? iteratorType;
     if (isAsync) {
-      InterfaceType? streamType = iterable.getStaticTypeAsInstanceOf(
+      InterfaceType streamType = iterable.getStaticTypeAsInstanceOf(
           context.typeEnvironment.coreTypes.streamClass, context);
-      // ignore: unnecessary_null_comparison
-      if (streamType != null) {
-        iteratorType = new InterfaceType(
-            context.typeEnvironment.coreTypes.streamIteratorClass,
-            context.nonNullable,
-            streamType.typeArguments);
-      }
+      iteratorType = new InterfaceType(
+          context.typeEnvironment.coreTypes.streamIteratorClass,
+          context.nonNullable,
+          streamType.typeArguments);
     } else {
       InterfaceType iterableType = iterable.getStaticTypeAsInstanceOf(
           context.typeEnvironment.coreTypes.iterableClass, context);
@@ -10557,11 +9879,8 @@ class SwitchStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
     v.transformList(cases, this);
     if (expressionTypeInternal != null) {
       expressionTypeInternal = v.visitDartType(expressionTypeInternal!);
@@ -10570,11 +9889,8 @@ class SwitchStatement extends Statement {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
     v.transformSwitchCaseList(cases, this);
     if (expressionTypeInternal != null) {
       expressionTypeInternal =
@@ -10644,21 +9960,15 @@ class SwitchCase extends TreeNode {
   @override
   void transformChildren(Transformer v) {
     v.transformList(expressions, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(expressions, this);
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10766,16 +10076,10 @@ class IfStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transform(otherwise!);
       otherwise?.parent = this;
@@ -10784,16 +10088,10 @@ class IfStatement extends Statement {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (condition != null) {
-      condition = v.transform(condition);
-      condition.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (then != null) {
-      then = v.transform(then);
-      then.parent = this;
-    }
+    condition = v.transform(condition);
+    condition.parent = this;
+    then = v.transform(then);
+    then.parent = this;
     if (otherwise != null) {
       otherwise = v.transformOrRemoveStatement(otherwise!);
       otherwise?.parent = this;
@@ -10894,21 +10192,15 @@ class TryCatch extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     v.transformList(catches, this);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
     v.transformCatchList(catches, this);
   }
 
@@ -10936,8 +10228,6 @@ class Catch extends TreeNode {
 
   Catch(this.exception, this.body,
       {this.guard = const DynamicType(), this.stackTrace}) {
-    // ignore: unnecessary_null_comparison
-    assert(guard != null);
     exception?.parent = this;
     stackTrace?.parent = this;
     body.parent = this;
@@ -10968,11 +10258,8 @@ class Catch extends TreeNode {
       stackTrace = v.transform(stackTrace!);
       stackTrace?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -10986,11 +10273,8 @@ class Catch extends TreeNode {
       stackTrace = v.transformOrRemoveVariableDeclaration(stackTrace!);
       stackTrace?.parent = this;
     }
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
   }
 
   @override
@@ -11070,30 +10354,18 @@ class TryFinally extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (finalizer != null) {
-      finalizer = v.transform(finalizer);
-      finalizer.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    finalizer = v.transform(finalizer);
+    finalizer.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (body != null) {
-      body = v.transform(body);
-      body.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (finalizer != null) {
-      finalizer = v.transform(finalizer);
-      finalizer.parent = this;
-    }
+    body = v.transform(body);
+    body.parent = this;
+    finalizer = v.transform(finalizer);
+    finalizer.parent = this;
   }
 
   @override
@@ -11145,20 +10417,14 @@ class YieldStatement extends Statement {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (expression != null) {
-      expression = v.transform(expression);
-      expression.parent = this;
-    }
+    expression = v.transform(expression);
+    expression.parent = this;
   }
 
   @override
@@ -11232,8 +10498,6 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isSynthesized = false,
       bool isHoisted = false,
       bool hasDeclaredInitializer = false}) {
-    // ignore: unnecessary_null_comparison
-    assert(type != null);
     initializer?.parent = this;
     if (flags != -1) {
       this.flags = flags;
@@ -11262,8 +10526,6 @@ class VariableDeclaration extends Statement implements Annotatable {
       bool isRequired = false,
       bool isLowered = false,
       this.type = const DynamicType()}) {
-    // ignore: unnecessary_null_comparison
-    assert(type != null);
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
@@ -11507,9 +10769,7 @@ class FunctionDeclaration extends Statement implements LocalFunction {
   @override
   FunctionNode function;
 
-  FunctionDeclaration(this.variable, this.function)
-      // ignore: unnecessary_null_comparison
-      : assert(function != null) {
+  FunctionDeclaration(this.variable, this.function) {
     variable.parent = this;
     function.parent = this;
   }
@@ -11529,30 +10789,18 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void transformChildren(Transformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    function = v.transform(function);
+    function.parent = this;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    // ignore: unnecessary_null_comparison
-    if (variable != null) {
-      variable = v.transform(variable);
-      variable.parent = this;
-    }
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      function = v.transform(function);
-      function.parent = this;
-    }
+    variable = v.transform(variable);
+    variable.parent = this;
+    function = v.transform(function);
+    function.parent = this;
   }
 
   @override
@@ -11562,12 +10810,9 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    // ignore: unnecessary_null_comparison
-    if (function != null) {
-      printer.writeFunctionNode(function, printer.getVariableName(variable));
-      if (function.body is ReturnStatement) {
-        printer.write(';');
-      }
+    printer.writeFunctionNode(function, printer.getVariableName(variable));
+    if (function.body is ReturnStatement) {
+      printer.write(';');
     }
   }
 }
@@ -11661,9 +10906,7 @@ class _PrivateName extends Name {
   String toString() => toStringInternal();
 
   @override
-  String toStringInternal() =>
-      // ignore: unnecessary_null_comparison
-      library != null ? '$library::$text' : text;
+  String toStringInternal() => '$library::$text';
 
   @override
   Library get library => libraryReference.asLibrary;
@@ -12118,9 +11361,7 @@ class InterfaceType extends DartType {
             typeArguments ?? _defaultTypeArguments(classNode));
 
   InterfaceType.byReference(
-      this.classReference, this.declaredNullability, this.typeArguments)
-      // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null);
+      this.classReference, this.declaredNullability, this.typeArguments);
 
   Class get classNode => classReference.asClass;
 
@@ -12615,9 +11856,7 @@ class ExtensionType extends DartType {
             typeArguments ?? _defaultTypeArguments(extensionNode));
 
   ExtensionType.byReference(
-      this.extensionReference, this.declaredNullability, this.typeArguments)
-      // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null);
+      this.extensionReference, this.declaredNullability, this.typeArguments);
 
   Extension get extension => extensionReference.asExtension;
 
@@ -12738,9 +11977,7 @@ class InlineType extends DartType {
 
   InlineType.byReference(
       this.inlineClassReference, this.declaredNullability, this.typeArguments,
-      [this._instantiatedRepresentationType])
-      // ignore: unnecessary_null_comparison
-      : assert(declaredNullability != null);
+      [this._instantiatedRepresentationType]);
 
   InlineClass get inlineClass => inlineClassReference.asInlineClass;
 
@@ -13743,27 +12980,15 @@ class TypeParameter extends TreeNode implements Annotatable {
   @override
   void transformChildren(Transformer v) {
     v.transformList(annotations, this);
-    // ignore: unnecessary_null_comparison
-    if (bound != null) {
-      bound = v.visitDartType(bound);
-    }
-    // ignore: unnecessary_null_comparison
-    if (defaultType != null) {
-      defaultType = v.visitDartType(defaultType);
-    }
+    bound = v.visitDartType(bound);
+    defaultType = v.visitDartType(defaultType);
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
-    // ignore: unnecessary_null_comparison
-    if (bound != null) {
-      bound = v.visitDartType(bound, cannotRemoveSentinel);
-    }
-    // ignore: unnecessary_null_comparison
-    if (defaultType != null) {
-      defaultType = v.visitDartType(defaultType, cannotRemoveSentinel);
-    }
+    bound = v.visitDartType(bound, cannotRemoveSentinel);
+    defaultType = v.visitDartType(defaultType, cannotRemoveSentinel);
   }
 
   /// Returns a possibly synthesized name for this type parameter, consistent
@@ -14039,10 +13264,7 @@ class DoubleConstant extends PrimitiveConstant<double> {
 }
 
 class StringConstant extends PrimitiveConstant<String> {
-  StringConstant(String value) : super(value) {
-    // ignore: unnecessary_null_comparison
-    assert(value != null);
-  }
+  StringConstant(String value) : super(value);
 
   @override
   void visitChildren(Visitor v) {}
@@ -15011,17 +14233,14 @@ class Component extends TreeNode {
   }
 
   void adoptChildren() {
-    // ignore: unnecessary_null_comparison
-    if (libraries != null) {
-      for (int i = 0; i < libraries.length; ++i) {
-        // The libraries are owned by this component, and so are their canonical
-        // names if they exist.
-        Library library = libraries[i];
-        library.parent = this;
-        CanonicalName? name = library.reference.canonicalName;
-        if (name != null && name.parent != root) {
-          root.adoptChild(name);
-        }
+    for (int i = 0; i < libraries.length; ++i) {
+      // The libraries are owned by this component, and so are their canonical
+      // names if they exist.
+      Library library = libraries[i];
+      library.parent = this;
+      CanonicalName? name = library.reference.canonicalName;
+      if (name != null && name.parent != root) {
+        root.adoptChild(name);
       }
     }
   }
@@ -15609,11 +14828,7 @@ class Version extends Object {
   final int major;
   final int minor;
 
-  const Version(this.major, this.minor)
-      // ignore: unnecessary_null_comparison
-      : assert(major != null),
-        // ignore: unnecessary_null_comparison
-        assert(minor != null);
+  const Version(this.major, this.minor);
 
   bool operator <(Version other) {
     if (major < other.major) return true;
@@ -15820,12 +15035,6 @@ final List<InlineType> emptyListOfInlineType =
 final List<Constructor> emptyListOfConstructor =
     List.filled(0, dummyConstructor, growable: false);
 
-/// Almost const <RedirectingFactory>[], but not const in an attempt to avoid
-/// polymorphism. See
-/// https://dart-review.googlesource.com/c/sdk/+/185828.
-final List<RedirectingFactory> emptyListOfRedirectingFactory =
-    List.filled(0, dummyRedirectingFactory, growable: false);
-
 /// Almost const <Initializer>[], but not const in an attempt to avoid
 /// polymorphism. See https://dart-review.googlesource.com/c/sdk/+/185828.
 final List<Initializer> emptyListOfInitializer =
@@ -15979,14 +15188,6 @@ final Procedure dummyProcedure = new Procedure(
 /// constructor.
 final Field dummyField = new Field.mutable(dummyName, fileUri: dummyUri);
 
-/// Non-nullable [RedirectingFactory] dummy value.
-///
-/// This is used as the removal sentinel in [RemovingTransformer] and can be
-/// used for instance as a dummy initial value for the `List.filled`
-/// constructor.
-final RedirectingFactory dummyRedirectingFactory = new RedirectingFactory(null,
-    name: dummyName, fileUri: dummyUri, function: dummyFunctionNode);
-
 /// Non-nullable [Typedef] dummy value.
 ///
 /// This is used as the removal sentinel in [RemovingTransformer] and can be
@@ -16134,7 +15335,6 @@ final List<TreeNode> dummyTreeNodes = [
   dummyMember,
   dummyProcedure,
   dummyField,
-  dummyRedirectingFactory,
   dummyTypedef,
   dummyInitializer,
   dummyFunctionNode,

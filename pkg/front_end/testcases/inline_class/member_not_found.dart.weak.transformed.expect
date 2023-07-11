@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,11 +13,11 @@ inline class A /* declaredRepresentationType = core::int */ {
   constructor name1 = self::A|name1;
   tearoff name1 = self::A|_#name1#tearOff;
 }
-static method A|name1(core::int value) → self::A {
+static inline-class-member method A|name1(core::int value) → self::A {
   lowered final self::A #this = value;
   return #this;
 }
-static method A|_#name1#tearOff(core::int value) → self::A
+static inline-class-member method A|_#name1#tearOff(core::int value) → self::A
   return self::A|name1(value);
 static method method() → void
   return invalid-expression "pkg/front_end/testcases/inline_class/member_not_found.dart:11:20: Error: Member not found: 'A.name2'.

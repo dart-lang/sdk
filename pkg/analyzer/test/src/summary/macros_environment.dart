@@ -28,8 +28,18 @@ class MacrosEnvironment {
         .copyTo(
           packageSharedFolder.getChildAssumingFolder('lib/src'),
         );
+    physical
+        .getFolder(packageRoot)
+        .getChildAssumingFolder('dart_internal')
+        .copyTo(
+          _resourceProvider.getFolder('/packages'),
+        );
     packageAnalyzerFolder =
         physical.getFolder(packageRoot).getChildAssumingFolder('analyzer');
+  }
+
+  Folder get packageDartInternalFolder {
+    return _resourceProvider.getFolder('/packages/dart_internal');
   }
 
   Folder get packageSharedFolder {

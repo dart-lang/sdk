@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "infer_types_on_generic_instantiations_in_library_cycle.dart" as test;
@@ -13,7 +13,7 @@ abstract class I<E extends core::Object? = dynamic> extends core::Object {
 static method main() → dynamic
   ;
 
-library test /*isNonNullableByDefault*/;
+library test;
 import self as test;
 import "dart:core" as core;
 import "infer_types_on_generic_instantiations_in_library_cycle_a.dart" as self;

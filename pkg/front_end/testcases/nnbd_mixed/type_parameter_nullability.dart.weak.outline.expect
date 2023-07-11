@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,7 +15,7 @@ class C<T extends core::num?, S extends core::Object? = dynamic, U extends core:
 static method main() → dynamic
   ;
 
-library;
+library /*isLegacy*/;
 import self as self2;
 import "dart:core" as core;
 

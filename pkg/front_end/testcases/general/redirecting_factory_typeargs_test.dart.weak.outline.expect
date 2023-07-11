@@ -1,4 +1,4 @@
-library redirecting_factory_constructors.typeargs_test /*isNonNullableByDefault*/;
+library redirecting_factory_constructors.typeargs_test;
 import self as self;
 import "dart:core" as core;
 
@@ -11,10 +11,9 @@ class Y extends self::X {
     ;
 }
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir]/*isLegacy*/;
   constructor •() → self::A
     ;
-  static factory redir() → self::A
+  static factory redir() → self::A /* redirection-target: self::B::•<self::Y>*/
     return new self::B::•<self::Y>();
 }
 class B<T extends self::X> extends self::A {
@@ -23,8 +22,3 @@ class B<T extends self::X> extends self::A {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_typeargs_test.dart:15:7 -> ConstructorTearOffConstant(A.redir)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

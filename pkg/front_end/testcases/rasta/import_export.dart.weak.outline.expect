@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///export.dart";
@@ -6,7 +6,7 @@ import "org-dartlang-testcase:///export.dart";
 static method main() → dynamic
   ;
 
-library export /*isNonNullableByDefault*/;
+library export;
 import self as self2;
 import "foo.dart" as foo;
 additionalExports = (foo::foo)
@@ -14,7 +14,7 @@ additionalExports = (foo::foo)
 export "org-dartlang-testcase:///foo.dart";
 
 
-library foo /*isNonNullableByDefault*/;
+library foo;
 import self as foo;
 
 static method foo() → dynamic

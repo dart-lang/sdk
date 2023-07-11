@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "const_constructor_coverage_lib1.dart" as con;
@@ -14,7 +14,7 @@ static method main() → dynamic {
   core::print(#C4);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as con;
 import "dart:core" as core;
 import "const_constructor_coverage_lib2.dart" as con2;
@@ -56,7 +56,7 @@ class Bar extends core::Object /*hasConstConstructor*/  {
 }
 static const field con::Foo foo = #C4;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as con2;
 import "dart:core" as core;
 import "const_constructor_coverage_lib1.dart" as con;

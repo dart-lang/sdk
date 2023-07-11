@@ -9,7 +9,6 @@
 #include "vm/cpu_arm64.h"
 
 #include "vm/cpuinfo.h"
-#include "vm/simulator.h"
 
 #if !defined(USING_SIMULATOR)
 #if defined(DART_HOST_OS_FUCHSIA)

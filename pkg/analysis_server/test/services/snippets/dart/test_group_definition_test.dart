@@ -27,7 +27,7 @@ class TestGroupDefinitionTest extends DartSnippetProducerTest {
   String get prefix => TestGroupDefinition.prefix;
 
   Future<void> test_inTestFile() async {
-    testFile = convertPath('$testPackageLibPath/test/foo_test.dart');
+    testFilePath = convertPath('$testPackageLibPath/test/foo_test.dart');
     var code = r'''
 void f() {
   group^
@@ -46,12 +46,12 @@ void f() {
     
   });
 }''');
-    expect(snippet.change.selection!.file, testFile);
+    expect(snippet.change.selection!.file, testFile.path);
     expect(snippet.change.selection!.offset, 42);
     expect(snippet.change.linkedEditGroups.map((group) => group.toJson()), [
       {
         'positions': [
-          {'file': testFile, 'offset': 20},
+          {'file': testFile.path, 'offset': 20},
         ],
         'length': 10,
         'suggestions': []

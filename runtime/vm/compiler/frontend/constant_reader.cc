@@ -119,6 +119,12 @@ InstancePtr ConstantReader::ReadConstantExpression() {
       helper_->SkipDartType();
       result_ = ReadConstant(helper_->ReadUInt());
       break;
+    case kFileUriConstantExpression:
+      helper_->ReadPosition();
+      helper_->ReadUInt();
+      helper_->SkipDartType();
+      result_ = ReadConstant(helper_->ReadUInt());
+      break;
     case kInvalidExpression: {
       helper_->ReadPosition();  // Skip position.
       const String& message = H.DartString(helper_->ReadStringReference());

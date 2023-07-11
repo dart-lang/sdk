@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,37 +37,37 @@ class A extends core::Object {
 static method test(dynamic x) → dynamic {
   {
     final synthesized dynamic #0#0 = x;
-    if(#0#0 is{ForNonNullableByDefault} invalid-type) {
+    if(#0#0 is invalid-type) {
     }
   }
   {
     final synthesized dynamic #1#0 = x;
-    if(#1#0 is{ForNonNullableByDefault} self::A) {
+    if(#1#0 is self::A) {
     }
   }
   {
     final synthesized dynamic #2#0 = x;
-    if(#2#0 is{ForNonNullableByDefault} self::A) {
+    if(#2#0 is self::A) {
     }
   }
   {
     final synthesized dynamic #3#0 = x;
-    if(#3#0 is{ForNonNullableByDefault} invalid-type) {
+    if(#3#0 is invalid-type) {
     }
   }
   {
     final synthesized dynamic #4#0 = x;
-    if(#4#0 is{ForNonNullableByDefault} self::A) {
+    if(#4#0 is self::A) {
     }
   }
   {
     final synthesized dynamic #5#0 = x;
-    if(#5#0 is{ForNonNullableByDefault} self::A) {
+    if(#5#0 is self::A) {
     }
   }
   {
     final synthesized dynamic #6#0 = x;
-    if(#6#0 is{ForNonNullableByDefault} self::A) {
+    if(#6#0 is self::A) {
     }
   }
 }

@@ -9,10 +9,6 @@
 #include "vm/cpu_arm.h"
 
 #include "vm/cpuinfo.h"
-#include "vm/heap/heap.h"
-#include "vm/isolate.h"
-#include "vm/object.h"
-#include "vm/simulator.h"
 
 #if !defined(TARGET_HOST_MISMATCH)
 #if defined(DART_HOST_OS_MACOS) || defined(DART_HOST_OS_IOS)

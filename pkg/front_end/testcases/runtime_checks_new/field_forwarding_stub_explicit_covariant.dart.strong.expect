@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -32,6 +32,6 @@ class D extends self::C implements self::B {
     : super self::C::•()
     ;
   forwarding-stub set x(covariant-by-declaration core::num value) → void
-    return super.{self::C::x} = value as core::int;
+    return super.{self::C::x} = value as{ForLegacy} core::int;
 }
 static method main() → void {}

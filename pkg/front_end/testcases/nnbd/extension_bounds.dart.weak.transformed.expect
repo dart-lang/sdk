@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -62,79 +62,79 @@ extension Extension5<T extends core::Object?> on T% {
   method method5 = self::Extension5|method5;
   tearoff method5 = self::Extension5|get#method5;
 }
-static method Extension1|method1<T extends core::Object, S extends core::Object>(lowered final self::Extension1|method1::T #this) → dynamic {}
-static method Extension1|get#method1<T extends core::Object>(lowered final self::Extension1|get#method1::T #this) → <S extends core::Object>() → dynamic
+static extension-member method Extension1|method1<T extends core::Object, S extends core::Object>(lowered final self::Extension1|method1::T #this) → dynamic {}
+static extension-member method Extension1|get#method1<T extends core::Object>(lowered final self::Extension1|get#method1::T #this) → <S extends core::Object>() → dynamic
   return <S extends core::Object>() → dynamic => self::Extension1|method1<self::Extension1|get#method1::T, S>(#this);
-static method Extension1|method2<T extends core::Object, S extends core::String>(lowered final self::Extension1|method2::T #this) → dynamic {}
-static method Extension1|get#method2<T extends core::Object>(lowered final self::Extension1|get#method2::T #this) → <S extends core::String>() → dynamic
+static extension-member method Extension1|method2<T extends core::Object, S extends core::String>(lowered final self::Extension1|method2::T #this) → dynamic {}
+static extension-member method Extension1|get#method2<T extends core::Object>(lowered final self::Extension1|get#method2::T #this) → <S extends core::String>() → dynamic
   return <S extends core::String>() → dynamic => self::Extension1|method2<self::Extension1|get#method2::T, S>(#this);
-static method Extension1|method3<T extends core::Object, S extends dynamic>(lowered final self::Extension1|method3::T #this) → dynamic {}
-static method Extension1|get#method3<T extends core::Object>(lowered final self::Extension1|get#method3::T #this) → <S extends dynamic>() → dynamic
+static extension-member method Extension1|method3<T extends core::Object, S extends dynamic>(lowered final self::Extension1|method3::T #this) → dynamic {}
+static extension-member method Extension1|get#method3<T extends core::Object>(lowered final self::Extension1|get#method3::T #this) → <S extends dynamic>() → dynamic
   return <S extends dynamic>() → dynamic => self::Extension1|method3<self::Extension1|get#method3::T, S%>(#this);
-static method Extension1|method4<T extends core::Object, S extends core::Object? = dynamic>(lowered final self::Extension1|method4::T #this) → dynamic {}
-static method Extension1|get#method4<T extends core::Object>(lowered final self::Extension1|get#method4::T #this) → <S extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension1|method4<T extends core::Object, S extends core::Object? = dynamic>(lowered final self::Extension1|method4::T #this) → dynamic {}
+static extension-member method Extension1|get#method4<T extends core::Object>(lowered final self::Extension1|get#method4::T #this) → <S extends core::Object? = dynamic>() → dynamic
   return <S extends core::Object? = dynamic>() → dynamic => self::Extension1|method4<self::Extension1|get#method4::T, S%>(#this);
-static method Extension1|method5<T extends core::Object, S extends core::Object?>(lowered final self::Extension1|method5::T #this) → dynamic {}
-static method Extension1|get#method5<T extends core::Object>(lowered final self::Extension1|get#method5::T #this) → <S extends core::Object?>() → dynamic
+static extension-member method Extension1|method5<T extends core::Object, S extends core::Object?>(lowered final self::Extension1|method5::T #this) → dynamic {}
+static extension-member method Extension1|get#method5<T extends core::Object>(lowered final self::Extension1|get#method5::T #this) → <S extends core::Object?>() → dynamic
   return <S extends core::Object?>() → dynamic => self::Extension1|method5<self::Extension1|get#method5::T, S%>(#this);
-static method Extension2|method1<T extends core::String, S extends core::Object>(lowered final self::Extension2|method1::T #this) → dynamic {}
-static method Extension2|get#method1<T extends core::String>(lowered final self::Extension2|get#method1::T #this) → <S extends core::Object>() → dynamic
+static extension-member method Extension2|method1<T extends core::String, S extends core::Object>(lowered final self::Extension2|method1::T #this) → dynamic {}
+static extension-member method Extension2|get#method1<T extends core::String>(lowered final self::Extension2|get#method1::T #this) → <S extends core::Object>() → dynamic
   return <S extends core::Object>() → dynamic => self::Extension2|method1<self::Extension2|get#method1::T, S>(#this);
-static method Extension2|method2<T extends core::String, S extends core::String>(lowered final self::Extension2|method2::T #this) → dynamic {}
-static method Extension2|get#method2<T extends core::String>(lowered final self::Extension2|get#method2::T #this) → <S extends core::String>() → dynamic
+static extension-member method Extension2|method2<T extends core::String, S extends core::String>(lowered final self::Extension2|method2::T #this) → dynamic {}
+static extension-member method Extension2|get#method2<T extends core::String>(lowered final self::Extension2|get#method2::T #this) → <S extends core::String>() → dynamic
   return <S extends core::String>() → dynamic => self::Extension2|method2<self::Extension2|get#method2::T, S>(#this);
-static method Extension2|method3<T extends core::String, S extends dynamic>(lowered final self::Extension2|method3::T #this) → dynamic {}
-static method Extension2|get#method3<T extends core::String>(lowered final self::Extension2|get#method3::T #this) → <S extends dynamic>() → dynamic
+static extension-member method Extension2|method3<T extends core::String, S extends dynamic>(lowered final self::Extension2|method3::T #this) → dynamic {}
+static extension-member method Extension2|get#method3<T extends core::String>(lowered final self::Extension2|get#method3::T #this) → <S extends dynamic>() → dynamic
   return <S extends dynamic>() → dynamic => self::Extension2|method3<self::Extension2|get#method3::T, S%>(#this);
-static method Extension2|get#method4<T extends core::String>(lowered final self::Extension2|get#method4::T #this) → <S extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension2|get#method4<T extends core::String>(lowered final self::Extension2|get#method4::T #this) → <S extends core::Object? = dynamic>() → dynamic
   return <S extends core::Object? = dynamic>() → dynamic => self::Extension2|method4<self::Extension2|get#method4::T, S%>(#this);
-static method Extension2|method4<T extends core::String, S extends core::Object? = dynamic>(lowered final self::Extension2|method4::T #this) → dynamic {}
-static method Extension2|method5<T extends core::String, S extends core::Object?>(lowered final self::Extension2|method5::T #this) → dynamic {}
-static method Extension2|get#method5<T extends core::String>(lowered final self::Extension2|get#method5::T #this) → <S extends core::Object?>() → dynamic
+static extension-member method Extension2|method4<T extends core::String, S extends core::Object? = dynamic>(lowered final self::Extension2|method4::T #this) → dynamic {}
+static extension-member method Extension2|method5<T extends core::String, S extends core::Object?>(lowered final self::Extension2|method5::T #this) → dynamic {}
+static extension-member method Extension2|get#method5<T extends core::String>(lowered final self::Extension2|get#method5::T #this) → <S extends core::Object?>() → dynamic
   return <S extends core::Object?>() → dynamic => self::Extension2|method5<self::Extension2|get#method5::T, S%>(#this);
-static method Extension3|method1<T extends dynamic, S extends core::Object>(lowered final self::Extension3|method1::T% #this) → dynamic {}
-static method Extension3|get#method1<T extends dynamic>(lowered final self::Extension3|get#method1::T% #this) → <S extends core::Object>() → dynamic
+static extension-member method Extension3|method1<T extends dynamic, S extends core::Object>(lowered final self::Extension3|method1::T% #this) → dynamic {}
+static extension-member method Extension3|get#method1<T extends dynamic>(lowered final self::Extension3|get#method1::T% #this) → <S extends core::Object>() → dynamic
   return <S extends core::Object>() → dynamic => self::Extension3|method1<self::Extension3|get#method1::T%, S>(#this);
-static method Extension3|method2<T extends dynamic, S extends core::String>(lowered final self::Extension3|method2::T% #this) → dynamic {}
-static method Extension3|get#method2<T extends dynamic>(lowered final self::Extension3|get#method2::T% #this) → <S extends core::String>() → dynamic
+static extension-member method Extension3|method2<T extends dynamic, S extends core::String>(lowered final self::Extension3|method2::T% #this) → dynamic {}
+static extension-member method Extension3|get#method2<T extends dynamic>(lowered final self::Extension3|get#method2::T% #this) → <S extends core::String>() → dynamic
   return <S extends core::String>() → dynamic => self::Extension3|method2<self::Extension3|get#method2::T%, S>(#this);
-static method Extension3|method3<T extends dynamic, S extends dynamic>(lowered final self::Extension3|method3::T% #this) → dynamic {}
-static method Extension3|get#method3<T extends dynamic>(lowered final self::Extension3|get#method3::T% #this) → <S extends dynamic>() → dynamic
+static extension-member method Extension3|method3<T extends dynamic, S extends dynamic>(lowered final self::Extension3|method3::T% #this) → dynamic {}
+static extension-member method Extension3|get#method3<T extends dynamic>(lowered final self::Extension3|get#method3::T% #this) → <S extends dynamic>() → dynamic
   return <S extends dynamic>() → dynamic => self::Extension3|method3<self::Extension3|get#method3::T%, S%>(#this);
-static method Extension3|method4<T extends dynamic, S extends core::Object? = dynamic>(lowered final self::Extension3|method4::T% #this) → dynamic {}
-static method Extension3|get#method4<T extends dynamic>(lowered final self::Extension3|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension3|method4<T extends dynamic, S extends core::Object? = dynamic>(lowered final self::Extension3|method4::T% #this) → dynamic {}
+static extension-member method Extension3|get#method4<T extends dynamic>(lowered final self::Extension3|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
   return <S extends core::Object? = dynamic>() → dynamic => self::Extension3|method4<self::Extension3|get#method4::T%, S%>(#this);
-static method Extension3|method5<T extends dynamic, S extends core::Object?>(lowered final self::Extension3|method5::T% #this) → dynamic {}
-static method Extension3|get#method5<T extends dynamic>(lowered final self::Extension3|get#method5::T% #this) → <S extends core::Object?>() → dynamic
+static extension-member method Extension3|method5<T extends dynamic, S extends core::Object?>(lowered final self::Extension3|method5::T% #this) → dynamic {}
+static extension-member method Extension3|get#method5<T extends dynamic>(lowered final self::Extension3|get#method5::T% #this) → <S extends core::Object?>() → dynamic
   return <S extends core::Object?>() → dynamic => self::Extension3|method5<self::Extension3|get#method5::T%, S%>(#this);
-static method Extension4|method1<T extends core::Object? = dynamic, S extends core::Object>(lowered final self::Extension4|method1::T% #this) → dynamic {}
-static method Extension4|get#method1<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method1::T% #this) → <S extends core::Object>() → dynamic
+static extension-member method Extension4|method1<T extends core::Object? = dynamic, S extends core::Object>(lowered final self::Extension4|method1::T% #this) → dynamic {}
+static extension-member method Extension4|get#method1<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method1::T% #this) → <S extends core::Object>() → dynamic
   return <S extends core::Object>() → dynamic => self::Extension4|method1<self::Extension4|get#method1::T%, S>(#this);
-static method Extension4|method2<T extends core::Object? = dynamic, S extends core::String>(lowered final self::Extension4|method2::T% #this) → dynamic {}
-static method Extension4|get#method2<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method2::T% #this) → <S extends core::String>() → dynamic
+static extension-member method Extension4|method2<T extends core::Object? = dynamic, S extends core::String>(lowered final self::Extension4|method2::T% #this) → dynamic {}
+static extension-member method Extension4|get#method2<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method2::T% #this) → <S extends core::String>() → dynamic
   return <S extends core::String>() → dynamic => self::Extension4|method2<self::Extension4|get#method2::T%, S>(#this);
-static method Extension4|method3<T extends core::Object? = dynamic, S extends dynamic>(lowered final self::Extension4|method3::T% #this) → dynamic {}
-static method Extension4|get#method3<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method3::T% #this) → <S extends dynamic>() → dynamic
+static extension-member method Extension4|method3<T extends core::Object? = dynamic, S extends dynamic>(lowered final self::Extension4|method3::T% #this) → dynamic {}
+static extension-member method Extension4|get#method3<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method3::T% #this) → <S extends dynamic>() → dynamic
   return <S extends dynamic>() → dynamic => self::Extension4|method3<self::Extension4|get#method3::T%, S%>(#this);
-static method Extension4|method4<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::Extension4|method4::T% #this) → dynamic {}
-static method Extension4|get#method4<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension4|method4<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::Extension4|method4::T% #this) → dynamic {}
+static extension-member method Extension4|get#method4<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
   return <S extends core::Object? = dynamic>() → dynamic => self::Extension4|method4<self::Extension4|get#method4::T%, S%>(#this);
-static method Extension4|method5<T extends core::Object? = dynamic, S extends core::Object?>(lowered final self::Extension4|method5::T% #this) → dynamic {}
-static method Extension4|get#method5<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method5::T% #this) → <S extends core::Object?>() → dynamic
+static extension-member method Extension4|method5<T extends core::Object? = dynamic, S extends core::Object?>(lowered final self::Extension4|method5::T% #this) → dynamic {}
+static extension-member method Extension4|get#method5<T extends core::Object? = dynamic>(lowered final self::Extension4|get#method5::T% #this) → <S extends core::Object?>() → dynamic
   return <S extends core::Object?>() → dynamic => self::Extension4|method5<self::Extension4|get#method5::T%, S%>(#this);
-static method Extension5|method1<T extends core::Object?, S extends core::Object>(lowered final self::Extension5|method1::T% #this) → dynamic {}
-static method Extension5|get#method1<T extends core::Object?>(lowered final self::Extension5|get#method1::T% #this) → <S extends core::Object>() → dynamic
+static extension-member method Extension5|method1<T extends core::Object?, S extends core::Object>(lowered final self::Extension5|method1::T% #this) → dynamic {}
+static extension-member method Extension5|get#method1<T extends core::Object?>(lowered final self::Extension5|get#method1::T% #this) → <S extends core::Object>() → dynamic
   return <S extends core::Object>() → dynamic => self::Extension5|method1<self::Extension5|get#method1::T%, S>(#this);
-static method Extension5|method2<T extends core::Object?, S extends core::String>(lowered final self::Extension5|method2::T% #this) → dynamic {}
-static method Extension5|get#method2<T extends core::Object?>(lowered final self::Extension5|get#method2::T% #this) → <S extends core::String>() → dynamic
+static extension-member method Extension5|method2<T extends core::Object?, S extends core::String>(lowered final self::Extension5|method2::T% #this) → dynamic {}
+static extension-member method Extension5|get#method2<T extends core::Object?>(lowered final self::Extension5|get#method2::T% #this) → <S extends core::String>() → dynamic
   return <S extends core::String>() → dynamic => self::Extension5|method2<self::Extension5|get#method2::T%, S>(#this);
-static method Extension5|method3<T extends core::Object?, S extends dynamic>(lowered final self::Extension5|method3::T% #this) → dynamic {}
-static method Extension5|get#method3<T extends core::Object?>(lowered final self::Extension5|get#method3::T% #this) → <S extends dynamic>() → dynamic
+static extension-member method Extension5|method3<T extends core::Object?, S extends dynamic>(lowered final self::Extension5|method3::T% #this) → dynamic {}
+static extension-member method Extension5|get#method3<T extends core::Object?>(lowered final self::Extension5|get#method3::T% #this) → <S extends dynamic>() → dynamic
   return <S extends dynamic>() → dynamic => self::Extension5|method3<self::Extension5|get#method3::T%, S%>(#this);
-static method Extension5|method4<T extends core::Object?, S extends core::Object? = dynamic>(lowered final self::Extension5|method4::T% #this) → dynamic {}
-static method Extension5|get#method4<T extends core::Object?>(lowered final self::Extension5|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
+static extension-member method Extension5|method4<T extends core::Object?, S extends core::Object? = dynamic>(lowered final self::Extension5|method4::T% #this) → dynamic {}
+static extension-member method Extension5|get#method4<T extends core::Object?>(lowered final self::Extension5|get#method4::T% #this) → <S extends core::Object? = dynamic>() → dynamic
   return <S extends core::Object? = dynamic>() → dynamic => self::Extension5|method4<self::Extension5|get#method4::T%, S%>(#this);
-static method Extension5|method5<T extends core::Object?, S extends core::Object?>(lowered final self::Extension5|method5::T% #this) → dynamic {}
-static method Extension5|get#method5<T extends core::Object?>(lowered final self::Extension5|get#method5::T% #this) → <S extends core::Object?>() → dynamic
+static extension-member method Extension5|method5<T extends core::Object?, S extends core::Object?>(lowered final self::Extension5|method5::T% #this) → dynamic {}
+static extension-member method Extension5|get#method5<T extends core::Object?>(lowered final self::Extension5|get#method5::T% #this) → <S extends core::Object?>() → dynamic
   return <S extends core::Object?>() → dynamic => self::Extension5|method5<self::Extension5|get#method5::T%, S%>(#this);
 static method main() → dynamic {}

@@ -103,6 +103,8 @@ import 'const_constructor_with_non_const_super_test.dart'
 import 'const_constructor_with_non_final_field_test.dart'
     as const_constructor_with_non_final_field;
 import 'const_deferred_class_test.dart' as const_deferred_class;
+import 'const_eval_extension_method_test.dart' as const_eval_extension_method;
+import 'const_eval_for_element_test.dart' as const_eval_for_element;
 import 'const_eval_throws_exception_test.dart' as const_eval_throws_exception;
 import 'const_eval_throws_idbze_test.dart' as const_eval_throws_idbze;
 import 'const_eval_type_bool_int_test.dart' as const_eval_type_bool_int;
@@ -243,6 +245,7 @@ import 'extra_annotation_on_struct_field_test.dart'
 import 'extra_positional_arguments_test.dart' as extra_positional_arguments;
 import 'extra_size_annotation_carray_test.dart' as extra_size_annotation_carray;
 import 'extraneous_modifier_test.dart' as extraneous_modifier;
+import 'ffi_async_callback_test.dart' as ffi_async_callback_test;
 import 'ffi_leaf_call_must_not_use_handle_test.dart'
     as ffi_leaf_call_must_not_use_handle;
 import 'ffi_native_test.dart' as ffi_native_test;
@@ -442,6 +445,8 @@ import 'invalid_visibility_annotation_test.dart'
     as invalid_visibility_annotation;
 import 'invalid_visible_for_overriding_annotation_test.dart'
     as invalid_visible_for_overriding_annotation;
+import 'invalid_visible_outside_template_annotation_test.dart'
+    as invalid_visible_outside_template_annotation;
 import 'invocation_of_extension_without_call_test.dart'
     as invocation_of_extension_without_call;
 import 'invocation_of_non_function_expression_test.dart'
@@ -507,6 +512,10 @@ import 'mixin_of_type_alias_expands_to_type_parameter_test.dart'
 import 'mixin_on_sealed_class_test.dart' as mixin_on_sealed_class;
 import 'mixin_on_type_alias_expands_to_type_parameter_test.dart'
     as mixin_on_type_alias_expands_to_type_parameter;
+import 'mixin_subtype_of_base_is_not_base_test.dart'
+    as mixin_subtype_of_base_is_not_base;
+import 'mixin_subtype_of_final_is_not_base_test.dart'
+    as mixin_subtype_of_final_is_not_base;
 import 'mixin_super_class_constraint_deferred_class_test.dart'
     as mixin_super_class_constraint_deferred_class;
 import 'mixin_super_class_constraint_disallowed_class_test.dart'
@@ -943,6 +952,8 @@ main() {
     const_constructor_with_non_const_super.main();
     const_constructor_with_non_final_field.main();
     const_deferred_class.main();
+    const_eval_extension_method.main();
+    const_eval_for_element.main();
     const_eval_throws_exception.main();
     const_eval_throws_idbze.main();
     const_eval_type_bool_int.main();
@@ -1040,6 +1051,7 @@ main() {
     extra_positional_arguments.main();
     extra_size_annotation_carray.main();
     extraneous_modifier.main();
+    ffi_async_callback_test.main();
     ffi_leaf_call_must_not_use_handle.main();
     ffi_native_test.main();
     field_in_struct_with_initializer.main();
@@ -1164,6 +1176,7 @@ main() {
     invalid_use_of_visible_for_testing_member.main();
     invalid_visibility_annotation.main();
     invalid_visible_for_overriding_annotation.main();
+    invalid_visible_outside_template_annotation.main();
     invocation_of_extension_without_call.main();
     invocation_of_non_function_expression.main();
     label_in_outer_scope.main();
@@ -1205,6 +1218,8 @@ main() {
     mixin_of_type_alias_expands_to_type_parameter.main();
     mixin_on_sealed_class.main();
     mixin_on_type_alias_expands_to_type_parameter.main();
+    mixin_subtype_of_base_is_not_base.main();
+    mixin_subtype_of_final_is_not_base.main();
     mixin_super_class_constraint_deferred_class.main();
     mixin_super_class_constraint_disallowed_class.main();
     mixin_super_class_constraint_non_interface.main();

@@ -1,21 +1,14 @@
-library redirecting_factory_constructors.chain_test /*isNonNullableByDefault*/;
+library redirecting_factory_constructors.chain_test;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::first, self::A::second]/*isLegacy*/;
   constructor •() → self::A
     ;
-  static factory first() → self::A
+  static factory first() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
-  static factory second() → self::A
+  static factory second() → self::A /* redirection-target: self::A::first */
     return self::A::first();
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_chain_test.dart:10:7 -> ConstructorTearOffConstant(A.first)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_chain_test.dart:10:7 -> ConstructorTearOffConstant(A.second)
-Extra constant evaluation: evaluated: 5, effectively constant: 2

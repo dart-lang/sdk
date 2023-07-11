@@ -317,6 +317,15 @@ class FfiCode extends AnalyzerErrorCode {
   );
 
   ///  Parameters:
+  ///  0: the return type that should be 'void'.
+  static const FfiCode MUST_RETURN_VOID = FfiCode(
+    'MUST_RETURN_VOID',
+    "The return type of the function passed to 'NativeCallable.listener' must "
+        "be 'void' rather than '{0}'.",
+    correctionMessage: "Try changing the return type to 'void'.",
+  );
+
+  ///  Parameters:
   ///  0: the name of the function, method, or constructor having type arguments
   static const FfiCode NON_CONSTANT_TYPE_ARGUMENT = FfiCode(
     'NON_CONSTANT_TYPE_ARGUMENT',

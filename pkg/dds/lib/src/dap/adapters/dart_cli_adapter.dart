@@ -85,13 +85,21 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     return args.contains(flagUnderscores) || args.contains(flagDashes);
   }
 
+  @override
+  Future<void> launchImpl() {
+    throw UnsupportedError(
+      'Calling launchImpl() for DartCliDebugAdapter is unsupported. '
+      'Call launchAndRespond() instead.',
+    );
+  }
+
   /// Called by [launchRequest] to request that we actually start the app to be
   /// run/debugged.
   ///
   /// For debugging, this should start paused, connect to the VM Service, set
   /// breakpoints, and resume.
   @override
-  Future<void> launchImpl() async {
+  Future<void> launchAndRespond(void Function() sendResponse) async {
     final args = this.args as DartLaunchRequestArguments;
     File? vmServiceInfoFile;
 
@@ -175,6 +183,20 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
     }
 
     if (terminalKind != null) {
+      // When running in the terminal, we want to respond to launchRequest()
+      // before we ask to run in the terminal, because otherwise VS Code might
+      // show the Debug Console (as part of the debug session starting) right
+      // after showing the terminal. Since in terminal mode all output is going
+      // to terminal (and the user likely picked this non-default mode so they
+      // can type into `stdin`), we want the terminal to be shown last (and kept
+      // visible).
+      //
+      // See https://github.com/Dart-Code/Dart-Code/issues/4287
+      //
+      // The implementation of `launchInEditorTerminal` already has
+      // `try`/`catch` around launching and will print any errors and terminate
+      // if appropriate.
+      sendResponse();
       await launchInEditorTerminal(
         debug,
         terminalKind,
@@ -190,6 +212,7 @@ class DartCliDebugAdapter extends DartDebugAdapter<DartLaunchRequestArguments,
         workingDirectory: cwd,
         env: args.env,
       );
+      sendResponse();
     }
   }
 

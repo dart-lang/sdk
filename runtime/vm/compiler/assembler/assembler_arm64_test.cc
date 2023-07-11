@@ -3860,7 +3860,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ Push(HEAP_BITS);
   __ Push(NULL_REG);
   __ TagAndPushPP();
-  __ ldr(CODE_REG, Address(R0, VMHandles::kOffsetOfRawPtrInHandle));
+  __ mov(CODE_REG, R0);
   __ mov(THR, R1);
   __ RestorePinnedRegisters();
   __ LoadPoolPointer(PP);

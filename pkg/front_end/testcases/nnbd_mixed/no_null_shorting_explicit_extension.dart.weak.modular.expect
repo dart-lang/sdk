@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -28,23 +28,23 @@ extension Extension on self::Class* {
   operator unary- = self::Extension|unary-;
   set field = self::Extension|set#field;
 }
-static method Extension|get#field(lowered final self::Class* #this) → self::Class*
+static extension-member method Extension|get#field(lowered final self::Class* #this) → self::Class*
   return #this.{self::Class::_field}{self::Class*};
-static method Extension|set#field(lowered final self::Class* #this, self::Class* value) → void {
+static extension-member method Extension|set#field(lowered final self::Class* #this, self::Class* value) → void {
   #this.{self::Class::_field} = value;
 }
-static method Extension|method(lowered final self::Class* #this) → self::Class*
+static extension-member method Extension|method(lowered final self::Class* #this) → self::Class*
   return self::Extension|get#field(#this);
-static method Extension|get#method(lowered final self::Class* #this) → () →* self::Class*
+static extension-member method Extension|get#method(lowered final self::Class* #this) → () →* self::Class*
   return () → self::Class* => self::Extension|method(#this);
-static method Extension|[](lowered final self::Class* #this, self::Class* key) → self::Class*
+static extension-member method Extension|[](lowered final self::Class* #this, self::Class* key) → self::Class*
   return self::Extension|get#field(#this);
-static method Extension|[]=(lowered final self::Class* #this, self::Class* key, self::Class* value) → void {
+static extension-member method Extension|[]=(lowered final self::Class* #this, self::Class* key, self::Class* value) → void {
   self::Extension|set#field(#this, value);
 }
-static method Extension|+(lowered final self::Class* #this, core::int* value) → self::Class*
+static extension-member method Extension|+(lowered final self::Class* #this, core::int* value) → self::Class*
   return self::Extension|get#field(#this);
-static method Extension|unary-(lowered final self::Class* #this) → self::Class*
+static extension-member method Extension|unary-(lowered final self::Class* #this) → self::Class*
   return self::Extension|get#field(#this);
 static method main() → dynamic {
   self::propertyAccess(null);

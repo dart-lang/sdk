@@ -905,6 +905,9 @@ int main(int argc, char** argv) {
   init_params.file_close = DartUtils::CloseFile;
   init_params.entropy_source = DartUtils::EntropySource;
   init_params.start_kernel_isolate = false;
+#if defined(DART_HOST_OS_FUCHSIA)
+  init_params.vmex_resource = Platform::GetVMEXResource();
+#endif
 
   std::unique_ptr<MappedMemory> mapped_vm_snapshot_data;
   std::unique_ptr<MappedMemory> mapped_vm_snapshot_instructions;

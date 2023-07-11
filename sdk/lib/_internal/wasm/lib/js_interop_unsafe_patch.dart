@@ -13,6 +13,7 @@ import 'dart:js_interop' hide JS;
 /// this with `js_interop_patch.dart`.
 T _box<T>(WasmExternRef? ref) => JSValue.box(ref) as T;
 
+@patch
 extension JSObjectUtilExtension on JSObject {
   @patch
   JSBoolean hasProperty(JSAny property) => _box<JSBoolean>(JS<WasmExternRef?>(
@@ -55,6 +56,7 @@ extension JSObjectUtilExtension on JSObject {
       '(o, p) => delete o[p]', toExternRef, property.toExternRef));
 }
 
+@patch
 extension JSFunctionUtilExtension on JSFunction {
   @patch
   JSObject _callAsConstructor(

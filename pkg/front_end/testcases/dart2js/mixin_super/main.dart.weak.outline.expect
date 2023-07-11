@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "main_lib.dart" as mai;
@@ -260,7 +260,7 @@ class Class6b extends self::_Class6b&Class6a&Mixin2 {
     return new self::Class6b::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 import "dart:_late_helper" as _la;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,6 +14,6 @@ static method test() → void {
   core::String b = a.{core::Object::toString}(){() → core::String};
   b = invalid-expression "pkg/front_end/testcases/general/bug32414a.dart:10:7: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
   b = 42;
-      ^" in 42 as{TypeError,ForNonNullableByDefault} core::String;
+      ^" in 42 as{TypeError} core::String;
 }
 static method main() → void {}

@@ -231,6 +231,8 @@ namespace dart {
   F(Pointer, data_)                                                            \
   F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
+  F(DynamicLibrary, isClosed_)                                                 \
+  F(DynamicLibrary, canBeClosed_)                                              \
   F(FfiTrampolineData, c_signature_)                                           \
   F(FfiTrampolineData, callback_target_)                                       \
   F(FfiTrampolineData, callback_exceptional_return_)                           \
@@ -255,8 +257,7 @@ namespace dart {
   F(Code, static_calls_target_table_)                                          \
   F(ICData, receivers_static_type_)                                            \
   F(Function, positional_parameter_names_)                                     \
-  F(Function, unoptimized_code_)                                               \
-  F(Field, type_test_cache_)
+  F(Function, unoptimized_code_)
 
 #define JIT_NON_PRODUCT_CLASSES_AND_FIELDS(F)                                  \
   F(Script, constant_coverage_)

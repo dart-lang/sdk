@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 /// A variable declared by a pattern is in scope in the pattern but can't be
 /// used in constant expression inside the pattern.
 

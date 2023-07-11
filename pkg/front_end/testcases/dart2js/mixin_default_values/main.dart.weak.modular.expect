@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "b_lib.dart" as b_l;
 import "a_lib.dart" as a_l;
@@ -16,7 +16,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}.";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as b_l;
 import "a_lib.dart" as a_l;
 import "m_lib.dart" as m_l;
@@ -43,7 +43,7 @@ class B extends b_l::_B&A&M {
     return new b_l::B::•(d: d);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as m_l;
 import "a_lib.dart" as a_l;
 

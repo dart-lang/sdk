@@ -6,7 +6,6 @@
 #include "platform/assert.h"
 #include "vm/dart_api_state.h"
 #include "vm/flags.h"
-#include "vm/heap/heap.h"
 #include "vm/object.h"
 #include "vm/unit_test.h"
 #include "vm/zone.h"

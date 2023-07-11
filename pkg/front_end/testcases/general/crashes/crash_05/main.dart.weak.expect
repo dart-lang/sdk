@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -65,7 +65,7 @@ abstract class RenderSliverSingleBoxAdapter extends self::_RenderSliverSingleBox
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

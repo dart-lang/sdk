@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,11 +19,11 @@ extension Extension on self::B {
 }
 static method test<T extends self::A?>(self::A? a, self::test::T% t, dynamic d, core::int x) → dynamic
   ;
-static method Extension|get#fooExtension(lowered final self::B #this) → core::int?
+static extension-member method Extension|get#fooExtension(lowered final self::B #this) → core::int?
   ;
-static method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void
+static extension-member method Extension|set#fooExtension(lowered final self::B #this, core::int? value) → void
   ;
-static method Extension|get#barExtension(lowered final self::B #this) → self::B
+static extension-member method Extension|get#barExtension(lowered final self::B #this) → self::B
   ;
 static method testExtension<T extends self::B?>(self::B? b, self::testExtension::T% t, core::int x) → dynamic
   ;

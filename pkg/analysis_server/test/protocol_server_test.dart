@@ -186,7 +186,7 @@ class AnalysisErrorTest {
       },
       MESSAGE: 'my message',
       CODE: 'my_lint',
-      URL: 'https://dart-lang.github.io/linter/lints/my_lint.html',
+      URL: 'https://dart.dev/lints/my_lint',
       HAS_FIX: false
     });
   }
@@ -245,6 +245,7 @@ class EnumTest {
       engine.ElementKind.EXPORT: ElementKind.UNKNOWN,
       engine.ElementKind.GENERIC_FUNCTION_TYPE: ElementKind.FUNCTION_TYPE_ALIAS,
       engine.ElementKind.IMPORT: ElementKind.UNKNOWN,
+      engine.ElementKind.INLINE_CLASS: ElementKind.UNKNOWN,
       engine.ElementKind.LIBRARY_AUGMENTATION: ElementKind.UNKNOWN,
       engine.ElementKind.NAME: ElementKind.UNKNOWN,
       engine.ElementKind.NEVER: ElementKind.UNKNOWN,

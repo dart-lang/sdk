@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -37,17 +37,17 @@ inline class GenericClass<T extends core::Object? = dynamic> /* declaredRepresen
   static method staticMethod = self::GenericClass|staticMethod;
   static method genericStaticMethod = self::GenericClass|genericStaticMethod;
 }
-static method Class|instanceMethod(lowered final self::Class #this) → void {
+static inline-class-member method Class|instanceMethod(lowered final self::Class #this) → void {
   self::Class local = #this;
   void localM = self::Class|instanceMethod(#this);
   () → void localT = self::Class|get#instanceMethod(#this);
   core::int localG = self::Class|get#instanceGetter(#this);
 }
-static method Class|get#instanceMethod(lowered final self::Class #this) → () → void
+static inline-class-member method Class|get#instanceMethod(lowered final self::Class #this) → () → void
   return () → void => self::Class|instanceMethod(#this);
-static method Class|get#instanceGetter(lowered final self::Class #this) → core::int
+static inline-class-member method Class|get#instanceGetter(lowered final self::Class #this) → core::int
   return 42;
-static method Class|instanceMethod2(lowered final self::Class #this, core::String s, [core::int i = #C1]) → void {
+static inline-class-member method Class|instanceMethod2(lowered final self::Class #this, core::String s, [core::int i = #C1]) → void {
   self::Class local = #this;
   core::String localS = s;
   core::int localI = i;
@@ -55,31 +55,31 @@ static method Class|instanceMethod2(lowered final self::Class #this, core::Strin
   core::int localG2 = self::Class|genericInstanceMethod<core::int>(#this, i);
   core::num localG3 = self::Class|genericInstanceMethod<core::num>(#this, i);
 }
-static method Class|get#instanceMethod2(lowered final self::Class #this) → (core::String, [core::int]) → void
+static inline-class-member method Class|get#instanceMethod2(lowered final self::Class #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i = #C1]) → void => self::Class|instanceMethod2(#this, s, i);
-static method Class|genericInstanceMethod<S extends core::Object? = dynamic>(lowered final self::Class #this, self::Class|genericInstanceMethod::S% s) → self::Class|genericInstanceMethod::S%
+static inline-class-member method Class|genericInstanceMethod<S extends core::Object? = dynamic>(lowered final self::Class #this, self::Class|genericInstanceMethod::S% s) → self::Class|genericInstanceMethod::S%
   return s;
-static method Class|get#genericInstanceMethod(lowered final self::Class #this) → <S extends core::Object? = dynamic>(S%) → S%
+static inline-class-member method Class|get#genericInstanceMethod(lowered final self::Class #this) → <S extends core::Object? = dynamic>(S%) → S%
   return <S extends core::Object? = dynamic>(S% s) → S% => self::Class|genericInstanceMethod<S%>(#this, s);
-static method Class|staticMethod() → void {
+static inline-class-member method Class|staticMethod() → void {
   self::Class|staticMethod();
   core::int localG1 = self::Class|genericStaticMethod<core::int>(0);
   core::String localG2 = self::Class|genericStaticMethod<core::String>("");
   core::num localG3 = self::Class|genericStaticMethod<core::num>(0);
 }
-static method Class|genericStaticMethod<S extends core::Object? = dynamic>(self::Class|genericStaticMethod::S% s) → self::Class|genericStaticMethod::S%
+static inline-class-member method Class|genericStaticMethod<S extends core::Object? = dynamic>(self::Class|genericStaticMethod::S% s) → self::Class|genericStaticMethod::S%
   return s;
-static method GenericClass|instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod::T%> #this) → void {
+static inline-class-member method GenericClass|instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod::T%> #this) → void {
   self::GenericClass<self::GenericClass|instanceMethod::T%> local = #this;
   void localM = self::GenericClass|instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
   () → void localT = self::GenericClass|get#instanceMethod<self::GenericClass|instanceMethod::T%>(#this);
   self::GenericClass|instanceMethod::T% localG = self::GenericClass|get#instanceGetter<self::GenericClass|instanceMethod::T%>(#this);
 }
-static method GenericClass|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod::T%> #this) → () → void
+static inline-class-member method GenericClass|get#instanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod::T%> #this) → () → void
   return () → void => self::GenericClass|instanceMethod<self::GenericClass|get#instanceMethod::T%>(#this);
-static method GenericClass|get#instanceGetter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceGetter::T%> #this) → self::GenericClass|get#instanceGetter::T%
+static inline-class-member method GenericClass|get#instanceGetter<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceGetter::T%> #this) → self::GenericClass|get#instanceGetter::T%
   return throw "";
-static method GenericClass|instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod2::T%> #this, core::String s, {core::int i = #C1}) → void {
+static inline-class-member method GenericClass|instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|instanceMethod2::T%> #this, core::String s, {core::int i = #C1}) → void {
   self::GenericClass<self::GenericClass|instanceMethod2::T%> local = #this;
   core::String localS = s;
   core::int localI = i;
@@ -87,19 +87,19 @@ static method GenericClass|instanceMethod2<T extends core::Object? = dynamic>(lo
   core::int localG2 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::int>(#this, i);
   core::num localG3 = self::GenericClass|genericInstanceMethod<self::GenericClass|instanceMethod2::T%, core::num>(#this, i);
 }
-static method GenericClass|get#instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod2::T%> #this) → (core::String, {i: core::int}) → void
+static inline-class-member method GenericClass|get#instanceMethod2<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#instanceMethod2::T%> #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i = #C1}) → void => self::GenericClass|instanceMethod2<self::GenericClass|get#instanceMethod2::T%>(#this, s, i: i);
-static method GenericClass|genericInstanceMethod<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|genericInstanceMethod::T%> #this, self::GenericClass|genericInstanceMethod::S% s) → self::GenericClass|genericInstanceMethod::S%
+static inline-class-member method GenericClass|genericInstanceMethod<T extends core::Object? = dynamic, S extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|genericInstanceMethod::T%> #this, self::GenericClass|genericInstanceMethod::S% s) → self::GenericClass|genericInstanceMethod::S%
   return s;
-static method GenericClass|get#genericInstanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#genericInstanceMethod::T%> #this) → <S extends core::Object? = dynamic>(S%) → S%
+static inline-class-member method GenericClass|get#genericInstanceMethod<T extends core::Object? = dynamic>(lowered final self::GenericClass<self::GenericClass|get#genericInstanceMethod::T%> #this) → <S extends core::Object? = dynamic>(S%) → S%
   return <S extends core::Object? = dynamic>(S% s) → S% => self::GenericClass|genericInstanceMethod<self::GenericClass|get#genericInstanceMethod::T%, S%>(#this, s);
-static method GenericClass|staticMethod() → void {
+static inline-class-member method GenericClass|staticMethod() → void {
   self::GenericClass|staticMethod();
   core::int localG1 = self::GenericClass|genericStaticMethod<core::int>(0);
   core::String localG2 = self::GenericClass|genericStaticMethod<core::String>("");
   core::num localG3 = self::GenericClass|genericStaticMethod<core::num>(0);
 }
-static method GenericClass|genericStaticMethod<S extends core::Object? = dynamic>(self::GenericClass|genericStaticMethod::S% s) → self::GenericClass|genericStaticMethod::S%
+static inline-class-member method GenericClass|genericStaticMethod<S extends core::Object? = dynamic>(self::GenericClass|genericStaticMethod::S% s) → self::GenericClass|genericStaticMethod::S%
   return s;
 
 constants  {

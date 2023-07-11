@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -21,7 +21,7 @@ class Class extends self::_Class&Object&Mixin {
     : super self::_Class&Object&Mixin::•()
     ;
   method test(dynamic t1) → dynamic {
-    this.{self::_Class&Object&Mixin::m} = t1 as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<Null>;
+    this.{self::_Class&Object&Mixin::m} = t1 as{TypeError,ForDynamic} FutureOr<Null>;
   }
 }
 static method main() → dynamic {}

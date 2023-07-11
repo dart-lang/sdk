@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -19,10 +19,10 @@ class C extends self::A implements self::I {
     : super self::A::•()
     ;
   forwarding-stub method m(covariant-by-declaration core::num n) → void
-    return super.{self::A::m}(n as core::int);
+    return super.{self::A::m}(n as{ForLegacy} core::int);
 }
 static method main() → void {
-  self::throws(() → void => (new self::C::•() as{ForNonNullableByDefault} dynamic){dynamic}.m(1.1));
+  self::throws(() → void => (new self::C::•() as dynamic){dynamic}.m(1.1));
 }
 static method throws(() → void f) → dynamic {
   try {

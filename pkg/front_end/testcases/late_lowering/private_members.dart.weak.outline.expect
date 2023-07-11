@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -51,11 +51,11 @@ static field core::int? _#_Extension|_privateFinalField2 /* from org-dartlang-te
 static field core::bool _#_Extension|_privateFinalField2#isSet /* from org-dartlang-testcase:///private_members_part.dart */;
 static method main() → dynamic
   ;
-static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1() → core::int;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1(core::int _privateField1#param) → void;
-static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2() → core::int?;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2(core::int? _privateField2#param) → void;
-static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1() → core::int;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1(core::int _privateFinalField1#param) → void;
-static get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2() → core::int?;
-static set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2(core::int? _privateFinalField2#param) → void;
+static extension-member get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1() → core::int;
+static extension-member set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField1(core::int _privateField1#param) → void;
+static extension-member get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2() → core::int?;
+static extension-member set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateField2(core::int? _privateField2#param) → void;
+static extension-member get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1() → core::int;
+static extension-member set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField1(core::int _privateFinalField1#param) → void;
+static extension-member get /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2() → core::int?;
+static extension-member set /* from org-dartlang-testcase:///private_members_part.dart */ _Extension|_privateFinalField2(core::int? _privateFinalField2#param) → void;

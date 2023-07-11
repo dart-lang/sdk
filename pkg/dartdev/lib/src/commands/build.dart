@@ -110,6 +110,7 @@ class BuildCommand extends DartdevCommand {
       workingDirectory: workingDirectory,
       target: target,
       linkModePreference: LinkModePreference.dynamic,
+      buildMode: BuildMode.release,
       includeParentEnvironment: true,
     );
     final staticAssets = nativeAssets.whereLinkMode(LinkMode.static);

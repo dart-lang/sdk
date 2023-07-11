@@ -25,15 +25,22 @@ class MetadataBuilder {
       BodyBuilderContext bodyBuilderContext,
       SourceLibraryBuilder library,
       Uri fileUri,
-      Scope scope) {
+      Scope scope,
+      {bool createFileUriExpression = false}) {
     if (metadata == null) return;
     BodyBuilder bodyBuilder = library.loader
         .createBodyBuilderForOutlineExpression(
             library, bodyBuilderContext, scope, fileUri);
     for (int i = 0; i < metadata.length; ++i) {
       MetadataBuilder annotationBuilder = metadata[i];
-      parent.addAnnotation(
-          bodyBuilder.parseAnnotation(annotationBuilder.beginToken));
+      Expression annotation =
+          bodyBuilder.parseAnnotation(annotationBuilder.beginToken);
+      if (createFileUriExpression) {
+        parent.addAnnotation(new FileUriExpression(annotation, fileUri)
+          ..fileOffset = annotationBuilder.beginToken.charOffset);
+      } else {
+        parent.addAnnotation(annotation);
+      }
     }
     bodyBuilder.inferAnnotations(parent, parent.annotations);
     bodyBuilder.performBacklogComputations(allowFurtherDelays: false);

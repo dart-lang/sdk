@@ -5,9 +5,9 @@ library from "org-dartlang-test:///main.dart" as main {
     method parseInt = main::NumberParsing|parseInt;
     tearoff parseInt = main::NumberParsing|get#parseInt;
   }
-  static method NumberParsing|parseInt(lowered final dart.core::String #this) → dart.core::int {
+  static extension-member method NumberParsing|parseInt(lowered final dart.core::String #this) → dart.core::int {
     return dart.core::int::parse(#this);
   }
-  static method NumberParsing|get#parseInt(lowered final dart.core::String #this) → () → dart.core::int
+  static extension-member method NumberParsing|get#parseInt(lowered final dart.core::String #this) → () → dart.core::int
     return () → dart.core::int => main::NumberParsing|parseInt(#this);
 }

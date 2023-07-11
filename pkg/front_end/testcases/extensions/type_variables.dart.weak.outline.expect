@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,17 +18,17 @@ extension A4<T extends core::Object? = dynamic> on self::A1<T%> {
   method method = self::A4|method;
   tearoff method = self::A4|get#method;
 }
-static method A2|method1<T extends core::Object? = dynamic, S extends self::A2|method1::T% = dynamic>(lowered final self::A1<self::A2|method1::T%> #this) → self::A1<self::A2|method1::T%>
+static extension-member method A2|method1<T extends core::Object? = dynamic, S extends self::A2|method1::T% = dynamic>(lowered final self::A1<self::A2|method1::T%> #this) → self::A1<self::A2|method1::T%>
   ;
-static method A2|get#method1<T extends core::Object? = dynamic>(lowered final self::A1<self::A2|get#method1::T%> #this) → <S extends self::A2|get#method1::T% = dynamic>() → self::A1<self::A2|get#method1::T%>
+static extension-member method A2|get#method1<T extends core::Object? = dynamic>(lowered final self::A1<self::A2|get#method1::T%> #this) → <S extends self::A2|get#method1::T% = dynamic>() → self::A1<self::A2|get#method1::T%>
   return <S extends self::A2|get#method1::T% = dynamic>() → self::A1<self::A2|get#method1::T%> => self::A2|method1<self::A2|get#method1::T%, S%>(#this);
-static method A2|method2<T extends core::Object? = dynamic, S extends self::A1<self::A2|method2::T%> = self::A1<dynamic>>(lowered final self::A1<self::A2|method2::T%> #this, self::A2|method2::S o) → self::A1<self::A2|method2::T%>
+static extension-member method A2|method2<T extends core::Object? = dynamic, S extends self::A1<self::A2|method2::T%> = self::A1<dynamic>>(lowered final self::A1<self::A2|method2::T%> #this, self::A2|method2::S o) → self::A1<self::A2|method2::T%>
   ;
-static method A2|get#method2<T extends core::Object? = dynamic>(lowered final self::A1<self::A2|get#method2::T%> #this) → <S extends self::A1<self::A2|get#method2::T%> = self::A1<dynamic>>(S) → self::A1<self::A2|get#method2::T%>
+static extension-member method A2|get#method2<T extends core::Object? = dynamic>(lowered final self::A1<self::A2|get#method2::T%> #this) → <S extends self::A1<self::A2|get#method2::T%> = self::A1<dynamic>>(S) → self::A1<self::A2|get#method2::T%>
   return <S extends self::A1<self::A2|get#method2::T%> = self::A1<dynamic>>(S o) → self::A1<self::A2|get#method2::T%> => self::A2|method2<self::A2|get#method2::T%, S>(#this, o);
-static method A4|method<#T extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final self::A1<self::A4|method::#T%> #this) → dynamic
+static extension-member method A4|method<#T extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final self::A1<self::A4|method::#T%> #this) → dynamic
   ;
-static method A4|get#method<#T extends core::Object? = dynamic>(lowered final self::A1<self::A4|get#method::#T%> #this) → <T extends core::Object? = dynamic>() → dynamic
+static extension-member method A4|get#method<#T extends core::Object? = dynamic>(lowered final self::A1<self::A4|get#method::#T%> #this) → <T extends core::Object? = dynamic>() → dynamic
   return <T extends core::Object? = dynamic>() → dynamic => self::A4|method<self::A4|get#method::#T%, T%>(#this);
 static method main() → dynamic
   ;

@@ -14,6 +14,7 @@
 
 #include "platform/assert.h"
 #include "platform/utils.h"
+#include "vm/image_snapshot.h"
 #include "vm/os_thread.h"
 #include "vm/zone.h"
 
@@ -338,6 +339,15 @@ void OS::Exit(int code) {
   // On Windows we use ExitProcess so that threads can't clobber the exit_code.
   // See: https://code.google.com/p/nativeclient/issues/detail?id=2870
   ::ExitProcess(code);
+}
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // Since we only use direct-to-ELF snapshots on Windows, the build ID
+  // information must be available from the instructions image.
+  const Image instructions_image(snapshot_instructions);
+  auto* const image_build_id = instructions_image.build_id();
+  ASSERT(image_build_id != nullptr);
+  return {instructions_image.build_id_length(), image_build_id};
 }
 
 }  // namespace dart

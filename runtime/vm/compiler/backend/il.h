@@ -4418,7 +4418,8 @@ class TemplateDartCall : public VariadicDefinition {
 
 class ClosureCallInstr : public TemplateDartCall<1> {
  public:
-  ClosureCallInstr(InputsArray&& inputs,
+  ClosureCallInstr(const Function& target_function,
+                   InputsArray&& inputs,
                    intptr_t type_args_len,
                    const Array& argument_names,
                    const InstructionSource& source,
@@ -4427,9 +4428,14 @@ class ClosureCallInstr : public TemplateDartCall<1> {
                          type_args_len,
                          argument_names,
                          std::move(inputs),
-                         source) {}
+                         source),
+        target_function_(target_function) {
+    DEBUG_ASSERT(target_function.IsNotTemporaryScopedHandle());
+  }
 
   DECLARE_INSTRUCTION(ClosureCall)
+
+  const Function& target_function() const { return target_function_; }
 
   // TODO(kmillikin): implement exact call counts for closure calls.
   virtual intptr_t CallCount() const { return 1; }
@@ -4437,7 +4443,12 @@ class ClosureCallInstr : public TemplateDartCall<1> {
   virtual bool HasUnknownSideEffects() const { return true; }
 
   PRINT_OPERANDS_TO_SUPPORT
-  DECLARE_EMPTY_SERIALIZATION(ClosureCallInstr, TemplateDartCall)
+
+#define FIELD_LIST(F) F(const Function&, target_function_)
+  DECLARE_INSTRUCTION_SERIALIZABLE_FIELDS(ClosureCallInstr,
+                                          TemplateDartCall,
+                                          FIELD_LIST)
+#undef FIELD_LIST
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ClosureCallInstr);
@@ -6920,7 +6931,7 @@ class AllocateObjectInstr : public AllocationInstr {
   }
 
   static bool WillAllocateNewOrRemembered(const Class& cls) {
-    return Heap::IsAllocatableInNewSpace(cls.target_instance_size());
+    return IsAllocatableInNewSpace(cls.target_instance_size());
   }
 
   virtual const Slot* SlotForInput(intptr_t pos) {
@@ -6993,8 +7004,7 @@ class AllocateClosureInstr : public TemplateAllocation<2> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
-        compiler::target::Closure::InstanceSize());
+    return IsAllocatableInNewSpace(compiler::target::Closure::InstanceSize());
   }
 
   DECLARE_EMPTY_SERIALIZATION(AllocateClosureInstr, TemplateAllocation)
@@ -7053,7 +7063,7 @@ class AllocateRecordInstr : public TemplateAllocation<0> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -7105,7 +7115,7 @@ class AllocateSmallRecordInstr : public TemplateAllocation<3> {
   virtual bool HasUnknownSideEffects() const { return false; }
 
   virtual bool WillAllocateNewOrRemembered() const {
-    return Heap::IsAllocatableInNewSpace(
+    return IsAllocatableInNewSpace(
         compiler::target::Record::InstanceSize(num_fields()));
   }
 
@@ -10576,6 +10586,7 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
     kInitAsync,
     kInitAsyncStar,
     kInitSyncStar,
+    kFfiAsyncCallbackSend,
   };
 
   Call1ArgStubInstr(const InstructionSource& source,

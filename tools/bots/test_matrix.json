@@ -124,6 +124,8 @@
       "out/ReleaseX64/dart2wasm_asserts.snapshot",
       "out/ReleaseX64/dart2wasm_outline.dill",
       "out/ReleaseX64/dart2wasm_platform.dill",
+      "out/ReleaseX64/dart2wasm_stringref_outline.dill",
+      "out/ReleaseX64/dart2wasm_stringref_platform.dill",
       "out/ReleaseX64/wasm/",
       "pkg/",
       "runtime/tests/",
@@ -370,8 +372,7 @@
       }
     },
     "vm-(linux|mac|win|android|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
-      "options": {
-      }
+      "options": {}
     },
     "vm-checked-(linux|mac|win|fuchsia)-(debug|product|release)-(ia32|x64|x64c|arm64|arm64c|simarm|simarm64|simriscv32|simriscv64)": {
       "options": {
@@ -379,8 +380,7 @@
       }
     },
     "vm-aot-(linux|mac)-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
-      "options": {
-      }
+      "options": {}
     },
     "vm-aot-win-(debug|product|release)-(x64|x64c|arm64|arm64c)": {
       "options": {
@@ -551,7 +551,7 @@
         "timeout": 240
       }
     },
-    "dart2wasm-hostasserts-linux-x64-(d8|chrome)": {
+    "dart2wasm-(linux|mac|win)-(d8|chrome)": {
       "options": {
         "host-checked": true,
         "timeout": 240
@@ -1698,8 +1698,36 @@
     },
     {
       "builders": [
-        "vm-fuchsia-release-arm64",
         "vm-fuchsia-release-x64"
+      ],
+      "meta": {
+        "description": "This configuration is for the VM fuchsia builder."
+      },
+      "steps": [
+        {
+          "name": "build dart",
+          "script": "tools/build.py",
+          "arguments": [
+            "--os=fuchsia",
+            "runtime",
+            "create_sdk",
+            "fuchsia_test_package",
+            "fuchsia_ffi_test_package"
+          ]
+        },
+        {
+          "name": "vm tests",
+          "arguments": [
+            "-nvm-${system}-${mode}-${arch}",
+            "-j4",
+            "ffi"
+          ]
+        }
+      ]
+    },
+    {
+      "builders": [
+        "vm-fuchsia-release-arm64"
       ],
       "meta": {
         "description": "This configuration is for the VM fuchsia builder."
@@ -1776,20 +1804,21 @@
         "vm-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is for the ARM64 JIT builders, no shards."
+        "description": "This configuration is for the ARM64 JIT builders, no shards."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-              "-nvm-${system}-${mode}-${arch}"
+            "-nvm-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -1800,20 +1829,21 @@
         "vm-aot-win-release-arm64"
       ],
       "meta": {
-          "description": "This configuration is for the ARM64 AOT builders, no shards."
+        "description": "This configuration is for the ARM64 AOT builders, no shards."
       },
       "steps": [
         {
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
+            "--no-goma",
             "runtime"
           ]
         },
         {
           "name": "vm tests",
           "arguments": [
-              "-nvm-aot-${system}-${mode}-${arch}"
+            "-nvm-aot-${system}-${mode}-${arch}"
           ]
         }
       ]
@@ -2686,8 +2716,8 @@
     },
     {
       "builders": [
-        "dart2wasm-linux-x64-chrome",
-        "dart2wasm-linux-x64-d8"
+        "dart2wasm-linux-chrome",
+        "dart2wasm-linux-d8"
       ],
       "meta": {
         "description": "dart2wasm tests"
@@ -2704,7 +2734,7 @@
         {
           "name": "dart2wasm tests",
           "arguments": [
-            "-ndart2wasm-hostasserts-linux-x64-${runtime}",
+            "-ndart2wasm-linux-${runtime}",
             "co19",
             "corelib",
             "language",
@@ -2713,26 +2743,6 @@
           ],
           "shards": 10,
           "fileset": "dart2wasm_hostasserts"
-        }
-      ]
-    },
-    {
-      "builders": [
-        "debianpackage-linux"
-      ],
-      "meta": {
-        "description": "This configuration is used by the debianpackage-builder."
-      },
-      "steps": [
-        {
-          "name": "build debian package",
-          "script": "tools/linux_dist_support/run_debian_build.sh",
-          "arguments": []
-        },
-        {
-          "name": "upload debian packages",
-          "script": "tools/linux_dist_support/upload_debian_packages.py",
-          "arguments": []
         }
       ]
     },
@@ -3074,6 +3084,7 @@
             "-nunittest-asserts-${mode}-${system}",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]
@@ -3126,6 +3137,7 @@
             "-nunittest-asserts-${mode}-${system}-arm64",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]
@@ -3169,6 +3181,7 @@
             "-nunittest-asserts-${mode}-${system}",
             "c_compiler",
             "dart_style",
+            "native_assets_builder",
             "native_assets_cli",
             "package_config"
           ]

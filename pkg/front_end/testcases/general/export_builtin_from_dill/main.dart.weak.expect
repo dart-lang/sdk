@@ -5,7 +5,7 @@
 //
 // pkg/front_end/testcases/general/export_builtin_from_dill/main_lib1.dart: Error: 'dynamic' is exported from both 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib2.dart' and 'pkg/front_end/testcases/general/export_builtin_from_dill/main_lib3.dart'.
 //
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -57,7 +57,7 @@ static method test() → dynamic {
   <mai::dynamic>[];
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -77,7 +77,7 @@ export "org-dartlang-testcase:///main_lib3.dart";
 
 static const field dynamic _exports# = #C1 /*isLegacy*/;
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -99,7 +99,7 @@ class dynamic extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -121,7 +121,7 @@ class dynamic extends core::Object {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self3;
 import "main_lib2.dart" as mai;
 additionalExports = (mai::Never,

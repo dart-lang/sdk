@@ -54,6 +54,7 @@ abstract class _TypedListBase {
 
 @patch
 abstract class _TypedList extends _TypedListBase {
+  @patch
   Float32x4 _getFloat32x4(int offsetInBytes) {
     ByteData data = buffer.asByteData();
     return Float32x4(
@@ -63,6 +64,7 @@ abstract class _TypedList extends _TypedListBase {
         data.getFloat32(offsetInBytes + 3 * 4, Endian.host));
   }
 
+  @patch
   void _setFloat32x4(int offsetInBytes, Float32x4 value) {
     ByteData data = buffer.asByteData();
     data.setFloat32(offsetInBytes + 0 * 4, value.x, Endian.host);
@@ -71,6 +73,7 @@ abstract class _TypedList extends _TypedListBase {
     data.setFloat32(offsetInBytes + 3 * 4, value.w, Endian.host);
   }
 
+  @patch
   Int32x4 _getInt32x4(int offsetInBytes) {
     ByteData data = buffer.asByteData();
     return Int32x4(
@@ -80,6 +83,7 @@ abstract class _TypedList extends _TypedListBase {
         data.getInt32(offsetInBytes + 3 * 4, Endian.host));
   }
 
+  @patch
   void _setInt32x4(int offsetInBytes, Int32x4 value) {
     ByteData data = buffer.asByteData();
     data.setInt32(offsetInBytes + 0 * 4, value.x, Endian.host);
@@ -88,12 +92,14 @@ abstract class _TypedList extends _TypedListBase {
     data.setInt32(offsetInBytes + 3 * 4, value.w, Endian.host);
   }
 
+  @patch
   Float64x2 _getFloat64x2(int offsetInBytes) {
     ByteData data = buffer.asByteData();
     return Float64x2(data.getFloat64(offsetInBytes + 0 * 8, Endian.host),
         data.getFloat64(offsetInBytes + 1 * 8, Endian.host));
   }
 
+  @patch
   void _setFloat64x2(int offsetInBytes, Float64x2 value) {
     ByteData data = buffer.asByteData();
     data.setFloat64(offsetInBytes + 0 * 8, value.x, Endian.host);

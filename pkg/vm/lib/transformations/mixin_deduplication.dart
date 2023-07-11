@@ -109,8 +109,6 @@ class DeduplicateMixinsTransformer extends RemovingTransformer {
 
     Class canonical =
         _canonicalMixins.putIfAbsent(new _DeduplicateMixinKey(c), () => c);
-    // ignore: unnecessary_null_comparison
-    assert(canonical != null);
 
     if (canonical != c) {
       // Ensure that kernel file writer will not be able to

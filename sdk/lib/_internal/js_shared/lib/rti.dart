@@ -126,6 +126,9 @@ class Rti {
     rti._precomputed1 = precomputed;
   }
 
+  static Rti _unstar(Rti rti) =>
+      _getKind(rti) == kindStar ? _getStarArgument(rti) : rti;
+
   static Rti _getQuestionFromStar(Object? universe, Rti rti) {
     assert(_getKind(rti) == kindStar);
     Rti? question = _Utils.asRtiOrNull(_getPrecomputed1(rti));
@@ -1086,9 +1089,7 @@ bool _installSpecializedIsTest(Object? object) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isNever));
   }
 
-  Rti unstarred = Rti._getKind(testRti) == Rti.kindStar
-      ? Rti._getStarArgument(testRti)
-      : testRti;
+  Rti unstarred = Rti._unstar(testRti);
 
   if (Rti._getKind(unstarred) == Rti.kindFutureOr) {
     return _finishIsFn(testRti, object, RAW_DART_FUNCTION_REF(_isFutureOr));
@@ -1347,8 +1348,10 @@ class _TypeError extends _Error implements TypeError {
 /// Called from generated code via Rti `_is` method.
 bool _isFutureOr(Object? object) {
   Rti testRti = _Utils.asRti(JS('', 'this'));
-  return Rti._isCheck(Rti._getFutureOrArgument(testRti), object) ||
-      Rti._isCheck(Rti._getFutureFromFutureOr(_theUniverse(), testRti), object);
+  Rti unstarred = Rti._unstar(testRti);
+  return Rti._isCheck(Rti._getFutureOrArgument(unstarred), object) ||
+      Rti._isCheck(
+          Rti._getFutureFromFutureOr(_theUniverse(), unstarred), object);
 }
 
 /// Specialization for 'is Object'.
@@ -1960,6 +1963,31 @@ class _Universe {
 
   static void addRules(Object? universe, Object? rules) =>
       _Utils.objectAssign(typeRules(universe), rules);
+
+  /// Adds or updates existing type rules in the type [universe].
+  ///
+  /// This update is intended to add new rules to the set of rules that exist
+  /// for the target type but will overwrite on a collision of rule keys.
+  ///
+  /// NOTE this operation does not support the forwarding rule format where the
+  /// rule is simply a string directing to another type rule.
+  static void addOrUpdateRules(Object? universe, Object? newRules) {
+    var targetTypes = _Utils.objectKeys(newRules);
+    var typeCount = _Utils.arrayLength(targetTypes);
+    for (int i = 0; i < typeCount; i++) {
+      var targetType = _Utils.asString(_Utils.arrayAt(targetTypes, i));
+      var updatedRule = JS('', '#.#', newRules, targetType);
+      var rule = _findRule(universe, targetType);
+      if (rule == null) {
+        // Create a completely new type rule to add to the type universe.
+        JS('', '#.#  = #', typeRules(universe), targetType, updatedRule);
+      } else {
+        // Updating a forwarding rule isn't expected.
+        assert(!_Utils.isString(rule));
+        _Utils.objectAssign(rule, updatedRule);
+      }
+    }
+  }
 
   static void addErasedTypes(Object? universe, Object? types) =>
       _Utils.objectAssign(erasedTypes(universe), types);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=records,patterns
-
 import 'invalid_const_pattern_test.dart' as prefix;
 
 const int value = 42;
@@ -46,7 +44,6 @@ class Class {
       case super(): // Error
       //   ^^^^^
       // [analyzer] COMPILE_TIME_ERROR.INVOCATION_OF_NON_FUNCTION_EXPRESSION
-      //   ^^^^^^^
       // [cfe] Method invocation is not a constant expression.
     }
 
@@ -200,8 +197,6 @@ class Class {
 
     switch (o) {
       case ++variable: // Error
-      //   ^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       //     ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] Not a constant expression.
@@ -357,8 +352,6 @@ class Class {
 
     switch (o) {
       case const ++variable: // Error
-      //         ^^^^^^^^^^
-      // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       //           ^^^^^^^^
       // [analyzer] COMPILE_TIME_ERROR.CONSTANT_PATTERN_WITH_NON_CONSTANT_EXPRESSION
       // [cfe] Not a constant expression.

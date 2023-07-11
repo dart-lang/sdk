@@ -2090,8 +2090,6 @@ class InvalidationCollector : public ObjectVisitor {
   GrowableArray<const Instance*>* const instances_;
 };
 
-typedef UnorderedHashMap<SmiTraits> IntHashMap;
-
 void ProgramReloadContext::RunInvalidationVisitors() {
   TIR_Print("---- RUNNING INVALIDATION HEAP VISITORS\n");
   Thread* thread = Thread::Current();
@@ -2282,7 +2280,7 @@ class FieldInvalidator {
         instance_(Instance::Handle(zone)),
         type_(AbstractType::Handle(zone)),
         cache_(SubtypeTestCache::Handle(zone)),
-        entries_(Array::Handle(zone)),
+        result_(Bool::Handle(zone)),
         closure_function_(Function::Handle(zone)),
         instantiator_type_arguments_(TypeArguments::Handle(zone)),
         function_type_arguments_(TypeArguments::Handle(zone)),
@@ -2378,8 +2376,7 @@ class FieldInvalidator {
   DART_FORCE_INLINE
   bool CheckAssignabilityUsingCache(bool null_safety,
                                     const Object& value,
-                                    const AbstractType& type,
-                                    const Field& field) {
+                                    const AbstractType& type) {
     ASSERT(!value.IsSentinel());
     if (!null_safety && value.IsNull()) {
       return true;
@@ -2391,7 +2388,7 @@ class FieldInvalidator {
 
     if (type.IsRecordType()) {
       return CheckAssignabilityForRecordType(null_safety, value,
-                                             RecordType::Cast(type), field);
+                                             RecordType::Cast(type));
     }
 
     cls_ = value.clazz();
@@ -2414,33 +2411,16 @@ class FieldInvalidator {
       delayed_function_type_arguments_ = TypeArguments::null();
     }
 
-    cache_ = field.type_test_cache();
     if (cache_.IsNull()) {
-      cache_ = SubtypeTestCache::New();
-      field.set_type_test_cache(cache_);
+      // Use a cache that will check all inputs.
+      cache_ = SubtypeTestCache::New(SubtypeTestCache::kMaxInputs);
     }
-    entries_ = cache_.cache();
-
-    for (intptr_t i = 0; entries_.At(i) != Object::null();
-         i += SubtypeTestCache::kTestEntryLength) {
-      if ((entries_.At(i + SubtypeTestCache::kInstanceCidOrSignature) ==
-           instance_cid_or_signature_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kDestinationType) == type.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstanceTypeArguments) ==
-           instance_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kInstantiatorTypeArguments) ==
-           instantiator_type_arguments_.ptr()) &&
-          (entries_.At(i + SubtypeTestCache::kFunctionTypeArguments) ==
-           function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceParentFunctionTypeArguments) ==
-           parent_function_type_arguments_.ptr()) &&
-          (entries_.At(
-               i + SubtypeTestCache::kInstanceDelayedFunctionTypeArguments) ==
-           delayed_function_type_arguments_.ptr())) {
-        return entries_.At(i + SubtypeTestCache::kTestResult) ==
-               Bool::True().ptr();
-      }
+    if (cache_.HasCheck(
+            instance_cid_or_signature_, type, instance_type_arguments_,
+            instantiator_type_arguments_, function_type_arguments_,
+            parent_function_type_arguments_, delayed_function_type_arguments_,
+            /*index=*/nullptr, &result_)) {
+      return result_.value();
     }
 
     instance_ ^= value.ptr();
@@ -2463,8 +2443,7 @@ class FieldInvalidator {
 
   bool CheckAssignabilityForRecordType(bool null_safety,
                                        const Object& value,
-                                       const RecordType& type,
-                                       const Field& field) {
+                                       const RecordType& type) {
     if (!value.IsRecord()) {
       return false;
     }
@@ -2481,8 +2460,7 @@ class FieldInvalidator {
     for (intptr_t i = 0; i < num_fields; ++i) {
       field_value = record.FieldAt(i);
       field_type = type.FieldTypeAt(i);
-      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type,
-                                        field)) {
+      if (!CheckAssignabilityUsingCache(null_safety, field_value, field_type)) {
         return false;
       }
     }
@@ -2498,7 +2476,7 @@ class FieldInvalidator {
       return;
     }
     type_ = field.type();
-    if (!CheckAssignabilityUsingCache(null_safety, value, type_, field)) {
+    if (!CheckAssignabilityUsingCache(null_safety, value, type_)) {
       // Even if doing an identity reload, type check can fail if hot reload
       // happens while constructor is still running and field is not
       // initialized yet, so it has a null value.
@@ -2524,7 +2502,7 @@ class FieldInvalidator {
   Instance& instance_;
   AbstractType& type_;
   SubtypeTestCache& cache_;
-  Array& entries_;
+  Bool& result_;
   Function& closure_function_;
   TypeArguments& instantiator_type_arguments_;
   TypeArguments& function_type_arguments_;

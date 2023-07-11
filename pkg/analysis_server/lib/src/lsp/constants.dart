@@ -61,6 +61,7 @@ abstract class Commands {
     fixAll,
     sendWorkspaceEdit,
     performRefactor,
+    validateRefactor,
     logAction,
     // Add commands for each of the new refactorings.
     ...RefactoringProcessor.generators.keys,

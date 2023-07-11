@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -142,25 +142,25 @@ static set topLevelMethodAndSetter(dynamic value) → void
   ;
 static set classAndSetter(dynamic value) → void
   ;
-static method Extension|extensionInstanceMethodAndSetter(lowered final core::int? #this) → dynamic
+static extension-member method Extension|extensionInstanceMethodAndSetter(lowered final core::int? #this) → dynamic
   ;
-static method Extension|get#extensionInstanceMethodAndSetter(lowered final core::int? #this) → () → dynamic
+static extension-member method Extension|get#extensionInstanceMethodAndSetter(lowered final core::int? #this) → () → dynamic
   return () → dynamic => self::Extension|extensionInstanceMethodAndSetter(#this);
-static method Extension|set#extensionInstanceMethodAndSetter(lowered final core::int? #this, dynamic value) → void
+static extension-member method Extension|set#extensionInstanceMethodAndSetter(lowered final core::int? #this, dynamic value) → void
   ;
-static method Extension|extensionStaticMethodAndSetter() → dynamic
+static extension-member method Extension|extensionStaticMethodAndSetter() → dynamic
   ;
-static set Extension|extensionStaticMethodAndSetter(dynamic value) → void
+static extension-member set Extension|extensionStaticMethodAndSetter(dynamic value) → void
   ;
-static method Extension|extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → dynamic
+static extension-member method Extension|extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → dynamic
   ;
-static method Extension|get#extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → () → dynamic
+static extension-member method Extension|get#extensionInstanceMethodAndStaticSetter(lowered final core::int? #this) → () → dynamic
   return () → dynamic => self::Extension|extensionInstanceMethodAndStaticSetter(#this);
-static set Extension|extensionInstanceMethodAndStaticSetter(dynamic value) → void
+static extension-member set Extension|extensionInstanceMethodAndStaticSetter(dynamic value) → void
   ;
-static method Extension|extensionStaticMethodAndInstanceSetter() → dynamic
+static extension-member method Extension|extensionStaticMethodAndInstanceSetter() → dynamic
   ;
-static method Extension|set#extensionStaticMethodAndInstanceSetter(lowered final core::int? #this, dynamic value) → void
+static extension-member method Extension|set#extensionStaticMethodAndInstanceSetter(lowered final core::int? #this, dynamic value) → void
   ;
 static method test() → dynamic
   ;

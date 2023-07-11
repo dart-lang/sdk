@@ -233,6 +233,7 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       break;
     case kNeverType:
@@ -280,6 +281,10 @@ void KernelFingerprintHelper::CalculateDartTypeFingerprint() {
       CalculateDartTypeFingerprint();  // read instantiated representation type.
       break;
     }
+    case kFutureOrType:
+      BuildHash(static_cast<uint32_t>(ReadNullability()));
+      CalculateDartTypeFingerprint();  // read type argument.
+      break;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -665,6 +670,12 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
       SkipDartType();
       SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      ReadPosition();
+      ReadUInt();  // skip uri
+      SkipDartType();
+      SkipConstantReference();
+      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
@@ -676,6 +687,11 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
         CalculateDartTypeFingerprint();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      ReadUInt();      // skip uri
+      ReadPosition();  // read position
+      CalculateExpressionFingerprint();
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -686,7 +702,6 @@ void KernelFingerprintHelper::CalculateExpressionFingerprint() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
@@ -884,6 +899,16 @@ void KernelFingerprintHelper::CalculateFunctionNodeFingerprint() {
   CalculateListOfVariableDeclarationsFingerprint();  // read named
   CalculateDartTypeFingerprint();                    // read return type.
   CalculateOptionalDartTypeFingerprint();            // read future value type.
+
+  if (ReadTag() == kSomething) {   // read redirecting factory target
+    ReadCanonicalNameReference();  // read member reference
+    if (ReadTag() == kSomething) {
+      SkipListOfDartTypes();  // read type arguments
+    }
+    if (ReadTag() == kSomething) {
+      ReadStringReference();  // read error message
+    }
+  }
 
   if (ReadTag() == kSomething) {
     CalculateStatementFingerprint();  // Read body.

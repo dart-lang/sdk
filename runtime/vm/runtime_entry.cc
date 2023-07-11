@@ -4,6 +4,8 @@
 
 #include "vm/runtime_entry.h"
 
+#include <memory>
+
 #include "platform/memory_sanitizer.h"
 #include "platform/thread_sanitizer.h"
 #include "vm/code_descriptors.h"
@@ -17,6 +19,7 @@
 #include "vm/debugger.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/verifier.h"
 #include "vm/instructions.h"
@@ -31,6 +34,7 @@
 #include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/type_testing_stubs.h"
+#include "vm/zone_text_buffer.h"
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
 #include "vm/deopt_instructions.h"
@@ -38,10 +42,12 @@
 
 namespace dart {
 
+static constexpr intptr_t kDefaultMaxSubtypeCacheEntries =
+    SubtypeTestCache::MaxEntriesForCacheAllocatedFor(1000);
 DEFINE_FLAG(
     int,
     max_subtype_cache_entries,
-    100,
+    kDefaultMaxSubtypeCacheEntries,
     "Maximum number of subtype cache entries (number of checks cached).");
 DEFINE_FLAG(
     int,
@@ -838,6 +844,60 @@ static void PrintTypeCheck(const char* message,
   }
 }
 
+#if defined(TARGET_ARCH_IA32)
+static BoolPtr CheckHashBasedSubtypeTestCache(
+    Zone* zone,
+    Thread* thread,
+    const Instance& instance,
+    const AbstractType& destination_type,
+    const TypeArguments& instantiator_type_arguments,
+    const TypeArguments& function_type_arguments,
+    const SubtypeTestCache& cache) {
+  ASSERT(cache.IsHash());
+  // Record instances are not added to the cache as they don't have a valid
+  // key (type of a record depends on types of all its fields).
+  if (instance.IsRecord()) return Bool::null();
+  Class& instance_class = Class::Handle(zone);
+  if (instance.IsSmi()) {
+    instance_class = Smi::Class();
+  } else {
+    instance_class = instance.clazz();
+  }
+  // If the type is uninstantiated and refers to parent function type
+  // parameters, the function_type_arguments have been canonicalized
+  // when concatenated.
+  auto& instance_class_id_or_signature = Object::Handle(zone);
+  auto& instance_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_parent_function_type_arguments = TypeArguments::Handle(zone);
+  auto& instance_delayed_type_arguments = TypeArguments::Handle(zone);
+  if (instance_class.IsClosureClass()) {
+    const auto& closure = Closure::Cast(instance);
+    const auto& function = Function::Handle(zone, closure.function());
+    instance_class_id_or_signature = function.signature();
+    instance_type_arguments = closure.instantiator_type_arguments();
+    instance_parent_function_type_arguments = closure.function_type_arguments();
+    instance_delayed_type_arguments = closure.delayed_type_arguments();
+  } else {
+    instance_class_id_or_signature = Smi::New(instance_class.id());
+    if (instance_class.NumTypeArguments() > 0) {
+      instance_type_arguments = instance.GetTypeArguments();
+    }
+  }
+
+  intptr_t index = -1;
+  auto& result = Bool::Handle(zone);
+  if (cache.HasCheck(instance_class_id_or_signature, destination_type,
+                     instance_type_arguments, instantiator_type_arguments,
+                     function_type_arguments,
+                     instance_parent_function_type_arguments,
+                     instance_delayed_type_arguments, &index, &result)) {
+    return result.ptr();
+  }
+
+  return Bool::null();
+}
+#endif  // defined(TARGET_ARCH_IA32)
+
 // This updates the type test cache, an array containing 8 elements:
 // - instance class (or function if the instance is a closure)
 // - instance type arguments (null if the instance class is not generic)
@@ -921,19 +981,18 @@ static void UpdateTypeTestCache(
         "    raw entry: [ %#" Px ", %#" Px ", %#" Px ", %#" Px ", %#" Px
         ", %#" Px ", %#" Px ", %#" Px " ]\n",
         static_cast<uword>(instance_class_id_or_signature.ptr()),
-        static_cast<uword>(destination_type.ptr()),
         static_cast<uword>(instance_type_arguments.ptr()),
         static_cast<uword>(instantiator_type_arguments.ptr()),
         static_cast<uword>(function_type_arguments.ptr()),
         static_cast<uword>(instance_parent_function_type_arguments.ptr()),
         static_cast<uword>(instance_delayed_type_arguments.ptr()),
+        static_cast<uword>(destination_type.ptr()),
         static_cast<uword>(result.ptr()));
     THR_Print("%s", buffer.buffer());
   }
   {
     SafepointMutexLocker ml(
         thread->isolate_group()->subtype_test_cache_mutex());
-
     const intptr_t len = new_cache.NumberOfChecks();
     if (len >= FLAG_max_subtype_cache_entries) {
       if (FLAG_trace_type_checks) {
@@ -965,18 +1024,18 @@ static void UpdateTypeTestCache(
       // found missing and now.
       return;
     }
-    new_cache.AddCheck(instance_class_id_or_signature, destination_type,
-                       instance_type_arguments, instantiator_type_arguments,
-                       function_type_arguments,
-                       instance_parent_function_type_arguments,
-                       instance_delayed_type_arguments, result);
+    const intptr_t new_index = new_cache.AddCheck(
+        instance_class_id_or_signature, destination_type,
+        instance_type_arguments, instantiator_type_arguments,
+        function_type_arguments, instance_parent_function_type_arguments,
+        instance_delayed_type_arguments, result);
     if (FLAG_trace_type_checks) {
       TextBuffer buffer(256);
       buffer.Printf("  Added new entry to test cache %#" Px " at index %" Pd
                     ":\n",
-                    static_cast<uword>(new_cache.ptr()), len);
+                    static_cast<uword>(new_cache.ptr()), new_index);
       buffer.Printf("    new entry: ");
-      new_cache.WriteEntryToBuffer(zone, &buffer, len, "      ");
+      new_cache.WriteEntryToBuffer(zone, &buffer, new_index, "      ");
       THR_Print("%s\n", buffer.buffer());
     }
   }
@@ -1004,6 +1063,20 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(type.IsFinalized());
   ASSERT(!type.IsDynamicType());  // No need to check assignment.
   ASSERT(!cache.IsNull());
+#if defined(TARGET_ARCH_IA32)
+  // Hash-based caches are still not handled by the stubs on IA32.
+  if (cache.IsHash()) {
+    const auto& result = Bool::Handle(
+        zone, CheckHashBasedSubtypeTestCache(zone, thread, instance, type,
+                                             instantiator_type_arguments,
+                                             function_type_arguments, cache));
+    if (!result.IsNull()) {
+      // Early exit because an entry already exists in the cache.
+      arguments.SetReturn(result);
+      return;
+    }
+  }
+#endif  // defined(TARGET_ARCH_IA32)
   const Bool& result = Bool::Get(instance.IsInstanceOf(
       type, instantiator_type_arguments, function_type_arguments));
   if (FLAG_trace_type_checks) {
@@ -1014,6 +1087,12 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
                       function_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
+
+#if defined(TESTING)
+// Used only in type_testing_stubs_test.cc. If DRT_TypeCheck is entered, then
+// this flag is set to true.
+bool TESTING_runtime_entered_on_TTS_invocation = false;
+#endif
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
@@ -1046,9 +1125,25 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   const TypeCheckMode mode = static_cast<TypeCheckMode>(
       Smi::CheckedHandle(zone, arguments.ArgAt(6)).Value());
 
+#if defined(TESTING)
+  TESTING_runtime_entered_on_TTS_invocation = true;
+#endif
+
 #if defined(TARGET_ARCH_IA32)
   ASSERT(mode == kTypeCheckFromInline);
-#endif
+  // Hash-based caches are still not handled by the stubs on IA32.
+  if (cache.IsHash()) {
+    const auto& result = Bool::Handle(
+        zone, CheckHashBasedSubtypeTestCache(
+                  zone, thread, src_instance, dst_type,
+                  instantiator_type_arguments, function_type_arguments, cache));
+    if (!result.IsNull()) {
+      // Early exit because an entry already exists in the cache.
+      arguments.SetReturn(result);
+      return;
+    }
+  }
+#endif  // defined(TARGET_ARCH_IA32)
 
   // These are guaranteed on the calling side.
   ASSERT(!dst_type.IsDynamicType());
@@ -1063,30 +1158,36 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
                    instantiator_type_arguments, function_type_arguments,
                    Bool::Get(is_instance_of));
   }
-  if (!is_instance_of) {
-    if (dst_name.IsNull()) {
+
+  // Most paths through this runtime entry don't need to know what the
+  // destination name was or if this was a dynamic assert assignable call,
+  // so only walk the stack to find the stored destination name when necessary.
+  auto resolve_dst_name = [&]() {
+    if (!dst_name.IsNull()) return;
 #if !defined(TARGET_ARCH_IA32)
-      // Can only come here from type testing stub.
-      ASSERT(mode != kTypeCheckFromInline);
+    // Can only come here from type testing stub.
+    ASSERT(mode != kTypeCheckFromInline);
 
-      // Grab the [dst_name] from the pool.  It's stored at one pool slot after
-      // the subtype-test-cache.
-      DartFrameIterator iterator(thread,
-                                 StackFrameIterator::kNoCrossThreadIteration);
-      StackFrame* caller_frame = iterator.NextFrame();
-      const Code& caller_code =
-          Code::Handle(zone, caller_frame->LookupDartCode());
-      const ObjectPool& pool =
-          ObjectPool::Handle(zone, caller_code.GetObjectPool());
-      TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
-      const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
-      const intptr_t dst_name_idx = stc_pool_idx + 1;
-      dst_name ^= pool.ObjectAt(dst_name_idx);
+    // Grab the [dst_name] from the pool.  It's stored at one pool slot after
+    // the subtype-test-cache.
+    DartFrameIterator iterator(thread,
+                               StackFrameIterator::kNoCrossThreadIteration);
+    StackFrame* caller_frame = iterator.NextFrame();
+    const Code& caller_code =
+        Code::Handle(zone, caller_frame->LookupDartCode());
+    const ObjectPool& pool =
+        ObjectPool::Handle(zone, caller_code.GetObjectPool());
+    TypeTestingStubCallPattern tts_pattern(caller_frame->pc());
+    const intptr_t stc_pool_idx = tts_pattern.GetSubtypeTestCachePoolIndex();
+    const intptr_t dst_name_idx = stc_pool_idx + 1;
+    dst_name ^= pool.ObjectAt(dst_name_idx);
 #else
-      UNREACHABLE();
+    UNREACHABLE();
 #endif
-    }
+  };
 
+  if (!is_instance_of) {
+    resolve_dst_name();
     if (dst_name.ptr() ==
         Symbols::dynamic_assert_assignable_stc_check().ptr()) {
 #if !defined(TARGET_ARCH_IA32)
@@ -1243,12 +1344,20 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
         SafepointMutexLocker ml(isolate->group()->subtype_test_cache_mutex());
         cache ^= pool.ObjectAt<std::memory_order_acquire>(stc_pool_idx);
         if (cache.IsNull()) {
-          cache = SubtypeTestCache::New();
+          resolve_dst_name();
+          // If this is a dynamic AssertAssignable check, then we must assume
+          // all inputs may be needed, as the type may vary from call to call.
+          const intptr_t num_inputs =
+              dst_name.ptr() ==
+                      Symbols::dynamic_assert_assignable_stc_check().ptr()
+                  ? SubtypeTestCache::kMaxInputs
+                  : SubtypeTestCache::UsedInputsForType(dst_type);
+          cache = SubtypeTestCache::New(num_inputs);
           pool.SetObjectAt<std::memory_order_release>(stc_pool_idx, cache);
           if (FLAG_trace_type_checks) {
-            THR_Print("  Installed new subtype test cache %#" Px
-                      " at index %" Pd " of pool for %s\n",
-                      static_cast<uword>(cache.ptr()), stc_pool_idx,
+            THR_Print("  Installed new subtype test cache %#" Px " with %" Pd
+                      " inputs at index %" Pd " of pool for %s\n",
+                      static_cast<uword>(cache.ptr()), num_inputs, stc_pool_idx,
                       caller_code.ToCString());
           }
         }
@@ -2898,7 +3007,7 @@ static void HandleStackOverflowTestCases(Thread* thread) {
       }
     }
     if (FLAG_stress_async_stacks) {
-      DebuggerStackTrace::CollectAsyncCausal();
+      DebuggerStackTrace::CollectAsyncAwaiters();
     }
   }
   if (do_gc) {
@@ -3689,6 +3798,19 @@ DEFINE_RUNTIME_ENTRY(NotLoaded, 0) {
   FATAL("Not loaded");
 }
 
+DEFINE_RUNTIME_ENTRY(FfiAsyncCallbackSend, 1) {
+  Dart_Port target_port = Thread::Current()->unboxed_int64_runtime_arg();
+  TRACE_RUNTIME_CALL("FfiAsyncCallbackSend %p", (void*)target_port);
+  const Object& message = Object::Handle(zone, arguments.ArgAt(0));
+  const Array& msg_array = Array::Handle(zone, Array::New(3));
+  msg_array.SetAt(0, message);
+  PersistentHandle* handle =
+      isolate->group()->api_state()->AllocatePersistentHandle();
+  handle->set_ptr(msg_array);
+  PortMap::PostMessage(
+      Message::New(target_port, handle, Message::kNormalPriority));
+}
+
 // Use expected function signatures to help MSVC compiler resolve overloading.
 typedef double (*UnaryMathCFunction)(double x);
 typedef double (*BinaryMathCFunction)(double x, double y);
@@ -3844,100 +3966,127 @@ DEFINE_RAW_LEAF_RUNTIME_ENTRY(ExitSafepointIgnoreUnwindInProgress,
                               false,
                               &DFLRT_ExitSafepointIgnoreUnwindInProgress);
 
-// Ensure that 'callback_id' refers to a valid callback.
-//
-// If "entry != 0", additionally checks that entry is inside the instructions
-// of this callback.
-//
-// Aborts if any of these conditions fails.
-static void VerifyCallbackIdMetadata(Thread* thread,
-                                     int32_t callback_id,
-                                     uword entry) {
-  NoSafepointScope _;
+// This is called by a native callback trampoline
+// (see StubCodeCompiler::GenerateFfiCallbackTrampolineStub). Not registered as
+// a runtime entry because we can't use Thread to look it up.
+extern "C" Thread* DLRT_GetFfiCallbackMetadata(
+    FfiCallbackMetadata::Trampoline trampoline,
+    uword* out_entry_point,
+    uword* out_trampoline_type) {
+  CHECK_STACK_ALIGNMENT;
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
+                     reinterpret_cast<void*>(trampoline));
+  ASSERT(out_entry_point != nullptr);
+  ASSERT(out_trampoline_type != nullptr);
 
-  const GrowableObjectArrayPtr array =
-      thread->isolate_group()->object_store()->ffi_callback_code();
-  if (array == GrowableObjectArray::null()) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
-  }
+  Thread* const current_thread = Thread::Current();
+  auto* fcm = FfiCallbackMetadata::Instance();
+  auto metadata = fcm->LookupMetadataForTrampoline(trampoline);
 
-  const SmiPtr length_smi = GrowableObjectArray::NoSafepointLength(array);
-  const intptr_t length = Smi::Value(length_smi);
-
-  if (callback_id < 0 || callback_id >= length) {
-    FATAL("Cannot invoke callback on incorrect isolate.");
-  }
-
-  if (entry != 0) {
-    CompressedObjectPtr* const code_array =
-        Array::DataOf(GrowableObjectArray::NoSafepointData(array));
-    const CodePtr code =
-        Code::RawCast(code_array[callback_id].Decompress(array.heap_base()));
-    if (!Code::ContainsInstructionAt(code, entry)) {
-      FATAL("Cannot invoke callback on incorrect isolate.");
+  // Is this an async callback?
+  if (metadata.trampoline_type() ==
+      FfiCallbackMetadata::TrampolineType::kAsync) {
+    Isolate* current_isolate = nullptr;
+    if (current_thread != nullptr) {
+      // TODO(https://dartbug.com/52764): Fast path if current_isolate is the
+      // target_isolate.
+      current_isolate = current_thread->isolate();
+      ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+      current_thread->ExitSafepoint();
+      current_thread->set_execution_state(Thread::kThreadInVM);
+      Thread::ExitIsolate(/*isolate_shutdown=*/false);
     }
-  }
-}
 
-// Not registered as a runtime entry because we can't use Thread to look it up.
-static Thread* GetThreadForNativeCallback(uword callback_id,
-                                          uword return_address) {
-  Thread* const thread = Thread::Current();
-  if (thread == nullptr) {
+    // It's possible that the callback was deleted, or the target isolate was
+    // shut down, in between looking up the metadata above, and this point. So
+    // grab the lock and then check that the callback is still alive.
+    MutexLocker locker(fcm->lock());
+    auto metadata2 = fcm->LookupMetadataForTrampoline(trampoline);
+    *out_trampoline_type = static_cast<uword>(metadata2.trampoline_type());
+
+    // Check IsLive, but also check that the metdata hasn't changed. This is
+    // for the edge case that the callback was destroyed and recycled in between
+    // the two lookups.
+    if (!metadata.IsLive() || !metadata.IsSameCallback(metadata2)) {
+      TRACE_RUNTIME_CALL("GetFfiCallbackMetadata callback deleted %p",
+                         reinterpret_cast<void*>(trampoline));
+      locker.Unlock();
+      if (current_isolate != nullptr) {
+        Thread::EnterIsolate(current_isolate);
+        ASSERT(current_thread == Thread::Current());
+        current_thread->EnterSafepoint();
+      }
+      locker.Lock();  // MutexLocker::~MutexLocker assumes lock is held.
+      return nullptr;
+    }
+
+    // Enter the temporary isolate.
+    *out_entry_point = metadata2.target_entry_point();
+    Isolate* target_isolate = metadata2.target_isolate();
+    target_isolate->group()->EnterTemporaryIsolate();
+    Thread* const temp_thread = Thread::Current();
+    ASSERT(temp_thread != nullptr);
+    temp_thread->SetStackLimit(OSThread::Current()->overflow_stack_limit());
+    temp_thread->set_unboxed_int64_runtime_arg(metadata2.send_port());
+    temp_thread->set_unboxed_int64_runtime_second_arg(
+        reinterpret_cast<intptr_t>(current_isolate));
+    ASSERT(!temp_thread->IsAtSafepoint());
+    return temp_thread;
+  }
+
+  // Otherwise, this is a sync callback, so verify that we're already entered
+  // into the target isolate.
+  if (!metadata.IsLive()) {
+    FATAL("Callback invoked after it has been deleted.");
+  }
+  Isolate* target_isolate = metadata.target_isolate();
+  *out_entry_point = metadata.target_entry_point();
+  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
+  if (current_thread == nullptr) {
     FATAL("Cannot invoke native callback outside an isolate.");
   }
-  if (thread->no_callback_scope_depth() != 0) {
+  if (current_thread->no_callback_scope_depth() != 0) {
     FATAL("Cannot invoke native callback when API callbacks are prohibited.");
   }
-  if (thread->is_unwind_in_progress()) {
+  if (current_thread->is_unwind_in_progress()) {
     FATAL("Cannot invoke native callback while unwind error propagates.");
   }
-  if (!thread->IsDartMutatorThread()) {
+  if (!current_thread->IsDartMutatorThread()) {
     FATAL("Native callbacks must be invoked on the mutator thread.");
+  }
+  if (current_thread->isolate() != target_isolate) {
+    FATAL("Cannot invoke native callback from a different isolate.");
   }
 
   // Set the execution state to VM while waiting for the safepoint to end.
   // This isn't strictly necessary but enables tests to check that we're not
   // in native code anymore. See tests/ffi/function_gc_test.dart for example.
-  thread->set_execution_state(Thread::kThreadInVM);
+  current_thread->set_execution_state(Thread::kThreadInVM);
 
-  thread->ExitSafepoint();
-  VerifyCallbackIdMetadata(thread, callback_id, return_address);
+  current_thread->ExitSafepoint();
 
-  return thread;
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", current_thread);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
+                     (void*)*out_entry_point);
+  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
+                     (void*)*out_trampoline_type);
+  return current_thread;
 }
 
-#if defined(DART_HOST_OS_WINDOWS)
-#pragma intrinsic(_ReturnAddress)
-#endif
-
-// This is called directly by NativeEntryInstr. At the moment we enter this
-// routine, the caller is generated code in the Isolate heap. Therefore we check
-// that the return address (caller) corresponds to the declared callback ID's
-// code within this Isolate.
-extern "C" Thread* DLRT_GetThreadForNativeCallback(uword callback_id) {
-  CHECK_STACK_ALIGNMENT;
-  TRACE_RUNTIME_CALL("GetThreadForNativeCallback %" Pd, callback_id);
-#if defined(DART_HOST_OS_WINDOWS)
-  void* return_address = _ReturnAddress();
-#else
-  void* return_address = __builtin_return_address(0);
-#endif
-  Thread* return_value = GetThreadForNativeCallback(
-      callback_id, reinterpret_cast<uword>(return_address));
-  TRACE_RUNTIME_CALL("GetThreadForNativeCallback returning %p", return_value);
-  return return_value;
-}
-
-// This is called by a native callback trampoline
-// (see StubCodeCompiler::GenerateJITCallbackTrampolines). There is no need to
-// check the return address because the trampoline will use the callback ID to
-// look up the generated code. We still check that the callback ID is valid for
-// this isolate.
-extern "C" Thread* DLRT_GetThreadForNativeCallbackTrampoline(
-    uword callback_id) {
-  CHECK_STACK_ALIGNMENT;
-  return GetThreadForNativeCallback(callback_id, 0);
+extern "C" void DLRT_ExitTemporaryIsolate() {
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  Isolate* source_isolate =
+      reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
+  IsolateGroup::ExitTemporaryIsolate();
+  if (source_isolate != nullptr) {
+    TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
+                       source_isolate);
+    Thread::EnterIsolate(source_isolate);
+    Thread::Current()->EnterSafepoint();
+  }
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {

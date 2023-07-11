@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -7,10 +7,10 @@ extension A<T extends core::Object? = dynamic> on core::List<T%> {
   tearoff myMap = self::A|get#myMap;
 }
 static final field core::List<core::String> list = self::A|myMap<core::String, core::String>(core::_GrowableList::_literal3<core::String>("a", "b", "c"), (core::String it) → core::String => it);
-static method A|myMap<T extends core::Object? = dynamic, R extends core::Object? = dynamic>(lowered final core::List<self::A|myMap::T%> #this, (self::A|myMap::T%) → self::A|myMap::R% block) → core::List<self::A|myMap::R%> {
+static extension-member method A|myMap<T extends core::Object? = dynamic, R extends core::Object? = dynamic>(lowered final core::List<self::A|myMap::T%> #this, (self::A|myMap::T%) → self::A|myMap::R% block) → core::List<self::A|myMap::R%> {
   return #this.{core::Iterable::map}<self::A|myMap::R%>(block){((self::A|myMap::T%) → self::A|myMap::R%) → core::Iterable<self::A|myMap::R%>}.{core::Iterable::toList}(){({growable: core::bool}) → core::List<self::A|myMap::R%>};
 }
-static method A|get#myMap<T extends core::Object? = dynamic>(lowered final core::List<self::A|get#myMap::T%> #this) → <R extends core::Object? = dynamic>((self::A|get#myMap::T%) → R%) → core::List<R%>
+static extension-member method A|get#myMap<T extends core::Object? = dynamic>(lowered final core::List<self::A|get#myMap::T%> #this) → <R extends core::Object? = dynamic>((self::A|get#myMap::T%) → R%) → core::List<R%>
   return <R extends core::Object? = dynamic>((self::A|get#myMap::T%) → R% block) → core::List<R%> => self::A|myMap<self::A|get#myMap::T%, R%>(#this, block);
 static method main() → dynamic {
   core::print(self::list);

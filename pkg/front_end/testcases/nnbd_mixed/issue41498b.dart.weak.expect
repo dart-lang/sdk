@@ -1,4 +1,4 @@
-library opted_out_lib;
+library opted_out_lib /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "issue41498b_lib.dart" as iss;
@@ -43,7 +43,7 @@ static method main() → dynamic {
   iss::main();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

@@ -5,7 +5,6 @@
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/deferred_function_literal_heuristic.dart';
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -203,7 +202,7 @@ abstract class FullInvocationInferrer<Node extends AstNodeImpl>
           rawType.typeFormals, inferrer.choosePreliminaryTypes());
     }
 
-    List<EqualityInfo<DartType>?>? identicalInfo = _isIdentical ? [] : null;
+    List<ExpressionInfo<DartType>?>? identicalInfo = _isIdentical ? [] : null;
     var parameterMap = _computeParameterMap(rawType?.parameters ?? const []);
     var deferredFunctionLiterals = _visitArguments(
         parameterMap: parameterMap,
@@ -433,7 +432,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
 
   /// If the invocation being processed is a call to `identical`, informs flow
   /// analysis about it, so that it can do appropriate promotions.
-  void _recordIdenticalInfo(List<EqualityInfo<DartType>?>? identicalInfo) {
+  void _recordIdenticalInfo(List<ExpressionInfo<DartType>?>? identicalInfo) {
     var flow = resolver.flowAnalysis.flow;
     if (identicalInfo != null) {
       flow?.equalityOperation_end(argumentList.parent as Expression,
@@ -444,7 +443,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// Resolves any function literals that were deferred by [_visitArguments].
   void _resolveDeferredFunctionLiterals(
       {required List<_DeferredParamInfo> deferredFunctionLiterals,
-      List<EqualityInfo<DartType>?>? identicalInfo,
+      List<ExpressionInfo<DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     var flow = resolver.flowAnalysis.flow;
@@ -478,7 +477,7 @@ class InvocationInferrer<Node extends AstNodeImpl> {
   /// returned.
   List<_DeferredParamInfo>? _visitArguments(
       {required Map<Object, ParameterElement> parameterMap,
-      List<EqualityInfo<DartType>?>? identicalInfo,
+      List<ExpressionInfo<DartType>?>? identicalInfo,
       Substitution? substitution,
       GenericInferrer? inferrer}) {
     assert(whyNotPromotedList.isEmpty);

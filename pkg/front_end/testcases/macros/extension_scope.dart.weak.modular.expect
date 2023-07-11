@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -117,7 +117,7 @@ static method main() → dynamic {
   self::method(new ext::Class::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as ext;
 import "dart:core" as core;
 
@@ -221,17 +221,17 @@ static method _method(ext::Class c) → void {
   ext::_extension#3|unnamedInjectedExtensionMethod2(c);
   ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method Extension|namedExtensionMethod(lowered final ext::Class #this) → void {}
-static method Extension|get#namedExtensionMethod(lowered final ext::Class #this) → () → void
+static extension-member method Extension|namedExtensionMethod(lowered final ext::Class #this) → void {}
+static extension-member method Extension|get#namedExtensionMethod(lowered final ext::Class #this) → () → void
   return () → void => ext::Extension|namedExtensionMethod(#this);
-static method Extension|_namedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
-static method Extension|get#_namedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
+static extension-member method Extension|_namedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
+static extension-member method Extension|get#_namedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
   return () → void => ext::Extension|_namedExtensionPrivateMethod(#this);
-static method _extension#5|unnamedExtensionMethod(lowered final ext::Class #this) → void {}
-static method _extension#5|get#unnamedExtensionMethod(lowered final ext::Class #this) → () → void
+static extension-member method _extension#5|unnamedExtensionMethod(lowered final ext::Class #this) → void {}
+static extension-member method _extension#5|get#unnamedExtensionMethod(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#5|unnamedExtensionMethod(#this);
-static method _extension#5|_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
-static method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
+static extension-member method _extension#5|_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → void {}
+static extension-member method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#5|_unnamedExtensionPrivateMethod(#this);
 static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _method1(ext::Class c) → void {
   ext::Extension|namedExtensionMethod(c);
@@ -247,17 +247,17 @@ static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _met
   ext::_extension#3|unnamedInjectedExtensionMethod2(c);
   ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
   return () → void => ext::NamedInjectedExtension1|namedInjectedExtensionMethod1(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
   return () → void => ext::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#1|unnamedInjectedExtensionMethod1(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#1|_unnamedInjectedExtensionPrivateMethod1(#this);
 static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _method2(ext::Class c) → void {
   ext::Extension|namedExtensionMethod(c);
@@ -273,15 +273,15 @@ static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _met
   ext::_extension#3|unnamedInjectedExtensionMethod2(c);
   ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
   return () → void => ext::NamedInjectedExtension2|namedInjectedExtensionMethod2(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
   return () → void => ext::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#3|unnamedInjectedExtensionMethod2(#this);
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
-static method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///extension_scope_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final ext::Class #this) → () → void
   return () → void => ext::_extension#3|_unnamedInjectedExtensionPrivateMethod2(#this);

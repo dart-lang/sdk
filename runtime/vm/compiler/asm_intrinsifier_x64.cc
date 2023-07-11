@@ -1613,6 +1613,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in RAX.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure,
                               Register length_reg) {
@@ -1620,8 +1621,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
-  __ cmpq(length_reg, Immediate(0));
-  __ j(LESS, failure);
+  // Too big: call to runtime to allocate old.
+  __ OBJ(cmp)(length_reg, Immediate(target::ToRawSmi(max_elements)));
+  __ j(ABOVE, failure);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure));
   if (length_reg != RDI) {
@@ -1723,7 +1725,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ j(NOT_ZERO, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ subq(RDI, Address(RSP, +kStartIndexOffset));
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, RDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, RDI);
   __ Bind(&ok);
   // RAX: new string as tagged pointer.
   // Copy string.
@@ -1794,7 +1798,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   __ movsxd(RDI, RDI);
 #endif
   Label ok;
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body, RDI);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
 
   __ Bind(&ok);
@@ -1810,7 +1816,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   __ movsxd(RDI, RDI);
 #endif
   Label ok;
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body, RDI);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body, RDI);
   // RDI: Start address to copy from (untagged).
 
   __ Bind(&ok);

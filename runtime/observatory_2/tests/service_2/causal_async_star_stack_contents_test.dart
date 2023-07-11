@@ -11,21 +11,25 @@ import 'package:test/test.dart';
 import 'service_test_common.dart';
 import 'test_helper.dart';
 
-const LINE_A = 29;
-const LINE_B = 21;
-const LINE_C = 23;
+const LINE_A = 33;
+const LINE_B = 25;
+const LINE_C = 27;
+
+const LINE_0 = 24;
+const LINE_1 = 26;
+const LINE_2 = 32;
 
 foobar() async* {
   await 0; // force async gap
-  debugger();
+  debugger(); // LINE_0.
   yield 1; // LINE_B.
-  debugger();
+  debugger(); // LINE_1.
   yield 2; // LINE_C.
 }
 
 helper() async {
   await 0; // force async gap
-  debugger();
+  debugger(); // LINE_2.
   print('helper'); // LINE_A.
   await for (var i in foobar()) {
     print('helper $i');
@@ -38,6 +42,9 @@ testMain() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_2),
+  stepOver,
+  hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (Isolate isolate) async {
     ServiceMap stack = await isolate.getStack();
@@ -49,6 +56,9 @@ var tests = <IsolateTest>[
     // helper isn't awaited.
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (Isolate isolate) async {
@@ -64,6 +74,9 @@ var tests = <IsolateTest>[
     // helper isn't awaited.
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (Isolate isolate) async {

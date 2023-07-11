@@ -92,6 +92,8 @@
   CONSTANT(RecordShape, kMaxNumFields)                                         \
   CONSTANT(RecordShape, kNumFieldsMask)                                        \
   CONSTANT(String, kMaxElements)                                               \
+  CONSTANT(OneByteString, kMaxNewSpaceElements)                                \
+  CONSTANT(TwoByteString, kMaxNewSpaceElements)                                \
   CONSTANT(SubtypeTestCache, kFunctionTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstanceCidOrSignature)                          \
   CONSTANT(SubtypeTestCache, kDestinationType)                                 \
@@ -100,6 +102,7 @@
   CONSTANT(SubtypeTestCache, kInstanceTypeArguments)                           \
   CONSTANT(SubtypeTestCache, kInstantiatorTypeArguments)                       \
   CONSTANT(SubtypeTestCache, kTestEntryLength)                                 \
+  CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
   FIELD(AbstractType, flags_offset)                                            \
@@ -168,7 +171,6 @@
   FIELD(Isolate, default_tag_offset)                                           \
   FIELD(Isolate, finalizers_offset)                                            \
   NOT_IN_PRODUCT(FIELD(Isolate, has_resumption_breakpoints_offset))            \
-  FIELD(Isolate, ic_miss_code_offset)                                          \
   FIELD(IsolateGroup, object_store_offset)                                     \
   FIELD(IsolateGroup, class_table_offset)                                      \
   FIELD(IsolateGroup, cached_class_table_table_offset)                         \
@@ -197,7 +199,6 @@
   FIELD(ObjectStore, string_type_offset)                                       \
   FIELD(ObjectStore, type_type_offset)                                         \
   FIELD(ObjectStore, ffi_callback_code_offset)                                 \
-  FIELD(ObjectStore, ffi_callback_stack_return_offset)                         \
   FIELD(ObjectStore, suspend_state_await_offset)                               \
   FIELD(ObjectStore, suspend_state_await_with_type_check_offset)               \
   FIELD(ObjectStore, suspend_state_handle_exception_offset)                    \
@@ -225,6 +226,7 @@
   FIELD(String, hash_offset)                                                   \
   FIELD(String, length_offset)                                                 \
   FIELD(SubtypeTestCache, cache_offset)                                        \
+  FIELD(SubtypeTestCache, num_inputs_offset)                                   \
   FIELD(SuspendState, FrameSizeGrowthGap)                                      \
   FIELD(SuspendState, error_callback_offset)                                   \
   FIELD(SuspendState, frame_size_offset)                                       \

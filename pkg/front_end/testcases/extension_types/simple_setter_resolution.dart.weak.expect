@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -45,8 +45,8 @@ extension E on self::A {
 extension type ET on self::A {
   set baz = self::ET|set#baz;
 }
-static method E|set#bar(lowered final self::A #this, core::int value) → void {}
-static method ET|set#baz(lowered final self::A #this, core::int value) → void {}
+static extension-member method E|set#bar(lowered final self::A #this, core::int value) → void {}
+static extension-member method ET|set#baz(lowered final self::A #this, core::int value) → void {}
 static method test(self::A a, self::E e) → dynamic {
   a.{self::A::foo} = 42;
   self::E|set#bar(a, 42);

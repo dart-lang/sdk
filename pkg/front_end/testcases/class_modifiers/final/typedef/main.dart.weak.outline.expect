@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -97,7 +97,7 @@ class EnumImplementsFinalClassTypedefOutside extends core::_Enum implements mai:
     return "EnumImplementsFinalClassTypedefOutside.${this.{core::_Enum::_name}{core::String}}";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

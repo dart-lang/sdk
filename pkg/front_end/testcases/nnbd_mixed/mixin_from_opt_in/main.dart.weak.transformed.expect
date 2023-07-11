@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "test_lib.dart" as tes;
 
@@ -8,7 +8,7 @@ static method main() → dynamic {
   tes::test();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -44,7 +44,7 @@ static method test() → dynamic {
                         ^" in sub.{opt::_SubClass&Class&Mixin::mixinField1}{core::int?};
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -62,7 +62,7 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
   method mixinMethod(core::int i) → core::int? {}
 }
 
-library;
+library /*isLegacy*/;
 import self as opt;
 import "opt_in_lib.dart" as self2;
 import "dart:core" as core;

@@ -1280,15 +1280,28 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   bool success = false;
   {
     StackZone zone(T);
+    HandleScope handle_scope(T);
+
+#if defined(SUPPORT_TIMELINE)
+    TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
+                               "InitializeIsolate");
+    tbes.SetNumArguments(1);
+    tbes.CopyArgument(0, "isolateName", I->name());
+#endif
+
     // We enter an API scope here as InitializeIsolate could compile some
     // bootstrap library files which call out to a tag handler that may create
     // Api Handles when an error is encountered.
     T->EnterApiScope();
-    const Error& error_obj = Error::Handle(
-        Z, Dart::InitializeIsolate(
-               source->snapshot_data, source->snapshot_instructions,
-               source->kernel_buffer, source->kernel_buffer_size,
-               is_new_group ? nullptr : group, isolate_data));
+    auto& error_obj = Error::Handle(Z);
+    if (is_new_group) {
+      error_obj = Dart::InitializeIsolateGroup(
+          T, source->snapshot_data, source->snapshot_instructions,
+          source->kernel_buffer, source->kernel_buffer_size);
+    }
+    if (error_obj.IsNull()) {
+      error_obj = Dart::InitializeIsolate(T, is_new_group, isolate_data);
+    }
     if (error_obj.IsNull()) {
 #if defined(DEBUG) && !defined(DART_PRECOMPILED_RUNTIME)
       if (FLAG_check_function_fingerprints && !FLAG_precompiled_mode) {
@@ -1316,7 +1329,7 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
     return Api::CastIsolate(I);
   }
 
-  Dart::ShutdownIsolate();
+  Dart::ShutdownIsolate(T);
   return static_cast<Dart_Isolate>(nullptr);
 }
 
@@ -1485,7 +1498,7 @@ DART_EXPORT void Dart_ShutdownIsolate() {
 #endif
     Dart::RunShutdownCallback();
   }
-  Dart::ShutdownIsolate();
+  Dart::ShutdownIsolate(T);
 }
 
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
@@ -1571,18 +1584,14 @@ DART_EXPORT void Dart_EnterIsolate(Dart_Isolate isolate) {
   CHECK_NO_ISOLATE(Isolate::Current());
   // TODO(http://dartbug.com/16615): Validate isolate parameter.
   Isolate* iso = reinterpret_cast<Isolate*>(isolate);
-  if (!Thread::EnterIsolate(iso)) {
-    if (iso->IsScheduled()) {
-      FATAL(
-          "Isolate %s is already scheduled on mutator thread %p, "
-          "failed to schedule from os thread 0x%" Px "\n",
-          iso->name(), iso->scheduled_mutator_thread(),
-          OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
-    } else {
-      FATAL("Unable to enter isolate %s as Dart VM is shutting down",
-            iso->name());
-    }
+  if (iso->IsScheduled()) {
+    FATAL(
+        "Isolate %s is already scheduled on mutator thread %p, "
+        "failed to schedule from os thread 0x%" Px "\n",
+        iso->name(), iso->scheduled_mutator_thread(),
+        OSThread::ThreadIdToIntPtr(OSThread::GetCurrentThreadId()));
   }
+  Thread::EnterIsolate(iso);
   // A Thread structure has been associated to the thread, we do the
   // safepoint transition explicitly here instead of using the
   // TransitionXXX scope objects as the reverse transition happens
@@ -2543,15 +2552,8 @@ DART_EXPORT bool Dart_IsFuture(Dart_Handle handle) {
   API_TIMELINE_DURATION(T);
   const Object& obj = Object::Handle(Z, Api::UnwrapHandle(handle));
   if (obj.IsInstance()) {
-    ObjectStore* object_store = T->isolate_group()->object_store();
-    const Type& future_rare_type =
-        Type::Handle(Z, object_store->non_nullable_future_rare_type());
-    ASSERT(!future_rare_type.IsNull());
     const Class& obj_class = Class::Handle(Z, obj.clazz());
-    bool is_future = Class::IsSubtypeOf(
-        obj_class, Object::null_type_arguments(), Nullability::kNonNullable,
-        future_rare_type, Heap::kNew);
-    return is_future;
+    return obj_class.is_future_subtype();
   }
   return false;
 }
@@ -6419,11 +6421,25 @@ DART_EXPORT int64_t Dart_TimelineGetTicksFrequency() {
 
 DART_EXPORT void Dart_TimelineEvent(const char* label,
                                     int64_t timestamp0,
-                                    int64_t timestamp1_or_async_id,
+                                    int64_t timestamp1_or_id,
                                     Dart_Timeline_Event_Type type,
                                     intptr_t argument_count,
                                     const char** argument_names,
                                     const char** argument_values) {
+  Dart_RecordTimelineEvent(label, timestamp0, timestamp1_or_id,
+                           /*flow_id_count=*/0, /*flow_ids=*/nullptr, type,
+                           argument_count, argument_names, argument_values);
+}
+
+DART_EXPORT void Dart_RecordTimelineEvent(const char* label,
+                                          int64_t timestamp0,
+                                          int64_t timestamp1_or_id,
+                                          intptr_t flow_id_count,
+                                          const int64_t* flow_ids,
+                                          Dart_Timeline_Event_Type type,
+                                          intptr_t argument_count,
+                                          const char** argument_names,
+                                          const char** argument_values) {
 #if defined(SUPPORT_TIMELINE)
   if (type < Dart_Timeline_Event_Begin) {
     return;
@@ -6440,43 +6456,49 @@ DART_EXPORT void Dart_TimelineEvent(const char* label,
   if (event != nullptr) {
     switch (type) {
       case Dart_Timeline_Event_Begin:
-        // TODO(derekx): Dart_TimelineEvent() needs to be updated so that arrows
-        // corresponding to flow events reported by embedders get included in
-        // Perfetto traces.
-        event->Begin(label, timestamp1_or_async_id, timestamp0);
+        event->Begin(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_End:
-        event->End(label, timestamp1_or_async_id, timestamp0);
+        event->End(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Instant:
         event->Instant(label, timestamp0);
         break;
       case Dart_Timeline_Event_Duration:
-        event->Duration(label, timestamp0, timestamp1_or_async_id);
+        event->Duration(label, timestamp0, timestamp1_or_id);
         break;
       case Dart_Timeline_Event_Async_Begin:
-        event->AsyncBegin(label, timestamp1_or_async_id, timestamp0);
+        event->AsyncBegin(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Async_End:
-        event->AsyncEnd(label, timestamp1_or_async_id, timestamp0);
+        event->AsyncEnd(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Async_Instant:
-        event->AsyncInstant(label, timestamp1_or_async_id, timestamp0);
+        event->AsyncInstant(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Counter:
         event->Counter(label, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_Begin:
-        event->FlowBegin(label, timestamp1_or_async_id, timestamp0);
+        event->FlowBegin(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_Step:
-        event->FlowStep(label, timestamp1_or_async_id, timestamp0);
+        event->FlowStep(label, timestamp1_or_id, timestamp0);
         break;
       case Dart_Timeline_Event_Flow_End:
-        event->FlowEnd(label, timestamp1_or_async_id, timestamp0);
+        event->FlowEnd(label, timestamp1_or_id, timestamp0);
         break;
       default:
         FATAL("Unknown Dart_Timeline_Event_Type");
+    }
+    if (flow_id_count > 0 && flow_ids != nullptr) {
+      std::unique_ptr<const int64_t[]> flow_ids_copy;
+      int64_t* flow_ids_internal = new int64_t[flow_id_count];
+      for (intptr_t i = 0; i < flow_id_count; ++i) {
+        flow_ids_internal[i] = flow_ids[i];
+      }
+      flow_ids_copy = std::unique_ptr<const int64_t[]>(flow_ids_internal);
+      event->SetFlowIds(flow_id_count, flow_ids_copy);
     }
     event->SetNumArguments(argument_count);
     for (intptr_t i = 0; i < argument_count; i++) {
@@ -6578,7 +6600,8 @@ static void CreateAppAOTSnapshot(
   const bool generate_debug = debug_callback_data != nullptr;
 
   auto* const deobfuscation_trie =
-      strip ? nullptr : ImageWriter::CreateReverseObfuscationTrie(T);
+      (strip && !generate_debug) ? nullptr
+                                 : ImageWriter::CreateReverseObfuscationTrie(T);
 
   if (as_elf) {
     StreamingWriteStream elf_stream(kInitialSize, callback, callback_data);

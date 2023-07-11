@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -15,9 +15,9 @@ extension /* unnamed */ _extension#0 on self::A {
 extension /* unnamed */ _extension#1 on ({required foo: core::int}) {
   set foo = self::_extension#1|set#foo;
 }
-static method _extension#0|set#foo(lowered final self::A #this, core::int value) → void
+static extension-member method _extension#0|set#foo(lowered final self::A #this, core::int value) → void
   ;
-static method _extension#1|set#foo(lowered final({required foo: core::int}) #this, core::int value) → void
+static extension-member method _extension#1|set#foo(lowered final({required foo: core::int}) #this, core::int value) → void
   ;
 static method test(self::A a, ({required foo: core::int}) r) → dynamic
   ;

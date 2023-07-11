@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;
@@ -10,7 +10,7 @@ static const field core::Set<foo::Foo> foo = const <foo::Foo>{const bar::Bar::�
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as foo;
 import "dart:core" as core;
 import "bar_lib.dart" as bar;
@@ -20,15 +20,14 @@ import "org-dartlang-testcase:///bar_lib.dart";
 export "org-dartlang-testcase:///bar_lib.dart";
 
 abstract class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[foo::Foo::bar]/*isLegacy*/;
   const constructor •() → foo::Foo
     : super core::Object::•()
     ;
-  static factory bar() → foo::Foo
+  static factory bar() → foo::Foo /* redirection-target: bar::Bar::•<dynamic>*/
     return new bar::Bar::•<dynamic>();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as bar;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;
@@ -44,5 +43,4 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 
 Extra constant evaluation status:
 Evaluated: SetLiteral @ org-dartlang-testcase:///main.dart:7:27 -> SetConstant(const <Foo*>{const Bar<dynamic>{}})
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///foo_lib.dart:9:16 -> ConstructorTearOffConstant(Foo.bar)
-Extra constant evaluation: evaluated: 4, effectively constant: 2
+Extra constant evaluation: evaluated: 2, effectively constant: 1

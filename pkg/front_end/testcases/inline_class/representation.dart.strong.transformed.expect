@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -42,24 +42,24 @@ inline class Duplicate /* declaredRepresentationType = core::bool */ {
   tearoff • = self::Duplicate|_#new#tearOff;
 }
 static field core::int Static|staticField = 42;
-static method Static|(core::bool instanceField) → self::Static {
+static inline-class-member method Static|(core::bool instanceField) → self::Static {
   lowered final self::Static #this = instanceField;
   return #this;
 }
-static method Static|_#new#tearOff(core::bool instanceField) → self::Static
+static inline-class-member method Static|_#new#tearOff(core::bool instanceField) → self::Static
   return self::Static|(instanceField);
-static method Multiple|(core::bool instanceField1) → self::Multiple {
+static inline-class-member method Multiple|(core::bool instanceField1) → self::Multiple {
   lowered final self::Multiple #this = instanceField1;
   return #this;
 }
-static method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple
+static inline-class-member method Multiple|_#new#tearOff(core::bool instanceField1) → self::Multiple
   return self::Multiple|(instanceField1);
-static method Duplicate|(core::int instanceField) → self::Duplicate {
+static inline-class-member method Duplicate|(core::int instanceField) → self::Duplicate {
   lowered final self::Duplicate #this;
   final dynamic #t1 = invalid-expression "pkg/front_end/testcases/inline_class/representation.dart:25:18: Error: Can't use 'instanceField' because it is declared more than once.
   Duplicate(this.instanceField);
                  ^^^^^^^^^^^^^";
   return #this;
 }
-static method Duplicate|_#new#tearOff(core::int instanceField) → self::Duplicate
+static inline-class-member method Duplicate|_#new#tearOff(core::int instanceField) → self::Duplicate
   return self::Duplicate|(instanceField);

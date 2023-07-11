@@ -122,30 +122,6 @@ class SignatureHelpTest extends AbstractLspAnalysisServerTest
     }
   }
 
-  /// Checks whether the correct types of documentation are returned in
-  /// signature help for type arguments based on [preference].
-  Future<void> assertTypeArgsDocumentation(
-    String? preference, {
-    required bool includesSummary,
-    required bool includesFull,
-  }) {
-    final content = '''
-    /// Summary.
-    ///
-    /// Full.
-    class A<T> {}
-
-    A<^>;
-    ''';
-
-    return assertDocumentation(
-      preference,
-      content,
-      includesSummary: includesSummary,
-      includesFull: includesFull,
-    );
-  }
-
   Future<void> test_dartDocMacro() async {
     final content = '''
     /// {@template template_name}

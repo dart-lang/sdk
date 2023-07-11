@@ -5,8 +5,6 @@
 // Test that exhaustiveness handles sealed type hierarchies that aren't strict
 // trees.
 
-// SharedOptions=--enable-experiment=patterns,sealed-class
-
 // Create a class hierarchy like:
 //
 //     (A)

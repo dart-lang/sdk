@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -28,11 +28,11 @@ extension /* unnamed */ _extension#0 on core::Symbol {
   method call = self::_extension#0|call;
   tearoff call = self::_extension#0|get#call;
 }
-static method _extension#0|>(lowered final core::Symbol #this, dynamic _) → core::String
+static extension-member method _extension#0|>(lowered final core::Symbol #this, dynamic _) → core::String
   ;
-static method _extension#0|call(lowered final core::Symbol #this, dynamic _) → core::String
+static extension-member method _extension#0|call(lowered final core::Symbol #this, dynamic _) → core::String
   ;
-static method _extension#0|get#call(lowered final core::Symbol #this) → (dynamic) → core::String
+static extension-member method _extension#0|get#call(lowered final core::Symbol #this) → (dynamic) → core::String
   return (dynamic _) → core::String => self::_extension#0|call(#this, _);
 static method main() → dynamic
   ;

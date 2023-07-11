@@ -1,6 +1,6 @@
 @test::a
 @test::A::•(1)
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 

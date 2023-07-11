@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -44,9 +44,9 @@ static method test() → dynamic {
   core::List<core::int*>* y_dynamic_explicit = a_dynamic.{self::A::y} = core::_GrowableList::_literal1<core::int*>(0);
   core::List<core::int*>* x_int_downward = a_int.{self::A::x} = core::_GrowableList::_literal1<core::int*>(0);
   core::List<core::int*>* y_int_downward = a_int.{self::A::y} = core::_GrowableList::_literal1<core::int*>(0);
-  core::List<core::int*>* x_object_downward = (a_object.{self::A::x} = core::_GrowableList::_literal1<core::Object*>(0)) as{TypeError} core::List<core::int*>*;
-  core::List<core::int*>* y_object_downward = (a_object.{self::A::y} = core::_GrowableList::_literal1<core::Object*>(0)) as{TypeError} core::List<core::int*>*;
-  core::List<core::int*>* x_dynamic_downward = (a_dynamic.{self::A::x} = core::_GrowableList::_literal1<dynamic>(0)) as{TypeError} core::List<core::int*>*;
-  core::List<core::int*>* y_dynamic_downward = (a_dynamic.{self::A::y} = core::_GrowableList::_literal1<dynamic>(0)) as{TypeError} core::List<core::int*>*;
+  core::List<core::int*>* x_object_downward = (a_object.{self::A::x} = core::_GrowableList::_literal1<core::Object*>(0)) as{TypeError,ForLegacy} core::List<core::int*>*;
+  core::List<core::int*>* y_object_downward = (a_object.{self::A::y} = core::_GrowableList::_literal1<core::Object*>(0)) as{TypeError,ForLegacy} core::List<core::int*>*;
+  core::List<core::int*>* x_dynamic_downward = (a_dynamic.{self::A::x} = core::_GrowableList::_literal1<dynamic>(0)) as{TypeError,ForLegacy} core::List<core::int*>*;
+  core::List<core::int*>* y_dynamic_downward = (a_dynamic.{self::A::y} = core::_GrowableList::_literal1<dynamic>(0)) as{TypeError,ForLegacy} core::List<core::int*>*;
 }
 static method main() → dynamic {}

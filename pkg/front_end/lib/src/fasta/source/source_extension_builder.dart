@@ -133,6 +133,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       case BuiltMemberKind.InlineClassOperator:
       case BuiltMemberKind.InlineClassTearOff:
       case BuiltMemberKind.InlineClassFactory:
+      case BuiltMemberKind.InlineClassRedirectingFactory:
         unhandled("${member.runtimeType}:${memberKind}", "buildMembers",
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
@@ -157,8 +158,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
         kind = ExtensionMemberKind.TearOff;
         break;
     }
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
     extension.members.add(new ExtensionMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,

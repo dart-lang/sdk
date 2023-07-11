@@ -10,7 +10,6 @@ import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyBase;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/norm.dart';
-import 'package:kernel/src/redirecting_factory_body.dart';
 import 'package:kernel/type_environment.dart';
 
 import '../../base/instrumentation.dart' show Instrumentation;
@@ -319,16 +318,16 @@ abstract class TypeInferenceEngine {
 
   static Procedure _findSetFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Set', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 
   static Procedure _findMapFactory(CoreTypes coreTypes, String name) {
     Procedure factory = coreTypes.index.getProcedure('dart:core', 'Map', name);
-    RedirectingFactoryBody body =
-        factory.function.body as RedirectingFactoryBody;
-    return body.target as Procedure;
+    RedirectingFactoryTarget redirectingFactoryTarget =
+        factory.function.redirectingFactoryTarget!;
+    return redirectingFactoryTarget.target as Procedure;
   }
 }
 
@@ -460,7 +459,7 @@ class OperationsCfe
     implements Operations<VariableDeclaration, DartType> {
   final TypeEnvironment typeEnvironment;
 
-  final bool isNonNullableByDefault;
+  final Nullability nullability;
 
   /// If `null`, field promotion is disabled for this library.  If not `null`,
   /// field promotion is enabled for this library and this is the set of private
@@ -473,11 +472,14 @@ class OperationsCfe
   final Map<DartType, DartType> typeCacheLegacy;
 
   OperationsCfe(this.typeEnvironment,
-      {required this.isNonNullableByDefault,
+      {required this.nullability,
       this.unpromotablePrivateFieldNames,
       required this.typeCacheNonNullable,
       required this.typeCacheNullable,
       required this.typeCacheLegacy});
+
+  @override
+  DartType get boolType => typeEnvironment.coreTypes.boolRawType(nullability);
 
   @override
   TypeClassification classifyType(DartType? type) {
@@ -616,7 +618,7 @@ class OperationsCfe
 
   @override
   bool isAssignableTo(DartType fromType, DartType toType) {
-    if (isNonNullableByDefault) {
+    if (nullability == Nullability.nonNullable) {
       if (fromType is DynamicType) return true;
       return typeEnvironment
           .performNullabilityAwareSubtypeCheck(fromType, toType)
@@ -669,7 +671,7 @@ class OperationsCfe
     } else {
       InterfaceType? mapType = typeEnvironment.getTypeAsInstanceOf(
           type, typeEnvironment.coreTypes.mapClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (mapType == null) {
         return null;
       } else {
@@ -714,7 +716,7 @@ class OperationsCfe
     } else {
       InterfaceType? interfaceType = typeEnvironment.getTypeAsInstanceOf(type,
           typeEnvironment.coreTypes.iterableClass, typeEnvironment.coreTypes,
-          isNonNullableByDefault: isNonNullableByDefault);
+          isNonNullableByDefault: nullability == Nullability.nonNullable);
       if (interfaceType == null) {
         return null;
       } else {

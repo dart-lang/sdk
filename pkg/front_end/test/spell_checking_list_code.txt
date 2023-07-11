@@ -193,6 +193,7 @@ caret
 carets
 carriage
 carrying
+cascade's
 cascades
 casing
 cast
@@ -381,6 +382,7 @@ dereferencing
 deregister
 descent
 descriptive
+deserializable
 deserializer
 deserializers
 deserializes
@@ -439,6 +441,7 @@ downloading
 dq
 dquote
 drawn
+ds
 dsdk
 dst
 dummy
@@ -582,6 +585,7 @@ foo
 foobar
 footer
 forcefully
+forcibly
 forcing
 foreign
 formed
@@ -639,6 +643,7 @@ growth
 gt
 guarantee
 guarded
+guides
 gypi
 gz
 gzip
@@ -729,6 +734,7 @@ inequivalences
 inequivalent
 inferable
 influence
+influences
 informative
 infos
 inhabit
@@ -751,6 +757,7 @@ integrate
 intends
 intention
 intentionally
+interacts
 interested
 interfere
 interim
@@ -846,6 +853,7 @@ lf
 lhs
 lib
 libs
+lifecycle
 lifetime
 lift
 lifted
@@ -891,6 +899,7 @@ maintaining
 malbounded
 manage
 mangled
+manipulating
 manipulation
 manipulations
 manner
@@ -900,6 +909,7 @@ masks
 master
 matchers
 materialize
+materializes
 matters
 mature
 mb
@@ -1070,6 +1080,7 @@ perf
 permanently
 permit
 permits
+persist
 pertinent
 physically
 pi
@@ -1087,6 +1098,7 @@ pointwise
 polluted
 polymorphism
 pool
+poorly
 popped
 pos
 possibility
@@ -1208,6 +1220,7 @@ rebuilt
 recalculating
 recalculation
 recall
+recalls
 received
 receivers
 recheck
@@ -1240,10 +1253,12 @@ reflectee
 reflective
 refutable
 reg
+regard
 regenerations
 regis
 registering
 rehash
+reified
 reindexed
 reinstate
 reissued
@@ -1289,6 +1304,7 @@ restriction
 restricts
 resumed
 ret
+retrieval
 reusage
 reversible
 rewinds
@@ -1771,6 +1787,7 @@ wiki
 wikipedia
 wind
 winds
+wire
 wise
 wiser
 wishes

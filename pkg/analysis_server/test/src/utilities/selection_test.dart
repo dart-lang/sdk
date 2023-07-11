@@ -3,14 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/utilities/selection.dart';
-import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../abstract_single_unit.dart';
+import '../../services/completion/dart/text_expectations.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -20,30 +18,11 @@ void main() {
 
 @reflectiveTest
 class SelectionTest extends AbstractSingleUnitTest {
-  @override
-  List<String> get experiments => [
-        ...super.experiments,
-        EnableString.patterns,
-      ];
-
-  Future<void> assertMembers(
-      {String prefix = '', required String postfix}) async {
-    var nodes = await nodesInRange('''
-$prefix
-  int x = 0;
-  [!void m1() {}
-  int y = 1;!]
-  void m2() {}
-$postfix
-''');
-    expect(nodes, hasLength(2));
-    nodes[0] as MethodDeclaration;
-    nodes[1] as FieldDeclaration;
-  }
-
-  Future<void> assertMetadata(
-      {String prefix = '', required String postfix}) async {
-    var nodes = await nodesInRange('''
+  Future<void> assertMetadata({
+    String prefix = '',
+    required String postfix,
+  }) async {
+    final selection = await _computeSelection('''
 $prefix
 @a
 [!@b
@@ -55,35 +34,34 @@ const b = 2;
 const c = 3;
 const d = 4;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Annotation).name.name, 'b');
-    expect((nodes[1] as Annotation).name.name, 'c');
-  }
-
-  Future<List<AstNode>> nodesInRange(String sourceCode) async {
-    var range = await _range(sourceCode);
-    var selection =
-        testUnit.select(offset: range.offset, length: range.length)!;
-    return selection.nodesInRange();
+    _assertSelection(selection, r'''
+nodesInRange
+  AnnotationImpl: @b
+  AnnotationImpl: @c
+''');
   }
 
   Future<void> test_adjacentStrings_strings() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var s = 'a' [!'b' 'c'!] 'd';
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as StringLiteral).stringValue, 'b');
-    expect((nodes[1] as StringLiteral).stringValue, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleStringLiteralImpl: 'b'
+  SimpleStringLiteralImpl: 'c'
+''');
   }
 
   Future<void> test_argumentList_arguments() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var v = f('0', [!1, 2.0!], '3');
 int f(a, b, c, d) => 0;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as IntegerLiteral).value, 1);
-    expect((nodes[1] as DoubleLiteral).value, 2.0);
+    _assertSelection(selection, r'''
+nodesInRange
+  IntegerLiteralImpl: 1
+  DoubleLiteralImpl: 2.0
+''');
   }
 
   @FailingTest(reason: 'Augmentation libraries appear to not be supported.')
@@ -96,29 +74,341 @@ import augment 'a.dart';
 ''');
   }
 
-  Future<void> test_block_statements() async {
-    var nodes = await nodesInRange('''
+  /// B01: between 0 and 1, no touch
+  Future<void> test_block_statements_B01_B01() async {
+    final selection = await _computeSelection('''
 void f() {
-  var v = 0;
-  [!if (v < 0) v++;
-  while (v > 0) v--;!]
-  print(v);
+  000;
+ [! !] 111;
+  222;
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as IfStatement;
-    nodes[1] as WhileStatement;
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// B01: between 0 and 1, no touch
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_B01_E2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+ [! 111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// B01: between 0 and 1, no touch
+  /// TB1: touch begin of 1
+  Future<void> test_block_statements_B01_TB1() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+ [! !]111;
+  222;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// B0: before 0
+  Future<void> test_block_statements_B0_B0() async {
+    final selection = await _computeSelection('''
+void f() {
+ [! !] 000;
+  111;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// B12: between 1 and 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_B12_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [! 222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// BB0: before begin of 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_BB0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+[!  000;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I0: inside 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  0[!00;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I1: inside 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  1[!11;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// I2: inside 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_I2_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  2[!22;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// TB0: touch begin of 0
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB0_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  [!000;
+  111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 000;
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// A3: after 3
+  Future<void> test_block_statements_TB1_A3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+  333; !]
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+  ExpressionStatementImpl: 333;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// B23: before 2 and 3
+  Future<void> test_block_statements_TB1_B23() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+ !] 333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2TB3: touch end of 2, touch begin of 3
+  Future<void> test_block_statements_TB1_TE2TB3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;!]333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB1: touch begin of 1
+  /// TE2: touch end 3
+  Future<void> test_block_statements_TB1_TE3() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  [!111;
+  222;
+  333;!]
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+  ExpressionStatementImpl: 333;
+''');
+  }
+
+  /// TB2: touch begin of 2
+  /// B23: between 2 and 3
+  Future<void> test_block_statements_TB2_B23() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [!222; !]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TB2: touch begin of 2
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TB2_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;
+  [!222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
+  }
+
+  /// TE0TB1: touch end of 0, touch begin of 1
+  /// TE2: touch end of 2
+  Future<void> test_block_statements_TE0TB1_TE2() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;[!111;
+  222;!]
+  333;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  ExpressionStatementImpl: 111;
+  ExpressionStatementImpl: 222;
+''');
+  }
+
+  /// TE2: touch end of 2
+  /// B12: between 1 and 2, no touch
+  Future<void> test_block_statements_TE1_B12() async {
+    final selection = await _computeSelection('''
+void f() {
+  000;
+  111;[! !]
+  222;
+}
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+''');
   }
 
   Future<void> test_cascadeExpression_cascadeSections() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(y) {
   var x = y..a()[!..b..c()!]..d;
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as PropertyAccess;
-    nodes[1] as MethodInvocation;
+    _assertSelection(selection, r'''
+nodesInRange
+  PropertyAccessImpl: ..b
+  MethodInvocationImpl: ..c()
+''');
   }
 
   Future<void> test_classTypeAlias_metadata() async {
@@ -130,40 +420,46 @@ mixin M {}
   }
 
   Future<void> test_compilationUnit_declarations() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 typedef F = void Function();
 [!var x = 0;
 void f() {}!]
 class C {}
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as TopLevelVariableDeclaration;
-    nodes[1] as FunctionDeclaration;
+    _assertSelection(selection, r'''
+nodesInRange
+  TopLevelVariableDeclarationImpl: var x = 0;
+  FunctionDeclarationImpl: void f() {}
+''');
   }
 
   Future<void> test_compilationUnit_directives() async {
     newFile('$testPackageLibPath/a.dart', "part of 'test.dart';");
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 library l;
 [!import '';
 export '';!]
 part 'a.dart';
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as ImportDirective;
-    nodes[1] as ExportDirective;
+    _assertSelection(selection, r'''
+nodesInRange
+  ImportDirectiveImpl: import '';
+  ExportDirectiveImpl: export '';
+''');
   }
 
   Future<void> test_constructorDeclaration_initializers() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 class C {
   int a, b, c, d;
   C() : a = 0, [!b = 1, c = 2,!] d = 4;
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as ConstructorFieldInitializer).fieldName.name, 'b');
-    expect((nodes[1] as ConstructorFieldInitializer).fieldName.name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  ConstructorFieldInitializerImpl: b = 1
+  ConstructorFieldInitializerImpl: c = 2
+''');
   }
 
   Future<void> test_constructorDeclaration_metadata() async {
@@ -194,12 +490,14 @@ int x = 0]) {}
   }
 
   Future<void> test_dottedName_components() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 library a.[!b.c!].d;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SimpleIdentifier).name, 'b');
-    expect((nodes[1] as SimpleIdentifier).name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleIdentifierImpl: b
+  SimpleIdentifierImpl: c
+''');
   }
 
   Future<void> test_enumConstantDeclaration_metadata() async {
@@ -211,16 +509,18 @@ a }
   }
 
   Future<void> test_enumDeclaration_constants() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 enum E { a, [!b, c!], d }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as EnumConstantDeclaration).name.lexeme, 'b');
-    expect((nodes[1] as EnumConstantDeclaration).name.lexeme, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  EnumConstantDeclarationImpl: b
+  EnumConstantDeclarationImpl: c
+''');
   }
 
   Future<void> test_enumDeclaration_members() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 enum E {
   a;
   final int x = 0;
@@ -229,9 +529,11 @@ enum E {
   void m2() {}
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as MethodDeclaration;
-    nodes[1] as FieldDeclaration;
+    _assertSelection(selection, r'''
+nodesInRange
+  MethodDeclarationImpl: void m1() {}
+  FieldDeclarationImpl: final int y = 1;
+''');
   }
 
   Future<void> test_enumDeclaration_metadata() async {
@@ -244,21 +546,25 @@ enum E { a }
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 export 'a.dart' show a [!hide b show c!] hide d;
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as HideCombinator;
-    nodes[1] as ShowCombinator;
+    _assertSelection(selection, r'''
+nodesInRange
+  HideCombinatorImpl: hide b
+  ShowCombinatorImpl: show c
+''');
   }
 
   Future<void> test_exportDirective_configurations() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 export '' if (a) '' [!if (b) '' if (c) ''!] if (d) '';
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Configuration).name.toSource(), 'b');
-    expect((nodes[1] as Configuration).name.toSource(), 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  ConfigurationImpl: if (b) ''
+  ConfigurationImpl: if (c) ''
+''');
   }
 
   Future<void> test_exportDirective_metadata() async {
@@ -271,7 +577,7 @@ export 'a.dart';
   }
 
   Future<void> test_extensionDeclaration_members() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 extension on int {
   static int x = 0;
   [!void m1() {}
@@ -279,9 +585,11 @@ extension on int {
   void m2() {}
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as MethodDeclaration;
-    nodes[1] as FieldDeclaration;
+    _assertSelection(selection, r'''
+nodesInRange
+  MethodDeclarationImpl: void m1() {}
+  FieldDeclarationImpl: static int y = 1;
+''');
   }
 
   Future<void> test_extensionDeclaration_metadata() async {
@@ -321,62 +629,74 @@ void f(List<(int, int)> r) {
   }
 
   Future<void> test_formalParameterList_parameters_mixed() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(a, [!b, {c!], d}) {}
 ''');
-    expect(nodes, isEmpty);
+    _assertSelection(selection, r'''
+nodesInRange
+''');
   }
 
   Future<void> test_formalParameterList_parameters_named() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f({a, [!b, c!], d}) {}
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as FormalParameter).name?.lexeme, 'b');
-    expect((nodes[1] as FormalParameter).name?.lexeme, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  DefaultFormalParameterImpl: b
+  DefaultFormalParameterImpl: c
+''');
   }
 
   Future<void> test_formalParameterList_parameters_positional() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(a, [!b, c!], d) {}
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as FormalParameter).name?.lexeme, 'b');
-    expect((nodes[1] as FormalParameter).name?.lexeme, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleFormalParameterImpl: b
+  SimpleFormalParameterImpl: c
+''');
   }
 
   Future<void> test_forPartsWithDeclarations_updaters() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f() {
   for (var x = 0; x < 0; x++, [!x--, ++x!], --x) {}
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as PostfixExpression;
-    nodes[1] as PrefixExpression;
+    _assertSelection(selection, r'''
+nodesInRange
+  PostfixExpressionImpl: x--
+  PrefixExpressionImpl: ++x
+''');
   }
 
   Future<void> test_forPartsWithExpression_updaters() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f() {
   var x;
   for (x = 0; x < 0; x++, [!x--, ++x!], --x) {}
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as PostfixExpression;
-    nodes[1] as PrefixExpression;
+    _assertSelection(selection, r'''
+nodesInRange
+  PostfixExpressionImpl: x--
+  PrefixExpressionImpl: ++x
+''');
   }
 
   Future<void> test_forPartsWithPattern_updaters() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f() {
   for (var (x, y) = (0, 0); x < 0; x++, [!x--, ++x!], --x) {}
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as PostfixExpression;
-    nodes[1] as PrefixExpression;
+    _assertSelection(selection, r'''
+nodesInRange
+  PostfixExpressionImpl: x--
+  PrefixExpressionImpl: ++x
+''');
   }
 
   Future<void> test_functionDeclaration_metadata() async {
@@ -409,49 +729,57 @@ typedef F = void Function();
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 import 'a.dart' hide a, [!b, c!], d;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SimpleIdentifier).name, 'b');
-    expect((nodes[1] as SimpleIdentifier).name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleIdentifierImpl: b
+  SimpleIdentifierImpl: c
+''');
   }
 
   Future<void> test_implementsClause_interfaces() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 class A implements B, [!C, D!], E {}
 class B {}
 class C {}
 class D {}
 class E {}
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as NamedType).name2.lexeme, 'C');
-    expect((nodes[1] as NamedType).name2.lexeme, 'D');
+    _assertSelection(selection, r'''
+nodesInRange
+  NamedTypeImpl: C
+  NamedTypeImpl: D
+''');
   }
 
   Future<void> test_importDirective_combinators() async {
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 import 'a.dart' show a [!hide b show c!] hide d;
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as HideCombinator;
-    nodes[1] as ShowCombinator;
+    _assertSelection(selection, r'''
+nodesInRange
+  HideCombinatorImpl: hide b
+  ShowCombinatorImpl: show c
+''');
   }
 
   Future<void> test_importDirective_configurations() async {
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 import 'a.dart' if (a) '' [!if (b) '' if (c) ''!] if (d) '';
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Configuration).name.toSource(), 'b');
-    expect((nodes[1] as Configuration).name.toSource(), 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  ConfigurationImpl: if (b) ''
+  ConfigurationImpl: if (c) ''
+''');
   }
 
   Future<void> test_importDirective_metadata() async {
@@ -464,7 +792,7 @@ import 'a.dart';
   }
 
   Future<void> test_labeledStatement_labels() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f() {
   a: [!b: c:!] d: while (true) {
     if (1 < 2) {
@@ -479,9 +807,11 @@ void f() {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Label).label.name, 'b');
-    expect((nodes[1] as Label).label.name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  LabelImpl: b:
+  LabelImpl: c:
+''');
   }
 
   @FailingTest(reason: 'The parser fails')
@@ -498,25 +828,29 @@ library l;
   }
 
   Future<void> test_libraryIdentifier_components() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 library a.[!b.c!].d;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SimpleIdentifier).name, 'b');
-    expect((nodes[1] as SimpleIdentifier).name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleIdentifierImpl: b
+  SimpleIdentifierImpl: c
+''');
   }
 
   Future<void> test_listLiteral_elements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var l = ['0', [!1, 2.0!], '3'];
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as IntegerLiteral;
-    nodes[1] as DoubleLiteral;
+    _assertSelection(selection, r'''
+nodesInRange
+  IntegerLiteralImpl: 1
+  DoubleLiteralImpl: 2.0
+''');
   }
 
   Future<void> test_listPattern_elements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(x) {
   switch (x) {
     case [1, [!2, 3!], 4]:
@@ -524,13 +858,15 @@ void f(x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), '2');
-    expect(nodes[1].toSource(), '3');
+    _assertSelection(selection, r'''
+nodesInRange
+  ConstantPatternImpl: 2
+  ConstantPatternImpl: 3
+''');
   }
 
   Future<void> test_mapPattern_entries() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(x) {
   switch (x) {
     case {'a': 1, [!'b': 2, 'c': 3!], 'd': 4}:
@@ -538,9 +874,11 @@ void f(x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), "'b': 2");
-    expect(nodes[1].toSource(), "'c': 3");
+    _assertSelection(selection, r'''
+nodesInRange
+  MapPatternEntryImpl: 'b': 2
+  MapPatternEntryImpl: 'c': 3
+''');
   }
 
   Future<void> test_methodDeclaration_metadata() async {
@@ -553,10 +891,18 @@ class C {
   }
 
   Future<void> test_mixinDeclaration_members() async {
-    await assertMembers(prefix: '''
+    final selection = await _computeSelection('''
 mixin M {
-''', postfix: '''
+  int x = 0;
+  [!void m1() {}
+  int y = 1;!]
+  void m2() {}
 }
+''');
+    _assertSelection(selection, r'''
+nodesInRange
+  MethodDeclarationImpl: void m1() {}
+  FieldDeclarationImpl: int y = 1;
 ''');
   }
 
@@ -567,7 +913,7 @@ mixin M {}
   }
 
   Future<void> test_objectPattern_fields() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(C x) {
   switch (x) {
     case C(a: 1, [!b: 2, c: 3!], d: 4):
@@ -578,22 +924,26 @@ class C {
   int a = 1, b = 2, c = 3, d = 4;
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'b: 2');
-    expect(nodes[1].toSource(), 'c: 3');
+    _assertSelection(selection, r'''
+nodesInRange
+  PatternFieldImpl: b: 2
+  PatternFieldImpl: c: 3
+''');
   }
 
   Future<void> test_onClause_superclassConstraints() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 mixin M on A, [!B, C!], D {}
 class A {}
 class B {}
 class C {}
 class D {}
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'B');
-    expect(nodes[1].toSource(), 'C');
+    _assertSelection(selection, r'''
+nodesInRange
+  NamedTypeImpl: B
+  NamedTypeImpl: C
+''');
   }
 
   Future<void> test_partDirective_metadata() async {
@@ -619,16 +969,18 @@ void f((int, int) r) {
   }
 
   Future<void> test_recordLiteral_fields() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var r = ('0', [!1, 2.0!], '3');
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as IntegerLiteral).value, 1);
-    expect((nodes[1] as DoubleLiteral).value, 2.0);
+    _assertSelection(selection, r'''
+nodesInRange
+  IntegerLiteralImpl: 1
+  DoubleLiteralImpl: 2.0
+''');
   }
 
   Future<void> test_recordPattern_fields() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f((String, int, double, String) x) {
   switch (x) {
     case ('0', [!1, 2.0!], '3'):
@@ -636,18 +988,22 @@ void f((String, int, double, String) x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), '1');
-    expect(nodes[1].toSource(), '2.0');
+    _assertSelection(selection, r'''
+nodesInRange
+  PatternFieldImpl: 1
+  PatternFieldImpl: 2.0
+''');
   }
 
   Future<void> test_recordTypeAnnotation_positionalFields() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 (int, [!String, int!], String) r = (0, '1', 2, '3');
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'String');
-    expect(nodes[1].toSource(), 'int');
+    _assertSelection(selection, r'''
+nodesInRange
+  RecordTypeAnnotationPositionalFieldImpl: String
+  RecordTypeAnnotationPositionalFieldImpl: int
+''');
   }
 
   Future<void> test_recordTypeAnnotationNamedField_metadata() async {
@@ -659,12 +1015,14 @@ int x}) r) {}
   }
 
   Future<void> test_recordTypeAnnotationNamedFields_fields() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 ({int a, [!String b, int c!], String d}) r = (a: 0, b: '1', c: 2, d:'3');
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'String b');
-    expect(nodes[1].toSource(), 'int c');
+    _assertSelection(selection, r'''
+nodesInRange
+  RecordTypeAnnotationNamedFieldImpl: String b
+  RecordTypeAnnotationNamedFieldImpl: int c
+''');
   }
 
   Future<void> test_recordTypeAnnotationPositionalField_metadata() async {
@@ -676,24 +1034,28 @@ int) r) {}
   }
 
   Future<void> test_setOrMapLiteral_elements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var s = {'0', [!1, 2.0!], '3'};
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as IntegerLiteral).value, 1);
-    expect((nodes[1] as DoubleLiteral).value, 2.0);
+    _assertSelection(selection, r'''
+nodesInRange
+  IntegerLiteralImpl: 1
+  DoubleLiteralImpl: 2.0
+''');
   }
 
   Future<void> test_showCombinator_shownNames() async {
     newFile('$testPackageLibPath/a.dart', '''
 int a, b, c, d;
 ''');
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 import 'a.dart' show a, [!b, c!], d;
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SimpleIdentifier).name, 'b');
-    expect((nodes[1] as SimpleIdentifier).name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  SimpleIdentifierImpl: b
+  SimpleIdentifierImpl: c
+''');
   }
 
   Future<void> test_simpleFormalParameter_metadata() async {
@@ -705,14 +1067,16 @@ int x) {}
   }
 
   Future<void> test_stringInterpolation_elements() async {
-    var nodes = await nodesInRange(r'''
+    final selection = await _computeSelection(r'''
 void f(cd, gh) {
   var s = 'ab${c[!d}e!]f${gh}';
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as InterpolationExpression;
-    nodes[1] as InterpolationString;
+    _assertSelection(selection, r'''
+nodesInRange
+  InterpolationExpressionImpl: ${cd}
+  InterpolationStringImpl: ef
+''');
   }
 
   Future<void> test_superFormalParameter_metadata() async {
@@ -729,7 +1093,7 @@ class B {
   }
 
   Future<void> test_switchCase_labels() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(int x) {
   switch (x) {
     a: [!b: c!]: d: case 3: continue a;
@@ -739,13 +1103,15 @@ void f(int x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Label).label.name, 'b');
-    expect((nodes[1] as Label).label.name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  LabelImpl: b:
+  LabelImpl: c:
+''');
   }
 
   Future<void> test_switchCase_statements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(int x) {
   switch (x) {
     case 3:
@@ -757,13 +1123,15 @@ void f(int x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as IfStatement;
-    nodes[1] as WhileStatement;
+    _assertSelection(selection, r'''
+nodesInRange
+  IfStatementImpl: if (v < 0) v++;
+  WhileStatementImpl: while (v > 0) v--;
+''');
   }
 
   Future<void> test_switchDefault_labels() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(int x) {
   switch (x) {
     case 4: continue b;
@@ -773,13 +1141,15 @@ void f(int x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Label).label.name, 'b');
-    expect((nodes[1] as Label).label.name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  LabelImpl: b:
+  LabelImpl: c:
+''');
   }
 
   Future<void> test_switchDefault_statements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(int x) {
   switch (x) {
     default:
@@ -791,13 +1161,15 @@ void f(int x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as IfStatement;
-    nodes[1] as WhileStatement;
+    _assertSelection(selection, r'''
+nodesInRange
+  IfStatementImpl: if (v < 0) v++;
+  WhileStatementImpl: while (v > 0) v--;
+''');
   }
 
   Future<void> test_switchExpression_members() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 String f(int x) {
   return switch (x) {
     1 => '1',
@@ -808,13 +1180,15 @@ String f(int x) {
   };
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SwitchExpressionCase).expression.toSource(), "'2'");
-    expect((nodes[1] as SwitchExpressionCase).expression.toSource(), "'3'");
+    _assertSelection(selection, r'''
+nodesInRange
+  SwitchExpressionCaseImpl: 2 => '2'
+  SwitchExpressionCaseImpl: 3 => '3'
+''');
   }
 
   Future<void> test_switchPatternCase_labels() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f((int, int) x) {
   switch (x) {
     a: [!b: c!]: d: case (1, 2): continue a;
@@ -824,13 +1198,15 @@ void f((int, int) x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as Label).label.name, 'b');
-    expect((nodes[1] as Label).label.name, 'c');
+    _assertSelection(selection, r'''
+nodesInRange
+  LabelImpl: b:
+  LabelImpl: c:
+''');
   }
 
   Future<void> test_switchPatternCase_statements() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f((int, int) r) {
   switch (r) {
     case (1, 2):
@@ -842,13 +1218,15 @@ void f((int, int) r) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    nodes[0] as IfStatement;
-    nodes[1] as WhileStatement;
+    _assertSelection(selection, r'''
+nodesInRange
+  IfStatementImpl: if (v < 0) v++;
+  WhileStatementImpl: while (v > 0) v--;
+''');
   }
 
   Future<void> test_switchStatement_members() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f(int x) {
   switch (x) {
     case 1:
@@ -862,9 +1240,11 @@ void f(int x) {
   }
 }
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as SwitchPatternCase).guardedPattern.toSource(), '2');
-    expect((nodes[1] as SwitchPatternCase).guardedPattern.toSource(), '3');
+    _assertSelection(selection, r'''
+nodesInRange
+  SwitchPatternCaseImpl: case 2:\n      break;
+  SwitchPatternCaseImpl: case 3:\n      break;
+''');
   }
 
   Future<void> test_topLevelVariableDeclaration_metadata() async {
@@ -874,7 +1254,7 @@ int x = 0;
   }
 
   Future<void> test_tryStatement_catchClauses() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 void f() {
   try {
   } on A {
@@ -888,22 +1268,26 @@ class B {}
 class C {}
 class D {}
 ''');
-    expect(nodes, hasLength(2));
-    expect((nodes[0] as CatchClause).exceptionType?.toSource(), 'B');
-    expect((nodes[1] as CatchClause).exceptionType?.toSource(), 'C');
+    _assertSelection(selection, r'''
+nodesInRange
+  CatchClauseImpl: on B {\n  }
+  CatchClauseImpl: on C {\n  }
+''');
   }
 
   Future<void> test_typeArgumentList_arguments() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 C<A, [!B, C!], D> c = C();
 class A {}
 class B {}
 class C<Q, R, S, T> {}
 class D {}
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'B');
-    expect(nodes[1].toSource(), 'C');
+    _assertSelection(selection, r'''
+nodesInRange
+  NamedTypeImpl: B
+  NamedTypeImpl: C
+''');
   }
 
   Future<void> test_typeParameter_metadata() async {
@@ -915,12 +1299,14 @@ T> {}
   }
 
   Future<void> test_typeParameterList_typeParameters() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 class C<A, [!B, D!], E> {}
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'B');
-    expect(nodes[1].toSource(), 'D');
+    _assertSelection(selection, r'''
+nodesInRange
+  TypeParameterImpl: B
+  TypeParameterImpl: D
+''');
   }
 
   Future<void> test_variableDeclarationList_metadata() async {
@@ -933,39 +1319,83 @@ void f() {
   }
 
   Future<void> test_variableDeclarationList_variables() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 var a = 1, [!b = 2, c = 3!], d = 4;
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'b = 2');
-    expect(nodes[1].toSource(), 'c = 3');
+    _assertSelection(selection, r'''
+nodesInRange
+  VariableDeclarationImpl: b = 2
+  VariableDeclarationImpl: c = 3
+''');
   }
 
   Future<void> test_withClause_mixinTypes() async {
-    var nodes = await nodesInRange('''
+    final selection = await _computeSelection('''
 class C with A, [!B, D!], E {}
 mixin A {}
 mixin B {}
 mixin D {}
 mixin E {}
 ''');
-    expect(nodes, hasLength(2));
-    expect(nodes[0].toSource(), 'B');
-    expect(nodes[1].toSource(), 'D');
+    _assertSelection(selection, r'''
+nodesInRange
+  NamedTypeImpl: B
+  NamedTypeImpl: D
+''');
   }
 
-  Future<SourceRange> _range(String sourceCode) async {
-    var parsedTestCode = TestCode.parse(sourceCode);
-    await resolveTestCode(parsedTestCode.code);
-    SourceRange range;
-    if (parsedTestCode.positions.isEmpty) {
-      expect(parsedTestCode.ranges, hasLength(1));
-      range = parsedTestCode.range.sourceRange;
-    } else {
-      expect(parsedTestCode.positions, hasLength(1));
-      expect(parsedTestCode.ranges, isEmpty);
-      range = SourceRange(parsedTestCode.position.offset, 0);
-    }
-    return range;
+  void _assertSelection(_CodeSelection selection, String expected) {
+    final buffer = StringBuffer();
+    _writeSelectionToBuffer(buffer, selection);
+    _assertTextExpectation(buffer.toString(), expected);
   }
+
+  void _assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+      TextExpectationsCollector.add(actual);
+    }
+    expect(actual, expected);
+  }
+
+  Future<_CodeSelection> _computeSelection(String annotatedCode) async {
+    final testCode = TestCode.parse(annotatedCode);
+    expect(testCode.positions, isEmpty);
+    final range = testCode.range.sourceRange;
+
+    await resolveTestCode(testCode.code);
+    final selection = testUnit.select(
+      offset: range.offset,
+      length: range.length,
+    )!;
+
+    return _CodeSelection(
+      testCode: testCode,
+      selection: selection,
+    );
+  }
+
+  void _writeSelectionToBuffer(StringBuffer buffer, _CodeSelection selection) {
+    final rawCode = selection.testCode.code;
+
+    buffer.writeln('nodesInRange');
+    final nodes = selection.selection.nodesInRange();
+    for (final node in nodes) {
+      final nodeCode = rawCode.substring(node.offset, node.end);
+      final nodeCodeEscaped = escape(nodeCode);
+      buffer.writeln('  ${node.runtimeType}: $nodeCodeEscaped');
+    }
+  }
+}
+
+class _CodeSelection {
+  final TestCode testCode;
+  final Selection selection;
+
+  _CodeSelection({
+    required this.testCode,
+    required this.selection,
+  });
 }

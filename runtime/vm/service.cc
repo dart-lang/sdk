@@ -1243,11 +1243,12 @@ void Service::HandleEvent(ServiceEvent* event, bool enter_safepoint) {
     params.AddProperty("streamId", stream_id);
     params.AddProperty("event", event);
   }
-  PostEvent(event->isolate(), stream_id, event->KindAsCString(), &js,
-            enter_safepoint);
+  PostEvent(event->isolate_group(), event->isolate(), stream_id,
+            event->KindAsCString(), &js, enter_safepoint);
 }
 
-void Service::PostEvent(Isolate* isolate,
+void Service::PostEvent(IsolateGroup* isolate_group,
+                        Isolate* isolate,
                         const char* stream_id,
                         const char* kind,
                         JSONStream* event,
@@ -1256,13 +1257,14 @@ void Service::PostEvent(Isolate* isolate,
     // Enter a safepoint so we don't block the mutator while processing
     // large events.
     TransitionToNative transition(Thread::Current());
-    PostEventImpl(isolate, stream_id, kind, event);
+    PostEventImpl(isolate_group, isolate, stream_id, kind, event);
     return;
   }
-  PostEventImpl(isolate, stream_id, kind, event);
+  PostEventImpl(isolate_group, isolate, stream_id, kind, event);
 }
 
-void Service::PostEventImpl(Isolate* isolate,
+void Service::PostEventImpl(IsolateGroup* isolate_group,
+                            Isolate* isolate,
                             const char* stream_id,
                             const char* kind,
                             JSONStream* event) {
@@ -1272,12 +1274,20 @@ void Service::PostEventImpl(Isolate* isolate,
 
   if (FLAG_trace_service) {
     if (isolate != nullptr) {
+      ASSERT(isolate_group != nullptr);
       OS::PrintErr(
-          "vm-service: Pushing ServiceEvent(isolate='%s', "
-          "isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
+          "vm-service: Pushing "
+          "ServiceEvent(isolateGroupId='" ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING
+          "', isolate='%s', isolateId='" ISOLATE_SERVICE_ID_FORMAT_STRING
           "', kind='%s') to stream %s\n",
-          isolate->name(), static_cast<int64_t>(isolate->main_port()), kind,
-          stream_id);
+          isolate_group->id(), isolate->name(),
+          static_cast<int64_t>(isolate->main_port()), kind, stream_id);
+    } else if (isolate_group != nullptr) {
+      OS::PrintErr(
+          "vm-service: Pushing "
+          "ServiceEvent(isolateGroupId='" ISOLATE_GROUP_SERVICE_ID_FORMAT_STRING
+          "', kind='%s') to stream %s\n",
+          isolate_group->id(), kind, stream_id);
     } else {
       OS::PrintErr(
           "vm-service: Pushing ServiceEvent(isolate='<no current isolate>', "
@@ -1687,8 +1697,8 @@ static void GetStack(Thread* thread, JSONStream* js) {
   }
   Isolate* isolate = thread->isolate();
   DebuggerStackTrace* stack = isolate->debugger()->StackTrace();
-  DebuggerStackTrace* async_causal_stack =
-      isolate->debugger()->AsyncCausalStackTrace();
+  DebuggerStackTrace* async_awaiter_stack =
+      isolate->debugger()->AsyncAwaiterStackTrace();
 
   // Do we want the complete script object and complete local variable objects?
   // This is true for dump requests.
@@ -1708,13 +1718,13 @@ static void GetStack(Thread* thread, JSONStream* js) {
     }
   }
 
-  if (async_causal_stack != nullptr) {
+  if (async_awaiter_stack != nullptr) {
     JSONArray jsarr(&jsobj, "asyncCausalFrames");
     intptr_t num_frames =
-        has_limit ? Utils::Minimum(async_causal_stack->Length(), limit)
-                  : async_causal_stack->Length();
+        has_limit ? Utils::Minimum(async_awaiter_stack->Length(), limit)
+                  : async_awaiter_stack->Length();
     for (intptr_t i = 0; i < num_frames; i++) {
-      ActivationFrame* frame = async_causal_stack->FrameAt(i);
+      ActivationFrame* frame = async_awaiter_stack->FrameAt(i);
       JSONObject jsobj(&jsarr);
       frame->PrintToJSONObject(&jsobj);
       jsobj.AddProperty("index", i);
@@ -1723,8 +1733,8 @@ static void GetStack(Thread* thread, JSONStream* js) {
 
   const bool truncated =
       (has_limit &&
-       (limit < stack->Length() || (async_causal_stack != nullptr &&
-                                    limit < async_causal_stack->Length())));
+       (limit < stack->Length() || (async_awaiter_stack != nullptr &&
+                                    limit < async_awaiter_stack->Length())));
   jsobj.AddProperty("truncated", truncated);
 
   {
@@ -3964,8 +3974,8 @@ static void AddBreakpointAtActivation(Thread* thread, JSONStream* js) {
     return;
   }
   const Instance& closure = Instance::Cast(obj);
-  Breakpoint* bpt =
-      thread->isolate()->debugger()->SetBreakpointAtActivation(closure, false);
+  Breakpoint* bpt = thread->isolate()->debugger()->SetBreakpointAtActivation(
+      closure, /*single_shot=*/false);
   if (bpt == nullptr) {
     js->PrintError(kCannotAddBreakpoint,
                    "%s: Cannot add breakpoint at activation", js->method());

@@ -104,7 +104,11 @@ class DartFixPromptManager {
 
     // Assign a new token for this check.
     final token = _inProgressCheckCancellationToken = CancelableToken();
+    final sw = Stopwatch()..start();
     final fixesAvailable = await bulkFixesAvailable(token);
+    sw.stop();
+    server.instrumentationService.logInfo(
+        'Checking whether to prompt about "dart fix" took ${sw.elapsed}');
 
     // If we were cancelled since the last cancellation check inside
     // bulkFixesAvailable, still return false because another check is now in

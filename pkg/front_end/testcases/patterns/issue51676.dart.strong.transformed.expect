@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,9 +31,9 @@ import "dart:core" as core;
 static method case3() → core::int {
   #L1:
   {
-    final synthesized dynamic #0#0 = null as{ForNonNullableByDefault} dynamic;
+    final synthesized dynamic #0#0 = null as dynamic;
     {
-      if(#0#0 is{ForNonNullableByDefault} invalid-type) {
+      if(#0#0 is invalid-type) {
         {
           return 1;
         }

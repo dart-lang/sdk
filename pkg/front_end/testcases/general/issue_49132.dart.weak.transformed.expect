@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,23 +6,23 @@ class Foo extends core::Object {
   field dynamic x;
   field dynamic y;
   constructor foo1(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::int, self::Foo::y = b as{ForNonNullableByDefault} core::int?, super core::Object::•()
+    : self::Foo::x = a as core::int, self::Foo::y = b as core::int?, super core::Object::•()
     ;
   constructor foo2(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int, self::Foo::y = b is{ForNonNullableByDefault} core::int?, super core::Object::•()
+    : self::Foo::x = a is core::int, self::Foo::y = b is core::int?, super core::Object::•()
     ;
   constructor foo3(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::int?, self::Foo::y = b as{ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Foo::x = a as core::int?, self::Foo::y = b as core::int, super core::Object::•()
     ;
   constructor foo4(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int?, self::Foo::y = b is{ForNonNullableByDefault} core::int, super core::Object::•()
+    : self::Foo::x = a is core::int?, self::Foo::y = b is core::int, super core::Object::•()
     ;
   constructor bar1(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::int, self::Foo::y = b as{ForNonNullableByDefault} core::int?, super core::Object::•() {}
+    : self::Foo::x = a as core::int, self::Foo::y = b as core::int?, super core::Object::•() {}
   constructor bar2(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int, self::Foo::y = b is{ForNonNullableByDefault} core::int?, super core::Object::•() {}
+    : self::Foo::x = a is core::int, self::Foo::y = b is core::int?, super core::Object::•() {}
   constructor bar3(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a as{ForNonNullableByDefault} core::int?, self::Foo::y = b as{ForNonNullableByDefault} core::int, super core::Object::•() {}
+    : self::Foo::x = a as core::int?, self::Foo::y = b as core::int, super core::Object::•() {}
   constructor bar4(dynamic a, dynamic b) → self::Foo
-    : self::Foo::x = a is{ForNonNullableByDefault} core::int?, self::Foo::y = b is{ForNonNullableByDefault} core::int, super core::Object::•() {}
+    : self::Foo::x = a is core::int?, self::Foo::y = b is core::int, super core::Object::•() {}
 }

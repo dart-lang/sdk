@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "hello.dart" as hel;
 additionalExports = (hel::main)
@@ -6,7 +6,7 @@ additionalExports = (hel::main)
 export "org-dartlang-testcase:///hello.dart" show main;
 
 
-library /*isNonNullableByDefault*/;
+library;
 import self as hel;
 
 static method main() → dynamic

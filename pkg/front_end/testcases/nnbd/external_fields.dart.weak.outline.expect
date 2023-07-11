@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -99,23 +99,23 @@ external static get untypedTopLevelField() → dynamic;
 external static set untypedTopLevelField(dynamic #externalFieldValue) → void;
 external static get untypedFinalTopLevelField() → dynamic;
 @self::Annotation::•()
-external static method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
+external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
 @self::Annotation::•()
-external static method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
+external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
 @self::Annotation::•()
-external static method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
+external static extension-member method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
 @self::Annotation::•()
-external static get Extension|extensionStaticField() → core::int;
+external static extension-member get Extension|extensionStaticField() → core::int;
 @self::Annotation::•()
-external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
+external static extension-member set Extension|extensionStaticField(core::int #externalFieldValue) → void;
 @self::Annotation::•()
-external static get Extension|finalExtensionStaticField() → core::int;
-external static method Extension|get#untypedExtensionInstanceField(lowered self::A #this) → dynamic;
-external static method Extension|set#untypedExtensionInstanceField(lowered self::A #this, dynamic #externalFieldValue) → void;
-external static method Extension|get#untypedFinalExtensionInstanceField(lowered self::A #this) → dynamic;
-external static get Extension|untypedExtensionStaticField() → dynamic;
-external static set Extension|untypedExtensionStaticField(dynamic #externalFieldValue) → void;
-external static get Extension|untypedFinalExtensionStaticField() → dynamic;
+external static extension-member get Extension|finalExtensionStaticField() → core::int;
+external static extension-member method Extension|get#untypedExtensionInstanceField(lowered self::A #this) → dynamic;
+external static extension-member method Extension|set#untypedExtensionInstanceField(lowered self::A #this, dynamic #externalFieldValue) → void;
+external static extension-member method Extension|get#untypedFinalExtensionInstanceField(lowered self::A #this) → dynamic;
+external static extension-member get Extension|untypedExtensionStaticField() → dynamic;
+external static extension-member set Extension|untypedExtensionStaticField(dynamic #externalFieldValue) → void;
+external static extension-member get Extension|untypedFinalExtensionStaticField() → dynamic;
 static method main() → dynamic
   ;
 

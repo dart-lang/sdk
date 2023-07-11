@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -15,17 +15,17 @@ static method main() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t2 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t3 = #t2 as{TypeError} core::int*;
+          final core::int* #t3 = #t2 as{TypeError,ForLegacy} core::int*;
           #t1.{core::List::add}{Invariant}(#t3){(core::int*) →* void};
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (list3 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (list3 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t4 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t5 = #t4 as{TypeError} core::int*;
+          final core::int* #t5 = #t4 as{TypeError,ForLegacy} core::int*;
           #t1.{core::List::add}{Invariant}(#t5){(core::int*) →* void};
         }
       }
@@ -54,17 +54,17 @@ static method main() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t10 = :sync-for-iterator.{core::Iterator::current}{core::num*};
         {
-          final core::int* #t11 = #t10 as{TypeError} core::int*;
+          final core::int* #t11 = #t10 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t11){(core::int*) →* core::bool*};
         }
       }
     }
     {
-      synthesized core::Iterator<dynamic>* :sync-for-iterator = (set3 as{TypeError,ForDynamic} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
+      synthesized core::Iterator<dynamic>* :sync-for-iterator = (set3 as{TypeError,ForDynamic,ForLegacy} core::Iterable<dynamic>*).{core::Iterable::iterator}{core::Iterator<dynamic>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t12 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int* #t13 = #t12 as{TypeError} core::int*;
+          final core::int* #t13 = #t12 as{TypeError,ForLegacy} core::int*;
           #t9.{core::Set::add}{Invariant}(#t13){(core::int*) →* core::bool*};
         }
       }
@@ -84,19 +84,19 @@ static method main() → dynamic {
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t15 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::String*>};
         {
-          final core::int* #t16 = #t15.{core::MapEntry::key}{dynamic} as{TypeError} core::int*;
-          final core::String* #t17 = #t15.{core::MapEntry::value}{dynamic} as{TypeError} core::String*;
+          final core::int* #t16 = #t15.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
+          final core::String* #t17 = #t15.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::String*;
           #t14.{core::Map::[]=}{Invariant}(#t16, #t17){(core::int*, core::String*) →* void};
         }
       }
     }
     {
-      synthesized core::Iterator<core::MapEntry<core::int*, core::String*>>* :sync-for-iterator = (map3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::String*>>*};
+      synthesized core::Iterator<core::MapEntry<core::int*, core::String*>>* :sync-for-iterator = (map3 as{TypeError,ForDynamic,ForLegacy} core::Map<dynamic, dynamic>*).{core::Map::entries}{core::Iterable<core::MapEntry<core::int*, core::String*>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int*, core::String*>>*};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic>* #t18 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int*, core::String*>};
         {
-          final core::int* #t19 = #t18.{core::MapEntry::key}{dynamic} as{TypeError} core::int*;
-          final core::String* #t20 = #t18.{core::MapEntry::value}{dynamic} as{TypeError} core::String*;
+          final core::int* #t19 = #t18.{core::MapEntry::key}{dynamic} as{TypeError,ForLegacy} core::int*;
+          final core::String* #t20 = #t18.{core::MapEntry::value}{dynamic} as{TypeError,ForLegacy} core::String*;
           #t14.{core::Map::[]=}{Invariant}(#t19, #t20){(core::int*, core::String*) →* void};
         }
       }

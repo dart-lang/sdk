@@ -1,13 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Foo extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Foo::•]/*isLegacy*/;
   constructor named(dynamic p) → self::Foo
     ;
   @self::forFactoryItself
-  static factory •(dynamic p) → self::Foo
+  static factory •(dynamic p) → self::Foo /* redirection-target: self::Foo::named */
     return new self::Foo::named(p);
 }
 static const field core::int forParameter = 1;
@@ -19,5 +18,4 @@ static method main() → dynamic
 
 Extra constant evaluation status:
 Evaluated: StaticGet @ org-dartlang-testcase:///redirecting_factory_metadata.dart:13:4 -> IntConstant(2)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_metadata.dart:12:7 -> ConstructorTearOffConstant(Foo.)
-Extra constant evaluation: evaluated: 5, effectively constant: 2
+Extra constant evaluation: evaluated: 3, effectively constant: 1

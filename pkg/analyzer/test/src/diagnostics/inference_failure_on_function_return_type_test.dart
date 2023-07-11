@@ -34,7 +34,7 @@ class InferenceFailureOnFunctionReturnTypeTest
 class C {
   get f => 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 11)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 16, 1)]);
   }
 
   test_classInstanceMethod() async {
@@ -42,7 +42,7 @@ class C {
 class C {
   f() => 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 1)]);
   }
 
   test_classInstanceMethod_overriding() async {
@@ -90,7 +90,7 @@ class C {
 class C {
   operator +(int x) => print(x);
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 30)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 21, 1)]);
   }
 
   test_classInstanceSetter() async {
@@ -106,7 +106,7 @@ class C {
 class C {
   static f() => 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 16)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 19, 1)]);
   }
 
   test_classStaticMethod_withType() async {
@@ -124,7 +124,7 @@ extension E on List {
     return 7;
   }
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 23)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 24, 1)]);
   }
 
   test_functionTypedParameter() async {
@@ -184,7 +184,7 @@ class C {
 mixin C {
   f() => 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 12, 1)]);
   }
 
   test_setter_topLevel() async {
@@ -196,7 +196,7 @@ set f(int x) => print(x);
   test_topLevelArrowFunction() async {
     await assertErrorsInCode(r'''
 f() => 7;
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 9)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)]);
   }
 
   test_topLevelFunction() async {
@@ -204,7 +204,7 @@ f() => 7;
 f() {
   return 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)]);
   }
 
   test_topLevelFunction_async() async {
@@ -212,7 +212,7 @@ f() {
 f() {
   return 7;
 }
-''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 19)]);
+''', [error(WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE, 0, 1)]);
   }
 
   test_topLevelFunction_withReturnType() async {

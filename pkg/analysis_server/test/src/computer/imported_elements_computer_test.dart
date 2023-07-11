@@ -468,8 +468,8 @@ bool randomBool() {
 
   Future<void> _computeElements(String content, String selection) async {
     // TODO(brianwilkerson) Automatically extract the selection from the content.
-    newFile(sourcePath, content);
-    var result = await getResolvedUnit(sourcePath);
+    final file = newFile(sourcePath, content);
+    var result = await getResolvedUnit(file);
     var computer = ImportedElementsComputer(
         result.unit, content.indexOf(selection), selection.length);
     importedElements = computer.compute();

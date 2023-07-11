@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -50,14 +50,14 @@ static method test(core::Iterable<self::B> iterable, asy::Stream<self::B> stream
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   for (i in iterable) {}
-         ^" in #t5 as{TypeError,ForNonNullableByDefault} core::int;
+         ^" in #t5 as{TypeError} core::int;
   }
   await for (final self::B #t6 in stream) {
     i = invalid-expression "pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart:22:16: Error: A value of type 'B' can't be assigned to a variable of type 'int'.
  - 'B' is from 'pkg/front_end/testcases/inference_new/for_each_outer_var_type.dart'.
 Try changing the type of the variable.
   await for (i in stream) {}
-               ^" in #t6 as{TypeError,ForNonNullableByDefault} core::int;
+               ^" in #t6 as{TypeError} core::int;
   }
   for (final self::A #t7 in self::f<core::Iterable<self::A>>()) {
     a = #t7;

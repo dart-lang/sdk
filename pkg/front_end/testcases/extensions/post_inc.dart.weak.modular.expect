@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -22,12 +22,12 @@ static method expect(core::String expect, core::Object value, core::String expec
     throw "Expected assignment ${expectSet}, actual ${self::setValue}";
   }
 }
-static method Ops|+(lowered final core::Object #this, core::Object other) → core::Object
+static extension-member method Ops|+(lowered final core::Object #this, core::Object other) → core::Object
   return "(${#this}+${other})";
-static method Ops|-(lowered final core::Object #this, core::Object other) → core::Object
+static extension-member method Ops|-(lowered final core::Object #this, core::Object other) → core::Object
   return "(${#this}-${other})";
-static method Ops|get#field(lowered final core::Object #this) → core::Object
+static extension-member method Ops|get#field(lowered final core::Object #this) → core::Object
   return "${#this}.field";
-static method Ops|set#field(lowered final core::Object #this, core::Object other) → void {
+static extension-member method Ops|set#field(lowered final core::Object #this, core::Object other) → void {
   self::setValue = "${#this}.field=${other}";
 }

@@ -172,7 +172,6 @@ class PreferFinalInForEachTest extends FixProcessorLintTest {
   @override
   String get lintCode => LintNames.prefer_final_in_for_each;
 
-  @FailingTest(reason: 'Supported in next linter release')
   Future<void> test_inList() async {
     await resolveTestCode('''
 f() {
@@ -186,7 +185,6 @@ f() {
 ''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
-  @FailingTest(reason: 'Supported in next linter release')
   Future<void> test_listPattern() async {
     await resolveTestCode('''
 f() {
@@ -200,7 +198,6 @@ f() {
 ''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
-  @FailingTest(reason: 'Supported in next linter release')
   Future<void> test_mapPattern() async {
     await resolveTestCode('''
 f() {
@@ -231,7 +228,6 @@ void fn() {
 ''');
   }
 
-  @FailingTest(reason: 'Supported in next linter release')
   Future<void> test_objectPattern() async {
     await resolveTestCode('''
 class A {
@@ -255,7 +251,6 @@ f() {
 ''', errorFilter: (e) => e.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE);
   }
 
-  @FailingTest(reason: 'Supported in next linter release')
   Future<void> test_recordPattern() async {
     await resolveTestCode('''
 f() {

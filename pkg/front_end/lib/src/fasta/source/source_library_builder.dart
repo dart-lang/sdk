@@ -111,6 +111,7 @@ import '../operator.dart';
 import '../problems.dart' show unexpected, unhandled;
 import '../scope.dart';
 import '../util/helpers.dart';
+import 'class_declaration.dart';
 import 'constructor_declaration.dart';
 import 'name_scheme.dart';
 import 'source_class_builder.dart' show SourceClassBuilder;
@@ -464,6 +465,15 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   @override
   bool get isPart => partOfName != null || partOfUri != null;
+
+  @override
+  Iterator<T> fullMemberIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberIterator<T>(this, includeDuplicates: false);
+
+  @override
+  NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
+      new SourceLibraryBuilderMemberNameIterator<T>(this,
+          includeDuplicates: false);
 
   // TODO(johnniwinther): Can avoid using this from outside this class?
   Iterable<SourceLibraryBuilder>? get patchLibraries => _patchLibraries;
@@ -1024,11 +1034,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       SourceLibraryBuilder sourceLibraryBuilder, Scope scope,
       {required bool checkForInstanceVsStaticConflict,
       required bool checkForMethodVsSetterConflict}) {
-    // ignore: unnecessary_null_comparison
-    assert(checkForInstanceVsStaticConflict != null);
-    // ignore: unnecessary_null_comparison
-    assert(checkForMethodVsSetterConflict != null);
-
     scope.forEachLocalSetter((String name, MemberBuilder setter) {
       Builder? getable = scope.lookupLocalMember(name, setter: false);
       if (getable == null) {
@@ -1582,9 +1587,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    Iterator<ClassDeclaration> iterator = localMembersIteratorOfType();
     while (iterator.moveNext()) {
-      SourceClassBuilder builder = iterator.current;
+      ClassDeclaration builder = iterator.current;
       count += builder.resolveConstructors(this);
     }
     return count;
@@ -1769,6 +1774,16 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       library.problemsAsJson!.add(formattedMessage.toJsonString());
     }
     return formattedMessage;
+  }
+
+  void addProblemForRedirectingFactory(RedirectingFactoryBuilder factory,
+      Message message, int charOffset, int length, Uri fileUri) {
+    addProblem(message, charOffset, length, fileUri);
+    String text = loader.target.context
+        .format(
+            message.withLocation(fileUri, charOffset, length), Severity.error)
+        .plain;
+    factory.setRedirectingFactoryError(text);
   }
 
   void addClass(
@@ -2251,6 +2266,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         memberScope,
         constructorScope,
         this,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
         startOffset,
         nameOffset,
         endOffset,
@@ -2907,10 +2923,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       AsyncMarker asyncModifier,
       {required bool isInstanceMember,
       required bool isExtensionMember}) {
-    // ignore: unnecessary_null_comparison
-    assert(isInstanceMember != null);
-    // ignore: unnecessary_null_comparison
-    assert(isExtensionMember != null);
     assert(!isExtensionMember ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionDeclaration);
@@ -3331,7 +3343,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
 
     MetadataBuilder.buildAnnotations(
-        library, metadata, bodyBuilderContext, this, fileUri, scope);
+        library, metadata, bodyBuilderContext, this, fileUri, scope,
+        createFileUriExpression: isPatch);
 
     Iterator<Builder> iterator = localMembersIterator;
     while (iterator.moveNext()) {
@@ -4337,8 +4350,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           String enclosingName = issue.enclosingType == null
               ? targetName!
               : getGenericTypeName(issue.enclosingType!);
-          // ignore: unnecessary_null_comparison
-          assert(enclosingName != null);
           if (issueInferred) {
             message = templateIncorrectTypeArgumentInferred.withArguments(
                 argument,
@@ -4577,7 +4588,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     // TODO(cstefantsova): Find a better way than relying on [interfaceTarget].
     Member? method =
         membersHierarchy.getDispatchTarget(klass, name) ?? interfaceTarget;
-    // ignore: unnecessary_null_comparison
     if (method == null || method is! Procedure) {
       return;
     }
@@ -4669,8 +4679,6 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri fileUri,
       int offset,
       {required bool inferred}) {
-    // ignore: unnecessary_null_comparison
-    assert(inferred != null);
     if (typeArguments.isEmpty) return;
 
     List<TypeParameter> functionTypeParameters = functionType.typeParameters;
@@ -5276,10 +5284,7 @@ class TypeParameterScopeBuilder {
       this.extensions,
       this._name,
       this._charOffset,
-      this.parent) {
-    // ignore: unnecessary_null_comparison
-    assert(_name != null);
-  }
+      this.parent);
 
   TypeParameterScopeBuilder.library()
       : this(
@@ -5687,9 +5692,6 @@ List<TypeVariableBuilder> _sortTypeVariablesTopologically(
 
 void _sortTypeVariablesTopologicallyFromRoot(TypeBuilder root,
     Set<TypeVariableBuilder> unhandled, List<TypeVariableBuilder> result) {
-  // ignore: unnecessary_null_comparison
-  assert(root != null);
-
   List<TypeVariableBuilder>? typeVariables;
   List<TypeBuilder>? internalDependents;
 
@@ -5782,4 +5784,105 @@ class LibraryAccess {
   final int length;
 
   LibraryAccess(this.accessor, this.fileUri, this.charOffset, this.length);
+}
+
+class SourceLibraryBuilderMemberIterator<T extends Builder>
+    implements Iterator<T> {
+  Iterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+}
+
+class SourceLibraryBuilderMemberNameIterator<T extends Builder>
+    implements NameIterator<T> {
+  NameIterator<T>? _iterator;
+  Iterator<SourceLibraryBuilder>? augmentationBuilders;
+  final bool includeDuplicates;
+
+  factory SourceLibraryBuilderMemberNameIterator(
+      SourceLibraryBuilder libraryBuilder,
+      {required bool includeDuplicates}) {
+    return new SourceLibraryBuilderMemberNameIterator._(
+        libraryBuilder.origin, libraryBuilder.origin.patchLibraries?.iterator,
+        includeDuplicates: includeDuplicates);
+  }
+
+  SourceLibraryBuilderMemberNameIterator._(
+      SourceLibraryBuilder libraryBuilder, this.augmentationBuilders,
+      {required this.includeDuplicates})
+      : _iterator = libraryBuilder.scope.filteredNameIterator<T>(
+            parent: libraryBuilder,
+            includeDuplicates: includeDuplicates,
+            includeAugmentations: false);
+
+  @override
+  bool moveNext() {
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    if (augmentationBuilders != null && augmentationBuilders!.moveNext()) {
+      SourceLibraryBuilder augmentationLibraryBuilder =
+          augmentationBuilders!.current;
+      _iterator = augmentationLibraryBuilder.scope.filteredNameIterator<T>(
+          parent: augmentationLibraryBuilder,
+          includeDuplicates: includeDuplicates,
+          includeAugmentations: false);
+    }
+    if (_iterator != null) {
+      if (_iterator!.moveNext()) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  @override
+  T get current => _iterator?.current ?? (throw new StateError('No element'));
+
+  @override
+  String get name => _iterator?.name ?? (throw new StateError('No element'));
 }

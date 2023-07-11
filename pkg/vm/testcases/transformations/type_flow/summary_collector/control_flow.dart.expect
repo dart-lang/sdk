@@ -14,6 +14,10 @@ RESULT: _T {}?
 %this = _Parameter #0 [_T (#lib::C4)+]
 t1 = _Call direct [dart.core::Object.] (%this)
 RESULT: _T {}?
+------------ C5. ------------
+%this = _Parameter #0 [_T (#lib::C5)+]
+t1 = _Call direct [dart.core::Object.] (%this)
+RESULT: _T {}?
 ------------ TestEnum. ------------
 %this = _Parameter #0 [_T (#lib::TestEnum)+]
 %#index = _Parameter #1 [_T (dart.core::int)+?]
@@ -245,6 +249,38 @@ t4 = _Call direct [#lib::foo] (x_0)
 t5 = _Call direct [#lib::bar] (x_0)
 t6* = _Call direct [#lib::C4.] (_T (#lib::C4))
 RESULT: t6
+------------ tryFinallyBreak1 ------------
+t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
+t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
+x_1 = _Join [dynamic] (t0, t1)
+t3 = _Call direct [#lib::foo] (x_1)
+t4* = _Call direct [#lib::C3.] (_T (#lib::C3))
+x_2 = _Join [dynamic] (t0, t4)
+t6 = _Call direct [#lib::bar] (x_2)
+RESULT: x_2
+------------ tryFinallyBreak2 ------------
+t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
+t1* = _Call direct [#lib::C2.] (_T (#lib::C2))
+t2* = _Call direct [#lib::C3.] (_T (#lib::C3))
+t3* = _Call direct [#lib::C4.] (_T (#lib::C4))
+x_1 = _Join [dynamic] (t0, t1, t2, t3)
+t5 = _Call direct [#lib::foo] (x_1)
+t6 = _Call direct [#lib::bar] (x_1)
+t7* = _Call direct [#lib::C5.] (_T (#lib::C5))
+x_2 = _Join [dynamic] (t0, t7)
+t9 = _Call direct [#lib::baz] (x_2)
+RESULT: x_2
+------------ tryFinallyBreak3 ------------
+%v = _Parameter #0 [_T (dart.core::int)+?]
+t1* = _Call direct [#lib::C1.] (_T (#lib::C1))
+t2* = _Call direct [#lib::C3.] (_T (#lib::C3))
+x_0 = _Join [dynamic] (t1, t2)
+t4 = _Call direct [#lib::foo] (x_0)
+t5* = _Call direct [#lib::C2.] (_T (#lib::C2))
+x_2 = _Join [dynamic] (t1, t5)
+t7 = _Call direct [#lib::bar] (x_2)
+t8 = _Call direct [#lib::baz] (x_0)
+RESULT: x_0
 ------------ closure1 ------------
 t0* = _Call direct [#lib::C1.] (_T (#lib::C1))
 t1* = _Call direct [#lib::C2.] (_T (#lib::C2))

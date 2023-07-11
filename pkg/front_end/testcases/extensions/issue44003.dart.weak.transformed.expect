@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,9 +29,9 @@ Try correcting the name to the name of an existing method, or defining a method 
   args.foo('1', 2);
        ^^^" in args{<unresolved>}.foo("1", 2);
 }
-static method _extension#0|foo(lowered final core::List<core::String> #this, core::String bar) → void {
+static extension-member method _extension#0|foo(lowered final core::List<core::String> #this, core::String bar) → void {
   core::print(1);
 }
-static method _extension#0|get#foo(lowered final core::List<core::String> #this) → (core::String) → void
+static extension-member method _extension#0|get#foo(lowered final core::List<core::String> #this) → (core::String) → void
   return (core::String bar) → void => self::_extension#0|foo(#this, bar);
 static method main() → dynamic {}

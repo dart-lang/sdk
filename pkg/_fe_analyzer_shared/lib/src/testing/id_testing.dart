@@ -225,8 +225,6 @@ void computeExpectedMap(Uri sourceUri, String filename, AnnotatedCode code,
 
   split.forEach((String marker, AnnotatedCode code) {
     MemberAnnotations<IdValue> fileAnnotations = maps[marker]!;
-    // ignore: unnecessary_null_comparison
-    assert(fileAnnotations != null, "No annotations for $marker in $maps");
     Map<Id, IdValue> expectedValues = fileAnnotations[sourceUri]!;
     for (Annotation annotation in code.annotations) {
       String text = annotation.text;
@@ -940,13 +938,9 @@ Future<void> runTests<T>(Directory dataDir,
               actualData[marker] = {};
 
           void addActualData(Uri uri, Map<Id, ActualData<T>> actualData) {
-            assert(
-                // ignore: unnecessary_null_comparison
-                uri != null && testData.code.containsKey(uri) ||
-                    actualData.isEmpty,
+            assert(testData.code.containsKey(uri) || actualData.isEmpty,
                 "Unexpected data ${actualData} for $uri");
-            // ignore: unnecessary_null_comparison
-            if (uri == null || actualData.isEmpty) {
+            if (actualData.isEmpty) {
               // TODO(johnniwinther): Avoid collecting data without
               //  invalid uris.
               return;
@@ -969,8 +963,6 @@ Future<void> runTests<T>(Directory dataDir,
             dataInterpreter!,
             forceUpdate: forceUpdate);
         annotations.forEach((Uri uri, List<Annotation> annotations) {
-          // ignore: unnecessary_null_comparison
-          assert(uri != null, "Annotations without uri: $annotations");
           AnnotatedCode? code = testData.code[uri];
           assert(code != null,
               "No annotated code for $uri with annotations: $annotations");

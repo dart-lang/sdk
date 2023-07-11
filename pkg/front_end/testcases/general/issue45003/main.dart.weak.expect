@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;
@@ -8,7 +8,7 @@ import "org-dartlang-testcase:///foo_lib.dart";
 static const field core::Set<foo::Foo> foo = #C2;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as foo;
 import "dart:core" as core;
 import "bar_lib.dart" as bar;
@@ -18,15 +18,14 @@ import "org-dartlang-testcase:///bar_lib.dart";
 export "org-dartlang-testcase:///bar_lib.dart";
 
 abstract class Foo extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C3]/*isLegacy*/;
   const constructor •() → foo::Foo
     : super core::Object::•()
     ;
-  static factory bar() → foo::Foo
+  static factory bar() → foo::Foo /* redirection-target: bar::Bar::•<dynamic>*/
     return new bar::Bar::•<dynamic>();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as bar;
 import "dart:core" as core;
 import "foo_lib.dart" as foo;
@@ -42,7 +41,6 @@ class Bar<T extends core::Object? = dynamic> extends foo::Foo /*hasConstConstruc
 constants  {
   #C1 = bar::Bar<dynamic> {}
   #C2 = <foo::Foo*>{#C1}
-  #C3 = constructor-tearoff foo::Foo::bar
 }
 
 

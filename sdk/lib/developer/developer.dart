@@ -143,6 +143,18 @@ external int get reachabilityBarrier;
 
 /// Functionality available on the native runtime.
 abstract final class NativeRuntime {
+  /// The build ID for the running application.
+  ///
+  /// The build ID of an application is a string containing a hexadecimal
+  /// representation of an arbitrarily sized sequence of bytes. This string
+  /// can be used to match a specific ahead-of-time compiled version of an
+  /// application, for example, to determine which debugging artifacts emitted
+  /// during compilation should be used to translate crash and error reports.
+  ///
+  /// The build ID is only available for ahead-of-time compiled programs. If a
+  /// build ID is not available, the value is `null`.
+  external static String? get buildId;
+
   /// Writes a snapshot of the heap to [filepath].
   ///
   /// The [filepath] should be a native file path that can be opened for writing.

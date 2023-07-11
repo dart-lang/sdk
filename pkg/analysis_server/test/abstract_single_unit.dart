@@ -22,7 +22,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   bool useLineEndingsForPlatform = false;
 
   late String testCode;
-  late String testFile;
   late ResolvedUnitResult testAnalysisResult;
   late CompilationUnit testUnit;
   late CompilationUnitElement testUnitElement;
@@ -33,7 +32,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   void addTestSource(String code) {
     code = normalizeSource(code);
     testCode = code;
-    newFile(testFile, code);
+    newFile(testFile.path, code);
   }
 
   int findEnd(String search) {
@@ -47,18 +46,18 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   @override
-  File newFile(String path, String content) {
-    content = normalizeSource(content);
-    return super.newFile(path, content);
+  Future<ParsedUnitResult> getParsedUnit(File file) async {
+    var result = await super.getParsedUnit(file);
+    testCode = result.content;
+    testUnit = result.unit;
+    findNode = FindNode(testCode, testUnit);
+    findElement = FindElement(testUnit);
+    return result;
   }
 
-  /// Convenient function to normalize newlines in [code] for the current
-  /// platform if [useLineEndingsForPlatform] is `true`.
-  String normalizeSource(String code) =>
-      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
-
-  Future<void> resolveFile2(String path) async {
-    var result = await getResolvedUnit(path);
+  @override
+  Future<ResolvedUnitResult> getResolvedUnit(File file) async {
+    var result = await super.getResolvedUnit(file);
     testAnalysisResult = result;
     testCode = result.content;
     testUnit = result.unit;
@@ -77,7 +76,19 @@ class AbstractSingleUnitTest extends AbstractContextTest {
     testLibraryElement = testUnitElement.library;
     findNode = FindNode(testCode, testUnit);
     findElement = FindElement(testUnit);
+    return result;
   }
+
+  @override
+  File newFile(String path, String content) {
+    content = normalizeSource(content);
+    return super.newFile(path, content);
+  }
+
+  /// Convenient function to normalize newlines in [code] for the current
+  /// platform if [useLineEndingsForPlatform] is `true`.
+  String normalizeSource(String code) =>
+      useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
   Future<void> resolveTestCode(String code) async {
     addTestSource(code);
@@ -85,12 +96,6 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   }
 
   Future<void> resolveTestFile() async {
-    await resolveFile2(testFile);
-  }
-
-  @override
-  void setUp() {
-    super.setUp();
-    testFile = convertPath('$testPackageLibPath/test.dart');
+    await getResolvedUnit(testFile);
   }
 }

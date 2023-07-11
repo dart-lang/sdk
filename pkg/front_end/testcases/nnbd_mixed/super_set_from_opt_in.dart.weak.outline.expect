@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "super_set_from_opt_in_lib.dart" as sup;
 import "dart:core" as core;
@@ -31,7 +31,7 @@ class SubClass extends self::Class {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as sup;
 import "dart:core" as core;
 

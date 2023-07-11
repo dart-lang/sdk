@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,7 +22,7 @@ import "dart:core" as core;
 extension Test<S extends core::Object? = dynamic, T extends core::Object? = dynamic> on S% {
   operator >> = self::Test|>>;
 }
-static method Test|>><S extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final self::Test|>>::S% #this, (self::Test|>>::S%) → self::Test|>>::T% f) → self::Test|>>::T%
+static extension-member method Test|>><S extends core::Object? = dynamic, T extends core::Object? = dynamic>(lowered final self::Test|>>::S% #this, (self::Test|>>::S%) → self::Test|>>::T% f) → self::Test|>>::T%
   return f(#this){(self::Test|>>::S%) → self::Test|>>::T%};
 static method test() → void {
   core::Object o = new core::Object::•();

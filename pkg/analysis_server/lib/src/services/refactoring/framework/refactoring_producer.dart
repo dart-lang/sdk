@@ -17,11 +17,14 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 /// An object that can compute a refactoring in a Dart file.
 abstract class RefactoringProducer {
   /// The context in which the refactoring was requested.
-  final RefactoringContext _context;
+  final RefactoringContext refactoringContext;
 
-  /// Initialize a newly created refactoring producer to create a refactoring in
-  /// the given [_context].
-  RefactoringProducer(this._context);
+  /// Initialize a newly created refactoring producer.
+  RefactoringProducer(this.refactoringContext);
+
+  /// The most deeply nested node whose range completely includes the range of
+  /// characters described by [selectionOffset] and [selectionLength].
+  AstNode? get coveringNode => refactoringContext.coveringNode;
 
   /// Return whether this refactor is considered experimental and will only
   /// be included if the user has opted-in.
@@ -35,49 +38,50 @@ abstract class RefactoringProducer {
 
   /// Return the result of resolving the library in which the refactoring was
   /// invoked.
-  ResolvedLibraryResult get libraryResult => _context.resolvedLibraryResult;
+  ResolvedLibraryResult get libraryResult {
+    return refactoringContext.resolvedLibraryResult;
+  }
 
   /// Return a list of the parameters to send to the client.
   List<CommandParameter> get parameters;
 
   /// Return the search engine used to search outside the resolved library.
-  SearchEngine get searchEngine => _context.searchEngine;
-
-  /// Return the node that was selected, or `null` if the selection is not
-  /// valid.
-  AstNode? get selectedNode => _context.selectedNode;
+  SearchEngine get searchEngine => refactoringContext.searchEngine;
 
   /// Return the selection, or `null` if the selection is not valid.
-  Selection? get selection => _context.selection;
+  Selection? get selection => refactoringContext.selection;
 
   /// Return the offset of the first character after the selection range.
-  int get selectionEnd => selectionOffset + selectionLength;
+  int get selectionEnd => refactoringContext.selectionEnd;
 
   /// Return the number of selected characters.
-  int get selectionLength => _context.selectionLength;
+  int get selectionLength => refactoringContext.selectionLength;
 
   /// Return the offset of the beginning of the selection range.
-  int get selectionOffset => _context.selectionOffset;
+  int get selectionOffset => refactoringContext.selectionOffset;
 
   /// Return the helper used to efficiently access resolved units.
-  AnalysisSessionHelper get sessionHelper => _context.sessionHelper;
+  AnalysisSessionHelper get sessionHelper => refactoringContext.sessionHelper;
 
   /// Return `true` if the client has support for creating files. Subclasses
   /// that require the ability to create new files must not create a refactoring
   /// if this getter returns `false`.
-  bool get supportsFileCreation =>
-      _context.server.clientCapabilities?.documentChanges == true &&
-      _context.server.clientCapabilities?.createResourceOperations == true;
+  bool get supportsFileCreation {
+    final capabilities = refactoringContext.server.clientCapabilities;
+    return capabilities != null &&
+        capabilities.documentChanges == true &&
+        capabilities.createResourceOperations == true;
+  }
 
   /// Return the title of this refactoring.
   String get title;
 
   /// Return the result of resolving the file in which the refactoring was
   /// invoked.
-  ResolvedUnitResult get unitResult => _context.resolvedUnitResult;
+  ResolvedUnitResult get unitResult => refactoringContext.resolvedUnitResult;
 
   /// Return the correction utilities for this refactoring.
-  CorrectionUtils get utils => _context.utils;
+  CorrectionUtils get utils => refactoringContext.utils;
 
   /// Given the [commandArguments] associated with the command, use the
   /// [builder] to generate the edits necessary to apply this refactoring.
@@ -87,18 +91,17 @@ abstract class RefactoringProducer {
   bool isAvailable();
 
   /// Return `true` if the selection is inside the given [token].
-  bool selectionIsInToken(Token? token) =>
-      token != null &&
-      selectionOffset >= token.offset &&
-      selectionEnd <= token.end;
+  bool selectionIsInToken(Token? token) {
+    return refactoringContext.selectionIsInToken(token);
+  }
 
   /// Return `true` if the client has support for command parameters of the
   /// provided `kind`. Subclasses that produce command parameters of this kind
   /// that don't have a default value must not create a refactoring if this
   /// returns `false`.
-  bool supportsCommandParameter(String kind) =>
-      _context
-          .server.clientCapabilities?.codeActionCommandParameterSupportedKinds
-          .contains(kind) ??
-      false;
+  bool supportsCommandParameter(String kind) {
+    final capabilities = refactoringContext.server.clientCapabilities;
+    return capabilities != null &&
+        capabilities.codeActionCommandParameterSupportedKinds.contains(kind);
+  }
 }

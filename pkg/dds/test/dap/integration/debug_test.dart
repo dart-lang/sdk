@@ -405,7 +405,11 @@ main() {
           .firstWhere((event) => event.output.trim() == originalText);
 
       // Update the file and hot reload.
-      testFile.writeAsStringSync(stringPrintingProgram(newText));
+      testFile.writeAsStringSync(stringPrintingProgram(newText), flush: true);
+      // Set a future date to ensure hot reload detects it as being modified.
+      testFile.setLastModifiedSync(
+        DateTime.now().add(const Duration(seconds: 2)),
+      );
       await dap.client.hotReload();
 
       // Expect the new text.
@@ -419,6 +423,29 @@ main() {
       if (server is OutOfProcessDapTestServer) {
         await server.exitCode;
       }
+    });
+
+    test('can pause', () async {
+      final testFile = dap.createTestFile(infiniteRunningProgram);
+
+      // Start a program and hit a breakpoint.
+      final client = dap.client;
+      final threadFuture = client.threadEvents.first;
+
+      // Start the app and wait for it to start printing output.
+      await Future.wait([
+        client.initialize(),
+        client.launch(testFile.path),
+        dap.client.outputEvents
+            .firstWhere((event) => event.output.contains('Looping'))
+      ]);
+
+      // Ensure we can pause.
+      final thread = await threadFuture;
+      await Future.wait([
+        client.expectStop('pause'),
+        client.pause(thread.threadId),
+      ], eagerError: true);
     });
 
     test('forwards tool events to client', () async {

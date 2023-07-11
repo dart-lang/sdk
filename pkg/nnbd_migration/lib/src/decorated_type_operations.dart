@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/dart/element/type_system.dart';
 import 'package:nnbd_migration/src/decorated_type.dart';
 import 'package:nnbd_migration/src/edge_origin.dart';
@@ -16,11 +17,16 @@ import 'package:nnbd_migration/src/variables.dart';
 class DecoratedTypeOperations
     implements Operations<PromotableElement, DecoratedType> {
   final TypeSystem _typeSystem;
+  final TypeProvider _typeProvider;
   final Variables? _variableRepository;
   final NullabilityGraph _graph;
 
-  DecoratedTypeOperations(
-      this._typeSystem, this._variableRepository, this._graph);
+  @override
+  late final DecoratedType boolType =
+      DecoratedType(_typeProvider.boolType, _graph.never);
+
+  DecoratedTypeOperations(this._typeSystem, this._typeProvider,
+      this._variableRepository, this._graph);
 
   @override
   bool areStructurallyEqual(DecoratedType type1, DecoratedType type2) {

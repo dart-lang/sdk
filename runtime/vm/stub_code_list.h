@@ -108,8 +108,9 @@ namespace dart {
   V(NullIsAssignableToType)                                                    \
   V(NullIsAssignableToTypeNullSafe)                                            \
   V(Subtype1TestCache)                                                         \
-  V(Subtype3TestCache)                                                         \
-  V(Subtype5TestCache)                                                         \
+  V(Subtype2TestCache)                                                         \
+  V(Subtype4TestCache)                                                         \
+  V(Subtype6TestCache)                                                         \
   V(Subtype7TestCache)                                                         \
   VM_TYPE_TESTING_STUB_CODE_LIST(V)                                            \
   V(CallClosureNoSuchMethod)                                                   \
@@ -138,6 +139,7 @@ namespace dart {
   V(ExitSafepoint)                                                             \
   V(ExitSafepointIgnoreUnwindInProgress)                                       \
   V(CallNativeThroughSafepoint)                                                \
+  V(FfiCallbackTrampoline)                                                     \
   V(InitStaticField)                                                           \
   V(InitLateStaticField)                                                       \
   V(InitLateFinalStaticField)                                                  \
@@ -173,6 +175,7 @@ namespace dart {
   V(SuspendSyncStarAtYield)                                                    \
   V(AsyncExceptionHandler)                                                     \
   V(CloneSuspendState)                                                         \
+  V(FfiAsyncCallbackSend)                                                      \
   V(UnknownDartCode)
 
 }  // namespace dart

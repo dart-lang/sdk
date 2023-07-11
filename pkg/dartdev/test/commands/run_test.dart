@@ -1039,8 +1039,8 @@ cmd() {
   "packages": [
     {
       "name": "bar",
-      "rootUri": "${bar1.dirPath}",
-      "packageUri": "${path.join(bar1.dirPath, 'lib')}"
+      "rootUri": "${Uri.file(bar1.dirPath)}",
+      "packageUri": "${Uri.file(path.join(bar1.dirPath, 'lib'))}"
     }
   ]
 }
@@ -1051,8 +1051,8 @@ cmd() {
   "packages": [
     {
       "name": "bar",
-      "rootUri": "${bar2.dirPath}",
-      "packageUri": "${path.join(bar2.dirPath, 'lib')}"
+      "rootUri": "${Uri.file(bar2.dirPath)}",
+      "packageUri": "${Uri.file(path.join(bar2.dirPath, 'lib'))}"
     }
   ]
 }

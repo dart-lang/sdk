@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -31,7 +31,7 @@ class Class2 extends core::Object implements self::Interface2 {
     : self::Class2::field = field, super core::Object::•()
     ;
 }
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static field (core::int) → self::Class1 Class1_new = #C1;
 static field (core::int) → self::Class2 Class2_new = #C2;
 static method main() → dynamic {
@@ -40,32 +40,32 @@ static method main() → dynamic {
 }
 static method testInferred() → dynamic {
   (core::int) → self::Class1 f1a = #C1;
-  self::expect(true, f1a is{ForNonNullableByDefault} (core::int) → self::Class1);
-  self::expect(false, f1a is{ForNonNullableByDefault} (core::String) → self::Class1);
+  self::expect(true, f1a is (core::int) → self::Class1);
+  self::expect(false, f1a is (core::String) → self::Class1);
   self::Class1 c1a = f1a(0){(core::int) → self::Class1};
-  self::expect(true, c1a is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1a is self::Class1);
   () → Null {
     f1a(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/inferred_constructor_tear_off.dart:38:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
     f1a(''); // error
-        ^" in "" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → self::Class1};
+        ^" in "" as{TypeError} core::int){(core::int) → self::Class1};
   };
   dynamic f1b = #C1;
   dynamic c1b = f1b{dynamic}.call(0);
-  self::expect(true, c1b is{ForNonNullableByDefault} self::Class1);
+  self::expect(true, c1b is self::Class1);
   self::throws(() → dynamic => f1b{dynamic}.call(""));
   (core::int) → self::Class2 f2a = #C2;
-  self::expect(true, f2a is{ForNonNullableByDefault} (core::int) → self::Class2);
-  self::expect(false, f2a is{ForNonNullableByDefault} (core::String) → self::Class2);
+  self::expect(true, f2a is (core::int) → self::Class2);
+  self::expect(false, f2a is (core::String) → self::Class2);
   self::Class2 c2a = f2a(0){(core::int) → self::Class2};
-  self::expect(true, c2a is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2a is self::Class2);
   () → Null {
     f2a(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/inferred_constructor_tear_off.dart:52:9: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
     f2a(''); // error
-        ^" in "" as{TypeError,ForNonNullableByDefault} core::int){(core::int) → self::Class2};
+        ^" in "" as{TypeError} core::int){(core::int) → self::Class2};
   };
   dynamic f2b = #C2;
   dynamic c2b = f2b{dynamic}.call(0);
-  self::expect(true, c2b is{ForNonNullableByDefault} self::Class2);
+  self::expect(true, c2b is self::Class2);
   self::throws(() → dynamic => f2b{dynamic}.call(""));
 }
 static method expect(dynamic expected, dynamic actual) → dynamic {

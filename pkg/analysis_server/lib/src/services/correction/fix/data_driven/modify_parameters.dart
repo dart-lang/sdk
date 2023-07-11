@@ -5,7 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/code_template.dart';
-import 'package:analysis_server/src/services/correction/fix/data_driven/parameter_reference.dart';
+import 'package:analysis_server/src/services/refactoring/framework/formal_parameter.dart';
 import 'package:analysis_server/src/utilities/index_range.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -44,11 +44,8 @@ class AddParameter extends ParameterModification {
 
 /// The type change of a parameter.
 class ChangeParameterType extends ParameterModification {
-  /// The name of the parameter that was changed, used with named parameters.
-  final String? name;
-
-  /// The index of the parameter to be changed, used with positional parameters.
-  final int? index;
+  /// The location of the changed parameter.
+  final FormalParameterReference reference;
 
   /// The nullability of the parameter.
   final String nullability;
@@ -60,8 +57,11 @@ class ChangeParameterType extends ParameterModification {
   /// preexisting optional positional parameters after the ones being added.
   final CodeTemplate? argumentValue;
 
-  ChangeParameterType(
-      this.name, this.index, this.nullability, this.argumentValue);
+  ChangeParameterType({
+    required this.reference,
+    required this.nullability,
+    required this.argumentValue,
+  });
 }
 
 /// The data related to an executable element whose parameters have been
@@ -119,16 +119,16 @@ class ModifyParameters extends Change<_Data> {
           remainingArguments.remove(index);
         }
       } else if (modification is ChangeParameterType) {
-        var reference = modification.name == null
-            ? PositionalParameterReference(modification.index!)
-            : NamedParameterReference(modification.name!);
+        var reference = modification.reference;
         var argument = reference.argumentFrom(argumentList);
         if (argument == null) {
           // If there is no argument corresponding to the parameter then we assume
           // that the parameter was absent.
-          var index = reference is PositionalParameterReference
+          var index = reference is PositionalFormalParameterReference
               ? reference.index
-              : remainingArguments.last + 1;
+              : remainingArguments.isNotEmpty
+                  ? remainingArguments.last + 1
+                  : 0;
           remainingArguments.add(index);
           indexToNewArgumentMap[index] = modification;
           argumentsToInsert.add(index);
@@ -168,9 +168,12 @@ class ModifyParameters extends Change<_Data> {
         DartEditBuilder builder, ChangeParameterType parameter) {
       var argumentValue = parameter.argumentValue;
       if (argumentValue != null) {
-        if (parameter.index == null) {
-          builder.write(parameter.name!);
-          builder.write(': ');
+        switch (parameter.reference) {
+          case NamedFormalParameterReference(:final name):
+            builder.write(name);
+            builder.write(': ');
+          case PositionalFormalParameterReference():
+          // Nothing.
         }
         argumentValue.writeOn(builder, templateContext);
       }
@@ -228,11 +231,13 @@ class ModifyParameters extends Change<_Data> {
               offset = arguments[remainingIndex - 1].end;
               needsInitialComma = true;
             } else {
-              offset = arguments[remainingIndex].offset;
+              offset = arguments.isNotEmpty
+                  ? arguments[remainingIndex].offset
+                  : argumentList.leftParenthesis.end;
             }
             builder.addInsertion(offset, (builder) {
               writeInsertionRange(builder, insertionRange, needsInitialComma);
-              if (insertionIndex == 0) {
+              if (insertionIndex == 0 && arguments.isNotEmpty) {
                 builder.write(', ');
               }
             });
@@ -372,7 +377,7 @@ abstract class ParameterModification {}
 /// The removal of an existing parameter.
 class RemoveParameter extends ParameterModification {
   /// The parameter that was removed.
-  final ParameterReference parameter;
+  final FormalParameterReference parameter;
 
   /// Initialize a newly created parameter modification to represent the removal
   /// of an existing [parameter].

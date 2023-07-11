@@ -18,7 +18,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 /// A predicate is a one-argument function that returns a boolean value.
 typedef _ElementPredicate = bool Function(Element argument);
 
-class ChangeTo extends CorrectionProducer {
+class ChangeTo extends ResolvedCorrectionProducer {
   /// The kind of elements that should be proposed.
   final _ReplacementKind _kind;
 
@@ -120,12 +120,12 @@ class ChangeTo extends CorrectionProducer {
           nameToken.lexeme, (Element element) => element is InterfaceElement);
       // Check elements of this library.
       if (prefixName == null) {
-        for (var unit in resolvedResult.libraryElement.units) {
+        for (var unit in unitResult.libraryElement.units) {
           finder._updateList(unit.classes);
         }
       }
       // Check elements from imports.
-      for (var importElement in resolvedResult.libraryElement.libraryImports) {
+      for (var importElement in unitResult.libraryElement.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);
@@ -218,12 +218,12 @@ class ChangeTo extends CorrectionProducer {
           node.name, (Element element) => element is FunctionElement);
       // Check to this library units.
       if (prefixName == null) {
-        for (var unit in resolvedResult.libraryElement.units) {
+        for (var unit in unitResult.libraryElement.units) {
           finder._updateList(unit.functions);
         }
       }
       // Check unprefixed imports.
-      for (var importElement in resolvedResult.libraryElement.libraryImports) {
+      for (var importElement in unitResult.libraryElement.libraryImports) {
         if (importElement.prefix?.element.name == prefixName) {
           var namespace = getImportNamespace(importElement);
           finder._updateList(namespace.values);

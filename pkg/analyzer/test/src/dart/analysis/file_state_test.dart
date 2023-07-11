@@ -20,7 +20,6 @@ import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/source/package_map_resolver.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
 import 'package:analyzer/src/test_utilities/resource_provider_mixin.dart';
-import 'package:analyzer/src/util/either.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -56,13 +55,13 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var writableUri = toUri(writablePath);
 
     // The file is the generated file.
-    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    var generatedFile = fsState.getFileForUri(generatedUri).file;
     expect(generatedFile.uri, writableUri);
     expect(generatedFile.path, generatedPath);
 
     // The file is cached under the requested URI.
-    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
-    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile1 = fsState.getFileForUri(writableUri).file;
+    var writableFile2 = fsState.getFileForUri(writableUri).file;
     expect(writableFile1, same(generatedFile));
     expect(writableFile2, same(generatedFile));
   }
@@ -84,12 +83,12 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     var writableUri = toUri(writablePath);
 
     // The file is cached under the requested URI.
-    var writableFile1 = fsState.getFileForUri(writableUri).t1!;
-    var writableFile2 = fsState.getFileForUri(writableUri).t1!;
+    var writableFile1 = fsState.getFileForUri(writableUri).file;
+    var writableFile2 = fsState.getFileForUri(writableUri).file;
     expect(writableFile2, same(writableFile1));
 
     // The file is the generated file.
-    var generatedFile = fsState.getFileForUri(generatedUri).t1!;
+    var generatedFile = fsState.getFileForUri(generatedUri).file;
     expect(generatedFile.uri, writableUri);
     expect(generatedFile.path, generatedPath);
     expect(writableFile2, same(generatedFile));
@@ -110,7 +109,7 @@ class FileSystemState_BlazeWorkspaceTest extends BlazeWorkspaceResolutionTest {
     expect(innerUri2, Uri.parse('package:my.outer/inner/lib/b.dart'));
 
     // However the returned file must use the canonical URI.
-    var innerFile = fsState.getFileForUri(innerUri2).t1!;
+    var innerFile = fsState.getFileForUri(innerUri2).file;
     expect(innerFile.path, inner.path);
     expect(innerFile.uri, innerUri);
   }
@@ -126,7 +125,7 @@ class FileSystemState_PubPackageTest extends PubPackageResolutionTest {
   }
 
   FileState fileStateForUri(Uri uri) {
-    return fsStateFor(testFile).getFileForUri(uri).t1!;
+    return fsStateFor(testFile).getFileForUri(uri).file;
   }
 
   FileState fileStateForUriStr(String uriStr) {
@@ -1752,7 +1751,7 @@ elementFactory
       Uri.parse('dart:core'),
     );
 
-    final coreKind = core.t1!.kind as LibraryFileKind;
+    final coreKind = core.file.kind as LibraryFileKind;
     for (final import in coreKind.libraryImports) {
       if (import.isSyntheticDartCore) {
         fail('dart:core should not import itself');
@@ -5834,14 +5833,8 @@ var G, H;
 
   test_getFileForUri_invalidUri() {
     var uri = Uri.parse('package:x');
-    fileSystemState.getFileForUri(uri).map(
-      (file) {
-        expect(file, isNull);
-      },
-      (_) {
-        fail('Expected null.');
-      },
-    );
+    var resolution = fileSystemState.getFileForUri(uri);
+    expect(resolution, isNull);
   }
 
   test_getFilesSubtypingName_class() {
@@ -6089,13 +6082,8 @@ class _SourceMock implements Source {
   }
 }
 
-extension _Either2Extension<T1, T2> on Either2<T1, T2> {
-  T1 get t1 {
-    late T1 result;
-    map(
-      (t1) => result = t1,
-      (_) => throw 'Expected T1',
-    );
-    return result;
+extension on UriResolution? {
+  FileState get file {
+    return (this as UriResolutionFile).file;
   }
 }

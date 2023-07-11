@@ -75,6 +75,17 @@ String? computePlatformDillName(
           break;
       }
       break;
+    case 'wasm_stringref':
+      switch (nnbdMode) {
+        case NnbdMode.Strong:
+          return 'dart2wasm_stringref_outline.dill';
+        //TODO(johnniwinther): Support using the full dill.
+        //return 'dart2wasm_stringref_platform.dill';
+        case NnbdMode.Weak:
+        case NnbdMode.Agnostic:
+          break;
+      }
+      break;
     default:
       break;
   }
@@ -125,14 +136,11 @@ Uri translateSdk(Uri uri) {
           if (sdkRoot == null) {
             sdkRoot = (options.sdkSummary ?? computePlatformBinariesLocation())
                 .resolve("../../");
-            // ignore: unnecessary_null_comparison
-            if (sdkRoot != null) {
-              if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
-                if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
-                  sdkRoot = sdkRoot.resolve("sdk/");
-                } else {
-                  sdkRoot = null;
-                }
+            if (!isExistingFile(sdkRoot.resolve("lib/libraries.json"))) {
+              if (isExistingFile(sdkRoot.resolve("sdk/lib/libraries.json"))) {
+                sdkRoot = sdkRoot.resolve("sdk/");
+              } else {
+                sdkRoot = null;
               }
             }
           }

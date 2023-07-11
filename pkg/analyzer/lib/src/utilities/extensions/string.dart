@@ -20,6 +20,12 @@ extension IterableOfStringExtension on Iterable<String> {
       _commaSeparated('and', quoted: true);
 
   /// Produce a comma-separated representation of this iterable, with the last
+  /// element preceded by 'or' when there are more than two elements in this
+  /// iterable, and a pair of single quotes surrounding each element.
+  String get quotedAndCommaSeparatedWithOr =>
+      _commaSeparated('or', quoted: true);
+
+  /// Produce a comma-separated representation of this iterable, with the last
   /// element preceded by the [conjunction] when there are more than two
   /// elements in this iterable.
   ///

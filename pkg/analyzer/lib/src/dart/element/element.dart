@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -22,7 +21,6 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/constant/compute.dart';
 import 'package:analyzer/src/dart/constant/evaluation.dart';
@@ -59,8 +57,9 @@ import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
 /// A concrete implementation of a [ClassElement].
-abstract class AbstractClassElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData, MacroTargetElement
+abstract class AbstractClassElementImpl
+    extends NamedInstanceOrAugmentationElementImpl
+    with HasCompletionData, MacroTargetElement
     implements InterfaceElement {
   /// The superclass of the class, or `null` for [Object].
   @override
@@ -136,10 +135,6 @@ abstract class AbstractClassElementImpl extends _ExistingElementImpl
   CompilationUnitElementImpl get enclosingElement {
     return _enclosingElement as CompilationUnitElementImpl;
   }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement3 => enclosingElement;
 
   @override
   List<FieldElementImpl> get fields;
@@ -493,12 +488,6 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
     return super.enclosingElement as LibraryOrAugmentationElementImpl;
   }
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement3 {
-    return enclosingElement;
-  }
-
   @override
   LibraryAugmentationElementImpl? get importedAugmentation {
     final uri = this.uri;
@@ -749,6 +738,15 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
   }
 
   @override
+  bool get isInline {
+    return hasModifier(Modifier.INLINE);
+  }
+
+  set isInline(bool isInline) {
+    setModifier(Modifier.INLINE, isInline);
+  }
+
+  @override
   bool get isInterface {
     return hasModifier(Modifier.INTERFACE);
   }
@@ -812,9 +810,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     assert(!isMixinApplication);
     super.methods = methods;
   }
-
-  @override
-  List<InterfaceType> get superclassConstraints => const [];
 
   @override
   InterfaceType? get supertype {
@@ -971,7 +966,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
               substitution.substituteType(superParameter.type);
           implicitParameters.add(implicitParameter);
           argumentsForSuperInvocation.add(
-            astFactory.simpleIdentifier(
+            SimpleIdentifierImpl(
               StringToken(TokenType.STRING, implicitParameter.name, -1),
             )
               ..staticElement = implicitParameter
@@ -991,7 +986,7 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
           superKeyword: Tokens.super_(),
           period: isNamed ? Tokens.period() : null,
           constructorName: isNamed
-              ? (astFactory.simpleIdentifier(
+              ? (SimpleIdentifierImpl(
                   StringToken(TokenType.STRING, superclassConstructor.name, -1),
                 )..staticElement = superclassConstructor)
               : null,
@@ -1127,11 +1122,6 @@ abstract class ClassOrMixinElementImpl extends AbstractClassElementImpl {
   }
 
   @override
-  String get name {
-    return super.name!;
-  }
-
-  @override
   List<TypeParameterElement> get typeParameters {
     linkedData?.read(this);
     return super.typeParameters;
@@ -1245,10 +1235,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   LibraryOrAugmentationElement get enclosingElement =>
       super.enclosingElement as LibraryOrAugmentationElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElement get enclosingElement3 => enclosingElement;
-
   @override
   CompilationUnitElementImpl get enclosingUnit {
     return this;
@@ -1265,12 +1251,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       element.enclosingElement = this;
     }
     _enums = enums;
-  }
-
-  @Deprecated('Use enums instead')
-  @override
-  List<EnumElementImpl> get enums2 {
-    return enums;
   }
 
   @override
@@ -1327,12 +1307,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       mixin_.enclosingElement = this;
     }
     _mixins = mixins;
-  }
-
-  @Deprecated('Use mixins instead')
-  @override
-  List<MixinElementImpl> get mixins2 {
-    return mixins;
   }
 
   @override
@@ -1399,12 +1373,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       }
     }
     return null;
-  }
-
-  @Deprecated('Use getEnum() instead')
-  @override
-  EnumElement? getEnum2(String name) {
-    return getEnum(name);
   }
 
   void setLinkedData(Reference reference, ElementLinkedData linkedData) {
@@ -1515,10 +1483,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
   @override
   InterfaceElement get enclosingElement =>
       super.enclosingElement as AbstractClassElementImpl;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  InterfaceElement get enclosingElement3 => enclosingElement;
 
   @override
   bool get isConst {
@@ -2052,6 +2016,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   /// visible for testing.
   static const String _visibleForTestingVariableName = 'visibleForTesting';
 
+  /// The name of the top-level variable used to mark a method as being
+  /// visible outside of template files.
+  static const String _visibleOutsideTemplateVariableName =
+      'visibleOutsideTemplate';
+
   @override
   Element? element;
 
@@ -2197,6 +2166,11 @@ class ElementAnnotationImpl implements ElementAnnotation {
   @override
   bool get isVisibleForTesting =>
       _isPackageMetaGetter(_visibleForTestingVariableName);
+
+  @override
+  bool get isVisibleOutsideTemplate => _isTopGetter(
+      libraryName: _angularMetaLibName,
+      name: _visibleOutsideTemplateVariableName);
 
   @override
   LibraryElement get library => compilationUnit.library;
@@ -2361,10 +2335,6 @@ abstract class ElementImpl implements Element {
   set enclosingElement(Element? element) {
     _enclosingElement = element as ElementImpl?;
   }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement3 => enclosingElement;
 
   /// Return the enclosing unit element (which might be the same as `this`), or
   /// `null` if this element is not contained in any compilation unit.
@@ -2643,6 +2613,18 @@ abstract class ElementImpl implements Element {
     return false;
   }
 
+  @override
+  bool get hasVisibleOutsideTemplate {
+    final metadata = this.metadata;
+    for (var i = 0; i < metadata.length; i++) {
+      var annotation = metadata[i];
+      if (annotation.isVisibleOutsideTemplate) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   /// Return an identifier that uniquely identifies this element among the
   /// children of this element's parent.
   String get identifier => name!;
@@ -2821,12 +2803,6 @@ abstract class ElementImpl implements Element {
       return library == this.library;
     }
     return true;
-  }
-
-  @Deprecated('Use isAccessibleIn() instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
   }
 
   void resetMetadataFlags() {
@@ -3115,11 +3091,6 @@ class EnumElementImpl extends AbstractClassElementImpl implements EnumElement {
   }
 
   @override
-  String get name {
-    return super.name!;
-  }
-
-  @override
   InterfaceType? get supertype {
     linkedData?.read(this);
     return super.supertype;
@@ -3189,10 +3160,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 
   @override
   Element get enclosingElement => super.enclosingElement!;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get hasImplicitReturnType {
@@ -3399,6 +3366,18 @@ class ExtensionElementImpl extends _ExistingElementImpl
   }
 
   @override
+  ExtensionAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  AugmentedExtensionElement get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
   List<Element> get children => [
         ...super.children,
         ...accessors,
@@ -3413,12 +3392,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElementImpl get enclosingElement {
     return super.enclosingElement as CompilationUnitElementImpl;
-  }
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement3 {
-    return enclosingElement;
   }
 
   @override
@@ -3478,6 +3451,9 @@ class ExtensionElementImpl extends _ExistingElementImpl
     }
     _methods = methods;
   }
+
+  @override
+  DartType get thisType => extendedType;
 
   @override
   List<TypeParameterElement> get typeParameters {
@@ -3864,6 +3840,96 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
+class InlineClassElementImpl extends InlineClassOrAugmentationElementImpl
+    implements InlineClassElement {
+  InlineClassElementImpl(super.name, super.nameOffset);
+
+  @override
+  InlineClassAugmentationElement? get augmentation {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  AugmentedInlineClassElement get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<ConstructorElement> get constructors {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<InlineClassType> get implemented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  ElementKind get kind {
+    return ElementKind.INLINE_CLASS;
+  }
+
+  @override
+  InlineClassType get thisType {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  DartType instantiate({
+    required List<DartType> typeArguments,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+}
+
+abstract class InlineClassOrAugmentationElementImpl
+    extends NamedInstanceOrAugmentationElementImpl
+    implements InlineClassOrAugmentationElement {
+  InlineClassOrAugmentationElementImpl(super.name, super.nameOffset);
+}
+
+abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
+    with TypeParameterizedElementMixin
+    implements InstanceOrAugmentationElement {
+  InstanceOrAugmentationElementImpl(super.name, super.nameOffset);
+
+  @override
+  List<PropertyAccessorElement> get accessors {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  CompilationUnitElement get enclosingElement {
+    return super.enclosingElement as CompilationUnitElement;
+  }
+
+  @override
+  List<FieldElement> get fields {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+
+  @override
+  List<MethodElement> get methods {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+}
+
 class JoinPatternVariableElementImpl extends PatternVariableElementImpl
     implements JoinPatternVariableElement {
   @override
@@ -3932,10 +3998,6 @@ class LabelElementImpl extends ElementImpl implements LabelElement {
   @override
   ExecutableElement get enclosingElement =>
       super.enclosingElement as ExecutableElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  ExecutableElement get enclosingElement3 => enclosingElement;
 
   /// Return `true` if this label is associated with a `switch` member (`case
   /// ` or`default`).
@@ -4280,10 +4342,6 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
     }
     _parts = parts;
   }
-
-  @Deprecated('Use parts instead')
-  @override
-  List<PartElement> get parts2 => parts;
 
   @override
   List<PrefixElementImpl> get prefixes =>
@@ -5048,53 +5106,56 @@ class Modifier implements Comparable<Modifier> {
   /// type being referred to is the return type.
   static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
 
+  /// Indicates that the modifier 'inline' was applied to the element.
+  static const Modifier INLINE = Modifier('INLINE', 19);
+
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 19);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 20);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 20);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 21);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 21);
+  static const Modifier LATE = Modifier('LATE', 22);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 22);
+  static const Modifier MACRO = Modifier('MACRO', 23);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 23);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 24);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 24);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 25);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 25);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 26);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 26);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 27);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 27);
+  static const Modifier SEALED = Modifier('SEALED', 28);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 28);
+  static const Modifier SETTER = Modifier('SETTER', 29);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 29);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 30);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 30);
+  static const Modifier STATIC = Modifier('STATIC', 31);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 31);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 32);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 32);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 33);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5116,6 +5177,7 @@ class Modifier implements Comparable<Modifier> {
     HAS_SINCE_SDK_VERSION_COMPUTED,
     HAS_SINCE_SDK_VERSION_VALUE,
     IMPLICIT_TYPE,
+    INLINE,
     INTERFACE,
     INVOKES_SUPER_SELF,
     LATE,
@@ -5189,10 +5251,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   @override
   Element? get enclosingElement => null;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element? get enclosingElement3 => null;
-
   @override
   bool get hasAlwaysThrows => false;
 
@@ -5260,6 +5318,9 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get hasVisibleForTesting => false;
 
   @override
+  bool get hasVisibleOutsideTemplate => false;
+
+  @override
   bool get isPrivate {
     throw UnimplementedError();
   }
@@ -5271,6 +5332,8 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   bool get isSynthetic => true;
 
   bool get isVisibleForTemplate => false;
+
+  bool get isVisibleOutsideTemplate => false;
 
   @override
   ElementKind get kind => ElementKind.ERROR;
@@ -5337,12 +5400,6 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     return false;
   }
 
-  @Deprecated('Use isAccessibleIn() instead')
-  @override
-  bool isAccessibleIn2(LibraryElement library) {
-    return isAccessibleIn(library);
-  }
-
   @override
   E? thisOrAncestorMatching<E extends Element>(
     bool Function(Element) predicate,
@@ -5383,6 +5440,17 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
     for (Element child in children) {
       child.accept(visitor);
     }
+  }
+}
+
+abstract class NamedInstanceOrAugmentationElementImpl
+    extends InstanceOrAugmentationElementImpl
+    implements NamedInstanceOrAugmentationElement {
+  NamedInstanceOrAugmentationElementImpl(super.name, super.nameOffset);
+
+  @override
+  String get name {
+    return super.name!;
   }
 }
 
@@ -5428,10 +5496,6 @@ abstract class NonParameterVariableElementImpl extends VariableElementImpl
 
   @override
   Element get enclosingElement => super.enclosingElement!;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
 
   bool get hasInitializer {
     return hasModifier(Modifier.HAS_INITIALIZER);
@@ -5746,21 +5810,11 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
   LibraryOrAugmentationElementImpl get enclosingElement =>
       super.enclosingElement as LibraryOrAugmentationElementImpl;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  LibraryOrAugmentationElementImpl get enclosingElement3 => enclosingElement;
-
   @override
   List<LibraryImportElementImpl> get imports {
     return enclosingElement.libraryImports
         .where((import) => import.prefix?.element == this)
         .toList();
-  }
-
-  @Deprecated('Use imports instead')
-  @override
-  List<LibraryImportElementImpl> get imports2 {
-    return imports;
   }
 
   @override
@@ -5916,10 +5970,6 @@ class PropertyAccessorElementImpl_ImplicitGetter
   @override
   Element get enclosingElement => variable.enclosingElement;
 
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
-
   @override
   bool get hasImplicitReturnType => variable.hasImplicitType;
 
@@ -5983,10 +6033,6 @@ class PropertyAccessorElementImpl_ImplicitSetter
 
   @override
   Element get enclosingElement => variable.enclosingElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  Element get enclosingElement3 => enclosingElement;
 
   @override
   bool get isSetter => true;
@@ -6352,10 +6398,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
   @override
   CompilationUnitElement get enclosingElement =>
       super.enclosingElement as CompilationUnitElement;
-
-  @Deprecated('Use enclosingElement instead')
-  @override
-  CompilationUnitElement get enclosingElement3 => enclosingElement;
 
   /// Returns whether this alias is a "proper rename" of [aliasedClass], as
   /// defined in the constructor-tearoffs specification.

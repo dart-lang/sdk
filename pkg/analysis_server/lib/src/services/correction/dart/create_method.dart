@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class CreateMethod extends CorrectionProducer {
+class CreateMethod extends ResolvedCorrectionProducer {
   /// The kind of method to be created.
   final _MethodKind _kind;
 
@@ -171,7 +171,7 @@ class CreateMethod extends CorrectionProducer {
       // use different utils
       var targetPath = targetClassElement.source.fullName;
       var targetResolveResult =
-          await resolvedResult.session.getResolvedUnit(targetPath);
+          await unitResult.session.getResolvedUnit(targetPath);
       if (targetResolveResult is! ResolvedUnitResult) {
         return;
       }

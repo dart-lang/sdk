@@ -1,3 +1,9 @@
+## 1.6.0
+- Made DAP extensions methods accessible in lib.
+
+## 1.5.0
+- Added `DdsExtension.postEvent`.
+
 ## 1.4.0
 
 - Added `DdsExtension.getPerfettoVMTimelineWithCpuSamples`.

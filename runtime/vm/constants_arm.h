@@ -404,15 +404,11 @@ struct TypeTestABI {
   static constexpr Register kSubtypeTestCacheReg = R3;
   static constexpr Register kScratchReg = R4;
 
+  // For calls to SubtypeNTestCacheStub. Must not be the same as any non-scratch
+  // register above.
+  static constexpr Register kSubtypeTestCacheResultReg = kScratchReg;
   // For calls to InstanceOfStub.
   static constexpr Register kInstanceOfResultReg = kInstanceReg;
-  // For calls to SubtypeNTestCacheStub. Must be saved by the caller if the
-  // original value is needed after the call.
-  static constexpr Register kSubtypeTestCacheResultReg = kSubtypeTestCacheReg;
-
-  // Registers that need saving across SubtypeTestCacheStub calls.
-  static constexpr intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
-      1 << kSubtypeTestCacheReg;
 
   static constexpr intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
@@ -623,6 +619,11 @@ struct CloneSuspendStateStubABI {
   static constexpr Register kFrameSizeReg = R3;
   static constexpr Register kSrcFrameReg = R4;
   static constexpr Register kDstFrameReg = R8;
+};
+
+// ABI for FfiAsyncCallbackSendStub.
+struct FfiAsyncCallbackSendStubABI {
+  static constexpr Register kArgsReg = R0;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

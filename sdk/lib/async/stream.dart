@@ -1661,10 +1661,12 @@ abstract mixin class Stream<T> {
   /// Returns a future that is completed with the first element of this stream
   /// for which [test] returns `true`.
   ///
+  /// {@template stream_where_or_else}
   /// If no such element is found before this stream is done, and an
   /// [orElse] function is provided, the result of calling [orElse]
   /// becomes the value of the future. If [orElse] throws, the returned
   /// future is completed with that error.
+  /// {@endtemplate}
   ///
   /// If this stream emits an error before the first matching element,
   /// the returned future is completed with that error, and processing stops.
@@ -1718,13 +1720,18 @@ abstract mixin class Stream<T> {
 
   /// Finds the last element in this stream matching [test].
   ///
-  /// If this stream emits an error, the returned future is completed with that
-  /// error, and processing stops.
+  /// Returns a future that is completed with the last element of this stream
+  /// for which [test] returns `true`.
   ///
-  /// Otherwise as [firstWhere], except that the last matching element is found
+  /// {@macro stream_where_or_else}
+  ///
+  /// If this stream emits an error at any point, the returned future is
+  /// completed with that error, and the subscription is canceled.
+  ///
+  /// A non-error result cannot be provided before this stream is done.
+  ///
+  /// Similar too [firstWhere], except that the last matching element is found
   /// instead of the first.
-  /// That means that a non-error result cannot be provided before this stream
-  /// is done.
   ///
   /// Example:
   /// ```dart
@@ -1770,7 +1777,20 @@ abstract mixin class Stream<T> {
 
   /// Finds the single element in this stream matching [test].
   ///
-  /// Like [lastWhere], except that it is an error if more than one
+  /// Returns a future that is completed with the single element of this stream
+  /// for which [test] returns `true`.
+  ///
+  /// {@macro stream_where_or_else}
+  ///
+  /// Only one element may match. If more than one matching element is found an
+  /// error is thrown, regardless of whether [orElse] was passed.
+  ///
+  /// If this stream emits an error at any point, the returned future is
+  /// completed with that error, and the subscription is canceled.
+  ///
+  /// A non-error result cannot be provided before this stream is done.
+  ///
+  /// Similar to [lastWhere], except that it is an error if more than one
   /// matching element occurs in this stream.
   ///
   /// Example:
@@ -2303,6 +2323,12 @@ abstract interface class StreamSink<S>
 /// [Stream.where] or [Stream.expand] can be implemented using
 /// [Stream.transform]. A [StreamTransformer] is thus very powerful but often
 /// also a bit more complicated to use.
+///
+/// The [StreamTransformer.fromHandlers] constructor allows passing separate
+/// callbacks to react to events, errors, and the end of the stream.
+/// The [StreamTransformer.fromBind] constructor creates a `StreamTransformer`
+/// whose [bind] method is implemented by calling the function passed to the
+/// constructor.
 abstract interface class StreamTransformer<S, T> {
   /// Creates a [StreamTransformer] based on the given [onListen] callback.
   ///
@@ -2389,11 +2415,50 @@ abstract interface class StreamTransformer<S, T> {
   ///     }));
   /// ```
   ///
-  /// Transformers that are constructed this way cannot use captured state if
-  /// they are used in streams that can be listened to multiple times.
+  /// When a transformed stream returned from a call to [bind] is listened to,
+  /// the source stream is listened to, and a handler function is called for
+  /// each event of the source stream.
+  ///
+  /// The handlers are invoked with the event data and with a sink that can be
+  /// used to emit events on the transformed stream.
+  ///
+  /// The [handleData] handler is invoked for data events on the source stream.
+  /// If [handleData] was omitted, data events are added directly to the created
+  /// stream, as if calling [EventSink.add] on the sink with the event value.
+  /// If [handleData] is omitted the source stream event type, [S], must be a
+  /// subtype of the transformed stream event type [T].
+  ///
+  /// The [handleError] handler is invoked for each error of the source stream.
+  /// If [handleError] is omitted, errors are forwarded directly to the
+  /// transformed stream, as if calling [EventSink.addError] with the error and
+  /// stack trace.
+  ///
+  /// The [handleDone] handler is invoked when the source stream closes, as
+  /// signaled by sending a done event. The done handler takes no event value,
+  /// but can still send other events before calling [EventSink.close]. If
+  /// [handleDone] is omitted, a done event on the source stream closes the
+  /// transformed stream.
+  ///
+  /// If any handler calls [EventSink.close] on the provided sink,
+  /// the transformed sink closes and the source stream subscription
+  /// is cancelled. No further events can be added to the sink by
+  /// that handler, and no further source stream events will occur.
+  ///
+  /// The sink provided to the event handlers must only be used during
+  /// the call to that handler. It must not be stored and used at a later
+  /// time.
+  ///
+  /// Transformers created this way should be *stateless*.
+  /// They should not retain state between invocations of handlers,
+  /// because the same transformer, and therefore the same handlers,
+  /// may be used on multiple streams, or on streams which can be listened
+  /// to more than once.
+  /// _To create per-stream handlers, [StreamTransformer.fromBind]
+  /// could be used to create a new [StreamTransformer.fromHandlers] per
+  /// stream to transform._
   ///
   /// ```dart
-  /// StreamController<String> controller = StreamController.broadcast();
+  /// var controller = StreamController<String>.broadcast();
   /// controller.onListen = () {
   ///   scheduleMicrotask(() {
   ///     controller.addError("Bad");

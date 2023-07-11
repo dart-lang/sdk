@@ -98,6 +98,7 @@ Zone::Segment* Zone::Segment::New(intptr_t size, Zone::Segment* next) {
   Segment* result = reinterpret_cast<Segment*>(memory->start());
 #ifdef DEBUG
   // Zap the entire allocated segment (including the header).
+  ASAN_UNPOISON(reinterpret_cast<void*>(result), size);
   memset(reinterpret_cast<void*>(result), kZapUninitializedByte, size);
 #endif
   result->next_ = next;
@@ -118,6 +119,7 @@ void Zone::Segment::DeleteSegmentList(Segment* head) {
     VirtualMemory* memory = current->memory();
 #ifdef DEBUG
     // Zap the entire current segment (including the header).
+    ASAN_UNPOISON(reinterpret_cast<void*>(current), current->size());
     memset(reinterpret_cast<void*>(current), kZapDeletedByte, current->size());
 #endif
     LSAN_UNREGISTER_ROOT_REGION(current, sizeof(*current));
@@ -166,6 +168,7 @@ void Zone::Reset() {
   segments_ = nullptr;
 
 #ifdef DEBUG
+  ASAN_UNPOISON(&buffer_, kInitialChunkSize);
   memset(&buffer_, kZapDeletedByte, kInitialChunkSize);
 #endif
   position_ = reinterpret_cast<uword>(&buffer_);

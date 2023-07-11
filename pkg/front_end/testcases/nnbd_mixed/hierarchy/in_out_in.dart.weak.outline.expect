@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -125,7 +125,7 @@ class ClassMixedInQ extends in_::LegacyMixedInQ implements in_2::Super {
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as in_2;
 import "dart:core" as core;
 
@@ -160,7 +160,7 @@ abstract mixin class SuperQ extends core::Object {
     ;
 }
 
-library;
+library /*isLegacy*/;
 import self as in_;
 import "in_out_in_lib1.dart" as in_2;
 import "dart:core" as core;

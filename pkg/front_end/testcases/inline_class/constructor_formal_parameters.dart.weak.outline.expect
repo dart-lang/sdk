@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,21 +14,21 @@ inline class I2 /* declaredRepresentationType = core::int */ {
   constructor • = self::I2|;
   tearoff • = self::I2|_#new#tearOff;
 }
-static method I|(core::int x, [core::int? y = null]) → self::I
+static inline-class-member method I|(core::int x, [core::int? y = null]) → self::I
   ;
-static method I|_#new#tearOff(core::int x, [core::int? y]) → self::I
+static inline-class-member method I|_#new#tearOff(core::int x, [core::int? y]) → self::I
   return self::I|(x, y);
-static method I|m(lowered final self::I #this, core::String s, [has-declared-initializer core::int i]) → void
+static inline-class-member method I|m(lowered final self::I #this, core::String s, [has-declared-initializer core::int i]) → void
   ;
-static method I|get#m(lowered final self::I #this) → (core::String, [core::int]) → void
+static inline-class-member method I|get#m(lowered final self::I #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i]) → void => self::I|m(#this, s, i);
-static method I2|(core::int x, {core::int? y = null}) → self::I2
+static inline-class-member method I2|(core::int x, {core::int? y = null}) → self::I2
   ;
-static method I2|_#new#tearOff(core::int x, {core::int? y}) → self::I2
+static inline-class-member method I2|_#new#tearOff(core::int x, {core::int? y}) → self::I2
   return self::I2|(x, y: y);
-static method I2|m(lowered final self::I2 #this, core::String s, {has-declared-initializer core::int i}) → void
+static inline-class-member method I2|m(lowered final self::I2 #this, core::String s, {has-declared-initializer core::int i}) → void
   ;
-static method I2|get#m(lowered final self::I2 #this) → (core::String, {i: core::int}) → void
+static inline-class-member method I2|get#m(lowered final self::I2 #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i}) → void => self::I2|m(#this, s, i: i);
 static method main() → dynamic
   ;

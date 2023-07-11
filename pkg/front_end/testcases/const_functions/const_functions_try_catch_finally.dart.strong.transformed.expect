@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -20,7 +20,7 @@ static const field core::String var12 = #C5;
 static const field core::int var13 = #C2;
 static method fn(dynamic error) → core::int {
   try {
-    throw let dynamic #t1 = error in #t1 == null ?{core::Object} #t1 as{TypeError,ForNonNullableByDefault} core::Object : #t1{core::Object};
+    throw let dynamic #t1 = error in #t1 == null ?{core::Object} #t1 as{TypeError} core::Object : #t1{core::Object};
   }
   on core::String catch(no-exception-var) {
     return 0;
@@ -31,7 +31,7 @@ static method fn(dynamic error) → core::int {
 }
 static method fn1(dynamic error) → core::int {
   try {
-    throw let dynamic #t2 = error in #t2 == null ?{core::Object} #t2 as{TypeError,ForNonNullableByDefault} core::Object : #t2{core::Object};
+    throw let dynamic #t2 = error in #t2 == null ?{core::Object} #t2 as{TypeError} core::Object : #t2{core::Object};
   }
   on core::int catch(final core::int e) {
     return e;
@@ -44,7 +44,7 @@ static method finallyReturn(dynamic error) → core::int {
   try
     try {
       if(!(error =={core::Object::==}{(core::Object) → core::bool} 1))
-        throw let dynamic #t3 = error in #t3 == null ?{core::Object} #t3 as{TypeError,ForNonNullableByDefault} core::Object : #t3{core::Object};
+        throw let dynamic #t3 = error in #t3 == null ?{core::Object} #t3 as{TypeError} core::Object : #t3{core::Object};
     }
     on core::int catch(final core::int e) {
       return e;

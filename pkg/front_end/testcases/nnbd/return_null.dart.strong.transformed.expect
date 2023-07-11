@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -78,14 +78,14 @@ static method returnExplicit() → core::String {
   core::print("foo");
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:13:10: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
   return null; // error
-         ^" in let Null #t1 = null in #t1 == null ?{core::String} #t1 as{TypeError,ForNonNullableByDefault} core::String : #t1{core::String};
+         ^" in let Null #t1 = null in #t1 == null ?{core::String} #t1 as{TypeError} core::String : #t1{core::String};
 }
 static method returnMixed(core::bool b) → core::String {
   if(b) {
     core::print("foo");
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:19:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t2 = null in #t2 == null ?{core::String} #t2 as{TypeError,ForNonNullableByDefault} core::String : #t2{core::String};
+           ^" in let Null #t2 = null in #t2 == null ?{core::String} #t2 as{TypeError} core::String : #t2{core::String};
   }
   return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:16:8: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
 String returnMixed(bool b) /*error*/ {
@@ -149,14 +149,14 @@ static method localFunctions() → dynamic {
     core::print("foo");
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:69:12: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
     return null; // error
-           ^" in let Null #t3 = null in #t3 == null ?{core::String} #t3 as{TypeError,ForNonNullableByDefault} core::String : #t3{core::String};
+           ^" in let Null #t3 = null in #t3 == null ?{core::String} #t3 as{TypeError} core::String : #t3{core::String};
   }
   function returnMixed(core::bool b) → core::String {
     if(b) {
       core::print("foo");
       return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:75:14: Error: The value 'null' can't be returned from a function with return type 'String' because 'String' is not nullable.
       return null; // error
-             ^" in let Null #t4 = null in #t4 == null ?{core::String} #t4 as{TypeError,ForNonNullableByDefault} core::String : #t4{core::String};
+             ^" in let Null #t4 = null in #t4 == null ?{core::String} #t4 as{TypeError} core::String : #t4{core::String};
     }
     return invalid-expression "pkg/front_end/testcases/nnbd/return_null.dart:72:3: Error: A non-null value must be returned since the return type 'String' doesn't allow null.
   String returnMixed(bool b) /* error */ {

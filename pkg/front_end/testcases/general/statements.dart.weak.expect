@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -12,9 +12,9 @@ static method foo() → dynamic {
   }
 }
 static method bar(dynamic d) → dynamic async* {
-  await for (dynamic x in d as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>) {
+  await for (dynamic x in d as{TypeError,ForDynamic} asy::Stream<dynamic>) {
     yield x;
-    yield* x as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<dynamic>;
+    yield* x as{TypeError,ForDynamic} asy::Stream<dynamic>;
   }
 }
 static method main() → dynamic {

@@ -7,7 +7,6 @@ import 'package:analysis_server/plugin/edit/assist/assist_dart.dart';
 import 'package:analysis_server/src/services/correction/base_processor.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/add_diagnostic_property_reference.dart';
-import 'package:analysis_server/src/services/correction/dart/add_not_null_assert.dart';
 import 'package:analysis_server/src/services/correction/dart/add_return_type.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/assign_to_local_variable.dart';
@@ -84,14 +83,13 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 /// The computer for Dart assists.
 class AssistProcessor extends BaseProcessor {
   /// A map that can be used to look up the names of the lints for which a given
-  /// [CorrectionProducer] will be used.
+  /// [ResolvedCorrectionProducer] will be used.
   static final Map<ProducerGenerator, Set<String>> lintRuleMap =
       createLintRuleMap();
 
   /// A list of the generators used to produce assists.
   static const List<ProducerGenerator> generators = [
     AddDiagnosticPropertyReference.new,
-    AddNotNullAssert.new,
     AddReturnType.new,
     AddTypeAnnotation.bulkFixable,
     AssignToLocalVariable.new,
@@ -195,7 +193,7 @@ class AssistProcessor extends BaseProcessor {
   }
 
   Future<void> _addFromProducers() async {
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       selectionOffset: selectionOffset,
       selectionLength: selectionLength,
       resolvedResult: resolvedResult,

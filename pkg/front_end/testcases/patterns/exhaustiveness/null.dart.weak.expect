@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -93,7 +93,7 @@ static method exhaustiveNullable(core::Object? o) → dynamic
     #L7:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+        if(#0#0 is core::Object) {
           #t6 = 0;
           break #L7;
         }
@@ -114,7 +114,7 @@ static method nonExhaustiveNullable(core::Object? o) → dynamic
     #L8:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::Object) {
+        if(#0#0 is core::Object) {
           #t7 = 1;
           break #L8;
         }

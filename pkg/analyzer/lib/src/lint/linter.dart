@@ -6,7 +6,6 @@ import 'dart:io';
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -649,6 +648,10 @@ abstract class LintRule extends Linter implements Comparable<LintRule> {
     this.hasDocumentation = false,
   }) : state = state ?? _toState(maturity);
 
+  /// Indicates whether the lint rule can work with just the parsed information
+  /// or if it requires a resolved unit.
+  bool get canUseParsedResult => false;
+
   /// A list of incompatible rule ids.
   List<String> get incompatibleRules => const [];
 
@@ -901,6 +904,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
       switch (errorCode) {
         case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
+        case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_INT:
         case CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING:
@@ -908,6 +912,7 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
         case CompileTimeErrorCode.CONST_EVAL_TYPE_NUM:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
         case CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
+        case CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
         case CompileTimeErrorCode.CONST_MAP_KEY_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_SET_ELEMENT_NOT_PRIMITIVE_EQUALITY:
         case CompileTimeErrorCode.CONST_WITH_NON_CONST:

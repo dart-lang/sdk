@@ -3,11 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_js_interop_checks/src/js_interop.dart'
-    show
-        getJSName,
-        hasAnonymousAnnotation,
-        hasJSInteropAnnotation,
-        hasObjectLiteralAnnotation;
+    show getJSName, hasAnonymousAnnotation, hasJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show InlineExtensionIndex;
 import 'package:dart2wasm/js/method_collector.dart';
@@ -347,10 +343,14 @@ class InteropSpecializerFactory {
   final Map<Procedure, Map<int, Procedure>> _overloadedProcedures = {};
   final Map<Procedure, Map<String, Procedure>> _jsObjectLiteralMethods = {};
   late String _libraryJSString;
-  final InlineExtensionIndex _inlineExtensionIndex = InlineExtensionIndex();
+  late final InlineExtensionIndex _inlineExtensionIndex;
 
   InteropSpecializerFactory(
-      this._staticTypeContext, this._util, this._methodCollector);
+      this._staticTypeContext, this._util, this._methodCollector) {
+    final typeEnvironment = _staticTypeContext.typeEnvironment;
+    _inlineExtensionIndex =
+        InlineExtensionIndex(typeEnvironment.coreTypes, typeEnvironment);
+  }
 
   void enterLibrary(Library library) {
     _libraryJSString = getJSName(library);
@@ -443,7 +443,10 @@ class InteropSpecializerFactory {
         if ((kind == InlineClassMemberKind.Constructor ||
             kind == InlineClassMemberKind.Factory)) {
           return _getSpecializerForConstructor(
-              hasObjectLiteralAnnotation(node), node, clsString, invocation);
+              _inlineExtensionIndex.isLiteralConstructor(node),
+              node,
+              clsString,
+              invocation);
         } else {
           final memberSelectorString =
               _getJSString(node, nodeDescriptor.name.text);

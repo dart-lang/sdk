@@ -29,7 +29,7 @@ class C {}
     newFile('$testPackageLibPath/bar.dart', '''
 class D {}
 ''');
-    testFile = convertPath('$testPackageLibPath/src/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
 
     await resolveTestCode('''
 import 'package:test/bar.dart';
@@ -58,7 +58,7 @@ class ConvertToRelativeImportTest extends FixProcessorLintTest {
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('$testPackageLibPath/src/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/src/test.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -73,7 +73,7 @@ C? c;
   Future<void> test_relativeImportDifferentPackages() async {
     // Validate we don't get a fix with imports referencing different packages.
     newFile('/home/test1/lib/foo.dart', '');
-    testFile = convertPath('/home/test2/lib/bar.dart');
+    testFilePath = convertPath('/home/test2/lib/bar.dart');
     await resolveTestCode('''
 import 'package:test1/foo.dart';
 ''');
@@ -83,7 +83,7 @@ import 'package:test1/foo.dart';
 
   Future<void> test_relativeImportGarbledUri() async {
     newFile('$testPackageLibPath/foo.dart', '');
-    testFile = convertPath('$testPackageLibPath/bar.dart');
+    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo';
 ''');
@@ -99,7 +99,7 @@ import 'foo';
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('$testPackageLibPath/bar.dart');
+    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import "package:test/foo.dart";
 C? c;
@@ -115,7 +115,7 @@ C? c;
     newFile('$testPackageLibPath/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('$testPackageLibPath/bar.dart');
+    testFilePath = convertPath('$testPackageLibPath/bar.dart');
     await resolveTestCode('''
 import 'package:test/foo.dart';
 C? c;
@@ -131,7 +131,7 @@ C? c;
     newFile('$testPackageLibPath/baz/foo.dart', '''
 class C {}
 ''');
-    testFile = convertPath('$testPackageLibPath/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/test.dart');
     await resolveTestCode('''
 import 'package:test/baz/foo.dart';
 C? c;

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -79,9 +79,9 @@ extension E on self::A {
 extension type ET on self::A {
   operator ~/ = self::ET|~/;
 }
-static method E|+(lowered final self::A #this, dynamic other) → dynamic
+static extension-member method E|+(lowered final self::A #this, dynamic other) → dynamic
   return 42;
-static method ET|~/(lowered final self::A #this, dynamic other) → dynamic
+static extension-member method ET|~/(lowered final self::A #this, dynamic other) → dynamic
   return 42;
 static method test(self::A a, self::E e, self::ET et) → dynamic {
   a.{self::A::*}("foobar"){(dynamic) → dynamic};

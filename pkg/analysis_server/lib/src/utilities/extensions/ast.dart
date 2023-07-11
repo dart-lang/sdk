@@ -7,6 +7,17 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
+
+class ThrowStatement {
+  final ExpressionStatement statement;
+  final ThrowExpression expression;
+
+  ThrowStatement({
+    required this.statement,
+    required this.expression,
+  });
+}
 
 extension AnnotatedNodeExtensions on AnnotatedNode {
   /// Return the first token in this node that is not a comment.
@@ -288,6 +299,23 @@ extension NamedTypeExtension on NamedType {
 }
 
 extension StatementExtension on Statement {
+  ThrowStatement? get followingThrow {
+    final block = parent;
+    if (block is Block) {
+      final next = block.statements.nextOrNull(this);
+      if (next is ExpressionStatement) {
+        final throwExpression = next.expression;
+        if (throwExpression is ThrowExpression) {
+          return ThrowStatement(
+            statement: next,
+            expression: throwExpression,
+          );
+        }
+      }
+    }
+    return null;
+  }
+
   List<Statement> get selfOrBlockStatements {
     final self = this;
     return self is Block ? self.statements : [self];

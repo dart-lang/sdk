@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -16,21 +16,21 @@ extension Extension on self::Class {
   tearoff testImplicitThis = self::Extension|get#testImplicitThis;
   set property = self::Extension|set#property;
 }
-static method Extension|get#property(lowered final self::Class #this) → core::int?
+static extension-member method Extension|get#property(lowered final self::Class #this) → core::int?
   return #this.{self::Class::field}{core::int?};
-static method Extension|set#property(lowered final self::Class #this, core::int? value) → void {
+static extension-member method Extension|set#property(lowered final self::Class #this, core::int? value) → void {
   #this.{self::Class::field} = value;
 }
-static method Extension|method(lowered final self::Class #this) → core::int?
+static extension-member method Extension|method(lowered final self::Class #this) → core::int?
   return #this.{self::Class::field}{core::int?};
-static method Extension|get#method(lowered final self::Class #this) → () → core::int?
+static extension-member method Extension|get#method(lowered final self::Class #this) → () → core::int?
   return () → core::int? => self::Extension|method(#this);
-static method Extension|testImplicitThis(lowered final self::Class #this) → dynamic {
+static extension-member method Extension|testImplicitThis(lowered final self::Class #this) → dynamic {
   self::expect(null, self::Extension|get#property(#this));
   self::expect(42, let final core::int? #t1 = self::Extension|get#property(#this) in #t1 == null ?{core::int} let final core::int #t2 = 42 in let final void #t3 = self::Extension|set#property(#this, #t2) in #t2 : #t1{core::int});
   self::expect(42, let final core::int? #t4 = self::Extension|get#property(#this) in #t4 == null ?{core::int} let final core::int #t5 = 87 in let final void #t6 = self::Extension|set#property(#this, #t5) in #t5 : #t4{core::int});
 }
-static method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
+static extension-member method Extension|get#testImplicitThis(lowered final self::Class #this) → () → dynamic
   return () → dynamic => self::Extension|testImplicitThis(#this);
 static method main() → dynamic {
   self::test1(null);

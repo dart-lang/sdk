@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -23,21 +23,21 @@ extension D on () →? core::int {
   method call = self::D|call;
   tearoff call = self::D|get#call;
 }
-static method B|foo(lowered final self::A? #this) → dynamic
+static extension-member method B|foo(lowered final self::A? #this) → dynamic
   return 42;
-static method B|get#foo(lowered final self::A? #this) → () → dynamic
+static extension-member method B|get#foo(lowered final self::A? #this) → () → dynamic
   return () → dynamic => self::B|foo(#this);
-static method B|bar(lowered final self::A? #this) → dynamic
+static extension-member method B|bar(lowered final self::A? #this) → dynamic
   return 87;
-static method B|get#bar(lowered final self::A? #this) → () → dynamic
+static extension-member method B|get#bar(lowered final self::A? #this) → () → dynamic
   return () → dynamic => self::B|bar(#this);
-static method C|bar(lowered final self::A #this) → dynamic
+static extension-member method C|bar(lowered final self::A #this) → dynamic
   return 123;
-static method C|get#bar(lowered final self::A #this) → () → dynamic
+static extension-member method C|get#bar(lowered final self::A #this) → () → dynamic
   return () → dynamic => self::C|bar(#this);
-static method D|call(lowered final () →? core::int #this) → core::int
+static extension-member method D|call(lowered final () →? core::int #this) → core::int
   return 76;
-static method D|get#call(lowered final () →? core::int #this) → () → core::int
+static extension-member method D|get#call(lowered final () →? core::int #this) → () → core::int
   return () → core::int => self::D|call(#this);
 static method main() → dynamic {
   self::testA(new self::A::•());

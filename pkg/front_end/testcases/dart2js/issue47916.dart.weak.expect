@@ -1,17 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 abstract class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •() → self::A
+  static factory •() → self::A /* redirection-target: self::B::• */
     return self::B::•();
   static method _#new#tearOff() → self::A
     return new self::C::•();
 }
 abstract class B extends core::Object implements self::A {
-  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
-  static factory •() → self::B
+  static factory •() → self::B /* redirection-target: self::C::• */
     return new self::C::•();
   static method _#new#tearOff() → self::B
     return new self::C::•();
@@ -24,11 +22,9 @@ class C extends core::Object implements self::B /*hasConstConstructor*/  {
     return new self::C::•();
 }
 static method main() → dynamic {
-  #C3;
+  #C1;
 }
 
 constants  {
-  #C1 = constructor-tearoff self::A::•
-  #C2 = constructor-tearoff self::B::•
-  #C3 = static-tearoff self::A::_#new#tearOff
+  #C1 = static-tearoff self::A::_#new#tearOff
 }

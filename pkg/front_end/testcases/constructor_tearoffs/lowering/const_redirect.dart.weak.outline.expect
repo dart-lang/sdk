@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -36,8 +36,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
     return new self::Class::named(constants: constants);
 }
 abstract class Const extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Const::impl]/*isLegacy*/;
-  static factory impl() → self::Const
+  static factory impl() → self::Const /* redirection-target: self::_ConstImpl::•<dynamic>*/
     return new self::_ConstImpl::•<dynamic>();
   static method _#impl#tearOff() → self::Const
     return new self::_ConstImpl::•<dynamic>();
@@ -58,5 +57,4 @@ static method _#ImplAlias#new#tearOff<T extends core::num>() → self::_ConstImp
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_redirect.dart:12:25 -> ListConstant(const <Const*>[const _ConstImpl<dynamic>{}, const _ConstImpl<dynamic>{}, const _ConstImpl<String*>{}])
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_redirect.dart:19:25 -> ListConstant(const <Const*>[const _ConstImpl<dynamic>{}, const _ConstImpl<dynamic>{}, const _ConstImpl<String*>{}])
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///const_redirect.dart:28:16 -> ConstructorTearOffConstant(Const.impl)
-Extra constant evaluation: evaluated: 13, effectively constant: 3
+Extra constant evaluation: evaluated: 11, effectively constant: 2

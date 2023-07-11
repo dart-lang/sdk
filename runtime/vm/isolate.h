@@ -20,6 +20,7 @@
 #include "vm/class_table.h"
 #include "vm/dispatch_table.h"
 #include "vm/exceptions.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/field_table.h"
 #include "vm/fixed_cache.h"
 #include "vm/growable_array.h"
@@ -36,10 +37,6 @@
 #include "vm/thread_stack_resource.h"
 #include "vm/token_position.h"
 #include "vm/virtual_memory.h"
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/ffi_callback_trampolines.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 namespace dart {
 
@@ -420,12 +417,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   bool is_system_isolate_group() const { return is_system_isolate_group_; }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines* native_callback_trampolines() {
-    return &native_callback_trampolines_;
-  }
-#endif
-
   // IsolateGroup-specific flag handling.
   static void FlagsInitialize(Dart_IsolateFlags* api_flags);
   void FlagsCopyTo(Dart_IsolateFlags* api_flags);
@@ -776,6 +767,9 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void RegisterStaticField(const Field& field, const Object& initial_value);
   void FreeStaticField(const Field& field);
 
+  Isolate* EnterTemporaryIsolate();
+  static void ExitTemporaryIsolate();
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -836,10 +830,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   int64_t start_time_micros_;
   bool is_system_isolate_group_;
   Random random_;
-
-#if !defined(DART_PRECOMPILED_RUNTIME)
-  NativeCallbackTrampolines native_callback_trampolines_;
-#endif
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   int64_t last_reload_timestamp_;
@@ -999,10 +989,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   IsolateObjectStore* isolate_object_store() const {
     return isolate_object_store_.get();
-  }
-
-  static intptr_t ic_miss_code_offset() {
-    return OFFSET_OF(Isolate, ic_miss_code_);
   }
 
   Dart_MessageNotifyCallback message_notify_callback() const {
@@ -1256,6 +1242,20 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
     deopt_context_ = value;
   }
 
+  FfiCallbackMetadata::Trampoline CreateSyncFfiCallback(
+      Zone* zone,
+      const Function& function);
+  FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
+      Zone* zone,
+      const Function& function,
+      Dart_Port send_port);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+
+  // Visible for testing.
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head() {
+    return ffi_callback_list_head_;
+  }
+
   intptr_t BlockClassFinalization() {
     ASSERT(defer_finalization_count_ >= 0);
     return defer_finalization_count_++;
@@ -1324,8 +1324,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
 
   UserTagPtr default_tag() const { return default_tag_; }
   void set_default_tag(const UserTag& tag);
-
-  void set_ic_miss_code(const Code& code);
 
   // Also sends a paused at exit event over the service protocol.
   void SetStickyError(ErrorPtr sticky_error);
@@ -1535,7 +1533,6 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   uword user_tag_ = 0;
   UserTagPtr current_tag_;
   UserTagPtr default_tag_;
-  CodePtr ic_miss_code_;
   FieldTable* field_table_ = nullptr;
   // Used to clear out `UntaggedFinalizerBase::isolate_` pointers on isolate
   // shutdown to prevent usage of dangling pointers.
@@ -1646,6 +1643,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
   MessageHandler* message_handler_ = nullptr;
   intptr_t defer_finalization_count_ = 0;
   DeoptContext* deopt_context_ = nullptr;
+  FfiCallbackMetadata::Metadata* ffi_callback_list_head_ = nullptr;
 
   GrowableObjectArrayPtr tag_table_;
 

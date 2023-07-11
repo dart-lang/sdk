@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,13 +10,13 @@ extension HashAllList on core::List<dynamic> {
   method hashAll = self::HashAllList|hashAll;
   tearoff hashAll = self::HashAllList|get#hashAll;
 }
-static method HashAll|hashAll(lowered final core::Iterable<dynamic> #this) → core::int
+static extension-member method HashAll|hashAll(lowered final core::Iterable<dynamic> #this) → core::int
   return 0;
-static method HashAll|get#hashAll(lowered final core::Iterable<dynamic> #this) → () → core::int
+static extension-member method HashAll|get#hashAll(lowered final core::Iterable<dynamic> #this) → () → core::int
   return () → core::int => self::HashAll|hashAll(#this);
-static method HashAllList|hashAll(lowered final core::List<dynamic> #this) → core::int
+static extension-member method HashAllList|hashAll(lowered final core::List<dynamic> #this) → core::int
   return 1;
-static method HashAllList|get#hashAll(lowered final core::List<dynamic> #this) → () → core::int
+static extension-member method HashAllList|get#hashAll(lowered final core::List<dynamic> #this) → () → core::int
   return () → core::int => self::HashAllList|hashAll(#this);
 static method main() → void {
   core::List<dynamic> l = core::_GrowableList::•<dynamic>(0);

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,17 +29,17 @@ static method test(core::int? i, core::String s, self::A a) → dynamic {
   i = 1;
   i = invalid-expression "pkg/front_end/testcases/general/invalid_assignment.dart:11:7: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   i = s;
-      ^" in s as{TypeError,ForNonNullableByDefault} core::int?;
+      ^" in s as{TypeError} core::int?;
   i = null;
   i == null ?{core::int} i = 1 : null;
   i = null;
   i == null ?{core::Object} i = invalid-expression "pkg/front_end/testcases/general/invalid_assignment.dart:15:9: Error: A value of type 'String' can't be assigned to a variable of type 'int?'.
   i ??= s;
-        ^" in s as{TypeError,ForNonNullableByDefault} core::int? : null;
+        ^" in s as{TypeError} core::int? : null;
   a = new self::A::•();
   a = invalid-expression "pkg/front_end/testcases/general/invalid_assignment.dart:17:5: Error: A value of type 'String' can't be assigned to a variable of type 'A'.
  - 'A' is from 'pkg/front_end/testcases/general/invalid_assignment.dart'.
   a += 1;
-    ^" in a.{self::A::+}(1){(core::int) → core::String} as{TypeError,ForNonNullableByDefault} self::A;
+    ^" in a.{self::A::+}(1){(core::int) → core::String} as{TypeError} self::A;
 }
 static method main() → dynamic {}

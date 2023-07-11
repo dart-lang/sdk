@@ -7,8 +7,10 @@
 
 #include "vm/os.h"
 
+#include <dlfcn.h>           // NOLINT
 #include <errno.h>           // NOLINT
 #include <limits.h>          // NOLINT
+#include <mach-o/loader.h>   // NOLINT
 #include <mach/clock.h>      // NOLINT
 #include <mach/mach.h>       // NOLINT
 #include <mach/mach_time.h>  // NOLINT
@@ -20,6 +22,7 @@
 #endif
 
 #include "platform/utils.h"
+#include "vm/image_snapshot.h"
 #include "vm/isolate.h"
 #include "vm/timeline.h"
 #include "vm/zone.h"
@@ -305,6 +308,43 @@ void OS::Abort() {
 
 void OS::Exit(int code) {
   exit(code);
+}
+
+OS::BuildId OS::GetAppBuildId(const uint8_t* snapshot_instructions) {
+  // First return the build ID information from the instructions image if
+  // available.
+  const Image instructions_image(snapshot_instructions);
+  if (auto* const image_build_id = instructions_image.build_id()) {
+    return {instructions_image.build_id_length(), image_build_id};
+  }
+  Dl_info snapshot_info;
+  if (dladdr(snapshot_instructions, &snapshot_info) == 0) {
+    return {0, nullptr};
+  }
+  const uint8_t* dso_base =
+      static_cast<const uint8_t*>(snapshot_info.dli_fbase);
+  const auto& macho_header =
+      *reinterpret_cast<const struct mach_header*>(dso_base);
+  // We assume host endianness in the Mach-O file.
+  if (macho_header.magic != MH_MAGIC && macho_header.magic != MH_MAGIC_64) {
+    return {0, nullptr};
+  }
+  const size_t macho_header_size = macho_header.magic == MH_MAGIC
+                                       ? sizeof(struct mach_header)
+                                       : sizeof(struct mach_header_64);
+  const uint8_t* it = dso_base + macho_header_size;
+  const uint8_t* end = it + macho_header.sizeofcmds;
+  while (it < end) {
+    const auto& current_cmd = *reinterpret_cast<const struct load_command*>(it);
+    if ((current_cmd.cmd & ~LC_REQ_DYLD) == LC_UUID) {
+      const auto& uuid_cmd = *reinterpret_cast<const struct uuid_command*>(it);
+      return {
+          static_cast<intptr_t>(uuid_cmd.cmdsize - sizeof(struct load_command)),
+          uuid_cmd.uuid};
+    }
+    it += current_cmd.cmdsize;
+  }
+  return {0, nullptr};
 }
 
 }  // namespace dart

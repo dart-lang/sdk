@@ -46,6 +46,8 @@ Future<List<Asset>?> compileNativeAssetsJit() async {
     target: Target.current,
     // When running in JIT mode, only dynamic libraries are supported.
     linkModePreference: LinkModePreference.dynamic,
+    // Dart has no concept of release vs debug, default to release.
+    buildMode: BuildMode.release,
     includeParentEnvironment: true,
   );
   return assets;

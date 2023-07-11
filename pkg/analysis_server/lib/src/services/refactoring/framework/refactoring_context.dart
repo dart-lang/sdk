@@ -10,12 +10,18 @@ import 'package:analysis_server/src/utilities/selection.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_workspace.dart';
 
 /// The context in which a refactoring was requested.
-class RefactoringContext {
-  final LspAnalysisServer server;
+class AbstractRefactoringContext {
+  /// Return the search engine used to search outside the resolved library.
+  final SearchEngine searchEngine;
+
+  /// The sessions at the start of the refactoring.
+  final List<AnalysisSession> startSessions;
 
   /// The result of resolving the library in which a refactoring was requested.
   final ResolvedLibraryResult resolvedLibraryResult;
@@ -46,11 +52,12 @@ class RefactoringContext {
       AnalysisSessionHelper(session);
 
   /// The change workspace associated with this refactoring.
-  late final ChangeWorkspace workspace = DartChangeWorkspace([session]);
+  late final ChangeWorkspace workspace = DartChangeWorkspace(startSessions);
 
   /// Initialize a newly created refactoring context.
-  RefactoringContext({
-    required this.server,
+  AbstractRefactoringContext({
+    required this.searchEngine,
+    required this.startSessions,
     required this.resolvedLibraryResult,
     required this.resolvedUnitResult,
     required this.selectionOffset,
@@ -58,12 +65,41 @@ class RefactoringContext {
     required this.includeExperimental,
   });
 
-  /// Return the search engine used to search outside the resolved library.
-  SearchEngine get searchEngine => server.searchEngine;
+  /// The most deeply nested node whose range completely includes the range of
+  /// characters described by [selectionOffset] and [selectionLength].
+  AstNode? get coveringNode => selection?.coveringNode;
 
-  /// The node that was selected, or `null` if the selection is not valid.
-  AstNode? get selectedNode => selection?.coveringNode;
+  /// Return the offset of the first character after the selection range.
+  int get selectionEnd => selectionOffset + selectionLength;
+
+  /// Returns the selection range.
+  SourceRange get selectionRange =>
+      SourceRange(selectionOffset, selectionLength);
 
   /// Return the analysis session in which additional resolution can occur.
   AnalysisSession get session => resolvedUnitResult.session;
+
+  /// Return `true` if the selection is inside the given [token].
+  bool selectionIsInToken(Token? token) =>
+      token != null &&
+      selectionOffset >= token.offset &&
+      selectionEnd <= token.end;
+}
+
+/// The context in which a refactoring was requested.
+class RefactoringContext extends AbstractRefactoringContext {
+  final LspAnalysisServer server;
+
+  /// Initialize a newly created refactoring context.
+  RefactoringContext({
+    required this.server,
+    required super.startSessions,
+    required super.resolvedLibraryResult,
+    required super.resolvedUnitResult,
+    required super.selectionOffset,
+    required super.selectionLength,
+    required super.includeExperimental,
+  }) : super(
+          searchEngine: server.searchEngine,
+        );
 }

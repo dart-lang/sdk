@@ -340,7 +340,7 @@ $declaration
   }
 
   Future<void> test_sort() async {
-    await _computeUnitAndErrors(r'''
+    await _parseUnitAndErrors(r'''
 library lib;
 
 export 'dart:bbb';
@@ -942,7 +942,16 @@ class NonLibraryAnnotation {
 
   Future<void> _computeUnitAndErrors(String code) async {
     addTestSource(code);
+    verifyNoTestUnitErrors = false;
     var result = await getResolvedUnit(testFile);
+    testUnit = result.unit;
+    testErrors = result.errors;
+  }
+
+  Future<void> _parseUnitAndErrors(String code) async {
+    addTestSource(code);
+    verifyNoTestUnitErrors = false;
+    var result = await getParsedUnit(testFile);
     testUnit = result.unit;
     testErrors = result.errors;
   }

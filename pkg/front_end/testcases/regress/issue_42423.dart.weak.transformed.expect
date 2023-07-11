@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -9,13 +9,13 @@ import "package:expect/expect.dart";
 static method test1(dynamic stringList) → dynamic {
   core::Set<core::int> intSet = block {
     final core::Set<core::int> #t1 = new col::_Set::•<core::int>();
-    final core::Iterable<dynamic>? #t2 = stringList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    final core::Iterable<dynamic>? #t2 = stringList as{TypeError,ForDynamic} core::Iterable<dynamic>?;
     if(!(#t2 == null)) {
       synthesized core::Iterator<dynamic> :sync-for-iterator = #t2{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t3 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int #t4 = #t3 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t4 = #t3 as{TypeError} core::int;
           #t1.{core::Set::add}{Invariant}(#t4){(core::int) → core::bool};
         }
       }
@@ -25,13 +25,13 @@ static method test1(dynamic stringList) → dynamic {
 static method test2(dynamic stringList) → dynamic {
   core::List<core::int> intList = block {
     final core::List<core::int> #t5 = core::_GrowableList::•<core::int>(0);
-    final core::Iterable<dynamic>? #t6 = stringList as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>?;
+    final core::Iterable<dynamic>? #t6 = stringList as{TypeError,ForDynamic} core::Iterable<dynamic>?;
     if(!(#t6 == null)) {
       synthesized core::Iterator<dynamic> :sync-for-iterator = #t6{core::Iterable<dynamic>}.{core::Iterable::iterator}{core::Iterator<dynamic>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final dynamic #t7 = :sync-for-iterator.{core::Iterator::current}{dynamic};
         {
-          final core::int #t8 = #t7 as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t8 = #t7 as{TypeError} core::int;
           #t5.{core::List::add}{Invariant}(#t8){(core::int) → void};
         }
       }
@@ -41,14 +41,14 @@ static method test2(dynamic stringList) → dynamic {
 static method test3(dynamic stringMap) → dynamic {
   core::Map<core::int, core::int> intMap = block {
     final core::Map<core::int, core::int> #t9 = <core::int, core::int>{};
-    final core::Map<dynamic, dynamic>? #t10 = stringMap as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>?;
+    final core::Map<dynamic, dynamic>? #t10 = stringMap as{TypeError,ForDynamic} core::Map<dynamic, dynamic>?;
     if(!(#t10 == null)) {
       synthesized core::Iterator<core::MapEntry<core::int, core::int>> :sync-for-iterator = #t10{core::Map<dynamic, dynamic>}.{core::Map::entries}{core::Iterable<core::MapEntry<core::int, core::int>>}.{core::Iterable::iterator}{core::Iterator<core::MapEntry<core::int, core::int>>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
         final core::MapEntry<dynamic, dynamic> #t11 = :sync-for-iterator.{core::Iterator::current}{core::MapEntry<core::int, core::int>};
         {
-          final core::int #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError,ForNonNullableByDefault} core::int;
-          final core::int #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError,ForNonNullableByDefault} core::int;
+          final core::int #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError} core::int;
+          final core::int #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError} core::int;
           #t9.{core::Map::[]=}{Invariant}(#t12, #t13){(core::int, core::int) → void};
         }
       }

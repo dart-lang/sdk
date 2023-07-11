@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -897,7 +896,9 @@ class MethodInvocationResolver with ScopeHelpers {
       functionExpression = node.methodName;
       targetType = _resolver.flowAnalysis.flow?.propertyGet(
               functionExpression,
-              ThisPropertyTarget.singleton,
+              node.isCascaded
+                  ? CascadePropertyTarget.singleton
+                  : ThisPropertyTarget.singleton,
               node.methodName.name,
               node.methodName.staticElement,
               getterReturnType) ??

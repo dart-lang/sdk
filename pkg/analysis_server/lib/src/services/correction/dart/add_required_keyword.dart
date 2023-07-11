@@ -9,7 +9,7 @@ import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddRequiredKeyword extends CorrectionProducer {
+class AddRequiredKeyword extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_REQUIRED2;
 

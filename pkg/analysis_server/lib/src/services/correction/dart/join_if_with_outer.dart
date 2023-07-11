@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class JoinIfWithOuter extends CorrectionProducer {
+class JoinIfWithOuter extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.JOIN_IF_WITH_OUTER;
 

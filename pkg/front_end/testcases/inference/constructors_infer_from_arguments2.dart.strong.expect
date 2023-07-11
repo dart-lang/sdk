@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -23,7 +23,7 @@ static method test(core::num y) → dynamic {
   self::C<core::int> x = new self::C::•<core::int>(42);
   self::C<core::int> c_int = new self::C::•<core::int>(invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments2.dart:16:70: Error: The argument type 'num' can't be assigned to the parameter type 'int'.
   C<int> c_int = new /*@typeArgs=int*/ C(/*info:DOWN_CAST_IMPLICIT*/ y);
-                                                                     ^" in y as{TypeError,ForNonNullableByDefault} core::int);
+                                                                     ^" in y as{TypeError} core::int);
   self::C<core::num> c_num = new self::C::•<core::num>(123);
   self::C<core::num> c_num2 = let final self::C<core::num> #t1 = new self::C::•<core::num>(456) in block {
     #t1.{self::C::t} = 1.0;
@@ -31,6 +31,6 @@ static method test(core::num y) → dynamic {
   self::C<dynamic> c_dynamic = new self::C::•<dynamic>(42);
   x.{self::C::t} = invalid-expression "pkg/front_end/testcases/inference/constructors_infer_from_arguments2.dart:24:55: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   x. /*@target=C.t*/ t = /*error:INVALID_ASSIGNMENT*/ 'hello';
-                                                      ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int;
+                                                      ^" in "hello" as{TypeError} core::int;
 }
 static method main() → dynamic {}

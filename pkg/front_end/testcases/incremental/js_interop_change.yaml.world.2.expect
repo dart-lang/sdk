@@ -17,20 +17,20 @@ library from "org-dartlang-test:///lib1.dart" as lib1 {
     method instanceMethod() → sta::StaticJSClass
       return sta::StaticJSClass::factory();
     get instanceGetter() → sta::StaticJSClass
-      return sta::StaticJSClass::•();
+      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
     set instanceSetter((sta::StaticJSClass) → void f) → void {}
     static method staticMethod() → sta::StaticJSClass
       return sta::StaticJSClass::factory();
     static get staticGetter() → sta::StaticJSClass
-      return sta::StaticJSClass::•();
+      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
     static set staticSetter((sta::StaticJSClass) → void f) → void {}
     static method _#new#tearOff() → lib1::Class
       return new lib1::Class::•();
   }
   static method topLevelMethod() → sta::StaticJSClass
-    return sta::StaticJSClass::•();
+    return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
   static get topLevelGetter() → sta::StaticJSClass
-    return sta::StaticJSClass::•();
+    return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
   static set topLevelSetter((sta::StaticJSClass) → void f) → void {}
 }
 @#C2
@@ -41,12 +41,11 @@ library static_interop from "org-dartlang-test:///lib2.dart" as sta {
   @#C4
   @#C5
   class StaticJSClass extends dart.core::Object {
-    static factory •() → sta::StaticJSClass
-      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
+    external static factory •() → sta::StaticJSClass;
     static method _#new#tearOff() → sta::StaticJSClass
-      return sta::StaticJSClass::•();
+      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
     static factory factory() → sta::StaticJSClass {
-      return sta::StaticJSClass::•();
+      return dart.js_util::_callConstructorUnchecked0<sta::StaticJSClass>(dart.js_util::_getPropertyTrustType<dart.core::Object>(dart.js_util::globalThis, "JSClass"));
     }
     static method _#factory#tearOff() → sta::StaticJSClass
       return sta::StaticJSClass::factory();

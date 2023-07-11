@@ -141,4 +141,11 @@ class ConstantValueTypeMasks
   TypeMask visitType(TypeConstantValue constant, JClosedWorld closedWorld) {
     return _abstractValueDomain.typeType;
   }
+
+  @override
+  TypeMask visitJavaScriptObject(
+      JavaScriptObjectConstantValue constant, JClosedWorld closedWorld) {
+    // TODO(sra): Change to plain JavaScript object.
+    return _abstractValueDomain.dynamicType;
+  }
 }

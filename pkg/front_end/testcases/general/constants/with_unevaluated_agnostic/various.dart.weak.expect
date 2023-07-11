@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -88,18 +88,18 @@ class Class<T extends self::A> extends core::Object /*hasConstConstructor*/  {
     : super core::Object::•()
     ;
   const constructor redirect(dynamic t) → self::Class<self::Class::T>
-    : this self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Class::T)
+    : this self::Class::•(t as{TypeError,ForDynamic} self::Class::T)
     ;
   const constructor method(self::Class::T t) → self::Class<self::Class::T>
     : this self::Class::•(invalid-expression "pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart:101:34: Error: The argument type 'A' can't be assigned to the parameter type 'T'.
  - 'A' is from 'pkg/front_end/testcases/general/constants/with_unevaluated_agnostic/various.dart'.
   const Class.method(T t) : this(-t);
-                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError,ForNonNullableByDefault} Never)
+                                 ^" in t.{self::A::unary-}(){() → self::A} as{TypeError} Never)
     ;
 }
 class Subclass<T extends self::A> extends self::Class<self::Subclass::T> /*hasConstConstructor*/  {
   const constructor •(dynamic t) → self::Subclass<self::Subclass::T>
-    : super self::Class::•(t as{TypeError,ForDynamic,ForNonNullableByDefault} self::Subclass::T)
+    : super self::Class::•(t as{TypeError,ForDynamic} self::Subclass::T)
     ;
 }
 class ConstClassWithF extends core::Object /*hasConstConstructor*/  {
@@ -185,7 +185,7 @@ static method main() → dynamic {
   core::print(#C23.{self::Foo::value}{core::int});
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -217,7 +217,7 @@ constants  {
   #C23 = eval self::Foo<core::int*>{saved:#C6, saved2:#C5, initialized:#C4, value:#C22}
   #C24 = eval const core::bool::fromEnvironment(#C1)
   #C25 = eval #C24 ?{core::Object} #C22 : #C9
-  #C26 = eval #C25 is{ForNonNullableByDefault} core::int
+  #C26 = eval #C25 is core::int
   #C27 = eval #C26 ?{core::bool} #C9 : #C15
   #C28 = <Null>[#C10]
   #C29 = <core::int*>[#C22]
@@ -233,12 +233,12 @@ constants  {
   #C39 = "x"
   #C40 = eval const core::bool::fromEnvironment(#C39)
   #C41 = eval self::C{}
-  #C42 = eval #C41 as{ForNonNullableByDefault} self::B*
+  #C42 = eval #C41 as self::B*
   #C43 = eval self::Class<self::B*>{#C42}
   #C44 = eval #C40 ?{self::Class<self::B>?} #C10 : #C43
   #C45 = eval const core::bool::fromEnvironment(#C39)
   #C46 = eval self::C{}
-  #C47 = eval #C46 as{ForNonNullableByDefault} self::B*
+  #C47 = eval #C46 as self::B*
   #C48 = eval self::Subclass<self::B*>{#C47}
   #C49 = eval #C45 ?{self::Subclass<self::B>?} #C10 : #C48
   #C50 = eval const core::bool::fromEnvironment(#C39)
@@ -247,17 +247,17 @@ constants  {
   #C53 = eval #C50 ?{self::Class<self::A>?} #C10 : #C52
   #C54 = eval const core::bool::fromEnvironment(#C39)
   #C55 = eval self::B{}
-  #C56 = eval #C55 as{ForNonNullableByDefault} self::B*
+  #C56 = eval #C55 as self::B*
   #C57 = eval self::Class<self::B*>{#C56}
   #C58 = eval #C54 ?{self::Class<self::B>?} #C10 : #C57
   #C59 = eval const core::bool::fromEnvironment(#C39)
   #C60 = eval self::A{}
-  #C61 = eval #C60 as{ForNonNullableByDefault} self::A*
+  #C61 = eval #C60 as self::A*
   #C62 = eval self::Subclass<self::A*>{#C61}
   #C63 = eval #C59 ?{self::Subclass<self::A>?} #C10 : #C62
   #C64 = eval const core::bool::fromEnvironment(#C39)
   #C65 = eval self::B{}
-  #C66 = eval #C65 as{ForNonNullableByDefault} self::B*
+  #C66 = eval #C65 as self::B*
   #C67 = eval self::Subclass<self::B*>{#C66}
   #C68 = eval #C64 ?{self::Subclass<self::B>?} #C10 : #C67
   #C69 = TypeLiteralConstant((core::int*, {named: core::int*}) →* core::int*)

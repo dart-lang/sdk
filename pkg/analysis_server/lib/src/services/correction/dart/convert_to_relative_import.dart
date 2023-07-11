@@ -13,7 +13,7 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 import 'package:path/path.dart' as path;
 
-class ConvertToRelativeImport extends CorrectionProducer {
+class ConvertToRelativeImport extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.CONVERT_TO_RELATIVE_IMPORT;
 
@@ -46,7 +46,7 @@ class ConvertToRelativeImport extends CorrectionProducer {
     }
 
     // Ignore if the uri is not a package: uri.
-    var sourceUri = resolvedResult.uri;
+    var sourceUri = unitResult.uri;
     if (!sourceUri.isScheme('package')) {
       return;
     }

@@ -431,8 +431,9 @@ class Assembler : public AssemblerBase {
   }
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
-    LoadFromOffset(dst, Address(address, offset));
+                   int32_t offset = 0,
+                   OperandSize size = kFourBytes) override {
+    LoadFromOffset(dst, Address(address, offset), size);
     dmb();
   }
   void StoreRelease(Register src,
@@ -454,8 +455,11 @@ class Assembler : public AssemblerBase {
     cmp(value, Operand(TMP));
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
-    LoadFromOffset(TMP, address);
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kFourBytes) override {
+    ASSERT_EQUAL(size, kFourBytes);
+    LoadFromOffset(TMP, address, size);
     cmp(value, Operand(TMP));
   }
 

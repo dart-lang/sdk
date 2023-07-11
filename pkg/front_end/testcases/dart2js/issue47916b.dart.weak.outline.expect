@@ -1,17 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 abstract class A<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::•]/*isLegacy*/;
-  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%>
+  static factory •<T extends core::Object? = dynamic>() → self::A<self::A::•::T%> /* redirection-target: self::B::•<dynamic, self::A::•::T%>*/
     return self::B::•<dynamic, self::A::•::T%>();
   static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
     return new self::C::•<self::A::_#new#tearOff::T%, dynamic, dynamic>();
 }
 abstract class B<S extends core::Object? = dynamic, T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
-  static final field dynamic _redirecting# = <dynamic>[self::B::•]/*isLegacy*/;
-  static factory •<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::•::S%, self::B::•::T%>
+  static factory •<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::•::S%, self::B::•::T%> /* redirection-target: self::C::•<self::B::•::T%, self::B::•::S%, dynamic>*/
     return new self::C::•<self::B::•::T%, self::B::•::S%, dynamic>();
   static method _#new#tearOff<S extends core::Object? = dynamic, T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::S%, self::B::_#new#tearOff::T%>
     return new self::C::•<self::B::_#new#tearOff::T%, self::B::_#new#tearOff::S%, dynamic>();
@@ -25,9 +23,3 @@ class C<T extends core::Object? = dynamic, S extends core::Object? = dynamic, U 
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916b.dart:5:16 -> ConstructorTearOffConstant(A.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue47916b.dart:9:16 -> ConstructorTearOffConstant(B.)
-Extra constant evaluation: evaluated: 9, effectively constant: 2

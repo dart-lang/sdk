@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -29,7 +29,7 @@ abstract class _MClassMultiple&SealedClass&SealedClass2 extends core::Object imp
 abstract class MClassMultiple extends self::_MClassMultiple&SealedClass&SealedClass2 /*isMixinDeclaration*/  {
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

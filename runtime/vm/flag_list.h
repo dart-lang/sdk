@@ -92,8 +92,6 @@ constexpr bool FLAG_support_il_printer = false;
     "Abort if memory allocation fails - use only with --old-gen-heap-size")    \
   P(add_readonly_data_symbols, bool, false,                                    \
     "Add static symbols for objects in snapshot read-only data")               \
-  C(async_debugger, false, false, bool, true,                                  \
-    "Debugger support async functions.")                                       \
   P(background_compilation, bool, kDartUseBackgroundCompilation,               \
     "Run optimizing compilation in background")                                \
   P(check_token_positions, bool, false,                                        \
@@ -110,6 +108,8 @@ constexpr bool FLAG_support_il_printer = false;
     "Deoptimize on every N stack overflow checks")                             \
   P(deoptimize_on_runtime_call_every, int, 0,                                  \
     "Deoptimize functions on every runtime call.")                             \
+  P(dontneed_on_sweep, bool, false,                                            \
+    "madvise(DONTNEED) free areas in partially used heap regions")             \
   R(dump_megamorphic_stats, false, bool, false,                                \
     "Dump megamorphic cache statistics")                                       \
   R(dump_symbol_stats, false, bool, false, "Dump symbol table statistics")     \

@@ -127,6 +127,7 @@ class DapTestClient {
     List<String>? additionalProjectPaths,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
   }) async {
@@ -150,6 +151,7 @@ class DapTestClient {
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -290,6 +292,7 @@ class DapTestClient {
     String? console,
     bool? debugSdkLibraries,
     bool? debugExternalPackageLibraries,
+    bool? showGettersInDebugViews,
     bool? evaluateGettersInDebugViews,
     bool? evaluateToStringInDebugViews,
     bool? sendLogsToClient,
@@ -307,6 +310,7 @@ class DapTestClient {
         console: console,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
+        showGettersInDebugViews: showGettersInDebugViews,
         evaluateGettersInDebugViews: evaluateGettersInDebugViews,
         evaluateToStringInDebugViews: evaluateToStringInDebugViews,
         // When running out of process, VM Service traffic won't be available
@@ -320,6 +324,13 @@ class DapTestClient {
       overrideCommand: 'launch',
     );
   }
+
+  /// Sends a pause request for the given thread.
+  ///
+  /// Returns a Future that completes when the server returns a corresponding
+  /// response.
+  Future<Response> pause(int threadId) =>
+      sendRequest(PauseArguments(threadId: threadId));
 
   /// Sends a next (step over) request for the given thread.
   ///
@@ -534,6 +545,16 @@ class DapTestClient {
       }
 
       _receivedEvents.add(message.event);
+    } else if (message is Request) {
+      if (message.command == 'runInTerminal' &&
+          !_receivedResponses.contains('launch')) {
+        throw StateError(
+          'Adapter sent a "runInTerminal" request before it had '
+          'responded to the "launch" request',
+        );
+      }
+
+      _receivedResponses.add(message.command);
     } else if (message is Response) {
       if (message.command == 'initialize' &&
           _receivedEvents.contains('initialized')) {
@@ -651,12 +672,17 @@ extension DapTestClientExtension on DapTestClient {
   }
 
   /// Sets breakpoints at [lines] in [file].
-  Future<void> setBreakpoints(File file, List<int> lines) async {
-    await sendRequest(
+  Future<SetBreakpointsResponseBody> setBreakpoints(
+      File file, List<int> lines) async {
+    final response = await sendRequest(
       SetBreakpointsArguments(
         source: Source(path: _normalizeBreakpointPath(file.path)),
         breakpoints: lines.map((line) => SourceBreakpoint(line: line)).toList(),
       ),
+    );
+
+    return SetBreakpointsResponseBody.fromJson(
+      response.body as Map<String, Object?>,
     );
   }
 
@@ -1089,7 +1115,19 @@ extension DapTestClientExtension on DapTestClient {
         buffer.write(', $type');
       }
       if (presentationHint != null) {
-        buffer.write(', $presentationHint');
+        if (presentationHint.lazy != null) {
+          buffer.write(', lazy: ${presentationHint.lazy}');
+        }
+        if (presentationHint.kind != null) {
+          buffer.write(', kind: ${presentationHint.kind}');
+        }
+        if (presentationHint.visibility != null) {
+          buffer.write(', visibility: ${presentationHint.visibility}');
+        }
+        if (presentationHint.attributes != null) {
+          buffer.write(
+              ', attributes: ${presentationHint.attributes!.join(", ")}');
+        }
       }
 
       return buffer.toString();

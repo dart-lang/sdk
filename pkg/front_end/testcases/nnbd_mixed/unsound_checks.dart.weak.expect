@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "unsound_checks_lib.dart" as uns;
@@ -112,9 +112,9 @@ static method isNotNullOptOut2(core::int* i) → dynamic
   return !(i == null);
 static method ifNullOptOut(core::int* i) → dynamic
   return let final core::int* #t6 = i in #t6 == null ?{core::int*} 42 : #t6;
-static method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
+static extension-member method OptOutExtension|[](lowered final self::OptOutClass1* #this, core::int* index) → core::int*
   return index;
-static method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void {}
+static extension-member method OptOutExtension|[]=(lowered final self::OptOutClass1* #this, core::int* index, core::int* value) → void {}
 static method extensionIfNullOptOut1(core::int* i) → dynamic
   return let final self::OptOutClass1* #t7 = new self::OptOutClass1::•() in let final core::int* #t8 = i in let final core::int* #t9 = self::OptOutExtension|[](#t7, #t8) in #t9 == null ?{core::int*} let final core::int* #t10 = 42 in let final void #t11 = self::OptOutExtension|[]=(#t7, #t8, #t10) in #t10 : #t9;
 static method extensionIfNullOptOut1ForEffect(core::int* i) → dynamic {
@@ -154,9 +154,9 @@ static method nullAwareIfNullSetOptOutForEffect(core::int* i) → dynamic {
   let final self::OptOutClass5* #t34 = o in #t34 == null ?{core::int*} null : #t34.{self::OptOutClass5::field}{core::int*} == null ?{core::int*} #t34.{self::OptOutClass5::field} = 42 : null;
 }
 static method isTestOptOut(core::int* i) → dynamic
-  return i is core::int*;
+  return i is{ForLegacy} core::int*;
 static method isNotTestOptOut(core::int* i) → dynamic
-  return !(i is core::int*);
+  return !(i is{ForLegacy} core::int*);
 static method main() → dynamic {
   self::expect(false, uns::isNullOptIn1(0));
   self::expect(false, self::isNullOptOut1(0));
@@ -288,7 +288,7 @@ static method throws(() →* void f, [(core::Object*) →* core::bool* testExcep
   throw "Missing exception.";
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -452,9 +452,9 @@ static method isNotNullOptIn2(core::int i) → dynamic
   return !(i == null);
 static method ifNullOptIn(core::int i) → dynamic
   return let final core::int #t40 = i in #t40 == null ?{core::int} 42 : #t40;
-static method OptInExtension|[](lowered final uns::OptInClass1 #this, core::int index) → core::int
+static extension-member method OptInExtension|[](lowered final uns::OptInClass1 #this, core::int index) → core::int
   return index;
-static method OptInExtension|[]=(lowered final uns::OptInClass1 #this, core::int index, core::int value) → void {}
+static extension-member method OptInExtension|[]=(lowered final uns::OptInClass1 #this, core::int index, core::int value) → void {}
 static method extensionIfNullOptIn1(core::int i) → dynamic
   return let final uns::OptInClass1 #t41 = new uns::OptInClass1::•() in let final core::int #t42 = i in let final core::int #t43 = uns::OptInExtension|[](#t41, #t42) in #t43 == null ?{core::int} let final core::int #t44 = 42 in let final void #t45 = uns::OptInExtension|[]=(#t41, #t42, #t44) in #t44 : #t43;
 static method extensionIfNullOptIn1ForEffect(core::int i) → dynamic {
@@ -486,24 +486,24 @@ static method ifNullSuperIndexSetOptInForEffect(core::int i) → dynamic {
   new uns::OptInClass4::•().{uns::OptInClass4::methodForEffect}(i){(core::int) → dynamic};
 }
 static method nullAwareIfNullSetOptIn(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as uns::OptInClass5?;
   return let final uns::OptInClass5? #t66 = o in #t66 == null ?{core::int?} null : let final core::int #t67 = #t66.{uns::OptInClass5::field}{core::int} in #t67 == null ?{core::int} #t66.{uns::OptInClass5::field} = 42 : #t67;
 }
 static method nullAwareIfNullSetOptInForEffect(core::int i) → dynamic {
-  uns::OptInClass5? o = new uns::OptInClass5::•(i) as{ForNonNullableByDefault} uns::OptInClass5?;
+  uns::OptInClass5? o = new uns::OptInClass5::•(i) as uns::OptInClass5?;
   let final uns::OptInClass5? #t68 = o in #t68 == null ?{core::int?} null : #t68.{uns::OptInClass5::field}{core::int} == null ?{core::int} #t68.{uns::OptInClass5::field} = 42 : null;
 }
 static method isTestOptIn(core::int i) → dynamic
-  return i is{ForNonNullableByDefault} core::int;
+  return i is core::int;
 static method isNotTestOptIn(core::int i) → dynamic
-  return !(i is{ForNonNullableByDefault} core::int);
+  return !(i is core::int);
 static method nullAwareAccess1(core::int i) → dynamic
   return let final core::int #t69 = i in #t69 == null ?{core::bool?} null : #t69.{core::int::isEven}{core::bool};
 static method nullAwareAccessForEffect1(core::int i) → dynamic {
   let final core::int #t70 = i in #t70 == null ?{core::bool?} null : #t70.{core::int::isEven}{core::bool};
 }
 static method promotionToNever(core::int i) → dynamic {
-  if(i is{ForNonNullableByDefault} core::int)
+  if(i is core::int)
     return;
 }
 static method unnecessaryNullCheck(() → core::int f) → dynamic {

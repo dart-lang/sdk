@@ -11,6 +11,7 @@ cc/IsolateReload_PendingStaticCall_DefinedToNSM: Fail # Issue 32981
 cc/IsolateReload_PendingStaticCall_NSMToDefined: Fail, Crash # Issue 32981. Fails on non-Windows, crashes on Windows (because of test.py special handline)
 cc/IsolateReload_PendingUnqualifiedCall_InstanceToStatic: Fail # Issue 32981
 cc/IsolateReload_PendingUnqualifiedCall_StaticToInstance: Fail # Issue 32981
+cc/TTS_STC_ManyAsserts: Pass, Slow # Generates 10k classes that are put into an STC via assert checks.
 dart/analyze_snapshot_binary_test: Pass, Slow # Runs various subprocesses for testing AOT.
 dart/boxmint_test: Pass, Slow # Uses slow path
 dart/byte_array_optimized_test: Pass, Slow
@@ -89,7 +90,9 @@ dart/appjit_cha_deopt_test: SkipSlow
 dart/hash_map_probes_limit_test: SkipSlow # Test includes large program compilation.
 dart/regress_40462_test: SkipSlow
 dart/regress_40753_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart/regress_48523_test: Pass, Slow
 dart/trigger_gc_in_native_test: Skip # This test crashes on the bot, but not locally, and infrastructure repeatedly fails to locate its coredump.
+dart/unobfuscated_static_symbols_test: Pass, Slow # Test includes creating several snapshots in both ELF and assembly modes.
 dart/use_strip_flag_test: Pass, Slow # This test can take a longer time to complete.
 dart/v8_snapshot_profile_writer_test: SkipSlow
 dart/weak_canonical_string_table_test: Pass, Slow # This test can take a longer time to complete.
@@ -137,14 +140,11 @@ dart_2/null_safety_autodetection_in_kernel_compiler_test: SkipByDesign # Test ne
 dart_2/snapshot_depfile_test: SkipByDesign # Test needs to run from source
 
 [ $compiler == dartkp ]
-dart/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
+dart/await_type_check_with_dynamic_loading_test: SkipByDesign # Uses dart:mirrors.
 dart/finalizer/finalizer_isolate_groups_run_gc_test: SkipByDesign # Isolate.spawnUri is not supported in AOT.
 dart/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
 dart/scavenger_abort_test: SkipSlow
 dart/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
-dart_2/causal_stacks/async_throws_stack_no_causal_non_symbolic_test: SkipByDesign # --no-lazy... does nothing on precompiler.
-dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # --no-lazy... does nothing on precompiler.
 dart_2/redirection_type_shuffling_test: SkipByDesign # Uses dart:mirrors.
 dart_2/scavenger_abort_test: SkipSlow
 dart_2/v8_snapshot_profile_writer_test: Pass, Slow # Can be slow due to re-invoking the precompiler.
@@ -219,6 +219,11 @@ dart_2/disassemble_determinism_test: Slow, Pass # Times out on slower bots.
 
 [ $qemu ]
 cc/ManyClasses: Slow, Pass # Generates 100k classes, slow on emulated architectures.
+cc/StressMallocDirectly: Skip # Queries RSS
+cc/StressMallocThroughZones: Skip # Queries RSS
+cc/SweepDontNeed: Skip # Queries RSS
+cc/TTS_STC_ManyAsserts: Skip # OOM crash can occur when growing the STC.
+cc/TypeArguments_Cache_ManyInstantiations: Skip # Generates 100k classes, extremely slow on emulated architectures.
 
 # On the simulator stack traces produced by the Profiler do not match
 # up with the real Dart stack trace and hence we don't get correct
@@ -377,10 +382,10 @@ dart/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://d
 dart_2/isolates/dart_api_create_lightweight_isolate_test: SkipByDesign # https://dartbug.com/40579 Dart C API symbols not available.
 
 [ $compiler == dartkp && $simulator ]
-dart/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart/isolates/fast_object_copy2_test*: Skip # Uses ffi which is not available on simulated architectures
 dart/isolates/fast_object_copy_test*: SkipSlow
-dart_2/causal_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
+dart_2/awaiter_stacks/async_throws_stack_lazy_non_symbolic_test: Pass, Slow
 dart_2/isolates/fast_object_copy_test*: SkipSlow
 
 [ $compiler == dartkp && ($builder_tag == tsan || $simulator) ]
@@ -438,11 +443,12 @@ dart/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtim
 dart_2/run_appended_aot_snapshot_test: SkipByDesign # Tests the precompiled runtime.
 
 [ $builder_tag == dwarf || $builder_tag == obfuscated ]
-dart/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
-dart/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart/awaiter_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
+dart/awaiter_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
+dart/awaiter_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
+dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
+dart/awaiter_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart/checked_parameter_assert_assignable_stacktrace_test: SkipByDesign # Asserts exact stacktrace output.
 dart/error_messages_in_null_checks_test: SkipByDesign # Relies symbol names in stack traces
 dart/extension_names_test: SkipByDesign # Relies symbol names in stack traces
 dart/extension_unnamed_names_test: SkipByDesign # Relies symbol names in stack traces
@@ -451,11 +457,12 @@ dart/invisible_function_pragma_test: SkipByDesign # Relies symbol names in stack
 dart/optimized_stacktrace_line_and_column_test: SkipByDesign # Relies symbol names in stack traces
 dart/optimized_stacktrace_line_test: SkipByDesign # Relies symbol names in stack traces
 dart/stacktrace_mixin_application_test: SkipByDesign # Relies symbol names in stack traces
-dart_2/causal_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
-dart_2/causal_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/awaiter_stacks/async_throws_stack_lazy_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/awaiter_stacks/async_throws_stack_no_causal_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/awaiter_stacks/flutter_regress_100441_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/awaiter_stacks/sync_async_start_pkg_test_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/awaiter_stacks/zone_callback_stack_traces_test: SkipByDesign # Asserts exact stacktrace output.
+dart_2/checked_parameter_assert_assignable_stacktrace_test: SkipByDesign # Asserts exact stacktrace output.
 dart_2/error_messages_in_null_checks_test: SkipByDesign # Relies on uris / symbol names
 dart_2/extension_names_test: SkipByDesign # Relies on uris / symbol names
 dart_2/extension_unnamed_names_test: SkipByDesign # Relies on uris / symbol names

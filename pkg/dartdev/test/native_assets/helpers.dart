@@ -21,8 +21,11 @@ const keepTempKey = 'KEEP_TEMPORARY_DIRECTORIES';
 
 Future<void> inTempDir(Future<void> Function(Uri tempUri) fun) async {
   final tempDir = await Directory.systemTemp.createTemp();
+  // Deal with Windows temp folder aliases.
+  final tempUri =
+      Directory(await tempDir.resolveSymbolicLinks()).uri.normalizePath();
   try {
-    await fun(tempDir.uri);
+    await fun(tempUri);
   } finally {
     if (!Platform.environment.containsKey(keepTempKey) ||
         Platform.environment[keepTempKey]!.isEmpty) {
@@ -60,11 +63,10 @@ Future<run_process.RunProcessResult> runProcess({
     );
 
 Future<void> copyTestProjects(Uri copyTargetUri, Logger logger) async {
-  final pkgNativeAssetsBuilderUri =
-      Platform.script.resolve('../../../native_assets_builder/');
+  final pkgNativeAssetsBuilderUri = Platform.script.resolve(
+      '../../../../third_party/pkg/native/pkgs/native_assets_builder/');
   // Reuse the test projects from `pkg:native`.
-  final testProjectsUri =
-      pkgNativeAssetsBuilderUri.resolve('test/test_projects/');
+  final testProjectsUri = pkgNativeAssetsBuilderUri.resolve('test/data/');
   final manifestUri = testProjectsUri.resolve('manifest.yaml');
   final manifestFile = File.fromUri(manifestUri);
   final manifestString = await manifestFile.readAsString();

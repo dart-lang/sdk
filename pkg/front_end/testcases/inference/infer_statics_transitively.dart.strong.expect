@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 import "infer_statics_transitively_a.dart" as inf;
@@ -13,7 +13,7 @@ static method foo() → dynamic {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as inf;
 import "dart:core" as core;
 import "infer_statics_transitively_b.dart" as inf2;
@@ -31,7 +31,7 @@ class A extends core::Object {
 static final field core::int a1 = self::m2;
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as inf2;
 import "dart:core" as core;
 

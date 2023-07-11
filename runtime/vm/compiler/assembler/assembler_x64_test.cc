@@ -3352,8 +3352,7 @@ static void EnterTestFrame(Assembler* assembler) {
   __ pushq(CODE_REG);
   __ pushq(PP);
   __ pushq(THR);
-  __ movq(CODE_REG, Address(CallingConventions::kArg1Reg,
-                            VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(CODE_REG, CallingConventions::kArg1Reg);
   __ movq(THR, CallingConventions::kArg2Reg);
   __ LoadPoolPointer(PP);
 }
@@ -4060,7 +4059,7 @@ ASSEMBLER_TEST_RUN(PackedNegate, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movl rax,0x4144cccd\n"
@@ -4097,7 +4096,7 @@ ASSEMBLER_TEST_RUN(PackedAbsolute, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movl rax,-0x3e8b3333\n"
@@ -4132,7 +4131,7 @@ ASSEMBLER_TEST_RUN(PackedSetWZero, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movl rax,0x4144cccd\n"
@@ -4978,7 +4977,7 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movq rax,[pp+0xf]\n"
@@ -5022,7 +5021,7 @@ ASSEMBLER_TEST_RUN(TestObjectCompare, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movq rax,[pp+0xf]\n"
@@ -5461,7 +5460,7 @@ ASSEMBLER_TEST_RUN(DoubleAbs, test) {
       "push r12\n"
       "push pp\n"
       "push thr\n"
-      "movq r12,[rdi+0x8]\n"
+      "movq r12,rdi\n"
       "movq thr,rsi\n"
       "movq pp,[r12+0x27]\n"
       "movq tmp,[thr+0x...]\n"

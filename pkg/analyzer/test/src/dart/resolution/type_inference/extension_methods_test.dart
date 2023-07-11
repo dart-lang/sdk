@@ -32,13 +32,47 @@ void f(A<int> a) {
   a.foo;
 }
 ''');
-    var prefixedIdentifier = findNode.prefixed('.foo');
-    assertMember(
-      prefixedIdentifier,
-      findElement.getter('foo', of: 'E'),
-      {'T': 'int'},
-    );
-    assertType(prefixedIdentifier, 'List<int>');
+
+    final node = findNode.prefixed('.foo');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A<int>
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: int}
+    staticType: List<int>
+  staticElement: PropertyAccessorMember
+    base: self::@extension::E::@getter::foo
+    substitution: {T: int}
+  staticType: List<int>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A<int*>*
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: int*}
+    staticType: List<int*>*
+  staticElement: PropertyAccessorMember
+    base: self::@extension::E::@getter::foo
+    substitution: {T: int*}
+  staticType: List<int*>*
+''');
+    }
   }
 
   test_implicit_method() async {
@@ -253,13 +287,47 @@ void f(A<int> a) {
   a.foo;
 }
 ''');
-    var prefixedIdentifier = findNode.prefixed('foo;');
-    assertMember(
-      prefixedIdentifier,
-      findElement.method('foo', of: 'E'),
-      {'T': 'int'},
-    );
-    assertType(prefixedIdentifier, 'Map<int, U> Function<U>(U)');
+
+    final node = findNode.prefixed('foo;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A<int>
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    staticType: Map<int, U> Function<U>(U)
+  staticElement: MethodMember
+    base: self::@extension::E::@method::foo
+    substitution: {T: int, U: U}
+  staticType: Map<int, U> Function<U>(U)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A<int*>*
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: int*, U: U}
+    staticType: Map<int*, U*>* Function<U>(U*)*
+  staticElement: MethodMember
+    base: self::@extension::E::@method::foo
+    substitution: {T: int*, U: U}
+  staticType: Map<int*, U*>* Function<U>(U*)*
+''');
+    }
   }
 
   test_implicit_setter() async {
@@ -610,18 +678,81 @@ void f(A<int> a) {
   E<num>(a).foo;
 }
 ''');
-    var override = findNode.extensionOverride('E<num>(a)');
-    assertElement(override, findElement.extension_('E'));
-    assertElementTypes(override.typeArgumentTypes, ['num']);
-    assertType(override.extendedType, 'A<num>');
 
-    var propertyAccess = findNode.propertyAccess('.foo');
-    assertMember(
-      propertyAccess,
-      findElement.getter('foo', of: 'E'),
-      {'T': 'num'},
-    );
-    assertType(propertyAccess, 'List<num>');
+    final node = findNode.propertyAccess('.foo');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int>
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<num>
+    staticType: null
+    typeArgumentTypes
+      num
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: num}
+    staticType: List<num>
+  staticType: List<num>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int*>*
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<num*>*
+    staticType: null
+    typeArgumentTypes
+      num*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: num*}
+    staticType: List<num*>*
+  staticType: List<num*>*
+''');
+    }
   }
 
   test_override_hasTypeArguments_method() async {
@@ -751,13 +882,81 @@ void f(A<int> a) {
   E<num>(a).foo;
 }
 ''');
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertMember(
-      propertyAccess,
-      findElement.method('foo', of: 'E'),
-      {'T': 'num'},
-    );
-    assertType(propertyAccess, 'Map<num, U> Function<U>(U)');
+
+    final node = findNode.propertyAccess('foo;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int>
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<num>
+    staticType: null
+    typeArgumentTypes
+      num
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: num, U: U}
+    staticType: Map<num, U> Function<U>(U)
+  staticType: Map<num, U> Function<U>(U)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    typeArguments: TypeArgumentList
+      leftBracket: <
+      arguments
+        NamedType
+          name: num
+          element: dart:core::@class::num
+          type: num*
+      rightBracket: >
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int*>*
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<num*>*
+    staticType: null
+    typeArgumentTypes
+      num*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: num*, U: U}
+    staticType: Map<num*, U*>* Function<U>(U*)*
+  staticType: Map<num*, U*>* Function<U>(U*)*
+''');
+    }
   }
 
   test_override_hasTypeArguments_setter() async {
@@ -906,18 +1105,65 @@ void f(A<int> a) {
   E(a).foo;
 }
 ''');
-    var override = findNode.extensionOverride('E(a)');
-    assertElement(override, findElement.extension_('E'));
-    assertElementTypes(override.typeArgumentTypes, ['int']);
-    assertType(override.extendedType, 'A<int>');
 
-    var propertyAccess = findNode.propertyAccess('.foo');
-    assertMember(
-      propertyAccess,
-      findElement.getter('foo', of: 'E'),
-      {'T': 'int'},
-    );
-    assertType(propertyAccess, 'List<int>');
+    final node = findNode.propertyAccess('.foo');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int>
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<int>
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: int}
+    staticType: List<int>
+  staticType: List<int>
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int*>*
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<int*>*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: PropertyAccessorMember
+      base: self::@extension::E::@getter::foo
+      substitution: {T: int*}
+    staticType: List<int*>*
+  staticType: List<int*>*
+''');
+    }
   }
 
   test_override_inferTypeArguments_method() async {
@@ -1031,18 +1277,65 @@ void f(A<int> a) {
   E(a).foo;
 }
 ''');
-    var override = findNode.extensionOverride('E(a)');
-    assertElement(override, findElement.extension_('E'));
-    assertElementTypes(override.typeArgumentTypes, ['int']);
-    assertType(override.extendedType, 'A<int>');
 
-    var propertyAccess = findNode.propertyAccess('foo;');
-    assertMember(
-      propertyAccess,
-      findElement.method('foo', of: 'E'),
-      {'T': 'int'},
-    );
-    assertType(propertyAccess, 'Map<int, U> Function<U>(U)');
+    final node = findNode.propertyAccess('foo;');
+    if (isNullSafetyEnabled) {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int>
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<int>
+    staticType: null
+    typeArgumentTypes
+      int
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: int, U: U}
+    staticType: Map<int, U> Function<U>(U)
+  staticType: Map<int, U> Function<U>(U)
+''');
+    } else {
+      assertResolvedNodeText(node, r'''
+PropertyAccess
+  target: ExtensionOverride
+    name: E
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        SimpleIdentifier
+          token: a
+          parameter: <null>
+          staticElement: self::@function::f::@parameter::a
+          staticType: A<int*>*
+      rightParenthesis: )
+    element: self::@extension::E
+    extendedType: A<int*>*
+    staticType: null
+    typeArgumentTypes
+      int*
+  operator: .
+  propertyName: SimpleIdentifier
+    token: foo
+    staticElement: MethodMember
+      base: self::@extension::E::@method::foo
+      substitution: {T: int*, U: U}
+    staticType: Map<int*, U*>* Function<U>(U*)*
+  staticType: Map<int*, U*>* Function<U>(U*)*
+''');
+    }
   }
 
   test_override_inferTypeArguments_setter() async {

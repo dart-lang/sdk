@@ -42,6 +42,7 @@ class Float64x2List {
 
 @patch
 abstract class UnmodifiableInt32x4ListView implements Int32x4List {
+  @patch
   factory UnmodifiableInt32x4ListView(Int32x4List list) =>
       new _UnmodifiableInt32x4ArrayView._(
           unsafeCast<_TypedList>(unsafeCast<_NaiveInt32x4List>(list)._storage),
@@ -51,6 +52,7 @@ abstract class UnmodifiableInt32x4ListView implements Int32x4List {
 
 @patch
 abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
+  @patch
   factory UnmodifiableFloat32x4ListView(Float32x4List list) =>
       new _UnmodifiableFloat32x4ArrayView._(
           unsafeCast<_TypedList>(
@@ -61,6 +63,7 @@ abstract class UnmodifiableFloat32x4ListView implements Float32x4List {
 
 @patch
 abstract class UnmodifiableFloat64x2ListView implements Float64x2List {
+  @patch
   factory UnmodifiableFloat64x2ListView(Float64x2List list) =>
       new _UnmodifiableFloat64x2ArrayView._(
           unsafeCast<_TypedList>(

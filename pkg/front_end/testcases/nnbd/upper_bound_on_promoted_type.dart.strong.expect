@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -9,8 +9,8 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method qux() → dynamic {
-    final self::Foo::T? v = this.{self::Foo::bar}{dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo::T?;
-    if(v is{ForNonNullableByDefault} core::num) {
+    final self::Foo::T? v = this.{self::Foo::bar}{dynamic} as{TypeError,ForDynamic} self::Foo::T?;
+    if(v is core::num) {
       this.{self::Foo::baz}{dynamic}{dynamic}.[]=("value", v{self::Foo::T? & core::num /* '?' & '!' = '!' */}.{core::num::isFinite}{core::bool} ?{core::Object} v{self::Foo::T? & core::num /* '?' & '!' = '!' */} : v{self::Foo::T? & core::num /* '?' & '!' = '!' */}.{core::num::toString}(){() → core::String});
     }
   }

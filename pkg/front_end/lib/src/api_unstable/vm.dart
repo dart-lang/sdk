@@ -6,11 +6,6 @@ export 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show DiagnosticMessage, DiagnosticMessageHandler, getMessageUri;
 
 export 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
-export 'package:kernel/src/redirecting_factory_body.dart'
-    show
-        expressionValueWrappedFinalizableName,
-        getRedirectingFactoryBody,
-        isRedirectingFactoryField;
 
 export '../api_prototype/compiler_options.dart'
     show
@@ -41,7 +36,8 @@ export '../api_prototype/incremental_kernel_generator.dart'
 export '../api_prototype/kernel_generator.dart'
     show kernelForModule, kernelForProgram;
 
-export '../api_prototype/lowering_predicates.dart' show isExtensionThisName;
+export '../api_prototype/lowering_predicates.dart'
+    show isExtensionThisName, isInlineClassThis;
 
 export '../api_prototype/memory_file_system.dart' show MemoryFileSystem;
 
@@ -82,6 +78,7 @@ export '../fasta/fasta_codes.dart'
         noLength,
         templateCantHaveNamedParameters,
         templateCantHaveOptionalParameters,
+        templateFfiNativeCallableListenerReturnVoid,
         templateFfiCompoundImplementsFinalizable,
         templateFfiDartTypeMismatch,
         templateFfiEmptyStruct,

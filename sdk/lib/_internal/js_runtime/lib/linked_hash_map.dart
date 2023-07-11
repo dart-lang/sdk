@@ -23,6 +23,11 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   var _nums;
   var _rest;
 
+  // Integer properties of JavaScript objects are more efficient if they are
+  // small integers. This mask is used to reduce a hashCode to such a small
+  // integer.
+  static const bucketHashMask = (1 << 30) - 1;
+
   // The keys and values are stored in cells that are linked together
   // to form a double linked list.
   LinkedHashMapCell? _first;
@@ -268,10 +273,7 @@ class JsLinkedHashMap<K, V> extends MapBase<K, V>
   }
 
   int internalComputeHashCode(var key) {
-    // We force the hash codes to be unsigned 30-bit integers to avoid
-    // issues with problematic keys like '__proto__'. Another option
-    // would be to throw an exception if the hash code isn't a number.
-    return JS('int', '# & 0x3fffffff', key.hashCode);
+    return bucketHashMask & key.hashCode;
   }
 
   List<LinkedHashMapCell>? _getBucket(var table, var key) {
@@ -391,5 +393,48 @@ class LinkedHashMapKeyIterator<E> implements Iterator<E> {
       _cell = cell._next;
       return true;
     }
+  }
+}
+
+base class JsIdentityLinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
+  JsIdentityLinkedHashMap();
+
+  int internalComputeHashCode(var key) {
+    return JsLinkedHashMap.bucketHashMask & identityHashCode(key);
+  }
+
+  int internalFindBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
+      if (identical(cell.hashMapCellKey, key)) return i;
+    }
+    return -1;
+  }
+}
+
+/// Map used as backing store for constant maps that are not initialized at
+/// program startup, either because prerequisites are not initialized, or to
+/// defer computation until the Map is used.
+base class JsConstantLinkedHashMap<K, V> extends JsLinkedHashMap<K, V> {
+  JsConstantLinkedHashMap();
+
+  int internalComputeHashCode(var key) {
+    return JsLinkedHashMap.bucketHashMask & constantHashCode(key);
+  }
+
+  int internalFindBucketIndex(var bucket, var key) {
+    if (bucket == null) return -1;
+    int length = JS('int', '#.length', bucket);
+    for (int i = 0; i < length; i++) {
+      LinkedHashMapCell cell = JS('var', '#[#]', bucket, i);
+      // The keys of a constant map have 'primitive equality'. Mostly this means
+      // that there is no override of `==`. A few constants do override `==` in
+      // the implementation, like `Symbol`, `Type` and `Record`. For these, `==`
+      // is necessary.
+      if (cell.hashMapCellKey == key) return i;
+    }
+    return -1;
   }
 }

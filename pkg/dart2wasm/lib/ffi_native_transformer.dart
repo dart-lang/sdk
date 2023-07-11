@@ -44,7 +44,8 @@ void transformLibraries(
     'dart:_internal',
     'dart:typed_data',
     'dart:nativewrappers',
-    'dart:_wasm'
+    'dart:_wasm',
+    'dart:isolate',
   ]);
   final transformer = WasmFfiNativeTransformer(
       index, coreTypes, hierarchy, diagnosticReporter, referenceFromIndex);
@@ -128,7 +129,7 @@ class WasmFfiNativeTransformer extends FfiNativeTransformer {
     final isLeafField =
         ffiConstant.fieldValues[nativeIsLeafField.fieldReference];
     final isLeaf = (isLeafField as BoolConstant).value;
-    final assetField = ffiConstant.fieldValues[nativeAssetField];
+    final assetField = ffiConstant.fieldValues[nativeAssetField.fieldReference];
     final assetName = (assetField is StringConstant)
         ? assetField
         : (currentAsset ?? StringConstant("ffi"));

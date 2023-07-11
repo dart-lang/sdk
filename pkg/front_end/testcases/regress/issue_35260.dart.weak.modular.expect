@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -17,8 +17,7 @@ import self as self;
 import "dart:core" as core;
 
 class Supertype extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
-  static factory •() → self::Supertype
+  static factory •() → self::Supertype /* redirection-target: self::X::• */
     return new self::X::•();
 }
 class X extends core::Object implements self::Supertype {
@@ -30,8 +29,4 @@ static method main() → dynamic {
   self::X x = invalid-expression "pkg/front_end/testcases/regress/issue_35260.dart:15:13: Error: Can't use 'Supertype' because it is declared more than once.
   X x = new Supertype();
             ^";
-}
-
-constants  {
-  #C1 = constructor-tearoff self::Supertype::•
 }

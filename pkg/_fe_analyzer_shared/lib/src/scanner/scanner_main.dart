@@ -4,15 +4,17 @@
 
 library _fe_analyzer_shared.scanner.main;
 
+import 'dart:typed_data' show Uint8List;
+
 import 'io.dart' show readBytesFromFileSync;
 
 import 'scanner.dart' show ErrorToken, Token, scan;
 
-scanAll(Map<Uri, List<int>> files,
+void scanAll(Map<Uri, Uint8List> files,
     {bool verbose = false, bool verify = false}) {
   Stopwatch sw = new Stopwatch()..start();
   int byteCount = 0;
-  files.forEach((Uri uri, List<int> bytes) {
+  files.forEach((Uri uri, Uint8List bytes) {
     Token token = scan(bytes).tokens;
     if (verbose) printTokens(token);
     if (verify) verifyErrorTokens(token, uri);
@@ -72,8 +74,8 @@ void verifyErrorTokens(Token firstToken, Uri uri) {
   }
 }
 
-mainEntryPoint(List<String> arguments) {
-  Map<Uri, List<int>> files = <Uri, List<int>>{};
+void mainEntryPoint(List<String> arguments) {
+  Map<Uri, Uint8List> files = <Uri, Uint8List>{};
   Stopwatch sw = new Stopwatch()..start();
   bool verbose = const bool.fromEnvironment("printTokens");
   bool verify = const bool.fromEnvironment('verifyErrorTokens');
@@ -90,7 +92,7 @@ mainEntryPoint(List<String> arguments) {
     }
 
     Uri uri = Uri.base.resolve(arg);
-    List<int> bytes = readBytesFromFileSync(uri);
+    Uint8List bytes = readBytesFromFileSync(uri);
     files[uri] = bytes;
   }
   sw.stop();

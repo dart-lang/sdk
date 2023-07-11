@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -30,23 +30,23 @@ extension A2 on self::A1 {
   static set staticProperty = set self::A2|staticProperty;
 }
 static field core::int A2|staticField = self::A1::getStaticField();
-static method A2|get#instanceProperty(lowered final self::A1 #this) → core::int
+static extension-member method A2|get#instanceProperty(lowered final self::A1 #this) → core::int
   return #this.{self::A1::getInstanceField}(){() → core::int};
-static method A2|set#instanceProperty(lowered final self::A1 #this, core::int value) → void {
+static extension-member method A2|set#instanceProperty(lowered final self::A1 #this, core::int value) → void {
   #this.{self::A1::setInstanceField}(value){(core::int) → void};
 }
-static method A2|+(lowered final self::A1 #this, core::int value) → core::int {
+static extension-member method A2|+(lowered final self::A1 #this, core::int value) → core::int {
   return #this.{self::A1::getInstanceField}(){() → core::int}.{core::num::+}(value){(core::num) → core::int};
 }
-static method A2|-(lowered final self::A1 #this, core::int value) → core::int {
+static extension-member method A2|-(lowered final self::A1 #this, core::int value) → core::int {
   return #this.{self::A1::getInstanceField}(){() → core::int}.{core::num::-}(value){(core::num) → core::int};
 }
-static method A2|unary-(lowered final self::A1 #this) → core::int {
+static extension-member method A2|unary-(lowered final self::A1 #this) → core::int {
   return #this.{self::A1::getInstanceField}(){() → core::int}.{core::int::unary-}(){() → core::int};
 }
-static get A2|staticProperty() → core::int
+static extension-member get A2|staticProperty() → core::int
   return self::A1::getStaticField();
-static set A2|staticProperty(core::int value) → void {
+static extension-member set A2|staticProperty(core::int value) → void {
   self::A1::setStaticField(value);
 }
 static method main() → dynamic {}

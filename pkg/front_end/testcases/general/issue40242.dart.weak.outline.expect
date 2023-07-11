@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,9 +10,9 @@ extension E on self::C {
   method errors = self::E|errors;
   tearoff errors = self::E|get#errors;
 }
-static method E|errors(lowered final self::C #this) → dynamic
+static extension-member method E|errors(lowered final self::C #this) → dynamic
   ;
-static method E|get#errors(lowered final self::C #this) → () → dynamic
+static extension-member method E|get#errors(lowered final self::C #this) → () → dynamic
   return () → dynamic => self::E|errors(#this);
 static method errors() → dynamic
   ;

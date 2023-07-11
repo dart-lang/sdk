@@ -11,7 +11,7 @@ import 'package:analyzer/src/generated/error_verifier.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddFieldFormalParameters extends CorrectionProducer {
+class AddFieldFormalParameters extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.ADD_FIELD_FORMAL_PARAMETERS;
 

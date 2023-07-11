@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "nullable_extension_on_opt_out_lib.dart" as nul;
 import "dart:core" as core;
@@ -8,7 +8,7 @@ import "org-dartlang-testcase:///nullable_extension_on_opt_out_lib.dart";
 extension /* unnamed */ _extension#0 on nul::A? {
   get text = self::_extension#0|get#text;
 }
-static method _extension#0|get#text(lowered final nul::A? #this) → core::String
+static extension-member method _extension#0|get#text(lowered final nul::A? #this) → core::String
   return "Lily was here";
 static method main() → void {
   has-declared-initializer nul::A? a = null;
@@ -19,7 +19,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
     throw "Expected ${expected}, actual ${actual}";
 }
 
-library;
+library /*isLegacy*/;
 import self as nul;
 import "dart:core" as core;
 

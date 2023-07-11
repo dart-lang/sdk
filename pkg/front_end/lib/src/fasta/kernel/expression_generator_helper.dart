@@ -261,3 +261,9 @@ enum UnresolvedKind {
   Setter,
   Constructor,
 }
+
+abstract class EnsureLoaded {
+  void ensureLoaded(Member? member);
+
+  bool isLoaded(Member? member);
+}

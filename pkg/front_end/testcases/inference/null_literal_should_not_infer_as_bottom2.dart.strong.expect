@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -16,7 +16,7 @@ static method test() → dynamic {
   core::String? y = f(42){(core::Object) → Null};
   f = (core::Object x) → Null => invalid-expression "pkg/front_end/testcases/inference/null_literal_should_not_infer_as_bottom2.dart:15:54: Error: A value of type 'String' can't be returned from a function with return type 'Null'.
   f = /*@ returnType=Null */ (/*@type=Object*/ x) => 'hello';
-                                                     ^" in "hello" as{TypeError,ForNonNullableByDefault} Null;
+                                                     ^" in "hello" as{TypeError} Null;
   has-declared-initializer dynamic g = null;
   g = "hello";
   g{dynamic}.foo();

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -24,6 +24,6 @@ static field dynamic missingGetter = let final self::Class #t1 = self::c in let 
  - 'Class' is from 'pkg/front_end/testcases/extensions/missing_toplevel.dart'.
 Try correcting the name to the name of an existing getter, or defining a getter or field named 'setter'.
 var missingGetter = c.setter += 42;
-                      ^^^^^^" in #t1{<unresolved>}.setter{dynamic}.+(42) as{TypeError,ForDynamic,ForNonNullableByDefault} core::int in let final void #t3 = self::Extension|set#setter(#t1, #t2) in #t2;
-static method Extension|set#setter(lowered final self::Class #this, core::int value) → void {}
+                      ^^^^^^" in #t1{<unresolved>}.setter{dynamic}.+(42) as{TypeError,ForDynamic} core::int in let final void #t3 = self::Extension|set#setter(#t1, #t2) in #t2;
+static extension-member method Extension|set#setter(lowered final self::Class #this, core::int value) → void {}
 static method main() → dynamic {}

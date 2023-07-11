@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -27,7 +27,7 @@ class B<T extends core::Object? = dynamic> extends self::A<core::String> impleme
 static method createB<T extends core::Object? = dynamic>() → self::B<dynamic>
   return new self::B::•<self::createB::T%>();
 static method main() → void {
-  core::print([@vm.inferred-type.metadata=#lib::B<?>] self::createB<core::int>() as{ForNonNullableByDefault} FutureOr<core::double>);
+  core::print([@vm.inferred-type.metadata=#lib::B<?>] self::createB<core::int>() as FutureOr<core::double>);
 }
 constants  {
   #C1 = null

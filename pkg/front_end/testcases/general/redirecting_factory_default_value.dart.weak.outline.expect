@@ -1,21 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirect]/*isLegacy*/;
   constructor •([core::int field = 42]) → self::A
     ;
-  static factory redirect([has-declared-initializer core::int field]) → self::A
+  static factory redirect([has-declared-initializer core::int field]) → self::A /* redirection-target: self::A::• */
     return new self::A::•(field);
 }
 static method main() → dynamic
   ;
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_default_value.dart:5:7 -> ConstructorTearOffConstant(A.redirect)
-Extra constant evaluation: evaluated: 4, effectively constant: 1

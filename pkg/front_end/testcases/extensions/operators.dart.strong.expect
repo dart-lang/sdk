@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -33,7 +33,7 @@ class Complex extends core::Object /*hasConstConstructor*/  {
   operator ==(core::Object other) → core::bool {
     if(core::identical(this, other))
       return true;
-    return other is{ForNonNullableByDefault} self::Complex && this.{self::Complex::real}{core::double} =={core::num::==}{(core::Object) → core::bool} other{self::Complex}.{self::Complex::real}{core::double} && this.{self::Complex::imaginary}{core::double} =={core::num::==}{(core::Object) → core::bool} other{self::Complex}.{self::Complex::imaginary}{core::double};
+    return other is self::Complex && this.{self::Complex::real}{core::double} =={core::num::==}{(core::Object) → core::bool} other{self::Complex}.{self::Complex::real}{core::double} && this.{self::Complex::imaginary}{core::double} =={core::num::==}{(core::Object) → core::bool} other{self::Complex}.{self::Complex::imaginary}{core::double};
   }
   method toString() → core::String
     return "Complex(${this.{self::Complex::real}{core::double}},${this.{self::Complex::imaginary}{core::double}})";
@@ -43,11 +43,11 @@ extension Operators on self::Complex {
   operator - = self::Operators|-;
   operator unary- = self::Operators|unary-;
 }
-static method Operators|+(lowered final self::Complex #this, self::Complex other) → self::Complex
+static extension-member method Operators|+(lowered final self::Complex #this, self::Complex other) → self::Complex
   return #this.{self::Complex::add}(other){(self::Complex) → self::Complex};
-static method Operators|-(lowered final self::Complex #this, self::Complex other) → self::Complex
+static extension-member method Operators|-(lowered final self::Complex #this, self::Complex other) → self::Complex
   return #this.{self::Complex::sub}(other){(self::Complex) → self::Complex};
-static method Operators|unary-(lowered final self::Complex #this) → self::Complex
+static extension-member method Operators|unary-(lowered final self::Complex #this) → self::Complex
   return #this.{self::Complex::negate}(){() → self::Complex};
 static method main() → dynamic {
   self::implicit();

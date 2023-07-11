@@ -23,24 +23,23 @@ class Bar {
 }
 
 void test() {
+  List l = <Object>[];
   debugger();
   // Toggled on for Foo.
-  debugger();
-  debugger();
   // Traced allocation.
-  Foo();
+  l.add(Foo());
   // Untraced allocation.
-  Bar();
+  l.add(Bar());
   // Toggled on for Bar.
   debugger();
-  debugger();
   // Traced allocation.
-  Bar();
+  l.add(Bar());
   debugger();
 }
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(27),
 
   // Initial.
   (Isolate isolate) async {
@@ -56,10 +55,7 @@ var tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
+  stoppedAtLine(34),
 
   // Allocation profile.
   (Isolate isolate) async {
@@ -102,8 +98,6 @@ var tests = <IsolateTest>[
       expect(node, isNotNull);
     }
   },
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
   (Isolate isolate) async {
     // Trace Bar.
     final barClass = (await getClassFromRootLib(isolate, 'Bar'))!;
@@ -116,10 +110,7 @@ var tests = <IsolateTest>[
 
   resumeIsolate,
   hasStoppedAtBreakpoint,
-  // Extra debugger stop, continue to allow the allocation stubs to be switched
-  // over. This is a bug but low priority.
-  resumeIsolate,
-  hasStoppedAtBreakpoint,
+  stoppedAtLine(37),
 
   (Isolate isolate) async {
     // Ensure the allocation of `Bar()` was recorded.

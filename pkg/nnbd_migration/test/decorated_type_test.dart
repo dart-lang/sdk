@@ -50,8 +50,6 @@ class DecoratedTypeTest extends Object
 
   NullabilityNode get always => graph.always;
 
-  ClassElement get listElement => typeProvider.listElement;
-
   void assertDartType(DartType type, String expected) {
     // Note: by default DartType.getDisplayString doesn't print nullability
     // suffixes, so we have to override that behavior in order to make sure the

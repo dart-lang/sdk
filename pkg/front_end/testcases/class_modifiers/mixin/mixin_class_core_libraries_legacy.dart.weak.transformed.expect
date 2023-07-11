@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -39,10 +39,10 @@ abstract class _B&Object&Error extends core::Object implements core::Error /*isA
   get /* from org-dartlang-sdk:///sdk/lib/_internal/vm/lib/errors_patch.dart */ stackTrace() → core::StackTrace?
     return this.{core::Error::_stackTrace}{core::StackTrace?};
   static method /* from org-dartlang-sdk:///sdk/lib/core/errors.dart */ safeToString(core::Object? object) → core::String {
-    if(object is{ForNonNullableByDefault} core::num || object is{ForNonNullableByDefault} core::bool || object == null) {
+    if(object is core::num || object is core::bool || object == null) {
       return object.{core::Object::toString}(){() → core::String};
     }
-    if(object{core::Object} is{ForNonNullableByDefault} core::String) {
+    if(object{core::Object} is core::String) {
       return core::Error::_stringToSafeString(object{core::String});
     }
     return core::Error::_objectToString(object{core::Object});

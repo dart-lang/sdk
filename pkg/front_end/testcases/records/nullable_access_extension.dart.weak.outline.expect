@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -8,7 +8,7 @@ extension /* unnamed */ _extension#0 on (core::int, {required a: core::String})?
 }
 static method method((core::int, {required a: core::String})? r) → dynamic
   ;
-static method _extension#0|get#$1(lowered final(core::int, {required a: core::String})? #this) → core::int
+static extension-member method _extension#0|get#$1(lowered final(core::int, {required a: core::String})? #this) → core::int
   ;
-static method _extension#0|get#a(lowered final(core::int, {required a: core::String})? #this) → core::String
+static extension-member method _extension#0|get#a(lowered final(core::int, {required a: core::String})? #this) → core::String
   ;

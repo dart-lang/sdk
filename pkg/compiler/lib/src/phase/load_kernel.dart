@@ -15,6 +15,7 @@ import 'package:kernel/kernel.dart' hide LibraryDependency, Combinator;
 import 'package:kernel/target/targets.dart' hide DiagnosticReporter;
 
 import 'package:_js_interop_checks/src/transformations/static_interop_class_eraser.dart';
+import 'package:kernel/verifier.dart';
 
 import '../../compiler_api.dart' as api;
 import '../commandline_options.dart';
@@ -302,6 +303,18 @@ Future<_LoadFromSourceResult> _loadFromSource(
       verbosity: verbosity);
   ir.Component? component = await fe.compile(initializedCompilerState, verbose,
       fileSystem, onDiagnostic, sources, isModularCompile);
+
+  assert(() {
+    if (component != null) {
+      // TODO(johnniwinther): Support verification of erroneous programs.
+      if (!reporter.hasReportedError) {
+        verifyComponent(
+            target, VerificationStage.afterModularTransformations, component);
+      }
+    }
+    return true;
+  }());
+
   _doTransformsOnKernelLoad(component);
 
   // We have to compute canonical names on the component here to avoid missing

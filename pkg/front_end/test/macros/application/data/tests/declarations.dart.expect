@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "package:macro/macro.dart" as mac;
 import "dart:core" as core;
@@ -14,28 +14,27 @@ class Class1 extends core::Object {
   final field core::int? instanceField2 = null;
   @#C3
   late final field core::int? instanceField3 = null;
-  static final field dynamic _redirecting# = <dynamic>[#C4]/*isLegacy*/;
-  @#C5
+  @#C4
   constructor •() → self::Class1
     : super core::Object::•()
     ;
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-7 */ Class1_GeneratedMethod_() → void {}
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-8 */ Class1_redirectGeneratedMethod_f() → void {}
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-9 */ Class1_factGeneratedMethod_f() → void {}
-  @#C5
-  static factory redirect() → self::Class1
+  @#C4
+  static factory redirect() → self::Class1 /* redirection-target: self::Class1::• */
     return new self::Class1::•();
-  @#C5
+  @#C4
   static factory fact() → self::Class1
     return new self::Class1::•();
-  @#C6
+  @#C5
   method instanceMethod1() → void {}
-  @#C6
+  @#C5
   get instanceGetter1() → core::int?
     return null;
-  @#C6
+  @#C5
   set instanceSetter1(core::int? value) → void {}
-  @#C6
+  @#C5
   operator [](core::int i) → core::int
     return i;
 }
@@ -45,31 +44,31 @@ abstract class Class2 extends core::Object {
   synthetic constructor •() → self::Class2
     : super core::Object::•()
     ;
-  @#C6
+  @#C5
   abstract method instanceMethod1() → void;
   @#C3
   abstract get instanceField1() → core::int?;
   @#C3
   abstract set instanceField1(core::int? #externalFieldValue) → void;
 }
-@#C7
+@#C6
 static field core::int? topLevelField1;
-@#C7
+@#C6
 static final field core::int? topLevelField3 = null;
-@#C7
+@#C6
 late static field core::int? topLevelField4;
-@#C8
+@#C7
 static method topLevelFunction1() → void {}
-@#C8
+@#C7
 external static method topLevelFunction2() → void;
-@#C7
+@#C6
 external static get topLevelField2() → core::int?;
-@#C7
+@#C6
 external static set topLevelField2(core::int? #externalFieldValue) → void;
-@#C8
+@#C7
 static get topLevelGetter1() → core::int?
   return null;
-@#C8
+@#C7
 static set topLevelSetter1(core::int? value) → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-0 */ Class1_instanceMethod1GeneratedMethod_() → void {}
 static method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ Class1_instanceGetter1GeneratedMethod_g() → void {}
@@ -105,9 +104,8 @@ constants  {
   #C1 = mac::ClassDeclarationsMacro1 {}
   #C2 = mac::ClassDeclarationsMacro2 {}
   #C3 = mac::FieldDeclarationsMacro1 {}
-  #C4 = constructor-tearoff self::Class1::redirect
-  #C5 = mac::ConstructorDeclarationsMacro1 {}
-  #C6 = mac::MethodDeclarationsMacro1 {}
-  #C7 = mac::VariableDeclarationsMacro1 {}
-  #C8 = mac::FunctionDeclarationsMacro1 {}
+  #C4 = mac::ConstructorDeclarationsMacro1 {}
+  #C5 = mac::MethodDeclarationsMacro1 {}
+  #C6 = mac::VariableDeclarationsMacro1 {}
+  #C7 = mac::FunctionDeclarationsMacro1 {}
 }

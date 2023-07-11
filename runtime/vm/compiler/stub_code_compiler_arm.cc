@@ -21,6 +21,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -372,45 +373,84 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ bx(R4);
 }
 
-#if !defined(DART_PRECOMPILER)
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-#if defined(USING_SIMULATOR)
-  // TODO(37299): FFI is not support in SIMARM.
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ b(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  // For historical reasons, the PC on ARM points 8 bytes (two instructions)
+  // past the current instruction.
+  __ sub(tmp, PC,
+         compiler::Operand(Instr::kPCReadOffset + compiler::target::kWordSize));
+
+  // tmp holds the address of the relocation.
+  __ ldr(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, compiler::Operand(dst));
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ ldr(dst, compiler::Address(tmp));
+}
+
+void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
+    uword function_index,
+    Register dst) {
+  // Keep in sync with FfiCallbackMetadata::EnsureFirstTrampolinePageLocked.
+  // Note: If the stub was aligned, this could be a single PC relative load.
+
+  // Load a pointer to the beginning of the stub into dst.
+  const intptr_t code_size = __ CodeSize();
+  __ SubImmediate(dst, PC, Instr::kPCReadOffset + code_size);
+
+  // Round dst down to the page size.
+  __ AndImmediate(dst, dst, FfiCallbackMetadata::kPageMask);
+
+  // Load the function from the function table.
+  __ LoadFromOffset(
+      dst,
+      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+}
+
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
+#if defined(USING_SIMULATOR) && !defined(DART_PRECOMPILER)
+  // TODO(37299): FFI is not supported in SIMARM.
   __ Breakpoint();
 #else
-  Label done;
+  Label body;
 
   // TMP is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
-
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    // We don't use LoadImmediate because we need the trampoline size to be
-    // fixed independently of the callback ID.
-    //
-    // PC points two instructions ahead of the current one -- directly where we
-    // store the callback ID.
-    __ ldr(TMP, Address(PC, 0));
-    __ b(&done);
-    __ Emit(next_callback_id + i);
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section. The PC is offset
+    // by Instr::kPCReadOffset, which is subtracted below.
+    __ mov(TMP, Operand(PC));
+    __ b(&body);
   }
 
   ASSERT(__ CodeSize() ==
-         kNativeCallbackTrampolineSize *
-             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+         FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+             FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
-  __ Bind(&done);
+  __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR (callee-saved), R4 & R5 (temporaries, callee-saved), and LR.
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
   SPILLS_LR_TO_FRAME(
       __ PushList((1 << LR) | (1 << THR) | (1 << R4) | (1 << R5)));
 
-  // Don't rely on TMP being preserved by assembler macros anymore.
-  __ mov(R4, Operand(TMP));
+  // The PC is in TMP, but is offset by kPCReadOffset. To get the actual
+  // trampoline entry point we need to subtract that.
+  __ sub(R4, TMP, Operand(Instr::kPCReadOffset));
 
   COMPILE_ASSERT(IsCalleeSavedRegister(R4));
   COMPILE_ASSERT(!IsArgumentRegister(THR));
@@ -421,51 +461,59 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to safe code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
+  // code size on this shared stub.
   {
+    __ mov(R0, Operand(R4));
+
+    // We also need to look up the entry point for the trampoline. This is
+    // returned using a pointer passed to the second arg of the C function
+    // below. We aim that pointer at a reserved stack slot.
+    __ sub(SP, SP, Operand(compiler::target::kWordSize));
+    __ mov(R1, Operand(SP));
+
+    // We also need to know if this is a sync or async callback. This is also
+    // returned by pointer.
+    __ sub(SP, SP, Operand(compiler::target::kWordSize));
+    __ mov(R2, Operand(SP));
+
     __ EnterFrame(1 << FP, 0);
     __ ReserveAlignedFrameSpace(0);
 
-    __ mov(R0, Operand(R4));
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
 
-    // Since DLRT_GetThreadForNativeCallbackTrampoline can theoretically be
-    // loaded anywhere, we use the same trick as before to ensure a predictable
-    // instruction sequence.
-    Label call;
-    __ ldr(R1, Address(PC, 0));
-    __ b(&call);
-    __ Emit(
-        reinterpret_cast<intptr_t>(&DLRT_GetThreadForNativeCallbackTrampoline));
-
-    __ Bind(&call);
-    __ blx(R1);
+    __ blx(R4);
     __ mov(THR, Operand(R0));
 
     __ LeaveFrame(1 << FP);
+
+    // The trampoline type is at the top of the stack. Pop it into R4.
+    __ Pop(R4);
+
+    // Entry point is now at the top of the stack. Pop it into R5.
+    __ Pop(R5);
   }
 
   __ PopRegisters(argument_registers);
 
-  COMPILE_ASSERT(!IsArgumentRegister(R8));
+  Label async_callback;
+  Label done;
 
-  // Load the code object.
-  __ LoadFromOffset(R5, THR, compiler::target::Thread::isolate_group_offset());
-  __ LoadFromOffset(R5, R5,
-                    compiler::target::IsolateGroup::object_store_offset());
-  __ LoadFromOffset(R5, R5,
-                    compiler::target::ObjectStore::ffi_callback_code_offset());
-  __ LoadFieldFromOffset(R5, R5,
-                         compiler::target::GrowableObjectArray::data_offset());
-  __ ldr(R5, __ ElementAddressForRegIndex(
-                 /*is_load=*/true,
-                 /*external=*/false,
-                 /*array_cid=*/kArrayCid,
-                 /*index_scale, smi-tagged=*/compiler::target::kWordSize * 2,
-                 /*index_unboxed=*/false,
-                 /*array=*/R5,
-                 /*index=*/R4));
-  __ LoadFieldFromOffset(R5, R5, compiler::target::Code::entry_point_offset());
+  // If GetFfiCallbackMetadata returned a null thread, it means that the async
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmp(THR, Operand(0));
+  __ b(&done, EQ);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmp(
+      R4,
+      Operand(static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ b(&async_callback, EQ);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
 
   // On entry to the function, there will be four extra slots on the stack:
   // saved THR, R4, R5 and the return address. The target will know to skip
@@ -475,20 +523,47 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Clobbers R4, R5 and TMP, all saved or volatile.
   __ EnterFullSafepoint(R4, R5);
 
+  __ b(&done);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be four extra slots on the stack:
+  // saved THR, R4, R5 and the return address. The target will know to skip
+  // them.
+  __ blx(R5);
+
+  // Exit the temporary isolate.
+  {
+    __ EnterFrame(1 << FP, 0);
+    __ ReserveAlignedFrameSpace(0);
+
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, R4);
+
+    __ blx(R4);
+
+    __ LeaveFrame(1 << FP);
+  }
+
+  __ Bind(&done);
+
   // Returns.
   __ PopList((1 << PC) | (1 << THR) | (1 << R4) | (1 << R5));
 
-  ASSERT((__ CodeSize() - shared_stub_start) == kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
 #endif
 #endif
 }
-#endif  // !defined(DART_PRECOMPILER)
 
 void StubCodeCompiler::GenerateDispatchTableNullErrorStub() {
   __ EnterStubFrame();
@@ -1284,7 +1359,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ StoreToOffset(R9, THR, target::Thread::vm_tag_offset());
 
   // Load arguments descriptor array into R4, which is passed to Dart code.
-  __ ldr(R4, Address(R1, target::VMHandles::kOffsetOfRawPtrInHandle));
+  __ mov(R4, Operand(R1));
 
   // Load number of arguments into R9 and adjust count for type arguments.
   __ ldr(R3,
@@ -1296,8 +1371,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ SmiUntag(R9);
 
   // Compute address of 'arguments array' data area into R2.
-  __ ldr(R2, Address(R2, target::VMHandles::kOffsetOfRawPtrInHandle));
-  __ AddImmediate(R2, target::Array::data_offset() - kHeapObjectTag);
+  __ AddImmediate(R2, R2, target::Array::data_offset() - kHeapObjectTag);
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1320,7 +1394,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     __ LoadImmediate(CODE_REG, 0);  // GC safe value into CODE_REG.
   } else {
     __ LoadImmediate(PP, 0);  // GC safe value into PP.
-    __ ldr(CODE_REG, Address(R0, target::VMHandles::kOffsetOfRawPtrInHandle));
+    __ mov(CODE_REG, Operand(R0));
     __ ldr(R0, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
   __ blx(R0);  // R4 is the arguments descriptor array.
@@ -1711,16 +1785,23 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler,
     __ cmp(TMP, Operand(0));
     __ b(&remember_card_slow, EQ);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads
+    __ PushList((1 << R0) | (1 << R1));
     __ AndImmediate(TMP, R1, target::kPageMask);     // Page.
     __ sub(R9, R9, Operand(TMP));                    // Offset in page.
+    __ Lsr(R9, R9, Operand(target::Page::kBytesPerCardLog2));  // Card index.
+    __ AndImmediate(R1, R9, target::kBitsPerWord - 1);  // Lsl is not mod 32.
+    __ LoadImmediate(R0, 1);                            // Bit offset.
+    __ Lsl(R0, R0, R1);                                 // Bit mask.
     __ ldr(TMP,
            Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ add(TMP, TMP,
-           Operand(R9, LSR,
-                   target::Page::kBytesPerCardLog2));  // Card address.
-    __ strb(R1,
-            Address(TMP, 0));  // Low byte of R0 is non-zero from object tag.
+    __ Lsr(R9, R9, Operand(target::kBitsPerWordLog2));        // Word index.
+    __ add(TMP, TMP, Operand(R9, LSL, target::kWordSizeLog2));  // Word address.
+    __ ldr(R1, Address(TMP, 0));
+    __ orr(R1, R1, Operand(R0));
+    __ str(R1, Address(TMP, 0));
+    __ PopList((1 << R0) | (1 << R1));
     __ Ret();
 
     // Card table not yet allocated.
@@ -2636,251 +2717,107 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 
 // Used to check class and type arguments. Arguments passed in registers:
 //
-// Inputs (mostly from TypeTestABI struct):
+// Inputs (all preserved, mostly from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: SubtypeTestCacheLayout
 //   - kInstanceReg: instance to test against.
-//   - kDstTypeReg: destination type (for n>=3).
-//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n=5).
-//   - kFunctionTypeArgumentsReg: function type arguments (for n=5).
+//   - kDstTypeReg: destination type (for n>=7).
+//   - kInstantiatorTypeArgumentsReg: instantiator type arguments (for n>=3).
+//   - kFunctionTypeArgumentsReg: function type arguments (for n>=4).
 //   - LR: return address.
 //
-// All TypeTestABI registers are preserved but kSubtypeTestCacheReg, which must
-// be saved by the caller if the original value is needed after the call.
-//
-// Result in SubtypeTestCacheABI::kResultReg: null -> not found, otherwise
-// result (true or false).
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+// Outputs (from TypeTestABI struct):
+//   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  RegisterSet saved_registers;
 
   // Safe as the original value of TypeTestABI::kSubtypeTestCacheReg is only
   // used to initialize this register.
   const Register kCacheArrayReg = TypeTestABI::kSubtypeTestCacheReg;
-  const Register kScratchReg = TypeTestABI::kScratchReg;
+  saved_registers.AddRegister(kCacheArrayReg);
 
-  // Registers that are only used for n >= 3 and must be preserved if used.
-  Register kInstanceInstantiatorTypeArgumentsReg = kNoRegister;
-  // Registers that are only used for n >= 7 and must be preserved if used.
-  Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
-  // There is no register for InstanceDelayedFunctionTypeArguments, it is
-  // instead placed on the stack and pulled into TMP for comparison against
-  // the corresponding slot in the current cache entry.
-
-  // NOTFP must be preserved for bare payloads, otherwise CODE_REG.
-  const bool use_bare_payloads = FLAG_precompiled_mode;
-  // For this, we choose the register that need not be preserved of the pair.
-  const Register kNullReg = use_bare_payloads ? CODE_REG : NOTFP;
+  // CODE_REG is used only in JIT mode, and the dispatch table only exists in
+  // AOT mode, so we can use the corresponding register for the mode we're not
+  // in without having to preserve it.
+  const Register kNullReg =
+      FLAG_precompiled_mode ? CODE_REG : DISPATCH_TABLE_REG;
   __ LoadObject(kNullReg, NullObject());
 
-  // Free up registers to be used if performing a 3, 5, or 7 value test.
-  RegList pushed_registers = 0;
-  if (n >= 3) {
+  // Free up additional registers needed for checks in the loop. Initially
+  // define them as kNoRegister so any unexpected uses are caught.
+  Register kInstanceInstantiatorTypeArgumentsReg = kNoRegister;
+  if (n >= 2) {
     kInstanceInstantiatorTypeArgumentsReg = PP;
-    pushed_registers |= 1 << kInstanceInstantiatorTypeArgumentsReg;
+    saved_registers.AddRegister(kInstanceInstantiatorTypeArgumentsReg);
   }
-  if (n >= 7) {
-    // For this, we choose the register that must be preserved of the pair.
-    kInstanceParentFunctionTypeArgumentsReg =
-        use_bare_payloads ? NOTFP : CODE_REG;
-    pushed_registers |= 1 << kInstanceParentFunctionTypeArgumentsReg;
-  }
-  if (pushed_registers != 0) {
-    __ PushList(pushed_registers);
-  }
-
-  // Loop initialization (moved up here to avoid having all dependent loads
-  // after each other).
-
-  // We avoid a load-acquire barrier here by relying on the fact that all other
-  // loads from the array are data-dependent loads.
-  __ ldr(kCacheArrayReg,
-         FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
-                      target::SubtypeTestCache::cache_offset()));
-  __ AddImmediate(kCacheArrayReg,
-                  target::Array::data_offset() - kHeapObjectTag);
-
-  Label loop, not_closure;
+  Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
-                           TypeTestABI::kInstanceReg);
-  } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
-                   TypeTestABI::kInstanceReg);
+    // For this, we look at the pair of Registers we considered for kNullReg
+    // and use the one that must be preserved instead.
+    kInstanceParentFunctionTypeArgumentsReg =
+        FLAG_precompiled_mode ? DISPATCH_TABLE_REG : CODE_REG;
+    saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
   }
-  __ CompareImmediate(STCInternalRegs::kInstanceCidOrSignatureReg, kClosureCid);
-  __ b(&not_closure, NE);
-
-  // Closure handling.
-  {
-    __ ldr(STCInternalRegs::kInstanceCidOrSignatureReg,
-           FieldAddress(TypeTestABI::kInstanceReg,
-                        target::Closure::function_offset()));
-    __ ldr(STCInternalRegs::kInstanceCidOrSignatureReg,
-           FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
-                        target::Function::signature_offset()));
-    if (n >= 3) {
-      __ ldr(
-          kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ ldr(kInstanceParentFunctionTypeArgumentsReg,
-               FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::function_type_arguments_offset()));
-        __ ldr(kScratchReg,
-               FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::delayed_type_arguments_offset()));
-        __ PushRegister(kScratchReg);
-      }
-    }
-    __ b(&loop);
+  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
+  if (n >= 6) {
+    // We retrieve all the needed fields from the instance during loop
+    // initialization and store them in registers, so we don't need the value
+    // of kInstanceReg during the loop and just need to save and restore it.
+    // Thus, use kInstanceReg for the last field that can possibly be retrieved
+    // from the instance.
+    kInstanceDelayedFunctionTypeArgumentsReg = TypeTestABI::kInstanceReg;
+    saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
 
-  // Non-Closure handling.
-  {
-    __ Bind(&not_closure);
-    if (n >= 3) {
-      Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg,
-                       STCInternalRegs::kInstanceCidOrSignatureReg);
-      __ mov(kInstanceInstantiatorTypeArgumentsReg, Operand(kNullReg));
-      __ ldr(
-          kScratchReg,
-          FieldAddress(kScratchReg,
-                       target::Class::
-                           host_type_arguments_field_offset_in_words_offset()));
-      __ CompareImmediate(kScratchReg, target::Class::kNoTypeArguments);
-      __ b(&has_no_type_arguments, EQ);
-      __ add(kScratchReg, TypeTestABI::kInstanceReg,
-             Operand(kScratchReg, LSL, 2));
-      __ ldr(kInstanceInstantiatorTypeArgumentsReg,
-             FieldAddress(kScratchReg, 0));
-      __ Bind(&has_no_type_arguments);
-
-      if (n >= 7) {
-        __ mov(kInstanceParentFunctionTypeArgumentsReg, Operand(kNullReg));
-        __ PushRegister(kNullReg);
-      }
-    }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
+  // We'll replace these with actual registers if possible, but fall back to
+  // the stack if register pressure is too great. The last two values are
+  // used in every loop iteration, and so are more important to put in
+  // registers if possible, whereas the first is used only when we go off
+  // the end of the backing array (usually at most once per check).
+  Register kCacheContentsSizeReg = kNoRegister;
+  if (n < 5) {
+    // Use the register we would have used for the parent function type args.
+    kCacheContentsSizeReg =
+        FLAG_precompiled_mode ? DISPATCH_TABLE_REG : CODE_REG;
+    saved_registers.AddRegister(kCacheContentsSizeReg);
+  }
+  Register kProbeDistanceReg = kNoRegister;
+  if (n < 6) {
+    // Use the register we would have used for the delayed type args.
+    kProbeDistanceReg = TypeTestABI::kInstanceReg;
+    saved_registers.AddRegister(kProbeDistanceReg);
+  }
+  Register kCacheEntryEndReg = kNoRegister;
+  if (n < 7) {
+    // Use the destination type, as that is the last input that might be unused.
+    kCacheEntryEndReg = TypeTestABI::kDstTypeReg;
+    saved_registers.AddRegister(TypeTestABI::kDstTypeReg);
   }
 
-  const intptr_t kNoDepth = -1;
-  const intptr_t kInstanceDelayedFunctionTypeArgumentsDepth =
-      n >= 7 ? 0 : kNoDepth;
+  __ PushRegisters(saved_registers);
 
-  Label found, not_found, next_iteration;
-
-  // Loop header.
-  __ Bind(&loop);
-  __ ldr(kScratchReg,
-         Address(kCacheArrayReg,
-                 target::kWordSize *
-                     target::SubtypeTestCache::kInstanceCidOrSignature));
-  __ cmp(kScratchReg, Operand(kNullReg));
-  __ b(&not_found, EQ);
-  __ cmp(kScratchReg, Operand(STCInternalRegs::kInstanceCidOrSignatureReg));
-  if (n == 1) {
-    __ b(&found, EQ);
-  } else {
-    __ b(&next_iteration, NE);
-    __ ldr(kScratchReg,
-           Address(
-               kCacheArrayReg,
-               target::kWordSize * target::SubtypeTestCache::kDestinationType));
-    __ cmp(kScratchReg, Operand(TypeTestABI::kDstTypeReg));
-    __ b(&next_iteration, NE);
-    __ ldr(kScratchReg,
-           Address(kCacheArrayReg,
-                   target::kWordSize *
-                       target::SubtypeTestCache::kInstanceTypeArguments));
-    __ cmp(kScratchReg, Operand(kInstanceInstantiatorTypeArgumentsReg));
-    if (n == 3) {
-      __ b(&found, EQ);
-    } else {
-      __ b(&next_iteration, NE);
-      __ ldr(kScratchReg,
-             Address(kCacheArrayReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ cmp(kScratchReg, Operand(TypeTestABI::kInstantiatorTypeArgumentsReg));
-      __ b(&next_iteration, NE);
-      __ ldr(kScratchReg,
-             Address(kCacheArrayReg,
-                     target::kWordSize *
-                         target::SubtypeTestCache::kFunctionTypeArguments));
-      __ cmp(kScratchReg, Operand(TypeTestABI::kFunctionTypeArgumentsReg));
-      if (n == 5) {
-        __ b(&found, EQ);
-      } else {
-        ASSERT(n == 7);
-        __ b(&next_iteration, NE);
-
-        __ ldr(kScratchReg,
-               Address(kCacheArrayReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::
-                               kInstanceParentFunctionTypeArguments));
-        __ cmp(kScratchReg, Operand(kInstanceParentFunctionTypeArgumentsReg));
-        __ b(&next_iteration, NE);
-
-        __ ldr(kScratchReg,
-               Address(kCacheArrayReg,
-                       target::kWordSize *
-                           target::SubtypeTestCache::
-                               kInstanceDelayedFunctionTypeArguments));
-        __ CompareToStack(kScratchReg,
-                          kInstanceDelayedFunctionTypeArgumentsDepth);
-        __ b(&found, EQ);
-      }
-    }
-  }
-  __ Bind(&next_iteration);
-  __ AddImmediate(
-      kCacheArrayReg,
-      target::kWordSize * target::SubtypeTestCache::kTestEntryLength);
-  __ b(&loop);
-
-  __ Bind(&found);
-  __ ldr(TypeTestABI::kSubtypeTestCacheResultReg,
-         Address(kCacheArrayReg,
-                 target::kWordSize * target::SubtypeTestCache::kTestResult));
-  if (n >= 7) {
-    __ Drop(1);  // delayed function type args.
-  }
-  if (pushed_registers != 0) {
-    __ PopList(pushed_registers);
-  }
-  __ Ret();
-
-  __ Bind(&not_found);
-  __ mov(TypeTestABI::kSubtypeTestCacheResultReg, Operand(kNullReg));
-  if (n >= 7) {
-    __ Drop(1);  // delayed function type args.
-  }
-  if (pushed_registers != 0) {
-    __ PopList(pushed_registers);
-  }
-  __ Ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on[GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
+  Label not_found;
+  GenerateSubtypeTestCacheSearch(
+      assembler, n, kNullReg, kCacheArrayReg,
+      STCInternalRegs::kInstanceCidOrSignatureReg,
+      kInstanceInstantiatorTypeArgumentsReg,
+      kInstanceParentFunctionTypeArgumentsReg,
+      kInstanceDelayedFunctionTypeArgumentsReg, kCacheEntryEndReg,
+      kCacheContentsSizeReg, kProbeDistanceReg,
+      [&](Assembler* assembler, int n) {
+        __ LoadCompressed(
+            TypeTestABI::kSubtypeTestCacheResultReg,
+            Address(kCacheArrayReg, target::kCompressedWordSize *
+                                        target::SubtypeTestCache::kTestResult));
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      },
+      [&](Assembler* assembler, int n) {
+        __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, kNullReg);
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      });
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.
@@ -3223,9 +3160,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   }
 
   __ Bind(&miss);
-  __ LoadIsolate(R2);
-  __ ldr(CODE_REG, Address(R2, target::Isolate::ic_miss_code_offset()));
-  __ Branch(FieldAddress(CODE_REG, target::Code::entry_point_offset()));
+  __ Branch(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 }
 
 // Implement the monomorphic entry check for call-sites where the receiver

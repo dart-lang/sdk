@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -29,7 +29,7 @@ static method foo3() → dynamic {
   } =>#t1;
 }
 static method foo4() → dynamic {
-  (core::num, core::num) r = ((3 as{ForNonNullableByDefault} dynamic) as{TypeError,ForDynamic,ForNonNullableByDefault} core::num, 3.5);
+  (core::num, core::num) r = ((3 as dynamic) as{TypeError,ForDynamic} core::num, 3.5);
 }
 static method foo5((core::int, core::String?) r, <X extends core::Object? = dynamic>() → (core::int, X%) f) → dynamic {
   r = f<core::String?>(){() → (core::int, core::String?)};

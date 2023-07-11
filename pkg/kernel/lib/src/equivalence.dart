@@ -76,11 +76,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitRedirectingFactory(RedirectingFactory node, Node other) {
-    return strategy.checkRedirectingFactory(this, node, other);
-  }
-
-  @override
   bool visitProcedure(Procedure node, Node other) {
     return strategy.checkProcedure(this, node, other);
   }
@@ -989,11 +984,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitRedirectingFactoryReference(RedirectingFactory node, Node other) {
-    return false;
-  }
-
-  @override
   bool visitProcedureReference(Procedure node, Node other) {
     return false;
   }
@@ -1720,9 +1710,6 @@ class EquivalenceStrategy {
     if (!checkClass_procedures(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkClass_redirectingFactories(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
     if (!checkClass_reference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -2005,53 +1992,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkRedirectingFactory(
-      EquivalenceVisitor visitor, RedirectingFactory? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! RedirectingFactory) return false;
-    if (other is! RedirectingFactory) return false;
-    if (!visitor.matchNamedNodes(node, other)) {
-      return false;
-    }
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkRedirectingFactory_flags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_typeArguments(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_targetReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_function(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_fileEndOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_annotations(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_name(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_fileUri(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_transformerFlags(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_reference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkRedirectingFactory_fileOffset(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
   bool checkProcedure(
       EquivalenceVisitor visitor, Procedure? node, Object? other) {
     if (identical(node, other)) return true;
@@ -2304,6 +2244,24 @@ class EquivalenceStrategy {
     return result;
   }
 
+  bool checkRedirectingFactoryTarget(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget? node, Object? other) {
+    if (identical(node, other)) return true;
+    if (node is! RedirectingFactoryTarget) return false;
+    if (other is! RedirectingFactoryTarget) return false;
+    bool result = true;
+    if (!checkRedirectingFactoryTarget_targetReference(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryTarget_typeArguments(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkRedirectingFactoryTarget_errorMessage(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    return result;
+  }
+
   bool checkFunctionNode(
       EquivalenceVisitor visitor, FunctionNode? node, Object? other) {
     if (identical(node, other)) return true;
@@ -2339,6 +2297,9 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_futureValueType(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
+    if (!checkFunctionNode_redirectingFactoryTarget(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_lazyBuilder(visitor, node, other)) {
@@ -5971,12 +5932,6 @@ class EquivalenceStrategy {
         node.procedures, other.procedures, visitor.checkNodes, 'procedures');
   }
 
-  bool checkClass_redirectingFactories(
-      EquivalenceVisitor visitor, Class node, Class other) {
-    return visitor.checkLists(node.redirectingFactories,
-        other.redirectingFactories, visitor.checkNodes, 'redirectingFactories');
-  }
-
   bool checkClass_reference(
       EquivalenceVisitor visitor, Class node, Class other) {
     return checkNamedNode_reference(visitor, node, other);
@@ -6379,63 +6334,6 @@ class EquivalenceStrategy {
     return checkMember_fileOffset(visitor, node, other);
   }
 
-  bool checkRedirectingFactory_flags(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkValues(node.flags, other.flags, 'flags');
-  }
-
-  bool checkRedirectingFactory_typeArguments(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkLists(node.typeArguments, other.typeArguments,
-        visitor.checkNodes, 'typeArguments');
-  }
-
-  bool checkRedirectingFactory_targetReference(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkReferences(
-        node.targetReference, other.targetReference, 'targetReference');
-  }
-
-  bool checkRedirectingFactory_function(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return visitor.checkNodes(node.function, other.function, 'function');
-  }
-
-  bool checkRedirectingFactory_fileEndOffset(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_fileEndOffset(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_annotations(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_annotations(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_name(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_name(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_fileUri(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_fileUri(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_transformerFlags(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_transformerFlags(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_reference(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_reference(visitor, node, other);
-  }
-
-  bool checkRedirectingFactory_fileOffset(EquivalenceVisitor visitor,
-      RedirectingFactory node, RedirectingFactory other) {
-    return checkMember_fileOffset(visitor, node, other);
-  }
-
   bool checkProcedure_fileStartOffset(
       EquivalenceVisitor visitor, Procedure node, Procedure other) {
     return visitor.checkValues(
@@ -6746,6 +6644,31 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
     return visitor.checkNodes(
         node.futureValueType, other.futureValueType, 'futureValueType');
+  }
+
+  bool checkRedirectingFactoryTarget_targetReference(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkReferences(
+        node.targetReference, other.targetReference, 'targetReference');
+  }
+
+  bool checkRedirectingFactoryTarget_typeArguments(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkLists(node.typeArguments, other.typeArguments,
+        visitor.checkNodes, 'typeArguments');
+  }
+
+  bool checkRedirectingFactoryTarget_errorMessage(EquivalenceVisitor visitor,
+      RedirectingFactoryTarget node, RedirectingFactoryTarget other) {
+    return visitor.checkValues(
+        node.errorMessage, other.errorMessage, 'errorMessage');
+  }
+
+  bool checkFunctionNode_redirectingFactoryTarget(
+      EquivalenceVisitor visitor, FunctionNode node, FunctionNode other) {
+    'redirectingFactoryTarget';
+    return checkRedirectingFactoryTarget(
+        visitor, node.redirectingFactoryTarget, other.redirectingFactoryTarget);
   }
 
   bool checkFunctionNode_lazyBuilder(

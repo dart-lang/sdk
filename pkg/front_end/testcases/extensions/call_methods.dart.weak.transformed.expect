@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -126,11 +126,11 @@ static field invalid-type topLevel6 = invalid-expression "pkg/front_end/testcase
 Try changing 'call' to a method or explicitly invoke 'call'.
 var topLevel6 = a(2, \"3\");
                  ^";
-static method _extension#0|get#call(lowered final core::int #this) → core::String
+static extension-member method _extension#0|get#call(lowered final core::int #this) → core::String
   return "My name is int";
-static method _extension#1|get#call(lowered final core::num #this) → core::String
+static extension-member method _extension#1|get#call(lowered final core::num #this) → core::String
   return "My name is num";
-static method _extension#2|get#call(lowered final core::String #this) → () → core::String
+static extension-member method _extension#2|get#call(lowered final core::String #this) → () → core::String
   return () → core::String => "My name is String";
 static method main() → dynamic {
   self::_extension#2|get#call("")(){() → core::String};

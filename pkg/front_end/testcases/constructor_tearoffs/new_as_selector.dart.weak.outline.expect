@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -44,11 +44,11 @@ extension E on core::int {
 }
 static field core::int new;
 static field self::C c;
-external static method E|get#new(lowered core::int #this) → core::int;
-external static method E|set#new(lowered core::int #this, core::int #externalFieldValue) → void;
-static method E|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic
+external static extension-member method E|get#new(lowered core::int #this) → core::int;
+external static extension-member method E|set#new(lowered core::int #this, core::int #externalFieldValue) → void;
+static extension-member method E|call<T extends core::Object? = dynamic>(lowered final core::int #this) → dynamic
   ;
-static method E|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
+static extension-member method E|get#call(lowered final core::int #this) → <T extends core::Object? = dynamic>() → dynamic
   return <T extends core::Object? = dynamic>() → dynamic => self::E|call<T%>(#this);
 static method method(dynamic d) → dynamic
   ;

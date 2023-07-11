@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns
-
 // This test captures the changes introduced in 2.32 of the patterns proposal.
 
 main() {
@@ -119,7 +117,6 @@ main() {
     // [cfe] Expected ')' before this.
     //                    ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
-    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   }
   {
     var (int as) = expr<int>();
@@ -131,7 +128,6 @@ main() {
     // [cfe] This couldn't be parsed.
     //                  ^^^
     // [analyzer] COMPILE_TIME_ERROR.NON_TYPE_AS_TYPE_ARGUMENT
-    // [analyzer] COMPILE_TIME_ERROR.REFERENCED_BEFORE_DECLARATION
   }
 
   // In a pattern variable declaration, it's an error for an identifier pattern

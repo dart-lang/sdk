@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
@@ -19,6 +20,8 @@ import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/legacy.dart';
 import 'package:linter/src/rules.dart';
 import 'package:meta/meta.dart';
+import 'package:path/path.dart';
+import 'package:test/test.dart';
 
 import 'src/utilities/mock_packages.dart';
 
@@ -29,6 +32,13 @@ class AbstractContextTest with ResourceProviderMixin {
 
   final Map<String, String> _declaredVariables = {};
   AnalysisContextCollectionImpl? _analysisContextCollection;
+
+  /// If not `null`, [getResolvedUnit] will use the context that corresponds
+  /// to this file, instead of the given file.
+  File? fileForContextSelection;
+
+  /// TODO(scheglov) Stop writing into it. Convert into getter.
+  late String testFilePath = '$testPackageLibPath/test.dart';
 
   List<AnalysisDriver> get allDrivers {
     _createAnalysisContexts();
@@ -45,11 +55,8 @@ class AbstractContextTest with ResourceProviderMixin {
   /// Return a list of the experiments that are to be enabled for tests in this
   /// class, an empty list if there are no experiments that should be enabled.
   List<String> get experiments => [
-        EnableString.class_modifiers,
+        EnableString.inline_class,
         EnableString.macros,
-        EnableString.patterns,
-        EnableString.records,
-        EnableString.sealed_class,
       ];
 
   String get latestLanguageVersion =>
@@ -61,11 +68,13 @@ class AbstractContextTest with ResourceProviderMixin {
 
   Folder get sdkRoot => newFolder('/sdk');
 
-  Future<AnalysisSession> get session => sessionFor(testPackageRootPath);
+  Future<AnalysisSession> get session => sessionFor(testFile);
 
   /// The path for `analysis_options.yaml` in [testPackageRootPath].
   String get testAnalysisOptionsPath =>
       convertPath('$testPackageRootPath/analysis_options.yaml');
+
+  File get testFile => getFile(testFilePath);
 
   String? get testPackageLanguageVersion => latestLanguageVersion;
 
@@ -82,7 +91,7 @@ class AbstractContextTest with ResourceProviderMixin {
   String get workspaceRootPath => '/home';
 
   Future<void> analyzeTestPackageFiles() async {
-    var analysisContext = contextFor(testPackageRootPath);
+    var analysisContext = contextFor(testFile);
     var files = analysisContext.contextRoot.analyzedFiles().toList();
     for (var path in files) {
       await analysisContext.applyPendingFileChanges();
@@ -90,13 +99,25 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  void changeFile(String path) {
-    path = convertPath(path);
-    driverFor(path).changeFile(path);
+  void assertSourceChange(SourceChange sourceChange, String expected) {
+    final buffer = StringBuffer();
+    _writeSourceChangeToBuffer(
+      buffer: buffer,
+      sourceChange: sourceChange,
+    );
+    _assertTextExpectation(buffer.toString(), expected);
   }
 
-  AnalysisContext contextFor(String path) {
-    return _contextFor(path);
+  void changeFile(File file) {
+    final path = file.path;
+    driverFor(file).changeFile(path);
+  }
+
+  /// Returns the existing analysis context that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
+  /// of the created analysis contexts.
+  AnalysisContext contextFor(File file) {
+    return _contextFor(file);
   }
 
   /// Create an analysis options file based on the given arguments.
@@ -142,28 +163,26 @@ class AbstractContextTest with ResourceProviderMixin {
     newFile(analysisOptionsPath, buffer.toString());
   }
 
-  AnalysisDriver driverFor(String path) {
-    return _contextFor(path).driver;
-  }
-
-  /// Return the existing analysis context that should be used to analyze the
-  /// given [path], or throw [StateError] if the [path] is not analyzed in any
+  /// Returns the existing analysis driver that should be used to analyze the
+  /// given [file], or throw [StateError] if the [file] is not analyzed in any
   /// of the created analysis contexts.
-  DriverBasedAnalysisContext getContext(String path) {
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+  AnalysisDriver driverFor(File file) {
+    return _contextFor(file).driver;
   }
 
-  /// Return the existing analysis driver that should be used to analyze the
-  /// given [path], or throw [StateError] if the [path] is not analyzed in any
-  /// of the created analysis contexts.
-  AnalysisDriver getDriver(String path) {
-    var context = getContext(path);
-    return context.driver;
+  Future<ParsedUnitResult> getParsedUnit(File file) async {
+    final path = file.path;
+    final session = await sessionFor(fileForContextSelection ?? file);
+    final result = session.getParsedUnit(path);
+    return result as ParsedUnitResult;
   }
 
-  Future<ResolvedUnitResult> getResolvedUnit(String path) async =>
-      await (await session).getResolvedUnit(path) as ResolvedUnitResult;
+  Future<ResolvedUnitResult> getResolvedUnit(File file) async {
+    final path = file.path;
+    final session = await sessionFor(fileForContextSelection ?? file);
+    final result = await session.getResolvedUnit(path);
+    return result as ResolvedUnitResult;
+  }
 
   @override
   File newFile(String path, String content) {
@@ -171,19 +190,13 @@ class AbstractContextTest with ResourceProviderMixin {
       throw StateError('Only dart files can be changed after analysis.');
     }
 
-    path = convertPath(path);
-    _addAnalyzedFileToDrivers(path);
-    return super.newFile(path, content);
+    final file = super.newFile(path, content);
+    _addAnalyzedFileToDrivers(file);
+    return file;
   }
 
-  Future<ResolvedUnitResult> resolveFile(String path) async {
-    path = convertPath(path);
-    var session = await sessionFor(path);
-    return await session.getResolvedUnit(path) as ResolvedUnitResult;
-  }
-
-  Future<AnalysisSession> sessionFor(String path) async {
-    var analysisContext = _contextFor(path);
+  Future<AnalysisSession> sessionFor(File file) async {
+    var analysisContext = _contextFor(file);
     await analysisContext.applyPendingFileChanges();
     return analysisContext.currentSession;
   }
@@ -281,7 +294,8 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  void _addAnalyzedFileToDrivers(String path) {
+  void _addAnalyzedFileToDrivers(File file) {
+    final path = file.path;
     var collection = _analysisContextCollection;
     if (collection != null) {
       for (var analysisContext in collection.contexts) {
@@ -292,11 +306,18 @@ class AbstractContextTest with ResourceProviderMixin {
     }
   }
 
-  DriverBasedAnalysisContext _contextFor(String path) {
-    _createAnalysisContexts();
+  void _assertTextExpectation(String actual, String expected) {
+    if (actual != expected) {
+      print('-' * 64);
+      print(actual.trimRight());
+      print('-' * 64);
+    }
+    expect(actual, expected);
+  }
 
-    path = convertPath(path);
-    return _analysisContextCollection!.contextFor(path);
+  DriverBasedAnalysisContext _contextFor(File file) {
+    _createAnalysisContexts();
+    return _analysisContextCollection!.contextFor(file.path);
   }
 
   /// Create all analysis contexts in [collectionIncludedPaths].
@@ -316,5 +337,31 @@ class AbstractContextTest with ResourceProviderMixin {
 
     _addAnalyzedFilesToDrivers();
     verifyCreatedCollection();
+  }
+
+  /// If the path style is `Windows`, returns the corresponding Posix path.
+  /// Otherwise the path is already a Posix path, and it is returned as is.
+  /// TODO(scheglov) This is duplicate.
+  String _posixPath(File file) {
+    final pathContext = resourceProvider.pathContext;
+    if (pathContext.style == Style.windows) {
+      final components = pathContext.split(file.path);
+      return '/${components.skip(1).join('/')}';
+    } else {
+      return file.path;
+    }
+  }
+
+  void _writeSourceChangeToBuffer({
+    required StringBuffer buffer,
+    required SourceChange sourceChange,
+  }) {
+    for (final fileEdit in sourceChange.edits) {
+      final file = getFile(fileEdit.file);
+      buffer.writeln('>>>>>>>>>> ${_posixPath(file)}');
+      final current = file.readAsStringSync();
+      final updated = SourceEdit.applySequence(current, fileEdit.edits);
+      buffer.write(updated);
+    }
   }
 }

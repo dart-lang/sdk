@@ -14,8 +14,6 @@
 // With the enabling of the real exhaustiveness algorithm, these switches should
 // still not cause errors.
 
-// SharedOptions=--enable-experiment=patterns --enable-experiment=records
-
 import 'dart:async';
 
 enum E {

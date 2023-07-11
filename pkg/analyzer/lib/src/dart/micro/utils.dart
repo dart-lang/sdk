@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -15,9 +14,6 @@ import 'package:collection/collection.dart';
 Element? getElementOfNode(AstNode? node) {
   if (node == null) {
     return null;
-  }
-  if (node is DeclaredSimpleIdentifier) {
-    node = node.parent;
   }
   if (node is SimpleIdentifier && node.parent is LibraryIdentifier) {
     node = node.parent;

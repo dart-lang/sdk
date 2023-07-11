@@ -38,7 +38,17 @@ final class RecordImpl implements Record {
   /// NOTE: Does not contain the cached result of the "safe" [_toString] call.
   String? _printed;
 
-  RecordImpl(this.shape, this.values);
+  RecordImpl(this.shape, this.values) {
+    var valueCount = JS<int>('!', '#.length', values);
+    // Coerce all undefined values to null because dynamic gets of record
+    // elements rely on the getter returning undefined to signal that the getter
+    // does not exist.
+    for (int i = 0; i < valueCount; i++) {
+      if (JS<bool>('!', '#[#] === void 0', values, i)) {
+        JS('', '#[#] = null', values, i);
+      }
+    }
+  }
 
   @override
   bool operator ==(Object? other) {

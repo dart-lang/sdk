@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 /// Test that switch expressions are allowed to be empty, and that they have the
 /// proper static type behavior.
 ///

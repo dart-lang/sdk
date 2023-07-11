@@ -339,6 +339,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildLibraryPrefixAction(TokenPosition* position,
                                     const String& selector);
   Fragment BuildAwaitExpression(TokenPosition* position);
+  Fragment BuildFileUriExpression(TokenPosition* position);
 
   Fragment BuildExpressionStatement(TokenPosition* position);
   Fragment BuildBlock(TokenPosition* position);
@@ -394,7 +395,7 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
 
   // Build FG for '_nativeCallbackFunction'. Reads an Arguments from the
   // Kernel buffer and pushes the resulting Function object.
-  Fragment BuildFfiNativeCallbackFunction();
+  Fragment BuildFfiNativeCallbackFunction(FfiCallbackKind kind);
 
   // Piece of a StringConcatenation.
   // Represents either a StringLiteral, or a Reader offset to the expression.

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -34,44 +34,44 @@ extension Extension2 on self::Class2 {
   get property = self::Extension2|get#property;
   set property = self::Extension2|set#property;
 }
-static method Extension1|method(lowered final self::Class1 #this) → core::int {
+static extension-member method Extension1|method(lowered final self::Class1 #this) → core::int {
   core::print("Extension1.method on ${#this}");
   return #this.{self::Class1::field}{core::int};
 }
-static method Extension1|get#method(lowered final self::Class1 #this) → () → core::int
+static extension-member method Extension1|get#method(lowered final self::Class1 #this) → () → core::int
   return () → core::int => self::Extension1|method(#this);
-static method Extension1|genericMethod<T extends core::num>(lowered final self::Class1 #this, self::Extension1|genericMethod::T t) → core::num {
+static extension-member method Extension1|genericMethod<T extends core::num>(lowered final self::Class1 #this, self::Extension1|genericMethod::T t) → core::num {
   core::print("Extension1.genericMethod<${self::Extension1|genericMethod::T}>(${t}) on ${#this}");
   return #this.{self::Class1::field}{core::int}.{core::num::+}(t){(core::num) → core::num};
 }
-static method Extension1|get#genericMethod(lowered final self::Class1 #this) → <T extends core::num>(T) → core::num
+static extension-member method Extension1|get#genericMethod(lowered final self::Class1 #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension1|genericMethod<T>(#this, t);
-static method Extension1|get#property(lowered final self::Class1 #this) → core::int {
+static extension-member method Extension1|get#property(lowered final self::Class1 #this) → core::int {
   core::print("Extension1.property get on ${#this}");
   return #this.{self::Class1::field}{core::int};
 }
-static method Extension1|set#property(lowered final self::Class1 #this, core::int value) → void {
+static extension-member method Extension1|set#property(lowered final self::Class1 #this, core::int value) → void {
   #this.{self::Class1::field} = value;
   core::print("Extension1.property set(${value}) on ${#this}");
   value = value.{core::num::+}(1){(core::num) → core::int};
 }
-static method Extension2|method(lowered final self::Class2 #this) → core::int {
+static extension-member method Extension2|method(lowered final self::Class2 #this) → core::int {
   core::print("Extension2.method on ${#this}");
   return #this.{self::Class2::field}{core::int}.{core::num::+}(3){(core::num) → core::int};
 }
-static method Extension2|get#method(lowered final self::Class2 #this) → () → core::int
+static extension-member method Extension2|get#method(lowered final self::Class2 #this) → () → core::int
   return () → core::int => self::Extension2|method(#this);
-static method Extension2|genericMethod<T extends core::num>(lowered final self::Class2 #this, self::Extension2|genericMethod::T t) → core::num {
+static extension-member method Extension2|genericMethod<T extends core::num>(lowered final self::Class2 #this, self::Extension2|genericMethod::T t) → core::num {
   core::print("Extension2.genericMethod<${self::Extension2|genericMethod::T}>(${t}) on ${#this}");
   return #this.{self::Class2::field}{core::int}.{core::num::+}(t){(core::num) → core::num}.{core::num::+}(4){(core::num) → core::num};
 }
-static method Extension2|get#genericMethod(lowered final self::Class2 #this) → <T extends core::num>(T) → core::num
+static extension-member method Extension2|get#genericMethod(lowered final self::Class2 #this) → <T extends core::num>(T) → core::num
   return <T extends core::num>(T t) → core::num => self::Extension2|genericMethod<T>(#this, t);
-static method Extension2|get#property(lowered final self::Class2 #this) → core::int {
+static extension-member method Extension2|get#property(lowered final self::Class2 #this) → core::int {
   core::print("Extension2.property get on ${#this}");
   return #this.{self::Class2::field}{core::int}.{core::num::+}(5){(core::num) → core::int};
 }
-static method Extension2|set#property(lowered final self::Class2 #this, core::int value) → void {
+static extension-member method Extension2|set#property(lowered final self::Class2 #this, core::int value) → void {
   core::print("Extension2.property set(${value}) on ${#this}");
   value = value.{core::num::+}(1){(core::num) → core::int};
   #this.{self::Class2::field} = value;

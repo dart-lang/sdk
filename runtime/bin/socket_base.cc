@@ -4,6 +4,8 @@
 
 #include "bin/socket_base.h"
 
+#include <errno.h>  // NOLINT
+
 #include "bin/dartutils.h"
 #include "bin/io_buffer.h"
 #include "bin/isolate_data.h"
@@ -314,6 +316,35 @@ bool SocketBase::IsValidAddress(const char* address) {
   }
   return SocketBase::ParseAddress(type, address, &raw);
 }
+
+#if !defined(DART_HOST_OS_WINDOWS)
+intptr_t SocketBase::Write(intptr_t fd,
+                           const void* buffer,
+                           intptr_t num_bytes,
+                           SocketOpKind sync) {
+  // For non-blocking sockets we must write as many bytes as possible into
+  // the output to trigger EAGAIN otherwise we are not guaranteed to
+  // receive an event from epoll which we are using in edge-triggering
+  // (EPOLLET) mode. See man epoll for more information and guidelines.
+  ssize_t num_bytes_left = num_bytes;
+  while (num_bytes_left > 0) {
+    ssize_t written_bytes = WriteImpl(fd, buffer, num_bytes_left, sync);
+    static_assert(EAGAIN == EWOULDBLOCK);
+    if (written_bytes == -1) {
+      if ((sync == kAsync) && (errno == EWOULDBLOCK)) {
+        break;
+      }
+
+      return -1;  // Error occurred.
+    }
+
+    num_bytes_left -= written_bytes;
+    buffer = static_cast<const char*>(buffer) + written_bytes;
+  }
+
+  return num_bytes - num_bytes_left;
+}
+#endif
 
 }  // namespace bin
 }  // namespace dart

@@ -9,11 +9,11 @@
 import 'protocol_common.dart';
 import 'protocol_special.dart';
 
-/// Arguments for 'attach' request. Additional attributes are implementation
+/// Arguments for `attach` request. Additional attributes are implementation
 /// specific.
 class AttachRequestArguments extends RequestArguments {
-  /// Optional data from the previous, restarted session.
-  /// The data is sent as the 'restart' attribute of the 'terminated' event.
+  /// Arbitrary data from the previous, restarted session.
+  /// The data is sent as the `restart` attribute of the `terminated` event.
   /// The client should leave the data intact.
   final Object? restart;
 
@@ -39,7 +39,7 @@ class AttachRequestArguments extends RequestArguments {
       };
 }
 
-/// Response to 'attach' request. This is just an acknowledgement, so no body
+/// Response to `attach` request. This is just an acknowledgement, so no body
 /// field is required.
 class AttachResponse extends Response {
   static AttachResponse fromJson(Map<String, Object?> obj) =>
@@ -76,43 +76,48 @@ class AttachResponse extends Response {
       };
 }
 
-/// Information about a Breakpoint created in setBreakpoints,
-/// setFunctionBreakpoints, setInstructionBreakpoints, or setDataBreakpoints.
+/// Information about a breakpoint created in `setBreakpoints`,
+/// `setFunctionBreakpoints`, `setInstructionBreakpoints`, or
+/// `setDataBreakpoints` requests.
 class Breakpoint {
-  /// An optional start column of the actual range covered by the breakpoint.
+  /// Start position of the source range covered by the breakpoint. It is
+  /// measured in UTF-16 code units and the client capability `columnsStartAt1`
+  /// determines whether it is 0- or 1-based.
   final int? column;
 
-  /// An optional end column of the actual range covered by the breakpoint.
+  /// End position of the source range covered by the breakpoint. It is measured
+  /// in UTF-16 code units and the client capability `columnsStartAt1`
+  /// determines whether it is 0- or 1-based.
   /// If no end line is given, then the end column is assumed to be in the start
   /// line.
   final int? endColumn;
 
-  /// An optional end line of the actual range covered by the breakpoint.
+  /// The end line of the actual range covered by the breakpoint.
   final int? endLine;
 
-  /// An optional identifier for the breakpoint. It is needed if breakpoint
-  /// events are used to update or remove breakpoints.
+  /// The identifier for the breakpoint. It is needed if breakpoint events are
+  /// used to update or remove breakpoints.
   final int? id;
 
-  /// An optional memory reference to where the breakpoint is set.
+  /// A memory reference to where the breakpoint is set.
   final String? instructionReference;
 
   /// The start line of the actual range covered by the breakpoint.
   final int? line;
 
-  /// An optional message about the state of the breakpoint.
+  /// A message about the state of the breakpoint.
   /// This is shown to the user and can be used to explain why a breakpoint
   /// could not be verified.
   final String? message;
 
-  /// An optional offset from the instruction reference.
+  /// The offset from the instruction reference.
   /// This can be negative.
   final int? offset;
 
   /// The source where the breakpoint is located.
   final Source? source;
 
-  /// If true breakpoint could be set (but not necessarily at the desired
+  /// If true, the breakpoint could be set (but not necessarily at the desired
   /// location).
   final bool verified;
 
@@ -198,16 +203,20 @@ class Breakpoint {
       };
 }
 
-/// Properties of a breakpoint location returned from the 'breakpointLocations'
+/// Properties of a breakpoint location returned from the `breakpointLocations`
 /// request.
 class BreakpointLocation {
-  /// Optional start column of breakpoint location.
+  /// The start position of a breakpoint location. Position is measured in
+  /// UTF-16 code units and the client capability `columnsStartAt1` determines
+  /// whether it is 0- or 1-based.
   final int? column;
 
-  /// Optional end column of breakpoint location if the location covers a range.
+  /// The end position of a breakpoint location (if the location covers a
+  /// range). Position is measured in UTF-16 code units and the client
+  /// capability `columnsStartAt1` determines whether it is 0- or 1-based.
   final int? endColumn;
 
-  /// Optional end line of breakpoint location if the location covers a range.
+  /// The end line of breakpoint location if the location covers a range.
   final int? endLine;
 
   /// Start line of breakpoint location.
@@ -256,20 +265,22 @@ class BreakpointLocation {
       };
 }
 
-/// Arguments for 'breakpointLocations' request.
+/// Arguments for `breakpointLocations` request.
 class BreakpointLocationsArguments extends RequestArguments {
-  /// Optional start column of range to search possible breakpoint locations in.
-  /// If no start column is given, the first column in the start line is
-  /// assumed.
+  /// Start position within `line` to search possible breakpoint locations in.
+  /// It is measured in UTF-16 code units and the client capability
+  /// `columnsStartAt1` determines whether it is 0- or 1-based. If no column is
+  /// given, the first position in the start line is assumed.
   final int? column;
 
-  /// Optional end column of range to search possible breakpoint locations in.
-  /// If no end column is given, then it is assumed to be in the last column of
-  /// the end line.
+  /// End position within `endLine` to search possible breakpoint locations in.
+  /// It is measured in UTF-16 code units and the client capability
+  /// `columnsStartAt1` determines whether it is 0- or 1-based. If no end column
+  /// is given, the last position in the end line is assumed.
   final int? endColumn;
 
-  /// Optional end line of range to search possible breakpoint locations in. If
-  /// no end line is given, then the end line is assumed to be the start line.
+  /// End line of range to search possible breakpoint locations in. If no end
+  /// line is given, then the end line is assumed to be the start line.
   final int? endLine;
 
   /// Start line of range to search possible breakpoint locations in. If only
@@ -277,8 +288,8 @@ class BreakpointLocationsArguments extends RequestArguments {
   /// line.
   final int line;
 
-  /// The source location of the breakpoints; either 'source.path' or
-  /// 'source.reference' must be specified.
+  /// The source location of the breakpoints; either `source.path` or
+  /// `source.reference` must be specified.
   final Source source;
 
   static BreakpointLocationsArguments fromJson(Map<String, Object?> obj) =>
@@ -330,7 +341,7 @@ class BreakpointLocationsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'breakpointLocations' request.
+/// Response to `breakpointLocations` request.
 /// Contains possible locations for source breakpoints.
 class BreakpointLocationsResponse extends Response {
   static BreakpointLocationsResponse fromJson(Map<String, Object?> obj) =>
@@ -371,16 +382,16 @@ class BreakpointLocationsResponse extends Response {
       };
 }
 
-/// Arguments for 'cancel' request.
+/// Arguments for `cancel` request.
 class CancelArguments extends RequestArguments {
-  /// The ID (attribute 'progressId') of the progress to cancel. If missing no
+  /// The ID (attribute `progressId`) of the progress to cancel. If missing no
   /// progress is cancelled.
-  /// Both a 'requestId' and a 'progressId' can be specified in one request.
+  /// Both a `requestId` and a `progressId` can be specified in one request.
   final String? progressId;
 
-  /// The ID (attribute 'seq') of the request to cancel. If missing no request
+  /// The ID (attribute `seq`) of the request to cancel. If missing no request
   /// is cancelled.
-  /// Both a 'requestId' and a 'progressId' can be specified in one request.
+  /// Both a `requestId` and a `progressId` can be specified in one request.
   final int? requestId;
 
   static CancelArguments fromJson(Map<String, Object?> obj) =>
@@ -414,7 +425,7 @@ class CancelArguments extends RequestArguments {
       };
 }
 
-/// Response to 'cancel' request. This is just an acknowledgement, so no body
+/// Response to `cancel` request. This is just an acknowledgement, so no body
 /// field is required.
 class CancelResponse extends Response {
   static CancelResponse fromJson(Map<String, Object?> obj) =>
@@ -457,73 +468,73 @@ class Capabilities {
   final List<ColumnDescriptor>? additionalModuleColumns;
 
   /// The set of characters that should trigger completion in a REPL. If not
-  /// specified, the UI should assume the '.' character.
+  /// specified, the UI should assume the `.` character.
   final List<String>? completionTriggerCharacters;
 
-  /// Available exception filter options for the 'setExceptionBreakpoints'
+  /// Available exception filter options for the `setExceptionBreakpoints`
   /// request.
   final List<ExceptionBreakpointsFilter>? exceptionBreakpointFilters;
 
-  /// The debug adapter supports the 'suspendDebuggee' attribute on the
-  /// 'disconnect' request.
+  /// The debug adapter supports the `suspendDebuggee` attribute on the
+  /// `disconnect` request.
   final bool? supportSuspendDebuggee;
 
-  /// The debug adapter supports the 'terminateDebuggee' attribute on the
-  /// 'disconnect' request.
+  /// The debug adapter supports the `terminateDebuggee` attribute on the
+  /// `disconnect` request.
   final bool? supportTerminateDebuggee;
 
   /// Checksum algorithms supported by the debug adapter.
   final List<ChecksumAlgorithm>? supportedChecksumAlgorithms;
 
-  /// The debug adapter supports the 'breakpointLocations' request.
+  /// The debug adapter supports the `breakpointLocations` request.
   final bool? supportsBreakpointLocationsRequest;
 
-  /// The debug adapter supports the 'cancel' request.
+  /// The debug adapter supports the `cancel` request.
   final bool? supportsCancelRequest;
 
-  /// The debug adapter supports the 'clipboard' context value in the 'evaluate'
+  /// The debug adapter supports the `clipboard` context value in the `evaluate`
   /// request.
   final bool? supportsClipboardContext;
 
-  /// The debug adapter supports the 'completions' request.
+  /// The debug adapter supports the `completions` request.
   final bool? supportsCompletionsRequest;
 
   /// The debug adapter supports conditional breakpoints.
   final bool? supportsConditionalBreakpoints;
 
-  /// The debug adapter supports the 'configurationDone' request.
+  /// The debug adapter supports the `configurationDone` request.
   final bool? supportsConfigurationDoneRequest;
 
   /// The debug adapter supports data breakpoints.
   final bool? supportsDataBreakpoints;
 
   /// The debug adapter supports the delayed loading of parts of the stack,
-  /// which requires that both the 'startFrame' and 'levels' arguments and an
-  /// optional 'totalFrames' result of the 'StackTrace' request are supported.
+  /// which requires that both the `startFrame` and `levels` arguments and the
+  /// `totalFrames` result of the `stackTrace` request are supported.
   final bool? supportsDelayedStackTraceLoading;
 
-  /// The debug adapter supports the 'disassemble' request.
+  /// The debug adapter supports the `disassemble` request.
   final bool? supportsDisassembleRequest;
 
-  /// The debug adapter supports a (side effect free) evaluate request for data
-  /// hovers.
+  /// The debug adapter supports a (side effect free) `evaluate` request for
+  /// data hovers.
   final bool? supportsEvaluateForHovers;
 
-  /// The debug adapter supports 'filterOptions' as an argument on the
-  /// 'setExceptionBreakpoints' request.
+  /// The debug adapter supports `filterOptions` as an argument on the
+  /// `setExceptionBreakpoints` request.
   final bool? supportsExceptionFilterOptions;
 
-  /// The debug adapter supports the 'exceptionInfo' request.
+  /// The debug adapter supports the `exceptionInfo` request.
   final bool? supportsExceptionInfoRequest;
 
-  /// The debug adapter supports 'exceptionOptions' on the
-  /// setExceptionBreakpoints request.
+  /// The debug adapter supports `exceptionOptions` on the
+  /// `setExceptionBreakpoints` request.
   final bool? supportsExceptionOptions;
 
   /// The debug adapter supports function breakpoints.
   final bool? supportsFunctionBreakpoints;
 
-  /// The debug adapter supports the 'gotoTargets' request.
+  /// The debug adapter supports the `gotoTargets` request.
   final bool? supportsGotoTargetsRequest;
 
   /// The debug adapter supports breakpoints that break execution after a
@@ -534,53 +545,61 @@ class Capabilities {
   /// references.
   final bool? supportsInstructionBreakpoints;
 
-  /// The debug adapter supports the 'loadedSources' request.
+  /// The debug adapter supports the `loadedSources` request.
   final bool? supportsLoadedSourcesRequest;
 
-  /// The debug adapter supports logpoints by interpreting the 'logMessage'
-  /// attribute of the SourceBreakpoint.
+  /// The debug adapter supports log points by interpreting the `logMessage`
+  /// attribute of the `SourceBreakpoint`.
   final bool? supportsLogPoints;
 
-  /// The debug adapter supports the 'modules' request.
+  /// The debug adapter supports the `modules` request.
   final bool? supportsModulesRequest;
 
-  /// The debug adapter supports the 'readMemory' request.
+  /// The debug adapter supports the `readMemory` request.
   final bool? supportsReadMemoryRequest;
 
   /// The debug adapter supports restarting a frame.
   final bool? supportsRestartFrame;
 
-  /// The debug adapter supports the 'restart' request. In this case a client
-  /// should not implement 'restart' by terminating and relaunching the adapter
-  /// but by calling the RestartRequest.
+  /// The debug adapter supports the `restart` request. In this case a client
+  /// should not implement `restart` by terminating and relaunching the adapter
+  /// but by calling the `restart` request.
   final bool? supportsRestartRequest;
 
-  /// The debug adapter supports the 'setExpression' request.
+  /// The debug adapter supports the `setExpression` request.
   final bool? supportsSetExpression;
 
   /// The debug adapter supports setting a variable to a value.
   final bool? supportsSetVariable;
 
-  /// The debug adapter supports stepping back via the 'stepBack' and
-  /// 'reverseContinue' requests.
+  /// The debug adapter supports the `singleThread` property on the execution
+  /// requests (`continue`, `next`, `stepIn`, `stepOut`, `reverseContinue`,
+  /// `stepBack`).
+  final bool? supportsSingleThreadExecutionRequests;
+
+  /// The debug adapter supports stepping back via the `stepBack` and
+  /// `reverseContinue` requests.
   final bool? supportsStepBack;
 
-  /// The debug adapter supports the 'stepInTargets' request.
+  /// The debug adapter supports the `stepInTargets` request.
   final bool? supportsStepInTargetsRequest;
 
-  /// The debug adapter supports stepping granularities (argument 'granularity')
+  /// The debug adapter supports stepping granularities (argument `granularity`)
   /// for the stepping requests.
   final bool? supportsSteppingGranularity;
 
-  /// The debug adapter supports the 'terminate' request.
+  /// The debug adapter supports the `terminate` request.
   final bool? supportsTerminateRequest;
 
-  /// The debug adapter supports the 'terminateThreads' request.
+  /// The debug adapter supports the `terminateThreads` request.
   final bool? supportsTerminateThreadsRequest;
 
-  /// The debug adapter supports a 'format' attribute on the stackTraceRequest,
-  /// variablesRequest, and evaluateRequest.
+  /// The debug adapter supports a `format` attribute on the `stackTrace`,
+  /// `variables`, and `evaluate` requests.
   final bool? supportsValueFormattingOptions;
+
+  /// The debug adapter supports the `writeMemory` request.
+  final bool? supportsWriteMemoryRequest;
 
   static Capabilities fromJson(Map<String, Object?> obj) =>
       Capabilities.fromMap(obj);
@@ -617,12 +636,14 @@ class Capabilities {
     this.supportsRestartRequest,
     this.supportsSetExpression,
     this.supportsSetVariable,
+    this.supportsSingleThreadExecutionRequests,
     this.supportsStepBack,
     this.supportsStepInTargetsRequest,
     this.supportsSteppingGranularity,
     this.supportsTerminateRequest,
     this.supportsTerminateThreadsRequest,
     this.supportsValueFormattingOptions,
+    this.supportsWriteMemoryRequest,
   });
 
   Capabilities.fromMap(Map<String, Object?> obj)
@@ -680,6 +701,8 @@ class Capabilities {
         supportsRestartRequest = obj['supportsRestartRequest'] as bool?,
         supportsSetExpression = obj['supportsSetExpression'] as bool?,
         supportsSetVariable = obj['supportsSetVariable'] as bool?,
+        supportsSingleThreadExecutionRequests =
+            obj['supportsSingleThreadExecutionRequests'] as bool?,
         supportsStepBack = obj['supportsStepBack'] as bool?,
         supportsStepInTargetsRequest =
             obj['supportsStepInTargetsRequest'] as bool?,
@@ -689,7 +712,8 @@ class Capabilities {
         supportsTerminateThreadsRequest =
             obj['supportsTerminateThreadsRequest'] as bool?,
         supportsValueFormattingOptions =
-            obj['supportsValueFormattingOptions'] as bool?;
+            obj['supportsValueFormattingOptions'] as bool?,
+        supportsWriteMemoryRequest = obj['supportsWriteMemoryRequest'] as bool?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
@@ -795,6 +819,9 @@ class Capabilities {
     if (obj['supportsSetVariable'] is! bool?) {
       return false;
     }
+    if (obj['supportsSingleThreadExecutionRequests'] is! bool?) {
+      return false;
+    }
     if (obj['supportsStepBack'] is! bool?) {
       return false;
     }
@@ -811,6 +838,9 @@ class Capabilities {
       return false;
     }
     if (obj['supportsValueFormattingOptions'] is! bool?) {
+      return false;
+    }
+    if (obj['supportsWriteMemoryRequest'] is! bool?) {
       return false;
     }
     return true;
@@ -880,6 +910,9 @@ class Capabilities {
           'supportsSetExpression': supportsSetExpression,
         if (supportsSetVariable != null)
           'supportsSetVariable': supportsSetVariable,
+        if (supportsSingleThreadExecutionRequests != null)
+          'supportsSingleThreadExecutionRequests':
+              supportsSingleThreadExecutionRequests,
         if (supportsStepBack != null) 'supportsStepBack': supportsStepBack,
         if (supportsStepInTargetsRequest != null)
           'supportsStepInTargetsRequest': supportsStepInTargetsRequest,
@@ -891,6 +924,8 @@ class Capabilities {
           'supportsTerminateThreadsRequest': supportsTerminateThreadsRequest,
         if (supportsValueFormattingOptions != null)
           'supportsValueFormattingOptions': supportsValueFormattingOptions,
+        if (supportsWriteMemoryRequest != null)
+          'supportsWriteMemoryRequest': supportsWriteMemoryRequest,
       };
 }
 
@@ -899,7 +934,7 @@ class Checksum {
   /// The algorithm used to calculate this checksum.
   final ChecksumAlgorithm algorithm;
 
-  /// Value of the checksum.
+  /// Value of the checksum, encoded as a hexadecimal value.
   final String checksum;
 
   static Checksum fromJson(Map<String, Object?> obj) => Checksum.fromMap(obj);
@@ -935,8 +970,8 @@ class Checksum {
 /// Names of checksum algorithms that may be supported by a debug adapter.
 typedef ChecksumAlgorithm = String;
 
-/// A ColumnDescriptor specifies what module attribute to show in a column of
-/// the ModulesView, how to format it,
+/// A `ColumnDescriptor` specifies what module attribute to show in a column of
+/// the modules view, how to format it,
 /// and what the column's label should be.
 /// It is only used if the underlying UI actually supports this level of
 /// customization.
@@ -951,7 +986,7 @@ class ColumnDescriptor {
   /// Header UI label of column.
   final String label;
 
-  /// Datatype of values in this column.  Defaults to 'string' if not specified.
+  /// Datatype of values in this column. Defaults to `string` if not specified.
   final String? type;
 
   /// Width of this column in characters (hint only).
@@ -1006,41 +1041,48 @@ class ColumnDescriptor {
       };
 }
 
-/// CompletionItems are the suggestions returned from the CompletionsRequest.
+/// `CompletionItems` are the suggestions returned from the `completions`
+/// request.
 class CompletionItem {
+  /// A human-readable string with additional information about this item, like
+  /// type or symbol information.
+  final String? detail;
+
   /// The label of this completion item. By default this is also the text that
   /// is inserted when selecting this completion.
   final String label;
 
-  /// This value determines how many characters are overwritten by the
-  /// completion text.
-  /// If missing the value 0 is assumed which results in the completion text
-  /// being inserted.
+  /// Length determines how many characters are overwritten by the completion
+  /// text and it is measured in UTF-16 code units. If missing the value 0 is
+  /// assumed which results in the completion text being inserted.
   final int? length;
 
   /// Determines the length of the new selection after the text has been
-  /// inserted (or replaced).
-  /// The selection can not extend beyond the bounds of the completion text.
-  /// If omitted the length is assumed to be 0.
+  /// inserted (or replaced) and it is measured in UTF-16 code units. The
+  /// selection can not extend beyond the bounds of the completion text. If
+  /// omitted the length is assumed to be 0.
   final int? selectionLength;
 
   /// Determines the start of the new selection after the text has been inserted
-  /// (or replaced).
-  /// The start position must in the range 0 and length of the completion text.
-  /// If omitted the selection starts at the end of the completion text.
+  /// (or replaced). `selectionStart` is measured in UTF-16 code units and must
+  /// be in the range 0 and length of the completion text. If omitted the
+  /// selection starts at the end of the completion text.
   final int? selectionStart;
 
-  /// A string that should be used when comparing this item with other items.
-  /// When `falsy` the label is used.
+  /// A string that should be used when comparing this item with other items. If
+  /// not returned or an empty string, the `label` is used instead.
   final String? sortText;
 
-  /// This value determines the location (in the CompletionsRequest's 'text'
-  /// attribute) where the completion text is added.
-  /// If missing the text is added at the location specified by the
-  /// CompletionsRequest's 'column' attribute.
+  /// Start position (within the `text` attribute of the `completions` request)
+  /// where the completion text is added. The position is measured in UTF-16
+  /// code units and the client capability `columnsStartAt1` determines whether
+  /// it is 0- or 1-based. If the start position is omitted the text is added at
+  /// the location specified by the `column` attribute of the `completions`
+  /// request.
   final int? start;
 
-  /// If text is not falsy then it is inserted instead of the label.
+  /// If text is returned and not an empty string, then it is inserted instead
+  /// of the label.
   final String? text;
 
   /// The item's type. Typically the client uses this information to render the
@@ -1051,6 +1093,7 @@ class CompletionItem {
       CompletionItem.fromMap(obj);
 
   CompletionItem({
+    this.detail,
     required this.label,
     this.length,
     this.selectionLength,
@@ -1062,7 +1105,8 @@ class CompletionItem {
   });
 
   CompletionItem.fromMap(Map<String, Object?> obj)
-      : label = obj['label'] as String,
+      : detail = obj['detail'] as String?,
+        label = obj['label'] as String,
         length = obj['length'] as int?,
         selectionLength = obj['selectionLength'] as int?,
         selectionStart = obj['selectionStart'] as int?,
@@ -1073,6 +1117,9 @@ class CompletionItem {
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['detail'] is! String?) {
       return false;
     }
     if (obj['label'] is! String) {
@@ -1103,6 +1150,7 @@ class CompletionItem {
   }
 
   Map<String, Object?> toJson() => {
+        if (detail != null) 'detail': detail,
         'label': label,
         if (length != null) 'length': length,
         if (selectionLength != null) 'selectionLength': selectionLength,
@@ -1118,21 +1166,23 @@ class CompletionItem {
 /// clients have specific icons for all of them.
 typedef CompletionItemType = String;
 
-/// Arguments for 'completions' request.
+/// Arguments for `completions` request.
 class CompletionsArguments extends RequestArguments {
-  /// The character position for which to determine the completion proposals.
+  /// The position within `text` for which to determine the completion
+  /// proposals. It is measured in UTF-16 code units and the client capability
+  /// `columnsStartAt1` determines whether it is 0- or 1-based.
   final int column;
 
   /// Returns completions in the scope of this stack frame. If not specified,
   /// the completions are returned for the global scope.
   final int? frameId;
 
-  /// An optional line for which to determine the completion proposals. If
-  /// missing the first line of the text is assumed.
+  /// A line for which to determine the completion proposals. If missing the
+  /// first line of the text is assumed.
   final int? line;
 
-  /// One or more source lines. Typically this is the text a user has typed into
-  /// the debug console before he asked for completion.
+  /// One or more source lines. Typically this is the text users have typed into
+  /// the debug console before they asked for completion.
   final String text;
 
   static CompletionsArguments fromJson(Map<String, Object?> obj) =>
@@ -1178,7 +1228,7 @@ class CompletionsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'completions' request.
+/// Response to `completions` request.
 class CompletionsResponse extends Response {
   static CompletionsResponse fromJson(Map<String, Object?> obj) =>
       CompletionsResponse.fromMap(obj);
@@ -1217,7 +1267,7 @@ class CompletionsResponse extends Response {
       };
 }
 
-/// Arguments for 'configurationDone' request.
+/// Arguments for `configurationDone` request.
 class ConfigurationDoneArguments extends RequestArguments {
   static ConfigurationDoneArguments fromJson(Map<String, Object?> obj) =>
       ConfigurationDoneArguments.fromMap(obj);
@@ -1236,7 +1286,7 @@ class ConfigurationDoneArguments extends RequestArguments {
   Map<String, Object?> toJson() => {};
 }
 
-/// Response to 'configurationDone' request. This is just an acknowledgement, so
+/// Response to `configurationDone` request. This is just an acknowledgement, so
 /// no body field is required.
 class ConfigurationDoneResponse extends Response {
   static ConfigurationDoneResponse fromJson(Map<String, Object?> obj) =>
@@ -1274,26 +1324,34 @@ class ConfigurationDoneResponse extends Response {
       };
 }
 
-/// Arguments for 'continue' request.
+/// Arguments for `continue` request.
 class ContinueArguments extends RequestArguments {
-  /// Continue execution for the specified thread (if possible).
-  /// If the backend cannot continue on a single thread but will continue on all
-  /// threads, it should set the 'allThreadsContinued' attribute in the response
-  /// to true.
+  /// If this flag is true, execution is resumed only for the thread with given
+  /// `threadId`.
+  final bool? singleThread;
+
+  /// Specifies the active thread. If the debug adapter supports single thread
+  /// execution (see `supportsSingleThreadExecutionRequests`) and the argument
+  /// `singleThread` is true, only the thread with this ID is resumed.
   final int threadId;
 
   static ContinueArguments fromJson(Map<String, Object?> obj) =>
       ContinueArguments.fromMap(obj);
 
   ContinueArguments({
+    this.singleThread,
     required this.threadId,
   });
 
   ContinueArguments.fromMap(Map<String, Object?> obj)
-      : threadId = obj['threadId'] as int;
+      : singleThread = obj['singleThread'] as bool?,
+        threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -1303,11 +1361,12 @@ class ContinueArguments extends RequestArguments {
   }
 
   Map<String, Object?> toJson() => {
+        if (singleThread != null) 'singleThread': singleThread,
         'threadId': threadId,
       };
 }
 
-/// Response to 'continue' request.
+/// Response to `continue` request.
 class ContinueResponse extends Response {
   static ContinueResponse fromJson(Map<String, Object?> obj) =>
       ContinueResponse.fromMap(obj);
@@ -1346,21 +1405,20 @@ class ContinueResponse extends Response {
       };
 }
 
-/// Properties of a data breakpoint passed to the setDataBreakpoints request.
+/// Properties of a data breakpoint passed to the `setDataBreakpoints` request.
 class DataBreakpoint {
   /// The access type of the data.
   final DataBreakpointAccessType? accessType;
 
-  /// An optional expression for conditional breakpoints.
+  /// An expression for conditional breakpoints.
   final String? condition;
 
   /// An id representing the data. This id is returned from the
-  /// dataBreakpointInfo request.
+  /// `dataBreakpointInfo` request.
   final String dataId;
 
-  /// An optional expression that controls how many hits of the breakpoint are
-  /// ignored.
-  /// The backend is expected to interpret the expression as needed.
+  /// An expression that controls how many hits of the breakpoint are ignored.
+  /// The debug adapter is expected to interpret the expression as needed.
   final String? hitCondition;
 
   static DataBreakpoint fromJson(Map<String, Object?> obj) =>
@@ -1409,31 +1467,43 @@ class DataBreakpoint {
 /// This enumeration defines all possible access types for data breakpoints.
 typedef DataBreakpointAccessType = String;
 
-/// Arguments for 'dataBreakpointInfo' request.
+/// Arguments for `dataBreakpointInfo` request.
 class DataBreakpointInfoArguments extends RequestArguments {
-  /// The name of the Variable's child to obtain data breakpoint information
+  /// When `name` is an expression, evaluate it in the scope of this stack
+  /// frame. If not specified, the expression is evaluated in the global scope.
+  /// When `variablesReference` is specified, this property has no effect.
+  final int? frameId;
+
+  /// The name of the variable's child to obtain data breakpoint information
   /// for.
-  /// If variablesReference isn’t provided, this can be an expression.
+  /// If `variablesReference` isn't specified, this can be an expression.
   final String name;
 
-  /// Reference to the Variable container if the data breakpoint is requested
-  /// for a child of the container.
+  /// Reference to the variable container if the data breakpoint is requested
+  /// for a child of the container. The `variablesReference` must have been
+  /// obtained in the current suspended state. See 'Lifetime of Object
+  /// References' in the Overview section for details.
   final int? variablesReference;
 
   static DataBreakpointInfoArguments fromJson(Map<String, Object?> obj) =>
       DataBreakpointInfoArguments.fromMap(obj);
 
   DataBreakpointInfoArguments({
+    this.frameId,
     required this.name,
     this.variablesReference,
   });
 
   DataBreakpointInfoArguments.fromMap(Map<String, Object?> obj)
-      : name = obj['name'] as String,
+      : frameId = obj['frameId'] as int?,
+        name = obj['name'] as String,
         variablesReference = obj['variablesReference'] as int?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['frameId'] is! int?) {
       return false;
     }
     if (obj['name'] is! String) {
@@ -1446,13 +1516,14 @@ class DataBreakpointInfoArguments extends RequestArguments {
   }
 
   Map<String, Object?> toJson() => {
+        if (frameId != null) 'frameId': frameId,
         'name': name,
         if (variablesReference != null)
           'variablesReference': variablesReference,
       };
 }
 
-/// Response to 'dataBreakpointInfo' request.
+/// Response to `dataBreakpointInfo` request.
 class DataBreakpointInfoResponse extends Response {
   static DataBreakpointInfoResponse fromJson(Map<String, Object?> obj) =>
       DataBreakpointInfoResponse.fromMap(obj);
@@ -1492,7 +1563,7 @@ class DataBreakpointInfoResponse extends Response {
       };
 }
 
-/// Arguments for 'disassemble' request.
+/// Arguments for `disassemble` request.
 class DisassembleArguments extends RequestArguments {
   /// Number of instructions to disassemble starting at the specified location
   /// and offset.
@@ -1501,15 +1572,15 @@ class DisassembleArguments extends RequestArguments {
   /// 'invalid instruction' value.
   final int instructionCount;
 
-  /// Optional offset (in instructions) to be applied after the byte offset (if
-  /// any) before disassembling. Can be negative.
+  /// Offset (in instructions) to be applied after the byte offset (if any)
+  /// before disassembling. Can be negative.
   final int? instructionOffset;
 
   /// Memory reference to the base location containing the instructions to
   /// disassemble.
   final String memoryReference;
 
-  /// Optional offset (in bytes) to be applied to the reference location before
+  /// Offset (in bytes) to be applied to the reference location before
   /// disassembling. Can be negative.
   final int? offset;
 
@@ -1566,7 +1637,7 @@ class DisassembleArguments extends RequestArguments {
       };
 }
 
-/// Response to 'disassemble' request.
+/// Response to `disassemble` request.
 class DisassembleResponse extends Response {
   static DisassembleResponse fromJson(Map<String, Object?> obj) =>
       DisassembleResponse.fromMap(obj);
@@ -1608,7 +1679,7 @@ class DisassembleResponse extends Response {
 /// Represents a single disassembled instruction.
 class DisassembledInstruction {
   /// The address of the instruction. Treated as a hex value if prefixed with
-  /// '0x', or as a decimal value otherwise.
+  /// `0x`, or as a decimal value otherwise.
   final String address;
 
   /// The column within the line that corresponds to this instruction, if any.
@@ -1624,7 +1695,7 @@ class DisassembledInstruction {
   /// implementation-defined format.
   final String instruction;
 
-  /// Optional raw bytes representing the instruction and its operands, in an
+  /// Raw bytes representing the instruction and its operands, in an
   /// implementation-defined format.
   final String? instructionBytes;
 
@@ -1717,25 +1788,25 @@ class DisassembledInstruction {
       };
 }
 
-/// Arguments for 'disconnect' request.
+/// Arguments for `disconnect` request.
 class DisconnectArguments extends RequestArguments {
-  /// A value of true indicates that this 'disconnect' request is part of a
+  /// A value of true indicates that this `disconnect` request is part of a
   /// restart sequence.
   final bool? restart;
 
   /// Indicates whether the debuggee should stay suspended when the debugger is
   /// disconnected.
   /// If unspecified, the debuggee should resume execution.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportSuspendDebuggee' is true.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportSuspendDebuggee` is true.
   final bool? suspendDebuggee;
 
   /// Indicates whether the debuggee should be terminated when the debugger is
   /// disconnected.
   /// If unspecified, the debug adapter is free to do whatever it thinks is
   /// best.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportTerminateDebuggee' is true.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportTerminateDebuggee` is true.
   final bool? terminateDebuggee;
 
   static DisconnectArguments fromJson(Map<String, Object?> obj) =>
@@ -1775,7 +1846,7 @@ class DisconnectArguments extends RequestArguments {
       };
 }
 
-/// Response to 'disconnect' request. This is just an acknowledgement, so no
+/// Response to `disconnect` request. This is just an acknowledgement, so no
 /// body field is required.
 class DisconnectResponse extends Response {
   static DisconnectResponse fromJson(Map<String, Object?> obj) =>
@@ -1812,7 +1883,7 @@ class DisconnectResponse extends Response {
       };
 }
 
-/// On error (whenever 'success' is false), the body can provide more details.
+/// On error (whenever `success` is false), the body can provide more details.
 class ErrorResponse extends Response {
   static ErrorResponse fromJson(Map<String, Object?> obj) =>
       ErrorResponse.fromMap(obj);
@@ -1851,17 +1922,17 @@ class ErrorResponse extends Response {
       };
 }
 
-/// Arguments for 'evaluate' request.
+/// Arguments for `evaluate` request.
 class EvaluateArguments extends RequestArguments {
-  /// The context in which the evaluate request is run.
+  /// The context in which the evaluate request is used.
   final String? context;
 
   /// The expression to evaluate.
   final String expression;
 
-  /// Specifies details on how to format the Evaluate result.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsValueFormattingOptions' is true.
+  /// Specifies details on how to format the result.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsValueFormattingOptions` is true.
   final ValueFormat? format;
 
   /// Evaluate the expression in the scope of this stack frame. If not
@@ -1913,7 +1984,7 @@ class EvaluateArguments extends RequestArguments {
       };
 }
 
-/// Response to 'evaluate' request.
+/// Response to `evaluate` request.
 class EvaluateResponse extends Response {
   static EvaluateResponse fromJson(Map<String, Object?> obj) =>
       EvaluateResponse.fromMap(obj);
@@ -2005,27 +2076,26 @@ class Event extends ProtocolMessage {
 /// userUnhandled: breaks if the exception is not handled by user code.
 typedef ExceptionBreakMode = String;
 
-/// An ExceptionBreakpointsFilter is shown in the UI as an filter option for
+/// An `ExceptionBreakpointsFilter` is shown in the UI as an filter option for
 /// configuring how exceptions are dealt with.
 class ExceptionBreakpointsFilter {
-  /// An optional help text providing information about the condition. This
-  /// string is shown as the placeholder text for a text box and must be
-  /// translated.
+  /// A help text providing information about the condition. This string is
+  /// shown as the placeholder text for a text box and can be translated.
   final String? conditionDescription;
 
-  /// Initial value of the filter option. If not specified a value 'false' is
+  /// Initial value of the filter option. If not specified a value false is
   /// assumed.
   final bool? defaultValue;
 
-  /// An optional help text providing additional information about the exception
-  /// filter. This string is typically shown as a hover and must be translated.
+  /// A help text providing additional information about the exception filter.
+  /// This string is typically shown as a hover and can be translated.
   final String? description;
 
   /// The internal ID of the filter option. This value is passed to the
-  /// 'setExceptionBreakpoints' request.
+  /// `setExceptionBreakpoints` request.
   final String filter;
 
-  /// The name of the filter option. This will be shown in the UI.
+  /// The name of the filter option. This is shown in the UI.
   final String label;
 
   /// Controls whether a condition can be specified for this filter option. If
@@ -2090,8 +2160,8 @@ class ExceptionBreakpointsFilter {
 
 /// Detailed information about an exception that has occurred.
 class ExceptionDetails {
-  /// Optional expression that can be evaluated in the current scope to obtain
-  /// the exception object.
+  /// An expression that can be evaluated in the current scope to obtain the
+  /// exception object.
   final String? evaluateName;
 
   /// Fully-qualified type name of the exception object.
@@ -2169,15 +2239,15 @@ class ExceptionDetails {
       };
 }
 
-/// An ExceptionFilterOptions is used to specify an exception filter together
-/// with a condition for the setExceptionsFilter request.
+/// An `ExceptionFilterOptions` is used to specify an exception filter together
+/// with a condition for the `setExceptionBreakpoints` request.
 class ExceptionFilterOptions {
-  /// An optional expression for conditional exceptions.
-  /// The exception will break into the debugger if the result of the condition
-  /// is true.
+  /// An expression for conditional exceptions.
+  /// The exception breaks into the debugger if the result of the condition is
+  /// true.
   final String? condition;
 
-  /// ID of an exception filter returned by the 'exceptionBreakpointFilters'
+  /// ID of an exception filter returned by the `exceptionBreakpointFilters`
   /// capability.
   final String filterId;
 
@@ -2212,7 +2282,7 @@ class ExceptionFilterOptions {
       };
 }
 
-/// Arguments for 'exceptionInfo' request.
+/// Arguments for `exceptionInfo` request.
 class ExceptionInfoArguments extends RequestArguments {
   /// Thread for which exception information should be retrieved.
   final int threadId;
@@ -2242,7 +2312,7 @@ class ExceptionInfoArguments extends RequestArguments {
       };
 }
 
-/// Response to 'exceptionInfo' request.
+/// Response to `exceptionInfo` request.
 class ExceptionInfoResponse extends Response {
   static ExceptionInfoResponse fromJson(Map<String, Object?> obj) =>
       ExceptionInfoResponse.fromMap(obj);
@@ -2281,12 +2351,12 @@ class ExceptionInfoResponse extends Response {
       };
 }
 
-/// An ExceptionOptions assigns configuration options to a set of exceptions.
+/// An `ExceptionOptions` assigns configuration options to a set of exceptions.
 class ExceptionOptions {
   /// Condition when a thrown exception should result in a break.
   final ExceptionBreakMode breakMode;
 
-  /// A path that selects a single or multiple exceptions in a tree. If 'path'
+  /// A path that selects a single or multiple exceptions in a tree. If `path`
   /// is missing, the whole tree is selected.
   /// By convention the first segment of the path is a category that is used to
   /// group exceptions in the UI.
@@ -2327,13 +2397,13 @@ class ExceptionOptions {
       };
 }
 
-/// An ExceptionPathSegment represents a segment in a path that is used to match
-/// leafs or nodes in a tree of exceptions.
+/// An `ExceptionPathSegment` represents a segment in a path that is used to
+/// match leafs or nodes in a tree of exceptions.
 /// If a segment consists of more than one name, it matches the names provided
-/// if 'negate' is false or missing or
-/// it matches anything except the names provided if 'negate' is true.
+/// if `negate` is false or missing, or it matches anything except the names
+/// provided if `negate` is true.
 class ExceptionPathSegment {
-  /// Depending on the value of 'negate' the names that should match or not
+  /// Depending on the value of `negate` the names that should match or not
   /// match.
   final List<String> names;
 
@@ -2373,18 +2443,17 @@ class ExceptionPathSegment {
       };
 }
 
-/// Properties of a breakpoint passed to the setFunctionBreakpoints request.
+/// Properties of a breakpoint passed to the `setFunctionBreakpoints` request.
 class FunctionBreakpoint {
-  /// An optional expression for conditional breakpoints.
-  /// It is only honored by a debug adapter if the capability
-  /// 'supportsConditionalBreakpoints' is true.
+  /// An expression for conditional breakpoints.
+  /// It is only honored by a debug adapter if the corresponding capability
+  /// `supportsConditionalBreakpoints` is true.
   final String? condition;
 
-  /// An optional expression that controls how many hits of the breakpoint are
-  /// ignored.
-  /// The backend is expected to interpret the expression as needed.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsHitConditionalBreakpoints' is true.
+  /// An expression that controls how many hits of the breakpoint are ignored.
+  /// The debug adapter is expected to interpret the expression as needed.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsHitConditionalBreakpoints` is true.
   final String? hitCondition;
 
   /// The name of the function.
@@ -2427,7 +2496,7 @@ class FunctionBreakpoint {
       };
 }
 
-/// Arguments for 'goto' request.
+/// Arguments for `goto` request.
 class GotoArguments extends RequestArguments {
   /// The location where the debuggee will continue to run.
   final int targetId;
@@ -2466,7 +2535,7 @@ class GotoArguments extends RequestArguments {
       };
 }
 
-/// Response to 'goto' request. This is just an acknowledgement, so no body
+/// Response to `goto` request. This is just an acknowledgement, so no body
 /// field is required.
 class GotoResponse extends Response {
   static GotoResponse fromJson(Map<String, Object?> obj) =>
@@ -2503,24 +2572,24 @@ class GotoResponse extends Response {
       };
 }
 
-/// A GotoTarget describes a code location that can be used as a target in the
-/// 'goto' request.
-/// The possible goto targets can be determined via the 'gotoTargets' request.
+/// A `GotoTarget` describes a code location that can be used as a target in the
+/// `goto` request.
+/// The possible goto targets can be determined via the `gotoTargets` request.
 class GotoTarget {
-  /// An optional column of the goto target.
+  /// The column of the goto target.
   final int? column;
 
-  /// An optional end column of the range covered by the goto target.
+  /// The end column of the range covered by the goto target.
   final int? endColumn;
 
-  /// An optional end line of the range covered by the goto target.
+  /// The end line of the range covered by the goto target.
   final int? endLine;
 
-  /// Unique identifier for a goto target. This is used in the goto request.
+  /// Unique identifier for a goto target. This is used in the `goto` request.
   final int id;
 
-  /// Optional memory reference for the instruction pointer value represented by
-  /// this target.
+  /// A memory reference for the instruction pointer value represented by this
+  /// target.
   final String? instructionPointerReference;
 
   /// The name of the goto target (shown in the UI).
@@ -2592,9 +2661,11 @@ class GotoTarget {
       };
 }
 
-/// Arguments for 'gotoTargets' request.
+/// Arguments for `gotoTargets` request.
 class GotoTargetsArguments extends RequestArguments {
-  /// An optional column location for which the goto targets are determined.
+  /// The position within `line` for which the goto targets are determined. It
+  /// is measured in UTF-16 code units and the client capability
+  /// `columnsStartAt1` determines whether it is 0- or 1-based.
   final int? column;
 
   /// The line location for which the goto targets are determined.
@@ -2640,7 +2711,7 @@ class GotoTargetsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'gotoTargets' request.
+/// Response to `gotoTargets` request.
 class GotoTargetsResponse extends Response {
   static GotoTargetsResponse fromJson(Map<String, Object?> obj) =>
       GotoTargetsResponse.fromMap(obj);
@@ -2679,15 +2750,15 @@ class GotoTargetsResponse extends Response {
       };
 }
 
-/// Arguments for 'initialize' request.
+/// Arguments for `initialize` request.
 class InitializeRequestArguments extends RequestArguments {
   /// The ID of the debug adapter.
   final String adapterID;
 
-  /// The ID of the (frontend) client using this adapter.
+  /// The ID of the client using this adapter.
   final String? clientID;
 
-  /// The human readable name of the (frontend) client using this adapter.
+  /// The human-readable name of the client using this adapter.
   final String? clientName;
 
   /// If true all column numbers are 1-based (default).
@@ -2696,16 +2767,22 @@ class InitializeRequestArguments extends RequestArguments {
   /// If true all line numbers are 1-based (default).
   final bool? linesStartAt1;
 
-  /// The ISO-639 locale of the (frontend) client using this adapter, e.g. en-US
-  /// or de-CH.
+  /// The ISO-639 locale of the client using this adapter, e.g. en-US or de-CH.
   final String? locale;
 
-  /// Determines in what format paths are specified. The default is 'path',
+  /// Determines in what format paths are specified. The default is `path`,
   /// which is the native format.
   final String? pathFormat;
 
-  /// Client supports the invalidated event.
+  /// Client supports the `argsCanBeInterpretedByShell` attribute on the
+  /// `runInTerminal` request.
+  final bool? supportsArgsCanBeInterpretedByShell;
+
+  /// Client supports the `invalidated` event.
   final bool? supportsInvalidatedEvent;
+
+  /// Client supports the `memory` event.
+  final bool? supportsMemoryEvent;
 
   /// Client supports memory references.
   final bool? supportsMemoryReferences;
@@ -2713,13 +2790,16 @@ class InitializeRequestArguments extends RequestArguments {
   /// Client supports progress reporting.
   final bool? supportsProgressReporting;
 
-  /// Client supports the runInTerminal request.
+  /// Client supports the `runInTerminal` request.
   final bool? supportsRunInTerminalRequest;
+
+  /// Client supports the `startDebugging` request.
+  final bool? supportsStartDebuggingRequest;
 
   /// Client supports the paging of variables.
   final bool? supportsVariablePaging;
 
-  /// Client supports the optional type attribute for variables.
+  /// Client supports the `type` attribute for variables.
   final bool? supportsVariableType;
 
   static InitializeRequestArguments fromJson(Map<String, Object?> obj) =>
@@ -2733,10 +2813,13 @@ class InitializeRequestArguments extends RequestArguments {
     this.linesStartAt1,
     this.locale,
     this.pathFormat,
+    this.supportsArgsCanBeInterpretedByShell,
     this.supportsInvalidatedEvent,
+    this.supportsMemoryEvent,
     this.supportsMemoryReferences,
     this.supportsProgressReporting,
     this.supportsRunInTerminalRequest,
+    this.supportsStartDebuggingRequest,
     this.supportsVariablePaging,
     this.supportsVariableType,
   });
@@ -2749,11 +2832,16 @@ class InitializeRequestArguments extends RequestArguments {
         linesStartAt1 = obj['linesStartAt1'] as bool?,
         locale = obj['locale'] as String?,
         pathFormat = obj['pathFormat'] as String?,
+        supportsArgsCanBeInterpretedByShell =
+            obj['supportsArgsCanBeInterpretedByShell'] as bool?,
         supportsInvalidatedEvent = obj['supportsInvalidatedEvent'] as bool?,
+        supportsMemoryEvent = obj['supportsMemoryEvent'] as bool?,
         supportsMemoryReferences = obj['supportsMemoryReferences'] as bool?,
         supportsProgressReporting = obj['supportsProgressReporting'] as bool?,
         supportsRunInTerminalRequest =
             obj['supportsRunInTerminalRequest'] as bool?,
+        supportsStartDebuggingRequest =
+            obj['supportsStartDebuggingRequest'] as bool?,
         supportsVariablePaging = obj['supportsVariablePaging'] as bool?,
         supportsVariableType = obj['supportsVariableType'] as bool?;
 
@@ -2782,7 +2870,13 @@ class InitializeRequestArguments extends RequestArguments {
     if (obj['pathFormat'] is! String?) {
       return false;
     }
+    if (obj['supportsArgsCanBeInterpretedByShell'] is! bool?) {
+      return false;
+    }
     if (obj['supportsInvalidatedEvent'] is! bool?) {
+      return false;
+    }
+    if (obj['supportsMemoryEvent'] is! bool?) {
       return false;
     }
     if (obj['supportsMemoryReferences'] is! bool?) {
@@ -2792,6 +2886,9 @@ class InitializeRequestArguments extends RequestArguments {
       return false;
     }
     if (obj['supportsRunInTerminalRequest'] is! bool?) {
+      return false;
+    }
+    if (obj['supportsStartDebuggingRequest'] is! bool?) {
       return false;
     }
     if (obj['supportsVariablePaging'] is! bool?) {
@@ -2811,14 +2908,21 @@ class InitializeRequestArguments extends RequestArguments {
         if (linesStartAt1 != null) 'linesStartAt1': linesStartAt1,
         if (locale != null) 'locale': locale,
         if (pathFormat != null) 'pathFormat': pathFormat,
+        if (supportsArgsCanBeInterpretedByShell != null)
+          'supportsArgsCanBeInterpretedByShell':
+              supportsArgsCanBeInterpretedByShell,
         if (supportsInvalidatedEvent != null)
           'supportsInvalidatedEvent': supportsInvalidatedEvent,
+        if (supportsMemoryEvent != null)
+          'supportsMemoryEvent': supportsMemoryEvent,
         if (supportsMemoryReferences != null)
           'supportsMemoryReferences': supportsMemoryReferences,
         if (supportsProgressReporting != null)
           'supportsProgressReporting': supportsProgressReporting,
         if (supportsRunInTerminalRequest != null)
           'supportsRunInTerminalRequest': supportsRunInTerminalRequest,
+        if (supportsStartDebuggingRequest != null)
+          'supportsStartDebuggingRequest': supportsStartDebuggingRequest,
         if (supportsVariablePaging != null)
           'supportsVariablePaging': supportsVariablePaging,
         if (supportsVariableType != null)
@@ -2826,7 +2930,7 @@ class InitializeRequestArguments extends RequestArguments {
       };
 }
 
-/// Response to 'initialize' request.
+/// Response to `initialize` request.
 class InitializeResponse extends Response {
   static InitializeResponse fromJson(Map<String, Object?> obj) =>
       InitializeResponse.fromMap(obj);
@@ -2865,26 +2969,26 @@ class InitializeResponse extends Response {
       };
 }
 
-/// Properties of a breakpoint passed to the setInstructionBreakpoints request
+/// Properties of a breakpoint passed to the `setInstructionBreakpoints` request
 class InstructionBreakpoint {
-  /// An optional expression for conditional breakpoints.
-  /// It is only honored by a debug adapter if the capability
-  /// 'supportsConditionalBreakpoints' is true.
+  /// An expression for conditional breakpoints.
+  /// It is only honored by a debug adapter if the corresponding capability
+  /// `supportsConditionalBreakpoints` is true.
   final String? condition;
 
-  /// An optional expression that controls how many hits of the breakpoint are
-  /// ignored.
-  /// The backend is expected to interpret the expression as needed.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsHitConditionalBreakpoints' is true.
+  /// An expression that controls how many hits of the breakpoint are ignored.
+  /// The debug adapter is expected to interpret the expression as needed.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsHitConditionalBreakpoints` is true.
   final String? hitCondition;
 
   /// The instruction reference of the breakpoint.
   /// This should be a memory or instruction pointer reference from an
-  /// EvaluateResponse, Variable, StackFrame, GotoTarget, or Breakpoint.
+  /// `EvaluateResponse`, `Variable`, `StackFrame`, `GotoTarget`, or
+  /// `Breakpoint`.
   final String instructionReference;
 
-  /// An optional offset from the instruction reference.
+  /// The offset from the instruction reference.
   /// This can be negative.
   final int? offset;
 
@@ -2931,19 +3035,19 @@ class InstructionBreakpoint {
       };
 }
 
-/// Logical areas that can be invalidated by the 'invalidated' event.
+/// Logical areas that can be invalidated by the `invalidated` event.
 typedef InvalidatedAreas = String;
 
-/// Arguments for 'launch' request. Additional attributes are implementation
+/// Arguments for `launch` request. Additional attributes are implementation
 /// specific.
 class LaunchRequestArguments extends RequestArguments {
-  /// Optional data from the previous, restarted session.
-  /// The data is sent as the 'restart' attribute of the 'terminated' event.
+  /// Arbitrary data from the previous, restarted session.
+  /// The data is sent as the `restart` attribute of the `terminated` event.
   /// The client should leave the data intact.
   final Object? restart;
 
-  /// If noDebug is true the launch request should launch the program without
-  /// enabling debugging.
+  /// If true, the launch request should launch the program without enabling
+  /// debugging.
   final bool? noDebug;
 
   static LaunchRequestArguments fromJson(Map<String, Object?> obj) =>
@@ -2974,7 +3078,7 @@ class LaunchRequestArguments extends RequestArguments {
       };
 }
 
-/// Response to 'launch' request. This is just an acknowledgement, so no body
+/// Response to `launch` request. This is just an acknowledgement, so no body
 /// field is required.
 class LaunchResponse extends Response {
   static LaunchResponse fromJson(Map<String, Object?> obj) =>
@@ -3011,7 +3115,7 @@ class LaunchResponse extends Response {
       };
 }
 
-/// Arguments for 'loadedSources' request.
+/// Arguments for `loadedSources` request.
 class LoadedSourcesArguments extends RequestArguments {
   static LoadedSourcesArguments fromJson(Map<String, Object?> obj) =>
       LoadedSourcesArguments.fromMap(obj);
@@ -3030,7 +3134,7 @@ class LoadedSourcesArguments extends RequestArguments {
   Map<String, Object?> toJson() => {};
 }
 
-/// Response to 'loadedSources' request.
+/// Response to `loadedSources` request.
 class LoadedSourcesResponse extends Response {
   static LoadedSourcesResponse fromJson(Map<String, Object?> obj) =>
       LoadedSourcesResponse.fromMap(obj);
@@ -3072,12 +3176,16 @@ class LoadedSourcesResponse extends Response {
 /// A structured message object. Used to return errors from requests.
 class Message {
   /// A format string for the message. Embedded variables have the form
-  /// '{name}'.
+  /// `{name}`.
   /// If variable name starts with an underscore character, the variable does
   /// not contain user data (PII) and can be safely used for telemetry purposes.
   final String format;
 
-  /// Unique identifier for the message.
+  /// Unique (within a debug adapter implementation) identifier for the message.
+  /// The purpose of these error IDs is to help extension authors that have the
+  /// requirement that every user visible error message needs a corresponding
+  /// error number, so that users or customer support can find information about
+  /// the specific error more easily.
   final int id;
 
   /// If true send to telemetry.
@@ -3086,12 +3194,10 @@ class Message {
   /// If true show user.
   final bool? showUser;
 
-  /// An optional url where additional information about this message can be
-  /// found.
+  /// A url where additional information about this message can be found.
   final String? url;
 
-  /// An optional label that is presented to the user as the UI for opening the
-  /// url.
+  /// A label that is presented to the user as the UI for opening the url.
   final String? urlLabel;
 
   /// An object used as a dictionary for looking up the variables in the format
@@ -3159,23 +3265,22 @@ class Message {
 }
 
 /// A Module object represents a row in the modules view.
-/// Two attributes are mandatory: an id identifies a module in the modules view
-/// and is used in a ModuleEvent for identifying a module for adding, updating
-/// or deleting.
-/// The name is used to minimally render the module in the UI.
+/// The `id` attribute identifies a module in the modules view and is used in a
+/// `module` event for identifying a module for adding, updating or deleting.
+/// The `name` attribute is used to minimally render the module in the UI.
 ///
-/// Additional attributes can be added to the module. They will show up in the
-/// module View if they have a corresponding ColumnDescriptor.
+/// Additional attributes can be added to the module. They show up in the module
+/// view if they have a corresponding `ColumnDescriptor`.
 ///
 /// To avoid an unnecessary proliferation of additional attributes with similar
-/// semantics but different names
-/// we recommend to re-use attributes from the 'recommended' list below first,
-/// and only introduce new attributes if nothing appropriate could be found.
+/// semantics but different names, we recommend to re-use attributes from the
+/// 'recommended' list below first, and only introduce new attributes if nothing
+/// appropriate could be found.
 class Module {
   /// Address range covered by this module.
   final String? addressRange;
 
-  /// Module created or modified.
+  /// Module created or modified, encoded as a RFC 3339 timestamp.
   final String? dateTimeStamp;
 
   /// Unique identifier for the module.
@@ -3191,9 +3296,6 @@ class Module {
   /// A name of the module.
   final String name;
 
-  /// optional but recommended attributes.
-  /// always try to use these first before introducing additional attributes.
-  ///
   /// Logical full path to the module. The exact definition is implementation
   /// defined, but usually this would be a full path to the on-disk file for the
   /// module.
@@ -3203,8 +3305,8 @@ class Module {
   /// implementation defined.
   final String? symbolFilePath;
 
-  /// User understandable description of if symbols were found for the module
-  /// (ex: 'Symbols Loaded', 'Symbols not found', etc.
+  /// User-understandable description of if symbols were found for the module
+  /// (ex: 'Symbols Loaded', 'Symbols not found', etc.)
   final String? symbolStatus;
 
   /// Version of Module.
@@ -3290,10 +3392,10 @@ class Module {
       };
 }
 
-/// Arguments for 'modules' request.
+/// Arguments for `modules` request.
 class ModulesArguments extends RequestArguments {
-  /// The number of modules to return. If moduleCount is not specified or 0, all
-  /// modules are returned.
+  /// The number of modules to return. If `moduleCount` is not specified or 0,
+  /// all modules are returned.
   final int? moduleCount;
 
   /// The index of the first module to return; if omitted modules start at 0.
@@ -3330,7 +3432,7 @@ class ModulesArguments extends RequestArguments {
       };
 }
 
-/// Response to 'modules' request.
+/// Response to `modules` request.
 class ModulesResponse extends Response {
   static ModulesResponse fromJson(Map<String, Object?> obj) =>
       ModulesResponse.fromMap(obj);
@@ -3369,48 +3471,17 @@ class ModulesResponse extends Response {
       };
 }
 
-/// The ModulesViewDescriptor is the container for all declarative configuration
-/// options of a ModuleView.
-/// For now it only specifies the columns to be shown in the modules view.
-class ModulesViewDescriptor {
-  final List<ColumnDescriptor> columns;
-
-  static ModulesViewDescriptor fromJson(Map<String, Object?> obj) =>
-      ModulesViewDescriptor.fromMap(obj);
-
-  ModulesViewDescriptor({
-    required this.columns,
-  });
-
-  ModulesViewDescriptor.fromMap(Map<String, Object?> obj)
-      : columns = (obj['columns'] as List)
-            .map((item) =>
-                ColumnDescriptor.fromJson(item as Map<String, Object?>))
-            .toList();
-
-  static bool canParse(Object? obj) {
-    if (obj is! Map<String, dynamic>) {
-      return false;
-    }
-    if ((obj['columns'] is! List ||
-        (obj['columns'].any((item) => !ColumnDescriptor.canParse(item))))) {
-      return false;
-    }
-    return true;
-  }
-
-  Map<String, Object?> toJson() => {
-        'columns': columns,
-      };
-}
-
-/// Arguments for 'next' request.
+/// Arguments for `next` request.
 class NextArguments extends RequestArguments {
-  /// Optional granularity to step. If no granularity is specified, a
-  /// granularity of 'statement' is assumed.
+  /// Stepping granularity. If no granularity is specified, a granularity of
+  /// `statement` is assumed.
   final SteppingGranularity? granularity;
 
-  /// Execute 'next' for this thread.
+  /// If this flag is true, all other suspended threads are not resumed.
+  final bool? singleThread;
+
+  /// Specifies the thread for which to resume execution for one step (of the
+  /// given granularity).
   final int threadId;
 
   static NextArguments fromJson(Map<String, Object?> obj) =>
@@ -3418,11 +3489,13 @@ class NextArguments extends RequestArguments {
 
   NextArguments({
     this.granularity,
+    this.singleThread,
     required this.threadId,
   });
 
   NextArguments.fromMap(Map<String, Object?> obj)
       : granularity = obj['granularity'] as SteppingGranularity?,
+        singleThread = obj['singleThread'] as bool?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
@@ -3430,6 +3503,9 @@ class NextArguments extends RequestArguments {
       return false;
     }
     if (obj['granularity'] is! SteppingGranularity?) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -3440,11 +3516,12 @@ class NextArguments extends RequestArguments {
 
   Map<String, Object?> toJson() => {
         if (granularity != null) 'granularity': granularity,
+        if (singleThread != null) 'singleThread': singleThread,
         'threadId': threadId,
       };
 }
 
-/// Response to 'next' request. This is just an acknowledgement, so no body
+/// Response to `next` request. This is just an acknowledgement, so no body
 /// field is required.
 class NextResponse extends Response {
   static NextResponse fromJson(Map<String, Object?> obj) =>
@@ -3481,7 +3558,7 @@ class NextResponse extends Response {
       };
 }
 
-/// Arguments for 'pause' request.
+/// Arguments for `pause` request.
 class PauseArguments extends RequestArguments {
   /// Pause execution for this thread.
   final int threadId;
@@ -3511,7 +3588,7 @@ class PauseArguments extends RequestArguments {
       };
 }
 
-/// Response to 'pause' request. This is just an acknowledgement, so no body
+/// Response to `pause` request. This is just an acknowledgement, so no body
 /// field is required.
 class PauseResponse extends Response {
   static PauseResponse fromJson(Map<String, Object?> obj) =>
@@ -3550,8 +3627,13 @@ class PauseResponse extends Response {
 
 /// Base class of requests, responses, and events.
 class ProtocolMessage {
-  /// Sequence number (also known as message ID). For protocol messages of type
-  /// 'request' this ID can be used to cancel the request.
+  /// Sequence number of the message (also known as message ID). The `seq` for
+  /// the first message sent by a client or debug adapter is 1, and for each
+  /// subsequent message is 1 greater than the previous message sent by that
+  /// actor. `seq` can be used to order requests, responses, and events, and to
+  /// associate requests with their corresponding responses. For protocol
+  /// messages of type `request` the sequence number can be used to cancel the
+  /// request.
   final int seq;
 
   /// Message type.
@@ -3588,7 +3670,7 @@ class ProtocolMessage {
       };
 }
 
-/// Arguments for 'readMemory' request.
+/// Arguments for `readMemory` request.
 class ReadMemoryArguments extends RequestArguments {
   /// Number of bytes to read at the specified location and offset.
   final int count;
@@ -3596,8 +3678,8 @@ class ReadMemoryArguments extends RequestArguments {
   /// Memory reference to the base location from which data should be read.
   final String memoryReference;
 
-  /// Optional offset (in bytes) to be applied to the reference location before
-  /// reading data. Can be negative.
+  /// Offset (in bytes) to be applied to the reference location before reading
+  /// data. Can be negative.
   final int? offset;
 
   static ReadMemoryArguments fromJson(Map<String, Object?> obj) =>
@@ -3637,7 +3719,7 @@ class ReadMemoryArguments extends RequestArguments {
       };
 }
 
-/// Response to 'readMemory' request.
+/// Response to `readMemory` request.
 class ReadMemoryResponse extends Response {
   static ReadMemoryResponse fromJson(Map<String, Object?> obj) =>
       ReadMemoryResponse.fromMap(obj);
@@ -3723,16 +3805,16 @@ class Request extends ProtocolMessage {
 
 /// Response for a request.
 class Response extends ProtocolMessage {
-  /// Contains request result if success is true and optional error details if
-  /// success is false.
+  /// Contains request result if success is true and error details if success is
+  /// false.
   final Object? body;
 
   /// The command requested.
   final String command;
 
-  /// Contains the raw error in short form if 'success' is false.
-  /// This raw error might be interpreted by the frontend and is not shown in
-  /// the UI.
+  /// Contains the raw error in short form if `success` is false.
+  /// This raw error might be interpreted by the client and is not shown in the
+  /// UI.
   /// Some predefined values exist.
   final String? message;
 
@@ -3740,11 +3822,11 @@ class Response extends ProtocolMessage {
   final int requestSeq;
 
   /// Outcome of the request.
-  /// If true, the request was successful and the 'body' attribute may contain
+  /// If true, the request was successful and the `body` attribute may contain
   /// the result of the request.
-  /// If the value is false, the attribute 'message' contains the error in short
-  /// form and the 'body' may contain additional information (see
-  /// 'ErrorResponse.body.error').
+  /// If the value is false, the attribute `message` contains the error in short
+  /// form and the `body` may contain additional information (see
+  /// `ErrorResponse.body.error`).
   final bool success;
 
   static Response fromJson(Map<String, Object?> obj) => Response.fromMap(obj);
@@ -3802,9 +3884,9 @@ class Response extends ProtocolMessage {
       };
 }
 
-/// Arguments for 'restart' request.
+/// Arguments for `restart` request.
 class RestartArguments extends RequestArguments {
-  /// The latest version of the 'launch' or 'attach' configuration.
+  /// The latest version of the `launch` or `attach` configuration.
   final Either2<LaunchRequestArguments, AttachRequestArguments>? arguments;
 
   static RestartArguments fromJson(Map<String, Object?> obj) =>
@@ -3842,9 +3924,11 @@ class RestartArguments extends RequestArguments {
       };
 }
 
-/// Arguments for 'restartFrame' request.
+/// Arguments for `restartFrame` request.
 class RestartFrameArguments extends RequestArguments {
-  /// Restart this stackframe.
+  /// Restart the stack frame identified by `frameId`. The `frameId` must have
+  /// been obtained in the current suspended state. See 'Lifetime of Object
+  /// References' in the Overview section for details.
   final int frameId;
 
   static RestartFrameArguments fromJson(Map<String, Object?> obj) =>
@@ -3872,7 +3956,7 @@ class RestartFrameArguments extends RequestArguments {
       };
 }
 
-/// Response to 'restartFrame' request. This is just an acknowledgement, so no
+/// Response to `restartFrame` request. This is just an acknowledgement, so no
 /// body field is required.
 class RestartFrameResponse extends Response {
   static RestartFrameResponse fromJson(Map<String, Object?> obj) =>
@@ -3909,7 +3993,7 @@ class RestartFrameResponse extends Response {
       };
 }
 
-/// Response to 'restart' request. This is just an acknowledgement, so no body
+/// Response to `restart` request. This is just an acknowledgement, so no body
 /// field is required.
 class RestartResponse extends Response {
   static RestartResponse fromJson(Map<String, Object?> obj) =>
@@ -3946,23 +4030,34 @@ class RestartResponse extends Response {
       };
 }
 
-/// Arguments for 'reverseContinue' request.
+/// Arguments for `reverseContinue` request.
 class ReverseContinueArguments extends RequestArguments {
-  /// Execute 'reverseContinue' for this thread.
+  /// If this flag is true, backward execution is resumed only for the thread
+  /// with given `threadId`.
+  final bool? singleThread;
+
+  /// Specifies the active thread. If the debug adapter supports single thread
+  /// execution (see `supportsSingleThreadExecutionRequests`) and the
+  /// `singleThread` argument is true, only the thread with this ID is resumed.
   final int threadId;
 
   static ReverseContinueArguments fromJson(Map<String, Object?> obj) =>
       ReverseContinueArguments.fromMap(obj);
 
   ReverseContinueArguments({
+    this.singleThread,
     required this.threadId,
   });
 
   ReverseContinueArguments.fromMap(Map<String, Object?> obj)
-      : threadId = obj['threadId'] as int;
+      : singleThread = obj['singleThread'] as bool?,
+        threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -3972,11 +4067,12 @@ class ReverseContinueArguments extends RequestArguments {
   }
 
   Map<String, Object?> toJson() => {
+        if (singleThread != null) 'singleThread': singleThread,
         'threadId': threadId,
       };
 }
 
-/// Response to 'reverseContinue' request. This is just an acknowledgement, so
+/// Response to `reverseContinue` request. This is just an acknowledgement, so
 /// no body field is required.
 class ReverseContinueResponse extends Response {
   static ReverseContinueResponse fromJson(Map<String, Object?> obj) =>
@@ -4014,10 +4110,18 @@ class ReverseContinueResponse extends Response {
       };
 }
 
-/// Arguments for 'runInTerminal' request.
+/// Arguments for `runInTerminal` request.
 class RunInTerminalRequestArguments extends RequestArguments {
   /// List of arguments. The first argument is the command to run.
   final List<String> args;
+
+  /// This property should only be set if the corresponding capability
+  /// `supportsArgsCanBeInterpretedByShell` is true. If the client uses an
+  /// intermediary shell to launch the application, then the client must not
+  /// attempt to escape characters with special meanings for the shell. The user
+  /// is fully responsible for escaping as needed and that arguments using
+  /// special characters may not be portable across shells.
+  final bool? argsCanBeInterpretedByShell;
 
   /// Working directory for the command. For non-empty, valid paths this
   /// typically results in execution of a change directory command.
@@ -4027,10 +4131,11 @@ class RunInTerminalRequestArguments extends RequestArguments {
   /// environment.
   final Map<String, Object?>? env;
 
-  /// What kind of terminal to launch.
+  /// What kind of terminal to launch. Defaults to `integrated` if not
+  /// specified.
   final String? kind;
 
-  /// Optional title of the terminal.
+  /// Title of the terminal.
   final String? title;
 
   static RunInTerminalRequestArguments fromJson(Map<String, Object?> obj) =>
@@ -4038,6 +4143,7 @@ class RunInTerminalRequestArguments extends RequestArguments {
 
   RunInTerminalRequestArguments({
     required this.args,
+    this.argsCanBeInterpretedByShell,
     required this.cwd,
     this.env,
     this.kind,
@@ -4046,6 +4152,8 @@ class RunInTerminalRequestArguments extends RequestArguments {
 
   RunInTerminalRequestArguments.fromMap(Map<String, Object?> obj)
       : args = (obj['args'] as List).map((item) => item as String).toList(),
+        argsCanBeInterpretedByShell =
+            obj['argsCanBeInterpretedByShell'] as bool?,
         cwd = obj['cwd'] as String,
         env = obj['env'] as Map<String, Object?>?,
         kind = obj['kind'] as String?,
@@ -4057,6 +4165,9 @@ class RunInTerminalRequestArguments extends RequestArguments {
     }
     if ((obj['args'] is! List ||
         (obj['args'].any((item) => item is! String)))) {
+      return false;
+    }
+    if (obj['argsCanBeInterpretedByShell'] is! bool?) {
       return false;
     }
     if (obj['cwd'] is! String) {
@@ -4076,6 +4187,8 @@ class RunInTerminalRequestArguments extends RequestArguments {
 
   Map<String, Object?> toJson() => {
         'args': args,
+        if (argsCanBeInterpretedByShell != null)
+          'argsCanBeInterpretedByShell': argsCanBeInterpretedByShell,
         'cwd': cwd,
         if (env != null) 'env': env,
         if (kind != null) 'kind': kind,
@@ -4083,7 +4196,7 @@ class RunInTerminalRequestArguments extends RequestArguments {
       };
 }
 
-/// Response to 'runInTerminal' request.
+/// Response to `runInTerminal` request.
 class RunInTerminalResponse extends Response {
   static RunInTerminalResponse fromJson(Map<String, Object?> obj) =>
       RunInTerminalResponse.fromMap(obj);
@@ -4122,16 +4235,20 @@ class RunInTerminalResponse extends Response {
       };
 }
 
-/// A Scope is a named container for variables. Optionally a scope can map to a
-/// source or a range within a source.
+/// A `Scope` is a named container for variables. Optionally a scope can map to
+/// a source or a range within a source.
 class Scope {
-  /// Optional start column of the range covered by this scope.
+  /// Start position of the range covered by the scope. It is measured in UTF-16
+  /// code units and the client capability `columnsStartAt1` determines whether
+  /// it is 0- or 1-based.
   final int? column;
 
-  /// Optional end column of the range covered by this scope.
+  /// End position of the range covered by the scope. It is measured in UTF-16
+  /// code units and the client capability `columnsStartAt1` determines whether
+  /// it is 0- or 1-based.
   final int? endColumn;
 
-  /// Optional end line of the range covered by this scope.
+  /// The end line of the range covered by this scope.
   final int? endLine;
 
   /// If true, the number of variables in this scope is large or expensive to
@@ -4139,11 +4256,11 @@ class Scope {
   final bool expensive;
 
   /// The number of indexed variables in this scope.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   final int? indexedVariables;
 
-  /// Optional start line of the range covered by this scope.
+  /// The start line of the range covered by this scope.
   final int? line;
 
   /// Name of the scope such as 'Arguments', 'Locals', or 'Registers'. This
@@ -4151,19 +4268,21 @@ class Scope {
   final String name;
 
   /// The number of named variables in this scope.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   final int? namedVariables;
 
-  /// An optional hint for how to present this scope in the UI. If this
-  /// attribute is missing, the scope is shown with a generic UI.
+  /// A hint for how to present this scope in the UI. If this attribute is
+  /// missing, the scope is shown with a generic UI.
   final String? presentationHint;
 
-  /// Optional source for this scope.
+  /// The source for this scope.
   final Source? source;
 
   /// The variables of this scope can be retrieved by passing the value of
-  /// variablesReference to the VariablesRequest.
+  /// `variablesReference` to the `variables` request as long as execution
+  /// remains suspended. See 'Lifetime of Object References' in the Overview
+  /// section for details.
   final int variablesReference;
 
   static Scope fromJson(Map<String, Object?> obj) => Scope.fromMap(obj);
@@ -4252,9 +4371,11 @@ class Scope {
       };
 }
 
-/// Arguments for 'scopes' request.
+/// Arguments for `scopes` request.
 class ScopesArguments extends RequestArguments {
-  /// Retrieve the scopes for this stackframe.
+  /// Retrieve the scopes for the stack frame identified by `frameId`. The
+  /// `frameId` must have been obtained in the current suspended state. See
+  /// 'Lifetime of Object References' in the Overview section for details.
   final int frameId;
 
   static ScopesArguments fromJson(Map<String, Object?> obj) =>
@@ -4282,7 +4403,7 @@ class ScopesArguments extends RequestArguments {
       };
 }
 
-/// Response to 'scopes' request.
+/// Response to `scopes` request.
 class ScopesResponse extends Response {
   static ScopesResponse fromJson(Map<String, Object?> obj) =>
       ScopesResponse.fromMap(obj);
@@ -4321,7 +4442,7 @@ class ScopesResponse extends Response {
       };
 }
 
-/// Arguments for 'setBreakpoints' request.
+/// Arguments for `setBreakpoints` request.
 class SetBreakpointsArguments extends RequestArguments {
   /// The code locations of the breakpoints.
   final List<SourceBreakpoint>? breakpoints;
@@ -4329,8 +4450,8 @@ class SetBreakpointsArguments extends RequestArguments {
   /// Deprecated: The code locations of the breakpoints.
   final List<int>? lines;
 
-  /// The source location of the breakpoints; either 'source.path' or
-  /// 'source.reference' must be specified.
+  /// The source location of the breakpoints; either `source.path` or
+  /// `source.sourceReference` must be specified.
   final Source source;
 
   /// A value of true indicates that the underlying source has been modified
@@ -4384,13 +4505,13 @@ class SetBreakpointsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setBreakpoints' request.
+/// Response to `setBreakpoints` request.
 /// Returned is information about each breakpoint created by this request.
 /// This includes the actual code location and whether the breakpoint could be
 /// verified.
 /// The breakpoints returned are in the same order as the elements of the
-/// 'breakpoints'
-/// (or the deprecated 'lines') array in the arguments.
+/// `breakpoints`
+/// (or the deprecated `lines`) array in the arguments.
 class SetBreakpointsResponse extends Response {
   static SetBreakpointsResponse fromJson(Map<String, Object?> obj) =>
       SetBreakpointsResponse.fromMap(obj);
@@ -4429,7 +4550,7 @@ class SetBreakpointsResponse extends Response {
       };
 }
 
-/// Arguments for 'setDataBreakpoints' request.
+/// Arguments for `setDataBreakpoints` request.
 class SetDataBreakpointsArguments extends RequestArguments {
   /// The contents of this array replaces all existing data breakpoints. An
   /// empty array clears all data breakpoints.
@@ -4464,7 +4585,7 @@ class SetDataBreakpointsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setDataBreakpoints' request.
+/// Response to `setDataBreakpoints` request.
 /// Returned is information about each breakpoint created by this request.
 class SetDataBreakpointsResponse extends Response {
   static SetDataBreakpointsResponse fromJson(Map<String, Object?> obj) =>
@@ -4505,23 +4626,23 @@ class SetDataBreakpointsResponse extends Response {
       };
 }
 
-/// Arguments for 'setExceptionBreakpoints' request.
+/// Arguments for `setExceptionBreakpoints` request.
 class SetExceptionBreakpointsArguments extends RequestArguments {
   /// Configuration options for selected exceptions.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsExceptionOptions' is true.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsExceptionOptions` is true.
   final List<ExceptionOptions>? exceptionOptions;
 
   /// Set of exception filters and their options. The set of all possible
-  /// exception filters is defined by the 'exceptionBreakpointFilters'
+  /// exception filters is defined by the `exceptionBreakpointFilters`
   /// capability. This attribute is only honored by a debug adapter if the
-  /// capability 'supportsExceptionFilterOptions' is true. The 'filter' and
-  /// 'filterOptions' sets are additive.
+  /// corresponding capability `supportsExceptionFilterOptions` is true. The
+  /// `filter` and `filterOptions` sets are additive.
   final List<ExceptionFilterOptions>? filterOptions;
 
   /// Set of exception filters specified by their ID. The set of all possible
-  /// exception filters is defined by the 'exceptionBreakpointFilters'
-  /// capability. The 'filter' and 'filterOptions' sets are additive.
+  /// exception filters is defined by the `exceptionBreakpointFilters`
+  /// capability. The `filter` and `filterOptions` sets are additive.
   final List<String> filters;
 
   static SetExceptionBreakpointsArguments fromJson(Map<String, Object?> obj) =>
@@ -4573,22 +4694,22 @@ class SetExceptionBreakpointsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setExceptionBreakpoints' request.
-/// The response contains an array of Breakpoint objects with information about
-/// each exception breakpoint or filter. The Breakpoint objects are in the same
-/// order as the elements of the 'filters', 'filterOptions', 'exceptionOptions'
-/// arrays given as arguments. If both 'filters' and 'filterOptions' are given,
-/// the returned array must start with 'filters' information first, followed by
-/// 'filterOptions' information.
-/// The mandatory 'verified' property of a Breakpoint object signals whether the
+/// Response to `setExceptionBreakpoints` request.
+/// The response contains an array of `Breakpoint` objects with information
+/// about each exception breakpoint or filter. The `Breakpoint` objects are in
+/// the same order as the elements of the `filters`, `filterOptions`,
+/// `exceptionOptions` arrays given as arguments. If both `filters` and
+/// `filterOptions` are given, the returned array must start with `filters`
+/// information first, followed by `filterOptions` information.
+/// The `verified` property of a `Breakpoint` object signals whether the
 /// exception breakpoint or filter could be successfully created and whether the
-/// optional condition or hit count expressions are valid. In case of an error
-/// the 'message' property explains the problem. An optional 'id' property can
-/// be used to introduce a unique ID for the exception breakpoint or filter so
-/// that it can be updated subsequently by sending breakpoint events.
-/// For backward compatibility both the 'breakpoints' array and the enclosing
-/// 'body' are optional. If these elements are missing a client will not be able
-/// to show problems for individual exception breakpoints or filters.
+/// condition or hit count expressions are valid. In case of an error the
+/// `message` property explains the problem. The `id` property can be used to
+/// introduce a unique ID for the exception breakpoint or filter so that it can
+/// be updated subsequently by sending breakpoint events.
+/// For backward compatibility both the `breakpoints` array and the enclosing
+/// `body` are optional. If these elements are missing a client is not able to
+/// show problems for individual exception breakpoints or filters.
 class SetExceptionBreakpointsResponse extends Response {
   static SetExceptionBreakpointsResponse fromJson(Map<String, Object?> obj) =>
       SetExceptionBreakpointsResponse.fromMap(obj);
@@ -4628,7 +4749,7 @@ class SetExceptionBreakpointsResponse extends Response {
       };
 }
 
-/// Arguments for 'setExpression' request.
+/// Arguments for `setExpression` request.
 class SetExpressionArguments extends RequestArguments {
   /// The l-value expression to assign to.
   final String expression;
@@ -4688,7 +4809,7 @@ class SetExpressionArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setExpression' request.
+/// Response to `setExpression` request.
 class SetExpressionResponse extends Response {
   static SetExpressionResponse fromJson(Map<String, Object?> obj) =>
       SetExpressionResponse.fromMap(obj);
@@ -4727,7 +4848,7 @@ class SetExpressionResponse extends Response {
       };
 }
 
-/// Arguments for 'setFunctionBreakpoints' request.
+/// Arguments for `setFunctionBreakpoints` request.
 class SetFunctionBreakpointsArguments extends RequestArguments {
   /// The function names of the breakpoints.
   final List<FunctionBreakpoint> breakpoints;
@@ -4762,7 +4883,7 @@ class SetFunctionBreakpointsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setFunctionBreakpoints' request.
+/// Response to `setFunctionBreakpoints` request.
 /// Returned is information about each breakpoint created by this request.
 class SetFunctionBreakpointsResponse extends Response {
   static SetFunctionBreakpointsResponse fromJson(Map<String, Object?> obj) =>
@@ -4803,7 +4924,7 @@ class SetFunctionBreakpointsResponse extends Response {
       };
 }
 
-/// Arguments for 'setInstructionBreakpoints' request
+/// Arguments for `setInstructionBreakpoints` request
 class SetInstructionBreakpointsArguments extends RequestArguments {
   /// The instruction references of the breakpoints
   final List<InstructionBreakpoint> breakpoints;
@@ -4839,7 +4960,7 @@ class SetInstructionBreakpointsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setInstructionBreakpoints' request
+/// Response to `setInstructionBreakpoints` request
 class SetInstructionBreakpointsResponse extends Response {
   static SetInstructionBreakpointsResponse fromJson(Map<String, Object?> obj) =>
       SetInstructionBreakpointsResponse.fromMap(obj);
@@ -4879,7 +5000,7 @@ class SetInstructionBreakpointsResponse extends Response {
       };
 }
 
-/// Arguments for 'setVariable' request.
+/// Arguments for `setVariable` request.
 class SetVariableArguments extends RequestArguments {
   /// Specifies details on how to format the response value.
   final ValueFormat? format;
@@ -4890,7 +5011,9 @@ class SetVariableArguments extends RequestArguments {
   /// The value of the variable.
   final String value;
 
-  /// The reference of the variable container.
+  /// The reference of the variable container. The `variablesReference` must
+  /// have been obtained in the current suspended state. See 'Lifetime of Object
+  /// References' in the Overview section for details.
   final int variablesReference;
 
   static SetVariableArguments fromJson(Map<String, Object?> obj) =>
@@ -4938,7 +5061,7 @@ class SetVariableArguments extends RequestArguments {
       };
 }
 
-/// Response to 'setVariable' request.
+/// Response to `setVariable` request.
 class SetVariableResponse extends Response {
   static SetVariableResponse fromJson(Map<String, Object?> obj) =>
       SetVariableResponse.fromMap(obj);
@@ -4977,11 +5100,12 @@ class SetVariableResponse extends Response {
       };
 }
 
-/// A Source is a descriptor for source code.
-/// It is returned from the debug adapter as part of a StackFrame and it is used
-/// by clients when specifying breakpoints.
+/// A `Source` is a descriptor for source code.
+/// It is returned from the debug adapter as part of a `StackFrame` and it is
+/// used by clients when specifying breakpoints.
 class Source {
-  /// Optional data that a debug adapter might want to loop through the client.
+  /// Additional data that a debug adapter might want to loop through the
+  /// client.
   /// The client should leave the data intact and persist it across sessions.
   /// The client should not interpret the data.
   final Object? adapterData;
@@ -4994,29 +5118,29 @@ class Source {
   /// When sending a source to the debug adapter this name is optional.
   final String? name;
 
-  /// The (optional) origin of this source: possible values 'internal module',
-  /// 'inlined content from source map', etc.
+  /// The origin of this source. For example, 'internal module', 'inlined
+  /// content from source map', etc.
   final String? origin;
 
   /// The path of the source to be shown in the UI.
   /// It is only used to locate and load the content of the source if no
-  /// sourceReference is specified (or its value is 0).
+  /// `sourceReference` is specified (or its value is 0).
   final String? path;
 
-  /// An optional hint for how to present the source in the UI.
-  /// A value of 'deemphasize' can be used to indicate that the source is not
+  /// A hint for how to present the source in the UI.
+  /// A value of `deemphasize` can be used to indicate that the source is not
   /// available or that it is skipped on stepping.
   final String? presentationHint;
 
-  /// If sourceReference > 0 the contents of the source must be retrieved
-  /// through the SourceRequest (even if a path is specified).
-  /// A sourceReference is only valid for a session, so it must not be used to
-  /// persist a source.
+  /// If the value > 0 the contents of the source must be retrieved through the
+  /// `source` request (even if a path is specified).
+  /// Since a `sourceReference` is only valid for a session, it can not be used
+  /// to persist a source.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? sourceReference;
 
-  /// An optional list of sources that are related to this source. These may be
-  /// the source that generated this source.
+  /// A list of sources that are related to this source. These may be the source
+  /// that generated this source.
   final List<Source>? sources;
 
   static Source fromJson(Map<String, Object?> obj) => Source.fromMap(obj);
@@ -5088,15 +5212,15 @@ class Source {
       };
 }
 
-/// Arguments for 'source' request.
+/// Arguments for `source` request.
 class SourceArguments extends RequestArguments {
-  /// Specifies the source content to load. Either source.path or
-  /// source.sourceReference must be specified.
+  /// Specifies the source content to load. Either `source.path` or
+  /// `source.sourceReference` must be specified.
   final Source? source;
 
-  /// The reference to the source. This is the same as source.sourceReference.
-  /// This is provided for backward compatibility since old backends do not
-  /// understand the 'source' attribute.
+  /// The reference to the source. This is the same as `source.sourceReference`.
+  /// This is provided for backward compatibility since old clients do not
+  /// understand the `source` attribute.
   final int sourceReference;
 
   static SourceArguments fromJson(Map<String, Object?> obj) =>
@@ -5132,31 +5256,38 @@ class SourceArguments extends RequestArguments {
       };
 }
 
-/// Properties of a breakpoint or logpoint passed to the setBreakpoints request.
+/// Properties of a breakpoint or logpoint passed to the `setBreakpoints`
+/// request.
 class SourceBreakpoint {
-  /// An optional source column of the breakpoint.
+  /// Start position within source line of the breakpoint or logpoint. It is
+  /// measured in UTF-16 code units and the client capability `columnsStartAt1`
+  /// determines whether it is 0- or 1-based.
   final int? column;
 
-  /// An optional expression for conditional breakpoints.
-  /// It is only honored by a debug adapter if the capability
-  /// 'supportsConditionalBreakpoints' is true.
+  /// The expression for conditional breakpoints.
+  /// It is only honored by a debug adapter if the corresponding capability
+  /// `supportsConditionalBreakpoints` is true.
   final String? condition;
 
-  /// An optional expression that controls how many hits of the breakpoint are
-  /// ignored.
-  /// The backend is expected to interpret the expression as needed.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsHitConditionalBreakpoints' is true.
+  /// The expression that controls how many hits of the breakpoint are ignored.
+  /// The debug adapter is expected to interpret the expression as needed.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsHitConditionalBreakpoints` is true.
+  /// If both this property and `condition` are specified, `hitCondition` should
+  /// be evaluated only if the `condition` is met, and the debug adapter should
+  /// stop only if both conditions are met.
   final String? hitCondition;
 
   /// The source line of the breakpoint or logpoint.
   final int line;
 
-  /// If this attribute exists and is non-empty, the backend must not 'break'
-  /// (stop)
-  /// but log the message instead. Expressions within {} are interpolated.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsLogPoints' is true.
+  /// If this attribute exists and is non-empty, the debug adapter must not
+  /// 'break' (stop)
+  /// but log the message instead. Expressions within `{}` are interpolated.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsLogPoints` is true.
+  /// If either `hitCondition` or `condition` is specified, then the message
+  /// should only be logged if those conditions are met.
   final String? logMessage;
 
   static SourceBreakpoint fromJson(Map<String, Object?> obj) =>
@@ -5208,7 +5339,7 @@ class SourceBreakpoint {
       };
 }
 
-/// Response to 'source' request.
+/// Response to `source` request.
 class SourceResponse extends Response {
   static SourceResponse fromJson(Map<String, Object?> obj) =>
       SourceResponse.fromMap(obj);
@@ -5249,32 +5380,37 @@ class SourceResponse extends Response {
 
 /// A Stackframe contains the source location.
 class StackFrame {
-  /// Indicates whether this frame can be restarted with the 'restart' request.
-  /// Clients should only use this if the debug adapter supports the 'restart'
-  /// request (capability 'supportsRestartRequest' is true).
+  /// Indicates whether this frame can be restarted with the `restart` request.
+  /// Clients should only use this if the debug adapter supports the `restart`
+  /// request and the corresponding capability `supportsRestartRequest` is true.
+  /// If a debug adapter has this capability, then `canRestart` defaults to
+  /// `true` if the property is absent.
   final bool? canRestart;
 
-  /// The column within the line. If source is null or doesn't exist, column is
-  /// 0 and must be ignored.
+  /// Start position of the range covered by the stack frame. It is measured in
+  /// UTF-16 code units and the client capability `columnsStartAt1` determines
+  /// whether it is 0- or 1-based. If attribute `source` is missing or doesn't
+  /// exist, `column` is 0 and should be ignored by the client.
   final int column;
 
-  /// An optional end column of the range covered by the stack frame.
+  /// End position of the range covered by the stack frame. It is measured in
+  /// UTF-16 code units and the client capability `columnsStartAt1` determines
+  /// whether it is 0- or 1-based.
   final int? endColumn;
 
-  /// An optional end line of the range covered by the stack frame.
+  /// The end line of the range covered by the stack frame.
   final int? endLine;
 
   /// An identifier for the stack frame. It must be unique across all threads.
-  /// This id can be used to retrieve the scopes of the frame with the
-  /// 'scopesRequest' or to restart the execution of a stackframe.
+  /// This id can be used to retrieve the scopes of the frame with the `scopes`
+  /// request or to restart the execution of a stack frame.
   final int id;
 
-  /// Optional memory reference for the current instruction pointer in this
-  /// frame.
+  /// A memory reference for the current instruction pointer in this frame.
   final String? instructionPointerReference;
 
-  /// The line within the file of the frame. If source is null or doesn't exist,
-  /// line is 0 and must be ignored.
+  /// The line within the source of the frame. If the source attribute is
+  /// missing or doesn't exist, `line` is 0 and should be ignored by the client.
   final int line;
 
   /// The module associated with this frame, if any.
@@ -5283,13 +5419,13 @@ class StackFrame {
   /// The name of the stack frame, typically a method name.
   final String name;
 
-  /// An optional hint for how to present this frame in the UI.
-  /// A value of 'label' can be used to indicate that the frame is an artificial
-  /// frame that is used as a visual label or separator. A value of 'subtle' can
+  /// A hint for how to present this frame in the UI.
+  /// A value of `label` can be used to indicate that the frame is an artificial
+  /// frame that is used as a visual label or separator. A value of `subtle` can
   /// be used to change the appearance of a frame in a 'subtle' way.
   final String? presentationHint;
 
-  /// The optional source of the frame.
+  /// The source of the frame.
   final Source? source;
 
   static StackFrame fromJson(Map<String, Object?> obj) =>
@@ -5478,11 +5614,11 @@ class StackFrameFormat extends ValueFormat {
       };
 }
 
-/// Arguments for 'stackTrace' request.
+/// Arguments for `stackTrace` request.
 class StackTraceArguments extends RequestArguments {
   /// Specifies details on how to format the stack frames.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsValueFormattingOptions' is true.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsValueFormattingOptions` is true.
   final StackFrameFormat? format;
 
   /// The maximum number of frames to return. If levels is not specified or 0,
@@ -5540,7 +5676,7 @@ class StackTraceArguments extends RequestArguments {
       };
 }
 
-/// Response to 'stackTrace' request.
+/// Response to `stackTrace` request.
 class StackTraceResponse extends Response {
   static StackTraceResponse fromJson(Map<String, Object?> obj) =>
       StackTraceResponse.fromMap(obj);
@@ -5579,13 +5715,97 @@ class StackTraceResponse extends Response {
       };
 }
 
-/// Arguments for 'stepBack' request.
+/// Arguments for `startDebugging` request.
+class StartDebuggingRequestArguments extends RequestArguments {
+  /// Arguments passed to the new debug session. The arguments must only contain
+  /// properties understood by the `launch` or `attach` requests of the debug
+  /// adapter and they must not contain any client-specific properties (e.g.
+  /// `type`) or client-specific features (e.g. substitutable 'variables').
+  final Map<String, Object?> configuration;
+
+  /// Indicates whether the new debug session should be started with a `launch`
+  /// or `attach` request.
+  final String request;
+
+  static StartDebuggingRequestArguments fromJson(Map<String, Object?> obj) =>
+      StartDebuggingRequestArguments.fromMap(obj);
+
+  StartDebuggingRequestArguments({
+    required this.configuration,
+    required this.request,
+  });
+
+  StartDebuggingRequestArguments.fromMap(Map<String, Object?> obj)
+      : configuration = obj['configuration'] as Map<String, Object?>,
+        request = obj['request'] as String;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['configuration'] is! Map<String, Object?>) {
+      return false;
+    }
+    if (obj['request'] is! String) {
+      return false;
+    }
+    return RequestArguments.canParse(obj);
+  }
+
+  Map<String, Object?> toJson() => {
+        'configuration': configuration,
+        'request': request,
+      };
+}
+
+/// Response to `startDebugging` request. This is just an acknowledgement, so no
+/// body field is required.
+class StartDebuggingResponse extends Response {
+  static StartDebuggingResponse fromJson(Map<String, Object?> obj) =>
+      StartDebuggingResponse.fromMap(obj);
+
+  StartDebuggingResponse({
+    Object? body,
+    required String command,
+    String? message,
+    required int requestSeq,
+    required int seq,
+    required bool success,
+  }) : super(
+          seq: seq,
+          requestSeq: requestSeq,
+          success: success,
+          command: command,
+          message: message,
+          body: body,
+        );
+
+  StartDebuggingResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    return Response.canParse(obj);
+  }
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+      };
+}
+
+/// Arguments for `stepBack` request.
 class StepBackArguments extends RequestArguments {
-  /// Optional granularity to step. If no granularity is specified, a
-  /// granularity of 'statement' is assumed.
+  /// Stepping granularity to step. If no granularity is specified, a
+  /// granularity of `statement` is assumed.
   final SteppingGranularity? granularity;
 
-  /// Execute 'stepBack' for this thread.
+  /// If this flag is true, all other suspended threads are not resumed.
+  final bool? singleThread;
+
+  /// Specifies the thread for which to resume execution for one step backwards
+  /// (of the given granularity).
   final int threadId;
 
   static StepBackArguments fromJson(Map<String, Object?> obj) =>
@@ -5593,11 +5813,13 @@ class StepBackArguments extends RequestArguments {
 
   StepBackArguments({
     this.granularity,
+    this.singleThread,
     required this.threadId,
   });
 
   StepBackArguments.fromMap(Map<String, Object?> obj)
       : granularity = obj['granularity'] as SteppingGranularity?,
+        singleThread = obj['singleThread'] as bool?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
@@ -5605,6 +5827,9 @@ class StepBackArguments extends RequestArguments {
       return false;
     }
     if (obj['granularity'] is! SteppingGranularity?) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -5615,11 +5840,12 @@ class StepBackArguments extends RequestArguments {
 
   Map<String, Object?> toJson() => {
         if (granularity != null) 'granularity': granularity,
+        if (singleThread != null) 'singleThread': singleThread,
         'threadId': threadId,
       };
 }
 
-/// Response to 'stepBack' request. This is just an acknowledgement, so no body
+/// Response to `stepBack` request. This is just an acknowledgement, so no body
 /// field is required.
 class StepBackResponse extends Response {
   static StepBackResponse fromJson(Map<String, Object?> obj) =>
@@ -5656,16 +5882,20 @@ class StepBackResponse extends Response {
       };
 }
 
-/// Arguments for 'stepIn' request.
+/// Arguments for `stepIn` request.
 class StepInArguments extends RequestArguments {
-  /// Optional granularity to step. If no granularity is specified, a
-  /// granularity of 'statement' is assumed.
+  /// Stepping granularity. If no granularity is specified, a granularity of
+  /// `statement` is assumed.
   final SteppingGranularity? granularity;
 
-  /// Optional id of the target to step into.
+  /// If this flag is true, all other suspended threads are not resumed.
+  final bool? singleThread;
+
+  /// Id of the target to step into.
   final int? targetId;
 
-  /// Execute 'stepIn' for this thread.
+  /// Specifies the thread for which to resume execution for one step-into (of
+  /// the given granularity).
   final int threadId;
 
   static StepInArguments fromJson(Map<String, Object?> obj) =>
@@ -5673,12 +5903,14 @@ class StepInArguments extends RequestArguments {
 
   StepInArguments({
     this.granularity,
+    this.singleThread,
     this.targetId,
     required this.threadId,
   });
 
   StepInArguments.fromMap(Map<String, Object?> obj)
       : granularity = obj['granularity'] as SteppingGranularity?,
+        singleThread = obj['singleThread'] as bool?,
         targetId = obj['targetId'] as int?,
         threadId = obj['threadId'] as int;
 
@@ -5687,6 +5919,9 @@ class StepInArguments extends RequestArguments {
       return false;
     }
     if (obj['granularity'] is! SteppingGranularity?) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['targetId'] is! int?) {
@@ -5700,12 +5935,13 @@ class StepInArguments extends RequestArguments {
 
   Map<String, Object?> toJson() => {
         if (granularity != null) 'granularity': granularity,
+        if (singleThread != null) 'singleThread': singleThread,
         if (targetId != null) 'targetId': targetId,
         'threadId': threadId,
       };
 }
 
-/// Response to 'stepIn' request. This is just an acknowledgement, so no body
+/// Response to `stepIn` request. This is just an acknowledgement, so no body
 /// field is required.
 class StepInResponse extends Response {
   static StepInResponse fromJson(Map<String, Object?> obj) =>
@@ -5742,29 +5978,62 @@ class StepInResponse extends Response {
       };
 }
 
-/// A StepInTarget can be used in the 'stepIn' request and determines into which
-/// single target the stepIn request should step.
+/// A `StepInTarget` can be used in the `stepIn` request and determines into
+/// which single target the `stepIn` request should step.
 class StepInTarget {
-  /// Unique identifier for a stepIn target.
+  /// Start position of the range covered by the step in target. It is measured
+  /// in UTF-16 code units and the client capability `columnsStartAt1`
+  /// determines whether it is 0- or 1-based.
+  final int? column;
+
+  /// End position of the range covered by the step in target. It is measured in
+  /// UTF-16 code units and the client capability `columnsStartAt1` determines
+  /// whether it is 0- or 1-based.
+  final int? endColumn;
+
+  /// The end line of the range covered by the step-in target.
+  final int? endLine;
+
+  /// Unique identifier for a step-in target.
   final int id;
 
-  /// The name of the stepIn target (shown in the UI).
+  /// The name of the step-in target (shown in the UI).
   final String label;
+
+  /// The line of the step-in target.
+  final int? line;
 
   static StepInTarget fromJson(Map<String, Object?> obj) =>
       StepInTarget.fromMap(obj);
 
   StepInTarget({
+    this.column,
+    this.endColumn,
+    this.endLine,
     required this.id,
     required this.label,
+    this.line,
   });
 
   StepInTarget.fromMap(Map<String, Object?> obj)
-      : id = obj['id'] as int,
-        label = obj['label'] as String;
+      : column = obj['column'] as int?,
+        endColumn = obj['endColumn'] as int?,
+        endLine = obj['endLine'] as int?,
+        id = obj['id'] as int,
+        label = obj['label'] as String,
+        line = obj['line'] as int?;
 
   static bool canParse(Object? obj) {
     if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['column'] is! int?) {
+      return false;
+    }
+    if (obj['endColumn'] is! int?) {
+      return false;
+    }
+    if (obj['endLine'] is! int?) {
       return false;
     }
     if (obj['id'] is! int) {
@@ -5773,18 +6042,25 @@ class StepInTarget {
     if (obj['label'] is! String) {
       return false;
     }
+    if (obj['line'] is! int?) {
+      return false;
+    }
     return true;
   }
 
   Map<String, Object?> toJson() => {
+        if (column != null) 'column': column,
+        if (endColumn != null) 'endColumn': endColumn,
+        if (endLine != null) 'endLine': endLine,
         'id': id,
         'label': label,
+        if (line != null) 'line': line,
       };
 }
 
-/// Arguments for 'stepInTargets' request.
+/// Arguments for `stepInTargets` request.
 class StepInTargetsArguments extends RequestArguments {
-  /// The stack frame for which to retrieve the possible stepIn targets.
+  /// The stack frame for which to retrieve the possible step-in targets.
   final int frameId;
 
   static StepInTargetsArguments fromJson(Map<String, Object?> obj) =>
@@ -5812,7 +6088,7 @@ class StepInTargetsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'stepInTargets' request.
+/// Response to `stepInTargets` request.
 class StepInTargetsResponse extends Response {
   static StepInTargetsResponse fromJson(Map<String, Object?> obj) =>
       StepInTargetsResponse.fromMap(obj);
@@ -5851,13 +6127,17 @@ class StepInTargetsResponse extends Response {
       };
 }
 
-/// Arguments for 'stepOut' request.
+/// Arguments for `stepOut` request.
 class StepOutArguments extends RequestArguments {
-  /// Optional granularity to step. If no granularity is specified, a
-  /// granularity of 'statement' is assumed.
+  /// Stepping granularity. If no granularity is specified, a granularity of
+  /// `statement` is assumed.
   final SteppingGranularity? granularity;
 
-  /// Execute 'stepOut' for this thread.
+  /// If this flag is true, all other suspended threads are not resumed.
+  final bool? singleThread;
+
+  /// Specifies the thread for which to resume execution for one step-out (of
+  /// the given granularity).
   final int threadId;
 
   static StepOutArguments fromJson(Map<String, Object?> obj) =>
@@ -5865,11 +6145,13 @@ class StepOutArguments extends RequestArguments {
 
   StepOutArguments({
     this.granularity,
+    this.singleThread,
     required this.threadId,
   });
 
   StepOutArguments.fromMap(Map<String, Object?> obj)
       : granularity = obj['granularity'] as SteppingGranularity?,
+        singleThread = obj['singleThread'] as bool?,
         threadId = obj['threadId'] as int;
 
   static bool canParse(Object? obj) {
@@ -5877,6 +6159,9 @@ class StepOutArguments extends RequestArguments {
       return false;
     }
     if (obj['granularity'] is! SteppingGranularity?) {
+      return false;
+    }
+    if (obj['singleThread'] is! bool?) {
       return false;
     }
     if (obj['threadId'] is! int) {
@@ -5887,11 +6172,12 @@ class StepOutArguments extends RequestArguments {
 
   Map<String, Object?> toJson() => {
         if (granularity != null) 'granularity': granularity,
+        if (singleThread != null) 'singleThread': singleThread,
         'threadId': threadId,
       };
 }
 
-/// Response to 'stepOut' request. This is just an acknowledgement, so no body
+/// Response to `stepOut` request. This is just an acknowledgement, so no body
 /// field is required.
 class StepOutResponse extends Response {
   static StepOutResponse fromJson(Map<String, Object?> obj) =>
@@ -5928,13 +6214,13 @@ class StepOutResponse extends Response {
       };
 }
 
-/// The granularity of one 'step' in the stepping requests 'next', 'stepIn',
-/// 'stepOut', and 'stepBack'.
+/// The granularity of one 'step' in the stepping requests `next`, `stepIn`,
+/// `stepOut`, and `stepBack`.
 typedef SteppingGranularity = String;
 
-/// Arguments for 'terminate' request.
+/// Arguments for `terminate` request.
 class TerminateArguments extends RequestArguments {
-  /// A value of true indicates that this 'terminate' request is part of a
+  /// A value of true indicates that this `terminate` request is part of a
   /// restart sequence.
   final bool? restart;
 
@@ -5963,7 +6249,7 @@ class TerminateArguments extends RequestArguments {
       };
 }
 
-/// Response to 'terminate' request. This is just an acknowledgement, so no body
+/// Response to `terminate` request. This is just an acknowledgement, so no body
 /// field is required.
 class TerminateResponse extends Response {
   static TerminateResponse fromJson(Map<String, Object?> obj) =>
@@ -6000,7 +6286,7 @@ class TerminateResponse extends Response {
       };
 }
 
-/// Arguments for 'terminateThreads' request.
+/// Arguments for `terminateThreads` request.
 class TerminateThreadsArguments extends RequestArguments {
   /// Ids of threads to be terminated.
   final List<int>? threadIds;
@@ -6032,8 +6318,8 @@ class TerminateThreadsArguments extends RequestArguments {
       };
 }
 
-/// Response to 'terminateThreads' request. This is just an acknowledgement, so
-/// no body field is required.
+/// Response to `terminateThreads` request. This is just an acknowledgement, no
+/// body field is required.
 class TerminateThreadsResponse extends Response {
   static TerminateThreadsResponse fromJson(Map<String, Object?> obj) =>
       TerminateThreadsResponse.fromMap(obj);
@@ -6075,7 +6361,7 @@ class Thread {
   /// Unique identifier for the thread.
   final int id;
 
-  /// A name of the thread.
+  /// The name of the thread.
   final String name;
 
   static Thread fromJson(Map<String, Object?> obj) => Thread.fromMap(obj);
@@ -6108,7 +6394,7 @@ class Thread {
       };
 }
 
-/// Response to 'threads' request.
+/// Response to `threads` request.
 class ThreadsResponse extends Response {
   static ThreadsResponse fromJson(Map<String, Object?> obj) =>
       ThreadsResponse.fromMap(obj);
@@ -6177,40 +6463,39 @@ class ValueFormat {
 }
 
 /// A Variable is a name/value pair.
-/// Optionally a variable can have a 'type' that is shown if space permits or
-/// when hovering over the variable's name.
-/// An optional 'kind' is used to render additional properties of the variable,
-/// e.g. different icons can be used to indicate that a variable is public or
-/// private.
+/// The `type` attribute is shown if space permits or when hovering over the
+/// variable's name.
+/// The `kind` attribute is used to render additional properties of the
+/// variable, e.g. different icons can be used to indicate that a variable is
+/// public or private.
 /// If the value is structured (has children), a handle is provided to retrieve
-/// the children with the VariablesRequest.
+/// the children with the `variables` request.
 /// If the number of named or indexed children is large, the numbers should be
-/// returned via the optional 'namedVariables' and 'indexedVariables'
-/// attributes.
-/// The client can use this optional information to present the children in a
-/// paged UI and fetch them in chunks.
+/// returned via the `namedVariables` and `indexedVariables` attributes.
+/// The client can use this information to present the children in a paged UI
+/// and fetch them in chunks.
 class Variable {
-  /// Optional evaluable name of this variable which can be passed to the
-  /// 'EvaluateRequest' to fetch the variable's value.
+  /// The evaluatable name of this variable which can be passed to the
+  /// `evaluate` request to fetch the variable's value.
   final String? evaluateName;
 
   /// The number of indexed child variables.
-  /// The client can use this optional information to present the children in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the children in a paged UI
+  /// and fetch them in chunks.
   final int? indexedVariables;
 
-  /// Optional memory reference for the variable if the variable represents
+  /// The memory reference for the variable if the variable represents
   /// executable code, such as a function pointer.
-  /// This attribute is only required if the client has passed the value true
-  /// for the 'supportsMemoryReferences' capability of the 'initialize' request.
+  /// This attribute is only required if the corresponding capability
+  /// `supportsMemoryReferences` is true.
   final String? memoryReference;
 
   /// The variable's name.
   final String name;
 
   /// The number of named child variables.
-  /// The client can use this optional information to present the children in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the children in a paged UI
+  /// and fetch them in chunks.
   final int? namedVariables;
 
   /// Properties of a variable that can be used to determine how to render the
@@ -6219,17 +6504,23 @@ class Variable {
 
   /// The type of the variable's value. Typically shown in the UI when hovering
   /// over the value.
-  /// This attribute should only be returned by a debug adapter if the client
-  /// has passed the value true for the 'supportsVariableType' capability of the
-  /// 'initialize' request.
+  /// This attribute should only be returned by a debug adapter if the
+  /// corresponding capability `supportsVariableType` is true.
   final String? type;
 
-  /// The variable's value. This can be a multi-line text, e.g. for a function
-  /// the body of a function.
+  /// The variable's value.
+  /// This can be a multi-line text, e.g. for a function the body of a function.
+  /// For structured variables (which do not have a simple value), it is
+  /// recommended to provide a one-line representation of the structured object.
+  /// This helps to identify the structured object in the collapsed state when
+  /// its children are not yet visible.
+  /// An empty string can be used if no value should be shown in the UI.
   final String value;
 
-  /// If variablesReference is > 0, the variable is structured and its children
-  /// can be retrieved by passing variablesReference to the VariablesRequest.
+  /// If `variablesReference` is > 0, the variable is structured and its
+  /// children can be retrieved by passing `variablesReference` to the
+  /// `variables` request as long as execution remains suspended. See 'Lifetime
+  /// of Object References' in the Overview section for details.
   final int variablesReference;
 
   static Variable fromJson(Map<String, Object?> obj) => Variable.fromMap(obj);
@@ -6307,8 +6598,8 @@ class Variable {
       };
 }
 
-/// Optional properties of a variable that can be used to determine how to
-/// render the variable in the UI.
+/// Properties of a variable that can be used to determine how to render the
+/// variable in the UI.
 class VariablePresentationHint {
   /// Set of attributes represented as an array of strings. Before introducing
   /// additional values, try to use the listed values.
@@ -6317,6 +6608,17 @@ class VariablePresentationHint {
   /// The kind of variable. Before introducing additional values, try to use the
   /// listed values.
   final String? kind;
+
+  /// If true, clients can present the variable with a UI that supports a
+  /// specific gesture to trigger its evaluation.
+  /// This mechanism can be used for properties that require executing code when
+  /// retrieving their value and where the code execution can be expensive
+  /// and/or produce side-effects. A typical example are properties based on a
+  /// getter function.
+  /// Please note that in addition to the `lazy` flag, the variable's
+  /// `variablesReference` is expected to refer to a variable that will provide
+  /// the value through another `variable` request.
+  final bool? lazy;
 
   /// Visibility of variable. Before introducing additional values, try to use
   /// the listed values.
@@ -6328,6 +6630,7 @@ class VariablePresentationHint {
   VariablePresentationHint({
     this.attributes,
     this.kind,
+    this.lazy,
     this.visibility,
   });
 
@@ -6336,6 +6639,7 @@ class VariablePresentationHint {
             ?.map((item) => item as String)
             .toList(),
         kind = obj['kind'] as String?,
+        lazy = obj['lazy'] as bool?,
         visibility = obj['visibility'] as String?;
 
   static bool canParse(Object? obj) {
@@ -6349,6 +6653,9 @@ class VariablePresentationHint {
     if (obj['kind'] is! String?) {
       return false;
     }
+    if (obj['lazy'] is! bool?) {
+      return false;
+    }
     if (obj['visibility'] is! String?) {
       return false;
     }
@@ -6358,29 +6665,36 @@ class VariablePresentationHint {
   Map<String, Object?> toJson() => {
         if (attributes != null) 'attributes': attributes,
         if (kind != null) 'kind': kind,
+        if (lazy != null) 'lazy': lazy,
         if (visibility != null) 'visibility': visibility,
       };
 }
 
-/// Arguments for 'variables' request.
+/// Arguments for `variables` request.
 class VariablesArguments extends RequestArguments {
   /// The number of variables to return. If count is missing or 0, all variables
   /// are returned.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsVariablePaging` is true.
   final int? count;
 
-  /// Optional filter to limit the child variables to either named or indexed.
-  /// If omitted, both types are fetched.
+  /// Filter to limit the child variables to either named or indexed. If
+  /// omitted, both types are fetched.
   final String? filter;
 
   /// Specifies details on how to format the Variable values.
-  /// The attribute is only honored by a debug adapter if the capability
-  /// 'supportsValueFormattingOptions' is true.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsValueFormattingOptions` is true.
   final ValueFormat? format;
 
   /// The index of the first variable to return; if omitted children start at 0.
+  /// The attribute is only honored by a debug adapter if the corresponding
+  /// capability `supportsVariablePaging` is true.
   final int? start;
 
-  /// The Variable reference.
+  /// The variable for which to retrieve its children. The `variablesReference`
+  /// must have been obtained in the current suspended state. See 'Lifetime of
+  /// Object References' in the Overview section for details.
   final int variablesReference;
 
   static VariablesArguments fromJson(Map<String, Object?> obj) =>
@@ -6434,7 +6748,7 @@ class VariablesArguments extends RequestArguments {
       };
 }
 
-/// Response to 'variables' request.
+/// Response to `variables` request.
 class VariablesResponse extends Response {
   static VariablesResponse fromJson(Map<String, Object?> obj) =>
       VariablesResponse.fromMap(obj);
@@ -6473,8 +6787,111 @@ class VariablesResponse extends Response {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Arguments for `writeMemory` request.
+class WriteMemoryArguments extends RequestArguments {
+  /// Property to control partial writes. If true, the debug adapter should
+  /// attempt to write memory even if the entire memory region is not writable.
+  /// In such a case the debug adapter should stop after hitting the first byte
+  /// of memory that cannot be written and return the number of bytes written in
+  /// the response via the `offset` and `bytesWritten` properties.
+  /// If false or missing, a debug adapter should attempt to verify the region
+  /// is writable before writing, and fail the response if it is not.
+  final bool? allowPartial;
+
+  /// Bytes to write, encoded using base64.
+  final String data;
+
+  /// Memory reference to the base location to which data should be written.
+  final String memoryReference;
+
+  /// Offset (in bytes) to be applied to the reference location before writing
+  /// data. Can be negative.
+  final int? offset;
+
+  static WriteMemoryArguments fromJson(Map<String, Object?> obj) =>
+      WriteMemoryArguments.fromMap(obj);
+
+  WriteMemoryArguments({
+    this.allowPartial,
+    required this.data,
+    required this.memoryReference,
+    this.offset,
+  });
+
+  WriteMemoryArguments.fromMap(Map<String, Object?> obj)
+      : allowPartial = obj['allowPartial'] as bool?,
+        data = obj['data'] as String,
+        memoryReference = obj['memoryReference'] as String,
+        offset = obj['offset'] as int?;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['allowPartial'] is! bool?) {
+      return false;
+    }
+    if (obj['data'] is! String) {
+      return false;
+    }
+    if (obj['memoryReference'] is! String) {
+      return false;
+    }
+    if (obj['offset'] is! int?) {
+      return false;
+    }
+    return RequestArguments.canParse(obj);
+  }
+
+  Map<String, Object?> toJson() => {
+        if (allowPartial != null) 'allowPartial': allowPartial,
+        'data': data,
+        'memoryReference': memoryReference,
+        if (offset != null) 'offset': offset,
+      };
+}
+
+/// Response to `writeMemory` request.
+class WriteMemoryResponse extends Response {
+  static WriteMemoryResponse fromJson(Map<String, Object?> obj) =>
+      WriteMemoryResponse.fromMap(obj);
+
+  WriteMemoryResponse({
+    Map<String, Object?>? body,
+    required String command,
+    String? message,
+    required int requestSeq,
+    required int seq,
+    required bool success,
+  }) : super(
+          seq: seq,
+          requestSeq: requestSeq,
+          success: success,
+          command: command,
+          message: message,
+          body: body,
+        );
+
+  WriteMemoryResponse.fromMap(Map<String, Object?> obj) : super.fromMap(obj);
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['body'] is! Map<String, Object?>?) {
+      return false;
+    }
+    return Response.canParse(obj);
+  }
+
+  @override
+  Map<String, Object?> toJson() => {
+        ...super.toJson(),
+      };
+}
+
+/// Contains request result if success is true and error details if success is
+/// false.
 class AttachResponseBody {
   static AttachResponseBody fromJson(Map<String, Object?> obj) =>
       AttachResponseBody.fromMap(obj);
@@ -6494,7 +6911,7 @@ class AttachResponseBody {
 }
 
 class BreakpointEventBody extends EventBody {
-  /// The 'id' attribute is used to find the target breakpoint and the other
+  /// The `id` attribute is used to find the target breakpoint, the other
   /// attributes are used as the new values.
   final Breakpoint breakpoint;
 
@@ -6567,8 +6984,8 @@ class BreakpointLocationsResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class CancelResponseBody {
   static CancelResponseBody fromJson(Map<String, Object?> obj) =>
       CancelResponseBody.fromMap(obj);
@@ -6650,8 +7067,8 @@ class CompletionsResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class ConfigurationDoneResponseBody {
   static ConfigurationDoneResponseBody fromJson(Map<String, Object?> obj) =>
       ConfigurationDoneResponseBody.fromMap(obj);
@@ -6671,10 +7088,9 @@ class ConfigurationDoneResponseBody {
 }
 
 class ContinueResponseBody {
-  /// If true, the 'continue' request has ignored the specified thread and
-  /// continued all threads instead.
-  /// If this attribute is missing a value of 'true' is assumed for backward
-  /// compatibility.
+  /// The value true (or a missing property) signals to the client that all
+  /// threads have been resumed. The value false indicates that not all threads
+  /// were resumed.
   final bool? allThreadsContinued;
 
   static ContinueResponseBody fromJson(Map<String, Object?> obj) =>
@@ -6704,7 +7120,7 @@ class ContinueResponseBody {
 }
 
 class ContinuedEventBody extends EventBody {
-  /// If 'allThreadsContinued' is true, a debug adapter can announce that all
+  /// If `allThreadsContinued` is true, a debug adapter can announce that all
   /// threads have continued.
   final bool? allThreadsContinued;
 
@@ -6744,16 +7160,16 @@ class ContinuedEventBody extends EventBody {
 }
 
 class DataBreakpointInfoResponseBody {
-  /// Optional attribute listing the available access types for a potential data
-  /// breakpoint. A UI frontend could surface this information.
+  /// Attribute lists the available access types for a potential data
+  /// breakpoint. A UI client could surface this information.
   final List<DataBreakpointAccessType>? accessTypes;
 
-  /// Optional attribute indicating that a potential data breakpoint could be
-  /// persisted across sessions.
+  /// Attribute indicates that a potential data breakpoint could be persisted
+  /// across sessions.
   final bool? canPersist;
 
   /// An identifier for the data on which a data breakpoint can be registered
-  /// with the setDataBreakpoints request or null if no data breakpoint is
+  /// with the `setDataBreakpoints` request or null if no data breakpoint is
   /// available.
   final Either2<String, Null> dataId;
 
@@ -6844,8 +7260,8 @@ class DisassembleResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class DisconnectResponseBody {
   static DisconnectResponseBody fromJson(Map<String, Object?> obj) =>
       DisconnectResponseBody.fromMap(obj);
@@ -6865,7 +7281,7 @@ class DisconnectResponseBody {
 }
 
 class ErrorResponseBody {
-  /// An optional, structured error message.
+  /// A structured error message.
   final Message? error;
 
   static ErrorResponseBody fromJson(Map<String, Object?> obj) =>
@@ -6897,42 +7313,40 @@ class ErrorResponseBody {
 
 class EvaluateResponseBody {
   /// The number of indexed child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? indexedVariables;
 
-  /// Optional memory reference to a location appropriate for this result.
+  /// A memory reference to a location appropriate for this result.
   /// For pointer type eval results, this is generally a reference to the memory
   /// address contained in the pointer.
-  /// This attribute should be returned by a debug adapter if the client has
-  /// passed the value true for the 'supportsMemoryReferences' capability of the
-  /// 'initialize' request.
+  /// This attribute should be returned by a debug adapter if corresponding
+  /// capability `supportsMemoryReferences` is true.
   final String? memoryReference;
 
   /// The number of named child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? namedVariables;
 
-  /// Properties of a evaluate result that can be used to determine how to
+  /// Properties of an evaluate result that can be used to determine how to
   /// render the result in the UI.
   final VariablePresentationHint? presentationHint;
 
   /// The result of the evaluate request.
   final String result;
 
-  /// The optional type of the evaluate result.
-  /// This attribute should only be returned by a debug adapter if the client
-  /// has passed the value true for the 'supportsVariableType' capability of the
-  /// 'initialize' request.
+  /// The type of the evaluate result.
+  /// This attribute should only be returned by a debug adapter if the
+  /// corresponding capability `supportsVariableType` is true.
   final String? type;
 
-  /// If variablesReference is > 0, the evaluate result is structured and its
-  /// children can be retrieved by passing variablesReference to the
-  /// VariablesRequest.
-  /// The value should be less than or equal to 2147483647 (2^31-1).
+  /// If `variablesReference` is > 0, the evaluate result is structured and its
+  /// children can be retrieved by passing `variablesReference` to the
+  /// `variables` request as long as execution remains suspended. See 'Lifetime
+  /// of Object References' in the Overview section for details.
   final int variablesReference;
 
   static EvaluateResponseBody fromJson(Map<String, Object?> obj) =>
@@ -7003,7 +7417,7 @@ class ExceptionInfoResponseBody {
   /// Mode that caused the exception notification to be raised.
   final ExceptionBreakMode breakMode;
 
-  /// Descriptive text for the exception provided by the debug adapter.
+  /// Descriptive text for the exception.
   final String? description;
 
   /// Detailed information about the exception.
@@ -7086,8 +7500,8 @@ class ExitedEventBody extends EventBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class GotoResponseBody {
   static GotoResponseBody fromJson(Map<String, Object?> obj) =>
       GotoResponseBody.fromMap(obj);
@@ -7177,15 +7591,15 @@ class InitializedEventBody extends EventBody {
 }
 
 class InvalidatedEventBody extends EventBody {
-  /// Optional set of logical areas that got invalidated. This property has a
-  /// hint characteristic: a client can only be expected to make a 'best effort'
-  /// in honouring the areas but there are no guarantees. If this property is
-  /// missing, empty, or if values are not understand the client should assume a
-  /// single value 'all'.
+  /// Set of logical areas that got invalidated. This property has a hint
+  /// characteristic: a client can only be expected to make a 'best effort' in
+  /// honoring the areas but there are no guarantees. If this property is
+  /// missing, empty, or if values are not understood, the client should assume
+  /// a single value `all`.
   final List<InvalidatedAreas>? areas;
 
   /// If specified, the client only needs to refetch data related to this stack
-  /// frame (and the 'threadId' is ignored).
+  /// frame (and the `threadId` is ignored).
   final int? stackFrameId;
 
   /// If specified, the client only needs to refetch data related to this
@@ -7232,8 +7646,8 @@ class InvalidatedEventBody extends EventBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class LaunchResponseBody {
   static LaunchResponseBody fromJson(Map<String, Object?> obj) =>
       LaunchResponseBody.fromMap(obj);
@@ -7322,8 +7736,55 @@ class LoadedSourcesResponseBody {
       };
 }
 
+class MemoryEventBody extends EventBody {
+  /// Number of bytes updated.
+  final int count;
+
+  /// Memory reference of a memory range that has been updated.
+  final String memoryReference;
+
+  /// Starting offset in bytes where memory has been updated. Can be negative.
+  final int offset;
+
+  static MemoryEventBody fromJson(Map<String, Object?> obj) =>
+      MemoryEventBody.fromMap(obj);
+
+  MemoryEventBody({
+    required this.count,
+    required this.memoryReference,
+    required this.offset,
+  });
+
+  MemoryEventBody.fromMap(Map<String, Object?> obj)
+      : count = obj['count'] as int,
+        memoryReference = obj['memoryReference'] as String,
+        offset = obj['offset'] as int;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['count'] is! int) {
+      return false;
+    }
+    if (obj['memoryReference'] is! String) {
+      return false;
+    }
+    if (obj['offset'] is! int) {
+      return false;
+    }
+    return EventBody.canParse(obj);
+  }
+
+  Map<String, Object?> toJson() => {
+        'count': count,
+        'memoryReference': memoryReference,
+        'offset': offset,
+      };
+}
+
 class ModuleEventBody extends EventBody {
-  /// The new, changed, or removed module. In case of 'removed' only the module
+  /// The new, changed, or removed module. In case of `removed` only the module
   /// id is used.
   final Module module;
 
@@ -7402,8 +7863,8 @@ class ModulesResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class NextResponseBody {
   static NextResponseBody fromJson(Map<String, Object?> obj) =>
       NextResponseBody.fromMap(obj);
@@ -7423,33 +7884,36 @@ class NextResponseBody {
 }
 
 class OutputEventBody extends EventBody {
-  /// The output category. If not specified, 'console' is assumed.
+  /// The output category. If not specified or if the category is not understood
+  /// by the client, `console` is assumed.
   final String? category;
 
-  /// An optional source location column where the output was produced.
+  /// The position in `line` where the output was produced. It is measured in
+  /// UTF-16 code units and the client capability `columnsStartAt1` determines
+  /// whether it is 0- or 1-based.
   final int? column;
 
-  /// Optional data to report. For the 'telemetry' category the data will be
-  /// sent to telemetry, for the other categories the data is shown in JSON
-  /// format.
+  /// Additional data to report. For the `telemetry` category the data is sent
+  /// to telemetry, for the other categories the data is shown in JSON format.
   final Object? data;
 
   /// Support for keeping an output log organized by grouping related messages.
   final String? group;
 
-  /// An optional source location line where the output was produced.
+  /// The source location's line where the output was produced.
   final int? line;
 
   /// The output to report.
   final String output;
 
-  /// An optional source location where the output was produced.
+  /// The source location where the output was produced.
   final Source? source;
 
-  /// If an attribute 'variablesReference' exists and its value is > 0, the
+  /// If an attribute `variablesReference` exists and its value is > 0, the
   /// output contains objects which can be retrieved by passing
-  /// 'variablesReference' to the 'variables' request. The value should be less
-  /// than or equal to 2147483647 (2^31-1).
+  /// `variablesReference` to the `variables` request as long as execution
+  /// remains suspended. See 'Lifetime of Object References' in the Overview
+  /// section for details.
   final int? variablesReference;
 
   static OutputEventBody fromJson(Map<String, Object?> obj) =>
@@ -7519,8 +7983,8 @@ class OutputEventBody extends EventBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class PauseResponseBody {
   static PauseResponseBody fromJson(Map<String, Object?> obj) =>
       PauseResponseBody.fromMap(obj);
@@ -7554,8 +8018,8 @@ class ProcessEventBody extends EventBody {
   /// Describes how the debug engine started debugging this process.
   final String? startMethod;
 
-  /// The system process id of the debugged process. This property will be
-  /// missing for non-system processes.
+  /// The system process id of the debugged process. This property is missing
+  /// for non-system processes.
   final int? systemProcessId;
 
   static ProcessEventBody fromJson(Map<String, Object?> obj) =>
@@ -7608,11 +8072,11 @@ class ProcessEventBody extends EventBody {
 }
 
 class ProgressEndEventBody extends EventBody {
-  /// Optional, more detailed progress message. If omitted, the previous message
-  /// (if any) is used.
+  /// More detailed progress message. If omitted, the previous message (if any)
+  /// is used.
   final String? message;
 
-  /// The ID that was introduced in the initial 'ProgressStartEvent'.
+  /// The ID that was introduced in the initial `ProgressStartEvent`.
   final String progressId;
 
   static ProgressEndEventBody fromJson(Map<String, Object?> obj) =>
@@ -7647,35 +8111,34 @@ class ProgressEndEventBody extends EventBody {
 }
 
 class ProgressStartEventBody extends EventBody {
-  /// If true, the request that reports progress may be canceled with a 'cancel'
-  /// request.
+  /// If true, the request that reports progress may be cancelled with a
+  /// `cancel` request.
   /// So this property basically controls whether the client should use UX that
   /// supports cancellation.
   /// Clients that don't support cancellation are allowed to ignore the setting.
   final bool? cancellable;
 
-  /// Optional, more detailed progress message.
+  /// More detailed progress message.
   final String? message;
 
-  /// Optional progress percentage to display (value range: 0 to 100). If
-  /// omitted no percentage will be shown.
+  /// Progress percentage to display (value range: 0 to 100). If omitted no
+  /// percentage is shown.
   final num? percentage;
 
-  /// An ID that must be used in subsequent 'progressUpdate' and 'progressEnd'
+  /// An ID that can be used in subsequent `progressUpdate` and `progressEnd`
   /// events to make them refer to the same progress reporting.
   /// IDs must be unique within a debug session.
   final String progressId;
 
   /// The request ID that this progress report is related to. If specified a
-  /// debug adapter is expected to emit
-  /// progress events for the long running request until the request has been
-  /// either completed or cancelled.
+  /// debug adapter is expected to emit progress events for the long running
+  /// request until the request has been either completed or cancelled.
   /// If the request ID is omitted, the progress report is assumed to be related
   /// to some general activity of the debug adapter.
   final int? requestId;
 
-  /// Mandatory (short) title of the progress reporting. Shown in the UI to
-  /// describe the long running operation.
+  /// Short title of the progress reporting. Shown in the UI to describe the
+  /// long running operation.
   final String title;
 
   static ProgressStartEventBody fromJson(Map<String, Object?> obj) =>
@@ -7734,15 +8197,15 @@ class ProgressStartEventBody extends EventBody {
 }
 
 class ProgressUpdateEventBody extends EventBody {
-  /// Optional, more detailed progress message. If omitted, the previous message
-  /// (if any) is used.
+  /// More detailed progress message. If omitted, the previous message (if any)
+  /// is used.
   final String? message;
 
-  /// Optional progress percentage to display (value range: 0 to 100). If
-  /// omitted no percentage will be shown.
+  /// Progress percentage to display (value range: 0 to 100). If omitted no
+  /// percentage is shown.
   final num? percentage;
 
-  /// The ID that was introduced in the initial 'progressStart' event.
+  /// The ID that was introduced in the initial `progressStart` event.
   final String progressId;
 
   static ProgressUpdateEventBody fromJson(Map<String, Object?> obj) =>
@@ -7784,17 +8247,20 @@ class ProgressUpdateEventBody extends EventBody {
 
 class ReadMemoryResponseBody {
   /// The address of the first byte of data returned.
-  /// Treated as a hex value if prefixed with '0x', or as a decimal value
+  /// Treated as a hex value if prefixed with `0x`, or as a decimal value
   /// otherwise.
   final String address;
 
-  /// The bytes read from memory, encoded using base64.
+  /// The bytes read from memory, encoded using base64. If the decoded length of
+  /// `data` is less than the requested `count` in the original `readMemory`
+  /// request, and `unreadableBytes` is zero or omitted, then the client should
+  /// assume it's reached the end of readable memory.
   final String? data;
 
   /// The number of unreadable bytes encountered after the last successfully
   /// read byte.
-  /// This can be used to determine the number of bytes that must be skipped
-  /// before a subsequent 'readMemory' request will succeed.
+  /// This can be used to determine the number of bytes that should be skipped
+  /// before a subsequent `readMemory` request succeeds.
   final int? unreadableBytes;
 
   static ReadMemoryResponseBody fromJson(Map<String, Object?> obj) =>
@@ -7834,8 +8300,8 @@ class ReadMemoryResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class RestartFrameResponseBody {
   static RestartFrameResponseBody fromJson(Map<String, Object?> obj) =>
       RestartFrameResponseBody.fromMap(obj);
@@ -7854,8 +8320,8 @@ class RestartFrameResponseBody {
   Map<String, Object?> toJson() => {};
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class RestartResponseBody {
   static RestartResponseBody fromJson(Map<String, Object?> obj) =>
       RestartResponseBody.fromMap(obj);
@@ -7874,8 +8340,8 @@ class RestartResponseBody {
   Map<String, Object?> toJson() => {};
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class ReverseContinueResponseBody {
   static ReverseContinueResponseBody fromJson(Map<String, Object?> obj) =>
       ReverseContinueResponseBody.fromMap(obj);
@@ -7935,7 +8401,7 @@ class RunInTerminalResponseBody {
 }
 
 class ScopesResponseBody {
-  /// The scopes of the stackframe. If the array has length zero, there are no
+  /// The scopes of the stack frame. If the array has length zero, there are no
   /// scopes available.
   final List<Scope> scopes;
 
@@ -7970,7 +8436,7 @@ class ScopesResponseBody {
 class SetBreakpointsResponseBody {
   /// Information about the breakpoints.
   /// The array elements are in the same order as the elements of the
-  /// 'breakpoints' (or the deprecated 'lines') array in the arguments.
+  /// `breakpoints` (or the deprecated `lines`) array in the arguments.
   final List<Breakpoint> breakpoints;
 
   static SetBreakpointsResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8003,7 +8469,7 @@ class SetBreakpointsResponseBody {
 
 class SetDataBreakpointsResponseBody {
   /// Information about the data breakpoints. The array elements correspond to
-  /// the elements of the input argument 'breakpoints' array.
+  /// the elements of the input argument `breakpoints` array.
   final List<Breakpoint> breakpoints;
 
   static SetDataBreakpointsResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8037,9 +8503,9 @@ class SetDataBreakpointsResponseBody {
 class SetExceptionBreakpointsResponseBody {
   /// Information about the exception breakpoints or filters.
   /// The breakpoints returned are in the same order as the elements of the
-  /// 'filters', 'filterOptions', 'exceptionOptions' arrays in the arguments. If
-  /// both 'filters' and 'filterOptions' are given, the returned array must
-  /// start with 'filters' information first, followed by 'filterOptions'
+  /// `filters`, `filterOptions`, `exceptionOptions` arrays in the arguments. If
+  /// both `filters` and `filterOptions` are given, the returned array must
+  /// start with `filters` information first, followed by `filterOptions`
   /// information.
   final List<Breakpoint>? breakpoints;
 
@@ -8074,14 +8540,14 @@ class SetExceptionBreakpointsResponseBody {
 
 class SetExpressionResponseBody {
   /// The number of indexed child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? indexedVariables;
 
   /// The number of named child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? namedVariables;
 
@@ -8089,18 +8555,18 @@ class SetExpressionResponseBody {
   /// result in the UI.
   final VariablePresentationHint? presentationHint;
 
-  /// The optional type of the value.
-  /// This attribute should only be returned by a debug adapter if the client
-  /// has passed the value true for the 'supportsVariableType' capability of the
-  /// 'initialize' request.
+  /// The type of the value.
+  /// This attribute should only be returned by a debug adapter if the
+  /// corresponding capability `supportsVariableType` is true.
   final String? type;
 
   /// The new value of the expression.
   final String value;
 
-  /// If variablesReference is > 0, the value is structured and its children can
-  /// be retrieved by passing variablesReference to the VariablesRequest.
-  /// The value should be less than or equal to 2147483647 (2^31-1).
+  /// If `variablesReference` is > 0, the evaluate result is structured and its
+  /// children can be retrieved by passing `variablesReference` to the
+  /// `variables` request as long as execution remains suspended. See 'Lifetime
+  /// of Object References' in the Overview section for details.
   final int? variablesReference;
 
   static SetExpressionResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8164,7 +8630,7 @@ class SetExpressionResponseBody {
 
 class SetFunctionBreakpointsResponseBody {
   /// Information about the breakpoints. The array elements correspond to the
-  /// elements of the 'breakpoints' array.
+  /// elements of the `breakpoints` array.
   final List<Breakpoint> breakpoints;
 
   static SetFunctionBreakpointsResponseBody fromJson(
@@ -8198,7 +8664,7 @@ class SetFunctionBreakpointsResponseBody {
 
 class SetInstructionBreakpointsResponseBody {
   /// Information about the breakpoints. The array elements correspond to the
-  /// elements of the 'breakpoints' array.
+  /// elements of the `breakpoints` array.
   final List<Breakpoint> breakpoints;
 
   static SetInstructionBreakpointsResponseBody fromJson(
@@ -8232,14 +8698,14 @@ class SetInstructionBreakpointsResponseBody {
 
 class SetVariableResponseBody {
   /// The number of indexed child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? indexedVariables;
 
   /// The number of named child variables.
-  /// The client can use this optional information to present the variables in a
-  /// paged UI and fetch them in chunks.
+  /// The client can use this information to present the variables in a paged UI
+  /// and fetch them in chunks.
   /// The value should be less than or equal to 2147483647 (2^31-1).
   final int? namedVariables;
 
@@ -8250,9 +8716,10 @@ class SetVariableResponseBody {
   /// The new value of the variable.
   final String value;
 
-  /// If variablesReference is > 0, the new value is structured and its children
-  /// can be retrieved by passing variablesReference to the VariablesRequest.
-  /// The value should be less than or equal to 2147483647 (2^31-1).
+  /// If `variablesReference` is > 0, the new value is structured and its
+  /// children can be retrieved by passing `variablesReference` to the
+  /// `variables` request as long as execution remains suspended. See 'Lifetime
+  /// of Object References' in the Overview section for details.
   final int? variablesReference;
 
   static SetVariableResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8309,7 +8776,7 @@ class SourceResponseBody {
   /// Content of the source reference.
   final String content;
 
-  /// Optional content type (mime type) of the source.
+  /// Content type (MIME type) of the source.
   final String? mimeType;
 
   static SourceResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8344,16 +8811,16 @@ class SourceResponseBody {
 }
 
 class StackTraceResponseBody {
-  /// The frames of the stackframe. If the array has length zero, there are no
-  /// stackframes available.
+  /// The frames of the stack frame. If the array has length zero, there are no
+  /// stack frames available.
   /// This means that there is no location information available.
   final List<StackFrame> stackFrames;
 
   /// The total number of frames available in the stack. If omitted or if
-  /// totalFrames is larger than the available frames, a client is expected to
+  /// `totalFrames` is larger than the available frames, a client is expected to
   /// request frames until a request returns less frames than requested (which
   /// indicates the end of the stack). Returning monotonically increasing
-  /// totalFrames values for subsequent requests can be used to enforce paging
+  /// `totalFrames` values for subsequent requests can be used to enforce paging
   /// in the client.
   final int? totalFrames;
 
@@ -8391,8 +8858,28 @@ class StackTraceResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
+class StartDebuggingResponseBody {
+  static StartDebuggingResponseBody fromJson(Map<String, Object?> obj) =>
+      StartDebuggingResponseBody.fromMap(obj);
+
+  StartDebuggingResponseBody();
+
+  StartDebuggingResponseBody.fromMap(Map<String, Object?> obj);
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    return true;
+  }
+
+  Map<String, Object?> toJson() => {};
+}
+
+/// Contains request result if success is true and error details if success is
+/// false.
 class StepBackResponseBody {
   static StepBackResponseBody fromJson(Map<String, Object?> obj) =>
       StepBackResponseBody.fromMap(obj);
@@ -8411,8 +8898,8 @@ class StepBackResponseBody {
   Map<String, Object?> toJson() => {};
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class StepInResponseBody {
   static StepInResponseBody fromJson(Map<String, Object?> obj) =>
       StepInResponseBody.fromMap(obj);
@@ -8432,7 +8919,7 @@ class StepInResponseBody {
 }
 
 class StepInTargetsResponseBody {
-  /// The possible stepIn targets of the specified source location.
+  /// The possible step-in targets of the specified source location.
   final List<StepInTarget> targets;
 
   static StepInTargetsResponseBody fromJson(Map<String, Object?> obj) =>
@@ -8463,8 +8950,8 @@ class StepInTargetsResponseBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class StepOutResponseBody {
   static StepOutResponseBody fromJson(Map<String, Object?> obj) =>
       StepOutResponseBody.fromMap(obj);
@@ -8484,34 +8971,34 @@ class StepOutResponseBody {
 }
 
 class StoppedEventBody extends EventBody {
-  /// If 'allThreadsStopped' is true, a debug adapter can announce that all
+  /// If `allThreadsStopped` is true, a debug adapter can announce that all
   /// threads have stopped.
   /// - The client should use this information to enable that all threads can be expanded to access their stacktraces.
-  /// - If the attribute is missing or false, only the thread with the given threadId can be expanded.
+  /// - If the attribute is missing or false, only the thread with the given `threadId` can be expanded.
   final bool? allThreadsStopped;
 
   /// The full reason for the event, e.g. 'Paused on exception'. This string is
-  /// shown in the UI as is and must be translated.
+  /// shown in the UI as is and can be translated.
   final String? description;
 
-  /// Ids of the breakpoints that triggered the event. In most cases there will
-  /// be only a single breakpoint but here are some examples for multiple
+  /// Ids of the breakpoints that triggered the event. In most cases there is
+  /// only a single breakpoint but here are some examples for multiple
   /// breakpoints:
   /// - Different types of breakpoints map to the same location.
   /// - Multiple source breakpoints get collapsed to the same instruction by the compiler/runtime.
   /// - Multiple function breakpoints with different function names map to the same location.
   final List<int>? hitBreakpointIds;
 
-  /// A value of true hints to the frontend that this event should not change
-  /// the focus.
+  /// A value of true hints to the client that this event should not change the
+  /// focus.
   final bool? preserveFocusHint;
 
   /// The reason for the event.
   /// For backward compatibility this string is shown in the UI if the
-  /// 'description' attribute is missing (but it must not be translated).
+  /// `description` attribute is missing (but it must not be translated).
   final String reason;
 
-  /// Additional information. E.g. if reason is 'exception', text contains the
+  /// Additional information. E.g. if reason is `exception`, text contains the
   /// exception name. This string is shown in the UI.
   final String? text;
 
@@ -8582,8 +9069,8 @@ class StoppedEventBody extends EventBody {
       };
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class TerminateResponseBody {
   static TerminateResponseBody fromJson(Map<String, Object?> obj) =>
       TerminateResponseBody.fromMap(obj);
@@ -8602,8 +9089,8 @@ class TerminateResponseBody {
   Map<String, Object?> toJson() => {};
 }
 
-/// Contains request result if success is true and optional error details if
-/// success is false.
+/// Contains request result if success is true and error details if success is
+/// false.
 class TerminateThreadsResponseBody {
   static TerminateThreadsResponseBody fromJson(Map<String, Object?> obj) =>
       TerminateThreadsResponseBody.fromMap(obj);
@@ -8623,10 +9110,10 @@ class TerminateThreadsResponseBody {
 }
 
 class TerminatedEventBody extends EventBody {
-  /// A debug adapter may set 'restart' to true (or to an arbitrary object) to
-  /// request that the front end restarts the session.
+  /// A debug adapter may set `restart` to true (or to an arbitrary object) to
+  /// request that the client restarts the session.
   /// The value is not interpreted by the client and passed unmodified as an
-  /// attribute '__restart' to the 'launch' and 'attach' requests.
+  /// attribute `__restart` to the `launch` and `attach` requests.
   final Object? restart;
 
   static TerminatedEventBody fromJson(Map<String, Object?> obj) =>
@@ -8753,6 +9240,47 @@ class VariablesResponseBody {
       };
 }
 
+class WriteMemoryResponseBody {
+  /// Property that should be returned when `allowPartial` is true to indicate
+  /// the number of bytes starting from address that were successfully written.
+  final int? bytesWritten;
+
+  /// Property that should be returned when `allowPartial` is true to indicate
+  /// the offset of the first byte of data successfully written. Can be
+  /// negative.
+  final int? offset;
+
+  static WriteMemoryResponseBody fromJson(Map<String, Object?> obj) =>
+      WriteMemoryResponseBody.fromMap(obj);
+
+  WriteMemoryResponseBody({
+    this.bytesWritten,
+    this.offset,
+  });
+
+  WriteMemoryResponseBody.fromMap(Map<String, Object?> obj)
+      : bytesWritten = obj['bytesWritten'] as int?,
+        offset = obj['offset'] as int?;
+
+  static bool canParse(Object? obj) {
+    if (obj is! Map<String, dynamic>) {
+      return false;
+    }
+    if (obj['bytesWritten'] is! int?) {
+      return false;
+    }
+    if (obj['offset'] is! int?) {
+      return false;
+    }
+    return true;
+  }
+
+  Map<String, Object?> toJson() => {
+        if (bytesWritten != null) 'bytesWritten': bytesWritten,
+        if (offset != null) 'offset': offset,
+      };
+}
+
 const eventTypes = {
   BreakpointEventBody: 'breakpoint',
   CapabilitiesEventBody: 'capabilities',
@@ -8761,6 +9289,7 @@ const eventTypes = {
   InitializedEventBody: 'initialized',
   InvalidatedEventBody: 'invalidated',
   LoadedSourceEventBody: 'loadedSource',
+  MemoryEventBody: 'memory',
   ModuleEventBody: 'module',
   OutputEventBody: 'output',
   ProcessEventBody: 'process',
@@ -8807,6 +9336,7 @@ const commandTypes = {
   SetVariableArguments: 'setVariable',
   SourceArguments: 'source',
   StackTraceArguments: 'stackTrace',
+  StartDebuggingRequestArguments: 'startDebugging',
   StepBackArguments: 'stepBack',
   StepInArguments: 'stepIn',
   StepInTargetsArguments: 'stepInTargets',
@@ -8814,4 +9344,5 @@ const commandTypes = {
   TerminateArguments: 'terminate',
   TerminateThreadsArguments: 'terminateThreads',
   VariablesArguments: 'variables',
+  WriteMemoryArguments: 'writeMemory',
 };

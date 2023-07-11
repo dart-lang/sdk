@@ -1,3 +1,23 @@
+# 2.9.2
+- [DAP] Fixed an issue that could cause breakpoints to become unresolved when there are multiple isolates (such as during a test run).
+
+# 2.9.1
+- [DAP] A new configuration option `bool? showGettersInDebugViews` allows getters to be shown wrapped in Variables/Evaluation responses so that they can be lazily expanded by the user. `evaluateGettersInDebugViews` must be `false` for this behaviour.
+- [DAP] `runInTerminal` requests are now sent after first responding to the `launchRequest`.
+- [DAP] Skipped tests are now marked with `!` instead of `✓` in `Output` events.
+- [DAP] Implemented `pause` request.
+- [DAP] Fixed an issue that could leave breakpoints unresolved when adding/removing other breakpoints in a file.
+- Fixed a bug that was preventing clients from receiving `IsolateReload` events
+  (see https://dartbug.com/49491).
+- Added notifications for DAP events.
+
+# 2.9.0
+- Updated DDS protocol to version 1.6.
+- Add `postEvent RPC.
+
+# 2.8.3
+- Pass-through expression evaluation types, method and class information.
+
 # 2.8.2
 - [DAP] Fixed an issue that could result in unhandled exceptions from in-flight requests when the application/VM Service is shutting down.
 

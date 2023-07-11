@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 import "opt_in_lib.dart" as opt;
@@ -39,7 +39,7 @@ static const field opt::M* m = const opt::M::•(list: self::list);
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as opt;
 import "dart:core" as core;
 
@@ -50,11 +50,10 @@ class P<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
     ;
 }
 class CP<T extends core::Object> extends opt::P<opt::CP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::CP::•]/*isLegacy*/;
   const constructor _(core::Object token) → opt::CP<opt::CP::T>
     : super opt::P::_(token)
     ;
-  static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T>
+  static factory •<T extends core::Object>(core::Type type) → opt::CP<opt::CP::•::T> /* redirection-target: opt::CP::_<opt::CP::•::T>*/
     return new opt::CP::_<opt::CP::•::T>(type);
 }
 class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/  {
@@ -63,11 +62,10 @@ class Token<T extends core::Object> extends core::Object /*hasConstConstructor*/
     ;
 }
 class VP<T extends core::Object> extends opt::P<opt::VP::T> /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[opt::VP::forToken]/*isLegacy*/;
   const constructor _(core::Object token, opt::VP::T useValue) → opt::VP<opt::VP::T>
     : super opt::P::_(token)
     ;
-  static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T>
+  static factory forToken<T extends core::Object>(opt::Token<opt::VP::forToken::T> token, opt::VP::forToken::T useValue) → opt::VP<opt::VP::forToken::T> /* redirection-target: opt::VP::_<opt::VP::forToken::T>*/
     return new opt::VP::_<opt::VP::forToken::T>(token, useValue);
 }
 class M extends core::Object /*hasConstConstructor*/  {
@@ -81,7 +79,5 @@ class M extends core::Object /*hasConstConstructor*/  {
 Extra constant evaluation status:
 Evaluated: ListLiteral @ org-dartlang-testcase:///main.dart:15:14 -> ListConstant(const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:20:11 -> InstanceConstant(const M{M.list: const <P<Object*>*>[const CP<Object*>{P.token: Class*}, const VP<Object*>{P.token: const XToken{}}]})
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:11:7 -> ConstructorTearOffConstant(CP.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///opt_in_lib.dart:21:7 -> ConstructorTearOffConstant(VP.forToken)
 Evaluated: ListLiteral @ org-dartlang-testcase:///opt_in_lib.dart:36:24 -> ListConstant(const <P<Object*>*>[])
-Extra constant evaluation: evaluated: 16, effectively constant: 5
+Extra constant evaluation: evaluated: 12, effectively constant: 3

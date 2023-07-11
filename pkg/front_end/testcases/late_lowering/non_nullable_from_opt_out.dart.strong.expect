@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -37,7 +37,7 @@ static method main() → dynamic {
   non::method<Null>(true, null, null);
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as non;
 import "dart:core" as core;
 import "dart:_internal" as _in;

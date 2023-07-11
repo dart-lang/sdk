@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,7 +22,7 @@ int f<A>() => switch (unknownName) {
     #L1:
     {
       {
-        if(#0#0 is{ForNonNullableByDefault} core::List<self::f::A%> && #0#2.{core::num::<=}(#C1){(core::num) → core::bool}) {
+        if(#0#0 is core::List<self::f::A%> && #0#2.{core::num::<=}(#C1){(core::num) → core::bool}) {
           #t1 = 1;
           break #L1;
         }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -22,17 +22,17 @@ class Foo<T extends self::A?> extends core::Object {
     : super core::Object::•()
     ;
   method doPromotionsToNullable(covariant-by-class self::Foo::T% t) → dynamic {
-    if(t is{ForNonNullableByDefault} self::B?) {
+    if(t is self::B?) {
       self::Foo::T% bar = t{self::Foo::T% & self::B? /* '%' & '?' = '%' */};
-      if(t{self::Foo::T% & self::B? /* '%' & '?' = '%' */} is{ForNonNullableByDefault} self::C?) {
+      if(t{self::Foo::T% & self::B? /* '%' & '?' = '%' */} is self::C?) {
         self::Foo::T% baz = t{self::Foo::T% & self::C? /* '%' & '?' = '%' */};
       }
     }
   }
   method doPromotionsToNonNullable(covariant-by-class self::Foo::T% t) → dynamic {
-    if(t is{ForNonNullableByDefault} self::B) {
+    if(t is self::B) {
       self::Foo::T% bar = t{self::Foo::T% & self::B /* '%' & '!' = '!' */};
-      if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is{ForNonNullableByDefault} self::C) {
+      if(t{self::Foo::T% & self::B /* '%' & '!' = '!' */} is self::C) {
         self::Foo::T% baz = t{self::Foo::T% & self::C /* '%' & '!' = '!' */};
       }
     }

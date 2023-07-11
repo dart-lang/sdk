@@ -16440,6 +16440,6341 @@ DART_EXPORT intptr_t TestReturnStructNestedIrregularEvenBigger(
 }
 
 // Used for testing structs and unions by value.
+// Smallest struct with data.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct1ByteIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct1ByteInt a0,
+              Struct1ByteInt a1,
+              Struct1ByteInt a2,
+              Struct1ByteInt a3,
+              Struct1ByteInt a4,
+              Struct1ByteInt a5,
+              Struct1ByteInt a6,
+              Struct1ByteInt a7,
+              Struct1ByteInt a8,
+              Struct1ByteInt a9)) {
+  Struct1ByteInt a0 = {};
+  Struct1ByteInt a1 = {};
+  Struct1ByteInt a2 = {};
+  Struct1ByteInt a3 = {};
+  Struct1ByteInt a4 = {};
+  Struct1ByteInt a5 = {};
+  Struct1ByteInt a6 = {};
+  Struct1ByteInt a7 = {};
+  Struct1ByteInt a8 = {};
+  Struct1ByteInt a9 = {};
+
+  a0.a0 = -1;
+  a1.a0 = 2;
+  a2.a0 = -3;
+  a3.a0 = 4;
+  a4.a0 = -5;
+  a5.a0 = 6;
+  a6.a0 = -7;
+  a7.a0 = 8;
+  a8.a0 = -9;
+  a9.a0 = 10;
+
+  std::cout << "Calling TestAsyncPassStruct1ByteIntx10("
+            << "((" << static_cast<int>(a0.a0) << "), ("
+            << static_cast<int>(a1.a0) << "), (" << static_cast<int>(a2.a0)
+            << "), (" << static_cast<int>(a3.a0) << "), ("
+            << static_cast<int>(a4.a0) << "), (" << static_cast<int>(a5.a0)
+            << "), (" << static_cast<int>(a6.a0) << "), ("
+            << static_cast<int>(a7.a0) << "), (" << static_cast<int>(a8.a0)
+            << "), (" << static_cast<int>(a9.a0) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Not a multiple of word size, not a power of two.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct3BytesHomogeneousUint8x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct3BytesHomogeneousUint8 a0,
+              Struct3BytesHomogeneousUint8 a1,
+              Struct3BytesHomogeneousUint8 a2,
+              Struct3BytesHomogeneousUint8 a3,
+              Struct3BytesHomogeneousUint8 a4,
+              Struct3BytesHomogeneousUint8 a5,
+              Struct3BytesHomogeneousUint8 a6,
+              Struct3BytesHomogeneousUint8 a7,
+              Struct3BytesHomogeneousUint8 a8,
+              Struct3BytesHomogeneousUint8 a9)) {
+  Struct3BytesHomogeneousUint8 a0 = {};
+  Struct3BytesHomogeneousUint8 a1 = {};
+  Struct3BytesHomogeneousUint8 a2 = {};
+  Struct3BytesHomogeneousUint8 a3 = {};
+  Struct3BytesHomogeneousUint8 a4 = {};
+  Struct3BytesHomogeneousUint8 a5 = {};
+  Struct3BytesHomogeneousUint8 a6 = {};
+  Struct3BytesHomogeneousUint8 a7 = {};
+  Struct3BytesHomogeneousUint8 a8 = {};
+  Struct3BytesHomogeneousUint8 a9 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a1.a0 = 4;
+  a1.a1 = 5;
+  a1.a2 = 6;
+  a2.a0 = 7;
+  a2.a1 = 8;
+  a2.a2 = 9;
+  a3.a0 = 10;
+  a3.a1 = 11;
+  a3.a2 = 12;
+  a4.a0 = 13;
+  a4.a1 = 14;
+  a4.a2 = 15;
+  a5.a0 = 16;
+  a5.a1 = 17;
+  a5.a2 = 18;
+  a6.a0 = 19;
+  a6.a1 = 20;
+  a6.a2 = 21;
+  a7.a0 = 22;
+  a7.a1 = 23;
+  a7.a2 = 24;
+  a8.a0 = 25;
+  a8.a1 = 26;
+  a8.a2 = 27;
+  a9.a0 = 28;
+  a9.a1 = 29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassStruct3BytesHomogeneousUint8x10("
+            << "((" << static_cast<int>(a0.a0) << ", "
+            << static_cast<int>(a0.a1) << ", " << static_cast<int>(a0.a2)
+            << "), (" << static_cast<int>(a1.a0) << ", "
+            << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+            << "), (" << static_cast<int>(a2.a0) << ", "
+            << static_cast<int>(a2.a1) << ", " << static_cast<int>(a2.a2)
+            << "), (" << static_cast<int>(a3.a0) << ", "
+            << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+            << "), (" << static_cast<int>(a4.a0) << ", "
+            << static_cast<int>(a4.a1) << ", " << static_cast<int>(a4.a2)
+            << "), (" << static_cast<int>(a5.a0) << ", "
+            << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+            << "), (" << static_cast<int>(a6.a0) << ", "
+            << static_cast<int>(a6.a1) << ", " << static_cast<int>(a6.a2)
+            << "), (" << static_cast<int>(a7.a0) << ", "
+            << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+            << "), (" << static_cast<int>(a8.a0) << ", "
+            << static_cast<int>(a8.a1) << ", " << static_cast<int>(a8.a2)
+            << "), (" << static_cast<int>(a9.a0) << ", "
+            << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+            << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Not a multiple of word size, not a power of two.
+// With alignment rules taken into account size is 4 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct3BytesInt2ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct3BytesInt2ByteAligned a0,
+              Struct3BytesInt2ByteAligned a1,
+              Struct3BytesInt2ByteAligned a2,
+              Struct3BytesInt2ByteAligned a3,
+              Struct3BytesInt2ByteAligned a4,
+              Struct3BytesInt2ByteAligned a5,
+              Struct3BytesInt2ByteAligned a6,
+              Struct3BytesInt2ByteAligned a7,
+              Struct3BytesInt2ByteAligned a8,
+              Struct3BytesInt2ByteAligned a9)) {
+  Struct3BytesInt2ByteAligned a0 = {};
+  Struct3BytesInt2ByteAligned a1 = {};
+  Struct3BytesInt2ByteAligned a2 = {};
+  Struct3BytesInt2ByteAligned a3 = {};
+  Struct3BytesInt2ByteAligned a4 = {};
+  Struct3BytesInt2ByteAligned a5 = {};
+  Struct3BytesInt2ByteAligned a6 = {};
+  Struct3BytesInt2ByteAligned a7 = {};
+  Struct3BytesInt2ByteAligned a8 = {};
+  Struct3BytesInt2ByteAligned a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStruct3BytesInt2ByteAlignedx10("
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
+            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
+            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
+            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
+            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
+            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
+            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
+            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
+            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
+            << static_cast<int>(a9.a1) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exactly word size on 32-bit architectures.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct4BytesHomogeneousInt16x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct4BytesHomogeneousInt16 a0,
+              Struct4BytesHomogeneousInt16 a1,
+              Struct4BytesHomogeneousInt16 a2,
+              Struct4BytesHomogeneousInt16 a3,
+              Struct4BytesHomogeneousInt16 a4,
+              Struct4BytesHomogeneousInt16 a5,
+              Struct4BytesHomogeneousInt16 a6,
+              Struct4BytesHomogeneousInt16 a7,
+              Struct4BytesHomogeneousInt16 a8,
+              Struct4BytesHomogeneousInt16 a9)) {
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
+  Struct4BytesHomogeneousInt16 a2 = {};
+  Struct4BytesHomogeneousInt16 a3 = {};
+  Struct4BytesHomogeneousInt16 a4 = {};
+  Struct4BytesHomogeneousInt16 a5 = {};
+  Struct4BytesHomogeneousInt16 a6 = {};
+  Struct4BytesHomogeneousInt16 a7 = {};
+  Struct4BytesHomogeneousInt16 a8 = {};
+  Struct4BytesHomogeneousInt16 a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStruct4BytesHomogeneousInt16x10("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
+            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
+            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
+            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
+            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Sub word size on 64 bit architectures.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct7BytesHomogeneousUint8x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct7BytesHomogeneousUint8 a0,
+              Struct7BytesHomogeneousUint8 a1,
+              Struct7BytesHomogeneousUint8 a2,
+              Struct7BytesHomogeneousUint8 a3,
+              Struct7BytesHomogeneousUint8 a4,
+              Struct7BytesHomogeneousUint8 a5,
+              Struct7BytesHomogeneousUint8 a6,
+              Struct7BytesHomogeneousUint8 a7,
+              Struct7BytesHomogeneousUint8 a8,
+              Struct7BytesHomogeneousUint8 a9)) {
+  Struct7BytesHomogeneousUint8 a0 = {};
+  Struct7BytesHomogeneousUint8 a1 = {};
+  Struct7BytesHomogeneousUint8 a2 = {};
+  Struct7BytesHomogeneousUint8 a3 = {};
+  Struct7BytesHomogeneousUint8 a4 = {};
+  Struct7BytesHomogeneousUint8 a5 = {};
+  Struct7BytesHomogeneousUint8 a6 = {};
+  Struct7BytesHomogeneousUint8 a7 = {};
+  Struct7BytesHomogeneousUint8 a8 = {};
+  Struct7BytesHomogeneousUint8 a9 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a1.a0 = 8;
+  a1.a1 = 9;
+  a1.a2 = 10;
+  a1.a3 = 11;
+  a1.a4 = 12;
+  a1.a5 = 13;
+  a1.a6 = 14;
+  a2.a0 = 15;
+  a2.a1 = 16;
+  a2.a2 = 17;
+  a2.a3 = 18;
+  a2.a4 = 19;
+  a2.a5 = 20;
+  a2.a6 = 21;
+  a3.a0 = 22;
+  a3.a1 = 23;
+  a3.a2 = 24;
+  a3.a3 = 25;
+  a3.a4 = 26;
+  a3.a5 = 27;
+  a3.a6 = 28;
+  a4.a0 = 29;
+  a4.a1 = 30;
+  a4.a2 = 31;
+  a4.a3 = 32;
+  a4.a4 = 33;
+  a4.a5 = 34;
+  a4.a6 = 35;
+  a5.a0 = 36;
+  a5.a1 = 37;
+  a5.a2 = 38;
+  a5.a3 = 39;
+  a5.a4 = 40;
+  a5.a5 = 41;
+  a5.a6 = 42;
+  a6.a0 = 43;
+  a6.a1 = 44;
+  a6.a2 = 45;
+  a6.a3 = 46;
+  a6.a4 = 47;
+  a6.a5 = 48;
+  a6.a6 = 49;
+  a7.a0 = 50;
+  a7.a1 = 51;
+  a7.a2 = 52;
+  a7.a3 = 53;
+  a7.a4 = 54;
+  a7.a5 = 55;
+  a7.a6 = 56;
+  a8.a0 = 57;
+  a8.a1 = 58;
+  a8.a2 = 59;
+  a8.a3 = 60;
+  a8.a4 = 61;
+  a8.a5 = 62;
+  a8.a6 = 63;
+  a9.a0 = 64;
+  a9.a1 = 65;
+  a9.a2 = 66;
+  a9.a3 = 67;
+  a9.a4 = 68;
+  a9.a5 = 69;
+  a9.a6 = 70;
+
+  std::cout
+      << "Calling TestAsyncPassStruct7BytesHomogeneousUint8x10("
+      << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
+      << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+      << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
+      << ", " << static_cast<int>(a0.a6) << "), (" << static_cast<int>(a1.a0)
+      << ", " << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+      << ", " << static_cast<int>(a1.a3) << ", " << static_cast<int>(a1.a4)
+      << ", " << static_cast<int>(a1.a5) << ", " << static_cast<int>(a1.a6)
+      << "), (" << static_cast<int>(a2.a0) << ", " << static_cast<int>(a2.a1)
+      << ", " << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+      << ", " << static_cast<int>(a2.a4) << ", " << static_cast<int>(a2.a5)
+      << ", " << static_cast<int>(a2.a6) << "), (" << static_cast<int>(a3.a0)
+      << ", " << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+      << ", " << static_cast<int>(a3.a3) << ", " << static_cast<int>(a3.a4)
+      << ", " << static_cast<int>(a3.a5) << ", " << static_cast<int>(a3.a6)
+      << "), (" << static_cast<int>(a4.a0) << ", " << static_cast<int>(a4.a1)
+      << ", " << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+      << ", " << static_cast<int>(a4.a4) << ", " << static_cast<int>(a4.a5)
+      << ", " << static_cast<int>(a4.a6) << "), (" << static_cast<int>(a5.a0)
+      << ", " << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+      << ", " << static_cast<int>(a5.a3) << ", " << static_cast<int>(a5.a4)
+      << ", " << static_cast<int>(a5.a5) << ", " << static_cast<int>(a5.a6)
+      << "), (" << static_cast<int>(a6.a0) << ", " << static_cast<int>(a6.a1)
+      << ", " << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+      << ", " << static_cast<int>(a6.a4) << ", " << static_cast<int>(a6.a5)
+      << ", " << static_cast<int>(a6.a6) << "), (" << static_cast<int>(a7.a0)
+      << ", " << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+      << ", " << static_cast<int>(a7.a3) << ", " << static_cast<int>(a7.a4)
+      << ", " << static_cast<int>(a7.a5) << ", " << static_cast<int>(a7.a6)
+      << "), (" << static_cast<int>(a8.a0) << ", " << static_cast<int>(a8.a1)
+      << ", " << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+      << ", " << static_cast<int>(a8.a4) << ", " << static_cast<int>(a8.a5)
+      << ", " << static_cast<int>(a8.a6) << "), (" << static_cast<int>(a9.a0)
+      << ", " << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+      << ", " << static_cast<int>(a9.a3) << ", " << static_cast<int>(a9.a4)
+      << ", " << static_cast<int>(a9.a5) << ", " << static_cast<int>(a9.a6)
+      << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Sub word size on 64 bit architectures.
+// With alignment rules taken into account size is 8 bytes.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct7BytesInt4ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct7BytesInt4ByteAligned a0,
+              Struct7BytesInt4ByteAligned a1,
+              Struct7BytesInt4ByteAligned a2,
+              Struct7BytesInt4ByteAligned a3,
+              Struct7BytesInt4ByteAligned a4,
+              Struct7BytesInt4ByteAligned a5,
+              Struct7BytesInt4ByteAligned a6,
+              Struct7BytesInt4ByteAligned a7,
+              Struct7BytesInt4ByteAligned a8,
+              Struct7BytesInt4ByteAligned a9)) {
+  Struct7BytesInt4ByteAligned a0 = {};
+  Struct7BytesInt4ByteAligned a1 = {};
+  Struct7BytesInt4ByteAligned a2 = {};
+  Struct7BytesInt4ByteAligned a3 = {};
+  Struct7BytesInt4ByteAligned a4 = {};
+  Struct7BytesInt4ByteAligned a5 = {};
+  Struct7BytesInt4ByteAligned a6 = {};
+  Struct7BytesInt4ByteAligned a7 = {};
+  Struct7BytesInt4ByteAligned a8 = {};
+  Struct7BytesInt4ByteAligned a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+  a2.a0 = -7;
+  a2.a1 = 8;
+  a2.a2 = -9;
+  a3.a0 = 10;
+  a3.a1 = -11;
+  a3.a2 = 12;
+  a4.a0 = -13;
+  a4.a1 = 14;
+  a4.a2 = -15;
+  a5.a0 = 16;
+  a5.a1 = -17;
+  a5.a2 = 18;
+  a6.a0 = -19;
+  a6.a1 = 20;
+  a6.a2 = -21;
+  a7.a0 = 22;
+  a7.a1 = -23;
+  a7.a2 = 24;
+  a8.a0 = -25;
+  a8.a1 = 26;
+  a8.a2 = -27;
+  a9.a0 = 28;
+  a9.a1 = -29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassStruct7BytesInt4ByteAlignedx10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << static_cast<int>(a0.a2)
+            << "), (" << a1.a0 << ", " << a1.a1 << ", "
+            << static_cast<int>(a1.a2) << "), (" << a2.a0 << ", " << a2.a1
+            << ", " << static_cast<int>(a2.a2) << "), (" << a3.a0 << ", "
+            << a3.a1 << ", " << static_cast<int>(a3.a2) << "), (" << a4.a0
+            << ", " << a4.a1 << ", " << static_cast<int>(a4.a2) << "), ("
+            << a5.a0 << ", " << a5.a1 << ", " << static_cast<int>(a5.a2)
+            << "), (" << a6.a0 << ", " << a6.a1 << ", "
+            << static_cast<int>(a6.a2) << "), (" << a7.a0 << ", " << a7.a1
+            << ", " << static_cast<int>(a7.a2) << "), (" << a8.a0 << ", "
+            << a8.a1 << ", " << static_cast<int>(a8.a2) << "), (" << a9.a0
+            << ", " << a9.a1 << ", " << static_cast<int>(a9.a2) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Exactly word size struct on 64bit architectures.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct8BytesIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesInt a0,
+              Struct8BytesInt a1,
+              Struct8BytesInt a2,
+              Struct8BytesInt a3,
+              Struct8BytesInt a4,
+              Struct8BytesInt a5,
+              Struct8BytesInt a6,
+              Struct8BytesInt a7,
+              Struct8BytesInt a8,
+              Struct8BytesInt a9)) {
+  Struct8BytesInt a0 = {};
+  Struct8BytesInt a1 = {};
+  Struct8BytesInt a2 = {};
+  Struct8BytesInt a3 = {};
+  Struct8BytesInt a4 = {};
+  Struct8BytesInt a5 = {};
+  Struct8BytesInt a6 = {};
+  Struct8BytesInt a7 = {};
+  Struct8BytesInt a8 = {};
+  Struct8BytesInt a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+  a2.a0 = -7;
+  a2.a1 = 8;
+  a2.a2 = -9;
+  a3.a0 = 10;
+  a3.a1 = -11;
+  a3.a2 = 12;
+  a4.a0 = -13;
+  a4.a1 = 14;
+  a4.a2 = -15;
+  a5.a0 = 16;
+  a5.a1 = -17;
+  a5.a2 = 18;
+  a6.a0 = -19;
+  a6.a1 = 20;
+  a6.a2 = -21;
+  a7.a0 = 22;
+  a7.a1 = -23;
+  a7.a2 = 24;
+  a8.a0 = -25;
+  a8.a1 = 26;
+  a8.a2 = -27;
+  a9.a0 = 28;
+  a9.a1 = -29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesIntx10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), ("
+            << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << "), (" << a2.a0
+            << ", " << a2.a1 << ", " << a2.a2 << "), (" << a3.a0 << ", "
+            << a3.a1 << ", " << a3.a2 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << "), (" << a5.a0 << ", " << a5.a1 << ", "
+            << a5.a2 << "), (" << a6.a0 << ", " << a6.a1 << ", " << a6.a2
+            << "), (" << a7.a0 << ", " << a7.a1 << ", " << a7.a2 << "), ("
+            << a8.a0 << ", " << a8.a1 << ", " << a8.a2 << "), (" << a9.a0
+            << ", " << a9.a1 << ", " << a9.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Arguments passed in FP registers as long as they fit.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct8BytesHomogeneousFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesHomogeneousFloat a0,
+              Struct8BytesHomogeneousFloat a1,
+              Struct8BytesHomogeneousFloat a2,
+              Struct8BytesHomogeneousFloat a3,
+              Struct8BytesHomogeneousFloat a4,
+              Struct8BytesHomogeneousFloat a5,
+              Struct8BytesHomogeneousFloat a6,
+              Struct8BytesHomogeneousFloat a7,
+              Struct8BytesHomogeneousFloat a8,
+              Struct8BytesHomogeneousFloat a9)) {
+  Struct8BytesHomogeneousFloat a0 = {};
+  Struct8BytesHomogeneousFloat a1 = {};
+  Struct8BytesHomogeneousFloat a2 = {};
+  Struct8BytesHomogeneousFloat a3 = {};
+  Struct8BytesHomogeneousFloat a4 = {};
+  Struct8BytesHomogeneousFloat a5 = {};
+  Struct8BytesHomogeneousFloat a6 = {};
+  Struct8BytesHomogeneousFloat a7 = {};
+  Struct8BytesHomogeneousFloat a8 = {};
+  Struct8BytesHomogeneousFloat a9 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a1.a0 = -3.0;
+  a1.a1 = 4.0;
+  a2.a0 = -5.0;
+  a2.a1 = 6.0;
+  a3.a0 = -7.0;
+  a3.a1 = 8.0;
+  a4.a0 = -9.0;
+  a4.a1 = 10.0;
+  a5.a0 = -11.0;
+  a5.a1 = 12.0;
+  a6.a0 = -13.0;
+  a6.a1 = 14.0;
+  a7.a0 = -15.0;
+  a7.a1 = 16.0;
+  a8.a0 = -17.0;
+  a8.a1 = 18.0;
+  a9.a0 = -19.0;
+  a9.a1 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesHomogeneousFloatx10("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
+            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
+            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
+            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
+            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// On x64, arguments go in int registers because it is not only float.
+// 10 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct8BytesMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesMixed a0,
+              Struct8BytesMixed a1,
+              Struct8BytesMixed a2,
+              Struct8BytesMixed a3,
+              Struct8BytesMixed a4,
+              Struct8BytesMixed a5,
+              Struct8BytesMixed a6,
+              Struct8BytesMixed a7,
+              Struct8BytesMixed a8,
+              Struct8BytesMixed a9)) {
+  Struct8BytesMixed a0 = {};
+  Struct8BytesMixed a1 = {};
+  Struct8BytesMixed a2 = {};
+  Struct8BytesMixed a3 = {};
+  Struct8BytesMixed a4 = {};
+  Struct8BytesMixed a5 = {};
+  Struct8BytesMixed a6 = {};
+  Struct8BytesMixed a7 = {};
+  Struct8BytesMixed a8 = {};
+  Struct8BytesMixed a9 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4.0;
+  a1.a1 = -5;
+  a1.a2 = 6;
+  a2.a0 = -7.0;
+  a2.a1 = 8;
+  a2.a2 = -9;
+  a3.a0 = 10.0;
+  a3.a1 = -11;
+  a3.a2 = 12;
+  a4.a0 = -13.0;
+  a4.a1 = 14;
+  a4.a2 = -15;
+  a5.a0 = 16.0;
+  a5.a1 = -17;
+  a5.a2 = 18;
+  a6.a0 = -19.0;
+  a6.a1 = 20;
+  a6.a2 = -21;
+  a7.a0 = 22.0;
+  a7.a1 = -23;
+  a7.a2 = 24;
+  a8.a0 = -25.0;
+  a8.a1 = 26;
+  a8.a2 = -27;
+  a9.a0 = 28.0;
+  a9.a1 = -29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesMixedx10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), ("
+            << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << "), (" << a2.a0
+            << ", " << a2.a1 << ", " << a2.a2 << "), (" << a3.a0 << ", "
+            << a3.a1 << ", " << a3.a2 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << "), (" << a5.a0 << ", " << a5.a1 << ", "
+            << a5.a2 << "), (" << a6.a0 << ", " << a6.a1 << ", " << a6.a2
+            << "), (" << a7.a0 << ", " << a7.a1 << ", " << a7.a2 << "), ("
+            << a8.a0 << ", " << a8.a1 << ", " << a8.a2 << "), (" << a9.a0
+            << ", " << a9.a1 << ", " << a9.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Argument is a single byte over a multiple of word size.
+// 10 struct arguments will exhaust available registers.
+// Struct only has 1-byte aligned fields to test struct alignment itself.
+// Tests upper bytes in the integer registers that are partly filled.
+// Tests stack alignment of non word size stack arguments.
+DART_EXPORT void TestAsyncPassStruct9BytesHomogeneousUint8x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct9BytesHomogeneousUint8 a0,
+              Struct9BytesHomogeneousUint8 a1,
+              Struct9BytesHomogeneousUint8 a2,
+              Struct9BytesHomogeneousUint8 a3,
+              Struct9BytesHomogeneousUint8 a4,
+              Struct9BytesHomogeneousUint8 a5,
+              Struct9BytesHomogeneousUint8 a6,
+              Struct9BytesHomogeneousUint8 a7,
+              Struct9BytesHomogeneousUint8 a8,
+              Struct9BytesHomogeneousUint8 a9)) {
+  Struct9BytesHomogeneousUint8 a0 = {};
+  Struct9BytesHomogeneousUint8 a1 = {};
+  Struct9BytesHomogeneousUint8 a2 = {};
+  Struct9BytesHomogeneousUint8 a3 = {};
+  Struct9BytesHomogeneousUint8 a4 = {};
+  Struct9BytesHomogeneousUint8 a5 = {};
+  Struct9BytesHomogeneousUint8 a6 = {};
+  Struct9BytesHomogeneousUint8 a7 = {};
+  Struct9BytesHomogeneousUint8 a8 = {};
+  Struct9BytesHomogeneousUint8 a9 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a0.a7 = 8;
+  a0.a8 = 9;
+  a1.a0 = 10;
+  a1.a1 = 11;
+  a1.a2 = 12;
+  a1.a3 = 13;
+  a1.a4 = 14;
+  a1.a5 = 15;
+  a1.a6 = 16;
+  a1.a7 = 17;
+  a1.a8 = 18;
+  a2.a0 = 19;
+  a2.a1 = 20;
+  a2.a2 = 21;
+  a2.a3 = 22;
+  a2.a4 = 23;
+  a2.a5 = 24;
+  a2.a6 = 25;
+  a2.a7 = 26;
+  a2.a8 = 27;
+  a3.a0 = 28;
+  a3.a1 = 29;
+  a3.a2 = 30;
+  a3.a3 = 31;
+  a3.a4 = 32;
+  a3.a5 = 33;
+  a3.a6 = 34;
+  a3.a7 = 35;
+  a3.a8 = 36;
+  a4.a0 = 37;
+  a4.a1 = 38;
+  a4.a2 = 39;
+  a4.a3 = 40;
+  a4.a4 = 41;
+  a4.a5 = 42;
+  a4.a6 = 43;
+  a4.a7 = 44;
+  a4.a8 = 45;
+  a5.a0 = 46;
+  a5.a1 = 47;
+  a5.a2 = 48;
+  a5.a3 = 49;
+  a5.a4 = 50;
+  a5.a5 = 51;
+  a5.a6 = 52;
+  a5.a7 = 53;
+  a5.a8 = 54;
+  a6.a0 = 55;
+  a6.a1 = 56;
+  a6.a2 = 57;
+  a6.a3 = 58;
+  a6.a4 = 59;
+  a6.a5 = 60;
+  a6.a6 = 61;
+  a6.a7 = 62;
+  a6.a8 = 63;
+  a7.a0 = 64;
+  a7.a1 = 65;
+  a7.a2 = 66;
+  a7.a3 = 67;
+  a7.a4 = 68;
+  a7.a5 = 69;
+  a7.a6 = 70;
+  a7.a7 = 71;
+  a7.a8 = 72;
+  a8.a0 = 73;
+  a8.a1 = 74;
+  a8.a2 = 75;
+  a8.a3 = 76;
+  a8.a4 = 77;
+  a8.a5 = 78;
+  a8.a6 = 79;
+  a8.a7 = 80;
+  a8.a8 = 81;
+  a9.a0 = 82;
+  a9.a1 = 83;
+  a9.a2 = 84;
+  a9.a3 = 85;
+  a9.a4 = 86;
+  a9.a5 = 87;
+  a9.a6 = 88;
+  a9.a7 = 89;
+  a9.a8 = 90;
+
+  std::cout
+      << "Calling TestAsyncPassStruct9BytesHomogeneousUint8x10("
+      << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
+      << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+      << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
+      << ", " << static_cast<int>(a0.a6) << ", " << static_cast<int>(a0.a7)
+      << ", " << static_cast<int>(a0.a8) << "), (" << static_cast<int>(a1.a0)
+      << ", " << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+      << ", " << static_cast<int>(a1.a3) << ", " << static_cast<int>(a1.a4)
+      << ", " << static_cast<int>(a1.a5) << ", " << static_cast<int>(a1.a6)
+      << ", " << static_cast<int>(a1.a7) << ", " << static_cast<int>(a1.a8)
+      << "), (" << static_cast<int>(a2.a0) << ", " << static_cast<int>(a2.a1)
+      << ", " << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+      << ", " << static_cast<int>(a2.a4) << ", " << static_cast<int>(a2.a5)
+      << ", " << static_cast<int>(a2.a6) << ", " << static_cast<int>(a2.a7)
+      << ", " << static_cast<int>(a2.a8) << "), (" << static_cast<int>(a3.a0)
+      << ", " << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+      << ", " << static_cast<int>(a3.a3) << ", " << static_cast<int>(a3.a4)
+      << ", " << static_cast<int>(a3.a5) << ", " << static_cast<int>(a3.a6)
+      << ", " << static_cast<int>(a3.a7) << ", " << static_cast<int>(a3.a8)
+      << "), (" << static_cast<int>(a4.a0) << ", " << static_cast<int>(a4.a1)
+      << ", " << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+      << ", " << static_cast<int>(a4.a4) << ", " << static_cast<int>(a4.a5)
+      << ", " << static_cast<int>(a4.a6) << ", " << static_cast<int>(a4.a7)
+      << ", " << static_cast<int>(a4.a8) << "), (" << static_cast<int>(a5.a0)
+      << ", " << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+      << ", " << static_cast<int>(a5.a3) << ", " << static_cast<int>(a5.a4)
+      << ", " << static_cast<int>(a5.a5) << ", " << static_cast<int>(a5.a6)
+      << ", " << static_cast<int>(a5.a7) << ", " << static_cast<int>(a5.a8)
+      << "), (" << static_cast<int>(a6.a0) << ", " << static_cast<int>(a6.a1)
+      << ", " << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+      << ", " << static_cast<int>(a6.a4) << ", " << static_cast<int>(a6.a5)
+      << ", " << static_cast<int>(a6.a6) << ", " << static_cast<int>(a6.a7)
+      << ", " << static_cast<int>(a6.a8) << "), (" << static_cast<int>(a7.a0)
+      << ", " << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+      << ", " << static_cast<int>(a7.a3) << ", " << static_cast<int>(a7.a4)
+      << ", " << static_cast<int>(a7.a5) << ", " << static_cast<int>(a7.a6)
+      << ", " << static_cast<int>(a7.a7) << ", " << static_cast<int>(a7.a8)
+      << "), (" << static_cast<int>(a8.a0) << ", " << static_cast<int>(a8.a1)
+      << ", " << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+      << ", " << static_cast<int>(a8.a4) << ", " << static_cast<int>(a8.a5)
+      << ", " << static_cast<int>(a8.a6) << ", " << static_cast<int>(a8.a7)
+      << ", " << static_cast<int>(a8.a8) << "), (" << static_cast<int>(a9.a0)
+      << ", " << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+      << ", " << static_cast<int>(a9.a3) << ", " << static_cast<int>(a9.a4)
+      << ", " << static_cast<int>(a9.a5) << ", " << static_cast<int>(a9.a6)
+      << ", " << static_cast<int>(a9.a7) << ", " << static_cast<int>(a9.a8)
+      << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Argument is a single byte over a multiple of word size.
+// With alignment rules taken into account size is 12 or 16 bytes.
+// 10 struct arguments will exhaust available registers.
+//
+DART_EXPORT void TestAsyncPassStruct9BytesInt4Or8ByteAlignedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct9BytesInt4Or8ByteAligned a0,
+              Struct9BytesInt4Or8ByteAligned a1,
+              Struct9BytesInt4Or8ByteAligned a2,
+              Struct9BytesInt4Or8ByteAligned a3,
+              Struct9BytesInt4Or8ByteAligned a4,
+              Struct9BytesInt4Or8ByteAligned a5,
+              Struct9BytesInt4Or8ByteAligned a6,
+              Struct9BytesInt4Or8ByteAligned a7,
+              Struct9BytesInt4Or8ByteAligned a8,
+              Struct9BytesInt4Or8ByteAligned a9)) {
+  Struct9BytesInt4Or8ByteAligned a0 = {};
+  Struct9BytesInt4Or8ByteAligned a1 = {};
+  Struct9BytesInt4Or8ByteAligned a2 = {};
+  Struct9BytesInt4Or8ByteAligned a3 = {};
+  Struct9BytesInt4Or8ByteAligned a4 = {};
+  Struct9BytesInt4Or8ByteAligned a5 = {};
+  Struct9BytesInt4Or8ByteAligned a6 = {};
+  Struct9BytesInt4Or8ByteAligned a7 = {};
+  Struct9BytesInt4Or8ByteAligned a8 = {};
+  Struct9BytesInt4Or8ByteAligned a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStruct9BytesInt4Or8ByteAlignedx10("
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "), ("
+            << a1.a0 << ", " << static_cast<int>(a1.a1) << "), (" << a2.a0
+            << ", " << static_cast<int>(a2.a1) << "), (" << a3.a0 << ", "
+            << static_cast<int>(a3.a1) << "), (" << a4.a0 << ", "
+            << static_cast<int>(a4.a1) << "), (" << a5.a0 << ", "
+            << static_cast<int>(a5.a1) << "), (" << a6.a0 << ", "
+            << static_cast<int>(a6.a1) << "), (" << a7.a0 << ", "
+            << static_cast<int>(a7.a1) << "), (" << a8.a0 << ", "
+            << static_cast<int>(a8.a1) << "), (" << a9.a0 << ", "
+            << static_cast<int>(a9.a1) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Arguments in FPU registers on arm hardfp and arm64.
+// Struct arguments will exhaust available registers, and leave some empty.
+// The last argument is to test whether arguments are backfilled.
+DART_EXPORT void TestAsyncPassStruct12BytesHomogeneousFloatx6(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct12BytesHomogeneousFloat a0,
+              Struct12BytesHomogeneousFloat a1,
+              Struct12BytesHomogeneousFloat a2,
+              Struct12BytesHomogeneousFloat a3,
+              Struct12BytesHomogeneousFloat a4,
+              Struct12BytesHomogeneousFloat a5)) {
+  Struct12BytesHomogeneousFloat a0 = {};
+  Struct12BytesHomogeneousFloat a1 = {};
+  Struct12BytesHomogeneousFloat a2 = {};
+  Struct12BytesHomogeneousFloat a3 = {};
+  Struct12BytesHomogeneousFloat a4 = {};
+  Struct12BytesHomogeneousFloat a5 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a1.a0 = 4.0;
+  a1.a1 = -5.0;
+  a1.a2 = 6.0;
+  a2.a0 = -7.0;
+  a2.a1 = 8.0;
+  a2.a2 = -9.0;
+  a3.a0 = 10.0;
+  a3.a1 = -11.0;
+  a3.a2 = 12.0;
+  a4.a0 = -13.0;
+  a4.a1 = 14.0;
+  a4.a2 = -15.0;
+  a5.a0 = 16.0;
+  a5.a1 = -17.0;
+  a5.a2 = 18.0;
+
+  std::cout << "Calling TestAsyncPassStruct12BytesHomogeneousFloatx6("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "), ("
+            << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << "), (" << a2.a0
+            << ", " << a2.a1 << ", " << a2.a2 << "), (" << a3.a0 << ", "
+            << a3.a1 << ", " << a3.a2 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << "), (" << a5.a0 << ", " << a5.a1 << ", "
+            << a5.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5);
+}
+
+// Used for testing structs and unions by value.
+// On Linux x64 argument is transferred on stack because it is over 16 bytes.
+// Arguments in FPU registers on arm hardfp and arm64.
+// 5 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct16BytesHomogeneousFloatx5(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct16BytesHomogeneousFloat a0,
+              Struct16BytesHomogeneousFloat a1,
+              Struct16BytesHomogeneousFloat a2,
+              Struct16BytesHomogeneousFloat a3,
+              Struct16BytesHomogeneousFloat a4)) {
+  Struct16BytesHomogeneousFloat a0 = {};
+  Struct16BytesHomogeneousFloat a1 = {};
+  Struct16BytesHomogeneousFloat a2 = {};
+  Struct16BytesHomogeneousFloat a3 = {};
+  Struct16BytesHomogeneousFloat a4 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4.0;
+  a1.a0 = -5.0;
+  a1.a1 = 6.0;
+  a1.a2 = -7.0;
+  a1.a3 = 8.0;
+  a2.a0 = -9.0;
+  a2.a1 = 10.0;
+  a2.a2 = -11.0;
+  a2.a3 = 12.0;
+  a3.a0 = -13.0;
+  a3.a1 = 14.0;
+  a3.a2 = -15.0;
+  a3.a3 = 16.0;
+  a4.a0 = -17.0;
+  a4.a1 = 18.0;
+  a4.a2 = -19.0;
+  a4.a3 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStruct16BytesHomogeneousFloatx5("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << "), (" << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << ", "
+            << a1.a3 << "), (" << a2.a0 << ", " << a2.a1 << ", " << a2.a2
+            << ", " << a2.a3 << "), (" << a3.a0 << ", " << a3.a1 << ", "
+            << a3.a2 << ", " << a3.a3 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << ", " << a4.a3 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// On x64, arguments are split over FP and int registers.
+// On x64, it will exhaust the integer registers with the 6th argument.
+// The rest goes on the stack.
+// On arm, arguments are 8 byte aligned.
+DART_EXPORT void TestAsyncPassStruct16BytesMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct16BytesMixed a0,
+              Struct16BytesMixed a1,
+              Struct16BytesMixed a2,
+              Struct16BytesMixed a3,
+              Struct16BytesMixed a4,
+              Struct16BytesMixed a5,
+              Struct16BytesMixed a6,
+              Struct16BytesMixed a7,
+              Struct16BytesMixed a8,
+              Struct16BytesMixed a9)) {
+  Struct16BytesMixed a0 = {};
+  Struct16BytesMixed a1 = {};
+  Struct16BytesMixed a2 = {};
+  Struct16BytesMixed a3 = {};
+  Struct16BytesMixed a4 = {};
+  Struct16BytesMixed a5 = {};
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
+  Struct16BytesMixed a8 = {};
+  Struct16BytesMixed a9 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2;
+  a1.a0 = -3.0;
+  a1.a1 = 4;
+  a2.a0 = -5.0;
+  a2.a1 = 6;
+  a3.a0 = -7.0;
+  a3.a1 = 8;
+  a4.a0 = -9.0;
+  a4.a1 = 10;
+  a5.a0 = -11.0;
+  a5.a1 = 12;
+  a6.a0 = -13.0;
+  a6.a1 = 14;
+  a7.a0 = -15.0;
+  a7.a1 = 16;
+  a8.a0 = -17.0;
+  a8.a1 = 18;
+  a9.a0 = -19.0;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStruct16BytesMixedx10("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "), (" << a2.a0 << ", " << a2.a1 << "), (" << a3.a0
+            << ", " << a3.a1 << "), (" << a4.a0 << ", " << a4.a1 << "), ("
+            << a5.a0 << ", " << a5.a1 << "), (" << a6.a0 << ", " << a6.a1
+            << "), (" << a7.a0 << ", " << a7.a1 << "), (" << a8.a0 << ", "
+            << a8.a1 << "), (" << a9.a0 << ", " << a9.a1 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// On x64, arguments are split over FP and int registers.
+// On x64, it will exhaust the integer registers with the 6th argument.
+// The rest goes on the stack.
+// On arm, arguments are 4 byte aligned.
+DART_EXPORT void TestAsyncPassStruct16BytesMixed2x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct16BytesMixed2 a0,
+              Struct16BytesMixed2 a1,
+              Struct16BytesMixed2 a2,
+              Struct16BytesMixed2 a3,
+              Struct16BytesMixed2 a4,
+              Struct16BytesMixed2 a5,
+              Struct16BytesMixed2 a6,
+              Struct16BytesMixed2 a7,
+              Struct16BytesMixed2 a8,
+              Struct16BytesMixed2 a9)) {
+  Struct16BytesMixed2 a0 = {};
+  Struct16BytesMixed2 a1 = {};
+  Struct16BytesMixed2 a2 = {};
+  Struct16BytesMixed2 a3 = {};
+  Struct16BytesMixed2 a4 = {};
+  Struct16BytesMixed2 a5 = {};
+  Struct16BytesMixed2 a6 = {};
+  Struct16BytesMixed2 a7 = {};
+  Struct16BytesMixed2 a8 = {};
+  Struct16BytesMixed2 a9 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4;
+  a1.a0 = -5.0;
+  a1.a1 = 6.0;
+  a1.a2 = -7.0;
+  a1.a3 = 8;
+  a2.a0 = -9.0;
+  a2.a1 = 10.0;
+  a2.a2 = -11.0;
+  a2.a3 = 12;
+  a3.a0 = -13.0;
+  a3.a1 = 14.0;
+  a3.a2 = -15.0;
+  a3.a3 = 16;
+  a4.a0 = -17.0;
+  a4.a1 = 18.0;
+  a4.a2 = -19.0;
+  a4.a3 = 20;
+  a5.a0 = -21.0;
+  a5.a1 = 22.0;
+  a5.a2 = -23.0;
+  a5.a3 = 24;
+  a6.a0 = -25.0;
+  a6.a1 = 26.0;
+  a6.a2 = -27.0;
+  a6.a3 = 28;
+  a7.a0 = -29.0;
+  a7.a1 = 30.0;
+  a7.a2 = -31.0;
+  a7.a3 = 32;
+  a8.a0 = -33.0;
+  a8.a1 = 34.0;
+  a8.a2 = -35.0;
+  a8.a3 = 36;
+  a9.a0 = -37.0;
+  a9.a1 = 38.0;
+  a9.a2 = -39.0;
+  a9.a3 = 40;
+
+  std::cout << "Calling TestAsyncPassStruct16BytesMixed2x10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << "), (" << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << ", "
+            << a1.a3 << "), (" << a2.a0 << ", " << a2.a1 << ", " << a2.a2
+            << ", " << a2.a3 << "), (" << a3.a0 << ", " << a3.a1 << ", "
+            << a3.a2 << ", " << a3.a3 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << ", " << a4.a3 << "), (" << a5.a0 << ", "
+            << a5.a1 << ", " << a5.a2 << ", " << a5.a3 << "), (" << a6.a0
+            << ", " << a6.a1 << ", " << a6.a2 << ", " << a6.a3 << "), ("
+            << a7.a0 << ", " << a7.a1 << ", " << a7.a2 << ", " << a7.a3
+            << "), (" << a8.a0 << ", " << a8.a1 << ", " << a8.a2 << ", "
+            << a8.a3 << "), (" << a9.a0 << ", " << a9.a1 << ", " << a9.a2
+            << ", " << a9.a3 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Arguments are passed as pointer to copy on arm64.
+// Tests that the memory allocated for copies are rounded up to word size.
+DART_EXPORT void TestAsyncPassStruct17BytesIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct17BytesInt a0,
+              Struct17BytesInt a1,
+              Struct17BytesInt a2,
+              Struct17BytesInt a3,
+              Struct17BytesInt a4,
+              Struct17BytesInt a5,
+              Struct17BytesInt a6,
+              Struct17BytesInt a7,
+              Struct17BytesInt a8,
+              Struct17BytesInt a9)) {
+  Struct17BytesInt a0 = {};
+  Struct17BytesInt a1 = {};
+  Struct17BytesInt a2 = {};
+  Struct17BytesInt a3 = {};
+  Struct17BytesInt a4 = {};
+  Struct17BytesInt a5 = {};
+  Struct17BytesInt a6 = {};
+  Struct17BytesInt a7 = {};
+  Struct17BytesInt a8 = {};
+  Struct17BytesInt a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+  a2.a0 = -7;
+  a2.a1 = 8;
+  a2.a2 = -9;
+  a3.a0 = 10;
+  a3.a1 = -11;
+  a3.a2 = 12;
+  a4.a0 = -13;
+  a4.a1 = 14;
+  a4.a2 = -15;
+  a5.a0 = 16;
+  a5.a1 = -17;
+  a5.a2 = 18;
+  a6.a0 = -19;
+  a6.a1 = 20;
+  a6.a2 = -21;
+  a7.a0 = 22;
+  a7.a1 = -23;
+  a7.a2 = 24;
+  a8.a0 = -25;
+  a8.a1 = 26;
+  a8.a2 = -27;
+  a9.a0 = 28;
+  a9.a1 = -29;
+  a9.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassStruct17BytesIntx10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << static_cast<int>(a0.a2)
+            << "), (" << a1.a0 << ", " << a1.a1 << ", "
+            << static_cast<int>(a1.a2) << "), (" << a2.a0 << ", " << a2.a1
+            << ", " << static_cast<int>(a2.a2) << "), (" << a3.a0 << ", "
+            << a3.a1 << ", " << static_cast<int>(a3.a2) << "), (" << a4.a0
+            << ", " << a4.a1 << ", " << static_cast<int>(a4.a2) << "), ("
+            << a5.a0 << ", " << a5.a1 << ", " << static_cast<int>(a5.a2)
+            << "), (" << a6.a0 << ", " << a6.a1 << ", "
+            << static_cast<int>(a6.a2) << "), (" << a7.a0 << ", " << a7.a1
+            << ", " << static_cast<int>(a7.a2) << "), (" << a8.a0 << ", "
+            << a8.a1 << ", " << static_cast<int>(a8.a2) << "), (" << a9.a0
+            << ", " << a9.a1 << ", " << static_cast<int>(a9.a2) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// The minimum alignment of this struct is only 1 byte based on its fields.
+// Test that the memory backing these structs is extended to the right size.
+//
+DART_EXPORT void TestAsyncPassStruct19BytesHomogeneousUint8x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct19BytesHomogeneousUint8 a0,
+              Struct19BytesHomogeneousUint8 a1,
+              Struct19BytesHomogeneousUint8 a2,
+              Struct19BytesHomogeneousUint8 a3,
+              Struct19BytesHomogeneousUint8 a4,
+              Struct19BytesHomogeneousUint8 a5,
+              Struct19BytesHomogeneousUint8 a6,
+              Struct19BytesHomogeneousUint8 a7,
+              Struct19BytesHomogeneousUint8 a8,
+              Struct19BytesHomogeneousUint8 a9)) {
+  Struct19BytesHomogeneousUint8 a0 = {};
+  Struct19BytesHomogeneousUint8 a1 = {};
+  Struct19BytesHomogeneousUint8 a2 = {};
+  Struct19BytesHomogeneousUint8 a3 = {};
+  Struct19BytesHomogeneousUint8 a4 = {};
+  Struct19BytesHomogeneousUint8 a5 = {};
+  Struct19BytesHomogeneousUint8 a6 = {};
+  Struct19BytesHomogeneousUint8 a7 = {};
+  Struct19BytesHomogeneousUint8 a8 = {};
+  Struct19BytesHomogeneousUint8 a9 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a0.a7 = 8;
+  a0.a8 = 9;
+  a0.a9 = 10;
+  a0.a10 = 11;
+  a0.a11 = 12;
+  a0.a12 = 13;
+  a0.a13 = 14;
+  a0.a14 = 15;
+  a0.a15 = 16;
+  a0.a16 = 17;
+  a0.a17 = 18;
+  a0.a18 = 19;
+  a1.a0 = 20;
+  a1.a1 = 21;
+  a1.a2 = 22;
+  a1.a3 = 23;
+  a1.a4 = 24;
+  a1.a5 = 25;
+  a1.a6 = 26;
+  a1.a7 = 27;
+  a1.a8 = 28;
+  a1.a9 = 29;
+  a1.a10 = 30;
+  a1.a11 = 31;
+  a1.a12 = 32;
+  a1.a13 = 33;
+  a1.a14 = 34;
+  a1.a15 = 35;
+  a1.a16 = 36;
+  a1.a17 = 37;
+  a1.a18 = 38;
+  a2.a0 = 39;
+  a2.a1 = 40;
+  a2.a2 = 41;
+  a2.a3 = 42;
+  a2.a4 = 43;
+  a2.a5 = 44;
+  a2.a6 = 45;
+  a2.a7 = 46;
+  a2.a8 = 47;
+  a2.a9 = 48;
+  a2.a10 = 49;
+  a2.a11 = 50;
+  a2.a12 = 51;
+  a2.a13 = 52;
+  a2.a14 = 53;
+  a2.a15 = 54;
+  a2.a16 = 55;
+  a2.a17 = 56;
+  a2.a18 = 57;
+  a3.a0 = 58;
+  a3.a1 = 59;
+  a3.a2 = 60;
+  a3.a3 = 61;
+  a3.a4 = 62;
+  a3.a5 = 63;
+  a3.a6 = 64;
+  a3.a7 = 65;
+  a3.a8 = 66;
+  a3.a9 = 67;
+  a3.a10 = 68;
+  a3.a11 = 69;
+  a3.a12 = 70;
+  a3.a13 = 71;
+  a3.a14 = 72;
+  a3.a15 = 73;
+  a3.a16 = 74;
+  a3.a17 = 75;
+  a3.a18 = 76;
+  a4.a0 = 77;
+  a4.a1 = 78;
+  a4.a2 = 79;
+  a4.a3 = 80;
+  a4.a4 = 81;
+  a4.a5 = 82;
+  a4.a6 = 83;
+  a4.a7 = 84;
+  a4.a8 = 85;
+  a4.a9 = 86;
+  a4.a10 = 87;
+  a4.a11 = 88;
+  a4.a12 = 89;
+  a4.a13 = 90;
+  a4.a14 = 91;
+  a4.a15 = 92;
+  a4.a16 = 93;
+  a4.a17 = 94;
+  a4.a18 = 95;
+  a5.a0 = 96;
+  a5.a1 = 97;
+  a5.a2 = 98;
+  a5.a3 = 99;
+  a5.a4 = 100;
+  a5.a5 = 101;
+  a5.a6 = 102;
+  a5.a7 = 103;
+  a5.a8 = 104;
+  a5.a9 = 105;
+  a5.a10 = 106;
+  a5.a11 = 107;
+  a5.a12 = 108;
+  a5.a13 = 109;
+  a5.a14 = 110;
+  a5.a15 = 111;
+  a5.a16 = 112;
+  a5.a17 = 113;
+  a5.a18 = 114;
+  a6.a0 = 115;
+  a6.a1 = 116;
+  a6.a2 = 117;
+  a6.a3 = 118;
+  a6.a4 = 119;
+  a6.a5 = 120;
+  a6.a6 = 121;
+  a6.a7 = 122;
+  a6.a8 = 123;
+  a6.a9 = 124;
+  a6.a10 = 125;
+  a6.a11 = 126;
+  a6.a12 = 127;
+  a6.a13 = 128;
+  a6.a14 = 129;
+  a6.a15 = 130;
+  a6.a16 = 131;
+  a6.a17 = 132;
+  a6.a18 = 133;
+  a7.a0 = 134;
+  a7.a1 = 135;
+  a7.a2 = 136;
+  a7.a3 = 137;
+  a7.a4 = 138;
+  a7.a5 = 139;
+  a7.a6 = 140;
+  a7.a7 = 141;
+  a7.a8 = 142;
+  a7.a9 = 143;
+  a7.a10 = 144;
+  a7.a11 = 145;
+  a7.a12 = 146;
+  a7.a13 = 147;
+  a7.a14 = 148;
+  a7.a15 = 149;
+  a7.a16 = 150;
+  a7.a17 = 151;
+  a7.a18 = 152;
+  a8.a0 = 153;
+  a8.a1 = 154;
+  a8.a2 = 155;
+  a8.a3 = 156;
+  a8.a4 = 157;
+  a8.a5 = 158;
+  a8.a6 = 159;
+  a8.a7 = 160;
+  a8.a8 = 161;
+  a8.a9 = 162;
+  a8.a10 = 163;
+  a8.a11 = 164;
+  a8.a12 = 165;
+  a8.a13 = 166;
+  a8.a14 = 167;
+  a8.a15 = 168;
+  a8.a16 = 169;
+  a8.a17 = 170;
+  a8.a18 = 171;
+  a9.a0 = 172;
+  a9.a1 = 173;
+  a9.a2 = 174;
+  a9.a3 = 175;
+  a9.a4 = 176;
+  a9.a5 = 177;
+  a9.a6 = 178;
+  a9.a7 = 179;
+  a9.a8 = 180;
+  a9.a9 = 181;
+  a9.a10 = 182;
+  a9.a11 = 183;
+  a9.a12 = 184;
+  a9.a13 = 185;
+  a9.a14 = 186;
+  a9.a15 = 187;
+  a9.a16 = 188;
+  a9.a17 = 189;
+  a9.a18 = 190;
+
+  std::cout
+      << "Calling TestAsyncPassStruct19BytesHomogeneousUint8x10("
+      << "((" << static_cast<int>(a0.a0) << ", " << static_cast<int>(a0.a1)
+      << ", " << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+      << ", " << static_cast<int>(a0.a4) << ", " << static_cast<int>(a0.a5)
+      << ", " << static_cast<int>(a0.a6) << ", " << static_cast<int>(a0.a7)
+      << ", " << static_cast<int>(a0.a8) << ", " << static_cast<int>(a0.a9)
+      << ", " << static_cast<int>(a0.a10) << ", " << static_cast<int>(a0.a11)
+      << ", " << static_cast<int>(a0.a12) << ", " << static_cast<int>(a0.a13)
+      << ", " << static_cast<int>(a0.a14) << ", " << static_cast<int>(a0.a15)
+      << ", " << static_cast<int>(a0.a16) << ", " << static_cast<int>(a0.a17)
+      << ", " << static_cast<int>(a0.a18) << "), (" << static_cast<int>(a1.a0)
+      << ", " << static_cast<int>(a1.a1) << ", " << static_cast<int>(a1.a2)
+      << ", " << static_cast<int>(a1.a3) << ", " << static_cast<int>(a1.a4)
+      << ", " << static_cast<int>(a1.a5) << ", " << static_cast<int>(a1.a6)
+      << ", " << static_cast<int>(a1.a7) << ", " << static_cast<int>(a1.a8)
+      << ", " << static_cast<int>(a1.a9) << ", " << static_cast<int>(a1.a10)
+      << ", " << static_cast<int>(a1.a11) << ", " << static_cast<int>(a1.a12)
+      << ", " << static_cast<int>(a1.a13) << ", " << static_cast<int>(a1.a14)
+      << ", " << static_cast<int>(a1.a15) << ", " << static_cast<int>(a1.a16)
+      << ", " << static_cast<int>(a1.a17) << ", " << static_cast<int>(a1.a18)
+      << "), (" << static_cast<int>(a2.a0) << ", " << static_cast<int>(a2.a1)
+      << ", " << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+      << ", " << static_cast<int>(a2.a4) << ", " << static_cast<int>(a2.a5)
+      << ", " << static_cast<int>(a2.a6) << ", " << static_cast<int>(a2.a7)
+      << ", " << static_cast<int>(a2.a8) << ", " << static_cast<int>(a2.a9)
+      << ", " << static_cast<int>(a2.a10) << ", " << static_cast<int>(a2.a11)
+      << ", " << static_cast<int>(a2.a12) << ", " << static_cast<int>(a2.a13)
+      << ", " << static_cast<int>(a2.a14) << ", " << static_cast<int>(a2.a15)
+      << ", " << static_cast<int>(a2.a16) << ", " << static_cast<int>(a2.a17)
+      << ", " << static_cast<int>(a2.a18) << "), (" << static_cast<int>(a3.a0)
+      << ", " << static_cast<int>(a3.a1) << ", " << static_cast<int>(a3.a2)
+      << ", " << static_cast<int>(a3.a3) << ", " << static_cast<int>(a3.a4)
+      << ", " << static_cast<int>(a3.a5) << ", " << static_cast<int>(a3.a6)
+      << ", " << static_cast<int>(a3.a7) << ", " << static_cast<int>(a3.a8)
+      << ", " << static_cast<int>(a3.a9) << ", " << static_cast<int>(a3.a10)
+      << ", " << static_cast<int>(a3.a11) << ", " << static_cast<int>(a3.a12)
+      << ", " << static_cast<int>(a3.a13) << ", " << static_cast<int>(a3.a14)
+      << ", " << static_cast<int>(a3.a15) << ", " << static_cast<int>(a3.a16)
+      << ", " << static_cast<int>(a3.a17) << ", " << static_cast<int>(a3.a18)
+      << "), (" << static_cast<int>(a4.a0) << ", " << static_cast<int>(a4.a1)
+      << ", " << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+      << ", " << static_cast<int>(a4.a4) << ", " << static_cast<int>(a4.a5)
+      << ", " << static_cast<int>(a4.a6) << ", " << static_cast<int>(a4.a7)
+      << ", " << static_cast<int>(a4.a8) << ", " << static_cast<int>(a4.a9)
+      << ", " << static_cast<int>(a4.a10) << ", " << static_cast<int>(a4.a11)
+      << ", " << static_cast<int>(a4.a12) << ", " << static_cast<int>(a4.a13)
+      << ", " << static_cast<int>(a4.a14) << ", " << static_cast<int>(a4.a15)
+      << ", " << static_cast<int>(a4.a16) << ", " << static_cast<int>(a4.a17)
+      << ", " << static_cast<int>(a4.a18) << "), (" << static_cast<int>(a5.a0)
+      << ", " << static_cast<int>(a5.a1) << ", " << static_cast<int>(a5.a2)
+      << ", " << static_cast<int>(a5.a3) << ", " << static_cast<int>(a5.a4)
+      << ", " << static_cast<int>(a5.a5) << ", " << static_cast<int>(a5.a6)
+      << ", " << static_cast<int>(a5.a7) << ", " << static_cast<int>(a5.a8)
+      << ", " << static_cast<int>(a5.a9) << ", " << static_cast<int>(a5.a10)
+      << ", " << static_cast<int>(a5.a11) << ", " << static_cast<int>(a5.a12)
+      << ", " << static_cast<int>(a5.a13) << ", " << static_cast<int>(a5.a14)
+      << ", " << static_cast<int>(a5.a15) << ", " << static_cast<int>(a5.a16)
+      << ", " << static_cast<int>(a5.a17) << ", " << static_cast<int>(a5.a18)
+      << "), (" << static_cast<int>(a6.a0) << ", " << static_cast<int>(a6.a1)
+      << ", " << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+      << ", " << static_cast<int>(a6.a4) << ", " << static_cast<int>(a6.a5)
+      << ", " << static_cast<int>(a6.a6) << ", " << static_cast<int>(a6.a7)
+      << ", " << static_cast<int>(a6.a8) << ", " << static_cast<int>(a6.a9)
+      << ", " << static_cast<int>(a6.a10) << ", " << static_cast<int>(a6.a11)
+      << ", " << static_cast<int>(a6.a12) << ", " << static_cast<int>(a6.a13)
+      << ", " << static_cast<int>(a6.a14) << ", " << static_cast<int>(a6.a15)
+      << ", " << static_cast<int>(a6.a16) << ", " << static_cast<int>(a6.a17)
+      << ", " << static_cast<int>(a6.a18) << "), (" << static_cast<int>(a7.a0)
+      << ", " << static_cast<int>(a7.a1) << ", " << static_cast<int>(a7.a2)
+      << ", " << static_cast<int>(a7.a3) << ", " << static_cast<int>(a7.a4)
+      << ", " << static_cast<int>(a7.a5) << ", " << static_cast<int>(a7.a6)
+      << ", " << static_cast<int>(a7.a7) << ", " << static_cast<int>(a7.a8)
+      << ", " << static_cast<int>(a7.a9) << ", " << static_cast<int>(a7.a10)
+      << ", " << static_cast<int>(a7.a11) << ", " << static_cast<int>(a7.a12)
+      << ", " << static_cast<int>(a7.a13) << ", " << static_cast<int>(a7.a14)
+      << ", " << static_cast<int>(a7.a15) << ", " << static_cast<int>(a7.a16)
+      << ", " << static_cast<int>(a7.a17) << ", " << static_cast<int>(a7.a18)
+      << "), (" << static_cast<int>(a8.a0) << ", " << static_cast<int>(a8.a1)
+      << ", " << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+      << ", " << static_cast<int>(a8.a4) << ", " << static_cast<int>(a8.a5)
+      << ", " << static_cast<int>(a8.a6) << ", " << static_cast<int>(a8.a7)
+      << ", " << static_cast<int>(a8.a8) << ", " << static_cast<int>(a8.a9)
+      << ", " << static_cast<int>(a8.a10) << ", " << static_cast<int>(a8.a11)
+      << ", " << static_cast<int>(a8.a12) << ", " << static_cast<int>(a8.a13)
+      << ", " << static_cast<int>(a8.a14) << ", " << static_cast<int>(a8.a15)
+      << ", " << static_cast<int>(a8.a16) << ", " << static_cast<int>(a8.a17)
+      << ", " << static_cast<int>(a8.a18) << "), (" << static_cast<int>(a9.a0)
+      << ", " << static_cast<int>(a9.a1) << ", " << static_cast<int>(a9.a2)
+      << ", " << static_cast<int>(a9.a3) << ", " << static_cast<int>(a9.a4)
+      << ", " << static_cast<int>(a9.a5) << ", " << static_cast<int>(a9.a6)
+      << ", " << static_cast<int>(a9.a7) << ", " << static_cast<int>(a9.a8)
+      << ", " << static_cast<int>(a9.a9) << ", " << static_cast<int>(a9.a10)
+      << ", " << static_cast<int>(a9.a11) << ", " << static_cast<int>(a9.a12)
+      << ", " << static_cast<int>(a9.a13) << ", " << static_cast<int>(a9.a14)
+      << ", " << static_cast<int>(a9.a15) << ", " << static_cast<int>(a9.a16)
+      << ", " << static_cast<int>(a9.a17) << ", " << static_cast<int>(a9.a18)
+      << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Argument too big to go into integer registers on arm64.
+// The arguments are passed as pointers to copies.
+// The amount of arguments exhausts the number of integer registers, such that
+// pointers to copies are also passed on the stack.
+DART_EXPORT void TestAsyncPassStruct20BytesHomogeneousInt32x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct20BytesHomogeneousInt32 a0,
+              Struct20BytesHomogeneousInt32 a1,
+              Struct20BytesHomogeneousInt32 a2,
+              Struct20BytesHomogeneousInt32 a3,
+              Struct20BytesHomogeneousInt32 a4,
+              Struct20BytesHomogeneousInt32 a5,
+              Struct20BytesHomogeneousInt32 a6,
+              Struct20BytesHomogeneousInt32 a7,
+              Struct20BytesHomogeneousInt32 a8,
+              Struct20BytesHomogeneousInt32 a9)) {
+  Struct20BytesHomogeneousInt32 a0 = {};
+  Struct20BytesHomogeneousInt32 a1 = {};
+  Struct20BytesHomogeneousInt32 a2 = {};
+  Struct20BytesHomogeneousInt32 a3 = {};
+  Struct20BytesHomogeneousInt32 a4 = {};
+  Struct20BytesHomogeneousInt32 a5 = {};
+  Struct20BytesHomogeneousInt32 a6 = {};
+  Struct20BytesHomogeneousInt32 a7 = {};
+  Struct20BytesHomogeneousInt32 a8 = {};
+  Struct20BytesHomogeneousInt32 a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a0.a3 = 4;
+  a0.a4 = -5;
+  a1.a0 = 6;
+  a1.a1 = -7;
+  a1.a2 = 8;
+  a1.a3 = -9;
+  a1.a4 = 10;
+  a2.a0 = -11;
+  a2.a1 = 12;
+  a2.a2 = -13;
+  a2.a3 = 14;
+  a2.a4 = -15;
+  a3.a0 = 16;
+  a3.a1 = -17;
+  a3.a2 = 18;
+  a3.a3 = -19;
+  a3.a4 = 20;
+  a4.a0 = -21;
+  a4.a1 = 22;
+  a4.a2 = -23;
+  a4.a3 = 24;
+  a4.a4 = -25;
+  a5.a0 = 26;
+  a5.a1 = -27;
+  a5.a2 = 28;
+  a5.a3 = -29;
+  a5.a4 = 30;
+  a6.a0 = -31;
+  a6.a1 = 32;
+  a6.a2 = -33;
+  a6.a3 = 34;
+  a6.a4 = -35;
+  a7.a0 = 36;
+  a7.a1 = -37;
+  a7.a2 = 38;
+  a7.a3 = -39;
+  a7.a4 = 40;
+  a8.a0 = -41;
+  a8.a1 = 42;
+  a8.a2 = -43;
+  a8.a3 = 44;
+  a8.a4 = -45;
+  a9.a0 = 46;
+  a9.a1 = -47;
+  a9.a2 = 48;
+  a9.a3 = -49;
+  a9.a4 = 50;
+
+  std::cout << "Calling TestAsyncPassStruct20BytesHomogeneousInt32x10("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << ", " << a0.a4 << "), (" << a1.a0 << ", " << a1.a1 << ", "
+            << a1.a2 << ", " << a1.a3 << ", " << a1.a4 << "), (" << a2.a0
+            << ", " << a2.a1 << ", " << a2.a2 << ", " << a2.a3 << ", " << a2.a4
+            << "), (" << a3.a0 << ", " << a3.a1 << ", " << a3.a2 << ", "
+            << a3.a3 << ", " << a3.a4 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << ", " << a4.a3 << ", " << a4.a4 << "), ("
+            << a5.a0 << ", " << a5.a1 << ", " << a5.a2 << ", " << a5.a3 << ", "
+            << a5.a4 << "), (" << a6.a0 << ", " << a6.a1 << ", " << a6.a2
+            << ", " << a6.a3 << ", " << a6.a4 << "), (" << a7.a0 << ", "
+            << a7.a1 << ", " << a7.a2 << ", " << a7.a3 << ", " << a7.a4
+            << "), (" << a8.a0 << ", " << a8.a1 << ", " << a8.a2 << ", "
+            << a8.a3 << ", " << a8.a4 << "), (" << a9.a0 << ", " << a9.a1
+            << ", " << a9.a2 << ", " << a9.a3 << ", " << a9.a4 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Argument too big to go into FPU registers in hardfp and arm64.
+DART_EXPORT void TestAsyncPassStruct20BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct20BytesHomogeneousFloat a0)) {
+  Struct20BytesHomogeneousFloat a0 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4.0;
+  a0.a4 = -5.0;
+
+  std::cout << "Calling TestAsyncPassStruct20BytesHomogeneousFloat("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << ", " << a0.a4 << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Arguments in FPU registers on arm64.
+// 5 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStruct32BytesHomogeneousDoublex5(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct32BytesHomogeneousDouble a0,
+              Struct32BytesHomogeneousDouble a1,
+              Struct32BytesHomogeneousDouble a2,
+              Struct32BytesHomogeneousDouble a3,
+              Struct32BytesHomogeneousDouble a4)) {
+  Struct32BytesHomogeneousDouble a0 = {};
+  Struct32BytesHomogeneousDouble a1 = {};
+  Struct32BytesHomogeneousDouble a2 = {};
+  Struct32BytesHomogeneousDouble a3 = {};
+  Struct32BytesHomogeneousDouble a4 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4.0;
+  a1.a0 = -5.0;
+  a1.a1 = 6.0;
+  a1.a2 = -7.0;
+  a1.a3 = 8.0;
+  a2.a0 = -9.0;
+  a2.a1 = 10.0;
+  a2.a2 = -11.0;
+  a2.a3 = 12.0;
+  a3.a0 = -13.0;
+  a3.a1 = 14.0;
+  a3.a2 = -15.0;
+  a3.a3 = 16.0;
+  a4.a0 = -17.0;
+  a4.a1 = 18.0;
+  a4.a2 = -19.0;
+  a4.a3 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStruct32BytesHomogeneousDoublex5("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << "), (" << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << ", "
+            << a1.a3 << "), (" << a2.a0 << ", " << a2.a1 << ", " << a2.a2
+            << ", " << a2.a3 << "), (" << a3.a0 << ", " << a3.a1 << ", "
+            << a3.a2 << ", " << a3.a3 << "), (" << a4.a0 << ", " << a4.a1
+            << ", " << a4.a2 << ", " << a4.a3 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Argument too big to go into FPU registers in arm64.
+DART_EXPORT void TestAsyncPassStruct40BytesHomogeneousDouble(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct40BytesHomogeneousDouble a0)) {
+  Struct40BytesHomogeneousDouble a0 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4.0;
+  a0.a4 = -5.0;
+
+  std::cout << "Calling TestAsyncPassStruct40BytesHomogeneousDouble("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << ", " << a0.a4 << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test 1kb struct.
+DART_EXPORT void TestAsyncPassStruct1024BytesHomogeneousUint64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct1024BytesHomogeneousUint64 a0)) {
+  Struct1024BytesHomogeneousUint64 a0 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a0.a5 = 6;
+  a0.a6 = 7;
+  a0.a7 = 8;
+  a0.a8 = 9;
+  a0.a9 = 10;
+  a0.a10 = 11;
+  a0.a11 = 12;
+  a0.a12 = 13;
+  a0.a13 = 14;
+  a0.a14 = 15;
+  a0.a15 = 16;
+  a0.a16 = 17;
+  a0.a17 = 18;
+  a0.a18 = 19;
+  a0.a19 = 20;
+  a0.a20 = 21;
+  a0.a21 = 22;
+  a0.a22 = 23;
+  a0.a23 = 24;
+  a0.a24 = 25;
+  a0.a25 = 26;
+  a0.a26 = 27;
+  a0.a27 = 28;
+  a0.a28 = 29;
+  a0.a29 = 30;
+  a0.a30 = 31;
+  a0.a31 = 32;
+  a0.a32 = 33;
+  a0.a33 = 34;
+  a0.a34 = 35;
+  a0.a35 = 36;
+  a0.a36 = 37;
+  a0.a37 = 38;
+  a0.a38 = 39;
+  a0.a39 = 40;
+  a0.a40 = 41;
+  a0.a41 = 42;
+  a0.a42 = 43;
+  a0.a43 = 44;
+  a0.a44 = 45;
+  a0.a45 = 46;
+  a0.a46 = 47;
+  a0.a47 = 48;
+  a0.a48 = 49;
+  a0.a49 = 50;
+  a0.a50 = 51;
+  a0.a51 = 52;
+  a0.a52 = 53;
+  a0.a53 = 54;
+  a0.a54 = 55;
+  a0.a55 = 56;
+  a0.a56 = 57;
+  a0.a57 = 58;
+  a0.a58 = 59;
+  a0.a59 = 60;
+  a0.a60 = 61;
+  a0.a61 = 62;
+  a0.a62 = 63;
+  a0.a63 = 64;
+  a0.a64 = 65;
+  a0.a65 = 66;
+  a0.a66 = 67;
+  a0.a67 = 68;
+  a0.a68 = 69;
+  a0.a69 = 70;
+  a0.a70 = 71;
+  a0.a71 = 72;
+  a0.a72 = 73;
+  a0.a73 = 74;
+  a0.a74 = 75;
+  a0.a75 = 76;
+  a0.a76 = 77;
+  a0.a77 = 78;
+  a0.a78 = 79;
+  a0.a79 = 80;
+  a0.a80 = 81;
+  a0.a81 = 82;
+  a0.a82 = 83;
+  a0.a83 = 84;
+  a0.a84 = 85;
+  a0.a85 = 86;
+  a0.a86 = 87;
+  a0.a87 = 88;
+  a0.a88 = 89;
+  a0.a89 = 90;
+  a0.a90 = 91;
+  a0.a91 = 92;
+  a0.a92 = 93;
+  a0.a93 = 94;
+  a0.a94 = 95;
+  a0.a95 = 96;
+  a0.a96 = 97;
+  a0.a97 = 98;
+  a0.a98 = 99;
+  a0.a99 = 100;
+  a0.a100 = 101;
+  a0.a101 = 102;
+  a0.a102 = 103;
+  a0.a103 = 104;
+  a0.a104 = 105;
+  a0.a105 = 106;
+  a0.a106 = 107;
+  a0.a107 = 108;
+  a0.a108 = 109;
+  a0.a109 = 110;
+  a0.a110 = 111;
+  a0.a111 = 112;
+  a0.a112 = 113;
+  a0.a113 = 114;
+  a0.a114 = 115;
+  a0.a115 = 116;
+  a0.a116 = 117;
+  a0.a117 = 118;
+  a0.a118 = 119;
+  a0.a119 = 120;
+  a0.a120 = 121;
+  a0.a121 = 122;
+  a0.a122 = 123;
+  a0.a123 = 124;
+  a0.a124 = 125;
+  a0.a125 = 126;
+  a0.a126 = 127;
+  a0.a127 = 128;
+
+  std::cout << "Calling TestAsyncPassStruct1024BytesHomogeneousUint64("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+            << ", " << a0.a4 << ", " << a0.a5 << ", " << a0.a6 << ", " << a0.a7
+            << ", " << a0.a8 << ", " << a0.a9 << ", " << a0.a10 << ", "
+            << a0.a11 << ", " << a0.a12 << ", " << a0.a13 << ", " << a0.a14
+            << ", " << a0.a15 << ", " << a0.a16 << ", " << a0.a17 << ", "
+            << a0.a18 << ", " << a0.a19 << ", " << a0.a20 << ", " << a0.a21
+            << ", " << a0.a22 << ", " << a0.a23 << ", " << a0.a24 << ", "
+            << a0.a25 << ", " << a0.a26 << ", " << a0.a27 << ", " << a0.a28
+            << ", " << a0.a29 << ", " << a0.a30 << ", " << a0.a31 << ", "
+            << a0.a32 << ", " << a0.a33 << ", " << a0.a34 << ", " << a0.a35
+            << ", " << a0.a36 << ", " << a0.a37 << ", " << a0.a38 << ", "
+            << a0.a39 << ", " << a0.a40 << ", " << a0.a41 << ", " << a0.a42
+            << ", " << a0.a43 << ", " << a0.a44 << ", " << a0.a45 << ", "
+            << a0.a46 << ", " << a0.a47 << ", " << a0.a48 << ", " << a0.a49
+            << ", " << a0.a50 << ", " << a0.a51 << ", " << a0.a52 << ", "
+            << a0.a53 << ", " << a0.a54 << ", " << a0.a55 << ", " << a0.a56
+            << ", " << a0.a57 << ", " << a0.a58 << ", " << a0.a59 << ", "
+            << a0.a60 << ", " << a0.a61 << ", " << a0.a62 << ", " << a0.a63
+            << ", " << a0.a64 << ", " << a0.a65 << ", " << a0.a66 << ", "
+            << a0.a67 << ", " << a0.a68 << ", " << a0.a69 << ", " << a0.a70
+            << ", " << a0.a71 << ", " << a0.a72 << ", " << a0.a73 << ", "
+            << a0.a74 << ", " << a0.a75 << ", " << a0.a76 << ", " << a0.a77
+            << ", " << a0.a78 << ", " << a0.a79 << ", " << a0.a80 << ", "
+            << a0.a81 << ", " << a0.a82 << ", " << a0.a83 << ", " << a0.a84
+            << ", " << a0.a85 << ", " << a0.a86 << ", " << a0.a87 << ", "
+            << a0.a88 << ", " << a0.a89 << ", " << a0.a90 << ", " << a0.a91
+            << ", " << a0.a92 << ", " << a0.a93 << ", " << a0.a94 << ", "
+            << a0.a95 << ", " << a0.a96 << ", " << a0.a97 << ", " << a0.a98
+            << ", " << a0.a99 << ", " << a0.a100 << ", " << a0.a101 << ", "
+            << a0.a102 << ", " << a0.a103 << ", " << a0.a104 << ", " << a0.a105
+            << ", " << a0.a106 << ", " << a0.a107 << ", " << a0.a108 << ", "
+            << a0.a109 << ", " << a0.a110 << ", " << a0.a111 << ", " << a0.a112
+            << ", " << a0.a113 << ", " << a0.a114 << ", " << a0.a115 << ", "
+            << a0.a116 << ", " << a0.a117 << ", " << a0.a118 << ", " << a0.a119
+            << ", " << a0.a120 << ", " << a0.a121 << ", " << a0.a122 << ", "
+            << a0.a123 << ", " << a0.a124 << ", " << a0.a125 << ", " << a0.a126
+            << ", " << a0.a127 << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Tests the alignment of structs in FPU registers and backfilling.
+DART_EXPORT void TestAsyncPassFloatStruct16BytesHomogeneousFloatFloatStruct1(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              Struct16BytesHomogeneousFloat a1,
+              float a2,
+              Struct16BytesHomogeneousFloat a3,
+              float a4,
+              Struct16BytesHomogeneousFloat a5,
+              float a6,
+              Struct16BytesHomogeneousFloat a7,
+              float a8)) {
+  float a0;
+  Struct16BytesHomogeneousFloat a1 = {};
+  float a2;
+  Struct16BytesHomogeneousFloat a3 = {};
+  float a4;
+  Struct16BytesHomogeneousFloat a5 = {};
+  float a6;
+  Struct16BytesHomogeneousFloat a7 = {};
+  float a8;
+
+  a0 = -1.0;
+  a1.a0 = 2.0;
+  a1.a1 = -3.0;
+  a1.a2 = 4.0;
+  a1.a3 = -5.0;
+  a2 = 6.0;
+  a3.a0 = -7.0;
+  a3.a1 = 8.0;
+  a3.a2 = -9.0;
+  a3.a3 = 10.0;
+  a4 = -11.0;
+  a5.a0 = 12.0;
+  a5.a1 = -13.0;
+  a5.a2 = 14.0;
+  a5.a3 = -15.0;
+  a6 = 16.0;
+  a7.a0 = -17.0;
+  a7.a1 = 18.0;
+  a7.a2 = -19.0;
+  a7.a3 = 20.0;
+  a8 = -21.0;
+
+  std::cout
+      << "Calling TestAsyncPassFloatStruct16BytesHomogeneousFloatFloatStruct1("
+      << "(" << a0 << ", (" << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << ", "
+      << a1.a3 << "), " << a2 << ", (" << a3.a0 << ", " << a3.a1 << ", "
+      << a3.a2 << ", " << a3.a3 << "), " << a4 << ", (" << a5.a0 << ", "
+      << a5.a1 << ", " << a5.a2 << ", " << a5.a3 << "), " << a6 << ", ("
+      << a7.a0 << ", " << a7.a1 << ", " << a7.a2 << ", " << a7.a3 << "), " << a8
+      << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// Tests the alignment of structs in FPU registers and backfilling.
+DART_EXPORT void TestAsyncPassFloatStruct32BytesHomogeneousDoubleFloatStruct(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0,
+              Struct32BytesHomogeneousDouble a1,
+              float a2,
+              Struct32BytesHomogeneousDouble a3,
+              float a4,
+              Struct32BytesHomogeneousDouble a5,
+              float a6,
+              Struct32BytesHomogeneousDouble a7,
+              float a8)) {
+  float a0;
+  Struct32BytesHomogeneousDouble a1 = {};
+  float a2;
+  Struct32BytesHomogeneousDouble a3 = {};
+  float a4;
+  Struct32BytesHomogeneousDouble a5 = {};
+  float a6;
+  Struct32BytesHomogeneousDouble a7 = {};
+  float a8;
+
+  a0 = -1.0;
+  a1.a0 = 2.0;
+  a1.a1 = -3.0;
+  a1.a2 = 4.0;
+  a1.a3 = -5.0;
+  a2 = 6.0;
+  a3.a0 = -7.0;
+  a3.a1 = 8.0;
+  a3.a2 = -9.0;
+  a3.a3 = 10.0;
+  a4 = -11.0;
+  a5.a0 = 12.0;
+  a5.a1 = -13.0;
+  a5.a2 = 14.0;
+  a5.a3 = -15.0;
+  a6 = 16.0;
+  a7.a0 = -17.0;
+  a7.a1 = 18.0;
+  a7.a2 = -19.0;
+  a7.a3 = 20.0;
+  a8 = -21.0;
+
+  std::cout
+      << "Calling TestAsyncPassFloatStruct32BytesHomogeneousDoubleFloatStruct("
+      << "(" << a0 << ", (" << a1.a0 << ", " << a1.a1 << ", " << a1.a2 << ", "
+      << a1.a3 << "), " << a2 << ", (" << a3.a0 << ", " << a3.a1 << ", "
+      << a3.a2 << ", " << a3.a3 << "), " << a4 << ", (" << a5.a0 << ", "
+      << a5.a1 << ", " << a5.a2 << ", " << a5.a3 << "), " << a6 << ", ("
+      << a7.a0 << ", " << a7.a1 << ", " << a7.a2 << ", " << a7.a3 << "), " << a8
+      << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// Tests the alignment of structs in integers registers and on the stack.
+// Arm32 aligns this struct at 8.
+// Also, arm32 allocates the second struct partially in registers, partially
+// on stack.
+// Test backfilling of integer registers.
+DART_EXPORT void TestAsyncPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0,
+              Struct16BytesMixed a1,
+              int8_t a2,
+              Struct16BytesMixed a3,
+              int8_t a4,
+              Struct16BytesMixed a5,
+              int8_t a6,
+              Struct16BytesMixed a7,
+              int8_t a8)) {
+  int8_t a0;
+  Struct16BytesMixed a1 = {};
+  int8_t a2;
+  Struct16BytesMixed a3 = {};
+  int8_t a4;
+  Struct16BytesMixed a5 = {};
+  int8_t a6;
+  Struct16BytesMixed a7 = {};
+  int8_t a8;
+
+  a0 = -1;
+  a1.a0 = 2.0;
+  a1.a1 = -3;
+  a2 = 4;
+  a3.a0 = -5.0;
+  a3.a1 = 6;
+  a4 = -7;
+  a5.a0 = 8.0;
+  a5.a1 = -9;
+  a6 = 10;
+  a7.a0 = -11.0;
+  a7.a1 = 12;
+  a8 = -13;
+
+  std::cout
+      << "Calling TestAsyncPassInt8Struct16BytesMixedInt8Struct16BytesMixedIn("
+      << "(" << static_cast<int>(a0) << ", (" << a1.a0 << ", " << a1.a1 << "), "
+      << static_cast<int>(a2) << ", (" << a3.a0 << ", " << a3.a1 << "), "
+      << static_cast<int>(a4) << ", (" << a5.a0 << ", " << a5.a1 << "), "
+      << static_cast<int>(a6) << ", (" << a7.a0 << ", " << a7.a1 << "), "
+      << static_cast<int>(a8) << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// On Linux x64, it will exhaust xmm registers first, after 6 doubles and 2
+// structs. The rest of the structs will go on the stack.
+// The int will be backfilled into the int register.
+DART_EXPORT void TestAsyncPassDoublex6Struct16BytesMixedx4Int32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(double a0,
+              double a1,
+              double a2,
+              double a3,
+              double a4,
+              double a5,
+              Struct16BytesMixed a6,
+              Struct16BytesMixed a7,
+              Struct16BytesMixed a8,
+              Struct16BytesMixed a9,
+              int32_t a10)) {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+  double a5;
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
+  Struct16BytesMixed a8 = {};
+  Struct16BytesMixed a9 = {};
+  int32_t a10;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+  a5 = 6.0;
+  a6.a0 = -7.0;
+  a6.a1 = 8;
+  a7.a0 = -9.0;
+  a7.a1 = 10;
+  a8.a0 = -11.0;
+  a8.a1 = 12;
+  a9.a0 = -13.0;
+  a9.a1 = 14;
+  a10 = -15;
+
+  std::cout << "Calling TestAsyncPassDoublex6Struct16BytesMixedx4Int32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", (" << a6.a0 << ", " << a6.a1 << "), (" << a7.a0
+            << ", " << a7.a1 << "), (" << a8.a0 << ", " << a8.a1 << "), ("
+            << a9.a0 << ", " << a9.a1 << "), " << a10 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10);
+}
+
+// Used for testing structs and unions by value.
+// On Linux x64, it will exhaust int registers first.
+// The rest of the structs will go on the stack.
+// The double will be backfilled into the xmm register.
+DART_EXPORT void TestAsyncPassInt32x4Struct16BytesMixedx4Double(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0,
+              int32_t a1,
+              int32_t a2,
+              int32_t a3,
+              Struct16BytesMixed a4,
+              Struct16BytesMixed a5,
+              Struct16BytesMixed a6,
+              Struct16BytesMixed a7,
+              double a8)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  Struct16BytesMixed a4 = {};
+  Struct16BytesMixed a5 = {};
+  Struct16BytesMixed a6 = {};
+  Struct16BytesMixed a7 = {};
+  double a8;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4.a0 = -5.0;
+  a4.a1 = 6;
+  a5.a0 = -7.0;
+  a5.a1 = 8;
+  a6.a0 = -9.0;
+  a6.a1 = 10;
+  a7.a0 = -11.0;
+  a7.a1 = 12;
+  a8 = -13.0;
+
+  std::cout << "Calling TestAsyncPassInt32x4Struct16BytesMixedx4Double("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", ("
+            << a4.a0 << ", " << a4.a1 << "), (" << a5.a0 << ", " << a5.a1
+            << "), (" << a6.a0 << ", " << a6.a1 << "), (" << a7.a0 << ", "
+            << a7.a1 << "), " << a8 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// On various architectures, first struct is allocated on stack.
+// Check that the other two arguments are allocated on registers.
+DART_EXPORT void TestAsyncPassStruct40BytesHomogeneousDoubleStruct4BytesHomo(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct40BytesHomogeneousDouble a0,
+              Struct4BytesHomogeneousInt16 a1,
+              Struct8BytesHomogeneousFloat a2)) {
+  Struct40BytesHomogeneousDouble a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
+  Struct8BytesHomogeneousFloat a2 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a0.a2 = -3.0;
+  a0.a3 = 4.0;
+  a0.a4 = -5.0;
+  a1.a0 = 6;
+  a1.a1 = -7;
+  a2.a0 = 8.0;
+  a2.a1 = -9.0;
+
+  std::cout
+      << "Calling TestAsyncPassStruct40BytesHomogeneousDoubleStruct4BytesHomo("
+      << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+      << ", " << a0.a4 << "), (" << a1.a0 << ", " << a1.a1 << "), (" << a2.a0
+      << ", " << a2.a1 << "))"
+      << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 16 byte int within struct.
+DART_EXPORT void TestAsyncPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0,
+              int32_t a1,
+              int32_t a2,
+              int32_t a3,
+              int32_t a4,
+              int32_t a5,
+              int32_t a6,
+              int32_t a7,
+              double a8,
+              double a9,
+              double a10,
+              double a11,
+              double a12,
+              double a13,
+              double a14,
+              double a15,
+              int64_t a16,
+              int8_t a17,
+              Struct1ByteInt a18,
+              int64_t a19,
+              int8_t a20,
+              Struct4BytesHomogeneousInt16 a21,
+              int64_t a22,
+              int8_t a23,
+              Struct8BytesInt a24,
+              int64_t a25,
+              int8_t a26,
+              Struct8BytesHomogeneousFloat a27,
+              int64_t a28,
+              int8_t a29,
+              Struct8BytesMixed a30,
+              int64_t a31,
+              int8_t a32,
+              StructAlignmentInt16 a33,
+              int64_t a34,
+              int8_t a35,
+              StructAlignmentInt32 a36,
+              int64_t a37,
+              int8_t a38,
+              StructAlignmentInt64 a39)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+  int32_t a5;
+  int32_t a6;
+  int32_t a7;
+  double a8;
+  double a9;
+  double a10;
+  double a11;
+  double a12;
+  double a13;
+  double a14;
+  double a15;
+  int64_t a16;
+  int8_t a17;
+  Struct1ByteInt a18 = {};
+  int64_t a19;
+  int8_t a20;
+  Struct4BytesHomogeneousInt16 a21 = {};
+  int64_t a22;
+  int8_t a23;
+  Struct8BytesInt a24 = {};
+  int64_t a25;
+  int8_t a26;
+  Struct8BytesHomogeneousFloat a27 = {};
+  int64_t a28;
+  int8_t a29;
+  Struct8BytesMixed a30 = {};
+  int64_t a31;
+  int8_t a32;
+  StructAlignmentInt16 a33 = {};
+  int64_t a34;
+  int8_t a35;
+  StructAlignmentInt32 a36 = {};
+  int64_t a37;
+  int8_t a38;
+  StructAlignmentInt64 a39 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7 = 8;
+  a8 = -9.0;
+  a9 = 10.0;
+  a10 = -11.0;
+  a11 = 12.0;
+  a12 = -13.0;
+  a13 = 14.0;
+  a14 = -15.0;
+  a15 = 16.0;
+  a16 = -17;
+  a17 = 18;
+  a18.a0 = -19;
+  a19 = 20;
+  a20 = -21;
+  a21.a0 = 22;
+  a21.a1 = -23;
+  a22 = 24;
+  a23 = -25;
+  a24.a0 = 26;
+  a24.a1 = -27;
+  a24.a2 = 28;
+  a25 = -29;
+  a26 = 30;
+  a27.a0 = -31.0;
+  a27.a1 = 32.0;
+  a28 = -33;
+  a29 = 34;
+  a30.a0 = -35.0;
+  a30.a1 = 36;
+  a30.a2 = -37;
+  a31 = 38;
+  a32 = -39;
+  a33.a0 = 40;
+  a33.a1 = -41;
+  a33.a2 = 42;
+  a34 = -43;
+  a35 = 44;
+  a36.a0 = -45;
+  a36.a1 = 46;
+  a36.a2 = -47;
+  a37 = 48;
+  a38 = -49;
+  a39.a0 = 50;
+  a39.a1 = -51;
+  a39.a2 = 52;
+
+  std::cout
+      << "Calling TestAsyncPassInt32x8Doublex8Int64Int8Struct1ByteIntInt64Int("
+      << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+      << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", " << a9
+      << ", " << a10 << ", " << a11 << ", " << a12 << ", " << a13 << ", " << a14
+      << ", " << a15 << ", " << a16 << ", " << static_cast<int>(a17) << ", ("
+      << static_cast<int>(a18.a0) << "), " << a19 << ", "
+      << static_cast<int>(a20) << ", (" << a21.a0 << ", " << a21.a1 << "), "
+      << a22 << ", " << static_cast<int>(a23) << ", (" << a24.a0 << ", "
+      << a24.a1 << ", " << a24.a2 << "), " << a25 << ", "
+      << static_cast<int>(a26) << ", (" << a27.a0 << ", " << a27.a1 << "), "
+      << a28 << ", " << static_cast<int>(a29) << ", (" << a30.a0 << ", "
+      << a30.a1 << ", " << a30.a2 << "), " << a31 << ", "
+      << static_cast<int>(a32) << ", (" << static_cast<int>(a33.a0) << ", "
+      << a33.a1 << ", " << static_cast<int>(a33.a2) << "), " << a34 << ", "
+      << static_cast<int>(a35) << ", (" << static_cast<int>(a36.a0) << ", "
+      << a36.a1 << ", " << static_cast<int>(a36.a2) << "), " << a37 << ", "
+      << static_cast<int>(a38) << ", (" << static_cast<int>(a39.a0) << ", "
+      << a39.a1 << ", " << static_cast<int>(a39.a2) << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
+    a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31,
+    a32, a33, a34, a35, a36, a37, a38, a39);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 16 byte int within struct.
+DART_EXPORT void TestAsyncPassStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt16 a0)) {
+  StructAlignmentInt16 a0 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  std::cout << "Calling TestAsyncPassStructAlignmentInt16("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 32 byte int within struct.
+DART_EXPORT void TestAsyncPassStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt32 a0)) {
+  StructAlignmentInt32 a0 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  std::cout << "Calling TestAsyncPassStructAlignmentInt32("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 64 byte int within struct.
+DART_EXPORT void TestAsyncPassStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt64 a0)) {
+  StructAlignmentInt64 a0 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  std::cout << "Calling TestAsyncPassStructAlignmentInt64("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust registers on all platforms.
+DART_EXPORT void TestAsyncPassStruct8BytesNestedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesNestedInt a0,
+              Struct8BytesNestedInt a1,
+              Struct8BytesNestedInt a2,
+              Struct8BytesNestedInt a3,
+              Struct8BytesNestedInt a4,
+              Struct8BytesNestedInt a5,
+              Struct8BytesNestedInt a6,
+              Struct8BytesNestedInt a7,
+              Struct8BytesNestedInt a8,
+              Struct8BytesNestedInt a9)) {
+  Struct8BytesNestedInt a0 = {};
+  Struct8BytesNestedInt a1 = {};
+  Struct8BytesNestedInt a2 = {};
+  Struct8BytesNestedInt a3 = {};
+  Struct8BytesNestedInt a4 = {};
+  Struct8BytesNestedInt a5 = {};
+  Struct8BytesNestedInt a6 = {};
+  Struct8BytesNestedInt a7 = {};
+  Struct8BytesNestedInt a8 = {};
+  Struct8BytesNestedInt a9 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+  a2.a0.a0 = -9;
+  a2.a0.a1 = 10;
+  a2.a1.a0 = -11;
+  a2.a1.a1 = 12;
+  a3.a0.a0 = -13;
+  a3.a0.a1 = 14;
+  a3.a1.a0 = -15;
+  a3.a1.a1 = 16;
+  a4.a0.a0 = -17;
+  a4.a0.a1 = 18;
+  a4.a1.a0 = -19;
+  a4.a1.a1 = 20;
+  a5.a0.a0 = -21;
+  a5.a0.a1 = 22;
+  a5.a1.a0 = -23;
+  a5.a1.a1 = 24;
+  a6.a0.a0 = -25;
+  a6.a0.a1 = 26;
+  a6.a1.a0 = -27;
+  a6.a1.a1 = 28;
+  a7.a0.a0 = -29;
+  a7.a0.a1 = 30;
+  a7.a1.a0 = -31;
+  a7.a1.a1 = 32;
+  a8.a0.a0 = -33;
+  a8.a0.a1 = 34;
+  a8.a1.a0 = -35;
+  a8.a1.a1 = 36;
+  a9.a0.a0 = -37;
+  a9.a0.a1 = 38;
+  a9.a1.a0 = -39;
+  a9.a1.a1 = 40;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesNestedIntx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")), ((" << a2.a0.a0
+            << ", " << a2.a0.a1 << "), (" << a2.a1.a0 << ", " << a2.a1.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ", " << a3.a1.a1 << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1
+            << "), (" << a4.a1.a0 << ", " << a4.a1.a1 << ")), ((" << a5.a0.a0
+            << ", " << a5.a0.a1 << "), (" << a5.a1.a0 << ", " << a5.a1.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ", " << a6.a1.a1 << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1
+            << "), (" << a7.a1.a0 << ", " << a7.a1.a1 << ")), ((" << a8.a0.a0
+            << ", " << a8.a0.a1 << "), (" << a8.a1.a0 << ", " << a8.a1.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ", " << a9.a1.a1 << ")))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+DART_EXPORT void TestAsyncPassStruct8BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesNestedFloat a0,
+              Struct8BytesNestedFloat a1,
+              Struct8BytesNestedFloat a2,
+              Struct8BytesNestedFloat a3,
+              Struct8BytesNestedFloat a4,
+              Struct8BytesNestedFloat a5,
+              Struct8BytesNestedFloat a6,
+              Struct8BytesNestedFloat a7,
+              Struct8BytesNestedFloat a8,
+              Struct8BytesNestedFloat a9)) {
+  Struct8BytesNestedFloat a0 = {};
+  Struct8BytesNestedFloat a1 = {};
+  Struct8BytesNestedFloat a2 = {};
+  Struct8BytesNestedFloat a3 = {};
+  Struct8BytesNestedFloat a4 = {};
+  Struct8BytesNestedFloat a5 = {};
+  Struct8BytesNestedFloat a6 = {};
+  Struct8BytesNestedFloat a7 = {};
+  Struct8BytesNestedFloat a8 = {};
+  Struct8BytesNestedFloat a9 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1.a0 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1.a0 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1.a0 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1.a0 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1.a0 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1.a0 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1.a0 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1.a0 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1.a0 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1.a0 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesNestedFloatx10("
+            << "(((" << a0.a0.a0 << "), (" << a0.a1.a0 << ")), ((" << a1.a0.a0
+            << "), (" << a1.a1.a0 << ")), ((" << a2.a0.a0 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << "), (" << a3.a1.a0 << ")), (("
+            << a4.a0.a0 << "), (" << a4.a1.a0 << ")), ((" << a5.a0.a0 << "), ("
+            << a5.a1.a0 << ")), ((" << a6.a0.a0 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << "), (" << a7.a1.a0 << ")), (("
+            << a8.a0.a0 << "), (" << a8.a1.a0 << ")), ((" << a9.a0.a0 << "), ("
+            << a9.a1.a0 << ")))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust fpu registers on all platforms.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT void TestAsyncPassStruct8BytesNestedFloat2x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesNestedFloat2 a0,
+              Struct8BytesNestedFloat2 a1,
+              Struct8BytesNestedFloat2 a2,
+              Struct8BytesNestedFloat2 a3,
+              Struct8BytesNestedFloat2 a4,
+              Struct8BytesNestedFloat2 a5,
+              Struct8BytesNestedFloat2 a6,
+              Struct8BytesNestedFloat2 a7,
+              Struct8BytesNestedFloat2 a8,
+              Struct8BytesNestedFloat2 a9)) {
+  Struct8BytesNestedFloat2 a0 = {};
+  Struct8BytesNestedFloat2 a1 = {};
+  Struct8BytesNestedFloat2 a2 = {};
+  Struct8BytesNestedFloat2 a3 = {};
+  Struct8BytesNestedFloat2 a4 = {};
+  Struct8BytesNestedFloat2 a5 = {};
+  Struct8BytesNestedFloat2 a6 = {};
+  Struct8BytesNestedFloat2 a7 = {};
+  Struct8BytesNestedFloat2 a8 = {};
+  Struct8BytesNestedFloat2 a9 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a1 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesNestedFloat2x10("
+            << "(((" << a0.a0.a0 << "), " << a0.a1 << "), ((" << a1.a0.a0
+            << "), " << a1.a1 << "), ((" << a2.a0.a0 << "), " << a2.a1
+            << "), ((" << a3.a0.a0 << "), " << a3.a1 << "), ((" << a4.a0.a0
+            << "), " << a4.a1 << "), ((" << a5.a0.a0 << "), " << a5.a1
+            << "), ((" << a6.a0.a0 << "), " << a6.a1 << "), ((" << a7.a0.a0
+            << "), " << a7.a1 << "), ((" << a8.a0.a0 << "), " << a8.a1
+            << "), ((" << a9.a0.a0 << "), " << a9.a1 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct. No alignment gaps on any architectures.
+// 10 arguments exhaust all registers on all platforms.
+DART_EXPORT void TestAsyncPassStruct8BytesNestedMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesNestedMixed a0,
+              Struct8BytesNestedMixed a1,
+              Struct8BytesNestedMixed a2,
+              Struct8BytesNestedMixed a3,
+              Struct8BytesNestedMixed a4,
+              Struct8BytesNestedMixed a5,
+              Struct8BytesNestedMixed a6,
+              Struct8BytesNestedMixed a7,
+              Struct8BytesNestedMixed a8,
+              Struct8BytesNestedMixed a9)) {
+  Struct8BytesNestedMixed a0 = {};
+  Struct8BytesNestedMixed a1 = {};
+  Struct8BytesNestedMixed a2 = {};
+  Struct8BytesNestedMixed a3 = {};
+  Struct8BytesNestedMixed a4 = {};
+  Struct8BytesNestedMixed a5 = {};
+  Struct8BytesNestedMixed a6 = {};
+  Struct8BytesNestedMixed a7 = {};
+  Struct8BytesNestedMixed a8 = {};
+  Struct8BytesNestedMixed a9 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3.0;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a1.a0 = 6.0;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a1.a0 = -9.0;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a1.a0 = 12.0;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a1.a0 = -15.0;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a1.a0 = 18.0;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a1.a0 = -21.0;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a1.a0 = 24.0;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a1.a0 = -27.0;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a1.a0 = 30.0;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesNestedMixedx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << "), (" << a1.a1.a0
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << "), (" << a2.a1.a0
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << "), (" << a3.a1.a0
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << "), (" << a4.a1.a0
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << "), (" << a5.a1.a0
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << "), (" << a6.a1.a0
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << "), (" << a7.a1.a0
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << "), (" << a8.a1.a0
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << "), (" << a9.a1.a0
+            << ")))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT void TestAsyncPassStruct16BytesNestedIntx2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct16BytesNestedInt a0, Struct16BytesNestedInt a1)) {
+  Struct16BytesNestedInt a0 = {};
+  Struct16BytesNestedInt a1 = {};
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  std::cout << "Calling TestAsyncPassStruct16BytesNestedIntx2("
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT void TestAsyncPassStruct32BytesNestedIntx2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct32BytesNestedInt a0, Struct32BytesNestedInt a1)) {
+  Struct32BytesNestedInt a0 = {};
+  Struct32BytesNestedInt a1 = {};
+
+  a0.a0.a0.a0.a0 = -1;
+  a0.a0.a0.a0.a1 = 2;
+  a0.a0.a0.a1.a0 = -3;
+  a0.a0.a0.a1.a1 = 4;
+  a0.a0.a1.a0.a0 = -5;
+  a0.a0.a1.a0.a1 = 6;
+  a0.a0.a1.a1.a0 = -7;
+  a0.a0.a1.a1.a1 = 8;
+  a0.a1.a0.a0.a0 = -9;
+  a0.a1.a0.a0.a1 = 10;
+  a0.a1.a0.a1.a0 = -11;
+  a0.a1.a0.a1.a1 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15;
+  a0.a1.a1.a1.a1 = 16;
+  a1.a0.a0.a0.a0 = -17;
+  a1.a0.a0.a0.a1 = 18;
+  a1.a0.a0.a1.a0 = -19;
+  a1.a0.a0.a1.a1 = 20;
+  a1.a0.a1.a0.a0 = -21;
+  a1.a0.a1.a0.a1 = 22;
+  a1.a0.a1.a1.a0 = -23;
+  a1.a0.a1.a1.a1 = 24;
+  a1.a1.a0.a0.a0 = -25;
+  a1.a1.a0.a0.a1 = 26;
+  a1.a1.a0.a1.a0 = -27;
+  a1.a1.a0.a1.a1 = 28;
+  a1.a1.a1.a0.a0 = -29;
+  a1.a1.a1.a0.a1 = 30;
+  a1.a1.a1.a1.a0 = -31;
+  a1.a1.a1.a1.a1 = 32;
+
+  std::cout << "Calling TestAsyncPassStruct32BytesNestedIntx2("
+            << "(((((" << a0.a0.a0.a0.a0 << ", " << a0.a0.a0.a0.a1 << "), ("
+            << a0.a0.a0.a1.a0 << ", " << a0.a0.a0.a1.a1 << ")), (("
+            << a0.a0.a1.a0.a0 << ", " << a0.a0.a1.a0.a1 << "), ("
+            << a0.a0.a1.a1.a0 << ", " << a0.a0.a1.a1.a1 << "))), ((("
+            << a0.a1.a0.a0.a0 << ", " << a0.a1.a0.a0.a1 << "), ("
+            << a0.a1.a0.a1.a0 << ", " << a0.a1.a0.a1.a1 << ")), (("
+            << a0.a1.a1.a0.a0 << ", " << a0.a1.a1.a0.a1 << "), ("
+            << a0.a1.a1.a1.a0 << ", " << a0.a1.a1.a1.a1 << ")))), (((("
+            << a1.a0.a0.a0.a0 << ", " << a1.a0.a0.a0.a1 << "), ("
+            << a1.a0.a0.a1.a0 << ", " << a1.a0.a0.a1.a1 << ")), (("
+            << a1.a0.a1.a0.a0 << ", " << a1.a0.a1.a0.a1 << "), ("
+            << a1.a0.a1.a1.a0 << ", " << a1.a0.a1.a1.a1 << "))), ((("
+            << a1.a1.a0.a0.a0 << ", " << a1.a1.a0.a0.a1 << "), ("
+            << a1.a1.a0.a1.a0 << ", " << a1.a1.a0.a1.a1 << ")), (("
+            << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1 << "), ("
+            << a1.a1.a1.a1.a0 << ", " << a1.a1.a1.a1.a1 << ")))))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT void TestAsyncPassStructNestedIntStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructNestedIntStructAlignmentInt16 a0)) {
+  StructNestedIntStructAlignmentInt16 a0 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncPassStructNestedIntStructAlignmentInt16("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT void TestAsyncPassStructNestedIntStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructNestedIntStructAlignmentInt32 a0)) {
+  StructNestedIntStructAlignmentInt32 a0 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncPassStructNestedIntStructAlignmentInt32("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT void TestAsyncPassStructNestedIntStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructNestedIntStructAlignmentInt64 a0)) {
+  StructNestedIntStructAlignmentInt64 a0 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a0.a1.a0 = 4;
+  a0.a1.a1 = -5;
+  a0.a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncPassStructNestedIntStructAlignmentInt64("
+            << "(((" << static_cast<int>(a0.a0.a0) << ", " << a0.a0.a1 << ", "
+            << static_cast<int>(a0.a0.a2) << "), ("
+            << static_cast<int>(a0.a1.a0) << ", " << a0.a1.a1 << ", "
+            << static_cast<int>(a0.a1.a2) << ")))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT void TestAsyncPassStructNestedIrregularEvenBiggerx4(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructNestedIrregularEvenBigger a0,
+              StructNestedIrregularEvenBigger a1,
+              StructNestedIrregularEvenBigger a2,
+              StructNestedIrregularEvenBigger a3)) {
+  StructNestedIrregularEvenBigger a0 = {};
+  StructNestedIrregularEvenBigger a1 = {};
+  StructNestedIrregularEvenBigger a2 = {};
+  StructNestedIrregularEvenBigger a3 = {};
+
+  a0.a0 = 1;
+  a0.a1.a0.a0 = 2;
+  a0.a1.a0.a1.a0.a0 = -3;
+  a0.a1.a0.a1.a0.a1 = 4;
+  a0.a1.a0.a1.a1.a0 = -5.0;
+  a0.a1.a0.a2 = 6;
+  a0.a1.a0.a3.a0.a0 = -7.0;
+  a0.a1.a0.a3.a1 = 8.0;
+  a0.a1.a0.a4 = 9;
+  a0.a1.a0.a5.a0.a0 = 10.0;
+  a0.a1.a0.a5.a1.a0 = -11.0;
+  a0.a1.a0.a6 = 12;
+  a0.a1.a1.a0.a0 = -13;
+  a0.a1.a1.a0.a1 = 14;
+  a0.a1.a1.a1.a0 = -15.0;
+  a0.a1.a2 = 16.0;
+  a0.a1.a3 = -17.0;
+  a0.a2.a0.a0 = 18;
+  a0.a2.a0.a1.a0.a0 = -19;
+  a0.a2.a0.a1.a0.a1 = 20;
+  a0.a2.a0.a1.a1.a0 = -21.0;
+  a0.a2.a0.a2 = 22;
+  a0.a2.a0.a3.a0.a0 = -23.0;
+  a0.a2.a0.a3.a1 = 24.0;
+  a0.a2.a0.a4 = 25;
+  a0.a2.a0.a5.a0.a0 = 26.0;
+  a0.a2.a0.a5.a1.a0 = -27.0;
+  a0.a2.a0.a6 = 28;
+  a0.a2.a1.a0.a0 = -29;
+  a0.a2.a1.a0.a1 = 30;
+  a0.a2.a1.a1.a0 = -31.0;
+  a0.a2.a2 = 32.0;
+  a0.a2.a3 = -33.0;
+  a0.a3 = 34.0;
+  a1.a0 = 35;
+  a1.a1.a0.a0 = 36;
+  a1.a1.a0.a1.a0.a0 = -37;
+  a1.a1.a0.a1.a0.a1 = 38;
+  a1.a1.a0.a1.a1.a0 = -39.0;
+  a1.a1.a0.a2 = 40;
+  a1.a1.a0.a3.a0.a0 = -41.0;
+  a1.a1.a0.a3.a1 = 42.0;
+  a1.a1.a0.a4 = 43;
+  a1.a1.a0.a5.a0.a0 = 44.0;
+  a1.a1.a0.a5.a1.a0 = -45.0;
+  a1.a1.a0.a6 = 46;
+  a1.a1.a1.a0.a0 = -47;
+  a1.a1.a1.a0.a1 = 48;
+  a1.a1.a1.a1.a0 = -49.0;
+  a1.a1.a2 = 50.0;
+  a1.a1.a3 = -51.0;
+  a1.a2.a0.a0 = 52;
+  a1.a2.a0.a1.a0.a0 = -53;
+  a1.a2.a0.a1.a0.a1 = 54;
+  a1.a2.a0.a1.a1.a0 = -55.0;
+  a1.a2.a0.a2 = 56;
+  a1.a2.a0.a3.a0.a0 = -57.0;
+  a1.a2.a0.a3.a1 = 58.0;
+  a1.a2.a0.a4 = 59;
+  a1.a2.a0.a5.a0.a0 = 60.0;
+  a1.a2.a0.a5.a1.a0 = -61.0;
+  a1.a2.a0.a6 = 62;
+  a1.a2.a1.a0.a0 = -63;
+  a1.a2.a1.a0.a1 = 64;
+  a1.a2.a1.a1.a0 = -65.0;
+  a1.a2.a2 = 66.0;
+  a1.a2.a3 = -67.0;
+  a1.a3 = 68.0;
+  a2.a0 = 69;
+  a2.a1.a0.a0 = 70;
+  a2.a1.a0.a1.a0.a0 = -71;
+  a2.a1.a0.a1.a0.a1 = 72;
+  a2.a1.a0.a1.a1.a0 = -73.0;
+  a2.a1.a0.a2 = 74;
+  a2.a1.a0.a3.a0.a0 = -75.0;
+  a2.a1.a0.a3.a1 = 76.0;
+  a2.a1.a0.a4 = 77;
+  a2.a1.a0.a5.a0.a0 = 78.0;
+  a2.a1.a0.a5.a1.a0 = -79.0;
+  a2.a1.a0.a6 = 80;
+  a2.a1.a1.a0.a0 = -81;
+  a2.a1.a1.a0.a1 = 82;
+  a2.a1.a1.a1.a0 = -83.0;
+  a2.a1.a2 = 84.0;
+  a2.a1.a3 = -85.0;
+  a2.a2.a0.a0 = 86;
+  a2.a2.a0.a1.a0.a0 = -87;
+  a2.a2.a0.a1.a0.a1 = 88;
+  a2.a2.a0.a1.a1.a0 = -89.0;
+  a2.a2.a0.a2 = 90;
+  a2.a2.a0.a3.a0.a0 = -91.0;
+  a2.a2.a0.a3.a1 = 92.0;
+  a2.a2.a0.a4 = 93;
+  a2.a2.a0.a5.a0.a0 = 94.0;
+  a2.a2.a0.a5.a1.a0 = -95.0;
+  a2.a2.a0.a6 = 96;
+  a2.a2.a1.a0.a0 = -97;
+  a2.a2.a1.a0.a1 = 98;
+  a2.a2.a1.a1.a0 = -99.0;
+  a2.a2.a2 = 100.0;
+  a2.a2.a3 = -101.0;
+  a2.a3 = 102.0;
+  a3.a0 = 103;
+  a3.a1.a0.a0 = 104;
+  a3.a1.a0.a1.a0.a0 = -105;
+  a3.a1.a0.a1.a0.a1 = 106;
+  a3.a1.a0.a1.a1.a0 = -107.0;
+  a3.a1.a0.a2 = 108;
+  a3.a1.a0.a3.a0.a0 = -109.0;
+  a3.a1.a0.a3.a1 = 110.0;
+  a3.a1.a0.a4 = 111;
+  a3.a1.a0.a5.a0.a0 = 112.0;
+  a3.a1.a0.a5.a1.a0 = -113.0;
+  a3.a1.a0.a6 = 114;
+  a3.a1.a1.a0.a0 = -115;
+  a3.a1.a1.a0.a1 = 116;
+  a3.a1.a1.a1.a0 = -117.0;
+  a3.a1.a2 = 118.0;
+  a3.a1.a3 = -119.0;
+  a3.a2.a0.a0 = 120;
+  a3.a2.a0.a1.a0.a0 = -121;
+  a3.a2.a0.a1.a0.a1 = 122;
+  a3.a2.a0.a1.a1.a0 = -123.0;
+  a3.a2.a0.a2 = 124;
+  a3.a2.a0.a3.a0.a0 = -125.0;
+  a3.a2.a0.a3.a1 = 126.0;
+  a3.a2.a0.a4 = 127;
+  a3.a2.a0.a5.a0.a0 = 128.0;
+  a3.a2.a0.a5.a1.a0 = -129.0;
+  a3.a2.a0.a6 = 130;
+  a3.a2.a1.a0.a0 = -131;
+  a3.a2.a1.a0.a1 = 132;
+  a3.a2.a1.a1.a0 = -133.0;
+  a3.a2.a2 = 134.0;
+  a3.a2.a3 = -135.0;
+  a3.a3 = 136.0;
+
+  std::cout
+      << "Calling TestAsyncPassStructNestedIrregularEvenBiggerx4("
+      << "((" << a0.a0 << ", ((" << a0.a1.a0.a0 << ", ((" << a0.a1.a0.a1.a0.a0
+      << ", " << a0.a1.a0.a1.a0.a1 << "), (" << a0.a1.a0.a1.a1.a0 << ")), "
+      << a0.a1.a0.a2 << ", ((" << a0.a1.a0.a3.a0.a0 << "), " << a0.a1.a0.a3.a1
+      << "), " << a0.a1.a0.a4 << ", ((" << a0.a1.a0.a5.a0.a0 << "), ("
+      << a0.a1.a0.a5.a1.a0 << ")), " << a0.a1.a0.a6 << "), ((" << a0.a1.a1.a0.a0
+      << ", " << a0.a1.a1.a0.a1 << "), (" << a0.a1.a1.a1.a0 << ")), "
+      << a0.a1.a2 << ", " << a0.a1.a3 << "), ((" << a0.a2.a0.a0 << ", (("
+      << a0.a2.a0.a1.a0.a0 << ", " << a0.a2.a0.a1.a0.a1 << "), ("
+      << a0.a2.a0.a1.a1.a0 << ")), " << a0.a2.a0.a2 << ", (("
+      << a0.a2.a0.a3.a0.a0 << "), " << a0.a2.a0.a3.a1 << "), " << a0.a2.a0.a4
+      << ", ((" << a0.a2.a0.a5.a0.a0 << "), (" << a0.a2.a0.a5.a1.a0 << ")), "
+      << a0.a2.a0.a6 << "), ((" << a0.a2.a1.a0.a0 << ", " << a0.a2.a1.a0.a1
+      << "), (" << a0.a2.a1.a1.a0 << ")), " << a0.a2.a2 << ", " << a0.a2.a3
+      << "), " << a0.a3 << "), (" << a1.a0 << ", ((" << a1.a1.a0.a0 << ", (("
+      << a1.a1.a0.a1.a0.a0 << ", " << a1.a1.a0.a1.a0.a1 << "), ("
+      << a1.a1.a0.a1.a1.a0 << ")), " << a1.a1.a0.a2 << ", (("
+      << a1.a1.a0.a3.a0.a0 << "), " << a1.a1.a0.a3.a1 << "), " << a1.a1.a0.a4
+      << ", ((" << a1.a1.a0.a5.a0.a0 << "), (" << a1.a1.a0.a5.a1.a0 << ")), "
+      << a1.a1.a0.a6 << "), ((" << a1.a1.a1.a0.a0 << ", " << a1.a1.a1.a0.a1
+      << "), (" << a1.a1.a1.a1.a0 << ")), " << a1.a1.a2 << ", " << a1.a1.a3
+      << "), ((" << a1.a2.a0.a0 << ", ((" << a1.a2.a0.a1.a0.a0 << ", "
+      << a1.a2.a0.a1.a0.a1 << "), (" << a1.a2.a0.a1.a1.a0 << ")), "
+      << a1.a2.a0.a2 << ", ((" << a1.a2.a0.a3.a0.a0 << "), " << a1.a2.a0.a3.a1
+      << "), " << a1.a2.a0.a4 << ", ((" << a1.a2.a0.a5.a0.a0 << "), ("
+      << a1.a2.a0.a5.a1.a0 << ")), " << a1.a2.a0.a6 << "), ((" << a1.a2.a1.a0.a0
+      << ", " << a1.a2.a1.a0.a1 << "), (" << a1.a2.a1.a1.a0 << ")), "
+      << a1.a2.a2 << ", " << a1.a2.a3 << "), " << a1.a3 << "), (" << a2.a0
+      << ", ((" << a2.a1.a0.a0 << ", ((" << a2.a1.a0.a1.a0.a0 << ", "
+      << a2.a1.a0.a1.a0.a1 << "), (" << a2.a1.a0.a1.a1.a0 << ")), "
+      << a2.a1.a0.a2 << ", ((" << a2.a1.a0.a3.a0.a0 << "), " << a2.a1.a0.a3.a1
+      << "), " << a2.a1.a0.a4 << ", ((" << a2.a1.a0.a5.a0.a0 << "), ("
+      << a2.a1.a0.a5.a1.a0 << ")), " << a2.a1.a0.a6 << "), ((" << a2.a1.a1.a0.a0
+      << ", " << a2.a1.a1.a0.a1 << "), (" << a2.a1.a1.a1.a0 << ")), "
+      << a2.a1.a2 << ", " << a2.a1.a3 << "), ((" << a2.a2.a0.a0 << ", (("
+      << a2.a2.a0.a1.a0.a0 << ", " << a2.a2.a0.a1.a0.a1 << "), ("
+      << a2.a2.a0.a1.a1.a0 << ")), " << a2.a2.a0.a2 << ", (("
+      << a2.a2.a0.a3.a0.a0 << "), " << a2.a2.a0.a3.a1 << "), " << a2.a2.a0.a4
+      << ", ((" << a2.a2.a0.a5.a0.a0 << "), (" << a2.a2.a0.a5.a1.a0 << ")), "
+      << a2.a2.a0.a6 << "), ((" << a2.a2.a1.a0.a0 << ", " << a2.a2.a1.a0.a1
+      << "), (" << a2.a2.a1.a1.a0 << ")), " << a2.a2.a2 << ", " << a2.a2.a3
+      << "), " << a2.a3 << "), (" << a3.a0 << ", ((" << a3.a1.a0.a0 << ", (("
+      << a3.a1.a0.a1.a0.a0 << ", " << a3.a1.a0.a1.a0.a1 << "), ("
+      << a3.a1.a0.a1.a1.a0 << ")), " << a3.a1.a0.a2 << ", (("
+      << a3.a1.a0.a3.a0.a0 << "), " << a3.a1.a0.a3.a1 << "), " << a3.a1.a0.a4
+      << ", ((" << a3.a1.a0.a5.a0.a0 << "), (" << a3.a1.a0.a5.a1.a0 << ")), "
+      << a3.a1.a0.a6 << "), ((" << a3.a1.a1.a0.a0 << ", " << a3.a1.a1.a0.a1
+      << "), (" << a3.a1.a1.a1.a0 << ")), " << a3.a1.a2 << ", " << a3.a1.a3
+      << "), ((" << a3.a2.a0.a0 << ", ((" << a3.a2.a0.a1.a0.a0 << ", "
+      << a3.a2.a0.a1.a0.a1 << "), (" << a3.a2.a0.a1.a1.a0 << ")), "
+      << a3.a2.a0.a2 << ", ((" << a3.a2.a0.a3.a0.a0 << "), " << a3.a2.a0.a3.a1
+      << "), " << a3.a2.a0.a4 << ", ((" << a3.a2.a0.a5.a0.a0 << "), ("
+      << a3.a2.a0.a5.a1.a0 << ")), " << a3.a2.a0.a6 << "), ((" << a3.a2.a1.a0.a0
+      << ", " << a3.a2.a1.a0.a1 << "), (" << a3.a2.a1.a1.a0 << ")), "
+      << a3.a2.a2 << ", " << a3.a2.a3 << "), " << a3.a3 << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Simple struct with inline array.
+DART_EXPORT void TestAsyncPassStruct8BytesInlineArrayIntx4(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesInlineArrayInt a0,
+              Struct8BytesInlineArrayInt a1,
+              Struct8BytesInlineArrayInt a2,
+              Struct8BytesInlineArrayInt a3)) {
+  Struct8BytesInlineArrayInt a0 = {};
+  Struct8BytesInlineArrayInt a1 = {};
+  Struct8BytesInlineArrayInt a2 = {};
+  Struct8BytesInlineArrayInt a3 = {};
+
+  a0.a0[0] = 1;
+  a0.a0[1] = 2;
+  a0.a0[2] = 3;
+  a0.a0[3] = 4;
+  a0.a0[4] = 5;
+  a0.a0[5] = 6;
+  a0.a0[6] = 7;
+  a0.a0[7] = 8;
+  a1.a0[0] = 9;
+  a1.a0[1] = 10;
+  a1.a0[2] = 11;
+  a1.a0[3] = 12;
+  a1.a0[4] = 13;
+  a1.a0[5] = 14;
+  a1.a0[6] = 15;
+  a1.a0[7] = 16;
+  a2.a0[0] = 17;
+  a2.a0[1] = 18;
+  a2.a0[2] = 19;
+  a2.a0[3] = 20;
+  a2.a0[4] = 21;
+  a2.a0[5] = 22;
+  a2.a0[6] = 23;
+  a2.a0[7] = 24;
+  a3.a0[0] = 25;
+  a3.a0[1] = 26;
+  a3.a0[2] = 27;
+  a3.a0[3] = 28;
+  a3.a0[4] = 29;
+  a3.a0[5] = 30;
+  a3.a0[6] = 31;
+  a3.a0[7] = 32;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesInlineArrayIntx4("
+            << "(([" << static_cast<int>(a0.a0[0]) << ", "
+            << static_cast<int>(a0.a0[1]) << ", " << static_cast<int>(a0.a0[2])
+            << ", " << static_cast<int>(a0.a0[3]) << ", "
+            << static_cast<int>(a0.a0[4]) << ", " << static_cast<int>(a0.a0[5])
+            << ", " << static_cast<int>(a0.a0[6]) << ", "
+            << static_cast<int>(a0.a0[7]) << "]), (["
+            << static_cast<int>(a1.a0[0]) << ", " << static_cast<int>(a1.a0[1])
+            << ", " << static_cast<int>(a1.a0[2]) << ", "
+            << static_cast<int>(a1.a0[3]) << ", " << static_cast<int>(a1.a0[4])
+            << ", " << static_cast<int>(a1.a0[5]) << ", "
+            << static_cast<int>(a1.a0[6]) << ", " << static_cast<int>(a1.a0[7])
+            << "]), ([" << static_cast<int>(a2.a0[0]) << ", "
+            << static_cast<int>(a2.a0[1]) << ", " << static_cast<int>(a2.a0[2])
+            << ", " << static_cast<int>(a2.a0[3]) << ", "
+            << static_cast<int>(a2.a0[4]) << ", " << static_cast<int>(a2.a0[5])
+            << ", " << static_cast<int>(a2.a0[6]) << ", "
+            << static_cast<int>(a2.a0[7]) << "]), (["
+            << static_cast<int>(a3.a0[0]) << ", " << static_cast<int>(a3.a0[1])
+            << ", " << static_cast<int>(a3.a0[2]) << ", "
+            << static_cast<int>(a3.a0[3]) << ", " << static_cast<int>(a3.a0[4])
+            << ", " << static_cast<int>(a3.a0[5]) << ", "
+            << static_cast<int>(a3.a0[6]) << ", " << static_cast<int>(a3.a0[7])
+            << "]))"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Irregular struct with inline array.
+DART_EXPORT void TestAsyncPassStructInlineArrayIrregularx4(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructInlineArrayIrregular a0,
+              StructInlineArrayIrregular a1,
+              StructInlineArrayIrregular a2,
+              StructInlineArrayIrregular a3)) {
+  StructInlineArrayIrregular a0 = {};
+  StructInlineArrayIrregular a1 = {};
+  StructInlineArrayIrregular a2 = {};
+  StructInlineArrayIrregular a3 = {};
+
+  a0.a0[0].a0 = -1;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3;
+  a0.a0[1].a1 = 4;
+  a0.a1 = 5;
+  a1.a0[0].a0 = 6;
+  a1.a0[0].a1 = -7;
+  a1.a0[1].a0 = 8;
+  a1.a0[1].a1 = -9;
+  a1.a1 = 10;
+  a2.a0[0].a0 = -11;
+  a2.a0[0].a1 = 12;
+  a2.a0[1].a0 = -13;
+  a2.a0[1].a1 = 14;
+  a2.a1 = 15;
+  a3.a0[0].a0 = 16;
+  a3.a0[0].a1 = -17;
+  a3.a0[1].a0 = 18;
+  a3.a0[1].a1 = -19;
+  a3.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStructInlineArrayIrregularx4("
+            << "(([(" << a0.a0[0].a0 << ", " << static_cast<int>(a0.a0[0].a1)
+            << "), (" << a0.a0[1].a0 << ", " << static_cast<int>(a0.a0[1].a1)
+            << ")], " << static_cast<int>(a0.a1) << "), ([(" << a1.a0[0].a0
+            << ", " << static_cast<int>(a1.a0[0].a1) << "), (" << a1.a0[1].a0
+            << ", " << static_cast<int>(a1.a0[1].a1) << ")], "
+            << static_cast<int>(a1.a1) << "), ([(" << a2.a0[0].a0 << ", "
+            << static_cast<int>(a2.a0[0].a1) << "), (" << a2.a0[1].a0 << ", "
+            << static_cast<int>(a2.a0[1].a1) << ")], "
+            << static_cast<int>(a2.a1) << "), ([(" << a3.a0[0].a0 << ", "
+            << static_cast<int>(a3.a0[0].a1) << "), (" << a3.a0[1].a0 << ", "
+            << static_cast<int>(a3.a0[1].a1) << ")], "
+            << static_cast<int>(a3.a1) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Regular larger struct with inline array.
+DART_EXPORT void TestAsyncPassStructInlineArray100Bytes(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructInlineArray100Bytes a0)) {
+  StructInlineArray100Bytes a0 = {};
+
+  a0.a0[0] = 1;
+  a0.a0[1] = 2;
+  a0.a0[2] = 3;
+  a0.a0[3] = 4;
+  a0.a0[4] = 5;
+  a0.a0[5] = 6;
+  a0.a0[6] = 7;
+  a0.a0[7] = 8;
+  a0.a0[8] = 9;
+  a0.a0[9] = 10;
+  a0.a0[10] = 11;
+  a0.a0[11] = 12;
+  a0.a0[12] = 13;
+  a0.a0[13] = 14;
+  a0.a0[14] = 15;
+  a0.a0[15] = 16;
+  a0.a0[16] = 17;
+  a0.a0[17] = 18;
+  a0.a0[18] = 19;
+  a0.a0[19] = 20;
+  a0.a0[20] = 21;
+  a0.a0[21] = 22;
+  a0.a0[22] = 23;
+  a0.a0[23] = 24;
+  a0.a0[24] = 25;
+  a0.a0[25] = 26;
+  a0.a0[26] = 27;
+  a0.a0[27] = 28;
+  a0.a0[28] = 29;
+  a0.a0[29] = 30;
+  a0.a0[30] = 31;
+  a0.a0[31] = 32;
+  a0.a0[32] = 33;
+  a0.a0[33] = 34;
+  a0.a0[34] = 35;
+  a0.a0[35] = 36;
+  a0.a0[36] = 37;
+  a0.a0[37] = 38;
+  a0.a0[38] = 39;
+  a0.a0[39] = 40;
+  a0.a0[40] = 41;
+  a0.a0[41] = 42;
+  a0.a0[42] = 43;
+  a0.a0[43] = 44;
+  a0.a0[44] = 45;
+  a0.a0[45] = 46;
+  a0.a0[46] = 47;
+  a0.a0[47] = 48;
+  a0.a0[48] = 49;
+  a0.a0[49] = 50;
+  a0.a0[50] = 51;
+  a0.a0[51] = 52;
+  a0.a0[52] = 53;
+  a0.a0[53] = 54;
+  a0.a0[54] = 55;
+  a0.a0[55] = 56;
+  a0.a0[56] = 57;
+  a0.a0[57] = 58;
+  a0.a0[58] = 59;
+  a0.a0[59] = 60;
+  a0.a0[60] = 61;
+  a0.a0[61] = 62;
+  a0.a0[62] = 63;
+  a0.a0[63] = 64;
+  a0.a0[64] = 65;
+  a0.a0[65] = 66;
+  a0.a0[66] = 67;
+  a0.a0[67] = 68;
+  a0.a0[68] = 69;
+  a0.a0[69] = 70;
+  a0.a0[70] = 71;
+  a0.a0[71] = 72;
+  a0.a0[72] = 73;
+  a0.a0[73] = 74;
+  a0.a0[74] = 75;
+  a0.a0[75] = 76;
+  a0.a0[76] = 77;
+  a0.a0[77] = 78;
+  a0.a0[78] = 79;
+  a0.a0[79] = 80;
+  a0.a0[80] = 81;
+  a0.a0[81] = 82;
+  a0.a0[82] = 83;
+  a0.a0[83] = 84;
+  a0.a0[84] = 85;
+  a0.a0[85] = 86;
+  a0.a0[86] = 87;
+  a0.a0[87] = 88;
+  a0.a0[88] = 89;
+  a0.a0[89] = 90;
+  a0.a0[90] = 91;
+  a0.a0[91] = 92;
+  a0.a0[92] = 93;
+  a0.a0[93] = 94;
+  a0.a0[94] = 95;
+  a0.a0[95] = 96;
+  a0.a0[96] = 97;
+  a0.a0[97] = 98;
+  a0.a0[98] = 99;
+  a0.a0[99] = 100;
+
+  std::cout
+      << "Calling TestAsyncPassStructInlineArray100Bytes("
+      << "(([" << static_cast<int>(a0.a0[0]) << ", "
+      << static_cast<int>(a0.a0[1]) << ", " << static_cast<int>(a0.a0[2])
+      << ", " << static_cast<int>(a0.a0[3]) << ", "
+      << static_cast<int>(a0.a0[4]) << ", " << static_cast<int>(a0.a0[5])
+      << ", " << static_cast<int>(a0.a0[6]) << ", "
+      << static_cast<int>(a0.a0[7]) << ", " << static_cast<int>(a0.a0[8])
+      << ", " << static_cast<int>(a0.a0[9]) << ", "
+      << static_cast<int>(a0.a0[10]) << ", " << static_cast<int>(a0.a0[11])
+      << ", " << static_cast<int>(a0.a0[12]) << ", "
+      << static_cast<int>(a0.a0[13]) << ", " << static_cast<int>(a0.a0[14])
+      << ", " << static_cast<int>(a0.a0[15]) << ", "
+      << static_cast<int>(a0.a0[16]) << ", " << static_cast<int>(a0.a0[17])
+      << ", " << static_cast<int>(a0.a0[18]) << ", "
+      << static_cast<int>(a0.a0[19]) << ", " << static_cast<int>(a0.a0[20])
+      << ", " << static_cast<int>(a0.a0[21]) << ", "
+      << static_cast<int>(a0.a0[22]) << ", " << static_cast<int>(a0.a0[23])
+      << ", " << static_cast<int>(a0.a0[24]) << ", "
+      << static_cast<int>(a0.a0[25]) << ", " << static_cast<int>(a0.a0[26])
+      << ", " << static_cast<int>(a0.a0[27]) << ", "
+      << static_cast<int>(a0.a0[28]) << ", " << static_cast<int>(a0.a0[29])
+      << ", " << static_cast<int>(a0.a0[30]) << ", "
+      << static_cast<int>(a0.a0[31]) << ", " << static_cast<int>(a0.a0[32])
+      << ", " << static_cast<int>(a0.a0[33]) << ", "
+      << static_cast<int>(a0.a0[34]) << ", " << static_cast<int>(a0.a0[35])
+      << ", " << static_cast<int>(a0.a0[36]) << ", "
+      << static_cast<int>(a0.a0[37]) << ", " << static_cast<int>(a0.a0[38])
+      << ", " << static_cast<int>(a0.a0[39]) << ", "
+      << static_cast<int>(a0.a0[40]) << ", " << static_cast<int>(a0.a0[41])
+      << ", " << static_cast<int>(a0.a0[42]) << ", "
+      << static_cast<int>(a0.a0[43]) << ", " << static_cast<int>(a0.a0[44])
+      << ", " << static_cast<int>(a0.a0[45]) << ", "
+      << static_cast<int>(a0.a0[46]) << ", " << static_cast<int>(a0.a0[47])
+      << ", " << static_cast<int>(a0.a0[48]) << ", "
+      << static_cast<int>(a0.a0[49]) << ", " << static_cast<int>(a0.a0[50])
+      << ", " << static_cast<int>(a0.a0[51]) << ", "
+      << static_cast<int>(a0.a0[52]) << ", " << static_cast<int>(a0.a0[53])
+      << ", " << static_cast<int>(a0.a0[54]) << ", "
+      << static_cast<int>(a0.a0[55]) << ", " << static_cast<int>(a0.a0[56])
+      << ", " << static_cast<int>(a0.a0[57]) << ", "
+      << static_cast<int>(a0.a0[58]) << ", " << static_cast<int>(a0.a0[59])
+      << ", " << static_cast<int>(a0.a0[60]) << ", "
+      << static_cast<int>(a0.a0[61]) << ", " << static_cast<int>(a0.a0[62])
+      << ", " << static_cast<int>(a0.a0[63]) << ", "
+      << static_cast<int>(a0.a0[64]) << ", " << static_cast<int>(a0.a0[65])
+      << ", " << static_cast<int>(a0.a0[66]) << ", "
+      << static_cast<int>(a0.a0[67]) << ", " << static_cast<int>(a0.a0[68])
+      << ", " << static_cast<int>(a0.a0[69]) << ", "
+      << static_cast<int>(a0.a0[70]) << ", " << static_cast<int>(a0.a0[71])
+      << ", " << static_cast<int>(a0.a0[72]) << ", "
+      << static_cast<int>(a0.a0[73]) << ", " << static_cast<int>(a0.a0[74])
+      << ", " << static_cast<int>(a0.a0[75]) << ", "
+      << static_cast<int>(a0.a0[76]) << ", " << static_cast<int>(a0.a0[77])
+      << ", " << static_cast<int>(a0.a0[78]) << ", "
+      << static_cast<int>(a0.a0[79]) << ", " << static_cast<int>(a0.a0[80])
+      << ", " << static_cast<int>(a0.a0[81]) << ", "
+      << static_cast<int>(a0.a0[82]) << ", " << static_cast<int>(a0.a0[83])
+      << ", " << static_cast<int>(a0.a0[84]) << ", "
+      << static_cast<int>(a0.a0[85]) << ", " << static_cast<int>(a0.a0[86])
+      << ", " << static_cast<int>(a0.a0[87]) << ", "
+      << static_cast<int>(a0.a0[88]) << ", " << static_cast<int>(a0.a0[89])
+      << ", " << static_cast<int>(a0.a0[90]) << ", "
+      << static_cast<int>(a0.a0[91]) << ", " << static_cast<int>(a0.a0[92])
+      << ", " << static_cast<int>(a0.a0[93]) << ", "
+      << static_cast<int>(a0.a0[94]) << ", " << static_cast<int>(a0.a0[95])
+      << ", " << static_cast<int>(a0.a0[96]) << ", "
+      << static_cast<int>(a0.a0[97]) << ", " << static_cast<int>(a0.a0[98])
+      << ", " << static_cast<int>(a0.a0[99]) << "]))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Arguments in FPU registers on arm hardfp and arm64.
+// 5 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStructStruct16BytesHomogeneousFloat2x5(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct16BytesHomogeneousFloat2 a0,
+              StructStruct16BytesHomogeneousFloat2 a1,
+              StructStruct16BytesHomogeneousFloat2 a2,
+              StructStruct16BytesHomogeneousFloat2 a3,
+              StructStruct16BytesHomogeneousFloat2 a4)) {
+  StructStruct16BytesHomogeneousFloat2 a0 = {};
+  StructStruct16BytesHomogeneousFloat2 a1 = {};
+  StructStruct16BytesHomogeneousFloat2 a2 = {};
+  StructStruct16BytesHomogeneousFloat2 a3 = {};
+  StructStruct16BytesHomogeneousFloat2 a4 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[1].a0 = -3.0;
+  a0.a2 = 4.0;
+  a1.a0.a0 = -5.0;
+  a1.a1[0].a0 = 6.0;
+  a1.a1[1].a0 = -7.0;
+  a1.a2 = 8.0;
+  a2.a0.a0 = -9.0;
+  a2.a1[0].a0 = 10.0;
+  a2.a1[1].a0 = -11.0;
+  a2.a2 = 12.0;
+  a3.a0.a0 = -13.0;
+  a3.a1[0].a0 = 14.0;
+  a3.a1[1].a0 = -15.0;
+  a3.a2 = 16.0;
+  a4.a0.a0 = -17.0;
+  a4.a1[0].a0 = 18.0;
+  a4.a1[1].a0 = -19.0;
+  a4.a2 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStructStruct16BytesHomogeneousFloat2x5("
+            << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << "), ("
+            << a0.a1[1].a0 << ")], " << a0.a2 << "), ((" << a1.a0.a0 << "), [("
+            << a1.a1[0].a0 << "), (" << a1.a1[1].a0 << ")], " << a1.a2
+            << "), ((" << a2.a0.a0 << "), [(" << a2.a1[0].a0 << "), ("
+            << a2.a1[1].a0 << ")], " << a2.a2 << "), ((" << a3.a0.a0 << "), [("
+            << a3.a1[0].a0 << "), (" << a3.a1[1].a0 << ")], " << a3.a2
+            << "), ((" << a4.a0.a0 << "), [(" << a4.a1[0].a0 << "), ("
+            << a4.a1[1].a0 << ")], " << a4.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Arguments in FPU registers on arm64.
+// 5 struct arguments will exhaust available registers.
+DART_EXPORT void TestAsyncPassStructStruct32BytesHomogeneousDouble2x5(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct32BytesHomogeneousDouble2 a0,
+              StructStruct32BytesHomogeneousDouble2 a1,
+              StructStruct32BytesHomogeneousDouble2 a2,
+              StructStruct32BytesHomogeneousDouble2 a3,
+              StructStruct32BytesHomogeneousDouble2 a4)) {
+  StructStruct32BytesHomogeneousDouble2 a0 = {};
+  StructStruct32BytesHomogeneousDouble2 a1 = {};
+  StructStruct32BytesHomogeneousDouble2 a2 = {};
+  StructStruct32BytesHomogeneousDouble2 a3 = {};
+  StructStruct32BytesHomogeneousDouble2 a4 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[1].a0 = -3.0;
+  a0.a2 = 4.0;
+  a1.a0.a0 = -5.0;
+  a1.a1[0].a0 = 6.0;
+  a1.a1[1].a0 = -7.0;
+  a1.a2 = 8.0;
+  a2.a0.a0 = -9.0;
+  a2.a1[0].a0 = 10.0;
+  a2.a1[1].a0 = -11.0;
+  a2.a2 = 12.0;
+  a3.a0.a0 = -13.0;
+  a3.a1[0].a0 = 14.0;
+  a3.a1[1].a0 = -15.0;
+  a3.a2 = 16.0;
+  a4.a0.a0 = -17.0;
+  a4.a1[0].a0 = 18.0;
+  a4.a1[1].a0 = -19.0;
+  a4.a2 = 20.0;
+
+  std::cout << "Calling TestAsyncPassStructStruct32BytesHomogeneousDouble2x5("
+            << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << "), ("
+            << a0.a1[1].a0 << ")], " << a0.a2 << "), ((" << a1.a0.a0 << "), [("
+            << a1.a1[0].a0 << "), (" << a1.a1[1].a0 << ")], " << a1.a2
+            << "), ((" << a2.a0.a0 << "), [(" << a2.a1[0].a0 << "), ("
+            << a2.a1[1].a0 << ")], " << a2.a2 << "), ((" << a3.a0.a0 << "), [("
+            << a3.a1[0].a0 << "), (" << a3.a1[1].a0 << ")], " << a3.a2
+            << "), ((" << a4.a0.a0 << "), [(" << a4.a1[0].a0 << "), ("
+            << a4.a1[1].a0 << ")], " << a4.a2 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// On x64, arguments are split over FP and int registers.
+// On x64, it will exhaust the integer registers with the 6th argument.
+// The rest goes on the stack.
+// On arm, arguments are 4 byte aligned.
+DART_EXPORT void TestAsyncPassStructStruct16BytesMixed3x10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct16BytesMixed3 a0,
+              StructStruct16BytesMixed3 a1,
+              StructStruct16BytesMixed3 a2,
+              StructStruct16BytesMixed3 a3,
+              StructStruct16BytesMixed3 a4,
+              StructStruct16BytesMixed3 a5,
+              StructStruct16BytesMixed3 a6,
+              StructStruct16BytesMixed3 a7,
+              StructStruct16BytesMixed3 a8,
+              StructStruct16BytesMixed3 a9)) {
+  StructStruct16BytesMixed3 a0 = {};
+  StructStruct16BytesMixed3 a1 = {};
+  StructStruct16BytesMixed3 a2 = {};
+  StructStruct16BytesMixed3 a3 = {};
+  StructStruct16BytesMixed3 a4 = {};
+  StructStruct16BytesMixed3 a5 = {};
+  StructStruct16BytesMixed3 a6 = {};
+  StructStruct16BytesMixed3 a7 = {};
+  StructStruct16BytesMixed3 a8 = {};
+  StructStruct16BytesMixed3 a9 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[0].a1 = -3;
+  a0.a1[0].a2 = 4;
+  a0.a2[0] = -5;
+  a0.a2[1] = 6;
+  a1.a0.a0 = -7.0;
+  a1.a1[0].a0 = 8.0;
+  a1.a1[0].a1 = -9;
+  a1.a1[0].a2 = 10;
+  a1.a2[0] = -11;
+  a1.a2[1] = 12;
+  a2.a0.a0 = -13.0;
+  a2.a1[0].a0 = 14.0;
+  a2.a1[0].a1 = -15;
+  a2.a1[0].a2 = 16;
+  a2.a2[0] = -17;
+  a2.a2[1] = 18;
+  a3.a0.a0 = -19.0;
+  a3.a1[0].a0 = 20.0;
+  a3.a1[0].a1 = -21;
+  a3.a1[0].a2 = 22;
+  a3.a2[0] = -23;
+  a3.a2[1] = 24;
+  a4.a0.a0 = -25.0;
+  a4.a1[0].a0 = 26.0;
+  a4.a1[0].a1 = -27;
+  a4.a1[0].a2 = 28;
+  a4.a2[0] = -29;
+  a4.a2[1] = 30;
+  a5.a0.a0 = -31.0;
+  a5.a1[0].a0 = 32.0;
+  a5.a1[0].a1 = -33;
+  a5.a1[0].a2 = 34;
+  a5.a2[0] = -35;
+  a5.a2[1] = 36;
+  a6.a0.a0 = -37.0;
+  a6.a1[0].a0 = 38.0;
+  a6.a1[0].a1 = -39;
+  a6.a1[0].a2 = 40;
+  a6.a2[0] = -41;
+  a6.a2[1] = 42;
+  a7.a0.a0 = -43.0;
+  a7.a1[0].a0 = 44.0;
+  a7.a1[0].a1 = -45;
+  a7.a1[0].a2 = 46;
+  a7.a2[0] = -47;
+  a7.a2[1] = 48;
+  a8.a0.a0 = -49.0;
+  a8.a1[0].a0 = 50.0;
+  a8.a1[0].a1 = -51;
+  a8.a1[0].a2 = 52;
+  a8.a2[0] = -53;
+  a8.a2[1] = 54;
+  a9.a0.a0 = -55.0;
+  a9.a1[0].a0 = 56.0;
+  a9.a1[0].a1 = -57;
+  a9.a1[0].a2 = 58;
+  a9.a2[0] = -59;
+  a9.a2[1] = 60;
+
+  std::cout << "Calling TestAsyncPassStructStruct16BytesMixed3x10("
+            << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << ", "
+            << a0.a1[0].a1 << ", " << a0.a1[0].a2 << ")], [" << a0.a2[0] << ", "
+            << a0.a2[1] << "]), ((" << a1.a0.a0 << "), [(" << a1.a1[0].a0
+            << ", " << a1.a1[0].a1 << ", " << a1.a1[0].a2 << ")], [" << a1.a2[0]
+            << ", " << a1.a2[1] << "]), ((" << a2.a0.a0 << "), [("
+            << a2.a1[0].a0 << ", " << a2.a1[0].a1 << ", " << a2.a1[0].a2
+            << ")], [" << a2.a2[0] << ", " << a2.a2[1] << "]), ((" << a3.a0.a0
+            << "), [(" << a3.a1[0].a0 << ", " << a3.a1[0].a1 << ", "
+            << a3.a1[0].a2 << ")], [" << a3.a2[0] << ", " << a3.a2[1]
+            << "]), ((" << a4.a0.a0 << "), [(" << a4.a1[0].a0 << ", "
+            << a4.a1[0].a1 << ", " << a4.a1[0].a2 << ")], [" << a4.a2[0] << ", "
+            << a4.a2[1] << "]), ((" << a5.a0.a0 << "), [(" << a5.a1[0].a0
+            << ", " << a5.a1[0].a1 << ", " << a5.a1[0].a2 << ")], [" << a5.a2[0]
+            << ", " << a5.a2[1] << "]), ((" << a6.a0.a0 << "), [("
+            << a6.a1[0].a0 << ", " << a6.a1[0].a1 << ", " << a6.a1[0].a2
+            << ")], [" << a6.a2[0] << ", " << a6.a2[1] << "]), ((" << a7.a0.a0
+            << "), [(" << a7.a1[0].a0 << ", " << a7.a1[0].a1 << ", "
+            << a7.a1[0].a2 << ")], [" << a7.a2[0] << ", " << a7.a2[1]
+            << "]), ((" << a8.a0.a0 << "), [(" << a8.a1[0].a0 << ", "
+            << a8.a1[0].a1 << ", " << a8.a1[0].a2 << ")], [" << a8.a2[0] << ", "
+            << a8.a2[1] << "]), ((" << a9.a0.a0 << "), [(" << a9.a1[0].a0
+            << ", " << a9.a1[0].a1 << ", " << a9.a1[0].a2 << ")], [" << a9.a2[0]
+            << ", " << a9.a2[1] << "]))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Test multi dimensional inline array struct as argument.
+DART_EXPORT void TestAsyncPassUint8Struct32BytesInlineArrayMultiDimensionalI(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              Struct32BytesInlineArrayMultiDimensionalInt a1,
+              uint8_t a2,
+              Struct8BytesInlineArrayMultiDimensionalInt a3,
+              uint8_t a4,
+              Struct8BytesInlineArrayMultiDimensionalInt a5,
+              uint8_t a6)) {
+  uint8_t a0;
+  Struct32BytesInlineArrayMultiDimensionalInt a1 = {};
+  uint8_t a2;
+  Struct8BytesInlineArrayMultiDimensionalInt a3 = {};
+  uint8_t a4;
+  Struct8BytesInlineArrayMultiDimensionalInt a5 = {};
+  uint8_t a6;
+
+  a0 = 1;
+  a1.a0[0][0][0][0][0] = 2;
+  a1.a0[0][0][0][0][1] = 3;
+  a1.a0[0][0][0][1][0] = 4;
+  a1.a0[0][0][0][1][1] = 5;
+  a1.a0[0][0][1][0][0] = 6;
+  a1.a0[0][0][1][0][1] = 7;
+  a1.a0[0][0][1][1][0] = 8;
+  a1.a0[0][0][1][1][1] = 9;
+  a1.a0[0][1][0][0][0] = 10;
+  a1.a0[0][1][0][0][1] = 11;
+  a1.a0[0][1][0][1][0] = 12;
+  a1.a0[0][1][0][1][1] = 13;
+  a1.a0[0][1][1][0][0] = 14;
+  a1.a0[0][1][1][0][1] = 15;
+  a1.a0[0][1][1][1][0] = 16;
+  a1.a0[0][1][1][1][1] = 17;
+  a1.a0[1][0][0][0][0] = 18;
+  a1.a0[1][0][0][0][1] = 19;
+  a1.a0[1][0][0][1][0] = 20;
+  a1.a0[1][0][0][1][1] = 21;
+  a1.a0[1][0][1][0][0] = 22;
+  a1.a0[1][0][1][0][1] = 23;
+  a1.a0[1][0][1][1][0] = 24;
+  a1.a0[1][0][1][1][1] = 25;
+  a1.a0[1][1][0][0][0] = 26;
+  a1.a0[1][1][0][0][1] = 27;
+  a1.a0[1][1][0][1][0] = 28;
+  a1.a0[1][1][0][1][1] = 29;
+  a1.a0[1][1][1][0][0] = 30;
+  a1.a0[1][1][1][0][1] = 31;
+  a1.a0[1][1][1][1][0] = 32;
+  a1.a0[1][1][1][1][1] = 33;
+  a2 = 34;
+  a3.a0[0][0][0] = 35;
+  a3.a0[0][0][1] = 36;
+  a3.a0[0][1][0] = 37;
+  a3.a0[0][1][1] = 38;
+  a3.a0[1][0][0] = 39;
+  a3.a0[1][0][1] = 40;
+  a3.a0[1][1][0] = 41;
+  a3.a0[1][1][1] = 42;
+  a4 = 43;
+  a5.a0[0][0][0] = 44;
+  a5.a0[0][0][1] = 45;
+  a5.a0[0][1][0] = 46;
+  a5.a0[0][1][1] = 47;
+  a5.a0[1][0][0] = 48;
+  a5.a0[1][0][1] = 49;
+  a5.a0[1][1][0] = 50;
+  a5.a0[1][1][1] = 51;
+  a6 = 52;
+
+  std::cout
+      << "Calling TestAsyncPassUint8Struct32BytesInlineArrayMultiDimensionalI("
+      << "(" << static_cast<int>(a0) << ", ([[[[["
+      << static_cast<int>(a1.a0[0][0][0][0][0]) << ", "
+      << static_cast<int>(a1.a0[0][0][0][0][1]) << "], ["
+      << static_cast<int>(a1.a0[0][0][0][1][0]) << ", "
+      << static_cast<int>(a1.a0[0][0][0][1][1]) << "]], [["
+      << static_cast<int>(a1.a0[0][0][1][0][0]) << ", "
+      << static_cast<int>(a1.a0[0][0][1][0][1]) << "], ["
+      << static_cast<int>(a1.a0[0][0][1][1][0]) << ", "
+      << static_cast<int>(a1.a0[0][0][1][1][1]) << "]]], [[["
+      << static_cast<int>(a1.a0[0][1][0][0][0]) << ", "
+      << static_cast<int>(a1.a0[0][1][0][0][1]) << "], ["
+      << static_cast<int>(a1.a0[0][1][0][1][0]) << ", "
+      << static_cast<int>(a1.a0[0][1][0][1][1]) << "]], [["
+      << static_cast<int>(a1.a0[0][1][1][0][0]) << ", "
+      << static_cast<int>(a1.a0[0][1][1][0][1]) << "], ["
+      << static_cast<int>(a1.a0[0][1][1][1][0]) << ", "
+      << static_cast<int>(a1.a0[0][1][1][1][1]) << "]]]], [[[["
+      << static_cast<int>(a1.a0[1][0][0][0][0]) << ", "
+      << static_cast<int>(a1.a0[1][0][0][0][1]) << "], ["
+      << static_cast<int>(a1.a0[1][0][0][1][0]) << ", "
+      << static_cast<int>(a1.a0[1][0][0][1][1]) << "]], [["
+      << static_cast<int>(a1.a0[1][0][1][0][0]) << ", "
+      << static_cast<int>(a1.a0[1][0][1][0][1]) << "], ["
+      << static_cast<int>(a1.a0[1][0][1][1][0]) << ", "
+      << static_cast<int>(a1.a0[1][0][1][1][1]) << "]]], [[["
+      << static_cast<int>(a1.a0[1][1][0][0][0]) << ", "
+      << static_cast<int>(a1.a0[1][1][0][0][1]) << "], ["
+      << static_cast<int>(a1.a0[1][1][0][1][0]) << ", "
+      << static_cast<int>(a1.a0[1][1][0][1][1]) << "]], [["
+      << static_cast<int>(a1.a0[1][1][1][0][0]) << ", "
+      << static_cast<int>(a1.a0[1][1][1][0][1]) << "], ["
+      << static_cast<int>(a1.a0[1][1][1][1][0]) << ", "
+      << static_cast<int>(a1.a0[1][1][1][1][1]) << "]]]]]), "
+      << static_cast<int>(a2) << ", ([[[" << static_cast<int>(a3.a0[0][0][0])
+      << ", " << static_cast<int>(a3.a0[0][0][1]) << "], ["
+      << static_cast<int>(a3.a0[0][1][0]) << ", "
+      << static_cast<int>(a3.a0[0][1][1]) << "]], [["
+      << static_cast<int>(a3.a0[1][0][0]) << ", "
+      << static_cast<int>(a3.a0[1][0][1]) << "], ["
+      << static_cast<int>(a3.a0[1][1][0]) << ", "
+      << static_cast<int>(a3.a0[1][1][1]) << "]]]), " << static_cast<int>(a4)
+      << ", ([[[" << static_cast<int>(a5.a0[0][0][0]) << ", "
+      << static_cast<int>(a5.a0[0][0][1]) << "], ["
+      << static_cast<int>(a5.a0[0][1][0]) << ", "
+      << static_cast<int>(a5.a0[0][1][1]) << "]], [["
+      << static_cast<int>(a5.a0[1][0][0]) << ", "
+      << static_cast<int>(a5.a0[1][0][1]) << "], ["
+      << static_cast<int>(a5.a0[1][1][0]) << ", "
+      << static_cast<int>(a5.a0[1][1][1]) << "]]]), " << static_cast<int>(a6)
+      << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6);
+}
+
+// Used for testing structs and unions by value.
+// Test struct in multi dimensional inline array.
+DART_EXPORT void TestAsyncPassUint8Struct4BytesInlineArrayMultiDimensionalIn(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              Struct4BytesInlineArrayMultiDimensionalInt a1,
+              uint8_t a2)) {
+  uint8_t a0;
+  Struct4BytesInlineArrayMultiDimensionalInt a1 = {};
+  uint8_t a2;
+
+  a0 = 1;
+  a1.a0[0][0].a0 = 2;
+  a1.a0[0][1].a0 = -3;
+  a1.a0[1][0].a0 = 4;
+  a1.a0[1][1].a0 = -5;
+  a2 = 6;
+
+  std::cout
+      << "Calling TestAsyncPassUint8Struct4BytesInlineArrayMultiDimensionalIn("
+      << "(" << static_cast<int>(a0) << ", ([[("
+      << static_cast<int>(a1.a0[0][0].a0) << "), ("
+      << static_cast<int>(a1.a0[0][1].a0) << ")], [("
+      << static_cast<int>(a1.a0[1][0].a0) << "), ("
+      << static_cast<int>(a1.a0[1][1].a0) << ")]]), " << static_cast<int>(a2)
+      << ")"
+      << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Small struct with mis-aligned member.
+DART_EXPORT void TestAsyncPassStruct3BytesPackedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct3BytesPackedInt a0,
+              Struct3BytesPackedInt a1,
+              Struct3BytesPackedInt a2,
+              Struct3BytesPackedInt a3,
+              Struct3BytesPackedInt a4,
+              Struct3BytesPackedInt a5,
+              Struct3BytesPackedInt a6,
+              Struct3BytesPackedInt a7,
+              Struct3BytesPackedInt a8,
+              Struct3BytesPackedInt a9)) {
+  Struct3BytesPackedInt a0 = {};
+  Struct3BytesPackedInt a1 = {};
+  Struct3BytesPackedInt a2 = {};
+  Struct3BytesPackedInt a3 = {};
+  Struct3BytesPackedInt a4 = {};
+  Struct3BytesPackedInt a5 = {};
+  Struct3BytesPackedInt a6 = {};
+  Struct3BytesPackedInt a7 = {};
+  Struct3BytesPackedInt a8 = {};
+  Struct3BytesPackedInt a9 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+  a2.a0 = -5;
+  a2.a1 = 6;
+  a3.a0 = -7;
+  a3.a1 = 8;
+  a4.a0 = -9;
+  a4.a1 = 10;
+  a5.a0 = -11;
+  a5.a1 = 12;
+  a6.a0 = -13;
+  a6.a1 = 14;
+  a7.a0 = -15;
+  a7.a1 = 16;
+  a8.a0 = -17;
+  a8.a1 = 18;
+  a9.a0 = -19;
+  a9.a1 = 20;
+
+  std::cout << "Calling TestAsyncPassStruct3BytesPackedIntx10("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Struct with mis-aligned member.
+DART_EXPORT void TestAsyncPassStruct8BytesPackedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesPackedInt a0,
+              Struct8BytesPackedInt a1,
+              Struct8BytesPackedInt a2,
+              Struct8BytesPackedInt a3,
+              Struct8BytesPackedInt a4,
+              Struct8BytesPackedInt a5,
+              Struct8BytesPackedInt a6,
+              Struct8BytesPackedInt a7,
+              Struct8BytesPackedInt a8,
+              Struct8BytesPackedInt a9)) {
+  Struct8BytesPackedInt a0 = {};
+  Struct8BytesPackedInt a1 = {};
+  Struct8BytesPackedInt a2 = {};
+  Struct8BytesPackedInt a3 = {};
+  Struct8BytesPackedInt a4 = {};
+  Struct8BytesPackedInt a5 = {};
+  Struct8BytesPackedInt a6 = {};
+  Struct8BytesPackedInt a7 = {};
+  Struct8BytesPackedInt a8 = {};
+  Struct8BytesPackedInt a9 = {};
+
+  a0.a0 = 1;
+  a0.a1 = 2;
+  a0.a2 = 3;
+  a0.a3 = 4;
+  a0.a4 = 5;
+  a1.a0 = 6;
+  a1.a1 = 7;
+  a1.a2 = 8;
+  a1.a3 = 9;
+  a1.a4 = 10;
+  a2.a0 = 11;
+  a2.a1 = 12;
+  a2.a2 = 13;
+  a2.a3 = 14;
+  a2.a4 = 15;
+  a3.a0 = 16;
+  a3.a1 = 17;
+  a3.a2 = 18;
+  a3.a3 = 19;
+  a3.a4 = 20;
+  a4.a0 = 21;
+  a4.a1 = 22;
+  a4.a2 = 23;
+  a4.a3 = 24;
+  a4.a4 = 25;
+  a5.a0 = 26;
+  a5.a1 = 27;
+  a5.a2 = 28;
+  a5.a3 = 29;
+  a5.a4 = 30;
+  a6.a0 = 31;
+  a6.a1 = 32;
+  a6.a2 = 33;
+  a6.a3 = 34;
+  a6.a4 = 35;
+  a7.a0 = 36;
+  a7.a1 = 37;
+  a7.a2 = 38;
+  a7.a3 = 39;
+  a7.a4 = 40;
+  a8.a0 = 41;
+  a8.a1 = 42;
+  a8.a2 = 43;
+  a8.a3 = 44;
+  a8.a4 = 45;
+  a9.a0 = 46;
+  a9.a1 = 47;
+  a9.a2 = 48;
+  a9.a3 = 49;
+  a9.a4 = 50;
+
+  std::cout << "Calling TestAsyncPassStruct8BytesPackedIntx10("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << ", " << static_cast<int>(a0.a3)
+            << ", " << static_cast<int>(a0.a4) << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << ", "
+            << static_cast<int>(a1.a2) << ", " << static_cast<int>(a1.a3)
+            << ", " << static_cast<int>(a1.a4) << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << ", "
+            << static_cast<int>(a2.a2) << ", " << static_cast<int>(a2.a3)
+            << ", " << static_cast<int>(a2.a4) << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << ", "
+            << static_cast<int>(a3.a2) << ", " << static_cast<int>(a3.a3)
+            << ", " << static_cast<int>(a3.a4) << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << ", "
+            << static_cast<int>(a4.a2) << ", " << static_cast<int>(a4.a3)
+            << ", " << static_cast<int>(a4.a4) << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << ", "
+            << static_cast<int>(a5.a2) << ", " << static_cast<int>(a5.a3)
+            << ", " << static_cast<int>(a5.a4) << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << ", "
+            << static_cast<int>(a6.a2) << ", " << static_cast<int>(a6.a3)
+            << ", " << static_cast<int>(a6.a4) << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << ", "
+            << static_cast<int>(a7.a2) << ", " << static_cast<int>(a7.a3)
+            << ", " << static_cast<int>(a7.a4) << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << ", "
+            << static_cast<int>(a8.a2) << ", " << static_cast<int>(a8.a3)
+            << ", " << static_cast<int>(a8.a4) << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << ", "
+            << static_cast<int>(a9.a2) << ", " << static_cast<int>(a9.a3)
+            << ", " << static_cast<int>(a9.a4) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT void TestAsyncPassStruct9BytesPackedMixedx10DoubleInt32x2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct9BytesPackedMixed a0,
+              Struct9BytesPackedMixed a1,
+              Struct9BytesPackedMixed a2,
+              Struct9BytesPackedMixed a3,
+              Struct9BytesPackedMixed a4,
+              Struct9BytesPackedMixed a5,
+              Struct9BytesPackedMixed a6,
+              Struct9BytesPackedMixed a7,
+              Struct9BytesPackedMixed a8,
+              Struct9BytesPackedMixed a9,
+              double a10,
+              int32_t a11,
+              int32_t a12)) {
+  Struct9BytesPackedMixed a0 = {};
+  Struct9BytesPackedMixed a1 = {};
+  Struct9BytesPackedMixed a2 = {};
+  Struct9BytesPackedMixed a3 = {};
+  Struct9BytesPackedMixed a4 = {};
+  Struct9BytesPackedMixed a5 = {};
+  Struct9BytesPackedMixed a6 = {};
+  Struct9BytesPackedMixed a7 = {};
+  Struct9BytesPackedMixed a8 = {};
+  Struct9BytesPackedMixed a9 = {};
+  double a10;
+  int32_t a11;
+  int32_t a12;
+
+  a0.a0 = 1;
+  a0.a1 = 2.0;
+  a1.a0 = 3;
+  a1.a1 = 4.0;
+  a2.a0 = 5;
+  a2.a1 = 6.0;
+  a3.a0 = 7;
+  a3.a1 = 8.0;
+  a4.a0 = 9;
+  a4.a1 = 10.0;
+  a5.a0 = 11;
+  a5.a1 = 12.0;
+  a6.a0 = 13;
+  a6.a1 = 14.0;
+  a7.a0 = 15;
+  a7.a1 = 16.0;
+  a8.a0 = 17;
+  a8.a1 = 18.0;
+  a9.a0 = 19;
+  a9.a1 = 20.0;
+  a10 = -21.0;
+  a11 = 22;
+  a12 = -23;
+
+  std::cout << "Calling TestAsyncPassStruct9BytesPackedMixedx10DoubleInt32x2("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << "), ("
+            << static_cast<int>(a1.a0) << ", " << a1.a1 << "), ("
+            << static_cast<int>(a2.a0) << ", " << a2.a1 << "), ("
+            << static_cast<int>(a3.a0) << ", " << a3.a1 << "), ("
+            << static_cast<int>(a4.a0) << ", " << a4.a1 << "), ("
+            << static_cast<int>(a5.a0) << ", " << a5.a1 << "), ("
+            << static_cast<int>(a6.a0) << ", " << a6.a1 << "), ("
+            << static_cast<int>(a7.a0) << ", " << a7.a1 << "), ("
+            << static_cast<int>(a8.a0) << ", " << a8.a1 << "), ("
+            << static_cast<int>(a9.a0) << ", " << a9.a1 << "), " << a10 << ", "
+            << a11 << ", " << a12 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12);
+}
+
+// Used for testing structs and unions by value.
+// This packed struct happens to have only aligned members.
+DART_EXPORT void TestAsyncPassStruct5BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct5BytesPackedMixed a0)) {
+  Struct5BytesPackedMixed a0 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2;
+
+  std::cout << "Calling TestAsyncPassStruct5BytesPackedMixed("
+            << "((" << a0.a0 << ", " << static_cast<int>(a0.a1) << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Check alignment of packed struct in non-packed struct.
+DART_EXPORT void TestAsyncPassStructNestedAlignmentStruct5BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructNestedAlignmentStruct5BytesPackedMixed a0)) {
+  StructNestedAlignmentStruct5BytesPackedMixed a0 = {};
+
+  a0.a0 = 1;
+  a0.a1.a0 = 2.0;
+  a0.a1.a1 = 3;
+
+  std::cout
+      << "Calling TestAsyncPassStructNestedAlignmentStruct5BytesPackedMixed("
+      << "((" << static_cast<int>(a0.a0) << ", (" << a0.a1.a0 << ", "
+      << static_cast<int>(a0.a1.a1) << ")))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT void TestAsyncPassStruct6BytesInlineArrayInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct6BytesInlineArrayInt a0)) {
+  Struct6BytesInlineArrayInt a0 = {};
+
+  a0.a0[0].a0 = -1;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3;
+  a0.a0[1].a1 = 4;
+
+  std::cout << "Calling TestAsyncPassStruct6BytesInlineArrayInt("
+            << "(([(" << static_cast<int>(a0.a0[0].a0) << ", " << a0.a0[0].a1
+            << "), (" << static_cast<int>(a0.a0[1].a0) << ", " << a0.a0[1].a1
+            << ")]))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Check alignment of packed struct array in non-packed struct.
+DART_EXPORT void TestAsyncPassStruct15BytesInlineArrayMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct15BytesInlineArrayMixed a0)) {
+  Struct15BytesInlineArrayMixed a0 = {};
+
+  a0.a0[0].a0 = -1.0;
+  a0.a0[0].a1 = 2;
+  a0.a0[1].a0 = -3.0;
+  a0.a0[1].a1 = 4;
+  a0.a0[2].a0 = -5.0;
+  a0.a0[2].a1 = 6;
+
+  std::cout << "Calling TestAsyncPassStruct15BytesInlineArrayMixed("
+            << "(([(" << a0.a0[0].a0 << ", " << static_cast<int>(a0.a0[0].a1)
+            << "), (" << a0.a0[1].a0 << ", " << static_cast<int>(a0.a0[1].a1)
+            << "), (" << a0.a0[2].a0 << ", " << static_cast<int>(a0.a0[2].a1)
+            << ")]))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Check placement of mixed integer/float union.
+DART_EXPORT void TestAsyncPassUnion4BytesMixedx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Union4BytesMixed a0,
+              Union4BytesMixed a1,
+              Union4BytesMixed a2,
+              Union4BytesMixed a3,
+              Union4BytesMixed a4,
+              Union4BytesMixed a5,
+              Union4BytesMixed a6,
+              Union4BytesMixed a7,
+              Union4BytesMixed a8,
+              Union4BytesMixed a9)) {
+  Union4BytesMixed a0 = {};
+  Union4BytesMixed a1 = {};
+  Union4BytesMixed a2 = {};
+  Union4BytesMixed a3 = {};
+  Union4BytesMixed a4 = {};
+  Union4BytesMixed a5 = {};
+  Union4BytesMixed a6 = {};
+  Union4BytesMixed a7 = {};
+  Union4BytesMixed a8 = {};
+  Union4BytesMixed a9 = {};
+
+  a0.a0 = 1;
+  a1.a0 = 2;
+  a2.a0 = 3;
+  a3.a0 = 4;
+  a4.a0 = 5;
+  a5.a0 = 6;
+  a6.a0 = 7;
+  a7.a0 = 8;
+  a8.a0 = 9;
+  a9.a0 = 10;
+
+  std::cout << "Calling TestAsyncPassUnion4BytesMixedx10("
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Check placement of mixed floats union.
+DART_EXPORT void TestAsyncPassUnion8BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Union8BytesNestedFloat a0,
+              Union8BytesNestedFloat a1,
+              Union8BytesNestedFloat a2,
+              Union8BytesNestedFloat a3,
+              Union8BytesNestedFloat a4,
+              Union8BytesNestedFloat a5,
+              Union8BytesNestedFloat a6,
+              Union8BytesNestedFloat a7,
+              Union8BytesNestedFloat a8,
+              Union8BytesNestedFloat a9)) {
+  Union8BytesNestedFloat a0 = {};
+  Union8BytesNestedFloat a1 = {};
+  Union8BytesNestedFloat a2 = {};
+  Union8BytesNestedFloat a3 = {};
+  Union8BytesNestedFloat a4 = {};
+  Union8BytesNestedFloat a5 = {};
+  Union8BytesNestedFloat a6 = {};
+  Union8BytesNestedFloat a7 = {};
+  Union8BytesNestedFloat a8 = {};
+  Union8BytesNestedFloat a9 = {};
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+  a2.a0 = -3.0;
+  a3.a0 = 4.0;
+  a4.a0 = -5.0;
+  a5.a0 = 6.0;
+  a6.a0 = -7.0;
+  a7.a0 = 8.0;
+  a8.a0 = -9.0;
+  a9.a0 = 10.0;
+
+  std::cout << "Calling TestAsyncPassUnion8BytesNestedFloatx10("
+            << "((" << a0.a0 << "), (" << a1.a0 << "), (" << a2.a0 << "), ("
+            << a3.a0 << "), (" << a4.a0 << "), (" << a5.a0 << "), (" << a6.a0
+            << "), (" << a7.a0 << "), (" << a8.a0 << "), (" << a9.a0 << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Mixed-size union argument.
+DART_EXPORT void TestAsyncPassUnion9BytesNestedIntx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Union9BytesNestedInt a0,
+              Union9BytesNestedInt a1,
+              Union9BytesNestedInt a2,
+              Union9BytesNestedInt a3,
+              Union9BytesNestedInt a4,
+              Union9BytesNestedInt a5,
+              Union9BytesNestedInt a6,
+              Union9BytesNestedInt a7,
+              Union9BytesNestedInt a8,
+              Union9BytesNestedInt a9)) {
+  Union9BytesNestedInt a0 = {};
+  Union9BytesNestedInt a1 = {};
+  Union9BytesNestedInt a2 = {};
+  Union9BytesNestedInt a3 = {};
+  Union9BytesNestedInt a4 = {};
+  Union9BytesNestedInt a5 = {};
+  Union9BytesNestedInt a6 = {};
+  Union9BytesNestedInt a7 = {};
+  Union9BytesNestedInt a8 = {};
+  Union9BytesNestedInt a9 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a0.a2 = -3;
+  a1.a0.a0 = 4;
+  a1.a0.a1 = -5;
+  a1.a0.a2 = 6;
+  a2.a0.a0 = -7;
+  a2.a0.a1 = 8;
+  a2.a0.a2 = -9;
+  a3.a0.a0 = 10;
+  a3.a0.a1 = -11;
+  a3.a0.a2 = 12;
+  a4.a0.a0 = -13;
+  a4.a0.a1 = 14;
+  a4.a0.a2 = -15;
+  a5.a0.a0 = 16;
+  a5.a0.a1 = -17;
+  a5.a0.a2 = 18;
+  a6.a0.a0 = -19;
+  a6.a0.a1 = 20;
+  a6.a0.a2 = -21;
+  a7.a0.a0 = 22;
+  a7.a0.a1 = -23;
+  a7.a0.a2 = 24;
+  a8.a0.a0 = -25;
+  a8.a0.a1 = 26;
+  a8.a0.a2 = -27;
+  a9.a0.a0 = 28;
+  a9.a0.a1 = -29;
+  a9.a0.a2 = 30;
+
+  std::cout << "Calling TestAsyncPassUnion9BytesNestedIntx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ", " << a0.a0.a2
+            << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1 << ", " << a1.a0.a2
+            << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1 << ", " << a2.a0.a2
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ", " << a3.a0.a2
+            << ")), ((" << a4.a0.a0 << ", " << a4.a0.a1 << ", " << a4.a0.a2
+            << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1 << ", " << a5.a0.a2
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ", " << a6.a0.a2
+            << ")), ((" << a7.a0.a0 << ", " << a7.a0.a1 << ", " << a7.a0.a2
+            << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1 << ", " << a8.a0.a2
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ", " << a9.a0.a2
+            << ")))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT void TestAsyncPassUnion16BytesNestedInlineArrayFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Union16BytesNestedInlineArrayFloat a0,
+              Union16BytesNestedInlineArrayFloat a1,
+              Union16BytesNestedInlineArrayFloat a2,
+              Union16BytesNestedInlineArrayFloat a3,
+              Union16BytesNestedInlineArrayFloat a4,
+              Union16BytesNestedInlineArrayFloat a5,
+              Union16BytesNestedInlineArrayFloat a6,
+              Union16BytesNestedInlineArrayFloat a7,
+              Union16BytesNestedInlineArrayFloat a8,
+              Union16BytesNestedInlineArrayFloat a9)) {
+  Union16BytesNestedInlineArrayFloat a0 = {};
+  Union16BytesNestedInlineArrayFloat a1 = {};
+  Union16BytesNestedInlineArrayFloat a2 = {};
+  Union16BytesNestedInlineArrayFloat a3 = {};
+  Union16BytesNestedInlineArrayFloat a4 = {};
+  Union16BytesNestedInlineArrayFloat a5 = {};
+  Union16BytesNestedInlineArrayFloat a6 = {};
+  Union16BytesNestedInlineArrayFloat a7 = {};
+  Union16BytesNestedInlineArrayFloat a8 = {};
+  Union16BytesNestedInlineArrayFloat a9 = {};
+
+  a0.a0[0] = -1.0;
+  a0.a0[1] = 2.0;
+  a0.a0[2] = -3.0;
+  a0.a0[3] = 4.0;
+  a1.a0[0] = -5.0;
+  a1.a0[1] = 6.0;
+  a1.a0[2] = -7.0;
+  a1.a0[3] = 8.0;
+  a2.a0[0] = -9.0;
+  a2.a0[1] = 10.0;
+  a2.a0[2] = -11.0;
+  a2.a0[3] = 12.0;
+  a3.a0[0] = -13.0;
+  a3.a0[1] = 14.0;
+  a3.a0[2] = -15.0;
+  a3.a0[3] = 16.0;
+  a4.a0[0] = -17.0;
+  a4.a0[1] = 18.0;
+  a4.a0[2] = -19.0;
+  a4.a0[3] = 20.0;
+  a5.a0[0] = -21.0;
+  a5.a0[1] = 22.0;
+  a5.a0[2] = -23.0;
+  a5.a0[3] = 24.0;
+  a6.a0[0] = -25.0;
+  a6.a0[1] = 26.0;
+  a6.a0[2] = -27.0;
+  a6.a0[3] = 28.0;
+  a7.a0[0] = -29.0;
+  a7.a0[1] = 30.0;
+  a7.a0[2] = -31.0;
+  a7.a0[3] = 32.0;
+  a8.a0[0] = -33.0;
+  a8.a0[1] = 34.0;
+  a8.a0[2] = -35.0;
+  a8.a0[3] = 36.0;
+  a9.a0[0] = -37.0;
+  a9.a0[1] = 38.0;
+  a9.a0[2] = -39.0;
+  a9.a0[3] = 40.0;
+
+  std::cout << "Calling TestAsyncPassUnion16BytesNestedInlineArrayFloatx10("
+            << "(([" << a0.a0[0] << ", " << a0.a0[1] << ", " << a0.a0[2] << ", "
+            << a0.a0[3] << "]), ([" << a1.a0[0] << ", " << a1.a0[1] << ", "
+            << a1.a0[2] << ", " << a1.a0[3] << "]), ([" << a2.a0[0] << ", "
+            << a2.a0[1] << ", " << a2.a0[2] << ", " << a2.a0[3] << "]), (["
+            << a3.a0[0] << ", " << a3.a0[1] << ", " << a3.a0[2] << ", "
+            << a3.a0[3] << "]), ([" << a4.a0[0] << ", " << a4.a0[1] << ", "
+            << a4.a0[2] << ", " << a4.a0[3] << "]), ([" << a5.a0[0] << ", "
+            << a5.a0[1] << ", " << a5.a0[2] << ", " << a5.a0[3] << "]), (["
+            << a6.a0[0] << ", " << a6.a0[1] << ", " << a6.a0[2] << ", "
+            << a6.a0[3] << "]), ([" << a7.a0[0] << ", " << a7.a0[1] << ", "
+            << a7.a0[2] << ", " << a7.a0[3] << "]), ([" << a8.a0[0] << ", "
+            << a8.a0[1] << ", " << a8.a0[2] << ", " << a8.a0[3] << "]), (["
+            << a9.a0[0] << ", " << a9.a0[1] << ", " << a9.a0[2] << ", "
+            << a9.a0[3] << "]))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Union with homogenous floats.
+DART_EXPORT void TestAsyncPassUnion16BytesNestedFloatx10(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Union16BytesNestedFloat a0,
+              Union16BytesNestedFloat a1,
+              Union16BytesNestedFloat a2,
+              Union16BytesNestedFloat a3,
+              Union16BytesNestedFloat a4,
+              Union16BytesNestedFloat a5,
+              Union16BytesNestedFloat a6,
+              Union16BytesNestedFloat a7,
+              Union16BytesNestedFloat a8,
+              Union16BytesNestedFloat a9)) {
+  Union16BytesNestedFloat a0 = {};
+  Union16BytesNestedFloat a1 = {};
+  Union16BytesNestedFloat a2 = {};
+  Union16BytesNestedFloat a3 = {};
+  Union16BytesNestedFloat a4 = {};
+  Union16BytesNestedFloat a5 = {};
+  Union16BytesNestedFloat a6 = {};
+  Union16BytesNestedFloat a7 = {};
+  Union16BytesNestedFloat a8 = {};
+  Union16BytesNestedFloat a9 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a0.a1 = 2.0;
+  a1.a0.a0 = -3.0;
+  a1.a0.a1 = 4.0;
+  a2.a0.a0 = -5.0;
+  a2.a0.a1 = 6.0;
+  a3.a0.a0 = -7.0;
+  a3.a0.a1 = 8.0;
+  a4.a0.a0 = -9.0;
+  a4.a0.a1 = 10.0;
+  a5.a0.a0 = -11.0;
+  a5.a0.a1 = 12.0;
+  a6.a0.a0 = -13.0;
+  a6.a0.a1 = 14.0;
+  a7.a0.a0 = -15.0;
+  a7.a0.a1 = 16.0;
+  a8.a0.a0 = -17.0;
+  a8.a0.a1 = 18.0;
+  a9.a0.a0 = -19.0;
+  a9.a0.a1 = 20.0;
+
+  std::cout << "Calling TestAsyncPassUnion16BytesNestedFloatx10("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << ")), ((" << a1.a0.a0
+            << ", " << a1.a0.a1 << ")), ((" << a2.a0.a0 << ", " << a2.a0.a1
+            << ")), ((" << a3.a0.a0 << ", " << a3.a0.a1 << ")), ((" << a4.a0.a0
+            << ", " << a4.a0.a1 << ")), ((" << a5.a0.a0 << ", " << a5.a0.a1
+            << ")), ((" << a6.a0.a0 << ", " << a6.a0.a1 << ")), ((" << a7.a0.a0
+            << ", " << a7.a0.a1 << ")), ((" << a8.a0.a0 << ", " << a8.a0.a1
+            << ")), ((" << a9.a0.a0 << ", " << a9.a0.a1 << ")))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9);
+}
+
+// Used for testing structs and unions by value.
+// Passing bools and a struct with bools.
+// Exhausts the registers to test bools and the bool struct alignment on the
+// stack.
+DART_EXPORT void TestAsyncPassUint8Boolx9Struct10BytesHomogeneousBoolBool(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              bool a1,
+              bool a2,
+              bool a3,
+              bool a4,
+              bool a5,
+              bool a6,
+              bool a7,
+              bool a8,
+              bool a9,
+              Struct10BytesHomogeneousBool a10,
+              bool a11)) {
+  uint8_t a0;
+  bool a1;
+  bool a2;
+  bool a3;
+  bool a4;
+  bool a5;
+  bool a6;
+  bool a7;
+  bool a8;
+  bool a9;
+  Struct10BytesHomogeneousBool a10 = {};
+  bool a11;
+
+  a0 = 1;
+  a1 = false;
+  a2 = true;
+  a3 = false;
+  a4 = true;
+  a5 = false;
+  a6 = true;
+  a7 = false;
+  a8 = true;
+  a9 = false;
+  a10.a0 = true;
+  a10.a1 = false;
+  a10.a2 = true;
+  a10.a3 = false;
+  a10.a4 = true;
+  a10.a5 = false;
+  a10.a6 = true;
+  a10.a7 = false;
+  a10.a8 = true;
+  a10.a9 = false;
+  a11 = true;
+
+  std::cout
+      << "Calling TestAsyncPassUint8Boolx9Struct10BytesHomogeneousBoolBool("
+      << "(" << static_cast<int>(a0) << ", " << a1 << ", " << a2 << ", " << a3
+      << ", " << a4 << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8
+      << ", " << a9 << ", (" << a10.a0 << ", " << a10.a1 << ", " << a10.a2
+      << ", " << a10.a3 << ", " << a10.a4 << ", " << a10.a5 << ", " << a10.a6
+      << ", " << a10.a7 << ", " << a10.a8 << ", " << a10.a9 << "), " << a11
+      << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+}
+
+// Used for testing structs and unions by value.
+// Passing bools and a struct with bools.
+// Exhausts the registers to test bools and the bool struct alignment on the
+// stack.
+DART_EXPORT void TestAsyncPassUint8Boolx9Struct10BytesInlineArrayBoolBool(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              bool a1,
+              bool a2,
+              bool a3,
+              bool a4,
+              bool a5,
+              bool a6,
+              bool a7,
+              bool a8,
+              bool a9,
+              Struct10BytesInlineArrayBool a10,
+              bool a11)) {
+  uint8_t a0;
+  bool a1;
+  bool a2;
+  bool a3;
+  bool a4;
+  bool a5;
+  bool a6;
+  bool a7;
+  bool a8;
+  bool a9;
+  Struct10BytesInlineArrayBool a10 = {};
+  bool a11;
+
+  a0 = 1;
+  a1 = false;
+  a2 = true;
+  a3 = false;
+  a4 = true;
+  a5 = false;
+  a6 = true;
+  a7 = false;
+  a8 = true;
+  a9 = false;
+  a10.a0[0] = true;
+  a10.a0[1] = false;
+  a10.a0[2] = true;
+  a10.a0[3] = false;
+  a10.a0[4] = true;
+  a10.a0[5] = false;
+  a10.a0[6] = true;
+  a10.a0[7] = false;
+  a10.a0[8] = true;
+  a10.a0[9] = false;
+  a11 = true;
+
+  std::cout
+      << "Calling TestAsyncPassUint8Boolx9Struct10BytesInlineArrayBoolBool("
+      << "(" << static_cast<int>(a0) << ", " << a1 << ", " << a2 << ", " << a3
+      << ", " << a4 << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8
+      << ", " << a9 << ", ([" << a10.a0[0] << ", " << a10.a0[1] << ", "
+      << a10.a0[2] << ", " << a10.a0[3] << ", " << a10.a0[4] << ", "
+      << a10.a0[5] << ", " << a10.a0[6] << ", " << a10.a0[7] << ", "
+      << a10.a0[8] << ", " << a10.a0[9] << "]), " << a11 << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11);
+}
+
+// Used for testing structs and unions by value.
+// Returning a bool.
+DART_EXPORT void TestAsyncPassUint8Struct1ByteBool(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0, Struct1ByteBool a1)) {
+  uint8_t a0;
+  Struct1ByteBool a1 = {};
+
+  a0 = 1;
+  a1.a0 = false;
+
+  std::cout << "Calling TestAsyncPassUint8Struct1ByteBool("
+            << "(" << static_cast<int>(a0) << ", (" << a1.a0 << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Returning a wchar.
+DART_EXPORT void TestAsyncPassWCharStructInlineArrayIntUintPtrx2LongUnsigned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(wchar_t a0,
+              StructInlineArrayInt a1,
+              uintptr_t a2,
+              uintptr_t a3,
+              /* NOLINT(runtime/int) */ long a4,
+              /* NOLINT(runtime/int) */ unsigned long a5)) {
+  wchar_t a0;
+  StructInlineArrayInt a1 = {};
+  uintptr_t a2;
+  uintptr_t a3;
+  /* NOLINT(runtime/int) */ long a4;
+  /* NOLINT(runtime/int) */ unsigned long a5;
+
+  a0 = 1;
+  a1.a0[0] = 2;
+  a1.a0[1] = 3;
+  a1.a0[2] = 4;
+  a1.a0[3] = 5;
+  a1.a0[4] = 6;
+  a1.a0[5] = 7;
+  a1.a0[6] = 8;
+  a1.a0[7] = 9;
+  a1.a0[8] = 10;
+  a1.a0[9] = 11;
+  a2 = 12;
+  a3 = 13;
+  a4 = 14;
+  a5 = 15;
+
+  std::cout
+      << "Calling TestAsyncPassWCharStructInlineArrayIntUintPtrx2LongUnsigned("
+      << "(" << a0 << ", ([" << a1.a0[0] << ", " << a1.a0[1] << ", " << a1.a0[2]
+      << ", " << a1.a0[3] << ", " << a1.a0[4] << ", " << a1.a0[5] << ", "
+      << a1.a0[6] << ", " << a1.a0[7] << ", " << a1.a0[8] << ", " << a1.a0[9]
+      << "]), " << a2 << ", " << a3 << ", " << a4 << ", " << a5 << ")"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5);
+}
+
+// Used for testing structs and unions by value.
+// Smallest struct with data.
+DART_EXPORT void TestAsyncReturnStruct1ByteInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0)) {
+  int8_t a0;
+
+  a0 = -1;
+
+  std::cout << "Calling TestAsyncReturnStruct1ByteInt("
+            << "(" << static_cast<int>(a0) << ")"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Smaller than word size return value on all architectures.
+DART_EXPORT void TestAsyncReturnStruct3BytesHomogeneousUint8(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0, uint8_t a1, uint8_t a2)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+
+  std::cout << "Calling TestAsyncReturnStruct3BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Smaller than word size return value on all architectures.
+// With alignment rules taken into account size is 4 bytes.
+DART_EXPORT void TestAsyncReturnStruct3BytesInt2ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int16_t a0, int8_t a1)) {
+  int16_t a0;
+  int8_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestAsyncReturnStruct3BytesInt2ByteAligned("
+            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Word size return value on 32 bit architectures..
+DART_EXPORT void TestAsyncReturnStruct4BytesHomogeneousInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int16_t a0, int16_t a1)) {
+  int16_t a0;
+  int16_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestAsyncReturnStruct4BytesHomogeneousInt16("
+            << "(" << a0 << ", " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Non-wordsize return value.
+DART_EXPORT void TestAsyncReturnStruct7BytesHomogeneousUint8(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              uint8_t a1,
+              uint8_t a2,
+              uint8_t a3,
+              uint8_t a4,
+              uint8_t a5,
+              uint8_t a6)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+
+  std::cout << "Calling TestAsyncReturnStruct7BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
+            << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
+            << ", " << static_cast<int>(a6) << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6);
+}
+
+// Used for testing structs and unions by value.
+// Non-wordsize return value.
+// With alignment rules taken into account size is 8 bytes.
+DART_EXPORT void TestAsyncReturnStruct7BytesInt4ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0, int16_t a1, int8_t a2)) {
+  int32_t a0;
+  int16_t a1;
+  int8_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStruct7BytesInt4ByteAligned("
+            << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Return value in integer registers on many architectures.
+DART_EXPORT void TestAsyncReturnStruct8BytesInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int16_t a0, int16_t a1, int32_t a2)) {
+  int16_t a0;
+  int16_t a1;
+  int32_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesInt("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FP registers on many architectures.
+DART_EXPORT void TestAsyncReturnStruct8BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, float a1)) {
+  float a0;
+  float a1;
+
+  a0 = -1.0;
+  a1 = 2.0;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Return value split over FP and integer register in x64.
+DART_EXPORT void TestAsyncReturnStruct8BytesMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, int16_t a1, int16_t a2)) {
+  float a0;
+  int16_t a1;
+  int16_t a2;
+
+  a0 = -1.0;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesMixed("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// The minimum alignment of this struct is only 1 byte based on its fields.
+// Test that the memory backing these structs is the right size and that
+// dart:ffi trampolines do not write outside this size.
+DART_EXPORT void TestAsyncReturnStruct9BytesHomogeneousUint8(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              uint8_t a1,
+              uint8_t a2,
+              uint8_t a3,
+              uint8_t a4,
+              uint8_t a5,
+              uint8_t a6,
+              uint8_t a7,
+              uint8_t a8)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+  uint8_t a7;
+  uint8_t a8;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+  a7 = 8;
+  a8 = 9;
+
+  std::cout << "Calling TestAsyncReturnStruct9BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
+            << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
+            << ", " << static_cast<int>(a6) << ", " << static_cast<int>(a7)
+            << ", " << static_cast<int>(a8) << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// Return value in two integer registers on x64.
+// With alignment rules taken into account size is 12 or 16 bytes.
+DART_EXPORT void TestAsyncReturnStruct9BytesInt4Or8ByteAligned(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int64_t a0, int8_t a1)) {
+  int64_t a0;
+  int8_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestAsyncReturnStruct9BytesInt4Or8ByteAligned("
+            << "(" << a0 << ", " << static_cast<int>(a1) << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FPU registers, but does not use all registers on arm hardfp
+// and arm64.
+DART_EXPORT void TestAsyncReturnStruct12BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, float a1, float a2)) {
+  float a0;
+  float a1;
+  float a2;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+
+  std::cout << "Calling TestAsyncReturnStruct12BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FPU registers on arm hardfp and arm64.
+DART_EXPORT void TestAsyncReturnStruct16BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, float a1, float a2, float a3)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+
+  std::cout << "Calling TestAsyncReturnStruct16BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Return value split over FP and integer register in x64.
+DART_EXPORT void TestAsyncReturnStruct16BytesMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(double a0, int64_t a1)) {
+  double a0;
+  int64_t a1;
+
+  a0 = -1.0;
+  a1 = 2;
+
+  std::cout << "Calling TestAsyncReturnStruct16BytesMixed("
+            << "(" << a0 << ", " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Return value split over FP and integer register in x64.
+// The integer register contains half float half int.
+DART_EXPORT void TestAsyncReturnStruct16BytesMixed2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, float a1, float a2, int32_t a3)) {
+  float a0;
+  float a1;
+  float a2;
+  int32_t a3;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4;
+
+  std::cout << "Calling TestAsyncReturnStruct16BytesMixed2("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Return value returned in preallocated space passed by pointer on most ABIs.
+// Is non word size on purpose, to test that structs are rounded up to word size
+// on all ABIs.
+DART_EXPORT void TestAsyncReturnStruct17BytesInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int64_t a0, int64_t a1, int8_t a2)) {
+  int64_t a0;
+  int64_t a1;
+  int8_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStruct17BytesInt("
+            << "(" << a0 << ", " << a1 << ", " << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// The minimum alignment of this struct is only 1 byte based on its fields.
+// Test that the memory backing these structs is the right size and that
+// dart:ffi trampolines do not write outside this size.
+DART_EXPORT void TestAsyncReturnStruct19BytesHomogeneousUint8(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0,
+              uint8_t a1,
+              uint8_t a2,
+              uint8_t a3,
+              uint8_t a4,
+              uint8_t a5,
+              uint8_t a6,
+              uint8_t a7,
+              uint8_t a8,
+              uint8_t a9,
+              uint8_t a10,
+              uint8_t a11,
+              uint8_t a12,
+              uint8_t a13,
+              uint8_t a14,
+              uint8_t a15,
+              uint8_t a16,
+              uint8_t a17,
+              uint8_t a18)) {
+  uint8_t a0;
+  uint8_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+  uint8_t a5;
+  uint8_t a6;
+  uint8_t a7;
+  uint8_t a8;
+  uint8_t a9;
+  uint8_t a10;
+  uint8_t a11;
+  uint8_t a12;
+  uint8_t a13;
+  uint8_t a14;
+  uint8_t a15;
+  uint8_t a16;
+  uint8_t a17;
+  uint8_t a18;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+  a7 = 8;
+  a8 = 9;
+  a9 = 10;
+  a10 = 11;
+  a11 = 12;
+  a12 = 13;
+  a13 = 14;
+  a14 = 15;
+  a15 = 16;
+  a16 = 17;
+  a17 = 18;
+  a18 = 19;
+
+  std::cout << "Calling TestAsyncReturnStruct19BytesHomogeneousUint8("
+            << "(" << static_cast<int>(a0) << ", " << static_cast<int>(a1)
+            << ", " << static_cast<int>(a2) << ", " << static_cast<int>(a3)
+            << ", " << static_cast<int>(a4) << ", " << static_cast<int>(a5)
+            << ", " << static_cast<int>(a6) << ", " << static_cast<int>(a7)
+            << ", " << static_cast<int>(a8) << ", " << static_cast<int>(a9)
+            << ", " << static_cast<int>(a10) << ", " << static_cast<int>(a11)
+            << ", " << static_cast<int>(a12) << ", " << static_cast<int>(a13)
+            << ", " << static_cast<int>(a14) << ", " << static_cast<int>(a15)
+            << ", " << static_cast<int>(a16) << ", " << static_cast<int>(a17)
+            << ", " << static_cast<int>(a18) << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
+    a17, a18);
+}
+
+// Used for testing structs and unions by value.
+// Return value too big to go in cpu registers on arm64.
+DART_EXPORT void TestAsyncReturnStruct20BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0, int32_t a1, int32_t a2, int32_t a3, int32_t a4)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+
+  std::cout << "Calling TestAsyncReturnStruct20BytesHomogeneousInt32("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Return value too big to go in FPU registers on x64, arm hardfp and arm64.
+DART_EXPORT void TestAsyncReturnStruct20BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(float a0, float a1, float a2, float a3, float a4)) {
+  float a0;
+  float a1;
+  float a2;
+  float a3;
+  float a4;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+
+  std::cout << "Calling TestAsyncReturnStruct20BytesHomogeneousFloat("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FPU registers on arm64.
+DART_EXPORT void TestAsyncReturnStruct32BytesHomogeneousDouble(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(double a0, double a1, double a2, double a3)) {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+
+  std::cout << "Calling TestAsyncReturnStruct32BytesHomogeneousDouble("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
+// Return value too big to go in FPU registers on arm64.
+DART_EXPORT void TestAsyncReturnStruct40BytesHomogeneousDouble(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(double a0, double a1, double a2, double a3, double a4)) {
+  double a0;
+  double a1;
+  double a2;
+  double a3;
+  double a4;
+
+  a0 = -1.0;
+  a1 = 2.0;
+  a2 = -3.0;
+  a3 = 4.0;
+  a4 = -5.0;
+
+  std::cout << "Calling TestAsyncReturnStruct40BytesHomogeneousDouble("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Test 1kb struct.
+DART_EXPORT void TestAsyncReturnStruct1024BytesHomogeneousUint64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint64_t a0,
+              uint64_t a1,
+              uint64_t a2,
+              uint64_t a3,
+              uint64_t a4,
+              uint64_t a5,
+              uint64_t a6,
+              uint64_t a7,
+              uint64_t a8,
+              uint64_t a9,
+              uint64_t a10,
+              uint64_t a11,
+              uint64_t a12,
+              uint64_t a13,
+              uint64_t a14,
+              uint64_t a15,
+              uint64_t a16,
+              uint64_t a17,
+              uint64_t a18,
+              uint64_t a19,
+              uint64_t a20,
+              uint64_t a21,
+              uint64_t a22,
+              uint64_t a23,
+              uint64_t a24,
+              uint64_t a25,
+              uint64_t a26,
+              uint64_t a27,
+              uint64_t a28,
+              uint64_t a29,
+              uint64_t a30,
+              uint64_t a31,
+              uint64_t a32,
+              uint64_t a33,
+              uint64_t a34,
+              uint64_t a35,
+              uint64_t a36,
+              uint64_t a37,
+              uint64_t a38,
+              uint64_t a39,
+              uint64_t a40,
+              uint64_t a41,
+              uint64_t a42,
+              uint64_t a43,
+              uint64_t a44,
+              uint64_t a45,
+              uint64_t a46,
+              uint64_t a47,
+              uint64_t a48,
+              uint64_t a49,
+              uint64_t a50,
+              uint64_t a51,
+              uint64_t a52,
+              uint64_t a53,
+              uint64_t a54,
+              uint64_t a55,
+              uint64_t a56,
+              uint64_t a57,
+              uint64_t a58,
+              uint64_t a59,
+              uint64_t a60,
+              uint64_t a61,
+              uint64_t a62,
+              uint64_t a63,
+              uint64_t a64,
+              uint64_t a65,
+              uint64_t a66,
+              uint64_t a67,
+              uint64_t a68,
+              uint64_t a69,
+              uint64_t a70,
+              uint64_t a71,
+              uint64_t a72,
+              uint64_t a73,
+              uint64_t a74,
+              uint64_t a75,
+              uint64_t a76,
+              uint64_t a77,
+              uint64_t a78,
+              uint64_t a79,
+              uint64_t a80,
+              uint64_t a81,
+              uint64_t a82,
+              uint64_t a83,
+              uint64_t a84,
+              uint64_t a85,
+              uint64_t a86,
+              uint64_t a87,
+              uint64_t a88,
+              uint64_t a89,
+              uint64_t a90,
+              uint64_t a91,
+              uint64_t a92,
+              uint64_t a93,
+              uint64_t a94,
+              uint64_t a95,
+              uint64_t a96,
+              uint64_t a97,
+              uint64_t a98,
+              uint64_t a99,
+              uint64_t a100,
+              uint64_t a101,
+              uint64_t a102,
+              uint64_t a103,
+              uint64_t a104,
+              uint64_t a105,
+              uint64_t a106,
+              uint64_t a107,
+              uint64_t a108,
+              uint64_t a109,
+              uint64_t a110,
+              uint64_t a111,
+              uint64_t a112,
+              uint64_t a113,
+              uint64_t a114,
+              uint64_t a115,
+              uint64_t a116,
+              uint64_t a117,
+              uint64_t a118,
+              uint64_t a119,
+              uint64_t a120,
+              uint64_t a121,
+              uint64_t a122,
+              uint64_t a123,
+              uint64_t a124,
+              uint64_t a125,
+              uint64_t a126,
+              uint64_t a127)) {
+  uint64_t a0;
+  uint64_t a1;
+  uint64_t a2;
+  uint64_t a3;
+  uint64_t a4;
+  uint64_t a5;
+  uint64_t a6;
+  uint64_t a7;
+  uint64_t a8;
+  uint64_t a9;
+  uint64_t a10;
+  uint64_t a11;
+  uint64_t a12;
+  uint64_t a13;
+  uint64_t a14;
+  uint64_t a15;
+  uint64_t a16;
+  uint64_t a17;
+  uint64_t a18;
+  uint64_t a19;
+  uint64_t a20;
+  uint64_t a21;
+  uint64_t a22;
+  uint64_t a23;
+  uint64_t a24;
+  uint64_t a25;
+  uint64_t a26;
+  uint64_t a27;
+  uint64_t a28;
+  uint64_t a29;
+  uint64_t a30;
+  uint64_t a31;
+  uint64_t a32;
+  uint64_t a33;
+  uint64_t a34;
+  uint64_t a35;
+  uint64_t a36;
+  uint64_t a37;
+  uint64_t a38;
+  uint64_t a39;
+  uint64_t a40;
+  uint64_t a41;
+  uint64_t a42;
+  uint64_t a43;
+  uint64_t a44;
+  uint64_t a45;
+  uint64_t a46;
+  uint64_t a47;
+  uint64_t a48;
+  uint64_t a49;
+  uint64_t a50;
+  uint64_t a51;
+  uint64_t a52;
+  uint64_t a53;
+  uint64_t a54;
+  uint64_t a55;
+  uint64_t a56;
+  uint64_t a57;
+  uint64_t a58;
+  uint64_t a59;
+  uint64_t a60;
+  uint64_t a61;
+  uint64_t a62;
+  uint64_t a63;
+  uint64_t a64;
+  uint64_t a65;
+  uint64_t a66;
+  uint64_t a67;
+  uint64_t a68;
+  uint64_t a69;
+  uint64_t a70;
+  uint64_t a71;
+  uint64_t a72;
+  uint64_t a73;
+  uint64_t a74;
+  uint64_t a75;
+  uint64_t a76;
+  uint64_t a77;
+  uint64_t a78;
+  uint64_t a79;
+  uint64_t a80;
+  uint64_t a81;
+  uint64_t a82;
+  uint64_t a83;
+  uint64_t a84;
+  uint64_t a85;
+  uint64_t a86;
+  uint64_t a87;
+  uint64_t a88;
+  uint64_t a89;
+  uint64_t a90;
+  uint64_t a91;
+  uint64_t a92;
+  uint64_t a93;
+  uint64_t a94;
+  uint64_t a95;
+  uint64_t a96;
+  uint64_t a97;
+  uint64_t a98;
+  uint64_t a99;
+  uint64_t a100;
+  uint64_t a101;
+  uint64_t a102;
+  uint64_t a103;
+  uint64_t a104;
+  uint64_t a105;
+  uint64_t a106;
+  uint64_t a107;
+  uint64_t a108;
+  uint64_t a109;
+  uint64_t a110;
+  uint64_t a111;
+  uint64_t a112;
+  uint64_t a113;
+  uint64_t a114;
+  uint64_t a115;
+  uint64_t a116;
+  uint64_t a117;
+  uint64_t a118;
+  uint64_t a119;
+  uint64_t a120;
+  uint64_t a121;
+  uint64_t a122;
+  uint64_t a123;
+  uint64_t a124;
+  uint64_t a125;
+  uint64_t a126;
+  uint64_t a127;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+  a5 = 6;
+  a6 = 7;
+  a7 = 8;
+  a8 = 9;
+  a9 = 10;
+  a10 = 11;
+  a11 = 12;
+  a12 = 13;
+  a13 = 14;
+  a14 = 15;
+  a15 = 16;
+  a16 = 17;
+  a17 = 18;
+  a18 = 19;
+  a19 = 20;
+  a20 = 21;
+  a21 = 22;
+  a22 = 23;
+  a23 = 24;
+  a24 = 25;
+  a25 = 26;
+  a26 = 27;
+  a27 = 28;
+  a28 = 29;
+  a29 = 30;
+  a30 = 31;
+  a31 = 32;
+  a32 = 33;
+  a33 = 34;
+  a34 = 35;
+  a35 = 36;
+  a36 = 37;
+  a37 = 38;
+  a38 = 39;
+  a39 = 40;
+  a40 = 41;
+  a41 = 42;
+  a42 = 43;
+  a43 = 44;
+  a44 = 45;
+  a45 = 46;
+  a46 = 47;
+  a47 = 48;
+  a48 = 49;
+  a49 = 50;
+  a50 = 51;
+  a51 = 52;
+  a52 = 53;
+  a53 = 54;
+  a54 = 55;
+  a55 = 56;
+  a56 = 57;
+  a57 = 58;
+  a58 = 59;
+  a59 = 60;
+  a60 = 61;
+  a61 = 62;
+  a62 = 63;
+  a63 = 64;
+  a64 = 65;
+  a65 = 66;
+  a66 = 67;
+  a67 = 68;
+  a68 = 69;
+  a69 = 70;
+  a70 = 71;
+  a71 = 72;
+  a72 = 73;
+  a73 = 74;
+  a74 = 75;
+  a75 = 76;
+  a76 = 77;
+  a77 = 78;
+  a78 = 79;
+  a79 = 80;
+  a80 = 81;
+  a81 = 82;
+  a82 = 83;
+  a83 = 84;
+  a84 = 85;
+  a85 = 86;
+  a86 = 87;
+  a87 = 88;
+  a88 = 89;
+  a89 = 90;
+  a90 = 91;
+  a91 = 92;
+  a92 = 93;
+  a93 = 94;
+  a94 = 95;
+  a95 = 96;
+  a96 = 97;
+  a97 = 98;
+  a98 = 99;
+  a99 = 100;
+  a100 = 101;
+  a101 = 102;
+  a102 = 103;
+  a103 = 104;
+  a104 = 105;
+  a105 = 106;
+  a106 = 107;
+  a107 = 108;
+  a108 = 109;
+  a109 = 110;
+  a110 = 111;
+  a111 = 112;
+  a112 = 113;
+  a113 = 114;
+  a114 = 115;
+  a115 = 116;
+  a116 = 117;
+  a117 = 118;
+  a118 = 119;
+  a119 = 120;
+  a120 = 121;
+  a121 = 122;
+  a122 = 123;
+  a123 = 124;
+  a124 = 125;
+  a125 = 126;
+  a126 = 127;
+  a127 = 128;
+
+  std::cout << "Calling TestAsyncReturnStruct1024BytesHomogeneousUint64("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", " << a8 << ", "
+            << a9 << ", " << a10 << ", " << a11 << ", " << a12 << ", " << a13
+            << ", " << a14 << ", " << a15 << ", " << a16 << ", " << a17 << ", "
+            << a18 << ", " << a19 << ", " << a20 << ", " << a21 << ", " << a22
+            << ", " << a23 << ", " << a24 << ", " << a25 << ", " << a26 << ", "
+            << a27 << ", " << a28 << ", " << a29 << ", " << a30 << ", " << a31
+            << ", " << a32 << ", " << a33 << ", " << a34 << ", " << a35 << ", "
+            << a36 << ", " << a37 << ", " << a38 << ", " << a39 << ", " << a40
+            << ", " << a41 << ", " << a42 << ", " << a43 << ", " << a44 << ", "
+            << a45 << ", " << a46 << ", " << a47 << ", " << a48 << ", " << a49
+            << ", " << a50 << ", " << a51 << ", " << a52 << ", " << a53 << ", "
+            << a54 << ", " << a55 << ", " << a56 << ", " << a57 << ", " << a58
+            << ", " << a59 << ", " << a60 << ", " << a61 << ", " << a62 << ", "
+            << a63 << ", " << a64 << ", " << a65 << ", " << a66 << ", " << a67
+            << ", " << a68 << ", " << a69 << ", " << a70 << ", " << a71 << ", "
+            << a72 << ", " << a73 << ", " << a74 << ", " << a75 << ", " << a76
+            << ", " << a77 << ", " << a78 << ", " << a79 << ", " << a80 << ", "
+            << a81 << ", " << a82 << ", " << a83 << ", " << a84 << ", " << a85
+            << ", " << a86 << ", " << a87 << ", " << a88 << ", " << a89 << ", "
+            << a90 << ", " << a91 << ", " << a92 << ", " << a93 << ", " << a94
+            << ", " << a95 << ", " << a96 << ", " << a97 << ", " << a98 << ", "
+            << a99 << ", " << a100 << ", " << a101 << ", " << a102 << ", "
+            << a103 << ", " << a104 << ", " << a105 << ", " << a106 << ", "
+            << a107 << ", " << a108 << ", " << a109 << ", " << a110 << ", "
+            << a111 << ", " << a112 << ", " << a113 << ", " << a114 << ", "
+            << a115 << ", " << a116 << ", " << a117 << ", " << a118 << ", "
+            << a119 << ", " << a120 << ", " << a121 << ", " << a122 << ", "
+            << a123 << ", " << a124 << ", " << a125 << ", " << a126 << ", "
+            << a127 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8, a9, a10, a11, a12, a13, a14, a15, a16,
+    a17, a18, a19, a20, a21, a22, a23, a24, a25, a26, a27, a28, a29, a30, a31,
+    a32, a33, a34, a35, a36, a37, a38, a39, a40, a41, a42, a43, a44, a45, a46,
+    a47, a48, a49, a50, a51, a52, a53, a54, a55, a56, a57, a58, a59, a60, a61,
+    a62, a63, a64, a65, a66, a67, a68, a69, a70, a71, a72, a73, a74, a75, a76,
+    a77, a78, a79, a80, a81, a82, a83, a84, a85, a86, a87, a88, a89, a90, a91,
+    a92, a93, a94, a95, a96, a97, a98, a99, a100, a101, a102, a103, a104, a105,
+    a106, a107, a108, a109, a110, a111, a112, a113, a114, a115, a116, a117,
+    a118, a119, a120, a121, a122, a123, a124, a125, a126, a127);
+}
+
+// Used for testing structs and unions by value.
+// Small struct with mis-aligned member.
+DART_EXPORT void TestAsyncReturnStruct3BytesPackedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0, int16_t a1)) {
+  int8_t a0;
+  int16_t a1;
+
+  a0 = -1;
+  a1 = 2;
+
+  std::cout << "Calling TestAsyncReturnStruct3BytesPackedInt("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Struct with mis-aligned member.
+DART_EXPORT void TestAsyncReturnStruct8BytesPackedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0, uint32_t a1, uint8_t a2, uint8_t a3, uint8_t a4)) {
+  uint8_t a0;
+  uint32_t a1;
+  uint8_t a2;
+  uint8_t a3;
+  uint8_t a4;
+
+  a0 = 1;
+  a1 = 2;
+  a2 = 3;
+  a3 = 4;
+  a4 = 5;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesPackedInt("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ", " << static_cast<int>(a3) << ", "
+            << static_cast<int>(a4) << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4);
+}
+
+// Used for testing structs and unions by value.
+// Struct with mis-aligned member.
+// Tests backfilling of CPU and FPU registers.
+DART_EXPORT void TestAsyncReturnStruct9BytesPackedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint8_t a0, double a1)) {
+  uint8_t a0;
+  double a1;
+
+  a0 = 1;
+  a1 = 2.0;
+
+  std::cout << "Calling TestAsyncReturnStruct9BytesPackedMixed("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Returning a mixed integer/float union.
+DART_EXPORT void TestAsyncReturnUnion4BytesMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint32_t a0)) {
+  uint32_t a0;
+
+  a0 = 1;
+
+  std::cout << "Calling TestAsyncReturnUnion4BytesMixed("
+            << "(" << a0 << ")"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Returning a floating point only union.
+DART_EXPORT void TestAsyncReturnUnion8BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(double a0)) {
+  double a0;
+
+  a0 = -1.0;
+
+  std::cout << "Calling TestAsyncReturnUnion8BytesNestedFloat("
+            << "(" << a0 << ")"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Returning a mixed-size union.
+DART_EXPORT void TestAsyncReturnUnion9BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesInt a0)) {
+  Struct8BytesInt a0 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnUnion9BytesNestedInt("
+            << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Returning union with homogenous floats.
+DART_EXPORT void TestAsyncReturnUnion16BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesHomogeneousFloat a0)) {
+  Struct8BytesHomogeneousFloat a0 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+
+  std::cout << "Calling TestAsyncReturnUnion16BytesNestedFloat("
+            << "((" << a0.a0 << ", " << a0.a1 << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test that a struct passed in as argument can be returned.
+// Especially for ffi callbacks.
+// Struct is passed in int registers in most ABIs.
+DART_EXPORT void TestAsyncReturnStructArgumentStruct1ByteInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct1ByteInt a0)) {
+  Struct1ByteInt a0 = {};
+
+  a0.a0 = -1;
+
+  std::cout << "Calling TestAsyncReturnStructArgumentStruct1ByteInt("
+            << "((" << static_cast<int>(a0.a0) << "))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test that a struct passed in as argument can be returned.
+// Especially for ffi callbacks.
+// Struct is passed on stack on all ABIs.
+DART_EXPORT void TestAsyncReturnStructArgumentInt32x8Struct1ByteInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0,
+              int32_t a1,
+              int32_t a2,
+              int32_t a3,
+              int32_t a4,
+              int32_t a5,
+              int32_t a6,
+              int32_t a7,
+              Struct1ByteInt a8)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+  int32_t a5;
+  int32_t a6;
+  int32_t a7;
+  Struct1ByteInt a8 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7 = 8;
+  a8.a0 = -9;
+
+  std::cout << "Calling TestAsyncReturnStructArgumentInt32x8Struct1ByteInt("
+            << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+            << ", " << a5 << ", " << a6 << ", " << a7 << ", ("
+            << static_cast<int>(a8.a0) << "))"
+            << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// Test that a struct passed in as argument can be returned.
+// Especially for ffi callbacks.
+// Struct is passed in float registers in most ABIs.
+DART_EXPORT void TestAsyncReturnStructArgumentStruct8BytesHomogeneousFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesHomogeneousFloat a0)) {
+  Struct8BytesHomogeneousFloat a0 = {};
+
+  a0.a0 = -1.0;
+  a0.a1 = 2.0;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentStruct8BytesHomogeneousFloat("
+      << "((" << a0.a0 << ", " << a0.a1 << "))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// On arm64, both argument and return value are passed in by pointer.
+DART_EXPORT void TestAsyncReturnStructArgumentStruct20BytesHomogeneousInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct20BytesHomogeneousInt32 a0)) {
+  Struct20BytesHomogeneousInt32 a0 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a0.a3 = 4;
+  a0.a4 = -5;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentStruct20BytesHomogeneousInt32("
+      << "((" << a0.a0 << ", " << a0.a1 << ", " << a0.a2 << ", " << a0.a3
+      << ", " << a0.a4 << "))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// On arm64, both argument and return value are passed in by pointer.
+// Ints exhaust registers, so that pointer is passed on stack.
+DART_EXPORT void TestAsyncReturnStructArgumentInt32x8Struct20BytesHomogeneou(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int32_t a0,
+              int32_t a1,
+              int32_t a2,
+              int32_t a3,
+              int32_t a4,
+              int32_t a5,
+              int32_t a6,
+              int32_t a7,
+              Struct20BytesHomogeneousInt32 a8)) {
+  int32_t a0;
+  int32_t a1;
+  int32_t a2;
+  int32_t a3;
+  int32_t a4;
+  int32_t a5;
+  int32_t a6;
+  int32_t a7;
+  Struct20BytesHomogeneousInt32 a8 = {};
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+  a3 = 4;
+  a4 = -5;
+  a5 = 6;
+  a6 = -7;
+  a7 = 8;
+  a8.a0 = -9;
+  a8.a1 = 10;
+  a8.a2 = -11;
+  a8.a3 = 12;
+  a8.a4 = -13;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentInt32x8Struct20BytesHomogeneou("
+      << "(" << a0 << ", " << a1 << ", " << a2 << ", " << a3 << ", " << a4
+      << ", " << a5 << ", " << a6 << ", " << a7 << ", (" << a8.a0 << ", "
+      << a8.a1 << ", " << a8.a2 << ", " << a8.a3 << ", " << a8.a4 << "))"
+      << ")\n";
+
+  f(a0, a1, a2, a3, a4, a5, a6, a7, a8);
+}
+
+// Used for testing structs and unions by value.
+// Test returning struct with inline array.
+DART_EXPORT void TestAsyncReturnStructArgumentStruct8BytesInlineArrayInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesInlineArrayInt a0)) {
+  Struct8BytesInlineArrayInt a0 = {};
+
+  a0.a0[0] = 1;
+  a0.a0[1] = 2;
+  a0.a0[2] = 3;
+  a0.a0[3] = 4;
+  a0.a0[4] = 5;
+  a0.a0[5] = 6;
+  a0.a0[6] = 7;
+  a0.a0[7] = 8;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentStruct8BytesInlineArrayInt("
+      << "(([" << static_cast<int>(a0.a0[0]) << ", "
+      << static_cast<int>(a0.a0[1]) << ", " << static_cast<int>(a0.a0[2])
+      << ", " << static_cast<int>(a0.a0[3]) << ", "
+      << static_cast<int>(a0.a0[4]) << ", " << static_cast<int>(a0.a0[5])
+      << ", " << static_cast<int>(a0.a0[6]) << ", "
+      << static_cast<int>(a0.a0[7]) << "]))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FPU registers on arm hardfp and arm64.
+DART_EXPORT void TestAsyncReturnStructArgumentStructStruct16BytesHomogeneous(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct16BytesHomogeneousFloat2 a0)) {
+  StructStruct16BytesHomogeneousFloat2 a0 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[1].a0 = -3.0;
+  a0.a2 = 4.0;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentStructStruct16BytesHomogeneous("
+      << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << "), (" << a0.a1[1].a0
+      << ")], " << a0.a2 << "))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Return value in FPU registers on arm64.
+DART_EXPORT void TestAsyncReturnStructArgumentStructStruct32BytesHomogeneous(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct32BytesHomogeneousDouble2 a0)) {
+  StructStruct32BytesHomogeneousDouble2 a0 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[1].a0 = -3.0;
+  a0.a2 = 4.0;
+
+  std::cout
+      << "Calling TestAsyncReturnStructArgumentStructStruct32BytesHomogeneous("
+      << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << "), (" << a0.a1[1].a0
+      << ")], " << a0.a2 << "))"
+      << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// On x64 Linux, return value is split over FP and int registers.
+DART_EXPORT void TestAsyncReturnStructArgumentStructStruct16BytesMixed3(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructStruct16BytesMixed3 a0)) {
+  StructStruct16BytesMixed3 a0 = {};
+
+  a0.a0.a0 = -1.0;
+  a0.a1[0].a0 = 2.0;
+  a0.a1[0].a1 = -3;
+  a0.a1[0].a2 = 4;
+  a0.a2[0] = -5;
+  a0.a2[1] = 6;
+
+  std::cout << "Calling TestAsyncReturnStructArgumentStructStruct16BytesMixed3("
+            << "(((" << a0.a0.a0 << "), [(" << a0.a1[0].a0 << ", "
+            << a0.a1[0].a1 << ", " << a0.a1[0].a2 << ")], [" << a0.a2[0] << ", "
+            << a0.a2[1] << "]))"
+            << ")\n";
+
+  f(a0);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 16 byte int within struct.
+DART_EXPORT void TestAsyncReturnStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0, int16_t a1, int8_t a2)) {
+  int8_t a0;
+  int16_t a1;
+  int8_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStructAlignmentInt16("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 32 byte int within struct.
+DART_EXPORT void TestAsyncReturnStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0, int32_t a1, int8_t a2)) {
+  int8_t a0;
+  int32_t a1;
+  int8_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStructAlignmentInt32("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of 64 byte int within struct.
+DART_EXPORT void TestAsyncReturnStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(int8_t a0, int64_t a1, int8_t a2)) {
+  int8_t a0;
+  int64_t a1;
+  int8_t a2;
+
+  a0 = -1;
+  a1 = 2;
+  a2 = -3;
+
+  std::cout << "Calling TestAsyncReturnStructAlignmentInt64("
+            << "(" << static_cast<int>(a0) << ", " << a1 << ", "
+            << static_cast<int>(a2) << ")"
+            << ")\n";
+
+  f(a0, a1, a2);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct.
+DART_EXPORT void TestAsyncReturnStruct8BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct4BytesHomogeneousInt16 a0,
+              Struct4BytesHomogeneousInt16 a1)) {
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesHomogeneousInt16 a1 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3;
+  a1.a1 = 4;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesNestedInt("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << ", "
+            << a1.a1 << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct with floats.
+DART_EXPORT void TestAsyncReturnStruct8BytesNestedFloat(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct4BytesFloat a0, Struct4BytesFloat a1)) {
+  Struct4BytesFloat a0 = {};
+  Struct4BytesFloat a1 = {};
+
+  a0.a0 = -1.0;
+  a1.a0 = 2.0;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesNestedFloat("
+            << "((" << a0.a0 << "), (" << a1.a0 << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// The nesting is irregular, testing homogenous float rules on arm and arm64,
+// and the fpu register usage on x64.
+DART_EXPORT void TestAsyncReturnStruct8BytesNestedFloat2(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct4BytesFloat a0, float a1)) {
+  Struct4BytesFloat a0 = {};
+  float a1;
+
+  a0.a0 = -1.0;
+  a1 = 2.0;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesNestedFloat2("
+            << "((" << a0.a0 << "), " << a1 << ")"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Simple nested struct with mixed members.
+DART_EXPORT void TestAsyncReturnStruct8BytesNestedMixed(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct4BytesHomogeneousInt16 a0, Struct4BytesFloat a1)) {
+  Struct4BytesHomogeneousInt16 a0 = {};
+  Struct4BytesFloat a1 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a1.a0 = -3.0;
+
+  std::cout << "Calling TestAsyncReturnStruct8BytesNestedMixed("
+            << "((" << a0.a0 << ", " << a0.a1 << "), (" << a1.a0 << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Deeper nested struct to test recursive member access.
+DART_EXPORT void TestAsyncReturnStruct16BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct8BytesNestedInt a0, Struct8BytesNestedInt a1)) {
+  Struct8BytesNestedInt a0 = {};
+  Struct8BytesNestedInt a1 = {};
+
+  a0.a0.a0 = -1;
+  a0.a0.a1 = 2;
+  a0.a1.a0 = -3;
+  a0.a1.a1 = 4;
+  a1.a0.a0 = -5;
+  a1.a0.a1 = 6;
+  a1.a1.a0 = -7;
+  a1.a1.a1 = 8;
+
+  std::cout << "Calling TestAsyncReturnStruct16BytesNestedInt("
+            << "(((" << a0.a0.a0 << ", " << a0.a0.a1 << "), (" << a0.a1.a0
+            << ", " << a0.a1.a1 << ")), ((" << a1.a0.a0 << ", " << a1.a0.a1
+            << "), (" << a1.a1.a0 << ", " << a1.a1.a1 << ")))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Even deeper nested struct to test recursive member access.
+DART_EXPORT void TestAsyncReturnStruct32BytesNestedInt(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(Struct16BytesNestedInt a0, Struct16BytesNestedInt a1)) {
+  Struct16BytesNestedInt a0 = {};
+  Struct16BytesNestedInt a1 = {};
+
+  a0.a0.a0.a0 = -1;
+  a0.a0.a0.a1 = 2;
+  a0.a0.a1.a0 = -3;
+  a0.a0.a1.a1 = 4;
+  a0.a1.a0.a0 = -5;
+  a0.a1.a0.a1 = 6;
+  a0.a1.a1.a0 = -7;
+  a0.a1.a1.a1 = 8;
+  a1.a0.a0.a0 = -9;
+  a1.a0.a0.a1 = 10;
+  a1.a0.a1.a0 = -11;
+  a1.a0.a1.a1 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15;
+  a1.a1.a1.a1 = 16;
+
+  std::cout << "Calling TestAsyncReturnStruct32BytesNestedInt("
+            << "((((" << a0.a0.a0.a0 << ", " << a0.a0.a0.a1 << "), ("
+            << a0.a0.a1.a0 << ", " << a0.a0.a1.a1 << ")), ((" << a0.a1.a0.a0
+            << ", " << a0.a1.a0.a1 << "), (" << a0.a1.a1.a0 << ", "
+            << a0.a1.a1.a1 << "))), (((" << a1.a0.a0.a0 << ", " << a1.a0.a0.a1
+            << "), (" << a1.a0.a1.a0 << ", " << a1.a0.a1.a1 << ")), (("
+            << a1.a1.a0.a0 << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0
+            << ", " << a1.a1.a1.a1 << "))))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 16 byte int.
+DART_EXPORT void TestAsyncReturnStructNestedIntStructAlignmentInt16(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt16 a0, StructAlignmentInt16 a1)) {
+  StructAlignmentInt16 a0 = {};
+  StructAlignmentInt16 a1 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncReturnStructNestedIntStructAlignmentInt16("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 32 byte int.
+DART_EXPORT void TestAsyncReturnStructNestedIntStructAlignmentInt32(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt32 a0, StructAlignmentInt32 a1)) {
+  StructAlignmentInt32 a0 = {};
+  StructAlignmentInt32 a1 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncReturnStructNestedIntStructAlignmentInt32("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Test alignment and padding of nested struct with 64 byte int.
+DART_EXPORT void TestAsyncReturnStructNestedIntStructAlignmentInt64(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(StructAlignmentInt64 a0, StructAlignmentInt64 a1)) {
+  StructAlignmentInt64 a0 = {};
+  StructAlignmentInt64 a1 = {};
+
+  a0.a0 = -1;
+  a0.a1 = 2;
+  a0.a2 = -3;
+  a1.a0 = 4;
+  a1.a1 = -5;
+  a1.a2 = 6;
+
+  std::cout << "Calling TestAsyncReturnStructNestedIntStructAlignmentInt64("
+            << "((" << static_cast<int>(a0.a0) << ", " << a0.a1 << ", "
+            << static_cast<int>(a0.a2) << "), (" << static_cast<int>(a1.a0)
+            << ", " << a1.a1 << ", " << static_cast<int>(a1.a2) << "))"
+            << ")\n";
+
+  f(a0, a1);
+}
+
+// Used for testing structs and unions by value.
+// Return big irregular struct as smoke test.
+DART_EXPORT void TestAsyncReturnStructNestedIrregularEvenBigger(
+    // NOLINTNEXTLINE(whitespace/parens)
+    void (*f)(uint64_t a0,
+              StructNestedIrregularBigger a1,
+              StructNestedIrregularBigger a2,
+              double a3)) {
+  uint64_t a0;
+  StructNestedIrregularBigger a1 = {};
+  StructNestedIrregularBigger a2 = {};
+  double a3;
+
+  a0 = 1;
+  a1.a0.a0 = 2;
+  a1.a0.a1.a0.a0 = -3;
+  a1.a0.a1.a0.a1 = 4;
+  a1.a0.a1.a1.a0 = -5.0;
+  a1.a0.a2 = 6;
+  a1.a0.a3.a0.a0 = -7.0;
+  a1.a0.a3.a1 = 8.0;
+  a1.a0.a4 = 9;
+  a1.a0.a5.a0.a0 = 10.0;
+  a1.a0.a5.a1.a0 = -11.0;
+  a1.a0.a6 = 12;
+  a1.a1.a0.a0 = -13;
+  a1.a1.a0.a1 = 14;
+  a1.a1.a1.a0 = -15.0;
+  a1.a2 = 16.0;
+  a1.a3 = -17.0;
+  a2.a0.a0 = 18;
+  a2.a0.a1.a0.a0 = -19;
+  a2.a0.a1.a0.a1 = 20;
+  a2.a0.a1.a1.a0 = -21.0;
+  a2.a0.a2 = 22;
+  a2.a0.a3.a0.a0 = -23.0;
+  a2.a0.a3.a1 = 24.0;
+  a2.a0.a4 = 25;
+  a2.a0.a5.a0.a0 = 26.0;
+  a2.a0.a5.a1.a0 = -27.0;
+  a2.a0.a6 = 28;
+  a2.a1.a0.a0 = -29;
+  a2.a1.a0.a1 = 30;
+  a2.a1.a1.a0 = -31.0;
+  a2.a2 = 32.0;
+  a2.a3 = -33.0;
+  a3 = 34.0;
+
+  std::cout << "Calling TestAsyncReturnStructNestedIrregularEvenBigger("
+            << "(" << a0 << ", ((" << a1.a0.a0 << ", ((" << a1.a0.a1.a0.a0
+            << ", " << a1.a0.a1.a0.a1 << "), (" << a1.a0.a1.a1.a0 << ")), "
+            << a1.a0.a2 << ", ((" << a1.a0.a3.a0.a0 << "), " << a1.a0.a3.a1
+            << "), " << a1.a0.a4 << ", ((" << a1.a0.a5.a0.a0 << "), ("
+            << a1.a0.a5.a1.a0 << ")), " << a1.a0.a6 << "), ((" << a1.a1.a0.a0
+            << ", " << a1.a1.a0.a1 << "), (" << a1.a1.a1.a0 << ")), " << a1.a2
+            << ", " << a1.a3 << "), ((" << a2.a0.a0 << ", ((" << a2.a0.a1.a0.a0
+            << ", " << a2.a0.a1.a0.a1 << "), (" << a2.a0.a1.a1.a0 << ")), "
+            << a2.a0.a2 << ", ((" << a2.a0.a3.a0.a0 << "), " << a2.a0.a3.a1
+            << "), " << a2.a0.a4 << ", ((" << a2.a0.a5.a0.a0 << "), ("
+            << a2.a0.a5.a1.a0 << ")), " << a2.a0.a6 << "), ((" << a2.a1.a0.a0
+            << ", " << a2.a1.a0.a1 << "), (" << a2.a1.a1.a0 << ")), " << a2.a2
+            << ", " << a2.a3 << "), " << a3 << ")"
+            << ")\n";
+
+  f(a0, a1, a2, a3);
+}
+
+// Used for testing structs and unions by value.
 // Single variadic argument.
 DART_EXPORT int64_t VariadicAt1Int64x2(int64_t a0, ...) {
   va_list var_args;

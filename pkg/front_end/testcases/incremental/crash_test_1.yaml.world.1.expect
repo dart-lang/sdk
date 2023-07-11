@@ -9,11 +9,10 @@ library from "org-dartlang-test:///lib.dart" as lib {
 //
 
   class C extends dart.core::Object {
-    static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
     constructor •() → lib::C
       : super dart.core::Object::•()
       ;
-    static factory e4() → lib::C
+    static factory e4() → lib::C /* redirection-target: lib::C::• */
       return new lib::C::•();
   }
 }
@@ -24,7 +23,4 @@ library from "org-dartlang-test:///main.dart" as main {
   static method main() → void {
     lib::C c = new lib::C::•();
   }
-}
-constants  {
-  #C1 = constructor-tearoff lib::C::e4
 }

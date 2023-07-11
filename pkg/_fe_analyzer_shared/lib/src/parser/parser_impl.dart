@@ -1897,8 +1897,6 @@ class Parser {
   /// ```
   Token parseFormalParameter(
       Token token, FormalParameterKind parameterKind, MemberKind memberKind) {
-    // ignore: unnecessary_null_comparison
-    assert(parameterKind != null);
     token = parseMetadataStar(token);
 
     Token? skippedNonRequiredRequired;
@@ -3159,14 +3157,10 @@ class Parser {
   /// identifier in the given [context], create a synthetic identifier, report
   /// an error, and return the synthetic identifier.
   Token ensureIdentifier(Token token, IdentifierContext context) {
-    // ignore: unnecessary_null_comparison
-    assert(context != null);
     _tryRewriteNewToIdentifier(token, context);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifier(token, this);
-      // ignore: unnecessary_null_comparison
-      assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
     }
     listener.handleIdentifier(identifier, context);
@@ -3224,14 +3218,10 @@ class Parser {
   /// to use the token as an identifier, even if it isn't a valid identifier.
   Token ensureIdentifierPotentiallyRecovered(
       Token token, IdentifierContext context, bool isRecovered) {
-    // ignore: unnecessary_null_comparison
-    assert(context != null);
     Token identifier = token.next!;
     if (identifier.kind != IDENTIFIER_TOKEN) {
       identifier = context.ensureIdentifierPotentiallyRecovered(
           token, this, isRecovered);
-      // ignore: unnecessary_null_comparison
-      assert(identifier != null);
       assert(identifier.isKeywordOrIdentifier);
     }
     listener.handleIdentifier(identifier, context);
@@ -5494,7 +5484,6 @@ class Parser {
           return parseYieldStatement(token);
 
         case AsyncModifier.Async:
-          reportRecoverableError(token.next!, codes.messageYieldNotGenerator);
           return parseYieldStatement(token);
       }
     } else if (identical(value, 'const')) {
@@ -5540,18 +5529,15 @@ class Parser {
     }
     token = parseExpression(token);
     token = ensureSemicolon(token);
-    if (inPlainSync) {
-      // `yield` is only allowed in generators; A recoverable error is already
-      // reported in the "async" case in `parseStatementX`. Only the "sync" case
-      // needs to be handled here.
+    if (inGenerator) {
+      listener.endYieldStatement(begin, starToken, token);
+    } else {
       codes.MessageCode errorCode = codes.messageYieldNotGenerator;
       reportRecoverableError(begin, errorCode);
       // TODO(srawlins): Add tests in analyzer to ensure the AstBuilder
       //  correctly handles invalid yields, and that the error message is
       //  correctly plumbed through.
       listener.endInvalidYieldStatement(begin, starToken, token, errorCode);
-    } else {
-      listener.endYieldStatement(begin, starToken, token);
     }
     return token;
   }
@@ -8494,7 +8480,7 @@ class Parser {
         // declaration).
         return true;
       }
-    } else if (token == Keyword.NULL) {
+    } else if (token.keyword == Keyword.NULL) {
       return true;
     }
     // TODO(srawlins): Consider other possibilities for `token` which would

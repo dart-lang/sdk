@@ -390,7 +390,7 @@ void f() {
     var change = SourceChange('');
     await addLibraryImports(testAnalysisResult.session, change,
         testLibraryElement, newLibraries.toSet());
-    var testEdit = change.getFileEdit(testFile);
+    var testEdit = change.getFileEdit(testFile.path);
     var resultCode = SourceEdit.applySequence(testCode, testEdit!.edits);
     expect(resultCode, expectedCode);
   }

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "has_part_lib.dart" as has;
 additionalExports = (has::C)
@@ -7,7 +7,7 @@ export "org-dartlang-testcase:///has_part_lib.dart";
 
 static method main() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as has;
 import "dart:core" as core;
 
@@ -16,9 +16,9 @@ inline class C /* declaredRepresentationType = core::int */ { // from org-dartla
   constructor • = has::C|;
   tearoff • = has::_#new#tearOff;
 }
-static method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C {
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ C|(core::int i) → has::C {
   lowered final has::C #this = i;
   return #this;
 }
-static method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(core::int i) → has::C
+static inline-class-member method /* from org-dartlang-testcase:///has_part_of_lib.dart */ _#new#tearOff(core::int i) → has::C
   return has::C|(i);

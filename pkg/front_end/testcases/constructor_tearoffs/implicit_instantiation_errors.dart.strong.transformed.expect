@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -40,20 +40,20 @@ static method test() → dynamic {
   self::Class c = new self::Class::•();
   (core::int, core::int) → core::int f = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:16:30: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int)' because 'int Function(int, int)?' is nullable and 'int Function(int, int)' isn't.
   int Function(int, int) f = alias;
-                             ^" in let (core::int, core::int) →? core::int #t1 = let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t2 = self::alias in #t2 == null ?{(core::int, core::int) →? core::int} null : #t2{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int> in #t1 == null ?{(core::int, core::int) → core::int} #t1 as{TypeError,ForNonNullableByDefault} (core::int, core::int) → core::int : #t1{(core::int, core::int) → core::int};
+                             ^" in let (core::int, core::int) →? core::int #t1 = let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t2 = self::alias in #t2 == null ?{(core::int, core::int) →? core::int} null : #t2{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int> in #t1 == null ?{(core::int, core::int) → core::int} #t1 as{TypeError} (core::int, core::int) → core::int : #t1{(core::int, core::int) → core::int};
   (core::int, core::int?) →? core::int g;
   g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:18:7: Error: A value of type 'int Function(int, int)?' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
   g = alias;
-      ^" in (let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t3 = self::alias in #t3 == null ?{(core::int, core::int) →? core::int} null : #t3{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
+      ^" in (let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t3 = self::alias in #t3 == null ?{(core::int, core::int) →? core::int} null : #t3{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError} (core::int, core::int?) →? core::int;
   (core::int, core::int?) → core::int h = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:19:27: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
   int Function(int, int?) h = c;
-                          ^" in ((let final self::Class #t4 = c in #t4 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t4.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int;
+                          ^" in ((let final self::Class #t4 = c in #t4 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t4.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError} (core::int, core::int?) → core::int;
   g = invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:20:3: Error: A value of type 'int Function(int, int)' can't be assigned to a variable of type 'int Function(int, int?)?' because 'int?' is nullable and 'int' isn't.
   g = c;
-  ^" in ((let final self::Class #t5 = c in #t5 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t5.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) →? core::int;
+  ^" in ((let final self::Class #t5 = c in #t5 == null ?{<T extends core::Object? = dynamic>(T%, core::int) → T%} null : #t5.{self::Class::call}{<T extends core::Object? = dynamic>(T%, core::int) → T%})<core::int>) as{TypeError} (core::int, core::int?) →? core::int;
   self::method(invalid-expression "pkg/front_end/testcases/constructor_tearoffs/implicit_instantiation_errors.dart:21:10: Error: The argument type 'int Function(int, int)?' can't be assigned to the parameter type 'int Function(int, int?)' because 'int?' is nullable and 'int' isn't.
   method(alias);
-         ^" in (let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t6 = self::alias in #t6 == null ?{(core::int, core::int) →? core::int} null : #t6{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError,ForNonNullableByDefault} (core::int, core::int?) → core::int);
+         ^" in (let final <T extends core::Object? = dynamic>(T%, core::int) →? T% #t6 = self::alias in #t6 == null ?{(core::int, core::int) →? core::int} null : #t6{<T extends core::Object? = dynamic>(T%, core::int) → T%}<core::int>) as{TypeError} (core::int, core::int?) → core::int);
 }
 static method main() → dynamic {}
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -79,46 +79,46 @@ extension Extension2 on self::Class2 {
 extension Extension3 on self::Class3 {
   operator [] = self::Extension3|[];
 }
-static method Extension1|get#nullable1(lowered final self::Class1 #this) → self::Class1?
+static extension-member method Extension1|get#nullable1(lowered final self::Class1 #this) → self::Class1?
   return #this.{self::Class1::property1}{self::Class1};
-static method Extension1|set#nullable1(lowered final self::Class1 #this, self::Class1? value) → void {
+static extension-member method Extension1|set#nullable1(lowered final self::Class1 #this, self::Class1? value) → void {
   #this.{self::Class1::property} = value;
 }
-static method Extension1|nonNullable1Method(lowered final self::Class1 #this) → self::Class1
+static extension-member method Extension1|nonNullable1Method(lowered final self::Class1 #this) → self::Class1
   return self::Extension1|get#nonNullable1(#this);
-static method Extension1|get#nonNullable1Method(lowered final self::Class1 #this) → () → self::Class1
+static extension-member method Extension1|get#nonNullable1Method(lowered final self::Class1 #this) → () → self::Class1
   return () → self::Class1 => self::Extension1|nonNullable1Method(#this);
-static method Extension1|[](lowered final self::Class1 #this, self::Class1? key) → self::Class1?
+static extension-member method Extension1|[](lowered final self::Class1 #this, self::Class1? key) → self::Class1?
   return self::Extension1|get#nullable1(#this);
-static method Extension1|[]=(lowered final self::Class1 #this, self::Class1? key, self::Class1? value) → void {
+static extension-member method Extension1|[]=(lowered final self::Class1 #this, self::Class1? key, self::Class1? value) → void {
   #this.{self::Class1::property} = value;
 }
-static method Extension1|+(lowered final self::Class1 #this, core::int value) → self::Class1?
+static extension-member method Extension1|+(lowered final self::Class1 #this, core::int value) → self::Class1?
   return self::Extension1|get#nullable1(#this);
-static method Extension1|unary-(lowered final self::Class1 #this) → self::Class1?
+static extension-member method Extension1|unary-(lowered final self::Class1 #this) → self::Class1?
   return self::Extension1|get#nullable1(#this);
-static method Extension1|get#nonNullable1(lowered final self::Class1 #this) → self::Class1
+static extension-member method Extension1|get#nonNullable1(lowered final self::Class1 #this) → self::Class1
   return #this.{self::Class1::property1}{self::Class1};
-static method Extension1|get#nonNullable2(lowered final self::Class1 #this) → self::Class2
+static extension-member method Extension1|get#nonNullable2(lowered final self::Class1 #this) → self::Class2
   return #this.{self::Class1::property2}{self::Class2};
-static method Extension2|nonNullable2Method(lowered final self::Class2 #this) → self::Class2
+static extension-member method Extension2|nonNullable2Method(lowered final self::Class2 #this) → self::Class2
   return self::Extension2|get#nonNullable2(#this);
-static method Extension2|get#nonNullable2Method(lowered final self::Class2 #this) → () → self::Class2
+static extension-member method Extension2|get#nonNullable2Method(lowered final self::Class2 #this) → () → self::Class2
   return () → self::Class2 => self::Extension2|nonNullable2Method(#this);
-static method Extension2|[](lowered final self::Class2 #this, self::Class2? key) → self::Class2
+static extension-member method Extension2|[](lowered final self::Class2 #this, self::Class2? key) → self::Class2
   return #this.{self::Class2::property}{self::Class2};
-static method Extension2|[]=(lowered final self::Class2 #this, self::Class2? key, self::Class2? value) → void
+static extension-member method Extension2|[]=(lowered final self::Class2 #this, self::Class2? key, self::Class2? value) → void
   return #this.{self::Class2::property}{self::Class2};
-static method Extension2|+(lowered final self::Class2 #this, core::int value) → self::Class2
+static extension-member method Extension2|+(lowered final self::Class2 #this, core::int value) → self::Class2
   return #this.{self::Class2::property}{self::Class2};
-static method Extension2|unary-(lowered final self::Class2 #this) → self::Class2
+static extension-member method Extension2|unary-(lowered final self::Class2 #this) → self::Class2
   return #this.{self::Class2::property}{self::Class2};
-static method Extension2|get#nonNullable2(lowered final self::Class2 #this) → self::Class2
+static extension-member method Extension2|get#nonNullable2(lowered final self::Class2 #this) → self::Class2
   return #this.{self::Class2::property}{self::Class2};
-static method Extension2|set#nonNullable2(lowered final self::Class2 #this, self::Class2 value) → void {
+static extension-member method Extension2|set#nonNullable2(lowered final self::Class2 #this, self::Class2 value) → void {
   #this.{self::Class2::property} = value;
 }
-static method Extension3|[](lowered final self::Class3 #this, self::Class3? key) → self::Class2?
+static extension-member method Extension3|[](lowered final self::Class3 #this, self::Class3? key) → self::Class2?
   return #this.{self::Class3::property}{self::Class2?};
 static method main() → dynamic {
   self::propertyAccess(null);

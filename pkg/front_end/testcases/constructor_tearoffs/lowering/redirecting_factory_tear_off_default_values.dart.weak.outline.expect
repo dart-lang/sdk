@@ -1,27 +1,25 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class Class1 extends core::Object {
   final field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class1::•]/*isLegacy*/;
   constructor _([core::int field = 42]) → self::Class1
     ;
   static method _#_#tearOff([has-declared-initializer core::int field]) → self::Class1
     return new self::Class1::_(field);
-  static factory •([core::int field]) → self::Class1
+  static factory •([core::int field]) → self::Class1 /* redirection-target: self::Class1::_ */
     return new self::Class1::_(field);
   static method _#new#tearOff([core::int field]) → self::Class1
     return new self::Class1::_(field);
 }
 class Class2 extends core::Object {
   final field core::int field;
-  static final field dynamic _redirecting# = <dynamic>[self::Class2::•]/*isLegacy*/;
   constructor _({core::int field = 42}) → self::Class2
     ;
   static method _#_#tearOff({has-declared-initializer core::int field}) → self::Class2
     return new self::Class2::_(field: field);
-  static factory •({core::int field}) → self::Class2
+  static factory •({core::int field}) → self::Class2 /* redirection-target: self::Class2::_ */
     return new self::Class2::_(field: field);
   static method _#new#tearOff({core::int field}) → self::Class2
     return new self::Class2::_(field: field);
@@ -35,9 +33,3 @@ static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 static method throws(() → dynamic f, {has-declared-initializer core::bool inSoundModeOnly}) → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:12:7 -> ConstructorTearOffConstant(Class1.)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///redirecting_factory_tear_off_default_values.dart:19:7 -> ConstructorTearOffConstant(Class2.)
-Extra constant evaluation: evaluated: 16, effectively constant: 2

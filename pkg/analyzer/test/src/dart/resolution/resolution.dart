@@ -35,6 +35,9 @@ final isVoidType = TypeMatcher<VoidTypeImpl>();
 
 /// Base for resolution tests.
 mixin ResolutionTest implements ResourceProviderMixin {
+  final ResolvedNodeTextConfiguration nodeTextConfiguration =
+      ResolvedNodeTextConfiguration();
+
   late ResolvedUnitResult result;
   late FindNode findNode;
   late FindElement findElement;
@@ -246,23 +249,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
     assertHasTestErrors();
   }
 
-  void assertMember(
-    Object? elementOrNode,
-    Element expectedBase,
-    Map<String, String> expectedSubstitution,
-  ) {
-    Member? actual;
-    if (elementOrNode is Member) {
-      actual = elementOrNode;
-    } else {
-      actual = getNodeElement(elementOrNode as AstNode) as Member;
-    }
-
-    expect(actual.declaration, same(expectedBase));
-
-    assertSubstitution(actual.substitution, expectedSubstitution);
-  }
-
   Future<void> assertNoErrorsInCode(String code) async {
     addTestFile(code);
     await resolveTestFile();
@@ -290,15 +276,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     expect(actual, expected);
   }
 
-  void assertResolvedNodeText(
-    AstNode node,
-    String expected, {
-    bool skipArgumentList = false,
-  }) {
-    var actual = _resolvedNodeText(
-      node,
-      skipArgumentList: skipArgumentList,
-    );
+  void assertResolvedNodeText(AstNode node, String expected) {
+    var actual = _resolvedNodeText(node);
     if (actual != expected) {
       print(actual);
       NodeTextExpectationsCollector.add(actual);
@@ -376,20 +355,6 @@ mixin ResolutionTest implements ResourceProviderMixin {
 
   void assertTypeNull(Expression node) {
     expect(node.staticType, isNull);
-  }
-
-  /// TODO(scheglov) Remove `?` from [declaration].
-  Matcher elementMatcher(
-    Element? declaration, {
-    bool isLegacy = false,
-    Map<String, String> substitution = const {},
-  }) {
-    return _ElementMatcher(
-      this,
-      declaration: declaration!,
-      isLegacy: isLegacy,
-      substitution: substitution,
-    );
   }
 
   ExpectedError error(ErrorCode code, int offset, int length,
@@ -549,24 +514,22 @@ mixin ResolutionTest implements ResourceProviderMixin {
         selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
-        skipArgumentList: skipArgumentList,
+        configuration: ResolvedNodeTextConfiguration()
+          ..skipArgumentList = skipArgumentList,
         withResolution: false,
       ),
     );
     return buffer.toString();
   }
 
-  String _resolvedNodeText(
-    AstNode node, {
-    bool skipArgumentList = false,
-  }) {
+  String _resolvedNodeText(AstNode node) {
     var buffer = StringBuffer();
     node.accept(
       ResolvedAstPrinter(
         selfUriStr: '${result.libraryElement.source.uri}',
         sink: buffer,
         indent: '',
-        skipArgumentList: skipArgumentList,
+        configuration: nodeTextConfiguration,
       ),
     );
     return buffer.toString();
@@ -576,22 +539,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
 class _ElementMatcher extends Matcher {
   final ResolutionTest test;
   final Element declaration;
-  final bool isLegacy;
-  final Map<String, String> substitution;
 
   _ElementMatcher(
     this.test, {
     required this.declaration,
-    this.isLegacy = false,
-    this.substitution = const {},
   });
 
   @override
   Description describe(Description description) {
-    return description
-        .add('declaration: $declaration\n')
-        .add('isLegacy: $isLegacy\n')
-        .add('substitution: $substitution\n');
+    return description.add('declaration: $declaration\n');
   }
 
   @override
@@ -602,14 +558,14 @@ class _ElementMatcher extends Matcher {
       }
 
       if (element is Member) {
-        if (element.isLegacy != isLegacy) {
+        if (element.isLegacy != false) {
           return false;
         }
 
-        test.assertSubstitution(element.substitution, substitution);
+        test.assertSubstitution(element.substitution, const {});
         return true;
       } else {
-        return !isLegacy && substitution.isEmpty;
+        return true;
       }
     }
     return false;

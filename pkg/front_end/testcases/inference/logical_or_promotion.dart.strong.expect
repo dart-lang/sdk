@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -18,8 +18,8 @@ class C extends core::Object {
     : super core::Object::•()
     ;
   method f(core::Object o) → void {
-    if(o is{ForNonNullableByDefault} self::A || o is{ForNonNullableByDefault} self::B) {
-      if(o is{ForNonNullableByDefault} self::A) {
+    if(o is self::A || o is self::B) {
+      if(o is self::A) {
         this.{self::C::a} = o{self::A};
       }
     }

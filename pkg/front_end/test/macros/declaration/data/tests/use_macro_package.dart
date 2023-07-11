@@ -65,14 +65,14 @@ var field;
 
 extension Extension on int {
   /*member: Extension|field:*/
-  @Macro1()
+  @ /*error: error=UnsupportedMacroApplication*/ Macro1()
   static var field;
 
   /*member: Extension|method:*/
-  @Macro2()
+  @ /*error: error=UnsupportedMacroApplication*/ Macro2()
   void method() {}
 
   /*member: Extension|staticMethod:*/
-  @Macro3()
+  @ /*error: error=UnsupportedMacroApplication*/ Macro3()
   static void staticMethod() {}
 }

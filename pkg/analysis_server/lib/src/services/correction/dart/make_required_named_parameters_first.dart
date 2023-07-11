@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class MakeRequiredNamedParametersFirst extends CorrectionProducer {
+class MakeRequiredNamedParametersFirst extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -58,7 +58,7 @@ class MakeRequiredNamedParametersFirst extends CorrectionProducer {
       var firstParameter = parameters[firstOptionalParameter!];
       var firstComments = firstParameter.beginToken.precedingComments;
       var offset = firstComments?.offset ?? firstParameter.offset;
-      var lineInfo = resolvedResult.lineInfo;
+      var lineInfo = unitResult.lineInfo;
       builder.addInsertion(offset, (builder) {
         for (var index in requiredParameterIndices) {
           var nodeRange = range.nodeWithComments(lineInfo, parameters[index]);

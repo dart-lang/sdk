@@ -8,5 +8,5 @@ Errors: {
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<E extends dart.core::String>(dart.core::List<dart.core::String> x) → dynamic
   return () → Null {
     dart.core::List<#lib1::debugExpr::E> y = dart.core::_GrowableList::•<#lib1::debugExpr::E>(0);
-    y.{dart.core::List::addAll}(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:31: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Iterable<E>'.\n - 'List' is from 'dart:core'.\n - 'Iterable' is from 'dart:core'.\n() { List<E> y = []; y.addAll(x); }\n                              ^" in x as{TypeError,ForNonNullableByDefault} Never){(dart.core::Iterable<#lib1::debugExpr::E>) → void};
+    y.{dart.core::List::addAll}(invalid-expression "org-dartlang-debug:synthetic_debug_expression:1:31: Error: The argument type 'List<String>' can't be assigned to the parameter type 'Iterable<E>'.\n - 'List' is from 'dart:core'.\n - 'Iterable' is from 'dart:core'.\n() { List<E> y = []; y.addAll(x); }\n                              ^" in x as{TypeError} Never){(dart.core::Iterable<#lib1::debugExpr::E>) → void};
   };

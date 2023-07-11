@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,15 +10,15 @@ inline class A /* declaredRepresentationType = core::int */ {
   tearoff • = self::A|_#new#tearOff;
 }
 @#C2
-static method A|(core::int i) → self::A {
+static inline-class-member method A|(core::int i) → self::A {
   lowered final self::A #this = i;
   return #this;
 }
-static method A|_#new#tearOff(core::int i) → self::A
+static inline-class-member method A|_#new#tearOff(core::int i) → self::A
   return self::A|(i);
 @#C2
-static method A|m(lowered final self::A #this) → void {}
-static method A|get#m(lowered final self::A #this) → () → void
+static inline-class-member method A|m(lowered final self::A #this) → void {}
+static inline-class-member method A|get#m(lowered final self::A #this) → () → void
   return () → void => self::A|m(#this);
 
 constants  {

@@ -212,10 +212,7 @@ class Scavenger {
     ASSERT(external_size_ >= 0);
   }
 
-  void MakeNewSpaceIterable();
   int64_t FreeSpaceInWords(Isolate* isolate) const;
-
-  bool scavenging() const { return scavenging_; }
 
   // The maximum number of Dart mutator threads we allow to execute at the same
   // time.

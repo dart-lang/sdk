@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -70,42 +70,42 @@ static method test() → void {
   new self::F0::•<core::int>(core::_GrowableList::_literal1<core::int>(3));
   new self::F0::•<core::int>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:32:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                    ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int));
+                                                                    ^" in "hello" as{TypeError} core::int));
   new self::F0::•<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:34:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3));
+                                               ^" in "hello" as{TypeError} core::int, 3));
   new self::F1::•<core::int>(a: core::_GrowableList::•<core::int>(0));
   new self::F1::•<core::int>(a: core::_GrowableList::_literal1<core::int>(3));
   new self::F1::•<core::int>(a: core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:41:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"
-                                               ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int));
+                                               ^" in "hello" as{TypeError} core::int));
   new self::F1::•<core::int>(a: core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:44:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3));
+                                               ^" in "hello" as{TypeError} core::int, 3));
   new self::F2::•<core::int>(core::_GrowableList::•<core::int>(0));
   new self::F2::•<core::int>(core::_GrowableList::_literal1<core::int>(3));
   new self::F2::•<core::int>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:51:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]);
-                                                                    ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int));
+                                                                    ^" in "hello" as{TypeError} core::int));
   new self::F2::•<core::int>(core::_GrowableList::_literal2<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:53:48: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\",
-                                               ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int, 3));
+                                               ^" in "hello" as{TypeError} core::int, 3));
   new self::F3::•<core::int>(core::_GrowableList::•<core::Iterable<core::int>>(0));
   new self::F3::•<core::int>(core::_GrowableList::_literal1<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(3)));
   new self::F3::•<core::int>(core::_GrowableList::_literal1<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:62:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int)));
+                                                                  ^" in "hello" as{TypeError} core::int)));
   new self::F3::•<core::int>(core::_GrowableList::_literal2<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:65:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int), core::_GrowableList::_literal1<core::int>(3)));
+                                                                  ^" in "hello" as{TypeError} core::int), core::_GrowableList::_literal1<core::int>(3)));
   new self::F4::•<core::int>(a: core::_GrowableList::•<core::Iterable<core::int>>(0));
   new self::F4::•<core::int>(a: core::_GrowableList::_literal1<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(3)));
   new self::F4::•<core::int>(a: core::_GrowableList::_literal1<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:74:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"]
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int)));
+                                                                  ^" in "hello" as{TypeError} core::int)));
   new self::F4::•<core::int>(a: core::_GrowableList::_literal2<core::Iterable<core::int>>(core::_GrowableList::_literal1<core::int>(invalid-expression "pkg/front_end/testcases/inference/downwards_inference_on_generic_constructor_arguments_infer_downwards.dart:77:67: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
     /*@typeArgs=int*/ [/*error:LIST_ELEMENT_TYPE_NOT_ASSIGNABLE*/ \"hello\"],
-                                                                  ^" in "hello" as{TypeError,ForNonNullableByDefault} core::int), core::_GrowableList::_literal1<core::int>(3)));
+                                                                  ^" in "hello" as{TypeError} core::int), core::_GrowableList::_literal1<core::int>(3)));
   new self::F3::•<core::Object?>(core::_GrowableList::•<core::Iterable<core::Object?>>(0));
   self::F3<core::int> f31 = new self::F3::•<core::int>(core::_GrowableList::_literal1<core::List<core::int>>(core::_GrowableList::_literal1<core::int>(3)));
   self::F3<core::String> f32 = new self::F3::•<core::String>(core::_GrowableList::_literal1<core::List<core::String>>(core::_GrowableList::_literal1<core::String>("hello")));

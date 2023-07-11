@@ -1,8 +1,12 @@
-## 11.7.0
-- Add a dependency on `package:fixnum ^1.0.0`.
-- Add a dependency on `package:protobuf >=2.0.0 <=3.0.0-dev`.
-- Add code for working with Perfetto protos, which can be imported from
-  `'package:vm_service/vm_service_protos.dart'`.
+## 11.7.3
+- Update to version `4.10` of the spec.
+- Add deprecation notice to `Breakpoint.isSyntheticAsyncContinuation`.
+
+## 11.7.2
+- Make Event classes abstract to permit `dap` event stream extensions.
+
+## 11.7.1
+- Expose RPC error codes that were defined in `package:dds`.
 
 ## 11.6.0
 - Update to version `4.7` of the spec.

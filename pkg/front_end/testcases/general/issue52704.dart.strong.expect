@@ -1,0 +1,21 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/issue52704.dart:7:14: Error: Can't assign to the final variable 'x'.
+//   await for (x in Stream.fromIterable([1])) {} // Error.
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+import "dart:async" as asy;
+
+static method test() → dynamic async /* futureValueType= dynamic */ {
+  late final core::int x;
+  await for (final core::int #t1 in asy::Stream::fromIterable<core::int>(<core::int>[1])) {
+    x = invalid-expression "pkg/front_end/testcases/general/issue52704.dart:7:14: Error: Can't assign to the final variable 'x'.
+  await for (x in Stream.fromIterable([1])) {} // Error.
+             ^";
+  }
+  core::print(x);
+}

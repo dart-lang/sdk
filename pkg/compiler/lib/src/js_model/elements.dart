@@ -4,6 +4,8 @@
 
 library dart2js.js_model.elements;
 
+import 'package:kernel/ast.dart' as ir show LocalFunction;
+
 import '../common/names.dart' show Names;
 import '../elements/entities.dart';
 import '../elements/indexed.dart';
@@ -751,7 +753,11 @@ class JSignatureMethod extends JMethod {
 }
 
 /// Enum used for identifying [JTypeVariable] variants in serialization.
-enum JTypeVariableKind { cls, member, local }
+///
+/// [JLocalTypeVariable] in the K-world can contain a [Local] as its
+/// `typeDeclaration` but those are never serialized. When converted to the
+/// J-world they use a [JClosureCallMethod] as [JTypeVariable.typeDeclaration].
+enum JTypeVariableKind { cls, member }
 
 class JTypeVariable extends IndexedTypeVariable {
   /// Tag used for identifying serialized [JTypeVariable] objects in a
@@ -759,31 +765,27 @@ class JTypeVariable extends IndexedTypeVariable {
   static const String tag = 'type-variable';
 
   @override
-  final Entity? typeDeclaration;
+  final Entity typeDeclaration;
   @override
   final String name;
   @override
   final int index;
 
-  JTypeVariable(this.typeDeclaration, this.name, this.index);
+  JTypeVariable(this.typeDeclaration, this.name, this.index) {
+    assert(typeDeclaration is ClassEntity || typeDeclaration is MemberEntity);
+  }
 
   /// Deserializes a [JTypeVariable] object from [source].
   factory JTypeVariable.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     JTypeVariableKind kind = source.readEnum(JTypeVariableKind.values);
-    Entity? typeDeclaration;
+    Entity typeDeclaration;
     switch (kind) {
       case JTypeVariableKind.cls:
         typeDeclaration = source.readClass();
         break;
       case JTypeVariableKind.member:
         typeDeclaration = source.readMember();
-        break;
-      case JTypeVariableKind.local:
-        // Type variables declared by local functions don't point to their
-        // declaration, since the corresponding closure call methods is created
-        // after the type variable.
-        // TODO(johnniwinther): Fix this.
         break;
     }
     String name = source.readString();
@@ -802,8 +804,6 @@ class JTypeVariable extends IndexedTypeVariable {
     } else if (declaration is MemberEntity) {
       sink.writeEnum(JTypeVariableKind.member);
       sink.writeMember(declaration);
-    } else if (declaration == null) {
-      sink.writeEnum(JTypeVariableKind.local);
     } else {
       throw UnsupportedError(
           "Unexpected type variable declarer $typeDeclaration.");
@@ -815,5 +815,38 @@ class JTypeVariable extends IndexedTypeVariable {
 
   @override
   String toString() =>
-      '${jsElementPrefix}type_variable(${typeDeclaration?.name}.$name)';
+      '${jsElementPrefix}type_variable(${typeDeclaration.name}.$name)';
+}
+
+class JLocalFunction implements Local {
+  @override
+  final String? name;
+  final MemberEntity memberContext;
+  final Entity executableContext;
+  final ir.LocalFunction node;
+  late final FunctionType functionType;
+
+  JLocalFunction(
+      this.name, this.memberContext, this.executableContext, this.node);
+
+  @override
+  String toString() => '${jsElementPrefix}local_function'
+      '(${memberContext.name}.${name ?? '<anonymous>'})';
+}
+
+class JLocalTypeVariable implements TypeVariableEntity {
+  @override
+  final JLocalFunction typeDeclaration;
+  @override
+  final String name;
+  @override
+  final int index;
+  late final DartType bound;
+  late final DartType defaultType;
+
+  JLocalTypeVariable(this.typeDeclaration, this.name, this.index);
+
+  @override
+  String toString() =>
+      '${jsElementPrefix}local_type_variable(${typeDeclaration.name}.$name)';
 }

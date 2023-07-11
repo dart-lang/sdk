@@ -47,11 +47,6 @@ bool hasJSExportAnnotation(Annotatable a) =>
 bool hasNativeAnnotation(Annotatable a) =>
     a.annotations.any(_isNativeAnnotation);
 
-/// Returns true iff the node has an `@ObjectLiteral(...)` annotation from
-/// `dart:js_interop`.
-bool hasObjectLiteralAnnotation(Annotatable a) =>
-    a.annotations.any(_isObjectLiteralAnnotation);
-
 /// If [a] has a `@JS('...')` annotation, returns the value inside the
 /// parentheses.
 ///
@@ -156,15 +151,6 @@ bool _isNativeAnnotation(Expression value) {
   return c != null &&
       c.name == 'Native' &&
       c.enclosingLibrary.importUri == _jsHelper;
-}
-
-/// Returns true if [value] is the `ObjectLiteral` annotation from
-/// `dart:js_interop`.
-bool _isObjectLiteralAnnotation(Expression value) {
-  final c = annotationClass(value);
-  return c != null &&
-      c.name == 'ObjectLiteral' &&
-      c.enclosingLibrary.importUri == _jsInterop;
 }
 
 /// Returns the class of the instance referred to by metadata annotation [node].

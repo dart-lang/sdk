@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -40,47 +40,47 @@ extension Extension<T extends core::Object? = dynamic> on self::Class<T%> {
   static set property = set self::Extension|property;
 }
 static field dynamic Extension|field;
-static get Extension|property() → dynamic
+static extension-member get Extension|property() → dynamic
   return self::Class::field;
-static set Extension|property(dynamic value) → void {
+static extension-member set Extension|property(dynamic value) → void {
   self::Class::field = value;
 }
-static method Extension|readGetter() → dynamic {
+static extension-member method Extension|readGetter() → dynamic {
   return self::Extension|property;
 }
-static method Extension|writeSetterRequired(dynamic value) → dynamic {
+static extension-member method Extension|writeSetterRequired(dynamic value) → dynamic {
   self::Extension|property = value;
 }
-static method Extension|writeSetterOptional([dynamic value = #C1]) → dynamic {
+static extension-member method Extension|writeSetterOptional([dynamic value = #C1]) → dynamic {
   self::Extension|property = value;
 }
-static method Extension|writeSetterNamed({dynamic value = #C1}) → dynamic {
+static extension-member method Extension|writeSetterNamed({dynamic value = #C1}) → dynamic {
   self::Extension|property = value;
 }
-static method Extension|genericWriteSetterRequired<S extends core::Object? = dynamic>(self::Extension|genericWriteSetterRequired::S% value) → dynamic {
+static extension-member method Extension|genericWriteSetterRequired<S extends core::Object? = dynamic>(self::Extension|genericWriteSetterRequired::S% value) → dynamic {
   self::Extension|property = value;
 }
-static method Extension|genericWriteSetterOptional<S extends core::Object? = dynamic>([self::Extension|genericWriteSetterOptional::S? value = #C1]) → dynamic {
+static extension-member method Extension|genericWriteSetterOptional<S extends core::Object? = dynamic>([self::Extension|genericWriteSetterOptional::S? value = #C1]) → dynamic {
   self::Extension|property = value;
 }
-static method Extension|genericWriteSetterNamed<S extends core::Object? = dynamic>({self::Extension|genericWriteSetterNamed::S? value = #C1}) → dynamic {
+static extension-member method Extension|genericWriteSetterNamed<S extends core::Object? = dynamic>({self::Extension|genericWriteSetterNamed::S? value = #C1}) → dynamic {
   self::Extension|property = value;
 }
-static get Extension|tearOffGetterNoArgs() → dynamic
+static extension-member get Extension|tearOffGetterNoArgs() → dynamic
   return #C2;
-static get Extension|tearOffGetterRequired() → dynamic
+static extension-member get Extension|tearOffGetterRequired() → dynamic
   return #C3;
-static get Extension|tearOffGetterOptional() → dynamic
+static extension-member get Extension|tearOffGetterOptional() → dynamic
   return #C4;
-static get Extension|tearOffGetterNamed() → dynamic
+static extension-member get Extension|tearOffGetterNamed() → dynamic
   return #C5;
-static get Extension|tearOffGetterGenericRequired() → dynamic
+static extension-member get Extension|tearOffGetterGenericRequired() → dynamic
   return #C6;
-static get Extension|tearOffGetterGenericOptional() → dynamic
+static extension-member get Extension|tearOffGetterGenericOptional() → dynamic
   return #C7;
-static get Extension|tearOffGetterGenericNamed() → dynamic
+static extension-member get Extension|tearOffGetterGenericNamed() → dynamic
   return #C8;
-static method Extension|invocationsFromStaticContext(core::int value) → dynamic {
+static extension-member method Extension|invocationsFromStaticContext(core::int value) → dynamic {
   self::Extension|readGetter();
   self::Extension|writeSetterRequired(value);
   self::Extension|writeSetterOptional();
@@ -98,7 +98,7 @@ static method Extension|invocationsFromStaticContext(core::int value) → dynami
   self::Extension|genericWriteSetterNamed<core::int>(value: value);
   self::Extension|genericWriteSetterNamed<core::int>(value: value);
 }
-static method Extension|tearOffsFromStaticContext(core::int value) → dynamic {
+static extension-member method Extension|tearOffsFromStaticContext(core::int value) → dynamic {
   () → dynamic tearOffNoArgs = #C2;
   tearOffNoArgs(){() → dynamic};
   (dynamic) → dynamic tearOffRequired = #C3;
@@ -123,11 +123,11 @@ static method Extension|tearOffsFromStaticContext(core::int value) → dynamic {
   tearOffGenericNamed<core::int>(value: value){({value: core::int?}) → dynamic};
   tearOffGenericNamed<core::int>(value: value){({value: core::int?}) → dynamic};
 }
-static method Extension|fieldAccessFromStaticContext() → dynamic {
+static extension-member method Extension|fieldAccessFromStaticContext() → dynamic {
   self::Extension|field = self::Extension|property;
   self::Extension|property = self::Extension|field;
 }
-static method Extension|getterCallsFromStaticContext(core::int value) → dynamic {
+static extension-member method Extension|getterCallsFromStaticContext(core::int value) → dynamic {
   self::Extension|tearOffGetterNoArgs{dynamic}.call();
   self::Extension|tearOffGetterRequired{dynamic}.call(value);
   self::Extension|tearOffGetterOptional{dynamic}.call();
@@ -145,7 +145,7 @@ static method Extension|getterCallsFromStaticContext(core::int value) → dynami
   self::Extension|tearOffGetterGenericNamed{dynamic}.call(value: value);
   self::Extension|tearOffGetterGenericNamed{dynamic}.call<core::int>(value: value);
 }
-static method Extension|invocationsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|invocationsFromInstanceContext::T%> #this, self::Extension|invocationsFromInstanceContext::T% value) → dynamic {
+static extension-member method Extension|invocationsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|invocationsFromInstanceContext::T%> #this, self::Extension|invocationsFromInstanceContext::T% value) → dynamic {
   self::Extension|readGetter();
   self::Extension|writeSetterRequired(value);
   self::Extension|writeSetterOptional();
@@ -163,9 +163,9 @@ static method Extension|invocationsFromInstanceContext<T extends core::Object? =
   self::Extension|genericWriteSetterNamed<self::Extension|invocationsFromInstanceContext::T%>(value: value);
   self::Extension|genericWriteSetterNamed<self::Extension|invocationsFromInstanceContext::T%>(value: value);
 }
-static method Extension|get#invocationsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#invocationsFromInstanceContext::T%> #this) → (self::Extension|get#invocationsFromInstanceContext::T%) → dynamic
+static extension-member method Extension|get#invocationsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#invocationsFromInstanceContext::T%> #this) → (self::Extension|get#invocationsFromInstanceContext::T%) → dynamic
   return (self::Extension|get#invocationsFromInstanceContext::T% value) → dynamic => self::Extension|invocationsFromInstanceContext<self::Extension|get#invocationsFromInstanceContext::T%>(#this, value);
-static method Extension|tearOffsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|tearOffsFromInstanceContext::T%> #this, self::Extension|tearOffsFromInstanceContext::T% value) → dynamic {
+static extension-member method Extension|tearOffsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|tearOffsFromInstanceContext::T%> #this, self::Extension|tearOffsFromInstanceContext::T% value) → dynamic {
   () → dynamic tearOffNoArgs = #C2;
   tearOffNoArgs(){() → dynamic};
   (dynamic) → dynamic tearOffRequired = #C3;
@@ -190,15 +190,15 @@ static method Extension|tearOffsFromInstanceContext<T extends core::Object? = dy
   tearOffGenericNamed<self::Extension|tearOffsFromInstanceContext::T%>(value: value){({value: self::Extension|tearOffsFromInstanceContext::T?}) → dynamic};
   tearOffGenericNamed<self::Extension|tearOffsFromInstanceContext::T%>(value: value){({value: self::Extension|tearOffsFromInstanceContext::T?}) → dynamic};
 }
-static method Extension|get#tearOffsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#tearOffsFromInstanceContext::T%> #this) → (self::Extension|get#tearOffsFromInstanceContext::T%) → dynamic
+static extension-member method Extension|get#tearOffsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#tearOffsFromInstanceContext::T%> #this) → (self::Extension|get#tearOffsFromInstanceContext::T%) → dynamic
   return (self::Extension|get#tearOffsFromInstanceContext::T% value) → dynamic => self::Extension|tearOffsFromInstanceContext<self::Extension|get#tearOffsFromInstanceContext::T%>(#this, value);
-static method Extension|fieldAccessFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|fieldAccessFromInstanceContext::T%> #this) → dynamic {
+static extension-member method Extension|fieldAccessFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|fieldAccessFromInstanceContext::T%> #this) → dynamic {
   self::Extension|field = self::Extension|property;
   self::Extension|property = self::Extension|field;
 }
-static method Extension|get#fieldAccessFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#fieldAccessFromInstanceContext::T%> #this) → () → dynamic
+static extension-member method Extension|get#fieldAccessFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#fieldAccessFromInstanceContext::T%> #this) → () → dynamic
   return () → dynamic => self::Extension|fieldAccessFromInstanceContext<self::Extension|get#fieldAccessFromInstanceContext::T%>(#this);
-static method Extension|getterCallsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|getterCallsFromInstanceContext::T%> #this, self::Extension|getterCallsFromInstanceContext::T% value) → dynamic {
+static extension-member method Extension|getterCallsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|getterCallsFromInstanceContext::T%> #this, self::Extension|getterCallsFromInstanceContext::T% value) → dynamic {
   self::Extension|tearOffGetterNoArgs{dynamic}.call();
   self::Extension|tearOffGetterRequired{dynamic}.call(value);
   self::Extension|tearOffGetterOptional{dynamic}.call();
@@ -216,7 +216,7 @@ static method Extension|getterCallsFromInstanceContext<T extends core::Object? =
   self::Extension|tearOffGetterGenericNamed{dynamic}.call(value: value);
   self::Extension|tearOffGetterGenericNamed{dynamic}.call<self::Extension|getterCallsFromInstanceContext::T%>(value: value);
 }
-static method Extension|get#getterCallsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#getterCallsFromInstanceContext::T%> #this) → (self::Extension|get#getterCallsFromInstanceContext::T%) → dynamic
+static extension-member method Extension|get#getterCallsFromInstanceContext<T extends core::Object? = dynamic>(lowered final self::Class<self::Extension|get#getterCallsFromInstanceContext::T%> #this) → (self::Extension|get#getterCallsFromInstanceContext::T%) → dynamic
   return (self::Extension|get#getterCallsFromInstanceContext::T% value) → dynamic => self::Extension|getterCallsFromInstanceContext<self::Extension|get#getterCallsFromInstanceContext::T%>(#this, value);
 static method main() → dynamic {}
 

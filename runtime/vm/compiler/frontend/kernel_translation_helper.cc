@@ -980,6 +980,28 @@ void FunctionNodeHelper::ReadUntilExcluding(Field field) {
       helper_->SkipOptionalDartType();  // read future value type.
       if (++next_read_ == field) return;
       FALL_THROUGH;
+    case kRedirectingFactoryTarget: {
+      Tag tag = helper_->ReadTag();  // read tag.
+      if (tag == kSomething) {
+        helper_->ReadCanonicalNameReference();  // read target.
+        tag = helper_->ReadTag();
+        if (tag == kSomething) {
+          helper_->SkipListOfDartTypes();  // read type arguments.
+        } else {
+          ASSERT(tag == kNothing);
+        }
+        tag = helper_->ReadTag();
+        if (tag == kSomething) {
+          helper_->ReadStringReference();  // read error message.
+        } else {
+          ASSERT(tag == kNothing);
+        }
+      } else {
+        ASSERT(tag == kNothing);
+      }
+      if (++next_read_ == field) return;
+    }
+      FALL_THROUGH;
     case kBody:
       if (helper_->ReadTag() == kSomething)
         helper_->SkipStatement();  // read body.
@@ -2244,6 +2266,7 @@ void KernelReaderHelper::SkipDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -2292,6 +2315,10 @@ void KernelReaderHelper::SkipDartType() {
       SkipDartType();  // read left.
       SkipDartType();  // read right.
       return;
+    case kFutureOrType:
+      ReadNullability();
+      SkipDartType();  // read type argument.
+      break;
     default:
       ReportUnexpectedTag("type", tag);
       UNREACHABLE();
@@ -2727,6 +2754,12 @@ void KernelReaderHelper::SkipExpression() {
       SkipDartType();  // read type.
       SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      ReadPosition();  // read position.
+      ReadUInt();      // skip uri
+      SkipDartType();  // read type.
+      SkipConstantReference();
+      return;
     case kLoadLibrary:
     case kCheckLibraryIsLoaded:
       ReadUInt();  // skip library index
@@ -2738,6 +2771,11 @@ void KernelReaderHelper::SkipExpression() {
         SkipDartType();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      ReadUInt();        // skip uri
+      ReadPosition();    // read position
+      SkipExpression();  // read expression
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -2748,7 +2786,6 @@ void KernelReaderHelper::SkipExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
@@ -3205,6 +3242,9 @@ void TypeTranslator::BuildTypeInternal() {
                     .ToNullability(nullability, Heap::kOld);
       break;
     }
+    case kNullType:
+      result_ = IG->object_store()->null_type();
+      break;
     case kInterfaceType:
       BuildInterfaceType(false);
       break;
@@ -3228,6 +3268,9 @@ void TypeTranslator::BuildTypeInternal() {
       break;
     case kInlineType:
       BuildInlineType();
+      break;
+    case kFutureOrType:
+      BuildFutureOrType();
       break;
     default:
       helper_->ReportUnexpectedTag("type", tag);
@@ -3268,6 +3311,27 @@ void TypeTranslator::BuildInterfaceType(bool simple) {
       helper_->ReadListLength();  // read type_arguments list length.
   const TypeArguments& type_arguments =
       BuildTypeArguments(length);  // read type arguments.
+  result_ = Type::New(klass, type_arguments, nullability);
+  result_ = result_.NormalizeFutureOrType(Heap::kOld);
+  if (finalize_) {
+    result_ = ClassFinalizer::FinalizeType(result_);
+  }
+}
+
+void TypeTranslator::BuildFutureOrType() {
+  Nullability nullability = helper_->ReadNullability();
+  if (apply_canonical_type_erasure_ && nullability != Nullability::kNullable) {
+    nullability = Nullability::kLegacy;
+  }
+
+  const TypeArguments& type_arguments =
+      TypeArguments::Handle(Z, TypeArguments::New(1));
+  BuildTypeInternal();  // read type argument.
+  type_arguments.SetTypeAt(0, result_);
+
+  const Class& klass = Class::Handle(Z, IG->object_store()->future_or_class());
+  ASSERT(!klass.IsNull());
+
   result_ = Type::New(klass, type_arguments, nullability);
   result_ = result_.NormalizeFutureOrType(Heap::kOld);
   if (finalize_) {

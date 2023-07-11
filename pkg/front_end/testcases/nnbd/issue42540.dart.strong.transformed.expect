@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:async" as asy;
 import "dart:core" as core;
@@ -6,7 +6,7 @@ import "dart:core" as core;
 static method getNull() → dynamic
   return null;
 static method fn() → asy::Future<core::Object> async /* futureValueType= core::Object */ {
-  core::Object o = let dynamic #t1 = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ in #t1 == null ?{core::Object} #t1 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Object : #t1{core::Object};
-  return let dynamic #t2 = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ in #t2 == null ?{FutureOr<core::Object>} #t2 as{TypeError,ForDynamic,ForNonNullableByDefault} FutureOr<core::Object> : #t2{FutureOr<core::Object>};
+  core::Object o = let dynamic #t1 = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ in #t1 == null ?{core::Object} #t1 as{TypeError,ForDynamic} core::Object : #t1{core::Object};
+  return let dynamic #t2 = await self::getNull() /* runtimeCheckType= asy::Future<dynamic> */ in #t2 == null ?{FutureOr<core::Object>} #t2 as{TypeError,ForDynamic} FutureOr<core::Object> : #t2{FutureOr<core::Object>};
 }
 static method main() → dynamic {}

@@ -6,7 +6,7 @@ import 'dart:convert';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart' hide Timeline;
-import 'package:vm_service/vm_service_protos.dart';
+import 'package:vm_service_protos/vm_service_protos.dart';
 
 import 'common/test_helper.dart';
 

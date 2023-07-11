@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -13,9 +13,9 @@ static method id<T extends core::Object? = dynamic>(self::id::T% value) → self
   ;
 static method main() → dynamic async 
   ;
-static method _extension#0|checkStaticType<T extends core::Object? = dynamic, R extends (self::_extension#0|checkStaticType::T%) → self::_extension#0|checkStaticType::T% = (dynamic) → dynamic>(lowered final self::_extension#0|checkStaticType::T% #this) → void
+static extension-member method _extension#0|checkStaticType<T extends core::Object? = dynamic, R extends (self::_extension#0|checkStaticType::T%) → self::_extension#0|checkStaticType::T% = (dynamic) → dynamic>(lowered final self::_extension#0|checkStaticType::T% #this) → void
   ;
-static method _extension#0|get#checkStaticType<T extends core::Object? = dynamic>(lowered final self::_extension#0|get#checkStaticType::T% #this) → <R extends (self::_extension#0|get#checkStaticType::T%) → self::_extension#0|get#checkStaticType::T% = (dynamic) → dynamic>() → void
+static extension-member method _extension#0|get#checkStaticType<T extends core::Object? = dynamic>(lowered final self::_extension#0|get#checkStaticType::T% #this) → <R extends (self::_extension#0|get#checkStaticType::T%) → self::_extension#0|get#checkStaticType::T% = (dynamic) → dynamic>() → void
   return <R extends (self::_extension#0|get#checkStaticType::T%) → self::_extension#0|get#checkStaticType::T% = (dynamic) → dynamic>() → void => self::_extension#0|checkStaticType<self::_extension#0|get#checkStaticType::T%, R>(#this);
 static method contextType<T extends core::Object? = dynamic>(core::Object? o) → self::contextType::T%
   ;

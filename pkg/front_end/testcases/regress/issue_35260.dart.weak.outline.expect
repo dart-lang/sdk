@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -13,8 +13,7 @@ import self as self;
 import "dart:core" as core;
 
 class Supertype extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Supertype::•]/*isLegacy*/;
-  static factory •() → self::Supertype
+  static factory •() → self::Supertype /* redirection-target: self::X::• */
     return new self::X::•();
 }
 class X extends core::Object implements self::Supertype {
@@ -23,8 +22,3 @@ class X extends core::Object implements self::Supertype {
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue_35260.dart:5:7 -> ConstructorTearOffConstant(Supertype.)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

@@ -17,22 +17,23 @@ The Service Protocol uses [JSON-RPC 2.0][].
 - [Revision History](#revision-history)
 - [Public RPCs](#public-rpcs)
   - [getAvailableCachedCpuSamples](#getavailablecachedcpusamples)
-  - [getCachedCpuSamples](#getcachedcpusamples)[
+  - [getCachedCpuSamples](#getcachedcpusamples)
   - [getClientName](#getclientname)
   - [getDartDevelopmentServiceVersion](#getdartdevelopmentserviceversion)
   - [getLogHistorySize](#getloghistorysize)
   - [getPerfettoVMTimeline](#getperfettovmtimeline)
-  - [getStreamHistory](#getstreamhistory)[
+  - [getStreamHistory](#getstreamhistory)
+  - [postEvent](#postevent)
   - [requirePermissionToResume](#requirepermissiontoresume)
   - [setClientName](#setclientname)
   - [setLogHistorySize](#setloghistorysize)
 - [Public Types](#public-types)
-  - [AvailableCachedCpuSamples](#availablecachedcpusamples)[
+  - [AvailableCachedCpuSamples](#availablecachedcpusamples)
   - [CachedCpuSamples](#cachedcpusamples)
   - [ClientName](#clientname)
   - [DartDevelopmentServiceVersion](#dartdevelopmentserviceversion)
   - [Size](#size)
-  - [StreamHistory](#streamhistory)[
+  - [StreamHistory](#streamhistory)
 
 ## RPCs, Requests, and Responses
 
@@ -163,6 +164,13 @@ which support event history (see [Streams](#streams) for a list of supported
 streams).
 
 See [StreamHistory](#streamhistory).
+
+### postEvent
+
+```
+void postEvent(String stream, String eventKind, Map eventData)
+```
+The _postEvent_ RPC is used to send events to custom Event streams.
 
 ### requirePermissionToResume
 
@@ -302,6 +310,7 @@ version | comments
 1.3 | Added `getAvailableCachedCpuSamples` and `getCachedCpuSamples` RPCs.
 1.4 | Added the ability to subscribe to custom streams (which can be specified when calling `dart:developer`'s `postEvent`).
 1.5 | Added `getPerfettoCpuSamples` RPC.
+1.6 | Added `postEvent` RPC.
 
 [resume]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#resume
 [success]: https://github.com/dart-lang/sdk/blob/main/runtime/vm/service/service.md#success

@@ -43,9 +43,7 @@ class NoopAnalytics implements Analytics {
   }
 
   @override
-  Future<Response>? sendEvent(
-      {required DashEvent eventName,
-      Map<String, Object?> eventData = const {}}) {
+  Future<Response>? send(Event event) {
     // Ignored
     return null;
   }

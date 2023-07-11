@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -11,15 +11,15 @@ extension Extension on core::String {
   static set property = set self::Extension|property;
 }
 static field dynamic Extension|field;
-static method Extension|method() → dynamic
+static extension-member method Extension|method() → dynamic
   ;
-static get Extension|getter() → dynamic
+static extension-member get Extension|getter() → dynamic
   ;
-static set Extension|setter(dynamic _) → void
+static extension-member set Extension|setter(dynamic _) → void
   ;
-static get Extension|property() → dynamic
+static extension-member get Extension|property() → dynamic
   ;
-static set Extension|property(dynamic _) → void
+static extension-member set Extension|property(dynamic _) → void
   ;
 static method main() → dynamic
   ;

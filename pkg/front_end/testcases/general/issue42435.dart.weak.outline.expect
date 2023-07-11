@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -188,17 +188,17 @@ static get bar4() → <Z extends self::A<self::A<dynamic>> = dynamic>() → dyna
   ;
 static set bar5(<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
   ;
-static method E|baz2(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic
+static extension-member method E|baz2(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic
   ;
-static method E|get#baz2(lowered final core::int #this) → (<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic) → dynamic
+static extension-member method E|get#baz2(lowered final core::int #this) → (<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic) → dynamic
   return (<Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → dynamic => self::E|baz2(#this, a);
-static method E|baz3(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+static extension-member method E|baz3(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
   ;
-static method E|get#baz3(lowered final core::int #this) → () → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+static extension-member method E|get#baz3(lowered final core::int #this) → () → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
   return () → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic => self::E|baz3(#this);
-static method E|get#baz4(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
+static extension-member method E|get#baz4(lowered final core::int #this) → <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic
   ;
-static method E|set#baz5(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
+static extension-member method E|set#baz5(lowered final core::int #this, <Z extends self::A<self::A<dynamic>> = dynamic>() → dynamic a) → void
   ;
 static method main() → dynamic
   ;

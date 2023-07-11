@@ -230,8 +230,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
 
     bool has_field_initializers = false;
     for (intptr_t i = 0; i < list_length; ++i) {
-      if (PeekTag() == kRedirectingInitializer ||
-          PeekTag() == kRedirectingFactory) {
+      if (PeekTag() == kRedirectingInitializer) {
         is_redirecting_constructor = true;
       } else if (PeekTag() == kFieldInitializer) {
         has_field_initializers = true;
@@ -1162,6 +1161,7 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kNullLiteral:
       return BuildNullLiteral(position);
     case kConstantExpression:
+    case kFileUriConstantExpression:
       return BuildConstantExpression(position, tag);
     case kInstantiation:
       return BuildPartialTearoffInstantiation(position);
@@ -1171,6 +1171,8 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
       return BuildLibraryPrefixAction(position, Symbols::CheckLoaded());
     case kAwaitExpression:
       return BuildAwaitExpression(position);
+    case kFileUriExpression:
+      return BuildFileUriExpression(position);
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -1181,7 +1183,6 @@ Fragment StreamingFlowGraphBuilder::BuildExpression(TokenPosition* position) {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
@@ -3006,6 +3007,21 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
   LocalVariable* variable = LookupVariable(variable_kernel_position);
   ASSERT(!variable->is_late());
 
+  auto& target_function = Function::ZoneHandle(Z);
+  {
+    AlternativeReadingScope alt(
+        &reader_, variable_kernel_position - data_program_offset_);
+    SkipVariableDeclaration();
+    // FunctionNode follows the variable declaration.
+    const intptr_t function_node_kernel_offset = ReaderOffset();
+
+    target_function = ClosureFunctionsCache::LookupClosureFunction(
+        Function::Handle(Z,
+                         parsed_function()->function().GetOutermostFunction()),
+        function_node_kernel_offset);
+    RELEASE_ASSERT(!target_function.IsNull());
+  }
+
   Fragment instructions;
 
   // Type arguments.
@@ -3044,8 +3060,8 @@ Fragment StreamingFlowGraphBuilder::BuildLocalFunctionInvocation(
     ASSERT(!parsed_function()->function().is_native());
     instructions += DebugStepCheck(position);
   }
-  instructions +=
-      B->ClosureCall(position, type_args_len, argument_count, argument_names);
+  instructions += B->ClosureCall(target_function, position, type_args_len,
+                                 argument_count, argument_names);
   return instructions;
 }
 
@@ -3107,7 +3123,8 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionInvocation(TokenPosition* p) {
       instructions += DebugStepCheck(position);
     }
     instructions +=
-        B->ClosureCall(position, type_args_len, argument_count, argument_names);
+        B->ClosureCall(Function::null_function(), position, type_args_len,
+                       argument_count, argument_names);
   } else {
     instructions += InstanceCall(
         position, Symbols::DynamicCall(), Token::kILLEGAL, type_args_len,
@@ -3367,7 +3384,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      return BuildFfiNativeCallbackFunction();
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kSync);
+    case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
+      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsync);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -3461,6 +3480,12 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
       // Drop the result of the constructor call and leave [instance_variable]
       // on top-of-stack.
       instructions += Drop();
+    }
+
+    // After reaching debugger(), we automatically do one single-step.
+    // Ensure this doesn't cause us to exit the current scope.
+    if (recognized_kind == MethodRecognizer::kDebugger) {
+      instructions += DebugStepCheck(position);
     }
   }
 
@@ -3941,14 +3966,16 @@ Fragment StreamingFlowGraphBuilder::BuildAsExpression(TokenPosition* p) {
   if (p != nullptr) *p = position;
 
   const uint8_t flags = ReadFlags();  // read flags.
+  const bool is_unchecked_cast = (flags & kAsExpressionFlagUnchecked) != 0;
   const bool is_type_error = (flags & kAsExpressionFlagTypeError) != 0;
 
   Fragment instructions = BuildExpression();  // read operand.
 
   const AbstractType& type = T.BuildType();  // read type.
-  if (type.IsInstantiated() && type.IsTopTypeForSubtyping()) {
+  if (is_unchecked_cast ||
+      (type.IsInstantiated() && type.IsTopTypeForSubtyping())) {
     // We already evaluated the operand on the left and just leave it there as
-    // the result of the `obj as dynamic` expression.
+    // the result of unchecked cast or `obj as dynamic` expression.
   } else {
     // We do not care whether the 'as' cast as implicitly added by the frontend
     // or explicitly written by the user, in both cases we use an assert
@@ -4349,6 +4376,11 @@ Fragment StreamingFlowGraphBuilder::BuildConstantExpression(
   if (tag == kConstantExpression) {
     p = ReadPosition();
     SkipDartType();
+  } else if (tag == kFileUriConstantExpression) {
+    // TODO(alexmarkov): Use file offset together with file uri.
+    ReadPosition();
+    ReadUInt();
+    SkipDartType();
   }
   if (position != nullptr) *position = p;
   const intptr_t constant_index = ReadUInt();
@@ -4481,6 +4513,16 @@ Fragment StreamingFlowGraphBuilder::BuildAwaitExpression(
   }
   instructions += B->Suspend(pos, stub_id);
   return instructions;
+}
+
+Fragment StreamingFlowGraphBuilder::BuildFileUriExpression(
+    TokenPosition* position) {
+  ReadUInt();  // read uri
+
+  const TokenPosition pos = ReadPosition();  // read position.
+  if (position != nullptr) *position = pos;
+
+  return BuildExpression(position);  // read expression.
 }
 
 Fragment StreamingFlowGraphBuilder::BuildExpressionStatement(
@@ -5903,7 +5945,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionDeclaration(
     if (tag != kInvalidExpression) {
       has_valid_annotation = true;
     }
-    if (tag == kConstantExpression) {
+    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
       auto& instance = Instance::Handle();
       instance = constant_reader_.ReadConstantExpression();
       if (instance.clazz() == IG->object_store()->pragma_class()) {
@@ -5942,31 +5984,23 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   if (declaration) {
     position = parent_position;
   }
-  if (!position.IsReal()) {
-    // Positions has to be unique in regards to the parent.
-    // A non-real at this point is probably -1, we cannot blindly use that
-    // as others might use it too. Create a new dummy non-real TokenPosition.
-    position = TokenPosition::Synthetic(offset);
-  }
 
-  // The VM has a per-isolate table of functions indexed by the enclosing
-  // function and token position.
+  const auto& member_function =
+      Function::Handle(Z, parsed_function()->function().GetOutermostFunction());
   Function& function = Function::ZoneHandle(Z);
 
   {
     SafepointReadRwLocker ml(thread(),
                              thread()->isolate_group()->program_lock());
-    // NOTE: This is not TokenPosition in the general sense!
     function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        parsed_function()->function(), position);
+        member_function, offset);
   }
 
   if (function.IsNull()) {
     SafepointWriteRwLocker ml(thread(),
                               thread()->isolate_group()->program_lock());
-    // NOTE: This is not TokenPosition in the general sense!
     function = ClosureFunctionsCache::LookupClosureFunctionLocked(
-        parsed_function()->function(), position);
+        member_function, offset);
     if (function.IsNull()) {
       for (intptr_t i = 0; i < scopes()->function_scopes.length(); ++i) {
         if (scopes()->function_scopes[i].kernel_offset != offset) {
@@ -5979,7 +6013,6 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
         } else {
           name = &Symbols::AnonymousClosure();
         }
-        // NOTE: This is not TokenPosition in the general sense!
         if (!closure_owner_.IsNull()) {
           function = Function::NewClosureFunctionWithKind(
               UntaggedFunction::kClosureFunction, *name,
@@ -6051,11 +6084,15 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
           }
         }
 
+        ASSERT(function.GetOutermostFunction() == member_function.ptr());
+        ASSERT(function.kernel_offset() == offset);
         ClosureFunctionsCache::AddClosureFunctionLocked(function);
         break;
       }
     }
   }
+  ASSERT(function.token_pos() == position);
+  ASSERT(function.parent_function() == parsed_function()->function().ptr());
 
   function_node_helper.ReadUntilExcluding(FunctionNodeHelper::kEnd);
 
@@ -6279,15 +6316,23 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
   return code;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
+Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
+    FfiCallbackKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
+  // FfiCallbackKind::kSync:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // The FE also guarantees that all three arguments are constants.
+  // FfiCallbackKind::kAsync:
+  //   _nativeAsyncCallbackFunction<NativeSignatureType>(target)
+  //
+  // The FE also guarantees that both arguments are constants.
+
+  // Target, and for kSync callbacks, the exceptional return.
+  const intptr_t expected_argc = kind == FfiCallbackKind::kSync ? 2 : 1;
 
   const intptr_t argc = ReadUInt();  // Read argument count.
-  ASSERT(argc == 2);                 // Target, exceptionalReturn.
+  ASSERT(argc == expected_argc);
 
   const intptr_t list_length = ReadListLength();  // Read types list length.
   ASSERT(list_length == 1);                       // The native signature.
@@ -6300,7 +6345,7 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   Fragment code;
   const intptr_t positional_count =
       ReadListLength();  // Read positional argument count.
-  ASSERT(positional_count == 2);
+  ASSERT(positional_count == expected_argc);
 
   // Read target expression and extract the target function.
   code += BuildExpression();  // Build first positional argument (target).
@@ -6314,13 +6359,15 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   target = target.parent_function();
   code += Drop();
 
-  // Build second positional argument (exceptionalReturn).
-  code += BuildExpression();
-  Definition* exceptional_return_def = B->Peek();
-  ASSERT(exceptional_return_def->IsConstant());
-  const Instance& exceptional_return =
-      Instance::Cast(exceptional_return_def->AsConstant()->value());
-  code += Drop();
+  Instance& exceptional_return = Instance::ZoneHandle(Z, Instance::null());
+  if (kind == FfiCallbackKind::kSync) {
+    // Build second positional argument (exceptionalReturn).
+    code += BuildExpression();
+    Definition* exceptional_return_def = B->Peek();
+    ASSERT(exceptional_return_def->IsConstant());
+    exceptional_return ^= exceptional_return_def->AsConstant()->value().ptr();
+    code += Drop();
+  }
 
   const intptr_t named_args_len =
       ReadListLength();  // Skip (empty) named arguments list.
@@ -6331,9 +6378,9 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction() {
   compiler::ffi::NativeFunctionTypeFromFunctionType(zone_, native_sig, &error);
   ReportIfNotNull(error);
 
-  const Function& result =
-      Function::ZoneHandle(Z, compiler::ffi::NativeCallbackFunction(
-                                  native_sig, target, exceptional_return));
+  const Function& result = Function::ZoneHandle(
+      Z, compiler::ffi::NativeCallbackFunction(native_sig, target,
+                                               exceptional_return, kind));
   code += Constant(result);
 
   return code;

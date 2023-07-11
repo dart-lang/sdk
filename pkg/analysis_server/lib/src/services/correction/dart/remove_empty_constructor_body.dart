@@ -9,7 +9,7 @@ import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dar
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class RemoveEmptyConstructorBody extends CorrectionProducer {
+class RemoveEmptyConstructorBody extends ResolvedCorrectionProducer {
   @override
   bool get canBeAppliedInBulk => true;
 
@@ -24,14 +24,24 @@ class RemoveEmptyConstructorBody extends CorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (node is Block && parent is BlockFunctionBody) {
-      await builder.addDartFileEdit(file, (builder) {
-        builder.addSimpleReplacement(
-          utils.getLinesRange(range.node(parent)),
-          ';',
-        );
-      });
+    final node = this.node;
+    if (node is! Block) {
+      return;
     }
+    if (node.leftBracket.isSynthetic || node.rightBracket.isSynthetic) {
+      return;
+    }
+
+    final blockBody = node.parent;
+    if (blockBody is! BlockFunctionBody) {
+      return;
+    }
+
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(
+        utils.getLinesRange(range.node(blockBody)),
+        ';',
+      );
+    });
   }
 }

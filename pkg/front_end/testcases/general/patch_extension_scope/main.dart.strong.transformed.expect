@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -117,7 +117,7 @@ static method main() → dynamic {
   self::method(new test::Class::•());
 }
 
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -237,17 +237,17 @@ static method _method(test::Class c) → void {
   test::_extension#3|unnamedInjectedExtensionMethod2(c);
   test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method Extension|namedExtensionMethod(lowered final test::Class #this) → void {}
-static method Extension|get#namedExtensionMethod(lowered final test::Class #this) → () → void
+static extension-member method Extension|namedExtensionMethod(lowered final test::Class #this) → void {}
+static extension-member method Extension|get#namedExtensionMethod(lowered final test::Class #this) → () → void
   return () → void => test::Extension|namedExtensionMethod(#this);
-static method Extension|_namedExtensionPrivateMethod(lowered final test::Class #this) → void {}
-static method Extension|get#_namedExtensionPrivateMethod(lowered final test::Class #this) → () → void
+static extension-member method Extension|_namedExtensionPrivateMethod(lowered final test::Class #this) → void {}
+static extension-member method Extension|get#_namedExtensionPrivateMethod(lowered final test::Class #this) → () → void
   return () → void => test::Extension|_namedExtensionPrivateMethod(#this);
-static method _extension#5|unnamedExtensionMethod(lowered final test::Class #this) → void {}
-static method _extension#5|get#unnamedExtensionMethod(lowered final test::Class #this) → () → void
+static extension-member method _extension#5|unnamedExtensionMethod(lowered final test::Class #this) → void {}
+static extension-member method _extension#5|get#unnamedExtensionMethod(lowered final test::Class #this) → () → void
   return () → void => test::_extension#5|unnamedExtensionMethod(#this);
-static method _extension#5|_unnamedExtensionPrivateMethod(lowered final test::Class #this) → void {}
-static method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final test::Class #this) → () → void
+static extension-member method _extension#5|_unnamedExtensionPrivateMethod(lowered final test::Class #this) → void {}
+static extension-member method _extension#5|get#_unnamedExtensionPrivateMethod(lowered final test::Class #this) → () → void
   return () → void => test::_extension#5|_unnamedExtensionPrivateMethod(#this);
 static method /* from org-dartlang-testcase:///patch_lib1.dart */ _method1(test::Class c) → void {
   test::Extension|namedExtensionMethod(c);
@@ -263,17 +263,17 @@ static method /* from org-dartlang-testcase:///patch_lib1.dart */ _method1(test:
   test::_extension#3|unnamedInjectedExtensionMethod2(c);
   test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|namedInjectedExtensionMethod1(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#namedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
   return () → void => test::NamedInjectedExtension1|namedInjectedExtensionMethod1(#this);
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ NamedInjectedExtension1|get#_namedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
   return () → void => test::NamedInjectedExtension1|_namedInjectedExtensionPrivateMethod1(#this);
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|unnamedInjectedExtensionMethod1(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#unnamedInjectedExtensionMethod1(lowered final test::Class #this) → () → void
   return () → void => test::_extension#1|unnamedInjectedExtensionMethod1(#this);
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib1.dart */ _extension#1|get#_unnamedInjectedExtensionPrivateMethod1(lowered final test::Class #this) → () → void
   return () → void => test::_extension#1|_unnamedInjectedExtensionPrivateMethod1(#this);
 static method /* from org-dartlang-testcase:///patch_lib2.dart */ _method2(test::Class c) → void {
   test::Extension|namedExtensionMethod(c);
@@ -289,17 +289,17 @@ static method /* from org-dartlang-testcase:///patch_lib2.dart */ _method2(test:
   test::_extension#3|unnamedInjectedExtensionMethod2(c);
   test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(c);
 }
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|namedInjectedExtensionMethod2(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#namedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
   return () → void => test::NamedInjectedExtension2|namedInjectedExtensionMethod2(#this);
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ NamedInjectedExtension2|get#_namedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
   return () → void => test::NamedInjectedExtension2|_namedInjectedExtensionPrivateMethod2(#this);
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|unnamedInjectedExtensionMethod2(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#unnamedInjectedExtensionMethod2(lowered final test::Class #this) → () → void
   return () → void => test::_extension#3|unnamedInjectedExtensionMethod2(#this);
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void {}
-static method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → void {}
+static extension-member method /* from org-dartlang-testcase:///patch_lib2.dart */ _extension#3|get#_unnamedInjectedExtensionPrivateMethod2(lowered final test::Class #this) → () → void
   return () → void => test::_extension#3|_unnamedInjectedExtensionPrivateMethod2(#this);
 
 constants  {

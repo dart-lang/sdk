@@ -198,6 +198,7 @@ class SocketBase : public AllStatic {
                         const void* buffer,
                         intptr_t num_bytes,
                         SocketOpKind sync);
+
   // Send data on a socket. The port to send to is specified in the port
   // component of the passed RawAddr structure. The RawAddr structure is only
   // used for datagram sockets.
@@ -262,6 +263,10 @@ class SocketBase : public AllStatic {
                              const RawAddr& interface,
                              int interfaceIndex);
 
+#if defined(DART_HOST_OS_WINDOWS)
+  static bool HasPendingWrite(intptr_t fd);
+#endif
+
   // Perform a hostname lookup. Returns a AddressList of SocketAddress's.
   static AddressList<SocketAddress>* LookupAddress(const char* host,
                                                    int type,
@@ -286,6 +291,13 @@ class SocketBase : public AllStatic {
       OSError** os_error);
 
  private:
+#if !defined(DART_HOST_OS_WINDOWS)
+  static intptr_t WriteImpl(intptr_t fd,
+                            const void* buffer,
+                            intptr_t num_bytes,
+                            SocketOpKind sync);
+#endif
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(SocketBase);
 };

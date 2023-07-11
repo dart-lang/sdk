@@ -15,7 +15,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class AddReturnType extends CorrectionProducer {
+class AddReturnType extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.ADD_RETURN_TYPE;
 
@@ -87,7 +87,7 @@ class AddReturnType extends CorrectionProducer {
     if (body is ExpressionFunctionBody) {
       baseType = body.expression.typeOrThrow;
     } else if (body is BlockFunctionBody) {
-      var computer = _ReturnTypeComputer(resolvedResult.typeSystem);
+      var computer = _ReturnTypeComputer(unitResult.typeSystem);
       body.block.accept(computer);
       baseType = computer.returnType;
       if (baseType == null && computer.hasReturn) {

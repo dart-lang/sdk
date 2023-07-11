@@ -192,19 +192,11 @@ bool SocketBase::AvailableDatagram(intptr_t fd,
   return read_bytes >= 0;
 }
 
-intptr_t SocketBase::Write(intptr_t fd,
-                           const void* buffer,
-                           intptr_t num_bytes,
-                           SocketOpKind sync) {
-  ASSERT(fd >= 0);
-  ssize_t written_bytes = TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
-  ASSERT(EAGAIN == EWOULDBLOCK);
-  if ((sync == kAsync) && (written_bytes == -1) && (errno == EWOULDBLOCK)) {
-    // If the would block we need to retry and therefore return 0 as
-    // the number of bytes written.
-    written_bytes = 0;
-  }
-  return written_bytes;
+intptr_t SocketBase::WriteImpl(intptr_t fd,
+                               const void* buffer,
+                               intptr_t num_bytes,
+                               SocketOpKind sync) {
+  return TEMP_FAILURE_RETRY(write(fd, buffer, num_bytes));
 }
 
 intptr_t SocketBase::SendTo(intptr_t fd,

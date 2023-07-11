@@ -52,6 +52,7 @@ final testSuiteDirectories = [
   Path('third_party/pkg/dart_style'),
   Path('third_party/pkg/dartdoc'),
   Path('third_party/pkg/native/pkgs/c_compiler'),
+  Path('third_party/pkg/native/pkgs/native_assets_builder'),
   Path('third_party/pkg/native/pkgs/native_assets_cli'),
   Path('third_party/pkg/package_config'),
   Path('utils/tests/peg'),
@@ -175,8 +176,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
     }
 
     if (configuration.system == System.fuchsia) {
-      await FuchsiaEmulator.publishPackage(
-          configuration.buildDirectory, configuration.mode.name);
+      await FuchsiaEmulator.publishPackage(configuration.buildDirectory,
+          configuration.mode.name, configuration.architecture.name);
     }
   }
 

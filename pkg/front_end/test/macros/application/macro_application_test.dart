@@ -4,7 +4,7 @@
 
 import 'dart:io' show Directory, File, Platform;
 
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
+import 'package:_fe_analyzer_shared/src/macros/api.dart' hide Library;
 import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart'
     show ActualData, ClassId, Id, LibraryId;
@@ -123,6 +123,9 @@ bool _isMember(MemberBuilder memberBuilder, Member member) {
 
 class MacroDataComputer extends DataComputer<String> {
   const MacroDataComputer();
+
+  @override
+  bool get supportsErrors => true;
 
   @override
   DataInterpreter<String> get dataValidator => const StringDataInterpreter();

@@ -804,6 +804,33 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     }
   }
 
+  /// Initialize a variable [node] to an initial value which must be left on
+  /// the stack by [pushInitialValue].
+  ///
+  /// This is similar to [visitVariableDeclaration] but it gives more control
+  /// over how the variable is initialized.
+  void initializeVariable(VariableDeclaration node, void pushInitialValue()) {
+    final w.ValueType type = translateType(node.type);
+    w.Local? local;
+    final Capture? capture = closures.captures[node];
+    if (capture == null || !capture.written) {
+      local = addLocal(type);
+      locals[node] = local;
+    }
+
+    if (capture != null) {
+      b.local_get(capture.context.currentLocal);
+      pushInitialValue();
+      if (!capture.written) {
+        b.local_tee(local!);
+      }
+      b.struct_set(capture.context.struct, capture.fieldIndex);
+    } else {
+      pushInitialValue();
+      b.local_set(local!);
+    }
+  }
+
   @override
   void visitEmptyStatement(EmptyStatement node) {}
 
@@ -879,26 +906,25 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
         b.br_if(catchBlock);
       }
 
-      // If there is an exception declaration, create a local corresponding to
-      // the catch's exception [VariableDeclaration] node.
-      VariableDeclaration? exceptionDeclaration = catch_.exception;
+      final VariableDeclaration? exceptionDeclaration = catch_.exception;
       if (exceptionDeclaration != null) {
-        w.Local guardedException = addLocal(translator.topInfo.nonNullableType);
-        locals[exceptionDeclaration] = guardedException;
-        b.local_get(thrownException);
-        b.local_set(guardedException);
+        initializeVariable(exceptionDeclaration, () {
+          b.local_get(thrownException);
+          // Type test passed, downcast the exception to the expected type.
+          translator.convertType(
+            function,
+            thrownException.type,
+            translator.translateType(exceptionDeclaration.type),
+          );
+        });
       }
 
-      // If there is a stack trace declaration, then create a local
-      // corresponding to the catch's stack trace [VariableDeclaration] node.
-      VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
+      final VariableDeclaration? stackTraceDeclaration = catch_.stackTrace;
       if (stackTraceDeclaration != null) {
-        w.Local guardedStackTrace =
-            addLocal(translator.stackTraceInfo.nonNullableType);
-        locals[stackTraceDeclaration] = guardedStackTrace;
-        b.local_get(thrownStackTrace);
-        b.local_set(guardedStackTrace);
+        initializeVariable(
+            stackTraceDeclaration, () => b.local_get(thrownStackTrace));
       }
+
       visitStatement(catch_.body);
 
       // Jump out of the try entirely if we enter any catch block.
@@ -1501,31 +1527,46 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
     w.ValueType? intrinsicResult = intrinsifier.generateInstanceIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 
-    Procedure target = node.interfaceTarget;
+    w.ValueType callWithNullCheck(
+        Procedure target, void Function(w.ValueType) onNull) {
+      late w.Label done;
+      final w.ValueType resultType =
+          _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
+        done = b.block(const [], signature.outputs);
+        final w.Label nullReceiver = b.block();
+        wrap(node.receiver, translator.topInfo.nullableType);
+        b.br_on_null(nullReceiver);
+      }, (_) {
+        _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+      });
+      b.br(done);
+      b.end(); // end nullReceiver
+      onNull(resultType);
+      b.end();
+      return resultType;
+    }
+
+    final Procedure target = node.interfaceTarget;
     if (node.kind == InstanceAccessKind.Object) {
       switch (target.name.text) {
         case "toString":
-          late w.Label done;
-          w.ValueType resultType =
-              _virtualCall(node, target, _VirtualCallKind.Call, (signature) {
-            done = b.block(const [], signature.outputs);
-            w.Label nullString = b.block();
-            wrap(node.receiver, translator.topInfo.nullableType);
-            b.br_on_null(nullString);
-          }, (_) {
+          return callWithNullCheck(
+              target, (resultType) => wrap(StringLiteral("null"), resultType));
+        case "noSuchMethod":
+          return callWithNullCheck(target, (resultType) {
+            // Object? receiver
+            b.ref_null(translator.topInfo.struct);
+            // Invocation invocation
             _visitArguments(node.arguments, node.interfaceTargetReference, 1);
+            call(translator.noSuchMethodErrorThrowWithInvocation.reference);
           });
-          b.br(done);
-          b.end();
-          wrap(StringLiteral("null"), resultType);
-          b.end();
-          return resultType;
         default:
           unimplemented(node, "Nullable invocation of ${target.name.text}",
               [if (expectedType != voidMarker) expectedType]);
           return expectedType;
       }
     }
+
     Member? singleTarget = translator.singleTarget(node);
     if (singleTarget != null) {
       w.BaseFunction targetFunction =
@@ -2544,8 +2585,10 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
       return visitStringLiteral(expr, expectedType);
     }
 
-    makeListFromExpressions(node.expressions,
-        InterfaceType(translator.stringBaseClass, Nullability.nonNullable));
+    makeListFromExpressions(
+        node.expressions,
+        InterfaceType(
+            translator.coreTypes.stringClass, Nullability.nonNullable));
     return call(translator.stringInterpolate.reference);
   }
 

@@ -412,6 +412,12 @@ void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
   PrintValue(isolate);
 }
 
+void JSONStream::PrintProperty(const char* name, IsolateGroup* isolate_group) {
+  PRIVATE_NAME_CHECK();
+  PrintPropertyName(name);
+  PrintValue(isolate_group);
+}
+
 void JSONStream::PrintProperty(const char* name,
                                const TimelineEvent* timeline_event) {
   PRIVATE_NAME_CHECK();

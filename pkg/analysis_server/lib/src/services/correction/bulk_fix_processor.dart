@@ -3,7 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/plugin/edit/fix/fix_dart.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
+import 'package:analysis_server/protocol/protocol_generated.dart'
+    hide AnalysisOptions;
 import 'package:analysis_server/src/services/correction/change_workspace.dart';
 import 'package:analysis_server/src/services/correction/dart/abstract_producer.dart';
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
@@ -15,6 +16,7 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/linter/lint_names.dart';
 import 'package:analyzer/dart/analysis/analysis_context.dart';
+import 'package:analyzer/dart/analysis/analysis_options.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
@@ -25,8 +27,11 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart'
+    show SourceFileEdit;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
@@ -50,6 +55,9 @@ class BulkFixProcessor {
   /// will almost certainly be invalid code.
   static const Map<ErrorCode, List<MultiProducerGenerator>>
       nonLintMultiProducerMap = {
+    CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE: [
+      DataDriven.new,
+    ],
     CompileTimeErrorCode.EXTENDS_NON_CLASS: [
       DataDriven.new,
     ],
@@ -211,12 +219,16 @@ class BulkFixProcessor {
 
   /// Return a change builder that has been used to create fixes for the
   /// diagnostics in [file] in the given [context].
-  Future<ChangeBuilder> fixErrorsForFile(AnalysisContext context, String path,
+  Future<ChangeBuilder> fixErrorsForFile(OperationPerformanceImpl performance,
+      AnalysisContext context, String path,
       {bool removeUnusedImports = true}) async {
     var pathContext = context.contextRoot.resourceProvider.pathContext;
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
-      var library = await context.currentSession.getResolvedLibrary(path);
+      var library = await performance.runAsync(
+        'getResolvedLibrary',
+        (_) => context.currentSession.getResolvedLibrary(path),
+      );
       if (!isCancelled && library is ResolvedLibraryResult) {
         await _fixErrorsInLibrary(library,
             removeUnusedImports: removeUnusedImports);
@@ -288,6 +300,10 @@ class BulkFixProcessor {
           continue;
         }
 
+        if (!await _hasFixableErrors(context, path)) {
+          continue;
+        }
+
         var library = await context.currentSession.getResolvedLibrary(path);
         if (isCancelled) {
           break;
@@ -304,29 +320,30 @@ class BulkFixProcessor {
     return BulkFixRequestResult(builder);
   }
 
+  /// Filters errors to only those that are in [codes] and are not filtered out
+  /// in analysis_options.
+  Iterable<AnalysisError> _filterErrors(AnalysisOptions analysisOptions,
+      List<AnalysisError> originalErrors) sync* {
+    var errors = originalErrors.toList();
+    errors.sort((a, b) => a.offset.compareTo(b.offset));
+    final codes = this.codes;
+    for (var error in errors) {
+      if (codes != null &&
+          !codes.contains(error.errorCode.name.toLowerCase())) {
+        continue;
+      }
+      var processor = ErrorProcessor.getProcessor(analysisOptions, error);
+      if (processor == null || processor.severity != null) {
+        yield error;
+      }
+    }
+  }
+
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
       {bool stopAfterFirst = false, bool removeUnusedImports = true}) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
-
-    Iterable<AnalysisError> filteredErrors(ResolvedUnitResult result) sync* {
-      var errors = result.errors.toList();
-      errors.sort((a, b) => a.offset.compareTo(b.offset));
-      final codes = this.codes;
-      // Only fix errors specified in the `codes` list (if defined) and not
-      // filtered out in analysis options.
-      for (var error in errors) {
-        if (codes != null &&
-            !codes.contains(error.errorCode.name.toLowerCase())) {
-          continue;
-        }
-        var processor = ErrorProcessor.getProcessor(analysisOptions, error);
-        if (processor == null || processor.severity != null) {
-          yield error;
-        }
-      }
-    }
 
     DartFixContextImpl fixContext(
         ResolvedUnitResult result, AnalysisError diagnostic) {
@@ -338,10 +355,10 @@ class BulkFixProcessor {
       );
     }
 
-    CorrectionProducerContext? correctionContext(
+    CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
         ResolvedUnitResult result, AnalysisError diagnostic) {
       var overrideSet = _readOverrideSet(result);
-      return CorrectionProducerContext.create(
+      return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
         dartFixContext: fixContext(result, diagnostic),
         diagnostic: diagnostic,
@@ -358,7 +375,7 @@ class BulkFixProcessor {
     //
     for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
-      for (var error in filteredErrors(unitResult)) {
+      for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
         await _fixSingleError(
             fixContext(unitResult, error), unitResult, error, overrideSet);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
@@ -374,7 +391,7 @@ class BulkFixProcessor {
     AnalysisError? directivesOrderingError;
     var unusedImportErrors = <AnalysisError>[];
     if (removeUnusedImports && !builder.hasEditsFor(definingUnit.path)) {
-      for (var error in filteredErrors(definingUnit)) {
+      for (var error in _filterErrors(analysisOptions, definingUnit.errors)) {
         var errorCode = error.errorCode;
         if (errorCode is LintCode) {
           var lintName = errorCode.name;
@@ -422,7 +439,7 @@ class BulkFixProcessor {
       ResolvedUnitResult result,
       AnalysisError diagnostic,
       TransformOverrideSet? overrideSet) async {
-    var context = CorrectionProducerContext.create(
+    var context = CorrectionProducerContext.createResolved(
       applyingBulkFixes: true,
       dartFixContext: fixContext,
       diagnostic: diagnostic,
@@ -502,8 +519,35 @@ class BulkFixProcessor {
     await _applyProducer(context, producer);
     var newHash = computeChangeHash();
     if (newHash != oldHash) {
-      changeMap.add(context.resolvedResult.path, code.toLowerCase());
+      changeMap.add(context.unitResult.path, code.toLowerCase());
     }
+  }
+
+  /// Returns whether [path] has any errors that might be fixable.
+  Future<bool> _hasFixableErrors(AnalysisContext context, String path) async {
+    final errorsResult = await context.currentSession.getErrors(path);
+    if (errorsResult is! ErrorsResult) {
+      return false;
+    }
+
+    final filteredErrors =
+        _filterErrors(context.analysisOptions, errorsResult.errors);
+    return filteredErrors.any(_isFixableError);
+  }
+
+  /// Returns whether [error] is something that might be fixable.
+  bool _isFixableError(AnalysisError error) {
+    final errorCode = error.errorCode;
+
+    // Special cases that can be bulk fixed by this class but not by
+    // FixProcessor.
+    if (errorCode == WarningCode.DUPLICATE_IMPORT ||
+        errorCode == HintCode.UNNECESSARY_IMPORT ||
+        errorCode == WarningCode.UNUSED_IMPORT) {
+      return true;
+    }
+
+    return FixProcessor.canBulkFix(errorCode);
   }
 
   /// Return the override set corresponding to the given [result], or `null` if
@@ -555,6 +599,98 @@ class ChangeMap {
   void add(String libraryPath, String code) {
     var changes = libraryMap.putIfAbsent(libraryPath, () => {});
     changes.update(code, (value) => value + 1, ifAbsent: () => 1);
+  }
+}
+
+/// Calls [BulkFixProcessor] iteratively to apply multiple rounds of changes.
+///
+/// Temporarily modifies overlays in [resourceProvider] while computing fixes
+/// so the caller must ensure that no other requests are modifying them.
+class IterativeBulkFixProcessor {
+  /// The maximum number of passes to make.
+  ///
+  /// This should match what "dart fix" does (`FixCommand.maxPasses` in
+  /// `pkg/dartdev/lib/src/commands/fix.dart`).
+  static const maxPasses = 4;
+
+  final InstrumentationService instrumentationService;
+  final AnalysisContext context;
+
+  final void Function(SourceFileEdit) applyTemporaryOverlayEdits;
+  final Future<void> Function() applyOverlays;
+
+  int _passesWithEdits = 0;
+
+  /// A token used to signal that the caller is no longer interested in the
+  /// results and processing can end early (in which case any results may be
+  /// invalid).
+  final CancellationToken? cancellationToken;
+
+  IterativeBulkFixProcessor({
+    required this.instrumentationService,
+    required this.context,
+    required this.applyTemporaryOverlayEdits,
+    required this.applyOverlays,
+    this.cancellationToken,
+  });
+
+  bool get isCancelled => cancellationToken?.isCancellationRequested ?? false;
+
+  /// The number of passes that produced edits.
+  int get passesWithEdits => _passesWithEdits;
+
+  Future<List<SourceFileEdit>> fixErrorsForFile(
+    OperationPerformanceImpl performance,
+    String path, {
+    bool removeUnusedImports = true,
+  }) async {
+    return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
+        (performance) async {
+      final changes = <SourceFileEdit>[];
+      _passesWithEdits = 0;
+
+      for (var i = 0; i < maxPasses; i++) {
+        var workspace = DartChangeWorkspace([context.currentSession]);
+        var processor = BulkFixProcessor(instrumentationService, workspace,
+            cancellationToken: cancellationToken);
+
+        var builder = await performance.runAsync(
+          'BulkFixProcessor.fixErrorsForFile pass $i',
+          (performance) => processor.fixErrorsForFile(
+              performance, context, path,
+              removeUnusedImports: removeUnusedImports),
+        );
+
+        if (isCancelled) {
+          return [];
+        }
+
+        var change = builder.sourceChange;
+        // If this pass made no changes, we don't need to do anything more.
+        if (change.edits.isEmpty) {
+          break;
+        }
+
+        // Record these changes in the results.
+        changes.addAll(change.edits);
+        _passesWithEdits++;
+
+        // Also apply them to the overlay provider so the next iteration can
+        // use them.
+        await performance.runAsync('Apply edits from pass $i', (_) async {
+          for (final fileEdit in change.edits) {
+            applyTemporaryOverlayEdits(fileEdit);
+          }
+          await applyOverlays();
+        });
+
+        if (isCancelled) {
+          return [];
+        }
+      }
+
+      return changes;
+    });
   }
 }
 

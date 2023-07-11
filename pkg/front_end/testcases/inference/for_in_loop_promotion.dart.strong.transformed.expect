@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -15,7 +15,7 @@ static method test(core::List<core::num*>* nums) → void {
     for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
       core::num* x = :sync-for-iterator.{core::Iterator::current}{core::num*};
       {
-        if(x is core::int*) {
+        if(x is{ForLegacy} core::int*) {
           core::int* y = x{core::int*};
         }
       }

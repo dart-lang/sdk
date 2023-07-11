@@ -25,8 +25,8 @@ sigquit_starts_service_test: SkipByDesign # Spawns a secondary process using Pla
 
 [ $compiler == dartk ]
 coverage_optimized_function_test: Pass, Slow
-evaluate_activation_test/instance: RuntimeError # http://dartbug.com/20047
-evaluate_activation_test/scope: RuntimeError # http://dartbug.com/20047
+evaluate_activation_test/instance: RuntimeError, Slow # http://dartbug.com/20047, https://dartbug.com/45124
+evaluate_activation_test/scope: RuntimeError, Slow # http://dartbug.com/20047, https://dartbug.com/45124
 pause_on_exception_from_slow_path_test: Pass, Slow
 pause_on_unhandled_async_exceptions2_test: Pass, Slow
 

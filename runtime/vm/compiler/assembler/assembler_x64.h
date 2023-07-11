@@ -1205,10 +1205,11 @@ class Assembler : public AssemblerBase {
 
   void LoadAcquire(Register dst,
                    Register address,
-                   int32_t offset = 0) override {
+                   int32_t offset = 0,
+                   OperandSize size = kEightBytes) override {
     // On intel loads have load-acquire behavior (i.e. loads are not re-ordered
     // with other loads).
-    movq(dst, Address(address, offset));
+    LoadFromOffset(dst, Address(address, offset), size);
 #if defined(USING_THREAD_SANITIZER)
     TsanLoadAcquire(Address(address, offset));
 #endif
@@ -1244,8 +1245,15 @@ class Assembler : public AssemblerBase {
 #endif
   }
 
-  void CompareWithMemoryValue(Register value, Address address) {
-    cmpq(value, address);
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kEightBytes) override {
+    ASSERT(size == kEightBytes || size == kFourBytes);
+    if (size == kFourBytes) {
+      cmpl(value, address);
+    } else {
+      cmpq(value, address);
+    }
   }
   void CompareWithCompressedFieldFromOffset(Register value,
                                             Register base,

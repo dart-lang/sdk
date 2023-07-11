@@ -14,8 +14,6 @@
 // With the enabling of the real exhaustiveness algorithm, these switches should
 // in most cases no longer cause errors.
 
-// SharedOptions=--enable-experiment=patterns --enable-experiment=records --enable-experiment=sealed-class
-
 sealed class A {}
 class B extends A {}
 class C extends A {}

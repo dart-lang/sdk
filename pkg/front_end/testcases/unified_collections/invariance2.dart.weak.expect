@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
@@ -11,8 +11,8 @@ static method main() → dynamic {
     final core::List<core::int?> #t1 = <core::int?>[0];
     #t1.{core::List::addAll}{Invariant}(list1){(core::Iterable<core::int?>) → void};
     #t1.{core::List::addAll}{Invariant}(list2){(core::Iterable<core::int?>) → void};
-    for (final has-declared-initializer dynamic #t2 in list3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      final core::int? #t3 = #t2 as{TypeError,ForNonNullableByDefault} core::int?;
+    for (final has-declared-initializer dynamic #t2 in list3 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+      final core::int? #t3 = #t2 as{TypeError} core::int?;
       #t1.{core::List::add}{Invariant}(#t3){(core::int?) → void};
     }
     if(true)
@@ -35,8 +35,8 @@ static method main() → dynamic {
     #t7.{core::Set::add}{Invariant}(0){(core::int?) → core::bool};
     #t7.{core::Set::addAll}{Invariant}(set1){(core::Iterable<core::int?>) → void};
     #t7.{core::Set::addAll}{Invariant}(set2){(core::Iterable<core::int?>) → void};
-    for (final has-declared-initializer dynamic #t8 in set3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-      final core::int? #t9 = #t8 as{TypeError,ForNonNullableByDefault} core::int?;
+    for (final has-declared-initializer dynamic #t8 in set3 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+      final core::int? #t9 = #t8 as{TypeError} core::int?;
       #t7.{core::Set::add}{Invariant}(#t9){(core::int?) → core::bool};
     }
     if(true)
@@ -50,9 +50,9 @@ static method main() → dynamic {
     #t10.{core::Map::[]=}{Invariant}(0, "foo"){(core::int?, core::String?) → void};
     #t10.{core::Map::addAll}{Invariant}(map1){(core::Map<core::int?, core::String?>) → void};
     #t10.{core::Map::addAll}{Invariant}(map2){(core::Map<core::int?, core::String?>) → void};
-    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t11 in (map3 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}) {
-      final core::int? #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError,ForNonNullableByDefault} core::int?;
-      final core::String? #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError,ForNonNullableByDefault} core::String?;
+    for (final has-declared-initializer core::MapEntry<dynamic, dynamic> #t11 in (map3 as{TypeError,ForDynamic} core::Map<dynamic, dynamic>).{core::Map::entries}{core::Iterable<core::MapEntry<core::int?, core::String?>>}) {
+      final core::int? #t12 = #t11.{core::MapEntry::key}{dynamic} as{TypeError} core::int?;
+      final core::String? #t13 = #t11.{core::MapEntry::value}{dynamic} as{TypeError} core::String?;
       #t10.{core::Map::[]=}{Invariant}(#t12, #t13){(core::int?, core::String?) → void};
     }
     if(true)

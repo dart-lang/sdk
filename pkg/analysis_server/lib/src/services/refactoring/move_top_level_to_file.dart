@@ -39,7 +39,7 @@ class MoveTopLevelToFile extends RefactoringProducer {
   MoveTopLevelToFile(super.context);
 
   @override
-  bool get isExperimental => true;
+  bool get isExperimental => false;
 
   @override
   CodeActionKind get kind => DartCodeActionKind.RefactorMove;
@@ -183,17 +183,20 @@ class MoveTopLevelToFile extends RefactoringProducer {
   void _addImportsForMovingDeclarations(
       DartFileEditBuilder builder, ImportAnalyzer analyzer) {
     for (var entry in analyzer.movingReferences.entries) {
+      var element = entry.key;
       var imports = entry.value;
       for (var import in imports) {
         var library = import.importedLibrary;
         if (library == null || library.isDartCore) {
           continue;
         }
-        // TODO(dantup): This does not support show/hide. We should be able to
-        //  pass them in (and have them merge with any existing imports or
-        //  pending imports).
-        builder.importLibrary(library.source.uri,
-            prefix: import.prefix?.element.name);
+        var hasShowCombinator =
+            import.combinators.whereType<ShowElementCombinator>().isNotEmpty;
+        builder.importLibrary(
+          library.source.uri,
+          prefix: import.prefix?.element.name,
+          showName: hasShowCombinator ? element.name : null,
+        );
       }
     }
   }

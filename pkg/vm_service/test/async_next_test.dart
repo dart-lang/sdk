@@ -7,9 +7,10 @@ import 'dart:developer';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const int LINE_A = 18;
-const int LINE_B = 19;
-const int LINE_C = 20;
+const int LINE_D = 18;
+const int LINE_A = 19;
+const int LINE_B = 20;
+const int LINE_C = 21;
 
 foo() async {}
 
@@ -30,6 +31,8 @@ testMain() {
 
 var tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_D),
+  stepOver, // foo()
   stoppedAtLine(LINE_A),
   stepOver, // foo()
   asyncNext,

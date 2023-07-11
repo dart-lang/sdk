@@ -366,14 +366,12 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ movl(old_exit_through_ffi_reg, vm_tag_reg);
   __ popl(vm_tag_reg);
 
-  // This will reset the exit frame info to old_exit_frame_reg *before* entering
-  // the safepoint.
-  //
-  // If we were called by a trampoline, it will enter the safepoint on our
+  // Reset the exit frame info to old_exit_frame_reg *before* entering the
+  // safepoint. The trampoline that called us will enter the safepoint on our
   // behalf.
-  __ TransitionGeneratedToNative(
-      vm_tag_reg, old_exit_frame_reg, old_exit_through_ffi_reg,
-      /*enter_safepoint=*/!NativeCallbackTrampolines::Enabled());
+  __ TransitionGeneratedToNative(vm_tag_reg, old_exit_frame_reg,
+                                 old_exit_through_ffi_reg,
+                                 /*enter_safepoint=*/false);
 
   // Move XMM0 into ST0 if needed.
   if (return_in_st0) {
@@ -1253,11 +1251,6 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ pushl(ESI);
   __ pushl(EDI);
 
-  const intptr_t callback_id = marshaller_.dart_signature().FfiCallbackId();
-
-  // The thread object was already loaded by a JIT trampoline.
-  ASSERT(NativeCallbackTrampolines::Enabled());
-
   // Save the current VMTag on the stack.
   __ movl(ECX, compiler::Assembler::VMTagAddress());
   __ pushl(ECX);
@@ -1280,13 +1273,14 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // correct offset from FP.
   __ EmitEntryFrameVerification();
 
-  // Either DLRT_GetThreadForNativeCallback or the callback trampoline (caller)
-  // will leave the safepoint for us.
+  // The callback trampoline (caller) has already left the safepoint for us.
   __ TransitionNativeToGenerated(EAX, /*exit_safepoint=*/false);
 
   // Now that the safepoint has ended, we can hold Dart objects with bare hands.
 
   // Load the code object.
+  const Function& target_function = marshaller_.dart_signature();
+  const intptr_t callback_id = target_function.FfiCallbackId();
   __ movl(EAX, compiler::Address(
                    THR, compiler::target::Thread::isolate_group_offset()));
   __ movl(EAX, compiler::Address(

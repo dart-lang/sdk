@@ -5,7 +5,7 @@
 library fasta.source_loader;
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show utf8;
+import 'dart:convert' show Utf8Encoder;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
@@ -112,7 +112,7 @@ class SourceLoader extends Loader {
   /// Whether comments should be scanned and parsed.
   final bool includeComments;
 
-  final Map<Uri, List<int>> sourceBytes = <Uri, List<int>>{};
+  final Map<Uri, Uint8List> sourceBytes = <Uri, Uint8List>{};
 
   ClassHierarchyBuilder? _hierarchyBuilder;
 
@@ -412,10 +412,7 @@ class SourceLoader extends Loader {
     Message? packageLanguageVersionProblem;
     if (packageForLanguageVersion != null) {
       Uri importUri = origin?.importUri ?? uri;
-      if (!importUri.isScheme('dart') &&
-          !importUri.isScheme('package') &&
-          // ignore: unnecessary_null_comparison
-          packageForLanguageVersion.name != null) {
+      if (!importUri.isScheme('dart') && !importUri.isScheme('package')) {
         packageUri =
             new Uri(scheme: 'package', path: packageForLanguageVersion.name);
       }
@@ -837,7 +834,7 @@ severity: $severity
     Uri fileUri = libraryBuilder.fileUri;
 
     // Lookup the file URI in the cache.
-    List<int>? bytes = sourceBytes[fileUri];
+    Uint8List? bytes = sourceBytes[fileUri];
 
     if (bytes == null) {
       // Error recovery.
@@ -936,6 +933,8 @@ severity: $severity
         // and the VM does not support that. Also, what would, for instance,
         // setting a breakpoint on line 42 of some import uri mean, if the uri
         // represented several files?
+        // TODO(johnniwinther): Replace this with something that supports
+        // augmentation libraries.
         List<String> newPathSegments =
             new List<String>.of(importUri.pathSegments);
         newPathSegments.add(libraryBuilder.fileUri.pathSegments.last);
@@ -959,27 +958,15 @@ severity: $severity
     return token;
   }
 
-  List<int> synthesizeSourceForMissingFile(Uri uri, Message? message) {
-    switch ("$uri") {
-      case "dart:core":
-        return utf8.encode(defaultDartCoreSource);
-
-      case "dart:async":
-        return utf8.encode(defaultDartAsyncSource);
-
-      case "dart:collection":
-        return utf8.encode(defaultDartCollectionSource);
-
-      case "dart:_internal":
-        return utf8.encode(defaultDartInternalSource);
-
-      case "dart:typed_data":
-        return utf8.encode(defaultDartTypedDataSource);
-
-      default:
-        return utf8
-            .encode(message == null ? "" : "/* ${message.problemMessage} */");
-    }
+  Uint8List synthesizeSourceForMissingFile(Uri uri, Message? message) {
+    return const Utf8Encoder().convert(switch ("$uri") {
+      "dart:core" => defaultDartCoreSource,
+      "dart:async" => defaultDartAsyncSource,
+      "dart:collection" => defaultDartCollectionSource,
+      "dart:_internal" => defaultDartInternalSource,
+      "dart:typed_data" => defaultDartTypedDataSource,
+      _ => message == null ? "" : "/* ${message.problemMessage} */",
+    });
   }
 
   Set<LibraryBuilder>? _strongOptOutLibraries;
@@ -1205,8 +1192,6 @@ severity: $severity
 
   Future<Null> buildOutline(SourceLibraryBuilder library) async {
     Token tokens = await tokenize(library);
-    // ignore: unnecessary_null_comparison
-    if (tokens == null) return;
     OutlineBuilder listener = new OutlineBuilder(library);
     new ClassMemberParser(listener,
             allowPatterns: library.libraryFeatures.patterns.isEnabled)
@@ -1229,10 +1214,6 @@ severity: $severity
     // second time, and the first time was in [buildOutline] above. So this
     // time we suppress lexical errors.
     Token tokens = await tokenize(library, suppressLexicalErrors: true);
-    // ignore: unnecessary_null_comparison
-    if (tokens == null) {
-      return;
-    }
 
     if (target.benchmarker != null) {
       // When benchmarking we do extra parsing on it's own to get a timing of
@@ -1271,11 +1252,8 @@ severity: $severity
       }
       Token tokens = await tokenize(part as SourceLibraryBuilder,
           suppressLexicalErrors: true);
-      // ignore: unnecessary_null_comparison
-      if (tokens != null) {
-        listener.uri = part.fileUri;
-        parser.parseUnit(tokens);
-      }
+      listener.uri = part.fileUri;
+      parser.parseUnit(tokens);
     }
   }
 
@@ -1684,6 +1662,8 @@ severity: $severity
     }
     return null;
   }
+
+  Class? get macroClass => _macroClassBuilder?.cls;
 
   Future<MacroApplications?> computeMacroApplications() async {
     if ((!enableMacros || _macroClassBuilder == null) && !forceEnableMacros) {
@@ -2319,17 +2299,22 @@ severity: $severity
               return;
             }
           }
-
+          final Template<Message Function(String, String)> template =
+              cls.isMixinDeclaration
+                  ? templateMixinSubtypeOfFinalIsNotBase
+                  : templateSubtypeOfFinalIsNotBaseFinalOrSealed;
           cls.addProblem(
-              templateSubtypeOfFinalIsNotBaseFinalOrSealed.withArguments(
-                  cls.fullNameForErrors,
+              template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.charOffset,
               noLength);
         } else if (baseOrFinalSuperClass.isBase) {
+          final Template<Message Function(String, String)> template =
+              cls.isMixinDeclaration
+                  ? templateMixinSubtypeOfBaseIsNotBase
+                  : templateSubtypeOfBaseIsNotBaseFinalOrSealed;
           cls.addProblem(
-              templateSubtypeOfBaseIsNotBaseFinalOrSealed.withArguments(
-                  cls.fullNameForErrors,
+              template.withArguments(cls.fullNameForErrors,
                   baseOrFinalSuperClass.fullNameForErrors),
               cls.charOffset,
               noLength);
@@ -3137,7 +3122,10 @@ abstract class Enum {
 }
 
 abstract class _Enum {
+  final int index;
   final String _name;
+
+  const _Enum(this.index, this._name);
 }
 
 class String {}

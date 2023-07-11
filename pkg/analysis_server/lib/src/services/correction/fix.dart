@@ -19,7 +19,8 @@ import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 bool hasFix(ErrorCode errorCode) {
   if (errorCode is LintCode) {
     var lintName = errorCode.name;
-    return FixProcessor.lintProducerMap.containsKey(lintName);
+    return FixProcessor.lintProducerMap.containsKey(lintName) ||
+        FixProcessor.lintMultiProducerMap.containsKey(lintName);
   }
   // TODO(brianwilkerson) Either deprecate the part of the protocol supported by
   //  this function, or handle error codes associated with non-dart files.
@@ -693,6 +694,11 @@ class DartFixKind {
     DartFixKindPriority.DEFAULT,
     'Create constructor for final fields',
   );
+  static const CREATE_CONSTRUCTOR_FOR_FINAL_FIELDS_REQUIRED_NAMED = FixKind(
+    'dart.fix.create.constructorForFinalFields.requiredNamed',
+    DartFixKindPriority.DEFAULT,
+    'Create constructor for final fields, required named',
+  );
   static const CREATE_CONSTRUCTOR_SUPER = FixKind(
     'dart.fix.create.constructorSuper',
     DartFixKindPriority.DEFAULT,
@@ -778,7 +784,7 @@ class DartFixKind {
   static const IGNORE_ERROR_FILE = FixKind(
     'dart.fix.ignore.file',
     DartFixKindPriority.IGNORE - 1,
-    "Ignore '{0}' for this file",
+    "Ignore '{0}' for the whole file",
   );
   static const IMPORT_ASYNC = FixKind(
     'dart.fix.import.async',
@@ -1018,6 +1024,11 @@ class DartFixKind {
     'dart.fix.remove.const',
     DartFixKindPriority.DEFAULT,
     'Remove const',
+  );
+  static const REMOVE_CONSTRUCTOR = FixKind(
+    'dart.fix.remove.constructor',
+    DartFixKindPriority.DEFAULT,
+    'Remove the constructor',
   );
   static const REMOVE_CONSTRUCTOR_NAME = FixKind(
     'dart.fix.remove.constructorName',

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -28,8 +28,8 @@ static method fn5() → core::int {
   }
 }
 static method main() → void {
-  exp::Expect::equals(#C1 as{ForNonNullableByDefault} dynamic, null);
-  exp::Expect::equals(#C1 as{ForNonNullableByDefault} dynamic, null);
+  exp::Expect::equals(#C1 as dynamic, null);
+  exp::Expect::equals(#C1 as dynamic, null);
   exp::Expect::equals(#C1, null);
   exp::Expect::equals(#C1, null);
   exp::Expect::equals(#C2, 2);

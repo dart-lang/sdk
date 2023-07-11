@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -71,7 +71,6 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E four = invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:9:7: Error: Couldn't find constructor 'E.f2'.
   four.f2(); // Error.
       ^^";
-  static final field dynamic _redirecting# = <dynamic>[#C7, #C8, #C9, #C10]/*isLegacy*/;
   const constructor •(core::int #index, core::String #name) → self::E
     : super core::_Enum::•(#index, #name)
     ;
@@ -97,9 +96,9 @@ class E extends core::_Enum /*isEnum*/  {
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:24:20: Error: Enum factory constructors can't redirect to generative constructors.
   factory E.f4() = E; // Error.
                    ^";
-  static factory f5() → self::E
+  static factory f5() → self::E /* redirection-target: self::E::f */
     return self::E::f();
-  static factory f6(core::int value = #C11) → self::E
+  static factory f6(core::int value = #C7) → self::E
     return invalid-expression "pkg/front_end/testcases/enhanced_enums/constructor_calls.dart:28:29: Error: The constructor function type 'E Function()' isn't a subtype of 'E Function(int)'.
  - 'E' is from 'pkg/front_end/testcases/enhanced_enums/constructor_calls.dart'.
   factory E.f6(int value) = E.f; // Error.
@@ -129,7 +128,7 @@ static method test() → dynamic {
 Try using a constructor or factory that is 'const'.
   const E.f(); // Error.
         ^";
-  #C12;
+  #C8;
 }
 static method main() → dynamic {}
 
@@ -140,12 +139,8 @@ constants  {
   #C4 = 1
   #C5 = "two"
   #C6 = self::E {index:#C4, _name:#C5}
-  #C7 = constructor-tearoff self::E::f3
-  #C8 = constructor-tearoff self::E::f4
-  #C9 = constructor-tearoff self::E::f5
-  #C10 = constructor-tearoff self::E::f6
-  #C11 = null
-  #C12 = constructor-tearoff self::E::f
+  #C7 = null
+  #C8 = constructor-tearoff self::E::f
 }
 
 

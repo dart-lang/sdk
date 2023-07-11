@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -14,7 +14,7 @@ part part_part_of_different_unnamed_library_lib1.dart;
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 
 part part_part_of_different_unnamed_library_lib1.dart;

@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -50,13 +50,13 @@ class MyFuture<T extends core::Object? = dynamic> extends core::Object implement
   method then<S extends core::Object? = dynamic>((self::MyFuture::T%) → FutureOr<self::MyFuture::then::S%>f, {core::Function? onError = #C1}) → self::MyFuture<self::MyFuture::then::S%>
     return throw "";
   no-such-method-forwarder method catchError(core::Function onError, {(core::Object) →? core::bool test = #C1}) → asy::Future<self::MyFuture::T%>
-    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(onError)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: test}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::MyFuture::T%>;
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C2, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(onError)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C4: test}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
   no-such-method-forwarder method whenComplete(() → FutureOr<void>action) → asy::Future<self::MyFuture::T%>
-    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(action)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::MyFuture::T%>;
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C5, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(action)), core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
   no-such-method-forwarder method asStream() → asy::Stream<self::MyFuture::T%>
-    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C8, core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Stream<self::MyFuture::T%>;
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C7, 0, #C3, #C8, core::Map::unmodifiable<core::Symbol*, dynamic>(#C6))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Stream<self::MyFuture::T%>;
   no-such-method-forwarder method timeout(core::Duration timeLimit, {covariant-by-class () →? FutureOr<self::MyFuture::T%>onTimeout = #C1}) → asy::Future<self::MyFuture::T%>
-    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(timeLimit)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} asy::Future<self::MyFuture::T%>;
+    return this.{self::MyFuture::noSuchMethod}(new core::_InvocationMirror::_withType(#C9, 0, #C3, core::List::unmodifiable<dynamic>(core::_GrowableList::_literal1<dynamic>(timeLimit)), core::Map::unmodifiable<core::Symbol*, dynamic>(<core::Symbol*, dynamic>{#C10: onTimeout}))){(core::Invocation) → dynamic} as{TypeError,ForDynamic} asy::Future<self::MyFuture::T%>;
 }
 static method test(self::MyFuture<core::int> f) → void {
   asy::Future<core::int> t1 = f.{self::MyFuture::then}<core::int>((core::int x) → asy::Future<core::int> async /* futureValueType= core::int */ => let final core::int #t1 = x in #t1 == null ?{core::int} await asy::Future::value<core::int>(3) : #t1){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
@@ -65,17 +65,17 @@ static method test(self::MyFuture<core::int> f) → void {
  - 'Object' is from 'dart:core'.
  - 'Future' is from 'dart:async'.
     return /*info:DOWN_CAST_COMPOSITE*/ await x ?? new Future<int>.value(3);
-                                                ^" in (let final core::int #t2 = await x /* runtimeCheckType= asy::Future<core::int> */ in #t2 == null ?{core::Object} asy::Future::value<core::int>(3) : #t2) as{TypeError,ForNonNullableByDefault} core::int;
+                                                ^" in (let final core::int #t2 = await x /* runtimeCheckType= asy::Future<core::int> */ in #t2 == null ?{core::Object} asy::Future::value<core::int>(3) : #t2) as{TypeError} core::int;
   }){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   asy::Future<core::int> t5 = f.{self::MyFuture::then}<core::int>((core::int x) → FutureOr<core::int> => invalid-expression "pkg/front_end/testcases/inference/future_then_ifNull2.dart:28:13: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
  - 'Object' is from 'dart:core'.
           x ?? new Future<int>.value(3));
-            ^" in (let final core::int #t3 = x in #t3 == null ?{core::Object} asy::Future::value<core::int>(3) : #t3) as{TypeError,ForNonNullableByDefault} FutureOr<core::int>){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
+            ^" in (let final core::int #t3 = x in #t3 == null ?{core::Object} asy::Future::value<core::int>(3) : #t3) as{TypeError} FutureOr<core::int>){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
   asy::Future<core::int> t6 = f.{self::MyFuture::then}<core::int>((core::int x) → FutureOr<core::int> {
     return invalid-expression "pkg/front_end/testcases/inference/future_then_ifNull2.dart:31:43: Error: A value of type 'Object' can't be returned from a function with return type 'FutureOr<int>'.
  - 'Object' is from 'dart:core'.
     return /*info:DOWN_CAST_COMPOSITE*/ x ?? new Future<int>.value(3);
-                                          ^" in (let final core::int #t4 = x in #t4 == null ?{core::Object} asy::Future::value<core::int>(3) : #t4) as{TypeError,ForNonNullableByDefault} FutureOr<core::int>;
+                                          ^" in (let final core::int #t4 = x in #t4 == null ?{core::Object} asy::Future::value<core::int>(3) : #t4) as{TypeError} FutureOr<core::int>;
   }){((core::int) → FutureOr<core::int>, {onError: core::Function?}) → self::MyFuture<core::int>};
 }
 static method main() → dynamic {}

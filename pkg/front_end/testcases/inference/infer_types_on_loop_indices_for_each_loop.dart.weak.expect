@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -45,7 +45,7 @@ class Bar<T extends core::Iterable<core::String>> extends core::Object {
     for (core::String i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:15:44: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
     }
   }
 }
@@ -57,7 +57,7 @@ class Baz<T extends core::Object? = dynamic, E extends core::Iterable<self::Baz:
     for (self::Baz::T% i in t) {
       core::int x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:23:44: Error: A value of type 'T' can't be assigned to a variable of type 'int'.
       int x = /*error:INVALID_ASSIGNMENT*/ i;
-                                           ^" in i as{TypeError,ForNonNullableByDefault} core::int;
+                                           ^" in i as{TypeError} core::int;
       self::Baz::T% y = i;
     }
   }
@@ -68,32 +68,32 @@ static method test() → dynamic {
     core::String y = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:32:45: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
     String y = /*error:INVALID_ASSIGNMENT*/ x;
-                                            ^" in x as{TypeError,ForNonNullableByDefault} core::String;
+                                            ^" in x as{TypeError} core::String;
   }
   for (dynamic x in list) {
-    core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+    core::String y = x as{TypeError,ForDynamic} core::String;
   }
   for (final self::Foo #t1 in list) {
     core::String x = invalid-expression "pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart:39:15: Error: A value of type 'Foo' can't be assigned to a variable of type 'String'.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
 Try changing the type of the variable.
   for (String x in /*error:FOR_IN_OF_INVALID_ELEMENT_TYPE*/ list) {
-              ^" in #t1 as{TypeError,ForNonNullableByDefault} core::String;
+              ^" in #t1 as{TypeError} core::String;
     core::String y = x;
   }
   dynamic z;
   for (final self::Foo #t2 in list) {
     z = #t2;
-    core::String y = z as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+    core::String y = z as{TypeError,ForDynamic} core::String;
   }
   core::Iterable<dynamic> iter = list;
   for (final dynamic #t3 in iter) {
-    self::Foo x = #t3 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+    self::Foo x = #t3 as{TypeError,ForDynamic} self::Foo;
     self::Foo y = x;
   }
   dynamic iter2 = list;
-  for (final dynamic #t4 in iter2 as{TypeError,ForDynamic,ForNonNullableByDefault} core::Iterable<dynamic>) {
-    self::Foo x = #t4 as{TypeError,ForDynamic,ForNonNullableByDefault} self::Foo;
+  for (final dynamic #t4 in iter2 as{TypeError,ForDynamic} core::Iterable<dynamic>) {
+    self::Foo x = #t4 as{TypeError,ForDynamic} self::Foo;
     self::Foo y = x;
   }
   core::Map<core::String, self::Foo> map = <core::String, self::Foo>{};
@@ -102,8 +102,8 @@ Try changing the type of the variable.
  - 'Foo' is from 'pkg/front_end/testcases/inference/infer_types_on_loop_indices_for_each_loop.dart'.
  - 'Iterable' is from 'dart:core'.
   for (var /*@ type=dynamic */ x in /*error:FOR_IN_OF_INVALID_TYPE*/ map) {
-                                                                     ^" in map as{TypeError,ForNonNullableByDefault} core::Iterable<dynamic>) {
-    core::String y = x as{TypeError,ForDynamic,ForNonNullableByDefault} core::String;
+                                                                     ^" in map as{TypeError} core::Iterable<dynamic>) {
+    core::String y = x as{TypeError,ForDynamic} core::String;
   }
   for (core::String x in map.{core::Map::keys}{core::Iterable<core::String>}) {
     core::String y = x;

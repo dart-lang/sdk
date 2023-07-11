@@ -3,7 +3,7 @@
 //
 // pkg/front_end/testcases/general/flutter_issue68092/main_lib.dart: Error: Library doesn't support null safety.
 //
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -23,7 +23,7 @@ static method main() → void {
   new mai::Registry::•().{mai::DynamicDispatchRegistry::register}(f){(({x: core::int*}) →* core::int*) →* ({x: core::int*}) →* core::int*};
 }
 
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //

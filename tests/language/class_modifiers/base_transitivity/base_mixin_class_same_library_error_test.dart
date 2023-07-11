@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 /// Test the invalid uses of a base mixin class within the same library
 
 class SimpleClass {}
@@ -63,14 +61,14 @@ mixin class MixinClassSealedExtendImplement implements SealedExtend {}
 mixin MixinSealedExtendImplement implements SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'MixinSealedExtendImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'MixinSealedExtendImplement' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 // Using a sealed class as an `on` type
 
 mixin MixinSealedExtendOn on SealedExtend {}
 //    ^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'MixinSealedExtendOn' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'MixinSealedExtendOn' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 // Extending via an anonymous mixin class.
 
@@ -193,7 +191,7 @@ class SimpleImplementApplication = Object
 mixin SimpleMixinImplement implements BaseMixinClass {}
 //    ^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinImplement' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'SimpleMixinImplement' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 // Implementing with a base mixin (valid, used for tests below)
 
@@ -218,17 +216,17 @@ interface class InterfaceMixinImplementApplied extends Object
 mixin SimpleMixinOn on BaseMixinClass {}
 //    ^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOn' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'SimpleMixinOn' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 mixin SimpleMixinOnBaseSimple on BaseMixinClass, SimpleClass {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOnBaseSimple' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'SimpleMixinOnBaseSimple' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 mixin SimpleMixinOnSimpleBase on SimpleClass, BaseMixinClass {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
 // [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
-// [cfe] The type 'SimpleMixinOnSimpleBase' must be 'base', 'final' or 'sealed' because the supertype 'BaseMixinClass' is 'base'.
+// [cfe] The mixin 'SimpleMixinOnSimpleBase' must be 'base' because the supertype 'BaseMixinClass' is 'base'.
 
 /// It is an error to use BaseMixinClass as a mixin, if the result is not base,
 /// final or sealed.

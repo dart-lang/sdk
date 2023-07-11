@@ -92,11 +92,6 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
     throw 'Cloning of fields is not implemented here';
   }
 
-  @override
-  TreeNode visitRedirectingFactory(RedirectingFactory node) {
-    throw 'Cloning of redirecting factory constructors is not implemented here';
-  }
-
   // The currently active file uri where we are cloning [TreeNode]s from.  If
   // this is set to `null` we cannot clone file offsets to newly created nodes.
   // The [_cloneFileOffset] helper function will ensure this.
@@ -615,10 +610,7 @@ class CloneVisitorNotMembers implements TreeVisitor<TreeNode> {
   TypeParameter visitTypeParameter(TypeParameter node) {
     TypeParameter newNode = typeParams[node]!;
     newNode.bound = visitType(node.bound);
-    // ignore: unnecessary_null_comparison
-    if (node.defaultType != null) {
-      newNode.defaultType = visitType(node.defaultType);
-    }
+    newNode.defaultType = visitType(node.defaultType);
     return newNode
       ..annotations = cloneAnnotations && !node.annotations.isEmpty
           ? node.annotations.map(clone).toList()
@@ -1167,30 +1159,6 @@ class CloneVisitorWithMembers extends CloneVisitorNotMembers {
     _activeFileUri = activeFileUriSaved;
     return result;
   }
-
-  RedirectingFactory cloneRedirectingFactory(
-      RedirectingFactory node, Reference? reference) {
-    final Uri? activeFileUriSaved = _activeFileUri;
-    _activeFileUri = node.fileUri;
-
-    RedirectingFactory result = new RedirectingFactory(node.targetReference,
-        name: node.name,
-        isConst: node.isConst,
-        isExternal: node.isExternal,
-        transformerFlags: node.transformerFlags,
-        typeArguments: node.typeArguments.map(visitType).toList(),
-        function: super.clone(node.function),
-        fileUri: node.fileUri,
-        reference: reference)
-      ..fileOffset = _cloneFileOffset(node.fileOffset)
-      ..annotations = cloneAnnotations && !node.annotations.isEmpty
-          ? node.annotations.map(super.clone).toList()
-          : const <Expression>[];
-    setParents(result.annotations, result);
-
-    _activeFileUri = activeFileUriSaved;
-    return result;
-  }
 }
 
 /// Cloner that resolves super calls in mixin declarations.
@@ -1209,8 +1177,6 @@ class MixinApplicationCloner extends CloneVisitorWithMembers {
             cloneAnnotations: cloneAnnotations);
 
   Member? _findSuperMember(Name name, {required bool isSetter}) {
-    // ignore: unnecessary_null_comparison
-    assert(isSetter != null);
     Map<Name, Member> cache;
     if (isSetter) {
       cache = _setterMap ??= {};

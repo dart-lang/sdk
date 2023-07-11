@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -25,9 +25,9 @@ extension Extension<K extends core::Object* = dynamic, V extends core::Object* =
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
+static extension-member method Extension|[]<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]::K*, self::Extension|[]::V*>* #this, core::Object* key) → self::Extension|[]::V*
   ;
-static method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
+static extension-member method Extension|[]=<K extends core::Object* = dynamic, V extends core::Object* = dynamic>(lowered final self::MapLike<self::Extension|[]=::K*, self::Extension|[]=::V*>* #this, self::Extension|[]=::K* key, self::Extension|[]=::V* value) → void
   ;
 static method main() → dynamic
   ;

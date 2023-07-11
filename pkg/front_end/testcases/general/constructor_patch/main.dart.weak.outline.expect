@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "dart:test";
@@ -8,7 +8,7 @@ static method test() → dynamic
 static method main() → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -37,6 +37,7 @@ class Class extends core::Object /*hasConstConstructor*/  {
 class Class2 extends core::Object {
   final field core::int injectedField /* from org-dartlang-testcase:///patch_lib.dart */;
   field core::int field;
+  @_in::patch
   external constructor •(core::int field) → self2::Class2;
 }
 class Subclass extends self2::Class {
@@ -50,9 +51,10 @@ static method test() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:6:49 -> InstanceConstant(const _Patch{})
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:8:1 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:7:43 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:16:9 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ org-dartlang-testcase:///patch_lib.dart:15:4 -> InstanceConstant(const _Patch{})
 Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:17:8 -> InstanceConstant(const _Patch{})
-Evaluated: StaticGet @ org-dartlang-testcase:///origin_lib.dart:24:60 -> InstanceConstant(const _Patch{})
-Extra constant evaluation: evaluated: 6, effectively constant: 5
+Evaluated: FileUriExpression @ org-dartlang-testcase:///patch_lib.dart:28:1 -> InstanceConstant(const _Patch{})
+Evaluated: StaticGet @ (unknown position in org-dartlang-testcase:///origin_lib.dart) -> InstanceConstant(const _Patch{})
+Extra constant evaluation: evaluated: 7, effectively constant: 6

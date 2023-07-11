@@ -1,13 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 typedef BAlias = self::B;
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
-  static factory •() → self::A
+  static factory •() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
-  static factory named() → self::A
+  static factory named() → self::A /* redirection-target: self::B::named */
     return new self::B::named();
 }
 class B extends core::Object implements self::A {
@@ -19,8 +18,3 @@ class B extends core::Object implements self::A {
     ;
 }
 static method main() → dynamic {}
-
-constants  {
-  #C1 = constructor-tearoff self::A::•
-  #C2 = constructor-tearoff self::A::named
-}

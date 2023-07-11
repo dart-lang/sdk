@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "value_class_support_lib.dart" as val;
@@ -10,7 +10,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::A;
+    return other is{ForLegacy} self::A;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartA".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
@@ -43,7 +43,7 @@ class F = self::B with self::C {
     : super self::B::•()
     ;
   operator /*isLegacy*/ ==(core::Object other) → core::bool
-    return other is self::F;
+    return other is{ForLegacy} self::F;
   get /*isLegacy*/ hashCode() → core::int
     return val::JenkinsSmiHash::finish("org-dartlang-testcase:///explicit_mixin.dartF".{core::String::hashCode}{core::int});
   method /*isLegacy*/ toString() → core::String
@@ -53,7 +53,7 @@ class F = self::B with self::C {
 }
 static method main() → dynamic {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as val;
 import "dart:core" as core;
 

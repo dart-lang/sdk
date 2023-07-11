@@ -928,6 +928,19 @@ class DeclaredSourceConstructorBuilder
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new ConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [constructor];
+
+  @override
+  bool get isAugmented {
+    if (isPatch) {
+      return origin._patches!.last != this;
+    } else {
+      return _patches != null;
+    }
+  }
 }
 
 class SyntheticSourceConstructorBuilder extends DillConstructorBuilder
@@ -1100,6 +1113,7 @@ class SourceInlineClassConstructorBuilder
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
           .attachMember(_constructorTearOff!);
+      _constructorTearOff!.isInlineClassMember = true;
     }
   }
 
@@ -1284,6 +1298,13 @@ class SourceInlineClassConstructorBuilder
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new InlineClassConstructorBodyBuilderContext(this);
+
+  // TODO(johnniwinther): Add annotations to tear-offs.
+  @override
+  Iterable<Annotatable> get annotatables => [_constructor];
+
+  @override
+  bool get isAugmented => false;
 }
 
 class InlineClassInitializerToStatementConverter

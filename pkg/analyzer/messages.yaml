@@ -2568,6 +2568,11 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_EXTENSION_METHOD:
+    problemMessage: "Extension methods can't be used in constant expressions."
+  CONST_EVAL_FOR_ELEMENT:
+    problemMessage: "Constant expressions don't support 'for' elements."
+    correctionMessage: "Try replacing the 'for' element with a spread, or removing 'const'."
   CONST_EVAL_THROWS_EXCEPTION:
     problemMessage: Evaluation of this constant expression throws an exception.
     comment: |-
@@ -9885,6 +9890,22 @@ CompileTimeErrorCode:
 
       class C {}
       ```
+  MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'base'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'base'
+      1: the name of the 'base' supertype
+  MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+    sharedName: SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+    problemMessage: "The mixin '{0}' must be 'base' because the supertype '{1}' is 'final'."
+    hasPublishedDocs: true
+    comment: |-
+      Parameters:
+      0: the name of the mixin that is not 'final'
+      1: the name of the 'final' supertype
   MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
     problemMessage: "Deferred classes can't be used as superclass constraints."
     correctionMessage: Try changing the import to not be deferred.
@@ -18994,6 +19015,54 @@ FfiCode:
         Pointer.fromFunction<T>(f, 5);
       }
       ```
+  MUST_RETURN_VOID:
+    problemMessage: "The return type of the function passed to 'NativeCallable.listener' must be 'void' rather than '{0}'."
+    correctionMessage: "Try changing the return type to 'void'."
+    comment: |-
+      Parameters:
+      0: the return type that should be 'void'.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when you pass a function
+      that doesn't return `void` to the `NativeCallable.listener` constructor.
+
+      `NativeCallable.listener` creates a native callable that can be invoked
+      from any thread. The native code that invokes the callable sends a message
+      back to the isolate that created the callable, and doesn't wait for a
+      response. So it isn't possible to return a result from the callable.
+
+      For more information about FFI, see [C interop using dart:ffi][ffi].
+
+      #### Example
+
+      The following code produces this diagnostic because the function
+      `f` returns `int` rather than `void`.
+
+      ```dart
+      import 'dart:ffi';
+
+      int f(int i) => i * 2;
+
+      void g() {
+        NativeCallable<Int32 Function(Int32)>.listener([!f!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Change the return type of the function to `void`.
+
+      ```dart
+      import 'dart:ffi';
+
+      void f(int i) => print(i * 2);
+
+      void g() {
+        NativeCallable<Void Function(Int32)>.listener(f);
+      }
+      ```
   NON_CONSTANT_TYPE_ARGUMENT:
     problemMessage: "The type arguments to '{0}' must be known at compile time, so they can't be type parameters."
     correctionMessage: Try changing the type argument to be a constant type.
@@ -23008,6 +23077,69 @@ WarningCode:
       #### Common fixes
 
       Remove the annotation:
+
+      ```dart
+      class C {}
+      ```
+  INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+    problemMessage: "The annotation 'visibleOutsideTemplate' can only be applied to a member of a class, enum, or mixin that is annotated with 'visibleForTemplate'."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the `@visibleOutsideTemplate`
+      annotation is used incorrectly. This annotation is only meant to annotate
+      members of a class, enum, or mixin that has the `@visibleForTemplate`
+      annotation, to opt those members out of the visibility restrictions that
+      `@visibleForTemplate` imposes.
+
+      #### Examples
+
+      The following code produces this diagnostic because there is no
+      `@visibleForTemplate` annotation at the class level:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      class C {
+        [!@visibleOutsideTemplate!]
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      The following code produces this diagnostic because the annotation is on
+      a class declaration, not a member of a class, enum, or mixin:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      [!@visibleOutsideTemplate!]
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If the class is only visible so that templates can reference it, then add
+      the `@visibleForTemplate` annotation to the class:
+
+      ```dart
+      import 'package:angular_meta/angular_meta.dart';
+
+      @visibleForTemplate
+      class C {
+        @visibleOutsideTemplate
+        int m() {
+          return 1;
+        }
+      }
+      ```
+
+      If the `@visibleOutsideTemplate` annotation is on anything other than a
+      member of a class, enum, or mixin with the `@visibleForTemplate`
+      annotation, remove the annotation:
 
       ```dart
       class C {}

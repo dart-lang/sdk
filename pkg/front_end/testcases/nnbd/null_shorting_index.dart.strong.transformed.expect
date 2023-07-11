@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -77,9 +77,9 @@ extension Extension on self::Class2 {
   operator [] = self::Extension|[];
   operator []= = self::Extension|[]=;
 }
-static method Extension|[](lowered final self::Class2 #this, core::int index) → core::int
+static extension-member method Extension|[](lowered final self::Class2 #this, core::int index) → core::int
   return #this.{self::Class2::field}{core::int};
-static method Extension|[]=(lowered final self::Class2 #this, core::int index, core::int value) → void {
+static extension-member method Extension|[]=(lowered final self::Class2 #this, core::int index, core::int value) → void {
   #this.{self::Class2::field} = value;
 }
 static method main() → dynamic {
@@ -123,13 +123,13 @@ static method main() → dynamic {
   let final self::Class1? #t75 = c1 in #t75 == null ?{core::int?} null : let final self::Class2? #t76 = #t75{self::Class1}.{self::Class1::field}{self::Class2?} in #t76 == null ?{core::int?} null : let final core::int #t77 = 0 in self::Extension|[](#t76{self::Class2}, #t77) == null ?{core::int} self::Extension|[]=(#t76{self::Class2}, #t77, 1.{core::num::+}(c1{self::Class1}.{self::Class1::[]}(1){(core::int) → core::int}){(core::num) → core::int}) : null;
   let final self::Class1? #t78 = c1 in #t78 == null ?{core::int?} null : let final self::Class2? #t79 = #t78{self::Class1}.{self::Class1::field}{self::Class2?} in #t79 == null ?{core::int?} null : self::Extension|[](#t79{self::Class2}, 0);
   let final self::Class1? #t80 = c1 in #t80 == null ?{void} null : let final self::Class2? #t81 = #t80{self::Class1}.{self::Class1::field}{self::Class2?} in #t81 == null ?{void} null : self::Extension|[]=(#t81{self::Class2}, 0, 1);
-  let final self::Class1? #t82 = c1 in #t82 == null ?{void} null : let final self::Class2? #t83 = #t82{self::Class1}.{self::Class1::field}{self::Class2?} in #t83 == null ?{void} null : self::Extension|[]=(#t83{self::Class2}, 0, 1.{core::num::+}(let core::int? #t84 = let final self::Class2? #t85 = c2 in #t85 == null ?{core::int?} null : self::Extension|[](#t85{self::Class2}, 0)! in #t84 == null ?{core::int} #t84 as{ForNonNullableByDefault} core::int : #t84{core::int}){(core::num) → core::int});
+  let final self::Class1? #t82 = c1 in #t82 == null ?{void} null : let final self::Class2? #t83 = #t82{self::Class1}.{self::Class1::field}{self::Class2?} in #t83 == null ?{void} null : self::Extension|[]=(#t83{self::Class2}, 0, 1.{core::num::+}(let core::int? #t84 = let final self::Class2? #t85 = c2 in #t85 == null ?{core::int?} null : self::Extension|[](#t85{self::Class2}, 0)! in #t84 == null ?{core::int} #t84 as core::int : #t84{core::int}){(core::num) → core::int});
   let final self::Class1? #t86 = c1 in #t86 == null ?{core::int?} null : let final self::Class2? #t87 = #t86{self::Class1}.{self::Class1::field}{self::Class2?} in #t87 == null ?{core::int?} null : let final core::int #t88 = 0 in self::Extension|[]=(#t87{self::Class2}, #t88, self::Extension|[](#t87{self::Class2}, #t88).{core::num::+}(1){(core::num) → core::int});
-  let final self::Class1? #t89 = c1 in #t89 == null ?{core::int?} null : let final self::Class2? #t90 = #t89{self::Class1}.{self::Class1::field}{self::Class2?} in #t90 == null ?{core::int?} null : let final core::int #t91 = 0 in self::Extension|[]=(#t90{self::Class2}, #t91, self::Extension|[](#t90{self::Class2}, #t91).{core::num::+}(1.{core::num::+}(let core::int? #t92 = let final self::Class2? #t93 = c2 in #t93 == null ?{core::int?} null : self::Extension|[](#t93{self::Class2}, 0)! in #t92 == null ?{core::int} #t92 as{ForNonNullableByDefault} core::int : #t92{core::int}){(core::num) → core::int}){(core::num) → core::int});
+  let final self::Class1? #t89 = c1 in #t89 == null ?{core::int?} null : let final self::Class2? #t90 = #t89{self::Class1}.{self::Class1::field}{self::Class2?} in #t90 == null ?{core::int?} null : let final core::int #t91 = 0 in self::Extension|[]=(#t90{self::Class2}, #t91, self::Extension|[](#t90{self::Class2}, #t91).{core::num::+}(1.{core::num::+}(let core::int? #t92 = let final self::Class2? #t93 = c2 in #t93 == null ?{core::int?} null : self::Extension|[](#t93{self::Class2}, 0)! in #t92 == null ?{core::int} #t92 as core::int : #t92{core::int}){(core::num) → core::int}){(core::num) → core::int});
   let final self::Class1? #t94 = c1 in #t94 == null ?{core::int?} null : let final self::Class2? #t95 = #t94{self::Class1}.{self::Class1::field}{self::Class2?} in #t95 == null ?{core::int?} null : let final core::int #t96 = 0 in let final core::int #t97 = self::Extension|[](#t95{self::Class2}, #t96).{core::num::+}(1){(core::num) → core::int} in let final void #t98 = self::Extension|[]=(#t95{self::Class2}, #t96, #t97) in #t97;
   let final self::Class1? #t99 = c1 in #t99 == null ?{core::int?} null : let final self::Class2? #t100 = #t99{self::Class1}.{self::Class1::field}{self::Class2?} in #t100 == null ?{core::int?} null : let final core::int #t101 = 0 in self::Extension|[]=(#t100{self::Class2}, #t101, self::Extension|[](#t100{self::Class2}, #t101).{core::num::+}(1){(core::num) → core::int});
   let final self::Class1? #t102 = c1 in #t102 == null ?{core::int?} null : let final self::Class2? #t103 = #t102{self::Class1}.{self::Class1::field}{self::Class2?} in #t103 == null ?{core::int?} null : let final core::int #t104 = 0 in self::Extension|[](#t103{self::Class2}, #t104) == null ?{core::int} self::Extension|[]=(#t103{self::Class2}, #t104, 1) : null;
-  let final self::Class1? #t105 = c1 in #t105 == null ?{core::int?} null : let final self::Class2? #t106 = #t105{self::Class1}.{self::Class1::field}{self::Class2?} in #t106 == null ?{core::int?} null : let final core::int #t107 = 0 in self::Extension|[](#t106{self::Class2}, #t107) == null ?{core::int} self::Extension|[]=(#t106{self::Class2}, #t107, 1.{core::num::+}(let core::int? #t108 = let final self::Class2? #t109 = c2 in #t109 == null ?{core::int?} null : self::Extension|[](#t109{self::Class2}, 1)! in #t108 == null ?{core::int} #t108 as{ForNonNullableByDefault} core::int : #t108{core::int}){(core::num) → core::int}) : null;
+  let final self::Class1? #t105 = c1 in #t105 == null ?{core::int?} null : let final self::Class2? #t106 = #t105{self::Class1}.{self::Class1::field}{self::Class2?} in #t106 == null ?{core::int?} null : let final core::int #t107 = 0 in self::Extension|[](#t106{self::Class2}, #t107) == null ?{core::int} self::Extension|[]=(#t106{self::Class2}, #t107, 1.{core::num::+}(let core::int? #t108 = let final self::Class2? #t109 = c2 in #t109 == null ?{core::int?} null : self::Extension|[](#t109{self::Class2}, 1)! in #t108 == null ?{core::int} #t108 as core::int : #t108{core::int}){(core::num) → core::int}) : null;
 }
 
 

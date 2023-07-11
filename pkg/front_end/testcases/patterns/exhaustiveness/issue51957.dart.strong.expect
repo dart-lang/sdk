@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -23,7 +23,7 @@ static method main() → void {
   {
     final synthesized self::Sealed #0#0 = s;
     {
-      if(#0#0 is{ForNonNullableByDefault} self::C1 || #0#0 is{ForNonNullableByDefault} self::C2) {
+      if(#0#0 is self::C1 || #0#0 is self::C2) {
       }
     }
   }
@@ -34,13 +34,13 @@ static method main() → void {
     #L2:
     {
       {
-        if(#1#0 is{ForNonNullableByDefault} self::C1) {
+        if(#1#0 is self::C1) {
           #t1 = "C1";
           break #L2;
         }
       }
       {
-        if(#1#0 is{ForNonNullableByDefault} self::C2) {
+        if(#1#0 is self::C2) {
           #t1 = "C2";
           break #L2;
         }

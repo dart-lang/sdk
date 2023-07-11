@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -54,6 +54,6 @@ class D extends self::C {
     return x;
 }
 static method main() → dynamic {
-  core::int y = (new self::D::•() as{ForNonNullableByDefault} self::C).{self::C::m}(42){(dynamic) → dynamic} as{TypeError,ForDynamic,ForNonNullableByDefault} core::int;
+  core::int y = (new self::D::•() as self::C).{self::C::m}(42){(dynamic) → dynamic} as{TypeError,ForDynamic} core::int;
   core::print(y);
 }

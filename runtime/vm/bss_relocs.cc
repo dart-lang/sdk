@@ -38,12 +38,13 @@ void BSS::Initialize(Thread* current, uword* bss_start, bool vm) {
                        instructions - dso_base, bss_start);
   }
 
-  if (!vm) {
-    // Fill values at isolate-only indices.
-    InitializeBSSEntry(Relocation::DRT_GetThreadForNativeCallback,
-                       reinterpret_cast<uword>(DLRT_GetThreadForNativeCallback),
-                       bss_start);
-  }
+  // TODO(https://dartbug.com/52579): Remove.
+  InitializeBSSEntry(Relocation::DRT_GetFfiCallbackMetadata,
+                     reinterpret_cast<uword>(DLRT_GetFfiCallbackMetadata),
+                     bss_start);
+  InitializeBSSEntry(Relocation::DRT_ExitTemporaryIsolate,
+                     reinterpret_cast<uword>(DLRT_ExitTemporaryIsolate),
+                     bss_start);
 }
 
 }  // namespace dart

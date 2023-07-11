@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -46,55 +46,55 @@ static method test1() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:11:10: Error: A value of type 'S Function<S>(S, S)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(S a, S b) => a;
-         ^" in (<S extends core::Object* = dynamic>(S* a, S* b) → S* => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(S* a, S* b) → S* => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test2() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   <S extends core::Object* = dynamic>(S*, S*) →* S* f = <S extends core::Object* = dynamic>(S* a, S* b) → S* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:17:7: Error: A value of type 'S Function<S>(S, S)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = f;
-      ^" in f as{TypeError} (core::int*, core::int*) →* core::int*;
+      ^" in f as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test3a() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:22:10: Error: A value of type 'dynamic Function<S>(dynamic, S)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(a, S b) => a;
-         ^" in (<S extends core::Object* = dynamic>(dynamic a, S* b) → dynamic => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(dynamic a, S* b) → dynamic => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test3b() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:27:10: Error: A value of type 'S Function<S>(dynamic, S)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(a, S b) => b;
-         ^" in (<S extends core::Object* = dynamic>(dynamic a, S* b) → S* => b) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(dynamic a, S* b) → S* => b) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test4() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:32:10: Error: A value of type 'dynamic Function<S>(dynamic, dynamic)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(a, b) => a;
-         ^" in (<S extends core::Object* = dynamic>(dynamic a, dynamic b) → dynamic => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(dynamic a, dynamic b) → dynamic => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test5() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:37:7: Error: A value of type 'int Function(int, int, dynamic)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = (a, b, c) => a;
-      ^" in ((core::int* a, core::int* b, dynamic c) → core::int* => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+      ^" in ((core::int* a, core::int* b, dynamic c) → core::int* => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test6() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:42:7: Error: A value of type 'int Function(int)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = (a) => a;
-      ^" in ((core::int* a) → core::int* => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+      ^" in ((core::int* a) → core::int* => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test7() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:47:10: Error: A value of type 'dynamic Function<S>(dynamic, dynamic, dynamic)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(a, b, c) => a;
-         ^" in (<S extends core::Object* = dynamic>(dynamic a, dynamic b, dynamic c) → dynamic => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(dynamic a, dynamic b, dynamic c) → dynamic => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method test8() → dynamic {
   (core::int*, core::int*) →* core::int* d = (core::int* a, core::int* b) → core::int* => a;
   d = invalid-expression "pkg/front_end/testcases/general/infer_generic_type_parameter_mismatch.dart:52:10: Error: A value of type 'dynamic Function<S>(dynamic)' can't be assigned to a variable of type 'int Function(int, int)'.
   d = <S>(a) => a;
-         ^" in (<S extends core::Object* = dynamic>(dynamic a) → dynamic => a) as{TypeError} (core::int*, core::int*) →* core::int*;
+         ^" in (<S extends core::Object* = dynamic>(dynamic a) → dynamic => a) as{TypeError,ForLegacy} (core::int*, core::int*) →* core::int*;
 }
 static method main() → dynamic {}

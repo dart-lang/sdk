@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -26,27 +26,27 @@ inline class B /* declaredRepresentationType = self::A */ {
   constructor named = self::B|named;
   tearoff named = self::B|_#named#tearOff;
 }
-external static method B|(self::A a) → self::B;
-static method B|_#new#tearOff(self::A a) → self::B
+external static inline-class-member method B|(self::A a) → self::B;
+static inline-class-member method B|_#new#tearOff(self::A a) → self::B
   return self::B|(a);
-external static method B|named(core::int i) → self::B;
-static method B|_#named#tearOff(core::int i) → self::B
+external static inline-class-member method B|named(core::int i) → self::B;
+static inline-class-member method B|_#named#tearOff(core::int i) → self::B
   return self::B|named(i);
-external static method B|get#field(lowered self::A #this) → self::A;
-external static method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
-external static method B|method(lowered final self::B #this) → self::A;
-static method B|get#method(lowered final self::B #this) → () → self::A
+external static inline-class-member method B|get#field(lowered self::A #this) → self::A;
+external static inline-class-member method B|set#field(lowered self::A #this, self::A #externalFieldValue) → void;
+external static inline-class-member method B|method(lowered final self::B #this) → self::A;
+static inline-class-member method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);
-external static method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
-static method B|get#genericMethod(lowered final self::B #this) → <T extends core::Object? = dynamic>(T%) → T%
+external static inline-class-member method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
+static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
-external static method B|get#getter(lowered final self::B #this) → self::B;
-external static method B|set#setter(lowered final self::B #this, self::B b) → void;
-external static get B|staticField() → self::A;
-external static set B|staticField(self::A #externalFieldValue) → void;
-external static method B|staticMethod() → self::A;
-external static method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
-external static get B|staticGetter() → self::B;
-external static set B|staticSetter(self::B b) → void;
+external static inline-class-member method B|get#getter(lowered final self::B #this) → self::B;
+external static inline-class-member method B|set#setter(lowered final self::B #this, self::B b) → void;
+external static inline-class-member get B|staticField() → self::A;
+external static inline-class-member set B|staticField(self::A #externalFieldValue) → void;
+external static inline-class-member method B|staticMethod() → self::A;
+external static inline-class-member method B|staticGenericMethod<T extends core::Object? = dynamic>(self::B|staticGenericMethod::T% t) → self::B|staticGenericMethod::T%;
+external static inline-class-member get B|staticGetter() → self::B;
+external static inline-class-member set B|staticSetter(self::B b) → void;
 static method method(self::A a) → void
   ;

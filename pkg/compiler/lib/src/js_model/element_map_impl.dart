@@ -39,7 +39,6 @@ import '../js_model/class_type_variable_access.dart';
 import '../kernel/dart2js_target.dart' show allowedNativeTest;
 import '../kernel/element_map.dart';
 import '../kernel/env.dart';
-import '../kernel/kelements.dart';
 import '../native/behavior.dart';
 import '../options.dart';
 import '../ordered_typeset.dart';
@@ -143,35 +142,29 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
     for (int libraryIndex = 0;
         libraryIndex < _elementMap.libraries.length;
         libraryIndex++) {
-      IndexedLibrary oldLibrary =
-          _elementMap.libraries.getEntity(libraryIndex)!;
-      KLibraryEnv oldEnv = _elementMap.libraries.getEnv(oldLibrary);
-      KLibraryData data = _elementMap.libraries.getData(oldLibrary);
-      IndexedLibrary newLibrary = JLibrary(oldLibrary.name!,
-          oldLibrary.canonicalUri, oldLibrary.isNonNullableByDefault);
+      IndexedLibrary library = _elementMap.libraries.getEntity(libraryIndex)!;
+      KLibraryEnv oldEnv = _elementMap.libraries.getEnv(library);
+      KLibraryData data = _elementMap.libraries.getData(library);
       JLibraryEnv newEnv = oldEnv.convert(_elementMap, liveMemberUsage);
       libraryMap[oldEnv.library] =
           libraries.register<IndexedLibrary, JLibraryData, JLibraryEnv>(
-              newLibrary, data.convert(), newEnv);
-      assert(newLibrary.libraryIndex == oldLibrary.libraryIndex);
+              library, data.convert(), newEnv,
+              setEntityIndex: false);
       programEnv.registerLibrary(newEnv);
     }
     // TODO(johnniwinther): Filter unused classes.
     for (int classIndex = 0;
         classIndex < _elementMap.classes.length;
         classIndex++) {
-      IndexedClass oldClass = _elementMap.classes.getEntity(classIndex)!;
-      KClassEnv env = _elementMap.classes.getEnv(oldClass);
-      KClassData data = _elementMap.classes.getData(oldClass);
-      final oldLibrary = oldClass.library as IndexedLibrary;
-      LibraryEntity newLibrary = libraries.getEntity(oldLibrary.libraryIndex)!;
-      IndexedClass newClass = JClass(newLibrary as JLibrary, oldClass.name,
-          isAbstract: oldClass.isAbstract);
+      IndexedClass cls = _elementMap.classes.getEntity(classIndex)!;
+      KClassEnv env = _elementMap.classes.getEnv(cls);
+      KClassData data = _elementMap.classes.getData(cls);
+      final library = cls.library as JLibrary;
       JClassEnv newEnv = env.convert(_elementMap, liveMemberUsage,
           liveAbstractMembers, (ir.Library library) => libraryMap[library]!);
-      classMap[env.cls] = classes.register(newClass, data.convert(), newEnv);
-      assert(newClass.classIndex == oldClass.classIndex);
-      libraries.getEnv(newLibrary).registerClass(newClass.name, newEnv);
+      classMap[env.cls] =
+          classes.register(cls, data.convert(), newEnv, setEntityIndex: false);
+      libraries.getEnv(library).registerClass(cls.name, newEnv);
     }
 
     for (int memberIndex = 0;
@@ -184,68 +177,45 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
         continue;
       }
       KMemberData data = _elementMap.members.getData(oldMember);
-      final oldLibrary = oldMember.library as IndexedLibrary;
-      final oldClass = oldMember.enclosingClass as IndexedClass?;
-      JLibrary newLibrary =
-          libraries.getEntity(oldLibrary.libraryIndex) as JLibrary;
-      JClass? newClass = oldClass != null
-          ? classes.getEntity(oldClass.classIndex) as JClass?
-          : null;
-      IndexedMember newMember;
+      final library = oldMember.library as JLibrary;
+      final cls = oldMember.enclosingClass as JClass?;
+      IndexedMember? newMember;
       Name memberName = oldMember.memberName;
-      if (oldMember is IndexedField) {
-        final field = oldMember;
-        newMember = JField(newLibrary, newClass, memberName,
-            isStatic: field.isStatic,
-            isAssignable: field.isAssignable,
-            isConst: field.isConst);
-      } else if (oldMember is ConstructorEntity) {
-        final constructor = oldMember as IndexedConstructor;
-        ParameterStructure parameterStructure =
-            annotations.hasNoElision(constructor) || memberUsage == null
-                ? constructor.parameterStructure
-                : memberUsage.invokedParameters!;
-        if (constructor.isFactoryConstructor) {
-          // TODO(redemption): This should be a JFunction.
-          newMember = JFactoryConstructor(
-              newClass!, memberName, parameterStructure,
-              isExternal: constructor.isExternal,
-              isConst: constructor.isConst,
-              isFromEnvironmentConstructor:
-                  constructor.isFromEnvironmentConstructor);
-        } else {
-          newMember = JGenerativeConstructor(
-              newClass!, memberName, parameterStructure,
-              isExternal: constructor.isExternal, isConst: constructor.isConst);
+
+      // Only create a new entity if some parameters are unused and can be
+      // elided.
+      if (!annotations.hasNoElision(oldMember) &&
+          memberUsage != null &&
+          oldMember is IndexedFunction &&
+          !identical(
+              oldMember.parameterStructure, memberUsage.invokedParameters)) {
+        if (oldMember is ConstructorEntity) {
+          final newParameters = memberUsage.invokedParameters!;
+          final constructor = oldMember as ConstructorEntity;
+          if (constructor.isFactoryConstructor) {
+            // TODO(redemption): This should be a JFunction.
+            newMember = JFactoryConstructor(cls!, memberName, newParameters,
+                isExternal: constructor.isExternal,
+                isConst: constructor.isConst,
+                isFromEnvironmentConstructor:
+                    constructor.isFromEnvironmentConstructor);
+          } else {
+            newMember = JGenerativeConstructor(cls!, memberName, newParameters,
+                isExternal: constructor.isExternal,
+                isConst: constructor.isConst);
+          }
+        } else if (oldMember.isFunction && !oldMember.isAbstract) {
+          final newParameters = memberUsage.invokedParameters!;
+          newMember = JMethod(
+              library, cls, memberName, newParameters, oldMember.asyncMarker,
+              isStatic: oldMember.isStatic,
+              isExternal: oldMember.isExternal,
+              isAbstract: oldMember.isAbstract);
         }
-      } else if (oldMember.isGetter) {
-        final getter = oldMember as IndexedFunction;
-        newMember = JGetter(
-            newLibrary, newClass, memberName, getter.asyncMarker,
-            isStatic: getter.isStatic,
-            isExternal: getter.isExternal,
-            isAbstract: getter.isAbstract);
-      } else if (oldMember.isSetter) {
-        final setter = oldMember as IndexedFunction;
-        newMember = JSetter(newLibrary, newClass, memberName,
-            isStatic: setter.isStatic,
-            isExternal: setter.isExternal,
-            isAbstract: setter.isAbstract);
-      } else {
-        final function = oldMember as IndexedFunction;
-        ParameterStructure parameterStructure =
-            annotations.hasNoElision(function) ||
-                    memberUsage == null ||
-                    function.isAbstract
-                ? function.parameterStructure
-                : memberUsage.invokedParameters!;
-        newMember = JMethod(newLibrary, newClass, memberName,
-            parameterStructure, function.asyncMarker,
-            isStatic: function.isStatic,
-            isExternal: function.isExternal,
-            isAbstract: function.isAbstract);
       }
-      members.register(newMember, data.convert());
+      members.register(newMember ?? oldMember, data.convert(),
+          setEntityIndex: newMember != null);
+      newMember ??= oldMember;
       assert(
           newMember.memberIndex == oldMember.memberIndex,
           "Member index mismatch: "
@@ -266,29 +236,33 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
           _elementMap.typeVariables.getEntity(typeVariableIndex)!;
       KTypeVariableData oldTypeVariableData =
           _elementMap.typeVariables.getData(oldTypeVariable);
-      Entity? newTypeDeclaration;
-      if (oldTypeVariable.typeDeclaration is ClassEntity) {
-        final cls = oldTypeVariable.typeDeclaration as IndexedClass;
-        newTypeDeclaration = classes.getEntity(cls.classIndex);
-        // TODO(johnniwinther): Skip type variables of unused classes.
-      } else if (oldTypeVariable.typeDeclaration is MemberEntity) {
+
+      // [JLocalTypeVariable] can have [Local] as a `typeDeclaration` but those
+      // should never be inserted into the TypeVariable entity map.
+      assert(oldTypeVariable.typeDeclaration is ClassEntity ||
+          oldTypeVariable.typeDeclaration is MemberEntity);
+
+      MemberEntity? newTypeDeclaration;
+      // TODO(johnniwinther): Skip type variables of unused classes.
+      if (oldTypeVariable.typeDeclaration is MemberEntity) {
         final member = oldTypeVariable.typeDeclaration as IndexedMember;
         newTypeDeclaration = members.getEntity(member.memberIndex);
         if (newTypeDeclaration == null) {
           typeVariables.skipIndex(typeVariableIndex);
           continue;
         }
-      } else {
-        assert(oldTypeVariable.typeDeclaration is Local);
       }
-      IndexedTypeVariable newTypeVariable = createTypeVariable(
-              newTypeDeclaration, oldTypeVariable.name!, oldTypeVariable.index)
-          as IndexedTypeVariable;
+      IndexedTypeVariable? newTypeVariable;
+      if (newTypeDeclaration != null) {
+        newTypeVariable = createTypeVariable(
+            newTypeDeclaration,
+            oldTypeVariable.name!,
+            oldTypeVariable.index) as IndexedTypeVariable;
+      }
       typeVariableMap[oldTypeVariableData.node] =
           typeVariables.register<IndexedTypeVariable, JTypeVariableData>(
-              newTypeVariable, oldTypeVariableData.copy());
-      assert(newTypeVariable.typeVariableIndex ==
-          oldTypeVariable.typeVariableIndex);
+              newTypeVariable ?? oldTypeVariable, oldTypeVariableData.copy(),
+              setEntityIndex: newTypeVariable != null);
     }
     // TODO(johnniwinther): We should close the environment in the beginning of
     // this constructor but currently we need the [MemberEntity] to query if the
@@ -1553,7 +1527,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   TypeVariableEntity createTypeVariable(
-      Entity? typeDeclaration, String name, int index) {
+      Entity typeDeclaration, String name, int index) {
     return JTypeVariable(typeDeclaration, name, index);
   }
 
@@ -1651,8 +1625,7 @@ class JsKernelToElementMap implements JsToElementMap, IrToElementMap {
   }
 
   JConstructorBody _getConstructorBody(IndexedConstructor constructor) {
-    JConstructorDataImpl data =
-        members.getData(constructor) as JConstructorDataImpl;
+    JConstructorData data = members.getData(constructor) as JConstructorData;
     JConstructorBody? constructorBody = data.constructorBody;
     if (constructorBody == null) {
       /// The constructor calls the constructor body with all parameters.
@@ -2405,7 +2378,7 @@ class JsElementEnvironment extends ElementEnvironment
   }
 
   @override
-  FunctionType getLocalFunctionType(covariant KLocalFunction function) {
+  FunctionType getLocalFunctionType(covariant JLocalFunction function) {
     return function.functionType;
   }
 

@@ -15,8 +15,7 @@ import 'package:expect/minitest.dart';
 @JS()
 inline class Literal {
   final JSObject obj;
-  @ObjectLiteral()
-  external Literal({double? a, String b = 'unused', bool? c = null});
+  external Literal({double? a, String b, bool? c});
 }
 
 @JS('Object.keys')

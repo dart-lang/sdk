@@ -1,16 +1,15 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redirectingFactory, self::A::redirectingFactoryChild]/*isLegacy*/;
   constructor •() → self::A
     ;
   constructor redirecting() → self::A
     ;
-  static factory redirectingFactory() → self::A
+  static factory redirectingFactory() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
-  static factory redirectingFactoryChild() → self::A
+  static factory redirectingFactoryChild() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A {
@@ -31,9 +30,3 @@ static method test() → dynamic
   ;
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///unnamed_constructor.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactory)
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///unnamed_constructor.dart:5:7 -> ConstructorTearOffConstant(A.redirectingFactoryChild)
-Extra constant evaluation: evaluated: 6, effectively constant: 2

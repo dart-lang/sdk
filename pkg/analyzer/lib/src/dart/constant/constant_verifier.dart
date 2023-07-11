@@ -552,6 +552,8 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       AnalysisError data = errors[i];
       ErrorCode dataErrorCode = data.errorCode;
       if (identical(dataErrorCode,
+              CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD) ||
+          identical(dataErrorCode,
               CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE) ||
@@ -570,6 +572,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
               CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH) ||
           identical(
               dataErrorCode, CompileTimeErrorCode.VARIABLE_TYPE_MISMATCH) ||
+          identical(dataErrorCode, CompileTimeErrorCode.NON_BOOL_CONDITION) ||
           identical(
               dataErrorCode,
               CompileTimeErrorCode
@@ -771,7 +774,9 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
             );
             var result = initializer.accept(ConstantVisitor(
                 _evaluationEngine, _currentLibrary, subErrorReporter));
-            if (result == null) {
+            // TODO(kallentu): Report the specific error we got from the
+            // evaluator to make it clear to the user what's wrong.
+            if (result is! DartObjectImpl) {
               _errorReporter.reportErrorForToken(
                   CompileTimeErrorCode
                       .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST,
@@ -1041,7 +1046,8 @@ class _ConstLiteralVerifier {
 
       return true;
     } else if (element is ForElement) {
-      verifier._errorReporter.reportErrorForNode(errorCode, element);
+      verifier._errorReporter.reportErrorForNode(
+          CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT, element);
       return false;
     } else if (element is IfElement) {
       var conditionValue = verifier._validate(element.expression, errorCode);
@@ -1149,6 +1155,9 @@ class _ConstLiteralVerifier {
       if (value.isNull && element.isNullAware) {
         return true;
       }
+      // TODO(kallentu): Consolidate this with
+      // [ConstantVisitor._addElementsToList] and the other similar
+      // _addElementsTo methods..
       verifier._errorReporter.reportErrorForNode(
         CompileTimeErrorCode.CONST_SPREAD_EXPECTED_LIST_OR_SET,
         element.expression,

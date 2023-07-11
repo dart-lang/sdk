@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -22,37 +22,37 @@ inline class Bar<T extends core::Object? = dynamic> /* declaredRepresentationTyp
   constructor _ = self::Bar|_;
   tearoff _ = self::Bar|_#_#tearOff;
 }
-static method Foo|(core::int i) → self::Foo
+static inline-class-member method Foo|(core::int i) → self::Foo
   ;
-static method Foo|_#new#tearOff(core::int i) → self::Foo
+static inline-class-member method Foo|_#new#tearOff(core::int i) → self::Foo
   return self::Foo|(i);
-static method Foo|_(core::int i) → self::Foo
+static inline-class-member method Foo|_(core::int i) → self::Foo
   ;
-static method Foo|_#_#tearOff(core::int i) → self::Foo
+static inline-class-member method Foo|_#_#tearOff(core::int i) → self::Foo
   return self::Foo|_(i);
-static method Foo|redirectNamed1(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|redirectNamed1(core::int a, core::int b) → self::Foo
   ;
-static method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|_#redirectNamed1#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed1(a, b);
-static method Foo|redirectNamed2(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|redirectNamed2(core::int a, core::int b) → self::Foo
   ;
-static method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo
+static inline-class-member method Foo|_#redirectNamed2#tearOff(core::int a, core::int b) → self::Foo
   return self::Foo|redirectNamed2(a, b);
-static method Foo|named(core::int value, {required core::int subtract = null}) → self::Foo
+static inline-class-member method Foo|named(core::int value, {required core::int subtract = null}) → self::Foo
   ;
-static method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo
+static inline-class-member method Foo|_#named#tearOff(core::int value, {required core::int subtract}) → self::Foo
   return self::Foo|named(value, subtract: subtract);
-static method Foo|erroneous() → self::Foo
+static inline-class-member method Foo|erroneous() → self::Foo
   ;
-static method Foo|_#erroneous#tearOff() → self::Foo
+static inline-class-member method Foo|_#erroneous#tearOff() → self::Foo
   return self::Foo|erroneous();
-static method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%>
+static inline-class-member method Bar|<T extends core::Object? = dynamic>(self::Bar|::T% i) → self::Bar<self::Bar|::T%>
   ;
-static method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%>
+static inline-class-member method Bar|_#new#tearOff<T extends core::Object? = dynamic>(self::Bar|_#new#tearOff::T% i) → self::Bar<self::Bar|_#new#tearOff::T%>
   return self::Bar|<self::Bar|_#new#tearOff::T%>(i);
-static method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%>
+static inline-class-member method Bar|_<T extends core::Object? = dynamic>(self::Bar|_::T% i) → self::Bar<self::Bar|_::T%>
   ;
-static method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>
+static inline-class-member method Bar|_#_#tearOff<T extends core::Object? = dynamic>(self::Bar|_#_#tearOff::T% i) → self::Bar<self::Bar|_#_#tearOff::T%>
   return self::Bar|_<self::Bar|_#_#tearOff::T%>(i);
 static method main() → dynamic
   ;

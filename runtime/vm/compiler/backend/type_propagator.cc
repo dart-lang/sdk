@@ -949,22 +949,19 @@ bool CompileType::CanBeSmi() {
 }
 
 bool CompileType::CanBeFuture() {
-  IsolateGroup* isolate_group = IsolateGroup::Current();
-  ObjectStore* object_store = isolate_group->object_store();
-
+  Thread* thread = Thread::Current();
+  Zone* zone = thread->zone();
   if (cid_ != kIllegalCid && cid_ != kDynamicCid) {
     if ((cid_ == kNullCid) || (cid_ == kNeverCid) ||
         IsInternalOnlyClassId(cid_) || cid_ == kTypeArgumentsCid) {
       return false;
     }
-    const Class& cls = Class::Handle(isolate_group->class_table()->At(cid_));
-    return Class::IsSubtypeOf(
-        cls, TypeArguments::null_type_arguments(), Nullability::kNonNullable,
-        Type::Handle(object_store->non_nullable_future_rare_type()),
-        Heap::kNew);
+    const Class& cls =
+        Class::Handle(zone, thread->isolate_group()->class_table()->At(cid_));
+    return cls.is_future_subtype();
   }
 
-  AbstractType& type = AbstractType::Handle(ToAbstractType()->ptr());
+  AbstractType& type = AbstractType::Handle(zone, ToAbstractType()->ptr());
   if (type.IsTypeParameter()) {
     type = TypeParameter::Cast(type).bound();
   }
@@ -977,13 +974,12 @@ bool CompileType::CanBeFuture() {
       type_class_id == kInstanceCid || type_class_id == kFutureOrCid) {
     return true;
   }
-  if ((type_class_id == kNullCid) || (type_class_id == kNeverCid)) {
+  if ((type_class_id == kIllegalCid) || (type_class_id == kNullCid) ||
+      (type_class_id == kNeverCid)) {
     return false;
   }
-  Type& future_type =
-      Type::Handle(object_store->non_nullable_future_rare_type());
-  future_type = future_type.ToNullability(Nullability::kNullable, Heap::kNew);
-  return type.IsSubtypeOf(future_type, Heap::kNew);
+  const auto& cls = Class::Handle(zone, type.type_class());
+  return CHA::ClassCanBeFuture(cls);
 }
 
 void CompileType::PrintTo(BaseTextBuffer* f) const {
@@ -1224,9 +1220,10 @@ CompileType ParameterInstr::ComputeType() const {
                     type_class.ToCString());
               }
               if (FLAG_use_cha_deopt) {
-                thread->compiler_state().cha().AddToGuardedClasses(
-                    type_class,
-                    /*subclass_count=*/0);
+                thread->compiler_state()
+                    .cha()
+                    .AddToGuardedClassesForSubclassCount(type_class,
+                                                         /*subclass_count=*/0);
               }
               cid = type_class.id();
             }

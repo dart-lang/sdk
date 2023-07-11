@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 /// Test the invalid uses of an interface class defined in a different library
 
 import "shared_library_definitions.dart" show InterfaceClass;

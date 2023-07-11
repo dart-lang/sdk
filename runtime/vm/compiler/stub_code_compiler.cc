@@ -13,6 +13,7 @@
 
 #include "vm/compiler/stub_code_compiler.h"
 
+#include "vm/code_descriptors.h"
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
@@ -288,7 +289,7 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
                 "Must handle possibility of inst tav reg being spilled");
   static_assert(((1 << InstantiationABI::kFunctionTypeArgumentsReg) &
                  InstantiateTAVInternalRegs::kSavedRegisters) == 0,
-                "Must handle possibility of inst tav reg being spilled");
+                "Must handle possibility of function tav reg being spilled");
 
   // Takes labels for the cache hit/miss cases (to allow for restoring spilled
   // registers).
@@ -1092,61 +1093,65 @@ void StubCodeCompiler::GenerateSlowTypeTestStub() {
   __ CompareObject(TypeTestABI::kSubtypeTestCacheReg, NullObject());
   __ BranchIf(EQUAL, &call_runtime, Assembler::kNearJump);
 
-  // If this is not a [Type] object, we'll use wider SubtypeTestCache.
-  Label is_simple_case, is_complex_case;
-  __ LoadClassId(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg);
-  __ CompareImmediate(TypeTestABI::kScratchReg, kTypeCid);
-  __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
+  // Use the number of inputs used by the STC to determine which stub to call.
+  Label call_2, call_4, call_6;
+  __ Comment("Check number of STC inputs");
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, 2);
+  __ BranchIf(EQUAL, &call_2, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 4);
+  __ BranchIf(EQUAL, &call_4, Assembler::kNearJump);
+  __ CompareImmediate(TypeTestABI::kScratchReg, 6);
+  __ BranchIf(EQUAL, &call_6, Assembler::kNearJump);
+  // Fall through to the all inputs case.
 
-  // Check whether this [Type] is instantiated/uninstantiated.
-  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
-                  Slot::AbstractType_flags());
-  __ AndImmediate(
-      TypeTestABI::kScratchReg,
-      Utils::NBitMask<int32_t>(target::UntaggedAbstractType::kTypeStateBits)
-          << target::UntaggedAbstractType::kTypeStateShift);
-  __ CompareImmediate(
-      TypeTestABI::kScratchReg,
-      target::UntaggedAbstractType::kTypeStateFinalizedInstantiated
-          << target::UntaggedAbstractType::kTypeStateShift);
-  __ BranchIf(NOT_EQUAL, &is_complex_case, Assembler::kNearJump);
-
-  // This [Type] could be a FutureOr. Subtype2TestCache does not support Smi.
-  __ BranchIfSmi(TypeTestABI::kInstanceReg, &is_complex_case);
-
-  // Fall through to &is_simple_case
-
-  const RegisterSet caller_saved_registers(
-      TypeTestABI::kSubtypeTestCacheStubCallerSavedRegisters,
-      /*fpu_registers=*/0);
-
-  __ Bind(&is_simple_case);
   {
-    __ PushRegisters(caller_saved_registers);
-    __ Call(StubCodeSubtype3TestCache());
+    __ Comment("Call 7 input STC check");
+    __ Call(StubCodeSubtype7TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ PopRegisters(caller_saved_registers);
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     __ Jump(&call_runtime, Assembler::kNearJump);
   }
 
-  __ Bind(&is_complex_case);
+  __ Bind(&call_6);
   {
-    __ PushRegisters(caller_saved_registers);
-    __ Call(StubCodeSubtype7TestCache());
+    __ Comment("Call 6 input STC check");
+    __ Call(StubCodeSubtype6TestCache());
     __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
                      CastHandle<Object>(TrueObject()));
-    __ PopRegisters(caller_saved_registers);
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_4);
+  {
+    __ Comment("Call 4 input STC check");
+    __ Call(StubCodeSubtype4TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
+    __ BranchIf(EQUAL, &done);  // Cache said: yes.
+    __ Jump(&call_runtime, Assembler::kNearJump);
+  }
+
+  __ Bind(&call_2);
+  {
+    __ Comment("Call 2 input STC check");
+    __ Call(StubCodeSubtype2TestCache());
+    __ CompareObject(TypeTestABI::kSubtypeTestCacheResultReg,
+                     CastHandle<Object>(TrueObject()));
     __ BranchIf(EQUAL, &done);  // Cache said: yes.
     // Fall through to runtime_call
   }
 
   __ Bind(&call_runtime);
+  __ Comment("Call runtime");
 
   InvokeTypeCheckFromTypeTestStub(assembler, kTypeCheckFromSlowStub);
 
   __ Bind(&done);
+  __ Comment("Done");
   __ LeaveStubFrame();
   __ Ret();
 }
@@ -2543,6 +2548,682 @@ void StubCodeCompiler::GenerateCloneSuspendStateStub() {
   __ PopRegister(CallingConventions::kReturnReg);  // Get result.
   __ LeaveStubFrame();
   __ Ret();
+}
+
+void StubCodeCompiler::GenerateFfiAsyncCallbackSendStub() {
+  __ EnterStubFrame();
+  __ PushObject(NullObject());  // Make space on stack for the return value.
+  __ PushRegister(FfiAsyncCallbackSendStubABI::kArgsReg);
+  __ CallRuntime(kFfiAsyncCallbackSendRuntimeEntry, 1);
+  __ Drop(1);                                      // Drop argument.
+  __ PopRegister(CallingConventions::kReturnReg);  // Get result.
+  __ LeaveStubFrame();
+  __ Ret();
+}
+
+void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
+  ASSERT(pc_descriptors_list_ != nullptr);
+  const intptr_t pc_offset = assembler->InsertAlignedRelocation(reloc);
+  pc_descriptors_list_->AddDescriptor(
+      UntaggedPcDescriptors::kBSSRelocation, pc_offset,
+      /*deopt_id=*/DeoptId::kNone,
+      /*root_pos=*/TokenPosition::kNoSource,
+      /*try_index=*/-1,
+      /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
+}
+
+#if !defined(TARGET_ARCH_IA32)
+static void GenerateSubtypeTestCacheLoopBody(Assembler* assembler,
+                                             int n,
+                                             Register null_reg,
+                                             Register cache_entry_reg,
+                                             Register instance_cid_or_sig_reg,
+                                             Register instance_type_args_reg,
+                                             Register parent_fun_type_args_reg,
+                                             Register delayed_type_args_reg,
+                                             Label* found,
+                                             Label* not_found,
+                                             Label* next_iteration) {
+  __ Comment("Loop");
+  // LoadAcquireCompressed assumes the loaded value is a heap object and
+  // extends it with the heap bits if compressed. However, the entry may be
+  // a Smi.
+  //
+  // Instead, just use LoadAcquire to load the lower bits when compressed and
+  // only compare the low bits of the loaded value using CompareObjectRegisters.
+  __ LoadAcquire(TypeTestABI::kScratchReg, cache_entry_reg,
+                 target::kCompressedWordSize *
+                     target::SubtypeTestCache::kInstanceCidOrSignature,
+                 kObjectBytes);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, null_reg);
+  __ BranchIf(EQUAL, not_found, Assembler::kNearJump);
+  __ CompareObjectRegisters(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
+  if (n == 1) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      instance_type_args_reg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kInstanceTypeArguments),
+      kObjectBytes);
+  if (n == 2) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kInstantiatorTypeArgumentsReg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kInstantiatorTypeArguments),
+      kObjectBytes);
+  if (n == 3) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kFunctionTypeArgumentsReg,
+      Address(cache_entry_reg,
+              target::kCompressedWordSize *
+                  target::SubtypeTestCache::kFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 4) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      parent_fun_type_args_reg,
+      Address(
+          cache_entry_reg,
+          target::kCompressedWordSize *
+              target::SubtypeTestCache::kInstanceParentFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 5) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      delayed_type_args_reg,
+      Address(
+          cache_entry_reg,
+          target::kCompressedWordSize *
+              target::SubtypeTestCache::kInstanceDelayedFunctionTypeArguments),
+      kObjectBytes);
+  if (n == 6) {
+    __ BranchIf(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+
+  __ BranchIf(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ CompareWithMemoryValue(
+      TypeTestABI::kDstTypeReg,
+      Address(cache_entry_reg, target::kCompressedWordSize *
+                                   target::SubtypeTestCache::kDestinationType),
+      kObjectBytes);
+  __ BranchIf(EQUAL, found, Assembler::kNearJump);
+}
+
+// An object that uses RAII to load from and store to the stack when
+// appropriate, allowing the code within that scope to act as if the given
+// register is always provided. Either the Register value stored at [reg] must
+// be a valid register (not kNoRegister) or [depth] must be a valid stack depth
+// (not StackRegisterScope::kNoDepth).
+//
+// When the Register value stored at [reg] is a valid register, this scope
+// generates no assembly and does not change the value stored at [reg].
+//
+// When [depth] is a valid stack depth, this scope object performs the
+// following actions:
+//
+// On construction:
+// * Generates assembly to load the value on the stack at [depth] into [alt].
+// * Sets the Register value pointed to by [reg] to [alt].
+//
+// On destruction:
+// * Generates assembly to store the value of [alt] into the stack at [depth].
+// * Resets the Register value pointed to by [reg] to kNoRegister.
+class StackRegisterScope : ValueObject {
+ public:
+  StackRegisterScope(Assembler* assembler,
+                     Register* reg,
+                     intptr_t depth,
+                     Register alt = TMP)
+      : assembler(assembler), reg_(reg), depth_(depth), alt_(alt) {
+    if (depth_ != kNoDepth) {
+      ASSERT(depth_ >= 0);
+      ASSERT(*reg_ == kNoRegister);
+      ASSERT(alt_ != kNoRegister);
+      __ LoadFromStack(alt_, depth_);
+      *reg_ = alt_;
+    } else {
+      ASSERT(*reg_ != kNoRegister);
+    }
+  }
+
+  ~StackRegisterScope() {
+    if (depth_ != kNoDepth) {
+      __ StoreToStack(alt_, depth_);
+      *reg_ = kNoRegister;
+    }
+  }
+
+  static constexpr intptr_t kNoDepth = kIntptrMin;
+
+ private:
+  Assembler* const assembler;
+  Register* const reg_;
+  const intptr_t depth_;
+  const Register alt_;
+};
+
+// Same inputs as StubCodeCompiler::GenerateSubtypeTestCacheSearch with
+// the following additional requirements:
+// - catch_entry_reg: the address of the backing array for the cache.
+// - TypeTestABI::kScratchReg: the Smi value of the length field for the
+//   backing array in cache_entry_reg
+//
+// Also expects that all the STC entry input registers have been filled.
+static void GenerateSubtypeTestCacheHashSearch(
+    Assembler* assembler,
+    int n,
+    Register null_reg,
+    Register cache_entry_reg,
+    Register instance_cid_or_sig_reg,
+    Register instance_type_args_reg,
+    Register parent_fun_type_args_reg,
+    Register delayed_type_args_reg,
+    Register cache_entry_end_reg,
+    Register cache_contents_size_reg,
+    Register probe_distance_reg,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_found,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_not_found) {
+  // Since the test entry size is a power of 2, we can use shr to divide.
+  const intptr_t kTestEntryLengthLog2 =
+      Utils::ShiftForPowerOfTwo(target::SubtypeTestCache::kTestEntryLength);
+
+  // Before we finish calculating the initial probe entry, we'll need the
+  // starting cache entry and the number of entries. We'll store these in
+  // [cache_contents_size_reg] and [probe_distance_reg] (or their equivalent
+  // stack slots), respectively.
+  __ Comment("Hash cache traversal");
+  __ Comment("Calculating number of entries");
+  // The array length is a Smi so it needs to be untagged.
+  __ SmiUntag(TypeTestABI::kScratchReg);
+  __ LsrImmediate(TypeTestABI::kScratchReg, kTestEntryLengthLog2);
+  if (probe_distance_reg != kNoRegister) {
+    __ MoveRegister(probe_distance_reg, TypeTestABI::kScratchReg);
+  } else {
+    __ PushRegister(TypeTestABI::kScratchReg);
+  }
+
+  __ Comment("Calculating starting entry address");
+  __ AddImmediate(cache_entry_reg,
+                  target::Array::data_offset() - kHeapObjectTag);
+  if (cache_contents_size_reg != kNoRegister) {
+    __ MoveRegister(cache_contents_size_reg, cache_entry_reg);
+  } else {
+    __ PushRegister(cache_entry_reg);
+  }
+
+  __ Comment("Calculating end of entries address");
+  __ LslImmediate(TypeTestABI::kScratchReg,
+                  kTestEntryLengthLog2 + target::kCompressedWordSizeLog2);
+  __ AddRegisters(TypeTestABI::kScratchReg, cache_entry_reg);
+  if (cache_entry_end_reg != kNoRegister) {
+    __ MoveRegister(cache_entry_end_reg, TypeTestABI::kScratchReg);
+  } else {
+    __ PushRegister(TypeTestABI::kScratchReg);
+  }
+
+  // At this point, the stack is in the following order, if the corresponding
+  // value doesn't have a register assignment:
+  // <number of total entries in cache array>
+  // <cache array entries start>
+  // <cache array entries end>
+  // --------- top of stack
+  //
+  // and after calculating the initial entry, we'll replace them as follows:
+  // <probe distance>
+  // <-cache array contents size> (note this is _negative_)
+  // <cache array entries end>
+  // ---------- top of stack
+  //
+  // So name them according to their later use.
+  intptr_t kProbeDistanceDepth = StackRegisterScope::kNoDepth;
+  intptr_t kHashStackElements = 0;
+  if (probe_distance_reg == kNoRegister) {
+    kProbeDistanceDepth = 0;
+    kHashStackElements++;
+  }
+  intptr_t kCacheContentsSizeDepth = StackRegisterScope::kNoDepth;
+  if (cache_contents_size_reg == kNoRegister) {
+    kProbeDistanceDepth++;
+    kHashStackElements++;
+    kCacheContentsSizeDepth = 0;
+  }
+  intptr_t kCacheArrayEndDepth = StackRegisterScope::kNoDepth;
+  if (cache_entry_end_reg == kNoRegister) {
+    kProbeDistanceDepth++;
+    kCacheContentsSizeDepth++;
+    kHashStackElements++;
+    kCacheArrayEndDepth = 0;
+  }
+
+  // After this point, any exits should go through one of these two labels,
+  // which will pop the extra stack elements pushed above.
+  Label found, not_found;
+
+  // When retrieving hashes from objects below, note that a hash of 0 means
+  // the hash hasn't been computed yet and we need to go to runtime.
+  auto get_abstract_type_hash = [&](Register dst, Register src,
+                                    const char* name) {
+    ASSERT(dst != kNoRegister);
+    ASSERT(src != kNoRegister);
+    __ Comment("Loading %s type hash", name);
+    __ LoadFromSlot(dst, src, Slot::AbstractType_hash());
+    __ SmiUntag(dst);
+    __ CompareImmediate(dst, 0);
+    __ BranchIf(EQUAL, &not_found);
+  };
+  auto get_type_arguments_hash = [&](Register dst, Register src,
+                                     const char* name) {
+    ASSERT(dst != kNoRegister);
+    ASSERT(src != kNoRegister);
+    Label done;
+    __ Comment("Loading %s type arguments hash", name);
+    // Preload the hash value for TypeArguments::null() so control can jump
+    // to done if null.
+    __ LoadImmediate(dst, TypeArguments::kAllDynamicHash);
+    __ CompareRegisters(src, null_reg);
+    __ BranchIf(EQUAL, &done, Assembler::kNearJump);
+    __ LoadFromSlot(dst, src, Slot::TypeArguments_hash());
+    __ SmiUntag(dst);
+    __ CompareImmediate(dst, 0);
+    __ BranchIf(EQUAL, &not_found);
+    __ Bind(&done);
+  };
+
+  __ Comment("Hash the entry inputs");
+  {
+    Label done;
+    // Assume a Smi tagged instance cid to avoid a branch in the common case.
+    __ MoveRegister(cache_entry_reg, instance_cid_or_sig_reg);
+    __ SmiUntag(cache_entry_reg);
+    __ BranchIfSmi(instance_cid_or_sig_reg, &done, Assembler::kNearJump);
+    get_abstract_type_hash(cache_entry_reg, instance_cid_or_sig_reg,
+                           "closure signature");
+    __ Bind(&done);
+  }
+  if (n >= 7) {
+    get_abstract_type_hash(TypeTestABI::kScratchReg, TypeTestABI::kDstTypeReg,
+                           "destination");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  if (n >= 6) {
+    get_type_arguments_hash(TypeTestABI::kScratchReg, delayed_type_args_reg,
+                            "delayed");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  if (n >= 5) {
+    get_type_arguments_hash(TypeTestABI::kScratchReg, parent_fun_type_args_reg,
+                            "parent function");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  if (n >= 4) {
+    get_type_arguments_hash(TypeTestABI::kScratchReg,
+                            TypeTestABI::kFunctionTypeArgumentsReg, "function");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  if (n >= 3) {
+    get_type_arguments_hash(TypeTestABI::kScratchReg,
+                            TypeTestABI::kInstantiatorTypeArgumentsReg,
+                            "instantiator");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  if (n >= 2) {
+    get_type_arguments_hash(TypeTestABI::kScratchReg, instance_type_args_reg,
+                            "instance");
+    __ CombineHashes(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  __ FinalizeHash(cache_entry_reg);
+
+  // This requires the number of entries in a hash cache to be a power of 2.
+  __ Comment("Converting hash to probe entry index");
+  {
+    StackRegisterScope scope(assembler, &probe_distance_reg,
+                             kProbeDistanceDepth, TypeTestABI::kScratchReg);
+    // The entry count is not needed after this point; create the mask in place.
+    __ AddImmediate(probe_distance_reg, -1);
+    __ AndRegisters(cache_entry_reg, probe_distance_reg);
+    // Now set the register to the initial probe distance in words.
+    __ Comment("Set initial probe distance");
+    __ LoadImmediate(probe_distance_reg,
+                     target::kCompressedWordSize *
+                         target::SubtypeTestCache::kTestEntryLength);
+  }
+
+  // Now cache_entry_reg is the starting probe entry index.
+  __ Comment("Converting probe entry index to probe entry address");
+  {
+    StackRegisterScope scope(assembler, &cache_contents_size_reg,
+                             kCacheContentsSizeDepth, TypeTestABI::kScratchReg);
+    __ LslImmediate(cache_entry_reg,
+                    kTestEntryLengthLog2 + target::kCompressedWordSizeLog2);
+    __ AddRegisters(cache_entry_reg, cache_contents_size_reg);
+    // Now set the register to the negated size of the cache contents in words.
+    __ Comment("Set negated cache contents size");
+    if (cache_entry_end_reg != kNoRegister) {
+      __ SubRegisters(cache_contents_size_reg, cache_entry_end_reg);
+    } else {
+      __ LoadFromStack(TMP, kCacheArrayEndDepth);
+      __ SubRegisters(cache_contents_size_reg, TMP);
+    }
+  }
+
+  Label loop, next_iteration;
+  __ Bind(&loop);
+  GenerateSubtypeTestCacheLoopBody(
+      assembler, n, null_reg, cache_entry_reg, instance_cid_or_sig_reg,
+      instance_type_args_reg, parent_fun_type_args_reg, delayed_type_args_reg,
+      &found, &not_found, &next_iteration);
+  __ Bind(&next_iteration);
+  __ Comment("Move to next entry");
+  {
+    StackRegisterScope scope(assembler, &probe_distance_reg,
+                             kProbeDistanceDepth, TypeTestABI::kScratchReg);
+    __ AddRegisters(cache_entry_reg, probe_distance_reg);
+    __ Comment("Adjust probe distance");
+    __ AddImmediate(probe_distance_reg,
+                    target::kCompressedWordSize *
+                        target::SubtypeTestCache::kTestEntryLength);
+  }
+  __ Comment("Check for leaving array");
+  // Make sure we haven't run off the array.
+  if (cache_entry_end_reg != kNoRegister) {
+    __ CompareRegisters(cache_entry_reg, cache_entry_end_reg);
+  } else {
+    __ CompareToStack(cache_entry_reg, kCacheArrayEndDepth);
+  }
+  __ BranchIf(LESS, &loop, Assembler::kNearJump);
+  __ Comment("Wrap around to start of entries");
+  // Add the negated size of the cache contents.
+  if (cache_contents_size_reg != kNoRegister) {
+    __ AddRegisters(cache_entry_reg, cache_contents_size_reg);
+  } else {
+    __ LoadFromStack(TypeTestABI::kScratchReg, kCacheContentsSizeDepth);
+    __ AddRegisters(cache_entry_reg, TypeTestABI::kScratchReg);
+  }
+  __ Jump(&loop, Assembler::kNearJump);
+
+  __ Bind(&found);
+  __ Comment("Hash found");
+  __ Drop(kHashStackElements);
+  gen_found(assembler, n);
+  __ Bind(&not_found);
+  __ Comment("Hash not found");
+  __ Drop(kHashStackElements);
+  gen_not_found(assembler, n);
+}
+
+// Same inputs as StubCodeCompiler::GenerateSubtypeTestCacheSearch with
+// the following additional requirement:
+// - catch_entry_reg: the address of the backing array for the cache.
+//
+// Also expects that all the STC entry input registers have been filled.
+static void GenerateSubtypeTestCacheLinearSearch(
+    Assembler* assembler,
+    int n,
+    Register null_reg,
+    Register cache_entry_reg,
+    Register instance_cid_or_sig_reg,
+    Register instance_type_args_reg,
+    Register parent_fun_type_args_reg,
+    Register delayed_type_args_reg,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_found,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_not_found) {
+  __ Comment("Linear cache traversal");
+  __ AddImmediate(cache_entry_reg,
+                  target::Array::data_offset() - kHeapObjectTag);
+
+  Label found, not_found, loop, next_iteration;
+  __ Bind(&loop);
+  GenerateSubtypeTestCacheLoopBody(
+      assembler, n, null_reg, cache_entry_reg, instance_cid_or_sig_reg,
+      instance_type_args_reg, parent_fun_type_args_reg, delayed_type_args_reg,
+      &found, &not_found, &next_iteration);
+  __ Bind(&next_iteration);
+  __ Comment("Next iteration");
+  __ AddImmediate(
+      cache_entry_reg,
+      target::kCompressedWordSize * target::SubtypeTestCache::kTestEntryLength);
+  __ Jump(&loop, Assembler::kNearJump);
+
+  __ Bind(&found);
+  __ Comment("Linear found");
+  gen_found(assembler, n);
+  __ Bind(&not_found);
+  __ Comment("Linear not found");
+  gen_not_found(assembler, n);
+}
+
+void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
+    Assembler* assembler,
+    int n,
+    Register null_reg,
+    Register cache_entry_reg,
+    Register instance_cid_or_sig_reg,
+    Register instance_type_args_reg,
+    Register parent_fun_type_args_reg,
+    Register delayed_type_args_reg,
+    Register cache_entry_end_reg,
+    Register cache_contents_size_reg,
+    Register probe_distance_reg,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_found,
+    const StubCodeCompiler::STCSearchExitGenerator& gen_not_found) {
+#if defined(DEBUG)
+  RegisterSet input_regs;
+  ASSERT(null_reg != kNoRegister);
+  input_regs.AddRegister(null_reg);
+  ASSERT(cache_entry_reg != kNoRegister);
+  ASSERT(!input_regs.ContainsRegister(cache_entry_reg));
+  input_regs.AddRegister(cache_entry_reg);
+  ASSERT(instance_cid_or_sig_reg != kNoRegister);
+  ASSERT(!input_regs.ContainsRegister(instance_cid_or_sig_reg));
+  input_regs.AddRegister(instance_cid_or_sig_reg);
+  if (n >= 2) {
+    ASSERT(instance_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(instance_type_args_reg));
+    input_regs.AddRegister(instance_type_args_reg);
+  }
+  if (n >= 5) {
+    ASSERT(parent_fun_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(parent_fun_type_args_reg));
+    input_regs.AddRegister(parent_fun_type_args_reg);
+  }
+  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kInstanceReg));
+  if (n >= 6) {
+    ASSERT(delayed_type_args_reg != kNoRegister);
+    ASSERT(!input_regs.ContainsRegister(delayed_type_args_reg));
+    input_regs.AddRegister(delayed_type_args_reg);
+  }
+  if (cache_entry_end_reg != kNoRegister) {
+    ASSERT(!input_regs.ContainsRegister(cache_entry_end_reg));
+    input_regs.AddRegister(cache_entry_end_reg);
+  }
+  if (cache_contents_size_reg != kNoRegister) {
+    ASSERT(!input_regs.ContainsRegister(cache_contents_size_reg));
+    input_regs.AddRegister(cache_contents_size_reg);
+  }
+  if (probe_distance_reg != kNoRegister) {
+    ASSERT(!input_regs.ContainsRegister(probe_distance_reg));
+    input_regs.AddRegister(probe_distance_reg);
+  }
+  // We can allow the use of the registers below only if we're not expecting
+  // them as an inspected input.
+  if (n >= 3) {
+    ASSERT(!input_regs.ContainsRegister(
+        TypeTestABI::kInstantiatorTypeArgumentsReg));
+  }
+  if (n >= 4) {
+    ASSERT(
+        !input_regs.ContainsRegister(TypeTestABI::kFunctionTypeArgumentsReg));
+  }
+  if (n >= 7) {
+    ASSERT(!input_regs.ContainsRegister(TypeTestABI::kDstTypeReg));
+  }
+  // We use this as a scratch, so it has to be distinct from the others.
+  ASSERT(!input_regs.ContainsRegister(TypeTestABI::kScratchReg));
+
+  // Verify the STC we received has exactly as many inputs as this stub expects.
+  Label search_stc;
+  __ LoadFromSlot(TypeTestABI::kScratchReg, TypeTestABI::kSubtypeTestCacheReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(TypeTestABI::kScratchReg, n);
+  __ BranchIf(EQUAL, &search_stc, Assembler::kNearJump);
+  __ Breakpoint();
+  __ Bind(&search_stc);
+#endif
+
+  __ LoadAcquireCompressed(
+      cache_entry_reg, TypeTestABI::kSubtypeTestCacheReg,
+      target::SubtypeTestCache::cache_offset() - kHeapObjectTag);
+
+  // Fill in all the STC input registers.
+  Label initialized, not_closure;
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
+  } else {
+    // If the type is fully instantiated, then it can be determined at compile
+    // time whether Smi is a subtype of the type or not. Thus, this code should
+    // never be called with a Smi instance.
+    __ LoadClassId(instance_cid_or_sig_reg, TypeTestABI::kInstanceReg);
+  }
+  __ CompareImmediate(instance_cid_or_sig_reg, kClosureCid);
+  __ BranchIf(NOT_EQUAL, &not_closure, Assembler::kNearJump);
+
+  // Closure handling.
+  {
+    __ Comment("Closure");
+    __ LoadCompressed(instance_cid_or_sig_reg,
+                      FieldAddress(TypeTestABI::kInstanceReg,
+                                   target::Closure::function_offset()));
+    __ LoadCompressed(instance_cid_or_sig_reg,
+                      FieldAddress(instance_cid_or_sig_reg,
+                                   target::Function::signature_offset()));
+    if (n >= 2) {
+      __ LoadCompressed(
+          instance_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::instantiator_type_arguments_offset()));
+    }
+    if (n >= 5) {
+      __ LoadCompressed(
+          parent_fun_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::function_type_arguments_offset()));
+    }
+    if (n >= 6) {
+      __ LoadCompressed(
+          delayed_type_args_reg,
+          FieldAddress(TypeTestABI::kInstanceReg,
+                       target::Closure::delayed_type_arguments_offset()));
+    }
+
+    __ Jump(&initialized, Assembler::kNearJump);
+  }
+
+  // Non-Closure handling.
+  {
+    __ Comment("Non-Closure");
+    __ Bind(&not_closure);
+    if (n >= 2) {
+      Label has_no_type_arguments;
+      __ LoadClassById(TypeTestABI::kScratchReg, instance_cid_or_sig_reg);
+      __ MoveRegister(instance_type_args_reg, null_reg);
+      __ LoadFieldFromOffset(
+          TypeTestABI::kScratchReg, TypeTestABI::kScratchReg,
+          target::Class::host_type_arguments_field_offset_in_words_offset(),
+          kFourBytes);
+      __ CompareImmediate(TypeTestABI::kScratchReg,
+                          target::Class::kNoTypeArguments, kFourBytes);
+      __ BranchIf(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
+      __ LoadIndexedCompressed(instance_type_args_reg,
+                               TypeTestABI::kInstanceReg, 0,
+                               TypeTestABI::kScratchReg);
+      __ Bind(&has_no_type_arguments);
+      __ Comment("No type arguments");
+    }
+    __ SmiTag(instance_cid_or_sig_reg);
+    if (n >= 5) {
+      __ MoveRegister(parent_fun_type_args_reg, null_reg);
+    }
+    if (n >= 6) {
+      __ MoveRegister(delayed_type_args_reg, null_reg);
+    }
+  }
+
+  __ Bind(&initialized);
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  //
+  // We load it into TypeTestABI::kScratchReg as the hash search code expects
+  // it there.
+  Label is_hash;
+  __ LoadFromSlot(TypeTestABI::kScratchReg, cache_entry_reg,
+                  Slot::Array_length());
+  __ CompareImmediate(TypeTestABI::kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  __ BranchIf(GREATER, &is_hash);
+
+  GenerateSubtypeTestCacheLinearSearch(
+      assembler, n, null_reg, cache_entry_reg, instance_cid_or_sig_reg,
+      instance_type_args_reg, parent_fun_type_args_reg, delayed_type_args_reg,
+      gen_found, gen_not_found);
+
+  __ Bind(&is_hash);
+  GenerateSubtypeTestCacheHashSearch(
+      assembler, n, null_reg, cache_entry_reg, instance_cid_or_sig_reg,
+      instance_type_args_reg, parent_fun_type_args_reg, delayed_type_args_reg,
+      cache_entry_end_reg, cache_contents_size_reg, probe_distance_reg,
+      gen_found, gen_not_found);
+}
+#endif
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 1);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype2TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 2);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype4TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 4);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype6TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 6);
+}
+
+// See comment on [GenerateSubtypeNTestCacheStub].
+void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
+  GenerateSubtypeNTestCacheStub(assembler, 7);
 }
 
 }  // namespace compiler

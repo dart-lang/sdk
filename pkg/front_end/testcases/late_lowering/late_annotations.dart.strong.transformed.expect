@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -148,22 +148,22 @@ static set finalTopLevelField(core::int finalTopLevelField#param) → void
 static get finalTopLevelFieldWithInitializer() → core::int
   return let final core::int? #t21 = self::_#finalTopLevelFieldWithInitializer in #t21 == null ?{core::int} let final core::int #t22 = 0 in self::_#finalTopLevelFieldWithInitializer == null ?{core::int} self::_#finalTopLevelFieldWithInitializer = #t22 : throw new _in::LateError::fieldADI("finalTopLevelFieldWithInitializer") : #t21{core::int};
 @#C1
-static get Extension|extensionStaticField() → core::int
+static extension-member get Extension|extensionStaticField() → core::int
   return let final core::int? #t23 = self::_#Extension|extensionStaticField in #t23 == null ?{core::int} throw new _in::LateError::fieldNI("extensionStaticField") : #t23{core::int};
 @#C1
-static set Extension|extensionStaticField(core::int extensionStaticField#param) → void
+static extension-member set Extension|extensionStaticField(core::int extensionStaticField#param) → void
   self::_#Extension|extensionStaticField = extensionStaticField#param;
 @#C1
-static get Extension|finalExtensionStaticField() → core::int
+static extension-member get Extension|finalExtensionStaticField() → core::int
   return let final core::int? #t24 = self::_#Extension|finalExtensionStaticField in #t24 == null ?{core::int} throw new _in::LateError::fieldNI("finalExtensionStaticField") : #t24{core::int};
 @#C1
-static set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
+static extension-member set Extension|finalExtensionStaticField(core::int finalExtensionStaticField#param) → void
   if(self::_#Extension|finalExtensionStaticField == null)
     self::_#Extension|finalExtensionStaticField = finalExtensionStaticField#param;
   else
     throw new _in::LateError::fieldAI("finalExtensionStaticField");
 @#C1
-static get Extension|finalExtensionStaticFieldWithInitializer() → core::int
+static extension-member get Extension|finalExtensionStaticFieldWithInitializer() → core::int
   return let final core::int? #t25 = self::_#Extension|finalExtensionStaticFieldWithInitializer in #t25 == null ?{core::int} let final core::int #t26 = 0 in self::_#Extension|finalExtensionStaticFieldWithInitializer == null ?{core::int} self::_#Extension|finalExtensionStaticFieldWithInitializer = #t26 : throw new _in::LateError::fieldADI("finalExtensionStaticFieldWithInitializer") : #t25{core::int};
 static method main() → dynamic {}
 

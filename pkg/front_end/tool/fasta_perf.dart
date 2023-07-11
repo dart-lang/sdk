@@ -6,6 +6,7 @@
 library front_end.tool.fasta_perf;
 
 import 'dart:io';
+import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/parser.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -44,7 +45,7 @@ Future<void> main(List<String> args) async {
 
   await setup(entryUri);
 
-  Map<Uri, List<int>> files = scanReachableFiles(entryUri);
+  Map<Uri, Uint8List> files = scanReachableFiles(entryUri);
   var handlers = {
     'scan': () async => scanFiles(files),
     // TODO(sigmund): enable when we can run the ast-builder standalone.
@@ -96,7 +97,7 @@ Future setup(Uri entryUri) async {
 }
 
 /// Scan [contents] and return the first token produced by the scanner.
-ScannerResult tokenize(List<int> contents) {
+ScannerResult tokenize(Uint8List contents) {
   scanTimer.start();
   var result = scan(contents);
   scanTimer.stop();
@@ -104,7 +105,7 @@ ScannerResult tokenize(List<int> contents) {
 }
 
 /// Scans every file in [files] and reports the time spent doing so.
-void scanFiles(Map<Uri, List<int>> files) {
+void scanFiles(Map<Uri, Uint8List> files) {
   scanTimer = new Stopwatch();
   for (var source in files.values) {
     tokenize(source);
@@ -114,8 +115,8 @@ void scanFiles(Map<Uri, List<int>> files) {
 
 /// Load and scans all files we need to process: files reachable from the
 /// entrypoint and all core libraries automatically included by the VM.
-Map<Uri, List<int>> scanReachableFiles(Uri entryUri) {
-  var files = <Uri, List<int>>{};
+Map<Uri, Uint8List> scanReachableFiles(Uri entryUri) {
+  var files = <Uri, Uint8List>{};
   var loadTimer = new Stopwatch()..start();
   scanTimer = new Stopwatch();
   var entrypoints = [
@@ -152,11 +153,9 @@ Map<Uri, List<int>> scanReachableFiles(Uri entryUri) {
 }
 
 /// Add to [files] all sources reachable from [start].
-void collectSources(Uri start, Map<Uri, List<int>> files) {
+void collectSources(Uri start, Map<Uri, Uint8List> files) {
   void helper(Uri uri) {
     uri = uriResolver.translate(uri) ?? uri;
-    // ignore: unnecessary_null_comparison
-    if (uri == null) return;
     if (files.containsKey(uri)) return;
     var contents = readBytesFromFileSync(uri);
     files[uri] = contents;
@@ -170,7 +169,7 @@ void collectSources(Uri start, Map<Uri, List<int>> files) {
 
 /// Parse [contents] as a Dart program and return the URIs that appear in its
 /// import, export, and part directives.
-Set<String> extractDirectiveUris(List<int> contents) {
+Set<String> extractDirectiveUris(Uint8List contents) {
   var listener = new DirectiveListenerWithNative();
   new TopLevelParser(listener,
           useImplicitCreationExpression: useImplicitCreationExpressionInCfe)
@@ -189,7 +188,7 @@ class DirectiveListenerWithNative extends DirectiveListener {
 }
 
 /// Parses every file in [files] and reports the time spent doing so.
-void parseFiles(Map<Uri, List<int>> files) {
+void parseFiles(Map<Uri, Uint8List> files) {
   scanTimer = new Stopwatch();
   var parseTimer = new Stopwatch()..start();
   files.forEach((uri, source) {
@@ -203,7 +202,7 @@ void parseFiles(Map<Uri, List<int>> files) {
 }
 
 /// Parse the full body of [source].
-void parseFull(Uri uri, List<int> source) {
+void parseFull(Uri uri, Uint8List source) {
   var result = tokenize(source);
   var lineInfo = LineInfo(result.lineStarts);
   Parser parser = new Parser(new _PartialAstBuilder(uri, lineInfo),

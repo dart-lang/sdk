@@ -43,8 +43,6 @@ class ClassHierarchyNodeBuilder {
       if (supernode == null) {
         supernode = hierarchy.getNodeFromClassBuilder(objectClass);
       }
-      // ignore: unnecessary_null_comparison
-      assert(supernode != null);
     }
 
     List<Supertype> superclasses;
@@ -157,11 +155,8 @@ class ClassHierarchyNodeBuilder {
     for (Supertype superclass in superclasses) {
       recordSupertype(superclass);
     }
-    // ignore: unnecessary_null_comparison
-    if (interfacesList != null) {
-      for (Supertype superinterface in interfacesList) {
-        recordSupertype(superinterface);
-      }
+    for (Supertype superinterface in interfacesList) {
+      recordSupertype(superinterface);
     }
 
     return new ClassHierarchyNode(classBuilder, supernode, mixedInNode,
@@ -224,14 +219,10 @@ class ClassHierarchyNodeBuilder {
 
   void addInterface(Map<Class, Supertype> interfaces,
       List<Supertype> superclasses, Supertype type) {
-    // ignore: unnecessary_null_comparison
-    if (type == null) return null;
     if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
       type = legacyErasureSupertype(type);
     }
     ClassHierarchyNode node = hierarchy.getNodeFromClass(type.classNode);
-    // ignore: unnecessary_null_comparison
-    if (node == null) return null;
     int depth = node.depth;
     int myDepth = superclasses.length;
     Supertype? superclass = depth < myDepth ? superclasses[depth] : null;

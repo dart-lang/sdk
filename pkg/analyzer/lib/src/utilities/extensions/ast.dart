@@ -15,19 +15,26 @@ extension AstNodeExtension on AstNode {
     var end = offset + length;
 
     /// Return `true` if the [node] contains the range.
+    ///
+    /// When the range is an insertion point between two adjacent tokens, one of
+    /// which belongs to the [node] and the other to a different node, then the
+    /// [node] is considered to contain the insertion point unless the token
+    /// that doesn't belonging to the [node] is an identifier.
     bool containsOffset(AstNode node) {
       if (length == 0) {
-        // The selection range is an insertion point. It is considered to be
-        // outside the node if it's
-        // - both immediately before the first token in the node and immediately
-        //   after the previous token, or
-        // - both immediately after the last token in the node and immediately
-        //   before the next token.
-        if (offset == node.offset && offset == node.beginToken.previous?.end) {
-          return false;
+        if (offset == node.offset) {
+          var previous = node.beginToken.previous;
+          if (previous != null &&
+              offset == previous.end &&
+              previous.isIdentifier) {
+            return false;
+          }
         }
-        if (offset == node.end && offset == node.endToken.next!.offset) {
-          return false;
+        if (offset == node.end) {
+          var next = node.endToken.next;
+          if (next != null && offset == next.offset && next.isIdentifier) {
+            return false;
+          }
         }
       }
       return node.offset <= offset && node.end >= end;

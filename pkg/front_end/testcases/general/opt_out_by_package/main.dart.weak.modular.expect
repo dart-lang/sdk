@@ -36,7 +36,7 @@
 //   var x = 10 >>> 2;
 //              ^^^
 //
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "package:opt_out/opt_out_lib.dart";

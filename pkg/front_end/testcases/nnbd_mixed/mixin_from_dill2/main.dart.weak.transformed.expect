@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "main_lib.dart" as mai;
 import "dart:core" as core;
@@ -30,7 +30,7 @@ static method main() → dynamic {
   new self::RenderAnimatedOpacity::•();
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 import "dart:core" as core;
 

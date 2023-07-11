@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,23 +14,23 @@ inline class I2 /* declaredRepresentationType = core::int */ {
   constructor • = self::I2|;
   tearoff • = self::I2|_#new#tearOff;
 }
-static method I|(core::int x, [core::int? y = #C1]) → self::I {
+static inline-class-member method I|(core::int x, [core::int? y = #C1]) → self::I {
   lowered final self::I #this = x.{core::num::+}(let final core::int? #t1 = y in #t1 == null ?{core::int} 42 : #t1{core::int}){(core::num) → core::int};
   return #this;
 }
-static method I|_#new#tearOff(core::int x, [core::int? y]) → self::I
+static inline-class-member method I|_#new#tearOff(core::int x, [core::int? y]) → self::I
   return self::I|(x, y);
-static method I|m(lowered final self::I #this, core::String s, [core::int i = #C2]) → void {}
-static method I|get#m(lowered final self::I #this) → (core::String, [core::int]) → void
+static inline-class-member method I|m(lowered final self::I #this, core::String s, [core::int i = #C2]) → void {}
+static inline-class-member method I|get#m(lowered final self::I #this) → (core::String, [core::int]) → void
   return (core::String s, [core::int i = #C2]) → void => self::I|m(#this, s, i);
-static method I2|(core::int x, {core::int? y = #C1}) → self::I2 {
+static inline-class-member method I2|(core::int x, {core::int? y = #C1}) → self::I2 {
   lowered final self::I2 #this = x.{core::num::+}(let final core::int? #t2 = y in #t2 == null ?{core::int} 87 : #t2{core::int}){(core::num) → core::int};
   return #this;
 }
-static method I2|_#new#tearOff(core::int x, {core::int? y}) → self::I2
+static inline-class-member method I2|_#new#tearOff(core::int x, {core::int? y}) → self::I2
   return self::I2|(x, y: y);
-static method I2|m(lowered final self::I2 #this, core::String s, {core::int i = #C2}) → void {}
-static method I2|get#m(lowered final self::I2 #this) → (core::String, {i: core::int}) → void
+static inline-class-member method I2|m(lowered final self::I2 #this, core::String s, {core::int i = #C2}) → void {}
+static inline-class-member method I2|get#m(lowered final self::I2 #this) → (core::String, {i: core::int}) → void
   return (core::String s, {core::int i = #C2}) → void => self::I2|m(#this, s, i: i);
 static method main() → dynamic {
   self::expect(42, self::I|(0));

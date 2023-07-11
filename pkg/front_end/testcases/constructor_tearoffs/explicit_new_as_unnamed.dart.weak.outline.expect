@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -82,16 +82,10 @@ class E3 extends core::Object {
     ;
 }
 class E4 extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::E4::•]/*isLegacy*/;
   constructor _() → self::E4
     ;
-  static factory •() → self::E4
+  static factory •() → self::E4 /* redirection-target: self::E4::_ */
     return new self::E4::_();
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///explicit_new_as_unnamed.dart:41:7 -> ConstructorTearOffConstant(E4.)
-Extra constant evaluation: evaluated: 3, effectively constant: 1

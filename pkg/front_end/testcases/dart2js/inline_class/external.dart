@@ -7,7 +7,9 @@ library static_interop;
 
 import 'dart:js_interop';
 
-abstract class A {}
+@JS()
+@staticInterop
+class A {}
 
 @JS()
 inline class B {

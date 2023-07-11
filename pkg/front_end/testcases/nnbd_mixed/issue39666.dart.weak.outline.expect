@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -12,7 +12,7 @@ class A<X extends FutureOr<core::List<dynamic>>> extends core::Object {
 static method main() → void
   ;
 
-library;
+library /*isLegacy*/;
 import self as self2;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 
@@ -8,7 +8,7 @@ class A extends core::Object {
     : super core::Object::•()
     ;
   @#C3
-  static factory foo() → self::A
+  static factory foo() → self::A /* redirection-target: self::B::• */
     return new self::B::•();
 }
 class B extends self::A {
@@ -21,14 +21,14 @@ abstract class C extends core::Object {
     : super core::Object::•()
     ;
   @#C3
-  static factory bar() → self::C
+  static factory bar() → self::C /* redirection-target: self::D::baz */
     return [@vm.inferred-type.metadata=#lib::E] self::D::baz();
 }
 abstract class D extends self::C {
   constructor •() → self::D
     : super self::C::•()
     ;
-  static factory baz() → self::D
+  static factory baz() → self::D /* redirection-target: self::E::• */
     return new self::E::•();
 }
 class E extends self::D {

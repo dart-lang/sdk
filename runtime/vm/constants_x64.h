@@ -214,9 +214,6 @@ struct TypeTestABI {
   // registers above, for it is also used internally as kNullReg in those stubs.
   static constexpr Register kSubtypeTestCacheResultReg = R8;
 
-  // No registers need saving across SubtypeTestCacheStub calls.
-  static constexpr intptr_t kSubtypeTestCacheStubCallerSavedRegisters = 0;
-
   static constexpr intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
       (1 << kInstantiatorTypeArgumentsReg) | (1 << kFunctionTypeArgumentsReg);
@@ -431,6 +428,11 @@ struct CloneSuspendStateStubABI {
   static constexpr Register kFrameSizeReg = RCX;
   static constexpr Register kSrcFrameReg = RSI;
   static constexpr Register kDstFrameReg = RDI;
+};
+
+// ABI for FfiAsyncCallbackSendStub.
+struct FfiAsyncCallbackSendStubABI {
+  static constexpr Register kArgsReg = RAX;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

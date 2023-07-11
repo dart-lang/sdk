@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -22,15 +22,15 @@ extension /* unnamed */ _extension#2 on core::double {
 }
 static method test((core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})? record, core::List<(core::int, core::String, {required c: self::Class, required d: core::double, required f: () → void})>? list) → dynamic
   ;
-static method _extension#0|call(lowered final core::int #this) → void
+static extension-member method _extension#0|call(lowered final core::int #this) → void
   ;
-static method _extension#0|get#call(lowered final core::int #this) → () → void
+static extension-member method _extension#0|get#call(lowered final core::int #this) → () → void
   return () → void => self::_extension#0|call(#this);
-static method _extension#1|call(lowered final core::String #this) → void
+static extension-member method _extension#1|call(lowered final core::String #this) → void
   ;
-static method _extension#1|get#call(lowered final core::String #this) → () → void
+static extension-member method _extension#1|get#call(lowered final core::String #this) → () → void
   return () → void => self::_extension#1|call(#this);
-static method _extension#2|call(lowered final core::double #this) → void
+static extension-member method _extension#2|call(lowered final core::double #this) → void
   ;
-static method _extension#2|get#call(lowered final core::double #this) → () → void
+static extension-member method _extension#2|get#call(lowered final core::double #this) → () → void
   return () → void => self::_extension#2|call(#this);

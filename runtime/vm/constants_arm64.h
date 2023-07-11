@@ -220,12 +220,17 @@ struct STCInternalRegs {
   static constexpr Register kInstanceInstantiatorTypeArgumentsReg = R5;
   static constexpr Register kInstanceParentFunctionTypeArgumentsReg = R9;
   static constexpr Register kInstanceDelayedFunctionTypeArgumentsReg = R10;
+  static constexpr Register kCacheEntriesEndReg = R11;
+  static constexpr Register kCacheContentsSizeReg = R12;
+  static constexpr Register kProbeDistanceReg = R13;
 
   static constexpr intptr_t kInternalRegisters =
       (1 << kInstanceCidOrSignatureReg) |
       (1 << kInstanceInstantiatorTypeArgumentsReg) |
       (1 << kInstanceParentFunctionTypeArgumentsReg) |
-      (1 << kInstanceDelayedFunctionTypeArgumentsReg);
+      (1 << kInstanceDelayedFunctionTypeArgumentsReg) |
+      (1 << kCacheEntriesEndReg) | (1 << kCacheContentsSizeReg) |
+      (1 << kProbeDistanceReg);
 };
 
 // Calling convention when calling TypeTestingStub and SubtypeTestCacheStub.
@@ -237,15 +242,11 @@ struct TypeTestABI {
   static constexpr Register kSubtypeTestCacheReg = R3;
   static constexpr Register kScratchReg = R4;
 
+  // For calls to SubtypeNTestCacheStub. Must be distinct from the registers
+  // listed above.
+  static constexpr Register kSubtypeTestCacheResultReg = R7;
   // For calls to InstanceOfStub.
   static constexpr Register kInstanceOfResultReg = kInstanceReg;
-  // For calls to SubtypeNTestCacheStub. Must not overlap with any other
-  // registers above, for it is also used internally as kNullReg in those stubs.
-  static constexpr Register kSubtypeTestCacheResultReg = R7;
-
-  // Registers that need saving across SubtypeTestCacheStub calls.
-  static constexpr intptr_t kSubtypeTestCacheStubCallerSavedRegisters =
-      1 << kSubtypeTestCacheReg;
 
   static constexpr intptr_t kPreservedAbiRegisters =
       (1 << kInstanceReg) | (1 << kDstTypeReg) |
@@ -456,6 +457,11 @@ struct CloneSuspendStateStubABI {
   static constexpr Register kFrameSizeReg = R3;
   static constexpr Register kSrcFrameReg = R4;
   static constexpr Register kDstFrameReg = R5;
+};
+
+// ABI for FfiAsyncCallbackSendStub.
+struct FfiAsyncCallbackSendStubABI {
+  static constexpr Register kArgsReg = R0;
 };
 
 // ABI for DispatchTableNullErrorStub and consequently for all dispatch

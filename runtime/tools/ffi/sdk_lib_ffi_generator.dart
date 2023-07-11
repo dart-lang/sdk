@@ -75,7 +75,7 @@ void update(Uri fileName, Function(StringBuffer, Config, String) generator) {
 
   file.writeAsStringSync(buffer.toString());
   final fmtResult =
-      Process.runSync(dartPath().path, ["format", fileName.toFilePath()]);
+      Process.runSync(dartPath(), ["format", fileName.toFilePath()]);
   if (fmtResult.exitCode != 0) {
     throw Exception(
         "Formatting failed:\n${fmtResult.stdout}\n${fmtResult.stderr}\n");
@@ -277,6 +277,7 @@ void generatePatchExtension(
 
   if (container == "Pointer") {
     buffer.write("""
+@patch
 extension ${nativeType}Pointer on Pointer<$nativeType> {
   @patch
   $dartType get value => _load$nativeType(this, 0);
@@ -299,6 +300,7 @@ $asTypedList
 """);
   } else {
     buffer.write("""
+@patch
 extension ${nativeType}Array on Array<$nativeType> {
   @patch
   $dartType operator [](int index) {
@@ -362,8 +364,10 @@ ArgParser argParser() {
   return parser;
 }
 
-Uri dartPath() {
-  return Platform.script.resolve("../../../tools/sdks/dart-sdk/bin/dart");
+String dartPath() {
+  return File.fromUri(
+          Platform.script.resolve("../../../tools/sdks/dart-sdk/bin/dart"))
+      .path;
 }
 
 class Config {

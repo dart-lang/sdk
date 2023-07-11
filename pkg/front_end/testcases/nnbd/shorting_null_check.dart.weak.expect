@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -36,7 +36,7 @@ class Bar extends core::Object {
   operator [](core::int index) → core::int
     return index;
   operator ==(core::Object other) → core::bool
-    return other is{ForNonNullableByDefault} self::Bar && this.{self::Bar::baz}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Bar}.{self::Bar::baz}{core::int};
+    return other is self::Bar && this.{self::Bar::baz}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Bar}.{self::Bar::baz}{core::int};
 }
 static method test1(self::A? a) → core::int?
   return let final self::A? #t1 = a in #t1 == null ?{core::int?} null : #t1{self::A}.{self::A::zero}{core::int}!;

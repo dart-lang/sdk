@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -113,10 +113,10 @@ external static set topLevelField(core::int #externalFieldValue) → void;
 external static get finalTopLevelField() → core::int;
 external static get constField() → core::int;
 external static set constField(core::int #externalFieldValue) → void;
-external static method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
-external static method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
-external static method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
-external static get Extension|extensionStaticField() → core::int;
-external static set Extension|extensionStaticField(core::int #externalFieldValue) → void;
-external static get Extension|finalExtensionStaticField() → core::int;
+external static extension-member method Extension|get#extensionInstanceField(lowered self::A #this) → core::int;
+external static extension-member method Extension|set#extensionInstanceField(lowered self::A #this, core::int #externalFieldValue) → void;
+external static extension-member method Extension|get#finalExtensionInstanceField(lowered self::A #this) → core::int;
+external static extension-member get Extension|extensionStaticField() → core::int;
+external static extension-member set Extension|extensionStaticField(core::int #externalFieldValue) → void;
+external static extension-member get Extension|finalExtensionStaticField() → core::int;
 static method main() → dynamic {}

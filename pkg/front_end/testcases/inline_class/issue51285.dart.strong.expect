@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -18,29 +18,29 @@ inline class K<T extends core::Object? = dynamic> /* declaredRepresentationType 
   constructor _ = self::K|_;
   tearoff _ = self::K|_#_#tearOff;
 }
-static method I|() → self::I
-  return 0 as{ForNonNullableByDefault} self::I;
-static method I|_#new#tearOff() → self::I
+static inline-class-member method I|() → self::I
+  return 0 as self::I;
+static inline-class-member method I|_#new#tearOff() → self::I
   return self::I|();
-static method J|(core::int i) → self::J
+static inline-class-member method J|(core::int i) → self::J
   return self::J|_(i);
-static method J|_#new#tearOff(core::int i) → self::J
+static inline-class-member method J|_#new#tearOff(core::int i) → self::J
   return self::J|(i);
-static method J|_(core::int i) → self::J {
+static inline-class-member method J|_(core::int i) → self::J {
   lowered final self::J #this = i;
   return #this;
 }
-static method J|_#_#tearOff(core::int i) → self::J
+static inline-class-member method J|_#_#tearOff(core::int i) → self::J
   return self::J|_(i);
-static method K|<T extends core::Object? = dynamic>(self::K|::T% i) → self::K<self::K|::T%>
+static inline-class-member method K|<T extends core::Object? = dynamic>(self::K|::T% i) → self::K<self::K|::T%>
   return self::K|_<self::K|::T%>(i);
-static method K|_#new#tearOff<T extends core::Object? = dynamic>(self::K|_#new#tearOff::T% i) → self::K<self::K|_#new#tearOff::T%>
+static inline-class-member method K|_#new#tearOff<T extends core::Object? = dynamic>(self::K|_#new#tearOff::T% i) → self::K<self::K|_#new#tearOff::T%>
   return self::K|<self::K|_#new#tearOff::T%>(i);
-static method K|_<T extends core::Object? = dynamic>(self::K|_::T% i) → self::K<self::K|_::T%> {
+static inline-class-member method K|_<T extends core::Object? = dynamic>(self::K|_::T% i) → self::K<self::K|_::T%> {
   lowered final self::K<self::K|_::T%> #this = i;
   return #this;
 }
-static method K|_#_#tearOff<T extends core::Object? = dynamic>(self::K|_#_#tearOff::T% i) → self::K<self::K|_#_#tearOff::T%>
+static inline-class-member method K|_#_#tearOff<T extends core::Object? = dynamic>(self::K|_#_#tearOff::T% i) → self::K<self::K|_#_#tearOff::T%>
   return self::K|_<self::K|_#_#tearOff::T%>(i);
 static method main() → dynamic {
   self::expect(0, self::I|());

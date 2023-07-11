@@ -88,7 +88,7 @@ class B<K, V> {}''');
       expect(element.typeParameters, isNull);
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, 27);
         expect(location.length, '_A'.length);
         expect(location.startLine, 2);
@@ -125,7 +125,7 @@ class A {
     expect(element.typeParameters, isNull);
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 20);
       expect(location.length, 'myConstructor'.length);
       expect(location.startLine, 2);
@@ -210,7 +210,7 @@ enum E2 { three, four }''');
       expect(element.typeParameters, isNull);
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, 17);
         expect(location.length, '_E1'.length);
         expect(location.startLine, 2);
@@ -246,7 +246,7 @@ enum E2 { three, four }''');
       expect(element.name, 'one');
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, 23);
         expect(location.length, 'one'.length);
         expect(location.startLine, 2);
@@ -270,7 +270,7 @@ enum E2 { three, four }''');
       expect(element.name, 'three');
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, 44);
         expect(location.length, 'three'.length);
         expect(location.startLine, 3);
@@ -288,7 +288,7 @@ enum E2 { three, four }''');
       expect(element.name, 'values');
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, -1);
         expect(location.length, 'values'.length);
         expect(location.startLine, 1);
@@ -312,7 +312,7 @@ class A {
     expect(element.name, 'myField');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 25);
       expect(location.length, 'myField'.length);
       expect(location.startLine, 2);
@@ -335,7 +335,7 @@ typedef F<T> = int Function(String x);
     expect(element.typeParameters, '<T>');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -358,7 +358,7 @@ typedef F<T> = Map<int, T>;
     expect(element.typeParameters, '<out T>');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 8);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -382,7 +382,7 @@ typedef int F<T>(String x);
     expect(element.typeParameters, '<T>');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 12);
       expect(location.length, 'F'.length);
       expect(location.startLine, 1);
@@ -406,7 +406,7 @@ class A {
     expect(element.name, 'myGetter');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 23);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -432,7 +432,7 @@ myLabel:
     expect(element.name, 'myLabel');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 11);
       expect(location.length, 'myLabel'.length);
       expect(location.startLine, 2);
@@ -457,7 +457,7 @@ class A {
     expect(element.name, 'myMethod');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 32);
       expect(location.length, 'myGetter'.length);
       expect(location.startLine, 2);
@@ -481,7 +481,7 @@ mixin A {}
       expect(element.typeParameters, isNull);
       {
         var location = element.location!;
-        expect(location.file, testFile);
+        expect(location.file, testFile.path);
         expect(location.offset, 6);
         expect(location.length, 'A'.length);
         expect(location.startLine, 1);
@@ -504,7 +504,7 @@ class A {
     expect(element.name, 'mySetter');
     {
       var location = element.location!;
-      expect(location.file, testFile);
+      expect(location.file, testFile.path);
       expect(location.offset, 16);
       expect(location.length, 'mySetter'.length);
       expect(location.startLine, 2);

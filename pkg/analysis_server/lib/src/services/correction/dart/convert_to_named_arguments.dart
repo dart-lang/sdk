@@ -11,7 +11,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-class ConvertToNamedArguments extends CorrectionProducer {
+class ConvertToNamedArguments extends ResolvedCorrectionProducer {
   @override
   FixKind get fixKind => DartFixKind.CONVERT_TO_NAMED_ARGUMENTS;
 

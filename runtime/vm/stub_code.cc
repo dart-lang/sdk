@@ -98,11 +98,18 @@ CodePtr StubCode::Generate(const char* name,
   SafepointWriteRwLocker ml(thread, thread->isolate_group()->program_lock());
 
   compiler::Assembler assembler(object_pool_builder);
-  compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+  Zone* zone = thread->zone();
+  auto* pc_descriptors_list = new (zone) DescriptorList(zone);
+  compiler::StubCodeCompiler stubCodeCompiler(&assembler, pc_descriptors_list);
   (stubCodeCompiler.*GenerateStub)();
-  const Code& code = Code::Handle(Code::FinalizeCodeAndNotify(
-      name, nullptr, &assembler, Code::PoolAttachment::kNotAttachPool,
-      /*optimized=*/false));
+  const Code& code = Code::Handle(
+      zone, Code::FinalizeCodeAndNotify(name, nullptr, &assembler,
+                                        Code::PoolAttachment::kNotAttachPool,
+                                        /*optimized=*/false));
+  const PcDescriptors& descriptors = PcDescriptors::Handle(
+      zone, pc_descriptors_list->FinalizePcDescriptors(code.PayloadStart()));
+  code.set_pc_descriptors(descriptors);
+
 #ifndef PRODUCT
   if (FLAG_support_disassembler && FLAG_disassemble_stubs) {
     Disassembler::DisassembleStub(name, code);
@@ -221,7 +228,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     compiler::Assembler assembler(wrapper);
     compiler::UnresolvedPcRelativeCalls unresolved_calls;
     const char* name = cls.ToCString();
-    compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+    compiler::StubCodeCompiler stubCodeCompiler(&assembler, nullptr);
     stubCodeCompiler.GenerateAllocationStubForClass(
         &unresolved_calls, cls, allocate_object_stub,
         allocate_object_parametrized_stub);
@@ -317,7 +324,7 @@ CodePtr StubCode::GetBuildMethodExtractorStub(compiler::ObjectPoolBuilder* pool,
 
   compiler::ObjectPoolBuilder object_pool_builder;
   compiler::Assembler assembler(pool != nullptr ? pool : &object_pool_builder);
-  compiler::StubCodeCompiler stubCodeCompiler(&assembler);
+  compiler::StubCodeCompiler stubCodeCompiler(&assembler, nullptr);
   stubCodeCompiler.GenerateBuildMethodExtractorStub(
       closure_allocation_stub, context_allocation_stub, generic);
 

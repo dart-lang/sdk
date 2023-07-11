@@ -223,8 +223,6 @@ abstract class Generator {
 
   Expression_Generator buildEqualsOperation(Token token, Expression right,
       {required bool isNot}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNot != null);
     return _forest.createEquals(offsetForToken(token), buildSimpleRead(), right,
         isNot: isNot);
   }
@@ -401,8 +399,6 @@ class VariableUseGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -412,6 +408,46 @@ class VariableUseGenerator extends Generator {
     NameSystem syntheticNames = new NameSystem();
     sink.write(", variable: ");
     printNodeOn(variable, sink, syntheticNames: syntheticNames);
+  }
+}
+
+/// A [VariableUseGenerator] subclass for late final for-in loop variables
+///
+/// The special case of late final for-in loop variables is determined by the
+/// following requirements to the error reporting.
+///
+///   * Even though the loop can be executed only once, initializing the
+///     variable exactly once, it is still reasonable to report the error for
+///     assigning to the late variable.
+///
+///   * The variable should be considered assigned in the statements following
+///     the loop.
+///
+/// To have both of the effect, [ForInLateFinalVariableUseGenerator] is emitted
+/// for the assignments of such variables. It extends [VariableUseGenerator],
+/// but reports an error on assignment, similarly to
+/// [AbstractReadOnlyAccessGenerator].
+class ForInLateFinalVariableUseGenerator extends VariableUseGenerator {
+  ForInLateFinalVariableUseGenerator(ExpressionGeneratorHelper helper,
+      Token token, VariableDeclaration variable)
+      : super(helper, token, variable);
+
+  @override
+  String get _debugName => "ForInLateFinalVariableUseGenerator";
+
+  @override
+  Expression buildAssignment(Expression value, {bool voidContext = false}) {
+    InvalidExpression error = _helper.buildProblem(
+        templateCannotAssignToFinalVariable.withArguments(variable.name!),
+        fileOffset,
+        lengthForToken(token))
+      ..parent = variable;
+    Expression assignment =
+        super.buildAssignment(value, voidContext: voidContext);
+    if (assignment is VariableSet) {
+      assignment.value = error..parent = assignment;
+    }
+    return assignment;
   }
 }
 
@@ -525,8 +561,6 @@ class PropertyAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -687,8 +721,6 @@ class ThisPropertyAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -794,8 +826,6 @@ class NullAwarePropertyAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -919,8 +949,6 @@ class SuperPropertyAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -946,9 +974,7 @@ class IndexedAccessGenerator extends Generator {
   IndexedAccessGenerator(
       ExpressionGeneratorHelper helper, Token token, this.receiver, this.index,
       {required this.isNullAware})
-      // ignore: unnecessary_null_comparison
-      : assert(isNullAware != null),
-        super(helper, token);
+      : super(helper, token);
 
   @override
   String get _plainNameForRead => "[]";
@@ -1072,8 +1098,6 @@ class IndexedAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -1091,8 +1115,6 @@ class IndexedAccessGenerator extends Generator {
   static Generator make(ExpressionGeneratorHelper helper, Token token,
       Expression receiver, Expression index,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     if (helper.forest.isThisExpression(receiver)) {
       return new ThisIndexedAccessGenerator(helper, token, index,
           thisOffset: receiver.fileOffset, isNullAware: isNullAware);
@@ -1195,8 +1217,6 @@ class ThisIndexedAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -1321,8 +1341,6 @@ class SuperIndexedAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -1401,9 +1419,7 @@ class StaticAccessGenerator extends Generator {
   StaticAccessGenerator(ExpressionGeneratorHelper helper, Token token,
       this.targetName, this.parentBuilder, this.readTarget, this.writeTarget,
       {this.typeOffset, this.isNullAware = false})
-      // ignore: unnecessary_null_comparison
-      : assert(targetName != null),
-        assert(readTarget != null || writeTarget != null),
+      : assert(readTarget != null || writeTarget != null),
         assert(parentBuilder is DeclarationBuilder ||
             parentBuilder is LibraryBuilder),
         super(helper, token);
@@ -1563,8 +1579,6 @@ class StaticAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -1647,12 +1661,8 @@ class ExtensionInstanceAccessGenerator extends Generator {
       this.writeTarget,
       this.extensionThis,
       this.extensionTypeParameters)
-      // ignore: unnecessary_null_comparison
-      : assert(targetName != null),
-        assert(
+      : assert(
             readTarget != null || invokeTarget != null || writeTarget != null),
-        // ignore: unnecessary_null_comparison
-        assert(extensionThis != null),
         super(helper, token);
 
   factory ExtensionInstanceAccessGenerator.fromBuilder(
@@ -1850,8 +1860,6 @@ class ExtensionInstanceAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -1948,14 +1956,8 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
       this.explicitTypeArguments,
       this.extensionTypeParameterCount,
       {required this.isNullAware})
-      // ignore: unnecessary_null_comparison
-      : assert(targetName != null),
-        assert(
+      : assert(
             readTarget != null || invokeTarget != null || writeTarget != null),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNullAware != null),
         super(helper, token);
 
   factory ExplicitExtensionInstanceAccessGenerator.fromBuilder(
@@ -2276,8 +2278,6 @@ class ExplicitExtensionInstanceAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -2339,10 +2339,6 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       this.extensionTypeParameterCount,
       {required this.isNullAware})
       : assert(readTarget != null || writeTarget != null),
-        // ignore: unnecessary_null_comparison
-        assert(receiver != null),
-        // ignore: unnecessary_null_comparison
-        assert(isNullAware != null),
         super(helper, token);
 
   factory ExplicitExtensionIndexedAccessGenerator.fromBuilder(
@@ -2357,8 +2353,6 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
       List<DartType>? explicitTypeArguments,
       int extensionTypeParameterCount,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     Procedure? readTarget;
     if (getterBuilder != null) {
       if (getterBuilder is AccessErrorBuilder) {
@@ -2561,8 +2555,6 @@ class ExplicitExtensionIndexedAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -2747,8 +2739,6 @@ class ExplicitExtensionAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     Builder? getter = extensionBuilder.lookupLocalMemberByName(indexGetName);
     Builder? setter = extensionBuilder.lookupLocalMemberByName(indexSetName);
     if (getter == null && setter == null) {
@@ -2852,8 +2842,6 @@ class LoadLibraryGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -3018,8 +3006,6 @@ class DeferredAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -3547,15 +3533,11 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   Expression _makeInvalidWrite(Expression value) {
     switch (kind) {
       case ReadOnlyAccessKind.ConstVariable:
-        // ignore: unnecessary_null_comparison
-        assert(targetName != null);
         return _helper.buildProblem(
             templateCannotAssignToConstVariable.withArguments(targetName),
             fileOffset,
             lengthForToken(token));
       case ReadOnlyAccessKind.FinalVariable:
-        // ignore: unnecessary_null_comparison
-        assert(targetName != null);
         return _helper.buildProblem(
             templateCannotAssignToFinalVariable.withArguments(targetName),
             fileOffset,
@@ -3622,8 +3604,6 @@ abstract class AbstractReadOnlyAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     // TODO(johnniwinther): The read-only quality of the variable should be
     // passed on to the generator.
     return new IndexedAccessGenerator(_helper, token, _createRead(), index,
@@ -3757,8 +3737,6 @@ abstract class ErroneousExpressionGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -3846,8 +3824,6 @@ class UnresolvedNameGenerator extends ErroneousExpressionGenerator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -3918,8 +3894,6 @@ abstract class ContextAwareGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -4155,8 +4129,6 @@ class PrefixUseGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -4249,8 +4221,6 @@ class UnexpectedQualifiedUseGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -4379,8 +4349,6 @@ class ParserErrorGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     return new IndexedAccessGenerator(_helper, token, buildSimpleRead(), index,
         isNullAware: isNullAware);
   }
@@ -4572,8 +4540,6 @@ class ThisAccessGenerator extends Generator {
   @override
   Expression_Generator buildEqualsOperation(Token token, Expression right,
       {required bool isNot}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNot != null);
     if (isSuper) {
       int offset = offsetForToken(token);
       Expression result = _helper.buildSuperInvocation(equalsName,
@@ -4669,8 +4635,6 @@ class ThisAccessGenerator extends Generator {
   @override
   Generator buildIndexedAccess(Expression index, Token token,
       {required bool isNullAware}) {
-    // ignore: unnecessary_null_comparison
-    assert(isNullAware != null);
     if (isSuper) {
       return new SuperIndexedAccessGenerator(
           _helper,
@@ -4909,10 +4873,7 @@ class InvocationSelector extends Selector {
   InvocationSelector(ExpressionGeneratorHelper helper, Token token, this.name,
       this.typeArguments, this.arguments,
       {this.isPotentiallyConstant = false, this.isTypeArgumentsInForest = true})
-      : super(helper, token) {
-    // ignore: unnecessary_null_comparison
-    assert(arguments != null);
-  }
+      : super(helper, token);
 
   @override
   String get _debugName => 'InvocationSelector';

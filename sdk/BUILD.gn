@@ -15,8 +15,8 @@
 
 import("../build/dart/copy_tree.gni")
 import("../build/executable_suffix.gni")
-import("../runtime/runtime_args.gni")
 import("../sdk_args.gni")
+import("../utils/application_snapshot.gni")
 
 declare_args() {
   # Build a SDK with less stuff. It excludes dart2js, ddc, and web libraries.
@@ -66,8 +66,10 @@ declare_args() {
 # ........dart2js_platform_unsound.dill
 # ........dart2js_server_platform.dill
 # ........dart2js_server_platform_unsound.dill
-# ........dart2wasm_platform.dill (if not on ia32)
 # ........dart2wasm_outline.dill (if not on ia32)
+# ........dart2wasm_platform.dill (if not on ia32)
+# ........dart2wasm_stringref_outline.dill (if not on ia32)
+# ........dart2wasm_stringref_platform.dill (if not on ia32)
 # ........ddc_outline.dill
 # ........ddc_platform.dill
 # ........vm_platform_strong.dill
@@ -120,7 +122,7 @@ _platform_sdk_snapshots = [
     "../utils/kernel-service:frontend_server",
   ],
 ]
-if (create_kernel_service_snapshot) {
+if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
@@ -473,10 +475,13 @@ copy("copy_dart2wasm_platform") {
     ":copy_libraries",
     "../:dart2wasm_platform",
     "../utils/dart2wasm:compile_dart2wasm_platform",
+    "../utils/dart2wasm:compile_dart2wasm_stringref_platform",
   ]
   sources = [
     "$root_out_dir/dart2wasm_outline.dill",
     "$root_out_dir/dart2wasm_platform.dill",
+    "$root_out_dir/dart2wasm_stringref_outline.dill",
+    "$root_out_dir/dart2wasm_stringref_platform.dill",
   ]
   outputs =
       [ "$root_out_dir/$dart_sdk_output/lib/_internal/{{source_file_part}}" ]

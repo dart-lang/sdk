@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -91,13 +91,13 @@ extension Extension<T extends self::Struct*> on T* {
   get property = self::Extension|get#property;
   set property = self::Extension|set#property;
 }
-static method Extension|method<T extends self::Struct*>(lowered final self::Extension|method::T* #this) → self::Extension|method::T*
+static extension-member method Extension|method<T extends self::Struct*>(lowered final self::Extension|method::T* #this) → self::Extension|method::T*
   return #this;
-static method Extension|get#method<T extends self::Struct*>(lowered final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
+static extension-member method Extension|get#method<T extends self::Struct*>(lowered final self::Extension|get#method::T* #this) → () →* self::Extension|get#method::T*
   return () → self::Extension|get#method::T* => self::Extension|method<self::Extension|get#method::T*>(#this);
-static method Extension|get#property<T extends self::Struct*>(lowered final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
+static extension-member method Extension|get#property<T extends self::Struct*>(lowered final self::Extension|get#property::T* #this) → self::Extension|get#property::T*
   return #this;
-static method Extension|set#property<T extends self::Struct*>(lowered final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → void {}
+static extension-member method Extension|set#property<T extends self::Struct*>(lowered final self::Extension|set#property::T* #this, self::Extension|set#property::T* value) → void {}
 static method main() → dynamic {
   self::Struct* struct;
   self::StructA* structA;
@@ -105,7 +105,7 @@ static method main() → dynamic {
   self::Extension|method<self::Struct*>(struct);
   self::Extension|set#property<self::Struct*>(struct, self::Extension|get#property<self::StructA*>(structA));
   self::Extension|method<self::StructA*>(structA);
-  self::Extension|set#property<self::StructA*>(structA, self::Extension|get#property<self::Struct*>(struct) as{TypeError} self::StructA*);
+  self::Extension|set#property<self::StructA*>(structA, self::Extension|get#property<self::Struct*>(struct) as{TypeError,ForLegacy} self::StructA*);
   self::Extension|method<self::StructB*>(structB);
   self::Extension|set#property<self::StructB*>(structB, self::Extension|get#property<self::StructB*>(structB));
   self::Extension|method<self::Struct*>(new self::Struct::•());

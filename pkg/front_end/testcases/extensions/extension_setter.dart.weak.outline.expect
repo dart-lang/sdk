@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
@@ -46,27 +46,27 @@ extension Extension on self::Class* {
 extension GenericExtension<T extends core::Object* = dynamic> on self::GenericClass<T*>* {
   set setter = self::GenericExtension|set#setter;
 }
-static method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#simpleSetter(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#simpleSetter(lowered final self::Class* #this, core::int* value) → void
   ;
-static method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#mutatingSetter(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#mutatingSetter(lowered final self::Class* #this, core::int* value) → void
   ;
-static method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#setterWithReturn(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#setterWithReturn(lowered final self::Class* #this, core::int* value) → void
   ;
-static method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
+static extension-member method Extension|get#setterWithClosure(lowered final self::Class* #this) → core::int*
   ;
-static method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void
+static extension-member method Extension|set#setterWithClosure(lowered final self::Class* #this, core::int* value) → void
   ;
-static method Extension|testInternal(lowered final self::Class* #this) → dynamic
+static extension-member method Extension|testInternal(lowered final self::Class* #this) → dynamic
   ;
-static method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
+static extension-member method Extension|get#testInternal(lowered final self::Class* #this) → () →* dynamic
   return () → dynamic => self::Extension|testInternal(#this);
-static method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void
+static extension-member method GenericExtension|set#setter<T extends core::Object* = dynamic>(lowered final self::GenericClass<self::GenericExtension|set#setter::T*>* #this, self::GenericExtension|set#setter::T* value) → void
   ;
 static method main() → dynamic
   ;

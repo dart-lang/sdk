@@ -12,6 +12,7 @@ import '../scope.dart';
 
 import 'builder.dart';
 import 'class_builder.dart';
+import 'inline_class_builder.dart';
 import 'library_builder.dart';
 import 'prefix_builder.dart';
 import 'type_alias_builder.dart';
@@ -70,6 +71,9 @@ class ConstructorReferenceBuilder {
       }
     }
     if (declaration is ClassBuilder) {
+      target = declaration.findConstructorOrFactory(
+          suffix ?? "", charOffset, fileUri, accessingLibrary);
+    } else if (declaration is InlineClassBuilder) {
       target = declaration.findConstructorOrFactory(
           suffix ?? "", charOffset, fileUri, accessingLibrary);
     }

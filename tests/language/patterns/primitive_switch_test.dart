@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=patterns,records
-
 // Verify that switches using only values with primitive equality (excluding
 // the exceptions Symbol and Type) are lowered correctly. These are special
 // cased by the CFE.

@@ -35,9 +35,10 @@ import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true});
+  WasmTarget({this.removeAsserts = true, this.useStringref = false});
 
   bool removeAsserts;
+  bool useStringref;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -58,7 +59,7 @@ class WasmTarget extends Target {
   Verification get verification => const WasmVerification();
 
   @override
-  String get name => 'wasm';
+  String get name => useStringref ? 'wasm_stringref' : 'wasm';
 
   @override
   TargetFlags get flags => TargetFlags();
@@ -70,6 +71,7 @@ class WasmTarget extends Target {
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:typed_data',
         'dart:nativewrappers',
         'dart:io',
@@ -84,6 +86,7 @@ class WasmTarget extends Target {
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
+        'dart:_js_types',
         'dart:collection',
         'dart:typed_data',
         'dart:js_interop',
@@ -91,6 +94,14 @@ class WasmTarget extends Target {
         'dart:_wasm',
       ];
 
+  @override
+  bool mayDefineRestrictedType(Uri uri) =>
+      uri.isScheme('dart') &&
+      (uri.path == 'core' ||
+          uri.path == 'typed_data' ||
+          uri.path == '_js_types');
+
+  @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>
       super.allowPlatformPrivateLibraryAccess(importer, imported) ||
       importer.path.contains('tests/web/wasm') ||

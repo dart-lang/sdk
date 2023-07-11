@@ -27,10 +27,6 @@
 #include "vm/timeline.h"
 #include "vm/zone.h"
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-#include "vm/ffi_callback_trampolines.h"
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-
 namespace dart {
 
 #if !defined(PRODUCT)
@@ -367,7 +363,7 @@ bool Thread::HasActiveState() {
   return false;
 }
 
-bool Thread::EnterIsolate(Isolate* isolate) {
+void Thread::EnterIsolate(Isolate* isolate) {
   const bool is_resumable = isolate->mutator_thread() != nullptr;
 
   // To let VM's thread pool (if we run on it) know that this thread is
@@ -406,8 +402,6 @@ bool Thread::EnterIsolate(Isolate* isolate) {
 
   isolate->scheduled_mutator_thread_ = thread;
   ResumeThreadInternal(thread);
-
-  return true;
 }
 
 static bool ShouldSuspend(bool isolate_shutdown, Thread* thread) {
@@ -941,7 +935,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
     for (; first != last + 1; first++) {
       ObjectPtr obj = *first;
       // Stores into new-space objects don't need a write barrier.
-      if (obj->IsSmiOrNewObject()) continue;
+      if (obj->IsImmediateOrNewObject()) continue;
 
       // To avoid adding too much work into the remembered set, skip large
       // arrays. Write barrier elimination will not remove the barrier
@@ -1337,10 +1331,10 @@ void Thread::SetupDartMutatorState(Isolate* isolate) {
   field_table_values_ = isolate->field_table_->table();
   isolate->mutator_thread_ = this;
 
-  SetupDartMutatorStateDependingOnSnapshot(isolate);
+  SetupDartMutatorStateDependingOnSnapshot(isolate->group());
 }
 
-void Thread::SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate) {
+void Thread::SetupDartMutatorStateDependingOnSnapshot(IsolateGroup* group) {
   // The snapshot may or may not have been read at this point (on isolate group
   // creation, the first isolate is first time entered before the snapshot is
   // read)
@@ -1348,7 +1342,6 @@ void Thread::SetupDartMutatorStateDependingOnSnapshot(Isolate* isolate) {
   // So we call this code explicitly after snapshot reading time and whenever we
   // enter an isolate with a new thread object.
 #if defined(DART_PRECOMPILED_RUNTIME)
-  auto group = isolate->group();
   auto object_store = group->object_store();
   if (object_store != nullptr) {
     global_object_pool_ = object_store->global_object_pool();

@@ -43,10 +43,24 @@ Future<D8Result> runWithD8(
   entryPoint ??= Uri.parse('memory:main.dart');
   Uri mainFile =
       await createTemp(entryPoint, memorySourceFiles, printSteps: printSteps);
-  String output = uriPathToNative(mainFile.resolve('out.js').path);
+  Uri output = nativeToUri(mainFile.resolve('out.js').path);
+
+  CompilationResult compilationResult = await getCompilationResultsForD8(
+      mainFile, output,
+      options: options, printJs: printJs, printSteps: printSteps);
+  final d8Result = executeJsWithD8([output],
+      expectedOutput: expectedOutput, printSteps: printSteps);
+  return D8Result(compilationResult, d8Result, output.toFilePath());
+}
+
+Future<CompilationResult> getCompilationResultsForD8(
+    Uri mainFile, Uri outputFile,
+    {List<String> options = const <String>[],
+    bool printJs = false,
+    bool printSteps = false}) async {
   List<String> dart2jsArgs = [
     mainFile.toString(),
-    '-o$output',
+    '-o${outputFile.toFilePath()}',
     if (Platform.packageConfig != null) '--packages=${Platform.packageConfig}',
     ...options,
     if (options.contains(Flags.noSoundNullSafety))
@@ -60,12 +74,16 @@ Future<D8Result> runWithD8(
   Expect.isTrue(result.isSuccess);
   if (printJs) {
     print('dart2js output:');
-    print(new File(output).readAsStringSync());
+    print(new File(outputFile.toFilePath()).readAsStringSync());
   }
+  return result;
+}
 
+ProcessResult executeJsWithD8(List<Uri> jsFiles,
+    {String? expectedOutput, bool printSteps = false}) {
   List<String> d8Args = [
     '$sdkPath/_internal/js_runtime/lib/preambles/d8.js',
-    output
+    ...jsFiles.map((u) => u.toFilePath())
   ];
   if (printSteps) print('Running: d8 ${d8Args.join(' ')}');
   ProcessResult runResult = Process.runSync(d8executable, d8Args);
@@ -77,7 +95,7 @@ Future<D8Result> runWithD8(
     Expect.stringEquals(expectedOutput.trim(),
         runResult.stdout.replaceAll('\r\n', '\n').trim());
   }
-  return D8Result(result, runResult, output);
+  return runResult;
 }
 
 class D8Result {

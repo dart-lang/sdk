@@ -138,4 +138,11 @@ class TTestResult {
         "+/- "
         "${_format(percentDiffConfidence, fractionDigits: fractionDigits)}%";
   }
+
+  String? valueChangeIfSignificant({int fractionDigits = 2}) {
+    if (!significant) return null;
+    return "${_format(diff, fractionDigits: fractionDigits)} "
+        "+/- "
+        "${_format(confidence, fractionDigits: fractionDigits)}";
+  }
 }

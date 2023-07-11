@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -28,7 +28,7 @@ static method asyncMethod(asy::Stream<core::int> stream) → dynamic async /* fu
         #L1:
         for (; ; ) {
           :async_temporary_0 = await #forIterator.{asy::_StreamIterator::moveNext}(){() → asy::Future<core::bool>};
-          if(#jumpSentinel = :async_temporary_0 as dynamic) {
+          if(#jumpSentinel = :async_temporary_0 as{ForLegacy} dynamic) {
             core::int i = #forIterator.{asy::_StreamIterator::current}{core::int};
             {
               core::print(i);

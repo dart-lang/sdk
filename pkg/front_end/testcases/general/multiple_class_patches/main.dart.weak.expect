@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:test" as test;
 import "dart:core" as core;
@@ -17,7 +17,7 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as test;
 import "dart:_internal" as _in;
 import "dart:core" as core;
@@ -25,8 +25,8 @@ import "dart:core" as core;
 import "dart:_internal";
 import "dart:_internal";
 
-@#C1
-@#C1
+@/* from org-dartlang-testcase:///patch_lib1.dart */ #C1
+@/* from org-dartlang-testcase:///patch_lib2.dart */ #C1
 class Class extends core::Object {
   synthetic constructor •() → test::Class
     : super core::Object::•()
@@ -37,7 +37,7 @@ class Class extends core::Object {
   @#C1
   method /* from org-dartlang-testcase:///patch_lib2.dart */ method2() → core::int
     return 87;
-  @#C1
+  @/* from org-dartlang-testcase:///patch_lib1.dart */ #C1
   @#C1
   method /* from org-dartlang-testcase:///patch_lib2.dart */ method3() → core::int
     return 123;

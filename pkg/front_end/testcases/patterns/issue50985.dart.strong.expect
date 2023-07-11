@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,7 +10,7 @@ static method test1(core::List<dynamic> list) → core::String {
     {
       {
         hoisted core::List<core::int> r1;
-        if(#0#0 is{ForNonNullableByDefault} core::List<core::int> && #0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(2){(core::int) → core::int} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(3){(core::int) → core::int} && (let final dynamic #t2 = r1 = #0#0{core::List<core::int>}.{core::List::sublist}(4){(core::int, [core::int?]) → core::List<core::int>} in true)) {
+        if(#0#0 is core::List<core::int> && #0#0{core::List<core::int>}.{core::List::length}{core::int}.{core::num::>=}(#C1){(core::num) → core::bool} && #C2 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(0){(core::int) → core::int} && #C3 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(1){(core::int) → core::int} && #C4 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(2){(core::int) → core::int} && #C1 =={core::num::==}{(core::Object) → core::bool} #0#0{core::List<core::int>}.{core::List::[]}(3){(core::int) → core::int} && (let final dynamic #t2 = r1 = #0#0{core::List<core::int>}.{core::List::sublist}(4){(core::int, [core::int?]) → core::List<core::int>} in true)) {
           #t1 = r1.{core::Object::toString}(){() → core::String};
           break #L1;
         }

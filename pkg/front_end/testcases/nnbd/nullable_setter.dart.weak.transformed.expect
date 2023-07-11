@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -14,10 +14,10 @@ extension /* unnamed */ _extension#0 on self::C? {
   operator []= = self::_extension#0|[]=;
   set setter = self::_extension#0|set#setter;
 }
-static method _extension#0|set#setter(lowered final self::C? #this, core::String v) → void {
+static extension-member method _extension#0|set#setter(lowered final self::C? #this, core::String v) → void {
   let final self::C? #t1 = #this in #t1 == null ?{core::String?} null : #t1{self::C}.{self::C::m} = v;
 }
-static method _extension#0|[]=(lowered final self::C? #this, core::int index, core::String value) → void {
+static extension-member method _extension#0|[]=(lowered final self::C? #this, core::int index, core::String value) → void {
   let final self::C? #t2 = #this in #t2 == null ?{core::String?} null : #t2{self::C}.{self::C::m} = "${index}${value}";
 }
 static method main() → dynamic {

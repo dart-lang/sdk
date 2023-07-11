@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:ffi" as ffi;
 import "dart:core" as core;
@@ -54,7 +54,7 @@ final class IncompleteArrayStruct extends ffi::Struct {
     return new ffi::Array::_<self::Incomplete>( block {
       synthesized core::Object #typedDataBase = this.{ffi::_Compound::_typedDataBase}{core::Object};
       synthesized core::int #offset = #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*};
-    } =>#typedDataBase is ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::Incomplete>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*})){([core::int, core::int?]) → typ::Uint8List}, #C41, #C49);
+    } =>#typedDataBase is{ForLegacy} ffi::Pointer<dynamic> ?{core::Object} ffi::_fromAddress<self::Incomplete>(#typedDataBase.{ffi::Pointer::address}{core::int}.{core::num::+}(#offset){(core::num) → core::num}) : let synthesized typ::TypedData #typedData = _in::unsafeCast<typ::TypedData>(#typedDataBase) in #typedData.{typ::TypedData::buffer}{typ::ByteBuffer}.{typ::ByteBuffer::asUint8List}(#typedData.{typ::TypedData::offsetInBytes}{core::int}.{core::num::+}(#offset){(core::num) → core::num}, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*})){([core::int, core::int?]) → typ::Uint8List}, #C41, #C49);
   @#C46
   set a0(ffi::Array<self::Incomplete> #externalFieldValue) → void
     return ffi::_memCopy(this.{ffi::_Compound::_typedDataBase}{core::Object}, #C38.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}, #externalFieldValue.{ffi::Array::_typedDataBase}{core::Object}, #C4, ffi::_checkAbiSpecificIntegerMapping<core::int>(#C48.{core::List::[]}(ffi::_abi()){(core::int) → core::int*}));

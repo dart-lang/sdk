@@ -107,27 +107,15 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
     // detect cycles by detecting recursive calls to this method using an
     // instance of InvalidType that isn't identical to `const InvalidType()`.
     thisType = pendingTypeAliasMarker;
-    DartType builtType = const InvalidType();
-    TypeBuilder type = this.type;
-    // ignore: unnecessary_null_comparison
-    if (type != null) {
-      builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
-      // ignore: unnecessary_null_comparison
-      if (builtType != null) {
-        if (typeVariables != null) {
-          for (TypeVariableBuilder tv in typeVariables!) {
-            // Follow bound in order to find all cycles
-            tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
-          }
-        }
-        if (identical(thisType, cyclicTypeAliasMarker)) {
-          builtType = const InvalidType();
-        } else {
-          builtType = builtType;
-        }
-      } else {
-        builtType = const InvalidType();
+    DartType builtType = type.build(libraryBuilder, TypeUse.typedefAlias);
+    if (typeVariables != null) {
+      for (TypeVariableBuilder tv in typeVariables!) {
+        // Follow bound in order to find all cycles
+        tv.bound?.build(libraryBuilder, TypeUse.typeParameterBound);
       }
+    }
+    if (identical(thisType, cyclicTypeAliasMarker)) {
+      builtType = const InvalidType();
     }
     return thisType = typedef.type ??= builtType;
   }
@@ -275,6 +263,10 @@ class SourceTypeAliasBuilder extends TypeAliasBuilderImpl {
         if (target != null) {
           if (target is Procedure && target.isRedirectingFactory) {
             target = builder.readTarget!;
+          }
+          Class targetClass = target.enclosingClass!;
+          if (target is Constructor && targetClass.isAbstract) {
+            continue;
           }
           Name targetName =
               new Name(constructorName, declaration.libraryBuilder.library);

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Error when trying to implement or extend a typedef final class outside of
 // the final class' library when the typedef is also outside the final class
 // library.

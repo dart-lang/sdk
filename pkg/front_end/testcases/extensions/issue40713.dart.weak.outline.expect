@@ -1,11 +1,11 @@
-library;
+library /*isLegacy*/;
 import self as self;
 import "dart:core" as core;
 
 extension SafeAccess<T extends core::Object* = dynamic> on core::Iterable<T*>* {
   get safeFirst = self::SafeAccess|get#safeFirst;
 }
-static method SafeAccess|get#safeFirst<T extends core::Object* = dynamic>(lowered final core::Iterable<self::SafeAccess|get#safeFirst::T*>* #this) → self::SafeAccess|get#safeFirst::T*
+static extension-member method SafeAccess|get#safeFirst<T extends core::Object* = dynamic>(lowered final core::Iterable<self::SafeAccess|get#safeFirst::T*>* #this) → self::SafeAccess|get#safeFirst::T*
   ;
 static method main() → dynamic
   ;

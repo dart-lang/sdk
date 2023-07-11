@@ -128,6 +128,7 @@ class CompactorTask : public ThreadPool::Task {
                 GCCompactor* compactor,
                 ThreadBarrier* barrier,
                 RelaxedAtomic<intptr_t>* next_planning_task,
+                RelaxedAtomic<intptr_t>* next_setup_task,
                 RelaxedAtomic<intptr_t>* next_sliding_task,
                 RelaxedAtomic<intptr_t>* next_forwarding_task,
                 intptr_t num_tasks,
@@ -137,6 +138,7 @@ class CompactorTask : public ThreadPool::Task {
         compactor_(compactor),
         barrier_(barrier),
         next_planning_task_(next_planning_task),
+        next_setup_task_(next_setup_task),
         next_sliding_task_(next_sliding_task),
         next_forwarding_task_(next_forwarding_task),
         num_tasks_(num_tasks),
@@ -160,6 +162,7 @@ class CompactorTask : public ThreadPool::Task {
   GCCompactor* compactor_;
   ThreadBarrier* barrier_;
   RelaxedAtomic<intptr_t>* next_planning_task_;
+  RelaxedAtomic<intptr_t>* next_setup_task_;
   RelaxedAtomic<intptr_t>* next_sliding_task_;
   RelaxedAtomic<intptr_t>* next_forwarding_task_;
   intptr_t num_tasks_;
@@ -250,6 +253,7 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
   {
     ThreadBarrier* barrier = new ThreadBarrier(num_tasks, 1);
     RelaxedAtomic<intptr_t> next_planning_task = {0};
+    RelaxedAtomic<intptr_t> next_setup_task = {0};
     RelaxedAtomic<intptr_t> next_sliding_task = {0};
     RelaxedAtomic<intptr_t> next_forwarding_task = {0};
 
@@ -258,14 +262,14 @@ void GCCompactor::Compact(Page* pages, FreeList* freelist, Mutex* pages_lock) {
         // Begin compacting on a helper thread.
         Dart::thread_pool()->Run<CompactorTask>(
             thread()->isolate_group(), this, barrier, &next_planning_task,
-            &next_sliding_task, &next_forwarding_task, num_tasks, partitions,
-            freelist);
+            &next_setup_task, &next_sliding_task, &next_forwarding_task,
+            num_tasks, partitions, freelist);
       } else {
         // Last worker is the main thread.
         CompactorTask task(thread()->isolate_group(), this, barrier,
-                           &next_planning_task, &next_sliding_task,
-                           &next_forwarding_task, num_tasks, partitions,
-                           freelist);
+                           &next_planning_task, &next_setup_task,
+                           &next_sliding_task, &next_forwarding_task, num_tasks,
+                           partitions, freelist);
         task.RunEnteredIsolateGroup();
         barrier->Sync();
         barrier->Release();
@@ -378,6 +382,8 @@ void CompactorTask::RunEnteredIsolateGroup() {
   Thread* thread = Thread::Current();
 #endif
   {
+    isolate_group_->heap()->old_space()->SweepLarge();
+
     while (true) {
       intptr_t planning_task = next_planning_task_->fetch_add(1u);
       if (planning_task >= num_tasks_) break;
@@ -391,6 +397,12 @@ void CompactorTask::RunEnteredIsolateGroup() {
       for (Page* page = head; page != nullptr; page = page->next()) {
         PlanPage(page);
       }
+    }
+
+    barrier_->Sync();
+
+    if (next_setup_task_->fetch_add(1u) == 0) {
+      compactor_->SetupLargePages();
     }
 
     barrier_->Sync();
@@ -418,6 +430,11 @@ void CompactorTask::RunEnteredIsolateGroup() {
 
       ASSERT(free_page_ != nullptr);
       partitions_[sliding_task].tail = free_page_;  // Last live page.
+
+      {
+        TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
+        compactor_->ForwardLargePages();
+      }
     }
 
     // Heap: Regular pages already visited during sliding. Code and image pages
@@ -428,36 +445,27 @@ void CompactorTask::RunEnteredIsolateGroup() {
       intptr_t forwarding_task = next_forwarding_task_->fetch_add(1u);
       switch (forwarding_task) {
         case 0: {
-          TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardLargePages");
-          for (Page* large_page =
-                   isolate_group_->heap()->old_space()->large_pages_;
-               large_page != nullptr; large_page = large_page->next()) {
-            large_page->VisitObjectPointers(compactor_);
-          }
-          break;
-        }
-        case 1: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardNewSpace");
           isolate_group_->heap()->new_space()->VisitObjectPointers(compactor_);
           break;
         }
-        case 2: {
+        case 1: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardRememberedSet");
           isolate_group_->store_buffer()->VisitObjectPointers(compactor_);
           break;
         }
-        case 3: {
+        case 2: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakTables");
           isolate_group_->heap()->ForwardWeakTables(compactor_);
           break;
         }
-        case 4: {
+        case 3: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardWeakHandles");
           isolate_group_->VisitWeakPersistentHandles(compactor_);
           break;
         }
 #ifndef PRODUCT
-        case 5: {
+        case 4: {
           TIMELINE_FUNCTION_GC_DURATION(thread, "ForwardObjectIdRing");
           isolate_group_->ForEachIsolate(
               [&](Isolate* isolate) {
@@ -634,7 +642,7 @@ void GCCompactor::SetupImagePageBoundaries() {
 DART_FORCE_INLINE
 void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
   ObjectPtr old_target = *ptr;
-  if (old_target->IsSmiOrNewObject()) {
+  if (old_target->IsImmediateOrNewObject()) {
     return;  // Not moved.
   }
 
@@ -662,7 +670,7 @@ void GCCompactor::ForwardPointer(ObjectPtr* ptr) {
 
   ObjectPtr new_target =
       UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
-  ASSERT(!new_target->IsSmiOrNewObject());
+  ASSERT(!new_target->IsImmediateOrNewObject());
   *ptr = new_target;
 }
 
@@ -670,7 +678,7 @@ DART_FORCE_INLINE
 void GCCompactor::ForwardCompressedPointer(uword heap_base,
                                            CompressedObjectPtr* ptr) {
   ObjectPtr old_target = ptr->Decompress(heap_base);
-  if (old_target->IsSmiOrNewObject()) {
+  if (old_target->IsImmediateOrNewObject()) {
     return;  // Not moved.
   }
 
@@ -698,7 +706,7 @@ void GCCompactor::ForwardCompressedPointer(uword heap_base,
 
   ObjectPtr new_target =
       UntaggedObject::FromAddr(forwarding_page->Lookup(old_addr));
-  ASSERT(!new_target->IsSmiOrNewObject());
+  ASSERT(!new_target->IsImmediateOrNewObject());
   *ptr = new_target;
 }
 
@@ -773,6 +781,21 @@ void GCCompactor::VisitHandle(uword addr) {
   FinalizablePersistentHandle* handle =
       reinterpret_cast<FinalizablePersistentHandle*>(addr);
   ForwardPointer(handle->ptr_addr());
+}
+
+void GCCompactor::SetupLargePages() {
+  large_pages_ = heap_->old_space()->large_pages_;
+}
+
+void GCCompactor::ForwardLargePages() {
+  MutexLocker ml(&large_pages_mutex_);
+  while (large_pages_ != nullptr) {
+    Page* page = large_pages_;
+    large_pages_ = page->next();
+    ml.Unlock();
+    page->VisitObjectPointers(this);
+    ml.Lock();
+  }
 }
 
 void GCCompactor::ForwardStackPointers() {

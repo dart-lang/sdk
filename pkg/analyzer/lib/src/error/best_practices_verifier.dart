@@ -5,7 +5,6 @@
 import 'dart:collection';
 
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -1536,14 +1535,29 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   /// In "strict-inference" mode, check that [returnType] is specified.
   void _checkStrictInferenceReturnType(
       AstNode? returnType, AstNode reportNode, String displayName) {
-    if (!_strictInference) {
+    if (!_strictInference || returnType != null) {
       return;
     }
-    if (returnType == null) {
-      _errorReporter.reportErrorForNode(
+
+    switch (reportNode) {
+      case MethodDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case FunctionDeclaration():
+        _errorReporter.reportErrorForToken(
+          WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
+          reportNode.name,
+          [displayName],
+        );
+      case _:
+        _errorReporter.reportErrorForNode(
           WarningCode.INFERENCE_FAILURE_ON_FUNCTION_RETURN_TYPE,
           reportNode,
-          [displayName]);
+          [displayName],
+        );
     }
   }
 
@@ -2070,6 +2084,17 @@ class _InvalidAccessVerifier {
     return false;
   }
 
+  bool _hasVisibleOutsideTemplate(Element element) {
+    if (element.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    if (element is PropertyAccessorElement &&
+        element.variable.hasVisibleOutsideTemplate) {
+      return true;
+    }
+    return false;
+  }
+
   bool _inCommentReference(SimpleIdentifier identifier) {
     var parent = identifier.parent;
     return parent is CommentReference || parent?.parent is CommentReference;
@@ -2091,16 +2116,20 @@ class _InvalidAccessVerifier {
 
   /// Check if @visibleForTemplate is applied to the given [Element].
   ///
-  /// [ClassElement] and [EnumElement] are excluded from the @visibleForTemplate
-  /// access checks. Instead, the access restriction is cascaded to the
-  /// corresponding class members and enum constants. For other types of
-  /// elements, check if they are annotated based on `hasVisibleForTemplate`
-  /// value.
-  bool _isVisibleForTemplateApplied(Element? element) {
-    if (element is ClassElement || element is EnumElement) {
+  /// [ClassElement], [EnumElement] and [MixinElement] are excluded from the
+  /// @visibleForTemplate access checks. Instead, the access restriction is
+  /// cascaded to all the corresponding members not annotated by
+  /// @visibleOutsideTemplate.
+  /// For other types of elements, check if they are annotated based on
+  /// `hasVisibleForTemplate` value.
+  bool _isVisibleForTemplateApplied(Element element) {
+    if (element is ClassElement ||
+        element is EnumElement ||
+        element is MixinElement) {
       return false;
     } else {
-      return _hasVisibleForTemplate(element);
+      return _hasVisibleForTemplate(element) &&
+          !_hasVisibleOutsideTemplate(element);
     }
   }
 }

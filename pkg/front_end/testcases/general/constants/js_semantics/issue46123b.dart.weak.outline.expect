@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:_js_annotations" as _js;
 import "dart:core" as core;

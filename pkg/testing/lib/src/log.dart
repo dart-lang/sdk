@@ -198,10 +198,7 @@ class StdoutLogger implements Logger {
   @override
   void logUncaughtError(error, StackTrace stackTrace) {
     logMessage(error);
-    // ignore: unnecessary_null_comparison
-    if (stackTrace != null) {
-      logMessage(stackTrace);
-    }
+    logMessage(stackTrace);
   }
 
   @override

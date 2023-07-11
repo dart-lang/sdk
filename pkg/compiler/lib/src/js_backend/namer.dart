@@ -1318,6 +1318,24 @@ class ConstantNamingVisitor implements ConstantValueVisitor {
   }
 
   @override
+  void visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    addRoot('Object');
+    int length = constant.length;
+    if (constant.length == 0) {
+      add('empty');
+    } else if (length * 2 > MAX_FRAGMENTS) {
+      failed = true;
+    } else {
+      for (int i = 0; i < length; i++) {
+        _visit(constant.keys[i]);
+        if (failed) break;
+        _visit(constant.values[i]);
+        if (failed) break;
+      }
+    }
+  }
+
+  @override
   void visitConstructed(ConstructedConstantValue constant, [_]) {
     addRoot(constant.type.element.name);
 
@@ -1443,6 +1461,7 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   static const int _seedList = 10;
   static const int _seedSet = 11;
   static const int _seedMap = 12;
+  static const int _seedJavaScriptObject = 13;
 
   ConstantCanonicalHasher(this._namer, this._closedWorld);
 
@@ -1544,6 +1563,14 @@ class ConstantCanonicalHasher implements ConstantValueVisitor<int, Null> {
   int visitInterceptor(InterceptorConstantValue constant, [_]) {
     String typeName = constant.cls.name;
     return _hashString(_seedInterceptor, typeName);
+  }
+
+  @override
+  int visitJavaScriptObject(JavaScriptObjectConstantValue constant, [_]) {
+    int hash = _seedJavaScriptObject;
+    hash = _hashList(hash, constant.keys);
+    hash = _hashList(hash, constant.values);
+    return hash;
   }
 
   @override
@@ -2370,19 +2397,23 @@ const List<String> reservedPropertySymbols = [
 /// This set is so [DeferredHolderFinalizer] can use names like:
 /// [A-Z][_0-9a-zA-Z]* without collisions
 const Set<String> reservedCapitalizedGlobalSymbols = {
-  // Section references are from Ecma-262
+  // Section references are from Ecma-262, 13th Ed.
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
-  // 15.1.1 Value Properties of the Global Object
+  // 19.1 Value Properties of the Global Object
   "NaN", "Infinity",
 
-  // 15.1.4 Constructor Properties of the Global Object
-  "Object", "Function", "Array", "String", "Boolean", "Number", "Date",
-  "RegExp", "Symbol", "Error", "EvalError", "RangeError", "ReferenceError",
-  "SyntaxError", "TypeError", "URIError",
+  // 19.3 Constructor Properties of the Global Object
+  "AggregateError", "Array", "ArrayBuffer", "BigInt", "BigInt64Array",
+  "BigUint64Array", "Boolean", "DataView", "Date", "Error", "EvalError",
+  "FinalizationRegistry", "Float32Array", "Float64Array", "Function",
+  "Int8Array", "Int16Array", "Int32Array", "Map", "Number", "Object", "Promise",
+  "Proxy", "RangeError", "ReferenceError", "RegExp", "Set", "SharedArrayBuffer",
+  "String", "Symbol", "SyntaxError", "Uint8Array", "Uint8ClampedArray",
+  "Uint16Array", "Uint32Array", "URIError", "WeakMap", "WeakRef", "WeakSet",
 
-  // 15.1.5 Other Properties of the Global Object
-  "Math",
+  // 19.4 Other Properties of the Global Object
+  "Atomics", "JSON", "Math", "Reflect",
 
   // Window props (https://developer.mozilla.org/en/DOM/window)
   "Components",
@@ -2415,9 +2446,6 @@ const Set<String> reservedCapitalizedGlobalSymbols = {
   "Packages", "JavaObject", "JavaClass",
   "JavaArray", "JavaMember",
 
-  // ES6 collections.
-  "Map", "Set",
-
   // Some additional names
   "Isolate",
 };
@@ -2429,7 +2457,7 @@ const List<String> reservedGlobalSymbols = [
   // (http://www.ecma-international.org/publications/files/ECMA-ST/Ecma-262.pdf)
 
   // 15.1.1 Value Properties of the Global Object
-  "undefined",
+  "globalThis", "undefined",
 
   // 15.1.2 Function Properties of the Global Object
   "eval", "parseInt", "parseFloat", "isNaN", "isFinite",

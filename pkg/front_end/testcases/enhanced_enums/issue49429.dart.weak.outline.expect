@@ -1,13 +1,12 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[self::A::redir]/*isLegacy*/;
   const constructor •() → self::A
     : super core::Object::•()
     ;
-  static factory redir() → self::A
+  static factory redir() → self::A /* redirection-target: self::A::• */
     return new self::A::•();
 }
 class E extends core::_Enum /*isEnum*/  {
@@ -24,7 +23,6 @@ static method main() → dynamic
 
 
 Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///issue49429.dart:1:7 -> ConstructorTearOffConstant(A.redir)
 Evaluated: ListLiteral @ org-dartlang-testcase:///issue49429.dart:6:6 -> ListConstant(const <E*>[const E{_Enum.index: 0, _Enum._name: "element"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///issue49429.dart:7:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "element"})
-Extra constant evaluation: evaluated: 10, effectively constant: 3
+Extra constant evaluation: evaluated: 8, effectively constant: 2

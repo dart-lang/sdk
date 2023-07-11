@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "package:macro/data_class.dart" as dat;
 import "dart:core" as core;
@@ -18,7 +18,7 @@ class Foo extends core::Object {
   operator /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ ==(core::Object other) → core::bool {
     if(core::identical(this, other))
       return true;
-    return other is{ForNonNullableByDefault} self::Foo && this.{self::Foo::bar}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Foo}.{self::Foo::bar}{core::int} && this.{self::Foo::baz}{core::String} =={core::String::==}{(core::Object) → core::bool} other{self::Foo}.{self::Foo::baz}{core::String};
+    return other is self::Foo && this.{self::Foo::bar}{core::int} =={core::num::==}{(core::Object) → core::bool} other{self::Foo}.{self::Foo::bar}{core::int} && this.{self::Foo::baz}{core::String} =={core::String::==}{(core::Object) → core::bool} other{self::Foo}.{self::Foo::baz}{core::String};
   }
   method /* from org-dartlang-augmentation:/a/b/c/main.dart-1 */ toString() → core::String {
     return "Foo(bar=${this.{self::Foo::bar}{core::int}},baz=${this.{self::Foo::baz}{core::String}})";

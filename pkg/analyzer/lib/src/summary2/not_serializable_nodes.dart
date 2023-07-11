@@ -2,11 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 
 const _notSerializableName = '_notSerializableExpression';
@@ -23,7 +21,7 @@ ExpressionImpl replaceNotSerializableNode(ExpressionImpl node) {
   if (visitor.result) {
     return node;
   }
-  return astFactory.simpleIdentifier(
+  return SimpleIdentifierImpl(
     StringToken(TokenType.STRING, _notSerializableName, -1),
   );
 }

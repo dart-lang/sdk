@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "issue52302_lib.dart" as iss;
@@ -8,7 +8,6 @@ import "dart:collection" as col;
 import "org-dartlang-testcase:///issue52302_lib.dart";
 
 abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object implements iss::MixesInMixin /*isAnonymousMixin,isEliminatedMixin,hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy, from org-dartlang-sdk:///sdk/lib/core/iterable.dart */;
   const synthetic constructor •() → self::_MixesInMixesInMixin&Object&MixesInMixin
     : super core::Object::•()
     ;
@@ -17,7 +16,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     return _in::CastIterable::•<core::int, self::_MixesInMixesInMixin&Object&MixesInMixin::cast::R%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
     core::Iterable<core::int> self = this;
-    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+    if(self is _in::EfficientLengthIterable<core::int>) {
       return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
     }
     return new _in::FollowedByIterable::•<core::int>(this, other);
@@ -87,7 +86,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     }
     return true;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C2]) → core::String {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C1]) → core::String {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return "";
@@ -125,12 +124,12 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C3}) → core::List<core::int>
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C2}) → core::List<core::int>
     return core::List::of<core::int>(this, growable: growable);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
     return col::LinkedHashSet::of<core::int>(this);
   get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
-    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    assert(!(this is _in::EfficientLengthIterable<dynamic>));
     core::int count = 0;
     core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     while (it.{core::Iterator::moveNext}(){() → core::bool}) {
@@ -178,7 +177,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
       throw _in::IterableElementError::tooMany();
     return result;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     {
       synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -193,7 +192,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
       return orElse{() → core::int}(){() → core::int};
     throw _in::IterableElementError::noElement();
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     core::int result;
     do {
@@ -212,7 +211,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     }
     return result;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     core::int result;
     do {
@@ -245,7 +244,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
     return core::Iterable::iterableToShortString(this, "(", ")");
   static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%> source) → core::Iterable<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>
     return _in::CastIterable::•<self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::S%, self::_MixesInMixesInMixin&Object&MixesInMixin::castFrom::T%>(source);
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
     if(_in::isToStringVisiting(iterable)) {
       if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
         return "(...)";
@@ -266,7 +265,7 @@ abstract class _MixesInMixesInMixin&Object&MixesInMixin extends core::Object imp
       #t2.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
     } =>#t2).{core::StringBuffer::toString}(){() → core::String};
   }
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
     if(_in::isToStringVisiting(iterable)) {
       return "${leftDelimiter}...${rightDelimiter}";
     }
@@ -290,14 +289,13 @@ abstract base class MixesInMixesInMixin extends self::_MixesInMixesInMixin&Objec
 }
 static method main() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as iss;
 import "dart:core" as core;
 import "dart:_internal" as _in;
 import "dart:collection" as col;
 
 abstract mixin class MixesInMixin extends core::Object implements core::Iterable<core::int> /*isEliminatedMixin,hasConstConstructor*/  {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy, from org-dartlang-sdk:///sdk/lib/core/iterable.dart */;
   const synthetic constructor •() → iss::MixesInMixin
     : super core::Object::•()
     ;
@@ -306,7 +304,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     return _in::CastIterable::•<core::int, iss::MixesInMixin::cast::R%>(this);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ followedBy(covariant-by-class core::Iterable<core::int> other) → core::Iterable<core::int> {
     core::Iterable<core::int> self = this;
-    if(self is{ForNonNullableByDefault} _in::EfficientLengthIterable<core::int>) {
+    if(self is _in::EfficientLengthIterable<core::int>) {
       return _in::FollowedByIterable::firstEfficient<core::int>(self{_in::EfficientLengthIterable<core::int>}, other);
     }
     return new _in::FollowedByIterable::•<core::int>(this, other);
@@ -376,7 +374,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     }
     return true;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C2]) → core::String {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ join([core::String separator = #C1]) → core::String {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     if(!iterator.{core::Iterator::moveNext}(){() → core::bool})
       return "";
@@ -414,12 +412,12 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     }
     return false;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C3}) → core::List<core::int>
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toList({core::bool growable = #C2}) → core::List<core::int>
     return core::List::of<core::int>(this, growable: growable);
   method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ toSet() → core::Set<core::int>
     return col::LinkedHashSet::of<core::int>(this);
   get /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ length() → core::int {
-    assert(!(this is{ForNonNullableByDefault} _in::EfficientLengthIterable<dynamic>));
+    assert(!(this is _in::EfficientLengthIterable<dynamic>));
     core::int count = 0;
     core::Iterator<core::Object?> it = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     while (it.{core::Iterator::moveNext}(){() → core::bool}) {
@@ -467,7 +465,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
       throw _in::IterableElementError::tooMany();
     return result;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ firstWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     {
       synthesized core::Iterator<core::int> :sync-for-iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
       for (; :sync-for-iterator.{core::Iterator::moveNext}(){() → core::bool}; ) {
@@ -482,7 +480,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
       return orElse{() → core::int}(){() → core::int};
     throw _in::IterableElementError::noElement();
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ lastWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     core::int result;
     do {
@@ -501,7 +499,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     }
     return result;
   }
-  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C4}) → core::int {
+  method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ singleWhere((core::int) → core::bool test, {covariant-by-class () →? core::int orElse = #C3}) → core::int {
     core::Iterator<core::int> iterator = this.{core::Iterable::iterator}{core::Iterator<core::int>};
     core::int result;
     do {
@@ -534,7 +532,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
     return core::Iterable::iterableToShortString(this, "(", ")");
   static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ castFrom<S extends core::Object? = dynamic, T extends core::Object? = dynamic>(core::Iterable<iss::MixesInMixin::castFrom::S%> source) → core::Iterable<iss::MixesInMixin::castFrom::T%>
     return _in::CastIterable::•<iss::MixesInMixin::castFrom::S%, iss::MixesInMixin::castFrom::T%>(source);
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToShortString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
     if(_in::isToStringVisiting(iterable)) {
       if(leftDelimiter =={core::String::==}{(core::Object) → core::bool} "(" && rightDelimiter =={core::String::==}{(core::Object) → core::bool} ")") {
         return "(...)";
@@ -555,7 +553,7 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
       #t4.{core::StringBuffer::write}(rightDelimiter){(core::Object?) → void};
     } =>#t4).{core::StringBuffer::toString}(){() → core::String};
   }
-  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C5, core::String rightDelimiter = #C6]) → core::String {
+  static method /* from org-dartlang-sdk:///sdk/lib/core/iterable.dart */ iterableToFullString(core::Iterable<dynamic> iterable, [core::String leftDelimiter = #C4, core::String rightDelimiter = #C5]) → core::String {
     if(_in::isToStringVisiting(iterable)) {
       return "${leftDelimiter}...${rightDelimiter}";
     }
@@ -574,10 +572,9 @@ abstract mixin class MixesInMixin extends core::Object implements core::Iterable
 }
 
 constants  {
-  #C1 = constructor-tearoff core::Iterable::empty
-  #C2 = ""
-  #C3 = true
-  #C4 = null
-  #C5 = "("
-  #C6 = ")"
+  #C1 = ""
+  #C2 = true
+  #C3 = null
+  #C4 = "("
+  #C5 = ")"
 }

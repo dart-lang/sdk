@@ -259,14 +259,11 @@ class KernelTarget extends TargetImplementation {
 
   void _parseCurrentSdkVersion() {
     bool good = false;
-    // ignore: unnecessary_null_comparison
-    if (currentSdkVersionString != null) {
-      List<String> dotSeparatedParts = currentSdkVersionString.split(".");
-      if (dotSeparatedParts.length >= 2) {
-        _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
-            int.tryParse(dotSeparatedParts[1])!);
-        good = true;
-      }
+    List<String> dotSeparatedParts = currentSdkVersionString.split(".");
+    if (dotSeparatedParts.length >= 2) {
+      _currentSdkVersion = new Version(int.tryParse(dotSeparatedParts[0])!,
+          int.tryParse(dotSeparatedParts[1])!);
+      good = true;
     }
     if (!good) {
       throw new StateError(
@@ -583,7 +580,8 @@ class KernelTarget extends TargetImplementation {
   /// component.
   Future<BuildResult> buildComponent(
       {required MacroApplications? macroApplications,
-      bool verify = false}) async {
+      bool verify = false,
+      bool allowVerificationErrorForTesting = false}) async {
     if (loader.roots.isEmpty) {
       return new BuildResult(macroApplications: macroApplications);
     }
@@ -638,9 +636,15 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
 
+      if (loader.macroClass != null) {
+        checkMacroApplications(loader.hierarchy, loader.macroClass!,
+            loader.sourceLibraryBuilders, macroApplications);
+      }
+
       if (verify) {
         benchmarker?.enterPhase(BenchmarkPhases.body_verify);
-        this.verify();
+        _verify(
+            allowVerificationErrorForTesting: allowVerificationErrorForTesting);
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.body_installAllComponentProblems);
@@ -853,7 +857,6 @@ class KernelTarget extends TargetImplementation {
     assert(!builder.isExtension);
     // TODO(askesc): Make this check light-weight in the absence of patches.
     if (builder.cls.constructors.isNotEmpty) return;
-    if (builder.cls.redirectingFactories.isNotEmpty) return;
     for (Procedure proc in builder.cls.procedures) {
       if (proc.isFactory) return;
     }
@@ -1552,8 +1555,7 @@ class KernelTarget extends TargetImplementation {
     constants.ConstantCoverage coverage = constantEvaluationData.coverage;
     coverage.constructorCoverage.forEach((Uri fileUri, Set<Reference> value) {
       Source? source = uriToSource[fileUri];
-      // ignore: unnecessary_null_comparison
-      if (source != null && fileUri != null) {
+      if (source != null) {
         source.constantCoverageConstructors ??= new Set<Reference>();
         source.constantCoverageConstructors!.addAll(value);
       }
@@ -1621,11 +1623,13 @@ class KernelTarget extends TargetImplementation {
     return constants.EvaluationMode.fromNnbdMode(loader.nnbdMode);
   }
 
-  void verify() {
+  void _verify({required bool allowVerificationErrorForTesting}) {
     // TODO(ahe): How to handle errors.
-    verifyComponent(context.options.target,
+    List<LocatedMessage> errors = verifyComponent(context.options.target,
         VerificationStage.afterModularTransformations, component!,
         skipPlatform: context.options.skipPlatformVerification);
+    assert(allowVerificationErrorForTesting || errors.isEmpty,
+        "Verification errors found.");
     ClassHierarchy hierarchy =
         new ClassHierarchy(component!, new CoreTypes(component!),
             onAmbiguousSupertypes: (Class cls, Supertype a, Supertype b) {

@@ -775,6 +775,14 @@ final class Pointer<T extends NativeType> extends NativeType {
 
 final Pointer<Never> nullptr = Pointer.fromAddress(0);
 
+class NativeCallable<T extends Function> {
+  NativeCallable.listener(@DartRepresentationOf('T') Function callback) {}
+
+  Pointer<NativeFunction<T>> get nativeFunction;
+
+  void close();
+}
+
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
   external DF asFunction<DF extends Function>({bool isLeaf = false});

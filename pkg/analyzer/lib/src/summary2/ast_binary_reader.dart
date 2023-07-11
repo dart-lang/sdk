@@ -3,12 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/ast_factory.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -890,7 +888,7 @@ class AstBinaryReader {
   NamedExpression _readNamedExpression() {
     var name = _readStringReference();
     var nameNode = LabelImpl(
-      label: astFactory.simpleIdentifier(
+      label: SimpleIdentifierImpl(
         StringToken(TokenType.STRING, name, -1),
       ),
       colon: Tokens.colon(),
@@ -1187,7 +1185,7 @@ class AstBinaryReader {
 
   SimpleIdentifier _readSimpleIdentifier() {
     var name = _readStringReference();
-    var node = astFactory.simpleIdentifier(
+    var node = SimpleIdentifierImpl(
       StringToken(TokenType.STRING, name, -1),
     );
     node.staticElement = _reader.readElement();

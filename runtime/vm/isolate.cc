@@ -20,6 +20,7 @@
 #include "vm/debugger.h"
 #include "vm/deopt_instructions.h"
 #include "vm/dispatch_table.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/flags.h"
 #include "vm/heap/heap.h"
 #include "vm/heap/pointer_block.h"
@@ -335,9 +336,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       start_time_micros_(OS::GetCurrentMonotonicMicros()),
       is_system_isolate_group_(source->flags.is_system_isolate),
       random_(),
-#if !defined(DART_PRECOMPILED_RUNTIME)
-      native_callback_trampolines_(),
-#endif
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
       last_reload_timestamp_(OS::GetCurrentTimeMillis()),
       reload_every_n_stack_overflow_checks_(FLAG_reload_every),
@@ -820,6 +818,22 @@ void IsolateGroup::FreeStaticField(const Field& field) {
       field_table->Free(field_id);
     }
   });
+}
+
+Isolate* IsolateGroup::EnterTemporaryIsolate() {
+  Dart_IsolateFlags flags;
+  Isolate::FlagsInitialize(&flags);
+  Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
+  ASSERT(isolate != nullptr);
+  ASSERT(Isolate::Current() == isolate);
+  return isolate;
+}
+
+void IsolateGroup::ExitTemporaryIsolate() {
+  Thread* thread = Thread::Current();
+  ASSERT(thread != nullptr);
+  thread->set_execution_state(Thread::kThreadInVM);
+  Dart::ShutdownIsolate(thread);
 }
 
 void IsolateGroup::RehashConstants() {
@@ -1568,7 +1582,6 @@ Isolate::Isolate(IsolateGroup* isolate_group,
     : BaseIsolate(),
       current_tag_(UserTag::null()),
       default_tag_(UserTag::null()),
-      ic_miss_code_(Code::null()),
       field_table_(new FieldTable(/*isolate=*/this)),
       finalizers_(GrowableObjectArray::null()),
       isolate_group_(isolate_group),
@@ -1689,10 +1702,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   //
   // Though the [result] isolate is still in a state where no memory has been
   // allocated, which means it's safe to GC the isolate group until here.
-  if (!Thread::EnterIsolate(result)) {
-    delete result;
-    return nullptr;
-  }
+  Thread::EnterIsolate(result);
 
   // Setup the isolate message handler.
   MessageHandler* handler = new IsolateMessageHandler(result);
@@ -2308,9 +2318,16 @@ void Isolate::LowLevelShutdown() {
   delete message_handler();
   set_message_handler(nullptr);
 
+  // Clean up any synchronous FFI callbacks registered with this isolate. Skip
+  // if this isolate never registered any.
+  if (ffi_callback_list_head_ != nullptr) {
+    FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
+        &ffi_callback_list_head_);
+  }
+
 #if !defined(PRODUCT)
   if (FLAG_dump_megamorphic_stats) {
-    MegamorphicCacheTable::PrintSizes(this);
+    MegamorphicCacheTable::PrintSizes(thread);
   }
   if (FLAG_dump_symbol_stats) {
     Symbols::DumpStats(group());
@@ -2373,9 +2390,9 @@ void Isolate::Shutdown() {
 
   {
     StackZone zone(thread);
-    HandleScope handle_scope(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
+    HandleScope handle_scope(thread);
     debugger()->Shutdown();
     Profiler::IsolateShutdown(thread);
 #endif
@@ -2501,7 +2518,7 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
     // memory might have become unreachable. We should evaluate how to best
     // inform the GC about this situation.
   }
-}  // namespace dart
+}
 
 Dart_InitializeIsolateCallback Isolate::initialize_callback_ = nullptr;
 Dart_IsolateGroupCreateCallback Isolate::create_group_callback_ = nullptr;
@@ -2540,7 +2557,6 @@ void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,
   // Visit the objects directly referenced from the isolate structure.
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&current_tag_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&default_tag_));
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&ic_miss_code_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&sticky_error_));
   visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&finalizers_));
@@ -3023,10 +3039,6 @@ void Isolate::set_current_tag(const UserTag& tag) {
 
 void Isolate::set_default_tag(const UserTag& tag) {
   default_tag_ = tag.ptr();
-}
-
-void Isolate::set_ic_miss_code(const Code& code) {
-  ic_miss_code_ = code.ptr();
 }
 
 ErrorPtr Isolate::StealStickyError() {
@@ -3512,6 +3524,26 @@ void Isolate::WaitForOutstandingSpawns() {
   while (spawn_count_ > 0) {
     ml.WaitWithSafepointCheck(thread);
   }
+}
+
+FfiCallbackMetadata::Trampoline Isolate::CreateSyncFfiCallback(
+    Zone* zone,
+    const Function& function) {
+  return FfiCallbackMetadata::Instance()->CreateSyncFfiCallback(
+      this, zone, function, &ffi_callback_list_head_);
+}
+
+FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(
+    Zone* zone,
+    const Function& function,
+    Dart_Port send_port) {
+  return FfiCallbackMetadata::Instance()->CreateAsyncFfiCallback(
+      this, zone, function, send_port, &ffi_callback_list_head_);
+}
+
+void Isolate::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
+  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
+                                                  &ffi_callback_list_head_);
 }
 
 #if !defined(PRODUCT)

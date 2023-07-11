@@ -6,13 +6,13 @@ library type_test_helper;
 
 import 'dart:async';
 import 'package:compiler/src/elements/names.dart';
+import 'package:compiler/src/js_model/elements.dart';
 import 'package:expect/expect.dart';
 import 'package:compiler/src/common/elements.dart';
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/compiler.dart' show Compiler;
 import 'package:compiler/src/elements/types.dart';
 import 'package:compiler/src/elements/entities.dart';
-import 'package:compiler/src/kernel/kelements.dart';
 import 'package:compiler/src/kernel/kernel_strategy.dart';
 import 'package:compiler/src/kernel/kernel_world.dart';
 import 'package:compiler/src/options.dart';
@@ -163,7 +163,7 @@ class TypeEnvironment {
 
     for (Local local
         in compiler.frontendClosedWorldForTesting!.localFunctions) {
-      final kLocal = local as KLocalFunction;
+      final kLocal = local as JLocalFunction;
       if (kLocal.memberContext == member) {
         type ??= elementEnvironment.getLocalFunctionType(kLocal);
       }

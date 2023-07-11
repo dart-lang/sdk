@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
-static final field core::bool inSoundMode = !(<core::int?>[] is{ForNonNullableByDefault} core::List<core::int>);
+static final field core::bool inSoundMode = !(<core::int?>[] is core::List<core::int>);
 static method main() → dynamic {
   try {
-    throw (null as{ForNonNullableByDefault} dynamic) as{TypeError,ForNonNullableByDefault} core::Object;
+    throw (null as dynamic) as{TypeError} core::Object;
   }
   on core::TypeError catch(final core::TypeError e) {
     core::print("${e.{core::Object::runtimeType}{core::Type}}:${e}");

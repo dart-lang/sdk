@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -17,15 +17,13 @@ import self as self;
 import "dart:core" as core;
 
 class B<T extends core::Object? = dynamic> extends self::C<self::B::T%> {
-  static final field dynamic _redirecting# = <dynamic>[#C1]/*isLegacy*/;
   constructor •() → self::B<self::B::T%>
     : super self::C::•()
     ;
-  static factory foo<T extends core::Object? = dynamic>() → self::B<self::B::foo::T%>
+  static factory foo<T extends core::Object? = dynamic>() → self::B<self::B::foo::T%> /* redirection-target: self::B::•<self::B::foo::T%>*/
     return new self::B::•<self::B::foo::T%>();
 }
 class C<K extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C2]/*isLegacy*/;
   constructor •() → self::C<self::C::K%>
     : super core::Object::•()
     ;
@@ -38,9 +36,4 @@ static method main() → dynamic {
   invalid-expression "pkg/front_end/testcases/regress/issue_35266.dart:13:21: Error: Can't use 'B.foo' because it is declared more than once.
   factory C.bar() = B<K>.foo;
                     ^";
-}
-
-constants  {
-  #C1 = constructor-tearoff self::B::foo
-  #C2 = constructor-tearoff self::C::bar
 }

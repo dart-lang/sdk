@@ -1435,6 +1435,9 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
 
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
+
+  // The kind of callback this is. See FfiCallbackKind.
+  uint8_t callback_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
@@ -1453,6 +1456,7 @@ class UntaggedField : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(SmiPtr, host_offset_or_field_id)
   COMPRESSED_POINTER_FIELD(SmiPtr, guarded_list_length)
   COMPRESSED_POINTER_FIELD(WeakArrayPtr, dependent_code)
+  VISIT_TO(dependent_code);
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFull:
@@ -1467,13 +1471,6 @@ class UntaggedField : public UntaggedObject {
     UNREACHABLE();
     return nullptr;
   }
-#if defined(DART_PRECOMPILED_RUNTIME)
-  VISIT_TO(dependent_code);
-#else
-  // For type test in implicit setter.
-  COMPRESSED_POINTER_FIELD(SubtypeTestCachePtr, type_test_cache);
-  VISIT_TO(type_test_cache);
-#endif
   TokenPosition token_pos_;
   TokenPosition end_token_pos_;
   ClassIdTagType guarded_cid_;
@@ -2497,6 +2494,8 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   POINTER_FIELD(ArrayPtr, cache)
   VISIT_FROM(cache)
   VISIT_TO(cache)
+  uint32_t num_inputs_;
+  uint32_t num_occupied_;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {
@@ -3301,6 +3300,8 @@ class UntaggedDynamicLibrary : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(DynamicLibrary);
   VISIT_NOTHING();
   void* handle_;
+  bool isClosed_;
+  bool canBeClosed_;
 
   friend class DynamicLibrary;
 };
@@ -3523,7 +3524,7 @@ class UntaggedFinalizerBase : public UntaggedInstance {
   COMPRESSED_POINTER_FIELD(FinalizerEntryPtr, entries_collected)
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3548,7 +3549,7 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
   }
 
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
@@ -3599,7 +3600,7 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
   template <typename GCVisitorType>
-  friend void MournFinalized(GCVisitorType* visitor);
+  friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
   friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;

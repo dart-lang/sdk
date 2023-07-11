@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -16,53 +16,40 @@ import self as self;
 import "dart:core" as core;
 
 class Class extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2, #C3, #C4, #C5, #C6, #C7, #C8, #C9, #C10, #C11, #C12]/*isLegacy*/;
-  constructor positional([core::int a = #C13, core::int b = #C14]) → self::Class
+  constructor positional([core::int a = #C1, core::int b = #C2]) → self::Class
     : super core::Object::•()
     ;
-  constructor named({core::int a = #C13, core::int b = #C14}) → self::Class
+  constructor named({core::int a = #C1, core::int b = #C2}) → self::Class
     : super core::Object::•()
     ;
-  static factory redirect1a() → self::Class
+  static factory redirect1a() → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional();
-  static factory redirect2a(core::int a = #C13) → self::Class
+  static factory redirect2a(core::int a = #C1) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
-  static factory redirect3a([core::int a = #C13]) → self::Class
+  static factory redirect3a([core::int a = #C1]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a);
-  static factory redirect4a(core::int a = #C13, [core::int b = #C14]) → self::Class
+  static factory redirect4a(core::int a = #C1, [core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect5a([core::int a = #C13, core::int b = #C14]) → self::Class
+  static factory redirect5a([core::int a = #C1, core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect6a([core::int a = #C13, core::int b = #C14]) → self::Class
+  static factory redirect6a([core::int a = #C1, core::int b = #C2]) → self::Class /* redirection-target: self::Class::positional */
     return new self::Class::positional(a, b);
-  static factory redirect1b() → self::Class
+  static factory redirect1b() → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named();
-  static factory redirect2b({core::int a = #C13}) → self::Class
+  static factory redirect2b({core::int a = #C1}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a);
-  static factory redirect3b({core::int b = #C14}) → self::Class
+  static factory redirect3b({core::int b = #C2}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(b: b);
-  static factory redirect4b({core::int a = #C13, core::int b = #C14}) → self::Class
+  static factory redirect4b({core::int a = #C1, core::int b = #C2}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a, b: b);
-  static factory redirect5b({core::int b = #C14, core::int a = #C13}) → self::Class
+  static factory redirect5b({core::int b = #C2, core::int a = #C1}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(b: b, a: a);
-  static factory redirect6b({core::int a = #C13, core::int b = #C14}) → self::Class
+  static factory redirect6b({core::int a = #C1, core::int b = #C2}) → self::Class /* redirection-target: self::Class::named */
     return new self::Class::named(a: a, b: b);
 }
 static method main() → dynamic {}
 
 constants  {
-  #C1 = constructor-tearoff self::Class::redirect1a
-  #C2 = constructor-tearoff self::Class::redirect2a
-  #C3 = constructor-tearoff self::Class::redirect3a
-  #C4 = constructor-tearoff self::Class::redirect4a
-  #C5 = constructor-tearoff self::Class::redirect5a
-  #C6 = constructor-tearoff self::Class::redirect6a
-  #C7 = constructor-tearoff self::Class::redirect1b
-  #C8 = constructor-tearoff self::Class::redirect2b
-  #C9 = constructor-tearoff self::Class::redirect3b
-  #C10 = constructor-tearoff self::Class::redirect4b
-  #C11 = constructor-tearoff self::Class::redirect5b
-  #C12 = constructor-tearoff self::Class::redirect6b
-  #C13 = 0
-  #C14 = 42
+  #C1 = 0
+  #C2 = 42
 }

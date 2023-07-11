@@ -11,7 +11,7 @@ import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
-class SplitAndCondition extends CorrectionProducer {
+class SplitAndCondition extends ResolvedCorrectionProducer {
   @override
   AssistKind get assistKind => DartAssistKind.SPLIT_AND_CONDITION;
 

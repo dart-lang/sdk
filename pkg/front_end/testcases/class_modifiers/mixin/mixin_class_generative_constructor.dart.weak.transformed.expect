@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -93,23 +93,17 @@ mixin class ConstMixinClassConstructor extends core::Object /*hasConstConstructo
 }
 mixin class MixinClassFactory extends core::Object {
   field core::int foo = 0;
-  static final field dynamic _redirecting# = <dynamic>[#C1, #C2]/*isLegacy*/;
   constructor •() → self::MixinClassFactory
     : super core::Object::•()
     ;
   constructor named() → self::MixinClassFactory
     : super core::Object::•()
     ;
-  static factory x() → self::MixinClassFactory
+  static factory x() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::named */
     return new self::MixinClassFactory::named();
-  static factory y() → self::MixinClassFactory
+  static factory y() → self::MixinClassFactory /* redirection-target: self::MixinClassFactory::• */
     return new self::MixinClassFactory::•();
   static factory z() → self::MixinClassFactory {
     return new self::MixinClassFactory::•();
   }
-}
-
-constants  {
-  #C1 = constructor-tearoff self::MixinClassFactory::x
-  #C2 = constructor-tearoff self::MixinClassFactory::y
 }

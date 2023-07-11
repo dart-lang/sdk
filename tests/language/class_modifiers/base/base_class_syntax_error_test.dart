@@ -2,15 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// SharedOptions=--enable-experiment=class-modifiers
-
 // Syntax errors such as using `base` keyword in a place other than a class or
 // mixin.
 
 abstract class BaseMembers {
   base int foo;
 //^^^^
-// [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
 // [analyzer] COMPILE_TIME_ERROR.NOT_A_TYPE
 // [cfe] 'base' isn't a type.
 //     ^^^

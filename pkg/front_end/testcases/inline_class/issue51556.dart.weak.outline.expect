@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -31,31 +31,31 @@ inline class JSNumber /* declaredRepresentationType = core::double */ implements
   constructor • = self::JSNumber|;
   tearoff • = self::JSNumber|_#new#tearOff;
 }
-static method JSAny|(core::Object value) → self::JSAny
+static inline-class-member method JSAny|(core::Object value) → self::JSAny
   ;
-static method JSAny|_#new#tearOff(core::Object value) → self::JSAny
+static inline-class-member method JSAny|_#new#tearOff(core::Object value) → self::JSAny
   return self::JSAny|(value);
-static method JSObject|(core::Object value) → self::JSObject
+static inline-class-member method JSObject|(core::Object value) → self::JSObject
   ;
-static method JSObject|_#new#tearOff(core::Object value) → self::JSObject
+static inline-class-member method JSObject|_#new#tearOff(core::Object value) → self::JSObject
   return self::JSObject|(value);
-static method JSArray|(core::List<self::JSAny?> value) → self::JSArray
+static inline-class-member method JSArray|(core::List<self::JSAny?> value) → self::JSArray
   ;
-static method JSArray|_#new#tearOff(core::List<self::JSAny?> value) → self::JSArray
+static inline-class-member method JSArray|_#new#tearOff(core::List<self::JSAny?> value) → self::JSArray
   return self::JSArray|(value);
-static method JSExportedDartObject|(core::Object value) → self::JSExportedDartObject
+static inline-class-member method JSExportedDartObject|(core::Object value) → self::JSExportedDartObject
   ;
-static method JSExportedDartObject|_#new#tearOff(core::Object value) → self::JSExportedDartObject
+static inline-class-member method JSExportedDartObject|_#new#tearOff(core::Object value) → self::JSExportedDartObject
   return self::JSExportedDartObject|(value);
-static method JSNumber|(core::double value) → self::JSNumber
+static inline-class-member method JSNumber|(core::double value) → self::JSNumber
   ;
-static method JSNumber|_#new#tearOff(core::double value) → self::JSNumber
+static inline-class-member method JSNumber|_#new#tearOff(core::double value) → self::JSNumber
   return self::JSNumber|(value);
-static method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject
+static extension-member method ObjectToJSExportedDartObject|get#toJS(lowered final core::Object #this) → self::JSExportedDartObject
   ;
-static method ListToJSArray|get#toJS(lowered final core::List<self::JSAny?> #this) → self::JSArray
+static extension-member method ListToJSArray|get#toJS(lowered final core::List<self::JSAny?> #this) → self::JSArray
   ;
-static method DoubleToJSNumber|get#toJS(lowered final core::double #this) → self::JSNumber
+static extension-member method DoubleToJSNumber|get#toJS(lowered final core::double #this) → self::JSNumber
   ;
 static method main() → void
   ;

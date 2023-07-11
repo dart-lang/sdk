@@ -23,6 +23,7 @@
 #include "vm/compiler/api/type_check_mode.h"
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -385,29 +386,80 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ ret();
 }
 
-#if !defined(DART_PRECOMPILER)
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ jmp(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  const intptr_t reloc_end = __ CodeSize();
+  __ Bind(&skip_reloc);
+
+  const intptr_t kLeaqLength = 7;
+  __ leaq(dst, compiler::Address::AddressRIPRelative(
+                   -kLeaqLength - compiler::target::kWordSize));
+  ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
+
+  // dst holds the address of the relocation.
+  __ movq(tmp, compiler::Address(dst, 0));
+
+  // tmp holds the relocation itself: dst - bss_start.
+  // dst = dst + (bss_start - dst) = bss_start
+  __ addq(dst, tmp);
+
+  // dst holds the start of the BSS section.
+  // Load the routine.
+  __ movq(dst, compiler::Address(dst, 0));
+}
+
+void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
+    uword function_index,
+    Register dst) {
+  // Keep in sync with FfiCallbackMetadata::EnsureFirstTrampolinePageLocked.
+  // Note: If the stub was aligned, this could be a single PC relative load.
+
+  // Load a pointer to the beginning of the stub into dst.
+  const intptr_t kLeaqLength = 7;
+  const intptr_t code_size = __ CodeSize();
+  __ leaq(dst, Address::AddressRIPRelative(-kLeaqLength - code_size));
+
+  // Round dst down to the page size.
+  __ andq(dst, Immediate(FfiCallbackMetadata::kPageMask));
+
+  // Load the function from the function table.
+  __ LoadFromOffset(
+      dst,
+      Address(dst, FfiCallbackMetadata::RuntimeFunctionOffset(function_index)));
+}
+
 static const RegisterSet kArgumentRegisterSet(
     CallingConventions::kArgumentRegisters,
     CallingConventions::kFpuArgumentRegisters);
 
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-  Label done;
-
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // RAX is volatile and not used for passing any arguments.
   COMPILE_ASSERT(!IsCalleeSavedRegister(RAX) && !IsArgumentRegister(RAX));
 
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    __ movq(RAX, compiler::Immediate(next_callback_id + i));
-    __ jmp(&done);
+  Label body;
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section. RIP gives us the
+    // address of the next instruction, so to get the true entry point, we have
+    // to subtract the size of the leaq instruction.
+    const intptr_t kLeaqLength = 7;
+    const intptr_t size_before = __ CodeSize();
+    __ leaq(RAX, Address::AddressRIPRelative(-kLeaqLength));
+    const intptr_t size_after = __ CodeSize();
+    ASSERT_EQUAL(size_after - size_before, kLeaqLength);
+    __ jmp(&body);
   }
 
   ASSERT_EQUAL(__ CodeSize(),
-               kNativeCallbackTrampolineSize *
-                   NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
+               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
-  __ Bind(&done);
+  __ Bind(&body);
 
   const intptr_t shared_stub_start = __ CodeSize();
 
@@ -415,37 +467,63 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   __ pushq(THR);
 
   // 2 = THR & return address
-  COMPILE_ASSERT(2 == StubCodeCompiler::kNativeCallbackTrampolineStackDelta);
-
-  // Save the callback ID.
-  __ pushq(RAX);
+  COMPILE_ASSERT(2 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Save all registers which might hold arguments.
   __ PushRegisters(kArgumentRegisterSet);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to save code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to safe
+  // code size on this shared stub.
   {
+    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
+    __ movq(CallingConventions::kArg1Reg, RAX);
+
+    // We also need to look up the entry point for the trampoline. This is
+    // returned using a pointer passed to the second arg of the C function
+    // below. We aim that pointer at a reserved stack slot.
+    COMPILE_ASSERT(RAX != CallingConventions::kArg2Reg);
+    __ pushq(Immediate(0));  // Reserve a stack slot for the entry point.
+    __ movq(CallingConventions::kArg2Reg, RSP);
+
+    // We also need to know if this is a sync or async callback. This is also
+    // returned by pointer.
+    COMPILE_ASSERT(RAX != CallingConventions::kArg3Reg);
+    __ pushq(Immediate(0));  // Reserve a stack slot for the trampoline type.
+    __ movq(CallingConventions::kArg3Reg, RSP);
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_GetFfiCallbackMetadata, RAX,
+                           TMP);
+    } else {
+      __ movq(RAX, Immediate(
+                       reinterpret_cast<int64_t>(DLRT_GetFfiCallbackMetadata)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
     __ EnterFrame(0);
     __ ReserveAlignedFrameSpace(0);
 
-    COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
-    __ movq(CallingConventions::kArg1Reg, RAX);
-    __ movq(RAX, compiler::Immediate(reinterpret_cast<int64_t>(
-                     DLRT_GetThreadForNativeCallbackTrampoline)));
     __ CallCFunction(RAX);
     __ movq(THR, RAX);
 
     __ LeaveFrame();
+
+    // The trampoline type is at the top of the stack. Pop it into RAX.
+    __ popq(RAX);
+
+    // Entry point is now at the top of the stack. Pop it into TMP.
+    __ popq(TMP);
   }
 
   // Restore the arguments.
   __ PopRegisters(kArgumentRegisterSet);
-
-  // Restore the callback ID.
-  __ popq(RAX);
 
   // Current state:
   //
@@ -454,33 +532,25 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   //  <return address>
   //  <saved THR>
   //
-  // Registers: Like entry, except RAX == callback_id and THR == thread
+  // Registers: Like entry, except TMP == target, RAX == abi, and THR == thread
   //            All argument registers are untouched.
 
-  COMPILE_ASSERT(!IsCalleeSavedRegister(TMP) && !IsArgumentRegister(TMP));
+  Label async_callback;
+  Label done;
 
-  // Load the target from the thread.
-  __ movq(TMP, compiler::Address(
-                   THR, compiler::target::Thread::isolate_group_offset()));
-  __ movq(TMP, compiler::Address(
-                   TMP, compiler::target::IsolateGroup::object_store_offset()));
-  __ movq(TMP,
-          compiler::Address(
-              TMP, compiler::target::ObjectStore::ffi_callback_code_offset()));
-  __ LoadCompressed(
-      TMP, compiler::FieldAddress(
-               TMP, compiler::target::GrowableObjectArray::data_offset()));
-  __ LoadCompressed(
-      TMP,
-      __ ElementAddressForRegIndex(
-          /*external=*/false,
-          /*array_cid=*/kArrayCid,
-          /*index_scale, smi-tagged=*/compiler::target::kCompressedWordSize * 2,
-          /*index_unboxed=*/false,
-          /*array=*/TMP,
-          /*index=*/RAX));
-  __ movq(TMP, compiler::FieldAddress(
-                   TMP, compiler::target::Code::entry_point_offset()));
+  // If GetFfiCallbackMetadata returned a null thread, it means that the
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmpq(THR, Immediate(0));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmpq(RAX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
 
   // On entry to the function, there will be two extra slots on the stack:
   // the saved THR and the return address. The target will know to skip them.
@@ -489,6 +559,42 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
   // Takes care to not clobber *any* registers (besides TMP).
   __ EnterFullSafepoint();
 
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(TMP);
+
+  // Exit the temporary isolate.
+  {
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DRT_ExitTemporaryIsolate, RAX, TMP);
+    } else {
+      __ movq(RAX,
+              Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
+    }
+#else
+    GenerateLoadFfiCallbackMetadataRuntimeFunction(
+        FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ CallCFunction(RAX);
+
+    __ LeaveFrame();
+  }
+
+  __ Bind(&done);
+
   // Restore THR (callee-saved).
   __ popq(THR);
 
@@ -496,16 +602,16 @@ void StubCodeCompiler::GenerateJITCallbackTrampolines(
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
-  ASSERT((__ CodeSize() - shared_stub_start) <= kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
 #endif
 }
-#endif  // !defined(DART_PRECOMPILER)
 
 // RBX: The extracted method.
 // RDX: The type_arguments_field_offset (or 0)
@@ -1465,7 +1571,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ movq(Assembler::VMTagAddress(), Immediate(VMTag::kDartTagId));
 
   // Load arguments descriptor array into R10, which is passed to Dart code.
-  __ movq(R10, Address(kArgDescReg, VMHandles::kOffsetOfRawPtrInHandle));
+  __ movq(R10, kArgDescReg);
 
   // Push arguments. At this point we only need to preserve kTargetReg.
   ASSERT(kTargetReg != RDX);
@@ -1485,8 +1591,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   __ SmiUntag(RBX);
 
   // Compute address of 'arguments array' data area into RDX.
-  __ movq(RDX, Address(kArgsReg, VMHandles::kOffsetOfRawPtrInHandle));
-  __ leaq(RDX, FieldAddress(RDX, target::Array::data_offset()));
+  __ leaq(RDX, FieldAddress(kArgsReg, target::Array::data_offset()));
 
   // Set up arguments for the Dart call.
   Label push_arguments;
@@ -1511,7 +1616,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
     __ xorq(CODE_REG, CODE_REG);  // GC-safe value into CODE_REG.
   } else {
     __ xorq(PP, PP);  // GC-safe value into PP.
-    __ movq(CODE_REG, Address(kTargetReg, VMHandles::kOffsetOfRawPtrInHandle));
+    __ movq(CODE_REG, kTargetReg);
     __ movq(kTargetReg,
             FieldAddress(CODE_REG, target::Code::entry_point_offset()));
   }
@@ -1918,14 +2023,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpq(Address(TMP, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads.
+    __ pushq(RAX);
+    __ pushq(RCX);
     __ subq(R13, TMP);  // Offset in page.
     __ movq(TMP,
             Address(TMP, target::Page::card_table_offset()));  // Card table.
-    __ shrq(
-        R13,
-        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
-    __ movb(Address(TMP, R13, TIMES_1, 0), Immediate(1));
+    __ shrq(R13, Immediate(target::Page::kBytesPerCardLog2));  // Card index.
+    __ movq(RCX, R13);
+    __ shrq(R13, Immediate(target::kBitsPerWordLog2));  // Word offset.
+    __ movq(RAX, Immediate(1));
+    __ shlq(RAX, RCX);  // Bit mask. (Shift amount is mod 63.)
+    __ orq(Address(TMP, R13, TIMES_8, 0), RAX);
+    __ popq(RCX);
+    __ popq(RAX);
     __ ret();
 
     // Card table not yet allocated.
@@ -2902,21 +3014,21 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 
 // Used to check class and type arguments. Arguments passed in registers:
 //
-// Input registers (from TypeTestABI struct):
+// Input registers (all preserved, from TypeTestABI struct):
 //   - kSubtypeTestCacheReg: UntaggedSubtypeTestCache
 //   - kInstanceReg: instance to test against (must be preserved).
-//   - kDstTypeReg: destination type (for n>=3).
-//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=5).
-//   - kFunctionTypeArgumentsReg : function type arguments (for n>=5).
+//   - kDstTypeReg: destination type (for n>=7).
+//   - kInstantiatorTypeArgumentsReg : instantiator type arguments (for n>=3).
+//   - kFunctionTypeArgumentsReg : function type arguments (for n>=4).
 // Inputs from stack:
 //   - TOS + 0: return address.
 //
-// All input registers are preserved.
-//
-// Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
-// result (true or false).
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
+// Outputs (from TypeTestABI struct):
+//   - kSubtypeTestCacheResultReg: the cached result, or null if not found.
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
+  RegisterSet saved_registers;
 
   // Until we have the result, we use the result register to store the null
   // value for quick access. This has the side benefit of initializing the
@@ -2924,204 +3036,70 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Register kNullReg = TypeTestABI::kSubtypeTestCacheResultReg;
   __ LoadObject(kNullReg, NullObject());
 
-  const Register kScratchReg = TypeTestABI::kScratchReg;
-
-  // Only used for n >= 7, so set conditionally in that case to catch misuse.
+  // Free up additional registers needed for checks in the loop. Initially
+  // define them as kNoRegister so any unexpected uses are caught.
   Register kInstanceParentFunctionTypeArgumentsReg = kNoRegister;
-  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
-
-  // Free up these 2 registers to be used for 7-value test.
-  if (n >= 7) {
-    kInstanceParentFunctionTypeArgumentsReg = PP;
-    kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
-    __ pushq(kInstanceParentFunctionTypeArgumentsReg);
-    __ pushq(kInstanceDelayedFunctionTypeArgumentsReg);
-  }
-
-  // Loop initialization (moved up here to avoid having all dependent loads
-  // after each other).
-
-  // We avoid a load-acquire barrier here by relying on the fact that all other
-  // loads from the array are data-dependent loads.
-  __ movq(STCInternalRegs::kCacheEntryReg,
-          FieldAddress(TypeTestABI::kSubtypeTestCacheReg,
-                       target::SubtypeTestCache::cache_offset()));
-  __ addq(STCInternalRegs::kCacheEntryReg,
-          Immediate(target::Array::data_offset() - kHeapObjectTag));
-
-  Label loop, not_closure;
   if (n >= 5) {
-    __ LoadClassIdMayBeSmi(STCInternalRegs::kInstanceCidOrSignatureReg,
-                           TypeTestABI::kInstanceReg);
-  } else {
-    __ LoadClassId(STCInternalRegs::kInstanceCidOrSignatureReg,
-                   TypeTestABI::kInstanceReg);
+    kInstanceParentFunctionTypeArgumentsReg = PP;
+    saved_registers.AddRegister(kInstanceParentFunctionTypeArgumentsReg);
   }
-  __ cmpq(STCInternalRegs::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
-  __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
-
-  // Closure handling.
-  {
-    __ Comment("Closure");
-    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
-                      FieldAddress(TypeTestABI::kInstanceReg,
-                                   target::Closure::function_offset()));
-    __ LoadCompressed(STCInternalRegs::kInstanceCidOrSignatureReg,
-                      FieldAddress(STCInternalRegs::kInstanceCidOrSignatureReg,
-                                   target::Function::signature_offset()));
-    if (n >= 3) {
-      __ LoadCompressed(
-          STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-          FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ LoadCompressed(
-            kInstanceParentFunctionTypeArgumentsReg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset()));
-        __ LoadCompressed(
-            kInstanceDelayedFunctionTypeArgumentsReg,
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset()));
-      }
-    }
-    __ jmp(&loop, Assembler::kNearJump);
+  Register kInstanceDelayedFunctionTypeArgumentsReg = kNoRegister;
+  if (n >= 6) {
+    kInstanceDelayedFunctionTypeArgumentsReg = CODE_REG;
+    saved_registers.AddRegister(kInstanceDelayedFunctionTypeArgumentsReg);
   }
 
-  // Non-Closure handling.
-  {
-    __ Comment("Non-Closure");
-    __ Bind(&not_closure);
-    if (n >= 3) {
-      Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg,
-                       STCInternalRegs::kInstanceCidOrSignatureReg);
-      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg, kNullReg);
-      __ movl(
-          kScratchReg,
-          FieldAddress(kScratchReg,
-                       target::Class::
-                           host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
-      __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-      __ movq(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg,
-                           TIMES_COMPRESSED_WORD_SIZE, 0));
-      __ Bind(&has_no_type_arguments);
-      __ Comment("No type arguments");
-
-      if (n >= 7) {
-        __ movq(kInstanceParentFunctionTypeArgumentsReg, kNullReg);
-        __ movq(kInstanceDelayedFunctionTypeArgumentsReg, kNullReg);
-      }
-    }
-    __ SmiTag(STCInternalRegs::kInstanceCidOrSignatureReg);
+  // We'll replace these with actual registers if possible, but fall back to
+  // the stack if register pressure is too great. The last two values are
+  // used in every loop iteration, and so are more important to put in
+  // registers if possible, whereas the first is used only when we go off
+  // the end of the backing array (usually at most once per check).
+  Register kCacheContentsSizeReg = kNoRegister;
+  if (n < 5) {
+    // Use the register we would have used for the parent function type args.
+    kCacheContentsSizeReg = PP;
+    saved_registers.AddRegister(kCacheContentsSizeReg);
+  }
+  Register kProbeDistanceReg = kNoRegister;
+  if (n < 6) {
+    // Use the register we would have used for the delayed type args.
+    kProbeDistanceReg = CODE_REG;
+    saved_registers.AddRegister(kProbeDistanceReg);
+  }
+  Register kCacheEntryEndReg = kNoRegister;
+  if (n < 2) {
+    // This register isn't in use and doesn't require saving/restoring.
+    kCacheEntryEndReg = STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg;
+  } else if (n < 7) {
+    // Use the destination type, as that is the last input that might be unused.
+    kCacheEntryEndReg = TypeTestABI::kDstTypeReg;
+    saved_registers.AddRegister(TypeTestABI::kDstTypeReg);
   }
 
-  Label found, not_found, next_iteration;
+  __ PushRegisters(saved_registers);
 
-  // Loop header.
-  __ Bind(&loop);
-  __ Comment("Loop");
-  __ OBJ(mov)(kScratchReg,
-              Address(STCInternalRegs::kCacheEntryReg,
-                      target::kCompressedWordSize *
-                          target::SubtypeTestCache::kInstanceCidOrSignature));
-  __ OBJ(cmp)(kScratchReg, kNullReg);
-  __ j(EQUAL, &not_found, Assembler::kNearJump);
-  __ OBJ(cmp)(kScratchReg, STCInternalRegs::kInstanceCidOrSignatureReg);
-  if (n == 1) {
-    __ j(EQUAL, &found, Assembler::kNearJump);
-  } else {
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ OBJ(cmp)(TypeTestABI::kDstTypeReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kCompressedWordSize *
-                            target::SubtypeTestCache::kDestinationType));
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ OBJ(cmp)(STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
-                Address(STCInternalRegs::kCacheEntryReg,
-                        target::kCompressedWordSize *
-                            target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 3) {
-      __ j(EQUAL, &found, Assembler::kNearJump);
-    } else {
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ OBJ(cmp)(
-          TypeTestABI::kInstantiatorTypeArgumentsReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments));
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ OBJ(cmp)(
-          TypeTestABI::kFunctionTypeArgumentsReg,
-          Address(STCInternalRegs::kCacheEntryReg,
-                  target::kCompressedWordSize *
-                      target::SubtypeTestCache::kFunctionTypeArguments));
-
-      if (n == 5) {
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      } else {
-        ASSERT(n == 7);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-
-        __ OBJ(cmp)(kInstanceParentFunctionTypeArgumentsReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::
-                                    kInstanceParentFunctionTypeArguments));
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ OBJ(cmp)(kInstanceDelayedFunctionTypeArgumentsReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::
-                                    kInstanceDelayedFunctionTypeArguments));
-        __ j(EQUAL, &found, Assembler::kNearJump);
-      }
-    }
-  }
-
-  __ Bind(&next_iteration);
-  __ Comment("Next iteration");
-  __ addq(STCInternalRegs::kCacheEntryReg,
-          Immediate(target::kCompressedWordSize *
-                    target::SubtypeTestCache::kTestEntryLength));
-  __ jmp(&loop, Assembler::kNearJump);
-
-  __ Bind(&found);
-  __ Comment("Found");
-  __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
-                    Address(STCInternalRegs::kCacheEntryReg,
-                            target::kCompressedWordSize *
-                                target::SubtypeTestCache::kTestResult));
-
-  __ Bind(&not_found);
-  __ Comment("Not found");
-  if (n >= 7) {
-    __ popq(kInstanceDelayedFunctionTypeArgumentsReg);
-    __ popq(kInstanceParentFunctionTypeArgumentsReg);
-  }
-  __ ret();
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
+  Label done;
+  GenerateSubtypeTestCacheSearch(
+      assembler, n, kNullReg, STCInternalRegs::kCacheEntryReg,
+      STCInternalRegs::kInstanceCidOrSignatureReg,
+      STCInternalRegs::kInstanceInstantiatorTypeArgumentsReg,
+      kInstanceParentFunctionTypeArgumentsReg,
+      kInstanceDelayedFunctionTypeArgumentsReg, kCacheEntryEndReg,
+      kCacheContentsSizeReg, kProbeDistanceReg,
+      [&](Assembler* assembler, int n) {
+        __ LoadCompressed(TypeTestABI::kSubtypeTestCacheResultReg,
+                          Address(STCInternalRegs::kCacheEntryReg,
+                                  target::kCompressedWordSize *
+                                      target::SubtypeTestCache::kTestResult));
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      },
+      [&](Assembler* assembler, int n) {
+        // We initialize kSubtypeTestCacheResultReg to null so it can be used
+        // for null checks, so the result value is already set.
+        __ PopRegisters(saved_registers);
+        __ Ret();
+      });
 }
 
 // Return the current stack pointer address, used to stack alignment
@@ -3465,10 +3443,7 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   }
 
   __ Bind(&miss);
-  __ LoadIsolate(RAX);
-  __ movq(CODE_REG, Address(RAX, target::Isolate::ic_miss_code_offset()));
-  __ movq(RCX, FieldAddress(CODE_REG, target::Code::entry_point_offset()));
-  __ jmp(RCX);
+  __ jmp(Address(THR, target::Thread::switchable_call_miss_entry_offset()));
 }
 
 void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub() {

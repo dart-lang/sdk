@@ -25,6 +25,26 @@ class PropertyAccessTest2 extends AbstractCompletionDriverTest
     with PropertyAccessTestCases {
   @override
   TestingCompletionProtocol get protocol => TestingCompletionProtocol.version2;
+
+  @failingTest
+  Future<void> test_afterIdentifier_partial_if() async {
+    await computeSuggestions('''
+enum E {
+  always, ifPresent
+}
+void f() {
+  E.if^;
+}
+''');
+    allowedIdentifiers = {'always', 'ifPresent'};
+    assertResponse(r'''
+replacement
+  left: 2
+suggestions
+  ifPresent
+    kind: enumConstant
+''');
+  }
 }
 
 mixin PropertyAccessTestCases on AbstractCompletionDriverTest {

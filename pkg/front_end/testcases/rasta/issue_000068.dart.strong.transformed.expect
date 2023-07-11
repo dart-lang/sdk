@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "package:expect/expect.dart" as exp;
@@ -26,11 +26,11 @@ class C extends self::B {
     ;
 }
 static method main() → dynamic {
-  exp::Expect::isFalse(new self::G::•<self::B>() is{ForNonNullableByDefault} self::G<self::C>);
-  exp::Expect::isFalse(new self::G::•<self::A>() is{ForNonNullableByDefault} self::G<self::B>);
-  exp::Expect::isFalse(new self::G::•<self::A>() is{ForNonNullableByDefault} self::G<self::C>);
-  exp::Expect::isFalse(new self::G::•<core::Object>() is{ForNonNullableByDefault} self::G<self::B>);
-  exp::Expect::isFalse(new self::G::•<core::int>() is{ForNonNullableByDefault} self::G<self::B>);
-  exp::Expect::isFalse(new self::G::•<core::int>() is{ForNonNullableByDefault} self::G<core::double>);
-  exp::Expect::isFalse(new self::G::•<core::int>() is{ForNonNullableByDefault} self::G<core::String>);
+  exp::Expect::isFalse(new self::G::•<self::B>() is self::G<self::C>);
+  exp::Expect::isFalse(new self::G::•<self::A>() is self::G<self::B>);
+  exp::Expect::isFalse(new self::G::•<self::A>() is self::G<self::C>);
+  exp::Expect::isFalse(new self::G::•<core::Object>() is self::G<self::B>);
+  exp::Expect::isFalse(new self::G::•<core::int>() is self::G<self::B>);
+  exp::Expect::isFalse(new self::G::•<core::int>() is self::G<core::double>);
+  exp::Expect::isFalse(new self::G::•<core::int>() is self::G<core::String>);
 }

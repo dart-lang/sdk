@@ -171,6 +171,7 @@ namespace bin {
   V(Socket_SetRawOption, 4)                                                    \
   V(Socket_SetSocketId, 3)                                                     \
   V(Socket_WriteList, 4)                                                       \
+  V(Socket_HasPendingWrite, 1)                                                 \
   V(SocketControlMessage_fromHandles, 2)                                       \
   V(SocketControlMessageImpl_extractHandles, 1)                                \
   V(Stdin_ReadByte, 1)                                                         \

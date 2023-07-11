@@ -18,7 +18,7 @@ namespace kernel {
 // package:kernel/binary.md.
 
 static const uint32_t kMagicProgramFile = 0x90ABCDEFu;
-static const uint32_t kSupportedKernelFormatVersion = 102;
+static const uint32_t kSupportedKernelFormatVersion = 106;
 
 // Keep in sync with package:kernel/lib/binary/tag.dart
 #define KERNEL_TAG_LIST(V)                                                     \
@@ -31,7 +31,6 @@ static const uint32_t kSupportedKernelFormatVersion = 102;
   V(Field, 4)                                                                  \
   V(Constructor, 5)                                                            \
   V(Procedure, 6)                                                              \
-  V(RedirectingFactory, 108)                                                   \
   V(InvalidInitializer, 7)                                                     \
   V(FieldInitializer, 8)                                                       \
   V(SuperInitializer, 9)                                                       \
@@ -136,6 +135,8 @@ static const uint32_t kSupportedKernelFormatVersion = 102;
   V(RecordType, 100)                                                           \
   V(InlineType, 103)                                                           \
   V(ConstantExpression, 106)                                                   \
+  V(FutureOrType, 107)                                                         \
+  V(FileUriConstantExpression, 108)                                            \
   V(InstanceGet, 118)                                                          \
   V(InstanceSet, 119)                                                          \
   V(InstanceInvocation, 120)                                                   \
@@ -171,6 +172,7 @@ static const uint32_t kSupportedKernelFormatVersion = 102;
   V(IfCaseStatement, 149)                                                      \
   V(PatternAssignment, 150)                                                    \
   V(PatternVariableDeclaration, 151)                                           \
+  V(NullType, 152)                                                             \
   V(SpecializedVariableGet, 224)                                               \
   V(SpecializedVariableSet, 232)                                               \
   V(SpecializedIntLiteral, 240)

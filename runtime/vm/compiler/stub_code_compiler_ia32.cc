@@ -19,6 +19,7 @@
 #include "vm/compiler/assembler/assembler.h"
 #include "vm/compiler/backend/locations.h"
 #include "vm/constants.h"
+#include "vm/ffi_callback_metadata.h"
 #include "vm/instructions.h"
 #include "vm/static_type_exactness_state.h"
 #include "vm/tags.h"
@@ -189,6 +190,13 @@ void StubCodeCompiler::GenerateExitSafepointIgnoreUnwindInProgressStub() {
       kExitSafepointIgnoreUnwindInProgressRuntimeEntry.OffsetFromThread());
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  // Only used in AOT.
+  __ Breakpoint();
+}
+
 // Calls a native function inside a safepoint.
 //
 // On entry:
@@ -210,143 +218,172 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
   __ jmp(EBX);
 }
 
-void StubCodeCompiler::GenerateJITCallbackTrampolines(
-    intptr_t next_callback_id) {
-  Label done, ret_4;
+void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
+  Label ret_4;
 
   // EAX is volatile and doesn't hold any arguments.
   COMPILE_ASSERT(!IsArgumentRegister(EAX) && !IsCalleeSavedRegister(EAX));
 
-  for (intptr_t i = 0;
-       i < NativeCallbackTrampolines::NumCallbackTrampolinesPerPage(); ++i) {
-    __ movl(EAX, compiler::Immediate(next_callback_id + i));
-    __ jmp(&done);
+  Label body, load_tramp_addr;
+  const intptr_t kCallLength = 5;
+  for (intptr_t i = 0; i < FfiCallbackMetadata::NumCallbackTrampolinesPerPage();
+       ++i) {
+    // The FfiCallbackMetadata table is keyed by the trampoline entry point. So
+    // look up the current PC, then jump to the shared section. There's no easy
+    // way to get the PC in ia32 so we have to do a call, grab the return adress
+    // from the stack, then return here (mismatched call/ret causes problems),
+    // then jump to the shared section.
+    const intptr_t size_before = __ CodeSize();
+    __ call(&load_tramp_addr);
+    const intptr_t size_after = __ CodeSize();
+    ASSERT_EQUAL(size_after - size_before, kCallLength);
+    __ jmp(&body);
   }
 
-  ASSERT(__ CodeSize() ==
-         kNativeCallbackTrampolineSize *
-             NativeCallbackTrampolines::NumCallbackTrampolinesPerPage());
-
-  __ Bind(&done);
+  ASSERT_EQUAL(__ CodeSize(),
+               FfiCallbackMetadata::kNativeCallbackTrampolineSize *
+                   FfiCallbackMetadata::NumCallbackTrampolinesPerPage());
 
   const intptr_t shared_stub_start = __ CodeSize();
+
+  __ Bind(&load_tramp_addr);
+  // Load the return adress into EAX, and subtract the size of the call
+  // instruction. This is our original trampoline address.
+  __ movl(EAX, Address(SPREG, 0));
+  __ subl(EAX, Immediate(kCallLength));
+  __ ret();
+
+  __ Bind(&body);
 
   // Save THR and EBX which are callee-saved.
   __ pushl(THR);
   __ pushl(EBX);
 
-  // We need the callback ID after the call for return stack.
-  __ pushl(EAX);
-
   // THR & return address
-  COMPILE_ASSERT(StubCodeCompiler::kNativeCallbackTrampolineStackDelta == 4);
+  COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
-  // We exit the safepoint inside DLRT_GetThreadForNativeCallbackTrampoline
-  // in order to save code size on this shared stub.
+  // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to safe
+  // code size on this shared stub.
   {
     __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(compiler::target::kWordSize);
+    // entry_point, trampoline_type, &trampoline_type, &entry_point, trampoline
+    //                              ^------ GetFfiCallbackMetadata args ------^
+    __ ReserveAlignedFrameSpace(5 * target::kWordSize);
 
-    __ movl(compiler::Address(SPREG, 0), EAX);
-    __ movl(EAX, compiler::Immediate(reinterpret_cast<int64_t>(
-                     DLRT_GetThreadForNativeCallbackTrampoline)));
+    // Trampoline arg.
+    __ movl(Address(SPREG, 0 * target::kWordSize), EAX);
+
+    // Pointer to trampoline type stack slot.
+    __ movl(EAX, SPREG);
+    __ addl(EAX, Immediate(3 * target::kWordSize));
+    __ movl(Address(SPREG, 2 * target::kWordSize), EAX);
+
+    // Pointer to entry point stack slot.
+    __ addl(EAX, Immediate(target::kWordSize));
+    __ movl(Address(SPREG, 1 * target::kWordSize), EAX);
+
+    __ movl(EAX,
+            Immediate(reinterpret_cast<int64_t>(DLRT_GetFfiCallbackMetadata)));
     __ call(EAX);
     __ movl(THR, EAX);
-    __ movl(EAX, compiler::Address(SPREG, 0));
+
+    // Save the trampoline type in EBX, and the entry point in ECX.
+    __ movl(EBX, Address(SPREG, 3 * target::kWordSize));
+    __ movl(ECX, Address(SPREG, 4 * target::kWordSize));
 
     __ LeaveFrame();
+
+    // Save the trampoline type to the stack, because we'll need it after the
+    // call to decide whether to ret() or ret(4).
+    __ pushl(EBX);
   }
 
   COMPILE_ASSERT(!IsCalleeSavedRegister(ECX) && !IsArgumentRegister(ECX));
   COMPILE_ASSERT(ECX != THR);
 
-  // Load the target from the thread.
-  __ movl(ECX, compiler::Address(
-                   THR, compiler::target::Thread::isolate_group_offset()));
-  __ movl(ECX, compiler::Address(
-                   ECX, compiler::target::IsolateGroup::object_store_offset()));
-  __ movl(ECX,
-          compiler::Address(
-              ECX, compiler::target::ObjectStore::ffi_callback_code_offset()));
-  __ movl(ECX, compiler::FieldAddress(
-                   ECX, compiler::target::GrowableObjectArray::data_offset()));
-  __ movl(ECX, __ ElementAddressForRegIndex(
-                   /*external=*/false,
-                   /*array_cid=*/kArrayCid,
-                   /*index, smi-tagged=*/compiler::target::kWordSize * 2,
-                   /*index_unboxed=*/false,
-                   /*array=*/ECX,
-                   /*index=*/EAX));
-  __ movl(ECX, compiler::FieldAddress(
-                   ECX, compiler::target::Code::entry_point_offset()));
+  Label async_callback;
+  Label done;
+
+  // If GetFfiCallbackMetadata returned a null thread, it means that the async
+  // callback was invoked after it was deleted. In this case, do nothing.
+  __ cmpl(THR, Immediate(0));
+  __ j(EQUAL, &done, Assembler::kNearJump);
+
+  // Check the trampoline type to see how the callback should be invoked.
+  __ cmpl(EBX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kAsync)));
+  __ j(EQUAL, &async_callback, Assembler::kNearJump);
+
+  // Sync callback. The entry point contains the target function, so just call
+  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
+  // re-enter it afterwards.
 
   // On entry to the function, there will be two extra slots on the stack:
   // the saved THR and the return address. The target will know to skip them.
   __ call(ECX);
 
-  // Register state:
-  // - callee saved registers (should be restored)
-  //   - EBX available as scratch because we restore it later.
-  //   - ESI(THR) contains thread
-  //   - EDI
-  // - return registers (should not be touched)
-  //   - EAX
-  //   - EDX
-  // - available scratch registers
-  //   - ECX free
-
-  // Load the return stack delta from the thread.
-  __ movl(ECX, compiler::Address(
-                   THR, compiler::target::Thread::isolate_group_offset()));
-  __ movl(ECX, compiler::Address(
-                   ECX, compiler::target::IsolateGroup::object_store_offset()));
-  __ movl(
-      ECX,
-      compiler::Address(
-          ECX,
-          compiler::target::ObjectStore::ffi_callback_stack_return_offset()));
-  __ popl(EBX);  // Compiler callback id.
-  __ movzxb(EBX, __ ElementAddressForRegIndex(
-                     /*external=*/false,
-                     /*array_cid=*/kTypedDataUint8ArrayCid,
-                     /*index=*/1,
-                     /*index_unboxed=*/false,
-                     /*array=*/ECX,
-                     /*index=*/EBX));
-#if defined(DEBUG)
-  // Stack delta should be either 0 or 4.
-  Label check_done;
-  __ BranchIfZero(EBX, &check_done);
-  __ CompareImmediate(EBX, compiler::target::kWordSize);
-  __ BranchIf(EQUAL, &check_done);
-  __ Breakpoint();
-  __ Bind(&check_done);
-#endif
-
   // Takes care to not clobber *any* registers (besides scratch).
   __ EnterFullSafepoint(/*scratch=*/ECX);
 
+  // Pop the trampoline type into ECX.
+  __ popl(ECX);
+
   // Restore callee-saved registers.
-  __ movl(ECX, EBX);
   __ popl(EBX);
   __ popl(THR);
 
-  __ cmpl(ECX, compiler::Immediate(Smi::RawValue(0)));
-  __ j(NOT_EQUAL, &ret_4, compiler::Assembler::kNearJump);
+  __ cmpl(ECX, Immediate(static_cast<uword>(
+                   FfiCallbackMetadata::TrampolineType::kSync)));
+  __ j(NOT_EQUAL, &ret_4, Assembler::kNearJump);
   __ ret();
 
   __ Bind(&ret_4);
   __ ret(Immediate(4));
 
+  __ Bind(&async_callback);
+
+  // Async callback. The entrypoint marshals the arguments into a message and
+  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
+  // entered a temporary isolate, so exit it afterwards.
+
+  // On entry to the function, there will be two extra slots on the stack:
+  // the saved THR and the return address. The target will know to skip them.
+  __ call(ECX);
+
+  // Exit the temporary isolate.
+  {
+    __ EnterFrame(0);
+    __ ReserveAlignedFrameSpace(0);
+
+    __ movl(EAX,
+            Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
+    __ CallCFunction(EAX);
+
+    __ LeaveFrame();
+  }
+
+  __ Bind(&done);
+
+  // Pop the trampoline type into ECX.
+  __ popl(ECX);
+
+  // Restore callee-saved registers.
+  __ popl(EBX);
+  __ popl(THR);
+
+  // Stack delta is always 0 for async callbacks.
+  __ ret();
+
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
-  ASSERT((__ CodeSize() - shared_stub_start) <= kNativeCallbackSharedStubSize);
-  ASSERT(__ CodeSize() <= VirtualMemory::PageSize());
+  ASSERT_LESS_OR_EQUAL(__ CodeSize() - shared_stub_start,
+                       FfiCallbackMetadata::kNativeCallbackSharedStubSize);
+  ASSERT_LESS_OR_EQUAL(__ CodeSize(), FfiCallbackMetadata::kPageSize);
 
 #if defined(DEBUG)
-  while (__ CodeSize() < VirtualMemory::PageSize()) {
+  while (__ CodeSize() < FfiCallbackMetadata::kPageSize) {
     __ Breakpoint();
   }
 #endif
@@ -1049,7 +1086,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Load arguments descriptor array into EDX.
   __ movl(EDX, Address(EBP, kArgumentsDescOffset));
-  __ movl(EDX, Address(EDX, VMHandles::kOffsetOfRawPtrInHandle));
 
   // Load number of arguments into EBX and adjust count for type arguments.
   __ movl(EBX, FieldAddress(EDX, target::ArgumentsDescriptor::count_offset()));
@@ -1073,7 +1109,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Compute address of 'arguments array' data area into EDI.
   __ movl(EDI, Address(EBP, kArgumentsOffset));
-  __ movl(EDI, Address(EDI, VMHandles::kOffsetOfRawPtrInHandle));
   __ leal(EDI, FieldAddress(EDI, target::Array::data_offset()));
 
   __ Bind(&push_arguments);
@@ -1086,7 +1121,6 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
 
   // Call the dart code entrypoint.
   __ movl(EAX, Address(EBP, kTargetCodeOffset));
-  __ movl(EAX, Address(EAX, VMHandles::kOffsetOfRawPtrInHandle));
   __ call(FieldAddress(EAX, target::Code::entry_point_offset()));
 
   // Read the saved number of passed arguments as Smi.
@@ -1491,14 +1525,21 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ cmpl(Address(EAX, target::Page::card_table_offset()), Immediate(0));
     __ j(EQUAL, &remember_card_slow, Assembler::kNearJump);
 
-    // Dirty the card.
+    // Dirty the card. Not atomic: we assume mutable arrays are not shared
+    // between threads.
+    __ pushl(EBX);
     __ subl(EDI, EAX);  // Offset in page.
     __ movl(EAX,
             Address(EAX, target::Page::card_table_offset()));  // Card table.
-    __ shrl(
-        EDI,
-        Immediate(target::Page::kBytesPerCardLog2));  // Index in card table.
-    __ movb(Address(EAX, EDI, TIMES_1, 0), Immediate(1));
+    __ movl(ECX, EDI);
+    __ shrl(EDI,
+            Immediate(target::Page::kBytesPerCardLog2 +
+                      target::kBitsPerWordLog2));  // Word offset.
+    __ shrl(ECX, Immediate(target::Page::kBytesPerCardLog2));
+    __ movl(EBX, Immediate(1));
+    __ shll(EBX, ECX);  // Bit mask. (Shift amount is mod 32.)
+    __ orl(Address(EAX, EDI, TIMES_4, 0), EBX);
+    __ popl(EBX);
     __ popl(ECX);
     __ popl(EAX);
     __ ret();
@@ -2320,11 +2361,132 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 #endif  // defined(PRODUCT)
 }
 
+// Constants used for generating subtype test cache lookup stubs.
+// We represent the depth of as a depth from the top of the stack at the
+// start of the stub. That is, depths for input values are non-negative and
+// depths for values pushed during the stub are negative.
+
+struct STCInternal : AllStatic {
+  // Used to initialize depths for conditionally-pushed values.
+  static constexpr intptr_t kNoDepth = kIntptrMin;
+
+  // These inputs are always on the stack when the SubtypeNTestCacheStub is
+  // called. These absolute depths will be converted to relative depths within
+  // the stub to compensate for additional pushed values.
+  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
+  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
+  static constexpr intptr_t kDestinationTypeDepth = 3;
+  static constexpr intptr_t kInstanceDepth = 4;
+  static constexpr intptr_t kCacheDepth = 5;
+
+  // Non-stack values are stored in non-kInstanceReg registers from TypeTestABI.
+  static constexpr Register kCacheArrayReg =
+      TypeTestABI::kInstantiatorTypeArgumentsReg;
+  static constexpr Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
+  static constexpr Register kInstanceCidOrSignatureReg =
+      TypeTestABI::kFunctionTypeArgumentsReg;
+  static constexpr Register kInstanceInstantiatorTypeArgumentsReg =
+      TypeTestABI::kDstTypeReg;
+};
+
+static void GenerateSubtypeTestCacheLoop(
+    Assembler* assembler,
+    int n,
+    intptr_t original_tos_offset,
+    intptr_t parent_function_type_args_depth,
+    intptr_t delayed_type_args_depth,
+    Label* found,
+    Label* not_found,
+    Label* next_iteration) {
+  const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
+
+  // Compares a value at the given depth from the stack to the value in src.
+  auto compare_to_stack = [&](Register src, intptr_t depth) {
+    ASSERT(original_tos_offset + depth >= 0);
+    __ CompareToStack(src, original_tos_offset + depth);
+  };
+
+  __ LoadAcquireCompressed(
+      STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+      target::kCompressedWordSize *
+          target::SubtypeTestCache::kInstanceCidOrSignature);
+  __ cmpl(STCInternal::kScratchReg, raw_null);
+  __ j(EQUAL, not_found, Assembler::kNearJump);
+  __ cmpl(STCInternal::kScratchReg, STCInternal::kInstanceCidOrSignatureReg);
+  if (n == 1) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ cmpl(STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstanceTypeArguments));
+  if (n == 2) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(STCInternal::kScratchReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kInstantiatorTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kInstantiatorTypeArgumentsDepth);
+  if (n == 3) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(STCInternal::kScratchReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize *
+                      target::SubtypeTestCache::kFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kFunctionTypeArgumentsDepth);
+  if (n == 4) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(
+          STCInternal::kCacheArrayReg,
+          target::kWordSize *
+              target::SubtypeTestCache::kInstanceParentFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg, parent_function_type_args_depth);
+  if (n == 5) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(
+          STCInternal::kCacheArrayReg,
+          target::kWordSize *
+              target::SubtypeTestCache::kInstanceDelayedFunctionTypeArguments));
+  compare_to_stack(STCInternal::kScratchReg, delayed_type_args_depth);
+  if (n == 6) {
+    __ j(EQUAL, found, Assembler::kNearJump);
+    return;
+  }
+  __ j(NOT_EQUAL, next_iteration, Assembler::kNearJump);
+  __ movl(
+      STCInternal::kScratchReg,
+      Address(STCInternal::kCacheArrayReg,
+              target::kWordSize * target::SubtypeTestCache::kDestinationType));
+  compare_to_stack(STCInternal::kScratchReg,
+                   STCInternal::kDestinationTypeDepth);
+  __ j(EQUAL, found, Assembler::kNearJump);
+}
+
 // Used to check class and type arguments. Arguments passed on stack:
 // TOS + 0: return address.
-// TOS + 1: function type arguments (only if n == 4, can be raw_null).
-// TOS + 2: instantiator type arguments (only if n == 4, can be raw_null).
-// TOS + 3: destination_type (only used if n >= 3).
+// TOS + 1: function type arguments (only used if n >= 4, can be raw_null).
+// TOS + 2: instantiator type arguments (only used if n >= 3, can be raw_null).
+// TOS + 3: destination_type (only used if n >= 7).
 // TOS + 4: instance.
 // TOS + 5: SubtypeTestCache.
 //
@@ -2332,94 +2494,83 @@ void StubCodeCompiler::GenerateDebugStepCheckStub() {
 //
 // Result in SubtypeTestCacheReg::kResultReg: null -> not found, otherwise
 // result (true or false).
-static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
-  ASSERT(n == 1 || n == 3 || n == 5 || n == 7);
-
-  // We represent the depth of as a depth from the top of the stack at the
-  // start of the stub. That is, depths for input values are non-negative and
-  // depths for values pushed during the stub are negative.
-
-  // Used to initialize depths for conditionally-pushed values.
-  const intptr_t kNoDepth = kIntptrMin;
-  // Offset of the original top of the stack from the current top of stack.
-  intptr_t original_tos_offset = 0;
-
-  // Inputs use relative depths.
-  static constexpr intptr_t kFunctionTypeArgumentsDepth = 1;
-  static constexpr intptr_t kInstantiatorTypeArgumentsDepth = 2;
-  static constexpr intptr_t kDestinationTypeDepth = 3;
-  static constexpr intptr_t kInstanceDepth = 4;
-  static constexpr intptr_t kCacheDepth = 5;
-  // Others use absolute depths. We initialize conditionally pushed values to
-  // kNoInput for extra checking.
-  intptr_t kInstanceParentFunctionTypeArgumentsDepth = kNoDepth;
-  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = kNoDepth;
-
-  // Other values are stored in non-kInstanceReg registers from TypeTestABI.
-  const Register kCacheArrayReg = TypeTestABI::kInstantiatorTypeArgumentsReg;
-  const Register kScratchReg = TypeTestABI::kSubtypeTestCacheReg;
-  const Register kInstanceCidOrSignature =
-      TypeTestABI::kFunctionTypeArgumentsReg;
-  const Register kInstanceInstantiatorTypeArgumentsReg =
-      TypeTestABI::kDstTypeReg;
-
-  // Loads a value at the given depth from the stack into dst.
-  auto load_from_stack = [&](Register dst, intptr_t depth) {
-    ASSERT(depth != kNoDepth);
-    __ LoadFromStack(dst, original_tos_offset + depth);
-  };
-
-  // Compares a value at the given depth from the stack to the value in src.
-  auto compare_to_stack = [&](Register src, intptr_t depth) {
-    ASSERT(depth != kNoDepth);
-    __ CompareToStack(src, original_tos_offset + depth);
-  };
+void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
+                                                     int n) {
+  ASSERT(n == 1 || n == 2 || n == 4 || n == 6 || n == 7);
 
   const auto& raw_null = Immediate(target::ToRawPointer(NullObject()));
 
-  load_from_stack(TypeTestABI::kInstanceReg, kInstanceDepth);
+  __ LoadFromStack(TypeTestABI::kInstanceReg, STCInternal::kInstanceDepth);
 
   // Loop initialization (moved up here to avoid having all dependent loads
   // after each other)
-  load_from_stack(kCacheArrayReg, kCacheDepth);
+  __ LoadFromStack(STCInternal::kCacheArrayReg, STCInternal::kCacheDepth);
+#if defined(DEBUG)
+  // Verify the STC we received has exactly as many inputs as this stub expects.
+  Label search_stc;
+  __ LoadFromSlot(STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+                  Slot::SubtypeTestCache_num_inputs());
+  __ CompareImmediate(STCInternal::kScratchReg, n);
+  __ BranchIf(EQUAL, &search_stc, Assembler::kNearJump);
+  __ Breakpoint();
+  __ Bind(&search_stc);
+#endif
   // We avoid a load-acquire barrier here by relying on the fact that all other
   // loads from the array are data-dependent loads.
-  __ movl(
-      kCacheArrayReg,
-      FieldAddress(kCacheArrayReg, target::SubtypeTestCache::cache_offset()));
-  __ addl(kCacheArrayReg,
-          Immediate(target::Array::data_offset() - kHeapObjectTag));
+  __ movl(STCInternal::kCacheArrayReg,
+          FieldAddress(STCInternal::kCacheArrayReg,
+                       target::SubtypeTestCache::cache_offset()));
+
+  // There is a maximum size for linear caches that is smaller than the size
+  // of any hash-based cache, so we check the size of the backing array to
+  // determine if this is a linear or hash-based cache.
+  __ LoadFromSlot(STCInternal::kScratchReg, STCInternal::kCacheArrayReg,
+                  Slot::Array_length());
+  __ CompareImmediate(STCInternal::kScratchReg,
+                      target::ToRawSmi(SubtypeTestCache::kMaxLinearCacheSize));
+  // For IA32, we never handle hash caches in the stub, as there's too much
+  // register pressure.
+  Label is_linear;
+  __ BranchIf(LESS_EQUAL, &is_linear, Assembler::kNearJump);
+  // Return null so that we'll continue to the runtime for hash-based caches.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
+  __ ret();
+  __ Bind(&is_linear);
+  __ AddImmediate(STCInternal::kCacheArrayReg,
+                  target::Array::data_offset() - kHeapObjectTag);
 
   Label loop, not_closure;
-  if (n >= 5) {
-    __ LoadClassIdMayBeSmi(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
+  if (n >= 4) {
+    __ LoadClassIdMayBeSmi(STCInternal::kInstanceCidOrSignatureReg,
+                           TypeTestABI::kInstanceReg);
   } else {
-    __ LoadClassId(kInstanceCidOrSignature, TypeTestABI::kInstanceReg);
+    __ LoadClassId(STCInternal::kInstanceCidOrSignatureReg,
+                   TypeTestABI::kInstanceReg);
   }
-  __ cmpl(kInstanceCidOrSignature, Immediate(kClosureCid));
+  __ cmpl(STCInternal::kInstanceCidOrSignatureReg, Immediate(kClosureCid));
   __ j(NOT_EQUAL, &not_closure, Assembler::kNearJump);
 
   // Closure handling.
   {
-    __ movl(kInstanceCidOrSignature,
+    __ movl(STCInternal::kInstanceCidOrSignatureReg,
             FieldAddress(TypeTestABI::kInstanceReg,
                          target::Closure::function_offset()));
-    __ movl(kInstanceCidOrSignature,
-            FieldAddress(kInstanceCidOrSignature,
+    __ movl(STCInternal::kInstanceCidOrSignatureReg,
+            FieldAddress(STCInternal::kInstanceCidOrSignatureReg,
                          target::Function::signature_offset()));
-    if (n >= 3) {
+    if (n >= 2) {
       __ movl(
-          kInstanceInstantiatorTypeArgumentsReg,
+          STCInternal::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
                        target::Closure::instantiator_type_arguments_offset()));
-      if (n >= 7) {
-        __ pushl(
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::delayed_type_arguments_offset()));
-        __ pushl(
-            FieldAddress(TypeTestABI::kInstanceReg,
-                         target::Closure::function_type_arguments_offset()));
-      }
+    }
+    if (n >= 5) {
+      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                            target::Closure::function_type_arguments_offset()));
+    }
+    if (n >= 6) {
+      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                            target::Closure::delayed_type_arguments_offset()));
     }
     __ jmp(&loop, Assembler::kNearJump);
   }
@@ -2427,142 +2578,88 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   // Non-Closure handling.
   {
     __ Bind(&not_closure);
-    if (n >= 3) {
+    if (n >= 2) {
       Label has_no_type_arguments;
-      __ LoadClassById(kScratchReg, kInstanceCidOrSignature);
-      __ movl(kInstanceInstantiatorTypeArgumentsReg, raw_null);
+      __ LoadClassById(STCInternal::kScratchReg,
+                       STCInternal::kInstanceCidOrSignatureReg);
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg, raw_null);
       __ movl(
-          kScratchReg,
-          FieldAddress(kScratchReg,
+          STCInternal::kScratchReg,
+          FieldAddress(STCInternal::kScratchReg,
                        target::Class::
                            host_type_arguments_field_offset_in_words_offset()));
-      __ cmpl(kScratchReg, Immediate(target::Class::kNoTypeArguments));
+      __ cmpl(STCInternal::kScratchReg,
+              Immediate(target::Class::kNoTypeArguments));
       __ j(EQUAL, &has_no_type_arguments, Assembler::kNearJump);
-      __ movl(kInstanceInstantiatorTypeArgumentsReg,
-              FieldAddress(TypeTestABI::kInstanceReg, kScratchReg, TIMES_4, 0));
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+              FieldAddress(TypeTestABI::kInstanceReg, STCInternal::kScratchReg,
+                           TIMES_4, 0));
       __ Bind(&has_no_type_arguments);
-
-      if (n >= 7) {
-        __ pushl(raw_null);  // delayed.
-        __ pushl(raw_null);  // function.
-      }
     }
-    __ SmiTag(kInstanceCidOrSignature);
+    __ SmiTag(STCInternal::kInstanceCidOrSignatureReg);
+    if (n >= 5) {
+      __ pushl(raw_null);  // parent function.
+    }
+    if (n >= 6) {
+      __ pushl(raw_null);  // delayed.
+    }
   }
 
-  if (n >= 7) {
-    // Now that instance handling is done, both the delayed and parent function
-    // type arguments stack slots have been set, so any input uses must be
-    // offset by the new values and the new values can now be accessed in
-    // the following code without issue when n >= 6.
-    original_tos_offset = 2;
-    kInstanceDelayedFunctionTypeArgumentsDepth = -1;
-    kInstanceParentFunctionTypeArgumentsDepth = -2;
+  // Offset of the original top of the stack from the current top of stack.
+  intptr_t original_tos_offset = 0;
+
+  // Additional data conditionally stored on the stack use negative depths
+  // that will be non-negative when adjusted for original_tos_offset. We
+  // initialize conditionally pushed values to kNoInput for extra checking.
+  intptr_t kInstanceParentFunctionTypeArgumentsDepth = STCInternal::kNoDepth;
+  intptr_t kInstanceDelayedFunctionTypeArgumentsDepth = STCInternal::kNoDepth;
+
+  // Now that instance handling is done, both the delayed and parent function
+  // type arguments stack slots have been set, so any input uses must be
+  // offset by the new values and the new values can now be accessed in
+  // the following code without issue when n >= 6.
+  if (n >= 5) {
+    original_tos_offset++;
+    kInstanceParentFunctionTypeArgumentsDepth = -original_tos_offset;
+  }
+  if (n >= 6) {
+    original_tos_offset++;
+    kInstanceDelayedFunctionTypeArgumentsDepth = -original_tos_offset;
   }
 
-  Label done, next_iteration;
+  Label found, not_found, done, next_iteration;
 
   // Loop header.
   __ Bind(&loop);
-  __ movl(kScratchReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize *
-                      target::SubtypeTestCache::kInstanceCidOrSignature));
-  __ cmpl(kScratchReg, raw_null);
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ cmpl(kScratchReg, kInstanceCidOrSignature);
-  if (n == 1) {
-    __ j(EQUAL, &done, Assembler::kNearJump);
-  } else {
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ movl(kScratchReg,
-            Address(kCacheArrayReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kDestinationType));
-    compare_to_stack(kScratchReg, kDestinationTypeDepth);
-    __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-    __ cmpl(kInstanceInstantiatorTypeArgumentsReg,
-            Address(kCacheArrayReg,
-                    target::kWordSize *
-                        target::SubtypeTestCache::kInstanceTypeArguments));
-    if (n == 3) {
-      __ j(EQUAL, &done, Assembler::kNearJump);
-    } else {
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(
-          kScratchReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize *
-                      target::SubtypeTestCache::kInstantiatorTypeArguments));
-      compare_to_stack(kScratchReg, kInstantiatorTypeArgumentsDepth);
-      __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-      __ movl(kScratchReg,
-              Address(kCacheArrayReg,
-                      target::kWordSize *
-                          target::SubtypeTestCache::kFunctionTypeArguments));
-      compare_to_stack(kScratchReg, kFunctionTypeArgumentsDepth);
-      if (n == 5) {
-        __ j(EQUAL, &done, Assembler::kNearJump);
-      } else {
-        ASSERT(n == 7);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-
-        __ movl(kScratchReg,
-                Address(kCacheArrayReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceParentFunctionTypeArguments));
-        compare_to_stack(kScratchReg,
-                         kInstanceParentFunctionTypeArgumentsDepth);
-        __ j(NOT_EQUAL, &next_iteration, Assembler::kNearJump);
-        __ movl(kScratchReg,
-                Address(kCacheArrayReg,
-                        target::kWordSize *
-                            target::SubtypeTestCache::
-                                kInstanceDelayedFunctionTypeArguments));
-        compare_to_stack(kScratchReg,
-                         kInstanceDelayedFunctionTypeArgumentsDepth);
-        __ j(EQUAL, &done, Assembler::kNearJump);
-      }
-    }
-  }
+  GenerateSubtypeTestCacheLoop(assembler, n, original_tos_offset,
+                               kInstanceParentFunctionTypeArgumentsDepth,
+                               kInstanceDelayedFunctionTypeArgumentsDepth,
+                               &found, &not_found, &next_iteration);
   __ Bind(&next_iteration);
-  __ addl(kCacheArrayReg,
+  __ addl(STCInternal::kCacheArrayReg,
           Immediate(target::kWordSize *
                     target::SubtypeTestCache::kTestEntryLength));
   __ jmp(&loop, Assembler::kNearJump);
 
-  __ Bind(&done);
-  // In the not found case, the test result slot is null, so we can
-  // unconditionally load from the cache entry.
-  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
-          Address(kCacheArrayReg,
-                  target::kWordSize * target::SubtypeTestCache::kTestResult));
-  if (n >= 7) {
-    __ Drop(2);
-    original_tos_offset = 0;  // In case we add any input uses after this point.
+  __ Bind(&found);
+  if (n >= 5) {
+    __ Drop(original_tos_offset);
   }
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg,
+          Address(STCInternal::kCacheArrayReg,
+                  target::kWordSize * target::SubtypeTestCache::kTestResult));
   __ ret();
-}
 
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype1TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 1);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype3TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 3);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype5TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 5);
-}
-
-// See comment on [GenerateSubtypeNTestCacheStub].
-void StubCodeCompiler::GenerateSubtype7TestCacheStub() {
-  GenerateSubtypeNTestCacheStub(assembler, 7);
+  __ Bind(&not_found);
+  if (n >= 5) {
+    __ Drop(original_tos_offset);
+  }
+  // In the not found case, even though the field that determines occupancy was
+  // null, another thread might be updating the cache and in the middle of
+  // filling in the entry. Thus, we load the null object explicitly instead of
+  // just using the (possibly mid-update) test result field.
+  __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
+  __ ret();
 }
 
 // Return the current stack pointer address, used to do stack alignment checks.

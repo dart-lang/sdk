@@ -40,13 +40,6 @@ import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/clone.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/bounds_checks.dart' hide calculateBounds;
-import 'package:kernel/src/redirecting_factory_body.dart'
-    show
-        EnsureLoaded,
-        RedirectingFactoryBody,
-        RedirectionTarget,
-        getRedirectingFactoryBody,
-        getRedirectionTarget;
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
@@ -425,8 +418,6 @@ class BodyBuilder extends StackListenerImpl
       }
     }
     scope = pop() as Scope;
-    // ignore: unnecessary_null_comparison
-    assert(scope != null);
   }
 
   void enterBreakTarget(int charOffset, [JumpTarget? target]) {
@@ -1254,7 +1245,7 @@ class BodyBuilder extends StackListenerImpl
     if (_context.isConstructor) {
       finishConstructor(asyncModifier, body,
           superParametersAsArguments: superParametersAsArguments);
-    } else {
+    } else if (body != null) {
       _context.setAsyncModifier(asyncModifier);
     }
 
@@ -1422,6 +1413,41 @@ class BodyBuilder extends StackListenerImpl
     return true;
   }
 
+  RedirectionTarget _getRedirectionTarget(Procedure factory) {
+    List<DartType> typeArguments = new List<DartType>.generate(
+        factory.function.typeParameters.length, (int i) {
+      return new TypeParameterType.withDefaultNullabilityForLibrary(
+          factory.function.typeParameters[i], factory.enclosingLibrary);
+    }, growable: true);
+
+    // Cyclic factories are detected earlier, so we're guaranteed to
+    // reach either a non-redirecting factory or an error eventually.
+    Member target = factory;
+    for (;;) {
+      RedirectingFactoryTarget? redirectingFactoryTarget =
+          target.function?.redirectingFactoryTarget;
+      if (redirectingFactoryTarget == null ||
+          redirectingFactoryTarget.isError) {
+        return new RedirectionTarget(target, typeArguments);
+      }
+      Member nextMember = redirectingFactoryTarget.target!;
+      ensureLoaded(nextMember);
+      List<DartType>? nextTypeArguments =
+          redirectingFactoryTarget.typeArguments;
+      if (nextTypeArguments != null) {
+        Substitution sub = Substitution.fromPairs(
+            target.function!.typeParameters, typeArguments);
+        typeArguments =
+            new List<DartType>.generate(nextTypeArguments.length, (int i) {
+          return sub.substituteType(nextTypeArguments[i]);
+        }, growable: true);
+      } else {
+        typeArguments = <DartType>[];
+      }
+      target = nextMember;
+    }
+  }
+
   /// Return an [Expression] resolving the argument invocation.
   ///
   /// The arguments specify the [StaticInvocation] whose `.target` is
@@ -1433,20 +1459,19 @@ class BodyBuilder extends StackListenerImpl
     Procedure initialTarget = target;
     Expression replacementNode;
 
-    RedirectionTarget redirectionTarget =
-        getRedirectionTarget(initialTarget, this);
+    RedirectionTarget redirectionTarget = _getRedirectionTarget(initialTarget);
     Member resolvedTarget = redirectionTarget.target;
     if (redirectionTarget.typeArguments.any((type) => type is UnknownType)) {
       return null;
     }
 
-    RedirectingFactoryBody? redirectingFactoryBody =
-        getRedirectingFactoryBody(resolvedTarget);
-    if (redirectingFactoryBody != null) {
+    RedirectingFactoryTarget? redirectingFactoryTarget =
+        resolvedTarget.function?.redirectingFactoryTarget;
+    if (redirectingFactoryTarget != null) {
       // If the redirection target is itself a redirecting factory, it means
       // that it is unresolved.
-      assert(redirectingFactoryBody.isError);
-      String errorMessage = redirectingFactoryBody.errorMessage!;
+      assert(redirectingFactoryTarget.isError);
+      String errorMessage = redirectingFactoryTarget.errorMessage!;
       replacementNode = new InvalidExpression(errorMessage)
         ..fileOffset = fileOffset;
     } else {
@@ -1498,20 +1523,11 @@ class BodyBuilder extends StackListenerImpl
       // set its inferredType field.  If type inference is disabled, reach to
       // the outermost parent to check if the node is a dead code.
       if (invocation.parent == null) continue;
-      // ignore: unnecessary_null_comparison
-      if (typeInferrer != null) {
-        if (!invocation.hasBeenInferred) {
-          if (allowFurtherDelays) {
-            delayedRedirectingFactoryInvocations.add(invocation);
-          }
-          continue;
+      if (!invocation.hasBeenInferred) {
+        if (allowFurtherDelays) {
+          delayedRedirectingFactoryInvocations.add(invocation);
         }
-      } else {
-        TreeNode? parent = invocation.parent;
-        while (parent is! Component && parent != null) {
-          parent = parent.parent;
-        }
-        if (parent == null) continue;
+        continue;
       }
       Expression? replacement = _resolveRedirectingFactoryTarget(
           invocation.target,
@@ -3280,7 +3296,12 @@ class BodyBuilder extends StackListenerImpl
             this, token, fasta.messageNotAConstantExpression);
       }
       VariableDeclaration variable = variableBuilder.variable!;
-      if (!variableBuilder.isAssignable ||
+      if (scope.kind == ScopeKind.forStatement &&
+          variable.isAssignable &&
+          variable.isLate &&
+          variable.isFinal) {
+        return new ForInLateFinalVariableUseGenerator(this, token, variable);
+      } else if (!variableBuilder.isAssignable ||
           (variable.isFinal && scope.kind == ScopeKind.forStatement)) {
         return _createReadOnlyVariableAccess(
             variable,
@@ -5893,8 +5914,16 @@ class BodyBuilder extends StackListenerImpl
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
-          return buildProblem(
-              fasta.messageNonConstFactory, charOffset, charLength);
+          if (procedure.isInlineClassMember) {
+            // Both generative constructors and factory constructors from
+            // inline classes are encoded as procedures so we use the message
+            // for non-const constructors here.
+            return buildProblem(
+                fasta.messageNonConstConstructor, charOffset, charLength);
+          } else {
+            return buildProblem(
+                fasta.messageNonConstFactory, charOffset, charLength);
+          }
         }
         StaticInvocation node;
         if (typeAliasBuilder == null) {
@@ -6401,8 +6430,7 @@ class BodyBuilder extends StackListenerImpl
       }
 
       List<DartType> typeArgumentsToCheck = const <DartType>[];
-      // ignore: unnecessary_null_comparison
-      if (typeArgumentBuilders != null && typeArgumentBuilders.isNotEmpty) {
+      if (typeArgumentBuilders.isNotEmpty) {
         typeArgumentsToCheck = new List.filled(
             typeArgumentBuilders.length, const DynamicType(),
             growable: false);
@@ -8926,8 +8954,6 @@ class BodyBuilder extends StackListenerImpl
   @override
   TypeBuilder validateTypeVariableUse(TypeBuilder typeBuilder,
       {required bool allowPotentiallyConstantType}) {
-    // ignore: unnecessary_null_comparison
-    assert(allowPotentiallyConstantType != null);
     _validateTypeVariableUseInternal(typeBuilder,
         allowPotentiallyConstantType: allowPotentiallyConstantType);
     return typeBuilder;
@@ -8935,8 +8961,6 @@ class BodyBuilder extends StackListenerImpl
 
   void _validateTypeVariableUseInternal(TypeBuilder? builder,
       {required bool allowPotentiallyConstantType}) {
-    // ignore: unnecessary_null_comparison
-    assert(allowPotentiallyConstantType != null);
     if (builder is NamedTypeBuilder) {
       if (builder.declaration!.isTypeVariable) {
         TypeVariableBuilder typeParameterBuilder =
@@ -9382,8 +9406,10 @@ class BodyBuilder extends StackListenerImpl
     String name = variable.lexeme;
     Expression variableUse = toValue(scopeLookup(scope, name, variable));
     if (variableUse is VariableGet) {
+      VariableDeclaration variableDeclaration = variableUse.variable;
       pattern = forest.createAssignedVariablePattern(
-          variable.charOffset, variableUse.variable);
+          variable.charOffset, variableDeclaration);
+      registerVariableAssignment(variableDeclaration);
     } else {
       addProblem(fasta.messagePatternAssignmentNotLocalVariable,
           variable.charOffset, variable.charCount);
@@ -10001,4 +10027,11 @@ class ExpressionOrPatternGuardCase {
   ExpressionOrPatternGuardCase.patternGuard(
       this.caseOffset, PatternGuard this.patternGuard)
       : expression = null;
+}
+
+class RedirectionTarget {
+  final Member target;
+  final List<DartType> typeArguments;
+
+  RedirectionTarget(this.target, this.typeArguments);
 }

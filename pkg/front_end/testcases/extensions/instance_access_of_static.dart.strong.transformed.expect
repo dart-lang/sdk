@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -53,14 +53,14 @@ extension Extension1 on self::Class1 {
   static set staticProperty = set self::Extension1|staticProperty;
 }
 static field core::int Extension1|staticField = 42;
-static method Extension1|staticMethod() → dynamic {
+static extension-member method Extension1|staticMethod() → dynamic {
   core::print("Extension1.staticMethod()");
 }
-static get Extension1|staticProperty() → core::int {
+static extension-member get Extension1|staticProperty() → core::int {
   core::print("Extension1.staticProperty()");
   return 0;
 }
-static set Extension1|staticProperty(core::int value) → void {
+static extension-member set Extension1|staticProperty(core::int value) → void {
   core::print("Extension1.staticProperty(${value})");
   value = value.{core::num::+}(1){(core::num) → core::int};
 }

@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
@@ -522,18 +521,4 @@ class ElementResolver {
       }
     }
   }
-}
-
-/// An identifier that can be used to look up names in the lexical scope when
-/// there is no identifier in the AST structure. There is no identifier in the
-/// AST when the parser could not distinguish between a method invocation and an
-/// invocation of a top-level function imported with a prefix.
-class SyntheticIdentifier implements SimpleIdentifier {
-  @override
-  final String name;
-
-  SyntheticIdentifier(this.name);
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

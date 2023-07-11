@@ -1,4 +1,4 @@
-library;
+library /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -361,53 +361,53 @@ extension Extension<T extends core::num*, S extends T* = core::num*> on core::in
   static set property8b = set self::Extension|property8b;
   static set property9 = set self::Extension|property9;
 }
-static method Extension|get#property1<T extends core::num*, S extends self::Extension|get#property1::T* = core::num*>(lowered final core::int* #this) → core::int*
+static extension-member method Extension|get#property1<T extends core::num*, S extends self::Extension|get#property1::T* = core::num*>(lowered final core::int* #this) → core::int*
   ;
-static method Extension|set#property1<T extends core::num*, S extends self::Extension|set#property1::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
+static extension-member method Extension|set#property1<T extends core::num*, S extends self::Extension|set#property1::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
   ;
-static method Extension|get#property2a<T extends core::num*, S extends self::Extension|get#property2a::T* = core::num*>(lowered final core::int* #this) → core::num*
+static extension-member method Extension|get#property2a<T extends core::num*, S extends self::Extension|get#property2a::T* = core::num*>(lowered final core::int* #this) → core::num*
   ;
-static method Extension|set#property2a<T extends core::num*, S extends self::Extension|set#property2a::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
+static extension-member method Extension|set#property2a<T extends core::num*, S extends self::Extension|set#property2a::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
   ;
-static method Extension|get#property2b<T extends core::num*, S extends self::Extension|get#property2b::T* = core::num*>(lowered final core::int* #this) → core::int*
+static extension-member method Extension|get#property2b<T extends core::num*, S extends self::Extension|get#property2b::T* = core::num*>(lowered final core::int* #this) → core::int*
   ;
-static method Extension|set#property2b<T extends core::num*, S extends self::Extension|set#property2b::T* = core::num*>(lowered final core::int* #this, core::num* i) → void
+static extension-member method Extension|set#property2b<T extends core::num*, S extends self::Extension|set#property2b::T* = core::num*>(lowered final core::int* #this, core::num* i) → void
   ;
-static method Extension|get#property3<T extends core::num*, S extends self::Extension|get#property3::T* = core::num*>(lowered final core::int* #this) → core::String*
+static extension-member method Extension|get#property3<T extends core::num*, S extends self::Extension|get#property3::T* = core::num*>(lowered final core::int* #this) → core::String*
   ;
-static method Extension|set#property3<T extends core::num*, S extends self::Extension|set#property3::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
+static extension-member method Extension|set#property3<T extends core::num*, S extends self::Extension|set#property3::T* = core::num*>(lowered final core::int* #this, core::int* i) → void
   ;
-static method Extension|get#property4<T extends core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
+static extension-member method Extension|get#property4<T extends core::num*, S extends self::Extension|get#property4::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property4::S*
   ;
-static method Extension|set#property4<T extends core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void
+static extension-member method Extension|set#property4<T extends core::num*, S extends self::Extension|set#property4::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property4::S* i) → void
   ;
-static method Extension|get#property5a<T extends core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
+static extension-member method Extension|get#property5a<T extends core::num*, S extends self::Extension|get#property5a::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5a::S*
   ;
-static method Extension|set#property5a<T extends core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void
+static extension-member method Extension|set#property5a<T extends core::num*, S extends self::Extension|set#property5a::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5a::T* i) → void
   ;
-static method Extension|get#property5b<T extends core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
+static extension-member method Extension|get#property5b<T extends core::num*, S extends self::Extension|get#property5b::T* = core::num*>(lowered final core::int* #this) → self::Extension|get#property5b::T*
   ;
-static method Extension|set#property5b<T extends core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void
+static extension-member method Extension|set#property5b<T extends core::num*, S extends self::Extension|set#property5b::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property5b::S* i) → void
   ;
-static method Extension|get#property6<T extends core::num*, S extends self::Extension|get#property6::T* = core::num*>(lowered final core::int* #this) → core::String*
+static extension-member method Extension|get#property6<T extends core::num*, S extends self::Extension|get#property6::T* = core::num*>(lowered final core::int* #this) → core::String*
   ;
-static method Extension|set#property6<T extends core::num*, S extends self::Extension|set#property6::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property6::S* i) → void
+static extension-member method Extension|set#property6<T extends core::num*, S extends self::Extension|set#property6::T* = core::num*>(lowered final core::int* #this, self::Extension|set#property6::S* i) → void
   ;
-static get Extension|property7() → core::int*
+static extension-member get Extension|property7() → core::int*
   ;
-static set Extension|property7(core::int* value) → void
+static extension-member set Extension|property7(core::int* value) → void
   ;
-static get Extension|property8a() → core::int*
+static extension-member get Extension|property8a() → core::int*
   ;
-static set Extension|property8a(core::num* value) → void
+static extension-member set Extension|property8a(core::num* value) → void
   ;
-static get Extension|property8b() → core::num*
+static extension-member get Extension|property8b() → core::num*
   ;
-static set Extension|property8b(core::int* value) → void
+static extension-member set Extension|property8b(core::int* value) → void
   ;
-static get Extension|property9() → core::num*
+static extension-member get Extension|property9() → core::num*
   ;
-static set Extension|property9(core::String* value) → void
+static extension-member set Extension|property9(core::String* value) → void
   ;
 static method main() → dynamic
   ;

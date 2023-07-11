@@ -2271,7 +2271,7 @@ FastaUsageLong:
         Read the SDK platform from <file>, which should be in Dill/Kernel IR format
         and contain the Dart SDK.
 
-      --target=dart2js|dart2js_server|dart2wasm|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+      --target=dart2js|dart2js_server|dart2wasm|dart2wasm_stringref|dart_runner|dartdevc|flutter|flutter_runner|none|vm
         Specify the target configuration.
 
       --enable-asserts
@@ -5032,6 +5032,11 @@ FfiExceptionalReturnNull:
   problemMessage: "Exceptional return value must not be null."
   external: test/ffi_test.dart
 
+FfiNativeCallableListenerReturnVoid:
+  # Used by dart:ffi
+  problemMessage: "The return type of the function passed to NativeCallable.listener must be void rather than '#type'."
+  external: test/ffi_test.dart
+
 FfiExpectedConstantArg:
   # Used by dart:ffi
   problemMessage: "Argument '#name' must be a constant."
@@ -5488,9 +5493,21 @@ JsInteropExternalExtensionMemberOnTypeInvalid:
   problemMessage: "JS interop or Native class required for 'external' extension members."
   correctionMessage: "Try adding a JS interop annotation to the on type class of the extension."
 
+JsInteropExternalExtensionMemberWithStaticDisallowed:
+  problemMessage: "External extension members with the keyword 'static' on JS interop and @Native types are disallowed."
+  correctionMessage: "Try putting the member in the on-type instead."
+
 JsInteropExternalMemberNotJSAnnotated:
   problemMessage: "Only JS interop members may be 'external'."
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
+
+JsInteropInlineClassNotInterop:
+  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
+
+JsInteropInlineClassMemberNotInterop:
+  problemMessage: "Inline class member is marked 'external', but the representation type of its inline class is not a valid JS interop type."
+  correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
 
 JsInteropInlineClassUsedWithWrongJsAnnotation:
   problemMessage: "Inline classes should use the '@JS' annotation from 'dart:js_interop' and not from 'package:js'."
@@ -5558,6 +5575,11 @@ JsInteropStaticInteropMockNotStaticInteropType:
 JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."
   correctionMessage: "Add `@JS` to class '#name'."
+
+JsInteropStaticInteropParameterInitializersAreIgnored:
+  problemMessage: "Initializers for parameters are ignored on static interop external functions."
+  correctionMessage: "Declare a forwarding non-external function with this initializer, or remove the initializer."
+  severity: WARNING
 
 JsInteropStaticInteropSyntheticConstructor:
   problemMessage: "Synthetic constructors on `@staticInterop` classes can not be used."
@@ -5976,6 +5998,10 @@ UnmatchedAugmentationClassMember:
         augment void method() {}
       }
 
+UnmatchedPatchClassMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin class."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
+
 UnmatchedAugmentationLibraryMember:
   problemMessage: "Augmentation member '#name' doesn't match a member in the augmented library."
   correctionMessage: "Try changing the name to an existing member or removing the 'augment' modifier."
@@ -5985,6 +6011,10 @@ UnmatchedAugmentationLibraryMember:
       import augment 'lib.dart';
     lib.dart:
       augment void method() {}
+
+UnmatchedPatchLibraryMember:
+  problemMessage: "Patch member '#name' doesn't match a member in the origin library."
+  correctionMessage: "Try changing the name to an existing member or removing the '@patch' annotation."
 
 UnmatchedAugmentationClass:
   problemMessage: "Augmentation class '#name' doesn't match a class in the augmented library."
@@ -5996,10 +6026,18 @@ UnmatchedAugmentationClass:
     lib.dart:
       augment class Class {}
 
+UnmatchedPatchClass:
+  problemMessage: "Patch class '#name' doesn't match a class in the origin library."
+  correctionMessage: "Try changing the name to an existing class or removing the '@patch' annotation."
+
 UnmatchedAugmentationDeclaration:
   problemMessage: "Augmentation '#name' doesn't match a declaration in the augmented library."
   correctionMessage: "Try changing the name to an existing declaration or removing the 'augment' modifier."
   experiments: macros
+
+UnmatchedPatchDeclaration:
+  problemMessage: "Patch '#name' doesn't match a declaration in the origin library."
+  correctionMessage: "Try changing the name to an existing declaration or removing the '@patch' annotation."
 
 UnmatchedAugmentationConstructor:
   problemMessage: "Augmentation constructor '#name' doesn't match a constructor in the augmented class."
@@ -6016,6 +6054,9 @@ UnmatchedAugmentationConstructor:
         augment Class.name2();
       }
 
+UnmatchedPatchConstructor:
+  problemMessage: "Patch constructor '#name' doesn't match a constructor in the origin class."
+  correctionMessage: "Try changing the name to an existing constructor or removing the '@patch' annotation."
 
 NonAugmentationClassMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented class."
@@ -6032,6 +6073,10 @@ NonAugmentationClassMemberConflict:
         void method() {}
       }
 
+NonPatchClassMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin class."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
+
 NonAugmentationLibraryMemberConflict:
   problemMessage: "Member '#name' conflicts with an existing member of the same name in the augmented library."
   correctionMessage: "Try changing the name of the member or adding an 'augment' modifier."
@@ -6042,6 +6087,10 @@ NonAugmentationLibraryMemberConflict:
       void method() {}
     lib.dart:
       void method() {}
+
+NonPatchLibraryMemberConflict:
+  problemMessage: "Member '#name' conflicts with an existing member of the same name in the origin library."
+  correctionMessage: "Try changing the name of the member or adding an '@patch' annotation."
 
 NonAugmentationLibraryConflict:
   problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the augmented library."
@@ -6054,6 +6103,10 @@ NonAugmentationLibraryConflict:
     lib.dart:
       class method {}
 
+NonPatchLibraryConflict:
+  problemMessage: "Declaration '#name' conflicts with an existing declaration of the same name in the origin library."
+  correctionMessage: "Try changing the name of the declaration."
+
 NonAugmentationClassConflict:
   problemMessage: "Class '#name' conflicts with an existing class of the same name in the augmented library."
   correctionMessage: "Try changing the name of the class or adding an 'augment' modifier."
@@ -6064,6 +6117,10 @@ NonAugmentationClassConflict:
       class Class {}
     lib.dart:
       class Class {}
+
+NonPatchClassConflict:
+  problemMessage: "Class '#name' conflicts with an existing class of the same name in the origin library."
+  correctionMessage: "Try changing the name of the class or adding an '@patch' annotation."
 
 NonAugmentationConstructorConflict:
   problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the augmented class."
@@ -6079,6 +6136,10 @@ NonAugmentationConstructorConflict:
       augment class Class {
         Class.name();
       }
+
+NonPatchConstructorConflict:
+  problemMessage: "Constructor '#name' conflicts with an existing constructor of the same name in the origin class."
+  correctionMessage: "Try changing the name of the constructor or adding an '@patch' annotation."
 
 NonAugmentationMemberConflictCause:
   problemMessage: "This is the existing member."
@@ -6435,6 +6496,24 @@ SubtypeOfFinalIsNotBaseFinalOrSealed:
   script: |
       final class A {}
       class B extends A {}
+
+MixinSubtypeOfBaseIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'base'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      base class A {}
+      mixin B implements A {}
+
+MixinSubtypeOfFinalIsNotBase:
+  problemMessage: "The mixin '#name' must be 'base' because the supertype '#name2' is 'final'."
+  correctionMessage: "Try adding 'base' to the mixin."
+  analyzerCode: MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE
+  experiments: class-modifiers,sealed-class
+  script: |
+      final class A {}
+      mixin B implements A {}
 
 UnspecifiedGetterNameInObjectPattern:
   problemMessage: "The getter name is not specified explicitly, and the pattern is not a variable. Try specifying the getter name explicitly, or using a variable pattern."
@@ -6947,3 +7026,6 @@ JointPatternVariableWithLabelDefault:
   analyzerCode: INVALID_PATTERN_VARIABLE_IN_SHARED_CASE_SCOPE
   script: |
     test(x) { switch(x) { case var a: default: return a; } }
+
+UnsupportedMacroApplication:
+  problemMessage: "This macro application didn't apply correctly."

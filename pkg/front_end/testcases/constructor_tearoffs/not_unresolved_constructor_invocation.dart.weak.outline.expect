@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -26,9 +26,9 @@ extension Extension on core::Function {
 }
 static method UnresolvedClass<T extends core::Object? = dynamic>() → dynamic
   ;
-static method Extension|unresolvedConstructor(lowered final core::Function #this) → dynamic
+static extension-member method Extension|unresolvedConstructor(lowered final core::Function #this) → dynamic
   ;
-static method Extension|get#unresolvedConstructor(lowered final core::Function #this) → () → dynamic
+static extension-member method Extension|get#unresolvedConstructor(lowered final core::Function #this) → () → dynamic
   return () → dynamic => self::Extension|unresolvedConstructor(#this);
 static method main() → dynamic
   ;

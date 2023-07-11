@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 //
 // Problems in library:
 //
@@ -28,7 +28,7 @@ Try correcting the operator to an existing operator, or defining a '+' operator.
                                                                                                                        ^" in x{<unresolved>}.+(y.{core::int::toString}(){() → core::String})){(FutureOr<core::String>, (FutureOr<core::String>, core::int) → FutureOr<core::String>) → FutureOr<core::String>}){((core::List<core::int>) → FutureOr<core::String>, {onError: core::Function?}) → asy::Future<core::String>};
   asy::Future<core::String> results3 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → FutureOr<core::String> => list.{core::Iterable::fold}<FutureOr<core::String>>("", invalid-expression "pkg/front_end/testcases/inference/generic_methods_iterable_and_future.dart:31:108: Error: The argument type 'String Function(String, int)' can't be assigned to the parameter type 'FutureOr<String> Function(FutureOr<String>, int)'.
                   /*info:INFERRED_TYPE_CLOSURE,error:ARGUMENT_TYPE_NOT_ASSIGNABLE*/ /*@returnType=String*/ (String
-                                                                                                           ^" in ((core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}(){() → core::String}){(core::String) → core::String}) as{TypeError,ForNonNullableByDefault} (FutureOr<core::String>, core::int) → FutureOr<core::String>){(FutureOr<core::String>, (FutureOr<core::String>, core::int) → FutureOr<core::String>) → FutureOr<core::String>}){((core::List<core::int>) → FutureOr<core::String>, {onError: core::Function?}) → asy::Future<core::String>};
+                                                                                                           ^" in ((core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}(){() → core::String}){(core::String) → core::String}) as{TypeError} (FutureOr<core::String>, core::int) → FutureOr<core::String>){(FutureOr<core::String>, (FutureOr<core::String>, core::int) → FutureOr<core::String>) → FutureOr<core::String>}){((core::List<core::int>) → FutureOr<core::String>, {onError: core::Function?}) → asy::Future<core::String>};
   asy::Future<core::String> results4 = results.{asy::Future::then}<core::String>((core::List<core::int> list) → core::String => list.{core::Iterable::fold}<core::String>("", (core::String x, core::int y) → core::String => x.{core::String::+}(y.{core::int::toString}(){() → core::String}){(core::String) → core::String}){(core::String, (core::String, core::int) → core::String) → core::String}){((core::List<core::int>) → FutureOr<core::String>, {onError: core::Function?}) → asy::Future<core::String>};
 }
 static method main() → dynamic {}

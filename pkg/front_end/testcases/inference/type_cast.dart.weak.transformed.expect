@@ -1,4 +1,4 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
@@ -14,8 +14,8 @@ class B<T extends core::Object? = dynamic> extends self::A<self::B::T%> {
   method foo() → dynamic {}
 }
 static field self::A<core::num> a = new self::B::•<core::int>();
-static field self::B<core::int> b = self::a as{ForNonNullableByDefault} self::B<core::int>;
+static field self::B<core::int> b = self::a as self::B<core::int>;
 static method main() → dynamic {
   self::A<core::num> a = new self::B::•<core::int>();
-  self::B<core::int> b = a as{ForNonNullableByDefault} self::B<core::int>;
+  self::B<core::int> b = a as self::B<core::int>;
 }

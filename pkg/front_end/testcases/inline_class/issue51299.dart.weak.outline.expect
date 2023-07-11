@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -6,7 +6,7 @@ inline class I /* declaredRepresentationType = invalid-type */ {
   get i = self::I|get#i;
   set i = self::I|set#i;
 }
-static method I|get#i(lowered final self::I #this) → core::int
+static inline-class-member method I|get#i(lowered final self::I #this) → core::int
   ;
-static method I|set#i(lowered final self::I #this, core::int val) → void
+static inline-class-member method I|set#i(lowered final self::I #this, core::int val) → void
   ;

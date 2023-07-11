@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -57,16 +57,16 @@ inline class InlineClass /* declaredRepresentationType = core::int */ {
   constructor • = self::InlineClass|;
   tearoff • = self::InlineClass|_#new#tearOff;
 }
-static method _extension#0|get#setter(lowered final core::Object #this) → core::int
+static extension-member method _extension#0|get#setter(lowered final core::Object #this) → core::int
   return 42;
-static method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
-static method InlineClass|(core::int it) → self::InlineClass {
+static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void {}
+static inline-class-member method InlineClass|(core::int it) → self::InlineClass {
   lowered final self::InlineClass #this = it;
   return #this;
 }
-static method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
+static inline-class-member method InlineClass|_#new#tearOff(core::int it) → self::InlineClass
   return self::InlineClass|(it);
-static method InlineClass|test(lowered final self::InlineClass #this) → dynamic {
+static inline-class-member method InlineClass|test(lowered final self::InlineClass #this) → dynamic {
   core::int a = self::InlineClass|+(#this, 2);
   core::int b = self::InlineClass|unary-(#this);
   core::int c = self::InlineClass|[](#this, 2);
@@ -109,29 +109,29 @@ Try correcting the name to the name of an existing setter, or defining a setter 
   core::int n1 = self::InlineClass|call(#this);
   core::int n2 = self::InlineClass|call(#this);
 }
-static method InlineClass|get#test(lowered final self::InlineClass #this) → () → dynamic
+static inline-class-member method InlineClass|get#test(lowered final self::InlineClass #this) → () → dynamic
   return () → dynamic => self::InlineClass|test(#this);
-static method InlineClass|+(lowered final self::InlineClass #this, core::int other) → core::int
+static inline-class-member method InlineClass|+(lowered final self::InlineClass #this, core::int other) → core::int
   return 42;
-static method InlineClass|unary-(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|unary-(lowered final self::InlineClass #this) → core::int
   return 87;
-static method InlineClass|[](lowered final self::InlineClass #this, core::int index) → core::int
+static inline-class-member method InlineClass|[](lowered final self::InlineClass #this, core::int index) → core::int
   return 123;
-static method InlineClass|[]=(lowered final self::InlineClass #this, core::int index, core::int value) → void {}
-static method InlineClass|get#getter(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|[]=(lowered final self::InlineClass #this, core::int index, core::int value) → void {}
+static inline-class-member method InlineClass|get#getter(lowered final self::InlineClass #this) → core::int
   return 42;
-static method InlineClass|method(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|method(lowered final self::InlineClass #this) → core::int
   return 42;
-static method InlineClass|get#method(lowered final self::InlineClass #this) → () → core::int
+static inline-class-member method InlineClass|get#method(lowered final self::InlineClass #this) → () → core::int
   return () → core::int => self::InlineClass|method(#this);
-static method InlineClass|set#setter(lowered final self::InlineClass #this, core::int value) → void {}
-static method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
+static inline-class-member method InlineClass|set#setter(lowered final self::InlineClass #this, core::int value) → void {}
+static inline-class-member method InlineClass|genericMethod<T extends core::Object? = dynamic>(lowered final self::InlineClass #this, self::InlineClass|genericMethod::T% t) → self::InlineClass|genericMethod::T%
   return t;
-static method InlineClass|get#genericMethod(lowered final self::InlineClass #this) → <T extends core::Object? = dynamic>(T%) → T%
+static inline-class-member method InlineClass|get#genericMethod(lowered final self::InlineClass #this) → <T extends core::Object? = dynamic>(T%) → T%
   return <T extends core::Object? = dynamic>(T% t) → T% => self::InlineClass|genericMethod<T%>(#this, t);
-static method InlineClass|call(lowered final self::InlineClass #this) → core::int
+static inline-class-member method InlineClass|call(lowered final self::InlineClass #this) → core::int
   return 321;
-static method InlineClass|get#call(lowered final self::InlineClass #this) → () → core::int
+static inline-class-member method InlineClass|get#call(lowered final self::InlineClass #this) → () → core::int
   return () → core::int => self::InlineClass|call(#this);
 static method test(self::InlineClass ic) → dynamic {
   core::int a = self::InlineClass|+(ic, 2);

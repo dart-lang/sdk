@@ -233,7 +233,7 @@ environment:
 
   Future<void> tearDown() async {
     // If the test hasn't already sent terminate, do that before shutting down.
-    if (client.hasSentTerminateRequest) {
+    if (!client.hasSentTerminateRequest) {
       await client.terminate();
     }
     await client.stop();

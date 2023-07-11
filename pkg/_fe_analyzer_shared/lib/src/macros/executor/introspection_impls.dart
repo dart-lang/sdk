@@ -17,10 +17,8 @@ class IdentifierImpl extends RemoteInstance implements Identifier {
   IdentifierImpl({required int id, required this.name}) : super(id);
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addString(name);
   }
@@ -40,10 +38,8 @@ abstract class TypeAnnotationImpl extends RemoteInstance
   TypeAnnotationImpl({required int id, required this.isNullable}) : super(id);
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addBool(isNullable);
   }
@@ -77,10 +73,8 @@ class NamedTypeAnnotationImpl extends TypeAnnotationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     identifier.serialize(serializer);
     serializer.startList();
@@ -123,10 +117,8 @@ class RecordTypeAnnotationImpl extends TypeAnnotationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.startList();
     for (RecordFieldDeclarationImpl field in namedFields) {
@@ -165,15 +157,14 @@ class RecordFieldDeclarationImpl extends DeclarationImpl
   RecordFieldDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.name,
     required this.type,
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addNullableString(name);
     type.serialize(serializer);
@@ -226,10 +217,8 @@ class FunctionTypeAnnotationImpl extends TypeAnnotationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     returnType.serialize(serializer);
 
@@ -268,15 +257,21 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   @override
   final IdentifierImpl identifier;
 
-  DeclarationImpl({required int id, required this.identifier}) : super(id);
+  @override
+  final LibraryImpl library;
+
+  DeclarationImpl({
+    required int id,
+    required this.identifier,
+    required this.library,
+  }) : super(id);
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     identifier.serialize(serializer);
+    library.serialize(serializer);
   }
 }
 
@@ -297,16 +292,15 @@ class ParameterDeclarationImpl extends DeclarationImpl
   ParameterDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isNamed,
     required this.isRequired,
     required this.type,
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addBool(isNamed);
     serializer.addBool(isRequired);
@@ -346,10 +340,8 @@ class FunctionTypeParameterImpl extends RemoteInstance
   }) : super(id);
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addBool(isNamed);
     serializer.addBool(isRequired);
@@ -375,14 +367,13 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
   TypeParameterDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.bound,
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     TypeAnnotationImpl? bound = this.bound;
     if (bound == null) {
@@ -432,6 +423,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
   FunctionDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isAbstract,
     required this.isExternal,
     required this.isGetter,
@@ -444,10 +436,8 @@ class FunctionDeclarationImpl extends DeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer
       ..addBool(isAbstract)
@@ -490,6 +480,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -506,10 +497,8 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     definingType.serialize(serializer);
     serializer.addBool(isStatic);
@@ -528,6 +517,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -547,10 +537,8 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
         );
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.addBool(isFactory);
   }
@@ -576,6 +564,7 @@ class VariableDeclarationImpl extends DeclarationImpl
   VariableDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.isExternal,
     required this.isFinal,
     required this.isLate,
@@ -583,10 +572,8 @@ class VariableDeclarationImpl extends DeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer
       ..addBool(isExternal)
@@ -608,6 +595,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // Variable fields.
     required super.isExternal,
     required super.isFinal,
@@ -622,10 +610,8 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.fieldDeclaration;
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     definingType.serialize(serializer);
     serializer.addBool(isStatic);
@@ -640,14 +626,13 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   ParameterizedTypeDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.typeParameters,
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer..startList();
     for (TypeParameterDeclarationImpl param in typeParameters) {
@@ -657,8 +642,12 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   }
 }
 
+/// TODO: remove this https://github.com/dart-lang/language/issues/3120
+mixin _IntrospectableType implements IntrospectableType {}
+
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
-    with IntrospectableType
+    with _IntrospectableType
     implements IntrospectableClassDeclaration;
 
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
@@ -702,6 +691,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // ClassDeclaration fields.
@@ -718,10 +708,8 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.startList();
     for (NamedTypeAnnotationImpl interface in interfaces) {
@@ -745,8 +733,12 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
+/// TODO: remove this https://github.com/dart-lang/language/issues/3120
+mixin _IntrospectableEnum implements IntrospectableEnum {}
+
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
-    with IntrospectableEnum
+    with _IntrospectableEnum
     implements IntrospectableEnumDeclaration;
 
 class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
@@ -766,6 +758,7 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // EnumDeclaration fields.
@@ -774,10 +767,8 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer.startList();
     for (NamedTypeAnnotationImpl interface in interfaces) {
@@ -804,21 +795,21 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   EnumValueDeclarationImpl({
     required super.id,
     required super.identifier,
+    required super.library,
     required this.definingEnum,
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     definingEnum.serialize(serializer);
   }
 }
 
+// ignore: missing_override_of_must_be_overridden
 class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
-    with IntrospectableType
+    with _IntrospectableType
     implements IntrospectableMixinDeclaration;
 
 class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
@@ -841,6 +832,7 @@ class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // MixinDeclaration fields.
@@ -850,10 +842,8 @@ class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     serializer
       ..addBool(hasBase)
@@ -884,6 +874,7 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     // Declaration fields.
     required super.id,
     required super.identifier,
+    required super.library,
     // TypeDeclaration fields.
     required super.typeParameters,
     // TypeAlias fields.
@@ -891,11 +882,51 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
   });
 
   @override
-  void serialize(Serializer serializer) {
-    super.serialize(serializer);
-    // Client side we don't encode anything but the ID.
-    if (serializationMode.isClient) return;
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
 
     aliasedType.serialize(serializer);
+  }
+}
+
+class LibraryImpl extends RemoteInstance implements Library {
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.library;
+
+  @override
+  final LanguageVersionImpl languageVersion;
+
+  @override
+  final Uri uri;
+
+  LibraryImpl(
+      {required int id, required this.languageVersion, required this.uri})
+      : super(id);
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    languageVersion.serialize(serializer);
+    serializer.addUri(uri);
+  }
+}
+
+/// This class doesn't implement [RemoteInstance] as it is always attached to a
+/// [Library] and doesn't need its own kind or ID.
+class LanguageVersionImpl implements LanguageVersion, Serializable {
+  @override
+  final int major;
+
+  @override
+  final int minor;
+
+  LanguageVersionImpl(this.major, this.minor);
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer
+      ..addInt(major)
+      ..addInt(minor);
   }
 }

@@ -15,6 +15,21 @@ class VariableData {
   VariableData(this.data, this.format);
 }
 
+/// Data used to lazily evaluate a getter in a Variables request.
+class VariableGetter {
+  final Instance instance;
+  final String getterName;
+  final String? parentEvaluateName;
+  final bool allowCallingToString;
+
+  VariableGetter({
+    required this.instance,
+    required this.getterName,
+    required this.parentEvaluateName,
+    required this.allowCallingToString,
+  });
+}
+
 /// A wrapper around variables for use in `variablesRequest` that can hold
 /// additional data, such as a formatting information supplied in an evaluation
 /// request.

@@ -18,10 +18,6 @@ main() {
 
 @reflectiveTest
 class BreadthFirstVisitorTest extends ParserTestCase {
-  @FailingTest(
-    reason: 'This test should start passing after landing '
-        'https://dart-review.googlesource.com/c/sdk/+/303280',
-  )
   void test_it() {
     String source = r'''
 class A {

@@ -4,9 +4,6 @@
 
 library dart2js.kernel.env;
 
-import 'package:front_end/src/api_unstable/dart2js.dart'
-    show isRedirectingFactoryField;
-
 import 'package:kernel/ast.dart' as ir;
 import 'package:kernel/type_environment.dart' as ir;
 import 'package:collection/collection.dart' show mergeSort; // a stable sort.
@@ -69,7 +66,7 @@ class KLibraryEnv {
   final ir.Library library;
 
   late final Map<String, KClassEnv> _classMap = {
-    for (ir.Class cls in library.classes) cls.name: KClassEnvImpl(cls),
+    for (ir.Class cls in library.classes) cls.name: KClassEnv(cls),
   };
 
   Map<String, ir.Member>? _memberMap;
@@ -90,9 +87,6 @@ class KLibraryEnv {
       _memberMap = <String, ir.Member>{};
       _setterMap = <String, ir.Member>{};
       for (ir.Member member in library.members) {
-        if (isRedirectingFactoryField(member)) {
-          continue;
-        }
         if (member is ir.Procedure) {
           if (member.kind == ir.ProcedureKind.Setter) {
             _setterMap![member.name.text] = member;
@@ -204,58 +198,6 @@ class KLibraryData {
   }
 }
 
-/// Member data for a class.
-abstract class KClassEnv {
-  /// The [ir.Class] that defined the class, if any.
-  ir.Class get cls;
-
-  /// Whether the class is an unnamed mixin application.
-  bool get isUnnamedMixinApplication;
-
-  /// Whether the class is a mixin application with its own members.
-  ///
-  /// This occurs when a mixin contains methods with super calls or when
-  /// the mixin application contains concrete forwarding stubs.
-  bool get isMixinApplicationWithMembers;
-
-  /// Ensures that all members have been computed for [cls].
-  void ensureMembers(KernelToElementMap elementMap);
-
-  /// Return the [MemberEntity] for the member [name] in the class.
-  MemberEntity? lookupMember(IrToElementMap elementMap, Name name);
-
-  /// Calls [f] for each member of [cls].
-  void forEachMember(IrToElementMap elementMap, void f(MemberEntity member));
-
-  /// Return the [ConstructorEntity] for the constructor [name] in [cls].
-  ConstructorEntity? lookupConstructor(IrToElementMap elementMap, String? name);
-
-  /// Calls [f] for each constructor of [cls].
-  void forEachConstructor(
-      IrToElementMap elementMap, void f(ConstructorEntity constructor));
-
-  /// Calls [f] for each constructor body for the live constructors in the
-  /// class.
-  void forEachConstructorBody(void f(ConstructorBodyEntity constructor));
-
-  /// Convert this [KClassEnv] to the corresponding [JClassEnv] containing only
-  /// the members in [liveMembers].
-  ///
-  /// [getJLibrary] returns the [LibraryEntity] in the J-model corresponding to
-  /// a [ir.Library] node.
-  JClassEnv convert(
-      IrToElementMap kElementMap,
-      Map<MemberEntity, MemberUsage> liveMemberUsage,
-      Iterable<MemberEntity> liveAbstractMembers,
-      LibraryEntity Function(ir.Library library) getJLibrary);
-
-  /// Returns `true` if [node] is a known member of this class.
-  ///
-  /// This method is used for checking the integrity of the K-model and does
-  /// not alter the state of this class environment.
-  bool checkHasMember(ir.Member node);
-}
-
 int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
   var aLoc = a.location!;
   var bLoc = b.location!;
@@ -267,8 +209,7 @@ int orderByFileOffset(ir.TreeNode a, ir.TreeNode b) {
 }
 
 /// Environment for fast lookup of class members.
-class KClassEnvImpl implements KClassEnv {
-  @override
+class KClassEnv {
   final ir.Class cls;
 
   Map<String, ir.Member>? _constructorMap;
@@ -279,22 +220,18 @@ class KClassEnvImpl implements KClassEnv {
   /// Constructor bodies created for this class.
   List<ConstructorBodyEntity>? _constructorBodyList;
 
-  KClassEnvImpl(this.cls);
+  KClassEnv(this.cls);
 
-  @override
   bool get isUnnamedMixinApplication => cls.isAnonymousMixin;
 
-  @override
   bool get isMixinApplicationWithMembers => _isMixinApplicationWithMembers!;
 
-  @override
   bool checkHasMember(ir.Member node) {
     if (_memberMap == null) return false;
     return _memberMap!.values.contains(node) ||
         _constructorMap!.values.contains(node);
   }
 
-  @override
   void ensureMembers(KernelToElementMap elementMap) {
     _ensureMaps(elementMap);
   }
@@ -309,7 +246,6 @@ class KClassEnvImpl implements KClassEnv {
 
     void addField(ir.Field member, {required bool includeStatic}) {
       if (!includeStatic && member.isStatic) return;
-      if (isRedirectingFactoryField(member)) return;
       var name = elementMap.getName(member.name);
       _memberMap![name] = member;
       if (member.hasSetter) {
@@ -389,7 +325,6 @@ class KClassEnvImpl implements KClassEnv {
     _members = members;
   }
 
-  @override
   MemberEntity? lookupMember(
       covariant KernelToElementMap elementMap, Name name) {
     _ensureMaps(elementMap);
@@ -397,7 +332,6 @@ class KClassEnvImpl implements KClassEnv {
     return member != null ? elementMap.getMember(member) : null;
   }
 
-  @override
   void forEachMember(IrToElementMap elementMap, void f(MemberEntity member)) {
     _ensureMaps(elementMap as KernelToElementMap);
     _members!.forEach((ir.Member member) {
@@ -405,7 +339,6 @@ class KClassEnvImpl implements KClassEnv {
     });
   }
 
-  @override
   ConstructorEntity? lookupConstructor(
       IrToElementMap elementMap, String? name) {
     _ensureMaps(elementMap as KernelToElementMap);
@@ -413,7 +346,6 @@ class KClassEnvImpl implements KClassEnv {
     return constructor != null ? elementMap.getConstructor(constructor) : null;
   }
 
-  @override
   void forEachConstructor(
       IrToElementMap elementMap, void f(ConstructorEntity constructor)) {
     _ensureMaps(elementMap as KernelToElementMap);
@@ -427,12 +359,10 @@ class KClassEnvImpl implements KClassEnv {
     _constructorBodyList!.add(constructorBody);
   }
 
-  @override
   void forEachConstructorBody(void f(ConstructorBodyEntity constructor)) {
     _constructorBodyList?.forEach(f);
   }
 
-  @override
   JClassEnv convert(
       IrToElementMap kElementMap,
       Map<MemberEntity, MemberUsage> liveMemberUsage,
@@ -482,65 +412,29 @@ class KClassEnvImpl implements KClassEnv {
   }
 }
 
-abstract class KClassData {
-  ir.Class get node;
-
-  InterfaceType? get thisType;
-  InterfaceType? get jsInteropType;
-  InterfaceType? get rawType;
-  InterfaceType? get instantiationToBounds;
-  InterfaceType? get supertype;
-  InterfaceType? get mixedInType;
-  List<InterfaceType>? get interfaces;
-  OrderedTypeSet? get orderedTypeSet;
-  DartType? get callType;
-
-  bool get isEnumClass;
-  bool get isMixinApplication;
-
-  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
-  List<Variance> getVariances();
-
-  /// Convert this [KClassData] to the corresponding [JClassData].
-  JClassData convert();
-}
-
-class KClassDataImpl implements KClassData {
-  @override
+class KClassData {
   final ir.Class node;
-  @override
   late bool isMixinApplication;
 
-  @override
   InterfaceType? thisType;
-  @override
   InterfaceType? jsInteropType;
-  @override
   InterfaceType? rawType;
-  @override
   InterfaceType? instantiationToBounds;
-  @override
   InterfaceType? supertype;
-  @override
   InterfaceType? mixedInType;
-  @override
   List<InterfaceType>? interfaces;
-  @override
   OrderedTypeSet? orderedTypeSet;
 
   Iterable<ConstantValue>? _metadata;
   List<Variance>? _variances;
 
-  KClassDataImpl(this.node);
+  KClassData(this.node);
 
-  @override
   bool get isEnumClass => node.isEnum;
 
-  @override
   FunctionType? callType;
   bool isCallTypeComputed = false;
 
-  @override
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext.forAnnotations(
@@ -548,50 +442,31 @@ class KClassDataImpl implements KClassData {
         node.annotations);
   }
 
-  @override
   List<Variance> getVariances() =>
       _variances ??= node.typeParameters.map(convertVariance).toList();
 
-  @override
   JClassData convert() {
     return JClassDataImpl(node, RegularClassDefinition(node));
   }
 }
 
 abstract class KMemberData {
-  ir.Member get node;
-
-  StaticTypeCache? staticTypes;
-
-  Iterable<ConstantValue> getMetadata(IrToElementMap elementMap);
-
-  InterfaceType? getMemberThisType(JsToElementMap elementMap);
-
-  ClassTypeVariableAccess get classTypeVariableAccess;
-
-  /// Convert this [KMemberData] to the corresponding [JMemberData].
-  JMemberData convert();
-}
-
-abstract class KMemberDataImpl implements KMemberData {
-  @override
   final ir.Member node;
 
   Iterable<ConstantValue>? _metadata;
 
-  @override
   StaticTypeCache? staticTypes;
 
-  KMemberDataImpl(this.node);
+  ClassTypeVariableAccess get classTypeVariableAccess;
 
-  @override
+  KMemberData(this.node);
+
   Iterable<ConstantValue> getMetadata(covariant KernelToElementMap elementMap) {
     return _metadata ??= elementMap.getMetadata(
         ir.StaticTypeContext(node, elementMap.typeEnvironment),
         node.annotations);
   }
 
-  @override
   InterfaceType? getMemberThisType(JsToElementMap elementMap) {
     MemberEntity member = elementMap.getMember(node);
     ClassEntity? cls = member.enclosingClass;
@@ -600,63 +475,22 @@ abstract class KMemberDataImpl implements KMemberData {
     }
     return null;
   }
+
+  /// Convert this [KMemberData] to the corresponding [JMemberData].
+  JMemberData convert();
 }
 
-abstract class KFunctionData implements KMemberData {
-  FunctionType getFunctionType(IrToElementMap elementMap);
-
-  List<TypeVariableType> getFunctionTypeVariables(IrToElementMap elementMap);
-
-  void forEachParameter(JsToElementMap elementMap,
-      void f(DartType type, String? name, ConstantValue? defaultValue));
-}
-
-abstract class KFunctionDataMixin implements KFunctionData {
-  ir.FunctionNode get functionNode;
-  List<TypeVariableType>? _typeVariables;
-
-  @override
-  List<TypeVariableType> getFunctionTypeVariables(
-      covariant KernelToElementMap elementMap) {
-    if (_typeVariables == null) {
-      if (functionNode.typeParameters.isEmpty) {
-        _typeVariables = const <TypeVariableType>[];
-      } else {
-        ir.TreeNode? parent = functionNode.parent;
-        if (parent is ir.Constructor ||
-            (parent is ir.Procedure &&
-                parent.kind == ir.ProcedureKind.Factory)) {
-          _typeVariables = const <TypeVariableType>[];
-        } else {
-          _typeVariables = functionNode.typeParameters
-              .map<TypeVariableType>((ir.TypeParameter typeParameter) {
-            return elementMap
-                .getDartType(ir.TypeParameterType(
-                    typeParameter, ir.Nullability.nonNullable))
-                .withoutNullability as TypeVariableType;
-          }).toList();
-        }
-      }
-    }
-    return _typeVariables!;
-  }
-}
-
-class KFunctionDataImpl extends KMemberDataImpl
-    with KFunctionDataMixin
-    implements KFunctionData {
-  @override
+class KFunctionData extends KMemberData {
   final ir.FunctionNode functionNode;
   FunctionType? _type;
+  List<TypeVariableType>? _typeVariables;
 
-  KFunctionDataImpl(super.node, this.functionNode);
+  KFunctionData(super.node, this.functionNode);
 
-  @override
   FunctionType getFunctionType(covariant KernelToElementMap elementMap) {
     return _type ??= elementMap.getFunctionType(functionNode);
   }
 
-  @override
   void forEachParameter(JsToElementMap elementMap,
       void f(DartType type, String? name, ConstantValue? defaultValue)) {
     void handleParameter(ir.VariableDeclaration parameter,
@@ -684,6 +518,31 @@ class KFunctionDataImpl extends KMemberDataImpl
       ..forEach(handleParameter);
   }
 
+  List<TypeVariableType> getFunctionTypeVariables(
+      covariant KernelToElementMap elementMap) {
+    if (_typeVariables == null) {
+      if (functionNode.typeParameters.isEmpty) {
+        _typeVariables = const <TypeVariableType>[];
+      } else {
+        ir.TreeNode? parent = functionNode.parent;
+        if (parent is ir.Constructor ||
+            (parent is ir.Procedure &&
+                parent.kind == ir.ProcedureKind.Factory)) {
+          _typeVariables = const <TypeVariableType>[];
+        } else {
+          _typeVariables = functionNode.typeParameters
+              .map<TypeVariableType>((ir.TypeParameter typeParameter) {
+            return elementMap
+                .getDartType(ir.TypeParameterType(
+                    typeParameter, ir.Nullability.nonNullable))
+                .withoutNullability as TypeVariableType;
+          }).toList();
+        }
+      }
+    }
+    return _typeVariables!;
+  }
+
   @override
   FunctionData convert() {
     return FunctionDataImpl(
@@ -702,13 +561,10 @@ class KFunctionDataImpl extends KMemberDataImpl
   }
 }
 
-abstract class KConstructorData extends KFunctionData {}
-
-class KConstructorDataImpl extends KFunctionDataImpl
-    implements KConstructorData {
+class KConstructorData extends KFunctionData {
   ConstructorBodyEntity? constructorBody;
 
-  KConstructorDataImpl(super.node, super.functionNode);
+  KConstructorData(super.node, super.functionNode);
 
   @override
   JConstructorData convert() {
@@ -718,7 +574,7 @@ class KConstructorDataImpl extends KFunctionDataImpl
     } else {
       definition = RegularMemberDefinition(node);
     }
-    return JConstructorDataImpl(node, functionNode, definition, staticTypes!);
+    return JConstructorData(node, functionNode, definition, staticTypes!);
   }
 
   @override
@@ -726,35 +582,20 @@ class KConstructorDataImpl extends KFunctionDataImpl
       ClassTypeVariableAccess.parameter;
 }
 
-abstract class KFieldData extends KMemberData {
-  DartType getFieldType(IrToElementMap elementMap);
-
-  /// `true` if this field is the backing field for a `late` or `late final`
-  /// instance field.
-  bool get isLateBackingField;
-
-  /// `true` if this field is the backing field for a `late final` instance
-  /// field.
-  bool get isLateFinalBackingField;
-}
-
-class KFieldDataImpl extends KMemberDataImpl implements KFieldData {
+class KFieldData extends KMemberData {
   DartType? _type;
 
-  @override
   final bool isLateBackingField;
 
-  @override
   final bool isLateFinalBackingField;
 
-  KFieldDataImpl(super.node,
+  KFieldData(super.node,
       {required this.isLateBackingField,
       required this.isLateFinalBackingField});
 
   @override
   ir.Field get node => super.node as ir.Field;
 
-  @override
   DartType getFieldType(covariant KernelToElementMap elementMap) {
     return _type ??= elementMap.getDartType(node.type);
   }

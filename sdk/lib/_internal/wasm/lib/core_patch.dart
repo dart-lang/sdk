@@ -32,6 +32,8 @@ import "dart:_internal" as _internal show Symbol;
 
 import 'dart:_js_helper' show JS, JSSyntaxRegExp, quoteStringForRegExp;
 
+import 'dart:_js_types' show JSStringImpl;
+
 import "dart:collection"
     show
         HashMap,
@@ -50,6 +52,8 @@ import 'dart:math' show Random;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
+import 'dart:_string_helper';
+
 import 'dart:_wasm';
 
 part "bool.dart";
@@ -66,7 +70,6 @@ part "record_patch.dart";
 part "regexp_patch.dart";
 part "stack_trace_patch.dart";
 part "stopwatch_patch.dart";
-part "string_patch.dart";
 part "type.dart";
 part "uri_patch.dart";
 

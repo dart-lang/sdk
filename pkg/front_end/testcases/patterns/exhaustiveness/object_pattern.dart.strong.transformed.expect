@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -83,7 +83,7 @@ static method exhaustiveWithTypedFields(self::A a) → dynamic
       {
         hoisted core::int field1;
         hoisted core::num field2;
-        if(#0#1 is{ForNonNullableByDefault} core::int && (let final core::int #t9 = field1 = #0#1 in true) && (#0#2 is{ForNonNullableByDefault} core::num && (let final core::num #t10 = field2 = #0#2 in true))) {
+        if(#0#1 is core::int && (let final core::int #t9 = field1 = #0#1 in true) && (#0#2 is core::num && (let final core::num #t10 = field2 = #0#2 in true))) {
           #t8 = 0;
           break #L4;
         }
@@ -115,7 +115,7 @@ static method nonExhaustiveTypedField(self::A a) → dynamic
     {
       {
         hoisted core::int field2;
-        if(#0#1 is{ForNonNullableByDefault} core::int && (let final core::int #t13 = field2 = #0#1{core::int} in true)) {
+        if(#0#1 is core::int && (let final core::int #t13 = field2 = #0#1{core::int} in true)) {
           #t12 = 0;
           break #L6;
         }

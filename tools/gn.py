@@ -16,7 +16,6 @@ HOST_ARCH = utils.GuessArchitecture()
 SCRIPT_DIR = os.path.dirname(sys.argv[0])
 DART_ROOT = os.path.realpath(os.path.join(SCRIPT_DIR, '..'))
 AVAILABLE_ARCHS = utils.ARCH_FAMILY.keys()
-GN = os.path.join(DART_ROOT, 'buildtools', 'gn')
 
 # Environment variables for default settings.
 DART_USE_TOOLCHAIN = "DART_USE_TOOLCHAIN"  # Use instead of --toolchain-prefix
@@ -298,7 +297,7 @@ def ToGnArgs(args, mode, arch, target_os, sanitizer, verify_sdk_hash):
     for path in os.environ.get('PATH', '').split(os.pathsep):
         if os.path.basename(path) == 'depot_tools':
             cipd_bin = os.path.join(path, '.cipd_bin')
-            if os.path.isfile(os.path.join(cipd_bin, 'gomacc')):
+            if os.path.isfile(os.path.join(cipd_bin, ExecutableName('gomacc'))):
                 goma_depot_tools_dir = cipd_bin
                 break
     # Otherwise use goma from home directory.
@@ -574,9 +573,17 @@ def parse_args(args):
     return options
 
 
+def ExecutableName(basename):
+    if utils.IsWindows():
+        return f'{basename}.exe'
+    return basename
+
+
 def BuildGnCommand(args, mode, arch, target_os, sanitizer, out_dir):
-    gn = os.path.join(DART_ROOT, 'buildtools',
-                      'gn.exe' if utils.IsWindows() else 'gn')
+    if utils.IsWindows():
+        gn = os.path.join(DART_ROOT, 'buildtools', 'win', 'gn.exe')
+    else:
+        gn = os.path.join(DART_ROOT, 'buildtools', 'gn')
     if not os.path.isfile(gn):
         raise Exception("Couldn't find the gn binary at path: " + gn)
 

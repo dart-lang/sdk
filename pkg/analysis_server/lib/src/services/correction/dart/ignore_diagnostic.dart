@@ -13,7 +13,7 @@ import 'package:analyzer/src/ignore_comments/ignore_info.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 
-abstract class AbstractIgnoreDiagnostic extends CorrectionProducer {
+abstract class AbstractIgnoreDiagnostic extends ResolvedCorrectionProducer {
   AnalysisError get error => diagnostic as AnalysisError;
 
   @override

@@ -68,7 +68,7 @@ void main() {
 
 @reflectiveTest
 class SpecTest {
-  void test_specHasBeenGenerated() {
-    check_spec.main();
+  void test_specHasBeenGenerated() async {
+    await check_spec.main();
   }
 }

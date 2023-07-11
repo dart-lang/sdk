@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -372,13 +372,13 @@ static final field dynamic field26;
 static final field dynamic field27;
 static final field dynamic field28;
 static final field dynamic field29;
-static method Extension|method<T extends self::B>(lowered final self::Class<self::Extension|method::T> #this) → dynamic
+static extension-member method Extension|method<T extends self::B>(lowered final self::Class<self::Extension|method::T> #this) → dynamic
   ;
-static method Extension|get#method<T extends self::B>(lowered final self::Class<self::Extension|get#method::T> #this) → () → dynamic
+static extension-member method Extension|get#method<T extends self::B>(lowered final self::Class<self::Extension|get#method::T> #this) → () → dynamic
   return () → dynamic => self::Extension|method<self::Extension|get#method::T>(#this);
-static method Extension|genericMethod<T extends self::B, S extends self::B>(lowered final self::Class<self::Extension|genericMethod::T> #this, self::Extension|genericMethod::S s) → dynamic
+static extension-member method Extension|genericMethod<T extends self::B, S extends self::B>(lowered final self::Class<self::Extension|genericMethod::T> #this, self::Extension|genericMethod::S s) → dynamic
   ;
-static method Extension|get#genericMethod<T extends self::B>(lowered final self::Class<self::Extension|get#genericMethod::T> #this) → <S extends self::B>(S) → dynamic
+static extension-member method Extension|get#genericMethod<T extends self::B>(lowered final self::Class<self::Extension|get#genericMethod::T> #this) → <S extends self::B>(S) → dynamic
   return <S extends self::B>(S s) → dynamic => self::Extension|genericMethod<self::Extension|get#genericMethod::T, S>(#this, s);
 static method main() → dynamic
   ;

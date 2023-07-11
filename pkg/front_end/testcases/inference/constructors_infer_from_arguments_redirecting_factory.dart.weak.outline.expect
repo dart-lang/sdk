@@ -1,12 +1,11 @@
-library test /*isNonNullableByDefault*/;
+library test;
 import self as self;
 import "dart:core" as core;
 
 abstract class C<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::C::•]/*isLegacy*/;
   abstract get t() → self::C::T%;
   abstract set t(covariant-by-class self::C::T% x) → void;
-  static factory •<T extends core::Object? = dynamic>(self::C::•::T% t) → self::C<self::C::•::T%>
+  static factory •<T extends core::Object? = dynamic>(self::C::•::T% t) → self::C<self::C::•::T%> /* redirection-target: self::CImpl::•<self::C::•::T%>*/
     return new self::CImpl::•<self::C::•::T%>(t);
 }
 class CImpl<T extends core::Object? = dynamic> extends core::Object implements self::C<self::CImpl::T%> {
@@ -16,8 +15,3 @@ class CImpl<T extends core::Object? = dynamic> extends core::Object implements s
 }
 static method main() → dynamic
   ;
-
-
-Extra constant evaluation status:
-Evaluated: ConstructorTearOff @ org-dartlang-testcase:///constructors_infer_from_arguments_redirecting_factory.dart:8:16 -> ConstructorTearOffConstant(C.)
-Extra constant evaluation: evaluated: 4, effectively constant: 1

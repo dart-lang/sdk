@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -34,11 +34,11 @@ static field core::int _extension#0|field /* from org-dartlang-testcase:///issue
 static field core::int _extension#1|field /* from org-dartlang-testcase:///issue48765_part2.dart */;
 static method main() → void
   ;
-static method /* from org-dartlang-testcase:///issue48765_part1.dart */ _extension#0|method(lowered final self::_A #this) → void
+static extension-member method /* from org-dartlang-testcase:///issue48765_part1.dart */ _extension#0|method(lowered final self::_A #this) → void
   ;
-static method /* from org-dartlang-testcase:///issue48765_part1.dart */ _extension#0|get#method(lowered final self::_A #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///issue48765_part1.dart */ _extension#0|get#method(lowered final self::_A #this) → () → void
   return () → void => self::_extension#0|method(#this);
-static method /* from org-dartlang-testcase:///issue48765_part2.dart */ _extension#1|method(lowered final self::_B #this) → void
+static extension-member method /* from org-dartlang-testcase:///issue48765_part2.dart */ _extension#1|method(lowered final self::_B #this) → void
   ;
-static method /* from org-dartlang-testcase:///issue48765_part2.dart */ _extension#1|get#method(lowered final self::_B #this) → () → void
+static extension-member method /* from org-dartlang-testcase:///issue48765_part2.dart */ _extension#1|get#method(lowered final self::_B #this) → () → void
   return () → void => self::_extension#1|method(#this);

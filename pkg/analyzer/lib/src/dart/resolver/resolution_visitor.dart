@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
     as shared;
 import 'package:_fe_analyzer_shared/src/type_inference/variable_bindings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
@@ -434,6 +433,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       if (node.parameter is FieldFormalParameter) {
         // Only for recovery, this should not happen in valid code.
         element = DefaultFieldFormalParameterElementImpl(
+          name: name,
+          nameOffset: nameOffset,
+          parameterKind: node.kind,
+        )..constantInitializer = node.defaultValue;
+      } else if (node.parameter is SuperFormalParameter) {
+        // Only for recovery, this should not happen in valid code.
+        element = DefaultSuperFormalParameterElementImpl(
           name: name,
           nameOffset: nameOffset,
           parameterKind: node.kind,

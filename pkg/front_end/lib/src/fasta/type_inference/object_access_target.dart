@@ -102,10 +102,6 @@ abstract class ObjectAccessTarget {
   factory ObjectAccessTarget.interfaceMember(
       DartType receiverType, Member member,
       {required bool isPotentiallyNullable}) {
-    // ignore: unnecessary_null_comparison
-    assert(member != null);
-    // ignore: unnecessary_null_comparison
-    assert(isPotentiallyNullable != null);
     return isPotentiallyNullable
         ? new InstanceAccessTarget.nullable(receiverType, member)
         : new InstanceAccessTarget.nonNullable(receiverType, member);
@@ -980,9 +976,7 @@ class ExtensionAccessCandidate {
 
   ExtensionAccessCandidate(this.memberBuilder, this.onType,
       this.onTypeInstantiateToBounds, this.target,
-      {required this.isPlatform})
-      // ignore: unnecessary_null_comparison
-      : assert(isPlatform != null);
+      {required this.isPlatform});
 
   bool? isMoreSpecificThan(TypeSchemaEnvironment typeSchemaEnvironment,
       ExtensionAccessCandidate other) {

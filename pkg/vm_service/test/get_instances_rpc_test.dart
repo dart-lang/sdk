@@ -63,7 +63,7 @@ IsolateTest createTestThatExpectsInstanceCounts(
 
 final tests = <IsolateTest>[
   hasStoppedAtBreakpoint,
-  stoppedAtLine(25),
+  stoppedAtLine(24),
   createTestThatExpectsInstanceCounts(0, 0, 0),
   resumeIsolate,
   createTestThatExpectsInstanceCounts(1, 2, 3),

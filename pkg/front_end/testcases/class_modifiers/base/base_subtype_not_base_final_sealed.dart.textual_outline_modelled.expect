@@ -19,4 +19,5 @@ class With with BaseMixin {}
 class With2 with BaseMixin, BaseMixin2 {}
 mixin BaseMixin2 {}
 mixin MixinImplements implements BaseMixin {}
+mixin MixinImplementsIndirect implements SubtypeOfBase {}
 mixin On on BaseClass {}

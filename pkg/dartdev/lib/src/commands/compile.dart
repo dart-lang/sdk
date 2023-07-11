@@ -442,6 +442,7 @@ class CompileCommand extends DartdevCommand {
     addSubcommand(CompileSnapshotCommand(
       commandName: CompileSnapshotCommand.jitSnapshotCmdName,
       help: 'to a JIT snapshot.\n'
+          'The executable will be run once to snapshot a warm JIT.\n'
           'To run the snapshot use: dart run <JIT file>',
       fileExt: 'jit',
       formatName: 'app-jit',

@@ -416,7 +416,7 @@ class Finalizer extends _ExceptionHandler {
 
 /// Represents target of a `break` statement.
 abstract class LabelTarget {
-  void jump(AsyncCodeGenerator codeGen, BreakStatement node);
+  void jump(AsyncCodeGenerator codeGen);
 }
 
 /// Target of a [BreakStatement] that can be implemented with a Wasm `br`
@@ -430,7 +430,7 @@ class DirectLabelTarget implements LabelTarget {
   DirectLabelTarget(this.label);
 
   @override
-  void jump(AsyncCodeGenerator codeGen, BreakStatement node) {
+  void jump(AsyncCodeGenerator codeGen) {
     codeGen.b.br(label);
   }
 }
@@ -447,7 +447,7 @@ class IndirectLabelTarget implements LabelTarget {
   IndirectLabelTarget(this.finalizerDepth, this.stateTarget);
 
   @override
-  void jump(AsyncCodeGenerator codeGen, BreakStatement node) {
+  void jump(AsyncCodeGenerator codeGen) {
     final currentFinalizerDepth = codeGen.exceptionHandlers.numFinalizers;
     final finalizersToRun = currentFinalizerDepth - finalizerDepth;
 
@@ -519,9 +519,9 @@ class AsyncCodeGenerator extends CodeGenerator {
   /// `try` and `catch` blocks around the CFG blocks.
   late final _ExceptionHandlerStack exceptionHandlers;
 
-  /// Maps labelled statements to their CFG targets. Used when jumping to a CFG
-  /// block on `break`.
-  final Map<LabeledStatement, LabelTarget> labelTargets = {};
+  /// Maps jump targets to their CFG targets. Used when jumping to a CFG block
+  /// on `break`. Keys are [LabeledStatement]s or [SwitchCase]s.
+  final Map<TreeNode, LabelTarget> labelTargets = {};
 
   late final ClassInfo asyncSuspendStateInfo =
       translator.classInfo[translator.asyncSuspendStateClass]!;
@@ -940,7 +940,7 @@ class AsyncCodeGenerator extends CodeGenerator {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    labelTargets[node.target]!.jump(this, node);
+    labelTargets[node.target]!.jump(this);
   }
 
   @override
@@ -1015,6 +1015,12 @@ class AsyncCodeGenerator extends CodeGenerator {
       jumpToTarget(defaultLabel);
     }
 
+    // Add jump infos
+    for (final SwitchCase case_ in node.cases) {
+      labelTargets[case_] = IndirectLabelTarget(
+          exceptionHandlers.numFinalizers, innerTargets[case_]!);
+    }
+
     // Emit case bodies
     for (SwitchCase c in node.cases) {
       _emitTargetLabel(innerTargets[c]!);
@@ -1022,12 +1028,17 @@ class AsyncCodeGenerator extends CodeGenerator {
       jumpToTarget(after);
     }
 
+    // Remove jump infos
+    for (final SwitchCase case_ in node.cases) {
+      labelTargets.remove(case_);
+    }
+
     _emitTargetLabel(after);
   }
 
   @override
   void visitContinueSwitchStatement(ContinueSwitchStatement node) {
-    jumpToTarget(innerTargets[node.target]!);
+    labelTargets[node.target]!.jump(this);
   }
 
   @override

@@ -179,6 +179,12 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
     void Function() sendResponse,
   );
 
+  Future<void> pauseRequest(
+    Request request,
+    PauseArguments args,
+    void Function(PauseResponseBody) sendResponse,
+  );
+
   Future<void> restartRequest(
     Request request,
     RestartArguments? args,
@@ -199,6 +205,10 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
       event: eventType ?? eventTypes[body.runtimeType]!,
       body: body,
     );
+    sendEventToChannel(event);
+  }
+
+  void sendEventToChannel(Event event) {
     _channel.sendEvent(event);
   }
 
@@ -361,6 +371,13 @@ abstract class BaseDebugAdapter<TLaunchArgs extends LaunchRequestArguments,
         request,
         setExceptionBreakpointsRequest,
         SetExceptionBreakpointsArguments.fromJson,
+        responseWriter,
+      );
+    } else if (request.command == 'pause') {
+      handle(
+        request,
+        pauseRequest,
+        PauseArguments.fromJson,
         responseWriter,
       );
     } else if (request.command == 'continue') {

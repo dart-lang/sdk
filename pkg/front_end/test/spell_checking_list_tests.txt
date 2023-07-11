@@ -55,6 +55,7 @@ autobianchi
 automatic
 averaged
 averages
+ax
 axis
 ba
 baba
@@ -119,6 +120,7 @@ cb
 cc
 ccc
 cdee
+cells
 center
 certificate
 cf
@@ -203,6 +205,7 @@ declarative
 decrease
 decrements
 dectcem
+deece
 deleting
 denylist
 depended
@@ -273,6 +276,7 @@ estat
 et
 everytime
 evicting
+examines
 exceed
 excess
 exe
@@ -290,6 +294,8 @@ faking
 falling
 favors
 fb
+fd
+fec
 fi
 fibonacci
 filesystem
@@ -328,6 +334,7 @@ gamma
 gave
 gc
 gcd
+gclient
 gesture
 gi
 gm
@@ -340,6 +347,7 @@ gtgt
 gulp
 gunk
 hackish
+hardcoding
 hardly
 hest
 heuristics
@@ -462,6 +470,7 @@ modelled
 month
 moo
 mouse
+mrelease
 mstat
 mul
 mv
@@ -532,6 +541,7 @@ pid
 pink
 placement
 planned
+playing
 plug
 policy
 pooled
@@ -566,6 +576,7 @@ quot
 quux
 quuz
 ram
+rate
 reality
 recompilation
 recompiles
@@ -591,11 +602,13 @@ repro
 reproduce
 reproduction
 req
+resetting
 resuming
 retaining
 retainingpath
 rev
 revealed
+revisions
 risky
 rk
 row
@@ -622,6 +635,7 @@ selection
 selects
 semifuzz
 sensitive
+separation
 series
 services
 setups
@@ -741,6 +755,7 @@ unpatched
 unpaused
 unregistered
 unsurprisingly
+untracked
 untransformed
 untrimmed
 unusual

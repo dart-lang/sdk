@@ -14,8 +14,11 @@ class LogActionCommandHandler
   bool get recordsOwnAnalytics => true;
 
   @override
-  Future<ErrorOr<void>> handle(Map<String, Object?> parameters,
-      ProgressReporter progress, CancellationToken cancellationToken) async {
+  Future<ErrorOr<void>> handle(
+      MessageInfo message,
+      Map<String, Object?> parameters,
+      ProgressReporter progress,
+      CancellationToken cancellationToken) async {
     final action = parameters['action'] as String;
     // Actions are recorded the same as commands.
     server.analyticsManager.executedCommand(action);

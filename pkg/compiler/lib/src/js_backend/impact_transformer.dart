@@ -87,8 +87,8 @@ class CodegenImpactTransformer {
 
     for (ConstantUse constantUse in impact.constantUses) {
       switch (constantUse.value.kind) {
-        case ConstantValueKind.SET:
         case ConstantValueKind.MAP:
+        case ConstantValueKind.SET:
         case ConstantValueKind.CONSTRUCTED:
         case ConstantValueKind.LIST:
           transformed.registerStaticUse(StaticUse.staticInvoke(

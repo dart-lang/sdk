@@ -966,6 +966,12 @@ void ScopeBuilder::VisitExpression() {
       helper_.SkipDartType();
       helper_.SkipConstantReference();
       return;
+    case kFileUriConstantExpression:
+      helper_.ReadPosition();
+      helper_.ReadUInt();
+      helper_.SkipDartType();
+      helper_.SkipConstantReference();
+      return;
     case kInstantiation: {
       VisitExpression();
       const intptr_t list_length =
@@ -986,6 +992,11 @@ void ScopeBuilder::VisitExpression() {
         VisitDartType();  // read runtime check type.
       }
       return;
+    case kFileUriExpression:
+      helper_.ReadUInt();      // read uri.
+      helper_.ReadPosition();  // read position.
+      VisitExpression();       // read expression.
+      return;
     case kConstStaticInvocation:
     case kConstConstructorInvocation:
     case kConstListLiteral:
@@ -996,7 +1007,6 @@ void ScopeBuilder::VisitExpression() {
     case kSetConcatenation:
     case kMapConcatenation:
     case kInstanceCreation:
-    case kFileUriExpression:
     case kStaticTearOff:
     case kSwitchExpression:
     case kPatternAssignment:
@@ -1375,6 +1385,7 @@ void ScopeBuilder::VisitDartType() {
     case kInvalidType:
     case kDynamicType:
     case kVoidType:
+    case kNullType:
       // those contain nothing.
       return;
     case kNeverType:
@@ -1403,6 +1414,9 @@ void ScopeBuilder::VisitDartType() {
       return;
     case kInlineType:
       VisitInlineType();
+      return;
+    case kFutureOrType:
+      VisitFutureOrType();
       return;
     default:
       ReportUnexpectedTag("type", tag);
@@ -1523,6 +1537,11 @@ void ScopeBuilder::VisitInlineType() {
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments
   VisitDartType();  // read instantiated representation type.
+}
+
+void ScopeBuilder::VisitFutureOrType() {
+  helper_.ReadNullability();
+  VisitDartType();  // read type argument.
 }
 
 void ScopeBuilder::HandleLocalFunction(intptr_t parent_kernel_offset) {

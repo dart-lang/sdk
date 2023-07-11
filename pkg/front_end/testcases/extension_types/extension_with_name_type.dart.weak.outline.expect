@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -10,9 +10,9 @@ extension type on self::A {
   method method = self::type|method;
   tearoff method = self::type|get#method;
 }
-static method type|method(lowered final self::A #this) → dynamic
+static extension-member method type|method(lowered final self::A #this) → dynamic
   ;
-static method type|get#method(lowered final self::A #this) → () → dynamic
+static extension-member method type|get#method(lowered final self::A #this) → () → dynamic
   return () → dynamic => self::type|method(#this);
 static method test() → dynamic
   ;

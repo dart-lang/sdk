@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.8.0';
+const String vmServiceVersion = '4.10.0';
 
 /// @optional
 const String optional = 'optional';
@@ -1490,8 +1490,8 @@ class VmServerConnection {
       }
       final method = request['method'] as String?;
       if (method == null) {
-        throw RPCError(
-            null, RPCError.kInvalidRequest, 'Invalid Request', request);
+        throw RPCError(null, RPCErrorKind.kInvalidRequest.code,
+            'Invalid Request', request);
       }
       final params = request['params'] as Map<String, dynamic>?;
       late Response response;
@@ -1888,8 +1888,8 @@ class VmServerConnection {
             response = await _serviceImplementation.callServiceExtension(method,
                 isolateId: isolateId, args: args);
           } else {
-            throw RPCError(
-                method, RPCError.kMethodNotFound, 'Method not found', request);
+            throw RPCError(method, RPCErrorKind.kMethodNotFound.code,
+                'Method not found', request);
           }
       }
       _responseSink.add({
@@ -1907,7 +1907,7 @@ class VmServerConnection {
       final error = e is RPCError
           ? e.toMap()
           : {
-              'code': RPCError.kInternalError,
+              'code': RPCErrorKind.kInternalError.code,
               'message': '${request['method']}: $e',
               'data': {'details': '$st'},
             };
@@ -2474,7 +2474,7 @@ class VmService implements VmServiceInterface {
     _outstandingRequests.forEach((id, request) {
       request._completer.completeError(RPCError(
         request.method,
-        RPCError.kServerError,
+        RPCErrorKind.kServerError.code,
         'Service connection disposed',
       ));
     });
@@ -2615,8 +2615,8 @@ class VmService implements VmServiceInterface {
   Future<Map> _routeRequest(String method, Map<String, dynamic> params) async {
     final service = _services[method];
     if (service == null) {
-      RPCError error = RPCError(
-          method, RPCError.kMethodNotFound, 'method not found \'$method\'');
+      RPCError error = RPCError(method, RPCErrorKind.kMethodNotFound.code,
+          'method not found \'$method\'');
       return {'error': error.toMap()};
     }
 
@@ -2625,7 +2625,7 @@ class VmService implements VmServiceInterface {
     } catch (e, st) {
       RPCError error = RPCError.withDetails(
         method,
-        RPCError.kServerError,
+        RPCErrorKind.kServerError.code,
         '$e',
         details: '$st',
       );
@@ -2636,21 +2636,84 @@ class VmService implements VmServiceInterface {
 
 typedef DisposeHandler = Future Function();
 
-class RPCError implements Exception {
-  /// Application specific error codes.
-  static const int kServerError = -32000;
+// These error codes must be kept in sync with those in vm/json_stream.h and
+// vmservice.dart.
+enum RPCErrorKind {
+  /// Application specific error code.
+  kServerError(code: -32000, message: 'Application error'),
 
   /// The JSON sent is not a valid Request object.
-  static const int kInvalidRequest = -32600;
+  kInvalidRequest(code: -32600, message: 'Invalid request object'),
 
   /// The method does not exist or is not available.
-  static const int kMethodNotFound = -32601;
+  kMethodNotFound(code: -32601, message: 'Method not found'),
 
   /// Invalid method parameter(s), such as a mismatched type.
-  static const int kInvalidParams = -32602;
+  kInvalidParams(code: -32602, message: 'Invalid method parameters'),
 
   /// Internal JSON-RPC error.
-  static const int kInternalError = -32603;
+  kInternalError(code: -32603, message: 'Internal JSON-RPC error'),
+
+  /// The requested feature is disabled.
+  kFeatureDisabled(code: 100, message: 'Feature is disabled'),
+
+  /// The stream has already been subscribed to.
+  kStreamAlreadySubscribed(code: 103, message: 'Stream already subscribed'),
+
+  /// The stream has not been subscribed to.
+  kStreamNotSubscribed(code: 104, message: 'Stream not subscribed'),
+
+  /// Isolate must first be paused.
+  kIsolateMustBePaused(code: 106, message: 'Isolate must be paused'),
+
+  /// The service has already been registered.
+  kServiceAlreadyRegistered(code: 111, message: 'Service already registered'),
+
+  /// The service no longer exists.
+  kServiceDisappeared(code: 112, message: 'Service has disappeared'),
+
+  /// There was an error in the expression compiler.
+  kExpressionCompilationError(
+      code: 113, message: 'Expression compilation error'),
+
+  /// The custom stream does not exist.
+  kCustomStreamDoesNotExist(code: 130, message: 'Custom stream does not exist'),
+
+  /// The core stream is not allowed.
+  kCoreStreamNotAllowed(code: 131, message: 'Core streams are not allowed');
+
+  const RPCErrorKind({required this.code, required this.message});
+
+  final int code;
+
+  final String message;
+
+  static final _codeToErrorMap =
+      RPCErrorKind.values.fold(<int, RPCErrorKind>{}, (map, error) {
+    map[error.code] = error;
+    return map;
+  });
+
+  static RPCErrorKind? fromCode(int code) {
+    return _codeToErrorMap[code];
+  }
+}
+
+class RPCError implements Exception {
+  @Deprecated('Use RPCErrorKind.kServerError.code instead.')
+  static int get kServerError => RPCErrorKind.kServerError.code;
+
+  @Deprecated('Use RPCErrorKind.kInvalidRequest.code instead.')
+  static int get kInvalidRequest => RPCErrorKind.kInvalidRequest.code;
+
+  @Deprecated('Use RPCErrorKind.kMethodNotFound.code instead.')
+  static int get kMethodNotFound => RPCErrorKind.kMethodNotFound.code;
+
+  @Deprecated('Use RPCErrorKind.kInvalidParams.code instead.')
+  static int get kInvalidParams => RPCErrorKind.kInvalidParams.code;
+
+  @Deprecated('Use RPCErrorKind.kInternalError.code instead.')
+  static int get kInternalError => RPCErrorKind.kInternalError.code;
 
   static RPCError parse(String callingMethod, dynamic json) {
     return RPCError(callingMethod, json['code'], json['message'], json['data']);
@@ -2661,7 +2724,9 @@ class RPCError implements Exception {
   final String message;
   final Map? data;
 
-  RPCError(this.callingMethod, this.code, this.message, [this.data]);
+  RPCError(this.callingMethod, this.code, [message, this.data])
+      : message =
+            message ?? RPCErrorKind.fromCode(code)?.message ?? 'Unknown error';
 
   RPCError.withDetails(this.callingMethod, this.code, this.message,
       {Object? details})
@@ -2769,9 +2834,7 @@ class ErrorKind {
 }
 
 /// An enum of available event streams.
-class EventStreams {
-  EventStreams._();
-
+abstract class EventStreams {
   static const String kVM = 'VM';
   static const String kIsolate = 'Isolate';
   static const String kDebug = 'Debug';
@@ -2788,9 +2851,7 @@ class EventStreams {
 
 /// Adding new values to `EventKind` is considered a backwards compatible
 /// change. Clients should ignore unrecognized events.
-class EventKind {
-  EventKind._();
-
+abstract class EventKind {
   /// Notification that VM identifying information has changed. Currently used
   /// to notify of changes to the VM debugging name via setVMName.
   static const String kVMUpdate = 'VMUpdate';
@@ -3286,8 +3347,7 @@ class Breakpoint extends Obj {
   /// Has this breakpoint been assigned to a specific program location?
   bool? resolved;
 
-  /// Is this a breakpoint that was added synthetically as part of a step
-  /// OverAsyncSuspension resume command?
+  /// Note: this property is deprecated and is always absent from the response.
   @optional
   bool? isSyntheticAsyncContinuation;
 
@@ -4319,10 +4379,19 @@ class Event extends Response {
   /// What kind of event is this?
   /*EventKind*/ String? kind;
 
+  /// The isolate group with which this event is associated.
+  ///
+  /// This is provided for all event kinds except for:
+  /// - VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  /// TimelineEvents
+  @optional
+  IsolateGroupRef? isolateGroup;
+
   /// The isolate with which this event is associated.
   ///
   /// This is provided for all event kinds except for:
-  ///  - VMUpdate, VMFlagUpdate
+  ///  - VMUpdate, VMFlagUpdate, TimelineStreamSubscriptionsUpdate,
+  ///  - TimelineEvents, IsolateReload
   @optional
   IsolateRef? isolate;
 
@@ -4520,6 +4589,7 @@ class Event extends Response {
   Event({
     this.kind,
     this.timestamp,
+    this.isolateGroup,
     this.isolate,
     this.vm,
     this.breakpoint,
@@ -4551,6 +4621,9 @@ class Event extends Response {
 
   Event._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
     kind = json['kind'] ?? '';
+    isolateGroup =
+        createServiceObject(json['isolateGroup'], const ['IsolateGroupRef'])
+            as IsolateGroupRef?;
     isolate = createServiceObject(json['isolate'], const ['IsolateRef'])
         as IsolateRef?;
     vm = createServiceObject(json['vm'], const ['VMRef']) as VMRef?;
@@ -4608,6 +4681,7 @@ class Event extends Response {
       'kind': kind ?? '',
       'timestamp': timestamp ?? -1,
     });
+    _setIfNotNull(json, 'isolateGroup', isolateGroup?.toJson());
     _setIfNotNull(json, 'isolate', isolate?.toJson());
     _setIfNotNull(json, 'vm', vm?.toJson());
     _setIfNotNull(json, 'breakpoint', breakpoint?.toJson());
@@ -8389,6 +8463,12 @@ class Stack extends Response {
   /// running `async` function. Asynchronous frames are separated from each
   /// other and synchronous prefix via frames of kind
   /// FrameKind.kAsyncSuspensionMarker.
+  ///
+  /// The name is historic and misleading: despite what *causal* implies, this
+  /// stack does not reflect the stack at the moment when asynchronous operation
+  /// was started (i.e. the stack that *caused* it), but instead reflects the
+  /// chain of listeners which will run when asynchronous operation is completed
+  /// (i.e. its *awaiters*).
   ///
   /// This field is absent if currently running code does not have an
   /// asynchronous continuation.

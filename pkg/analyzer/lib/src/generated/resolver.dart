@@ -15,7 +15,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
 import 'package:_fe_analyzer_shared/src/type_inference/type_operations.dart'
     as shared;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -2071,11 +2070,14 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       {DartType? contextType}) {
     checkUnreachableNode(node);
     analyzeExpression(node.target, contextType);
+    var targetType = node.target.staticType ?? typeProvider.dynamicType;
     popRewrite();
 
+    flowAnalysis.flow!.cascadeExpression_afterTarget(node.target, targetType,
+        isNullAware: node.isNullAware);
+
     if (node.isNullAware) {
-      flowAnalysis.flow!.nullAwareAccess_rightBegin(
-          node.target, node.target.staticType ?? typeProvider.dynamicType);
+      flowAnalysis.flow!.nullAwareAccess_rightBegin(node.target, targetType);
       _unfinishedNullShorts.add(node.nullShortingTermination);
     }
 
@@ -2084,6 +2086,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     typeAnalyzer.visitCascadeExpression(node, contextType: contextType);
 
     nullShortingTermination(node);
+    flowAnalysis.flow!.cascadeExpression_end(node);
     _insertImplicitCallReference(node, contextType: contextType);
     nullSafetyDeadCodeVerifier.verifyCascadeExpression(node);
   }
@@ -2182,11 +2185,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Expression elseExpression = node.elseExpression;
 
     if (flow != null) {
-      flow.conditional_elseBegin(node.thenExpression);
+      flow.conditional_elseBegin(
+          node.thenExpression, node.thenExpression.typeOrThrow);
       checkUnreachableNode(elseExpression);
       analyzeExpression(elseExpression, contextType);
-      flow.conditional_end(node, elseExpression);
-      nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
     } else {
       analyzeExpression(elseExpression, contextType);
     }
@@ -2194,6 +2196,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     typeAnalyzer.visitConditionalExpression(node as ConditionalExpressionImpl,
         contextType: contextType);
+    if (flow != null) {
+      flow.conditional_end(
+          node, node.typeOrThrow, elseExpression, elseExpression.typeOrThrow);
+      nullSafetyDeadCodeVerifier.flowEnd(elseExpression);
+    }
     _insertImplicitCallReference(node, contextType: contextType);
   }
 
@@ -3088,11 +3095,11 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitNullLiteral(NullLiteral node, {DartType? contextType}) {
-    flowAnalysis.flow?.nullLiteral(node);
-    checkUnreachableNode(node);
     node.visitChildren(this);
     typeAnalyzer.visitNullLiteral(node as NullLiteralImpl,
         contextType: contextType);
+    flowAnalysis.flow?.nullLiteral(node, node.typeOrThrow);
+    checkUnreachableNode(node);
   }
 
   @override
@@ -3141,10 +3148,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void visitPatternVariableDeclaration(
     covariant PatternVariableDeclarationImpl node,
   ) {
-    // TODO(scheglov) Support for `late` was removed.
     final patternSchema = analyzePatternVariableDeclaration(
         node, node.pattern, node.expression,
-        isFinal: node.keyword.keyword == Keyword.FINAL, isLate: false);
+        isFinal: node.keyword.keyword == Keyword.FINAL);
     node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }
@@ -4922,11 +4928,6 @@ class ScopeResolverVisitor extends UnifyingAstVisitor<void> {
           );
         }
         _localVariableInfo.potentiallyMutatedInScope.add(element);
-        if (_enclosingClosure != null &&
-            element.enclosingElement != _enclosingClosure) {
-          // ignore:deprecated_member_use_from_same_package
-          _localVariableInfo.potentiallyMutatedInClosure.add(element);
-        }
       }
     }
     if (element is JoinPatternVariableElementImpl) {

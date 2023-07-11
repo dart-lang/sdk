@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -246,7 +245,8 @@ class StaticTypeAnalyzer {
   void visitSuperExpression(covariant SuperExpressionImpl node,
       {required DartType? contextType}) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow
+        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: true);
     if (thisType == null ||
         node.thisOrAncestorOfType<ExtensionDeclaration>() != null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
@@ -270,7 +270,8 @@ class StaticTypeAnalyzer {
   void visitThisExpression(covariant ThisExpressionImpl node,
       {required DartType? contextType}) {
     var thisType = _resolver.thisType;
-    _resolver.flowAnalysis.flow?.thisOrSuper(node, thisType ?? _dynamicType);
+    _resolver.flowAnalysis.flow
+        ?.thisOrSuper(node, thisType ?? _dynamicType, isSuper: false);
     if (thisType == null) {
       // TODO(brianwilkerson) Report this error if it hasn't already been
       // reported.

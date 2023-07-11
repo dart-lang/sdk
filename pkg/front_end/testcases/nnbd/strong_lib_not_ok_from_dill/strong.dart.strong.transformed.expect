@@ -3,7 +3,7 @@
 //
 // pkg/front_end/testcases/nnbd/strong_lib_not_ok_from_dill/strong_lib.dart: Error: Library doesn't support null safety.
 //
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "strong_lib.dart" as str;
 
@@ -13,7 +13,7 @@ static method main() → dynamic {
   str::foo();
 }
 
-library;
+library /*isLegacy*/;
 import self as str;
 import "dart:core" as core;
 

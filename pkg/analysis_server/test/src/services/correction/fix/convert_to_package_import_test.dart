@@ -31,7 +31,7 @@ class ConvertToPackageImport_AlwaysUsePackageImportsBulkTest
     newFile('$testPackageLibPath/foo.dart', 'class Foo {}');
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
-    testFile = convertPath('$testPackageLibPath/test.dart');
+    testFilePath = convertPath('$testPackageLibPath/test.dart');
 
     await resolveTestCode('''
 import 'foo.dart';
@@ -88,7 +88,7 @@ class ConvertToPackageImport_AvoidRelativeLibImportsBulkTest
     writeTestPackageConfig(config: PackageConfigFileBuilder());
     newFile('$testPackageLibPath/bar.dart', 'class Bar {}');
 
-    testFile = convertPath('/home/test/tool/test.dart');
+    testFilePath = convertPath('/home/test/tool/test.dart');
 
     await resolveTestCode('''
 import '../lib/bar.dart';

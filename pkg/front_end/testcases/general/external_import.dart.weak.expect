@@ -1,7 +1,7 @@
 @#C2
 @#C4
 @#C6
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //

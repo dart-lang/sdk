@@ -11,28 +11,35 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_C = 20;
-const LINE_A = 26;
-const LINE_B = 32;
+const LINE_C = 24;
+const LINE_A = 30;
+const LINE_B = 36;
+
+const LINE_0 = 23;
+const LINE_1 = 29;
+const LINE_2 = 35;
 
 foobar() {
-  debugger();
+  debugger(); // LINE_0.
   print('foobar'); // LINE_C.
 }
 
 helper() async {
   await 0; // force async gap
-  debugger();
+  debugger(); // LINE_1.
   print('helper'); // LINE_A.
   foobar();
 }
 
 testMain() {
-  debugger();
+  debugger(); // LINE_2.
   helper(); // LINE_B.
 }
 
 var tests = <IsolateTest>[
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_2),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_B),
   (VmService service, IsolateRef isolateRef) async {
@@ -41,6 +48,9 @@ var tests = <IsolateTest>[
     expect(stack.asyncCausalFrames, isNull);
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_1),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolateRef) async {
@@ -54,6 +64,9 @@ var tests = <IsolateTest>[
     // "helper" is not await'ed.
   },
   resumeIsolate,
+  hasStoppedAtBreakpoint,
+  stoppedAtLine(LINE_0),
+  stepOver,
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_C),
   (VmService service, IsolateRef isolateRef) async {

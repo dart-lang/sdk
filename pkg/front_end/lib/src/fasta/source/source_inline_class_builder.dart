@@ -8,6 +8,7 @@ import 'package:kernel/class_hierarchy.dart';
 
 import '../../base/common.dart';
 import '../builder/builder.dart';
+import '../builder/constructor_reference_builder.dart';
 import '../builder/inline_class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -32,8 +33,11 @@ import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
 class SourceInlineClassBuilder extends InlineClassBuilderImpl
-    with SourceDeclarationBuilderMixin
+    with SourceDeclarationBuilderMixin, ClassDeclarationMixin
     implements ClassDeclaration {
+  @override
+  final List<ConstructorReferenceBuilder>? constructorReferences;
+
   final InlineClass _inlineClass;
 
   SourceInlineClassBuilder? _origin;
@@ -57,6 +61,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       Scope scope,
       ConstructorScope constructorScope,
       SourceLibraryBuilder parent,
+      this.constructorReferences,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -177,6 +182,9 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       case BuiltMemberKind.InlineClassFactory:
         kind = InlineClassMemberKind.Factory;
         break;
+      case BuiltMemberKind.InlineClassRedirectingFactory:
+        kind = InlineClassMemberKind.RedirectingFactory;
+        break;
       case BuiltMemberKind.InlineClassMethod:
         kind = InlineClassMemberKind.Method;
         break;
@@ -195,8 +203,6 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
         kind = InlineClassMemberKind.TearOff;
         break;
     }
-    // ignore: unnecessary_null_comparison
-    assert(kind != null);
     inlineClass.members.add(new InlineClassMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,

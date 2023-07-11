@@ -1198,10 +1198,12 @@ abstract interface class HttpClient {
   static set enableTimelineLogging(bool value) {
     final enabled = valueOfNonNullableParamWithDefault<bool>(value, false);
     if (enabled != _enableTimelineLogging) {
-      postEvent('HttpTimelineLoggingStateChange', {
-        'isolateId': Service.getIsolateID(Isolate.current),
-        'enabled': enabled,
-      });
+      if (!const bool.fromEnvironment("dart.vm.product")) {
+        postEvent('HttpTimelineLoggingStateChange', {
+          'isolateId': Service.getIsolateID(Isolate.current),
+          'enabled': enabled,
+        });
+      }
     }
     _enableTimelineLogging = enabled;
   }

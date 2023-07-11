@@ -348,7 +348,7 @@ class AnnotateKernel extends RecursiveVisitor {
       type = type.baseType;
     }
 
-    if (nullable && type == const EmptyType()) {
+    if (nullable && type == emptyType) {
       concreteClass =
           _typeFlowAnalysis.environment.coreTypes.deprecatedNullClass;
       constantValue = _nullConstant;
@@ -440,12 +440,11 @@ class AnnotateKernel extends RecursiveVisitor {
     // not be observed (i.e., it will always be EmptyType). This is the
     // case even if the result actually might be used but is not used by
     // the summary, e.g. if the result is an argument to a closure call.
-    // Therefore, we need to pass in 'NullableType(AnyType)' as the
+    // Therefore, we need to pass in nullableAnyType as the
     // inferred result type here (since we don't know what it actually
     // is).
-    final Type resultType = callSite.isResultUsed
-        ? callSite.resultType
-        : NullableType(const AnyType());
+    final Type resultType =
+        callSite.isResultUsed ? callSite.resultType : nullableAnyType;
 
     if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
       _setInferredType(node, resultType,
@@ -702,10 +701,12 @@ class AnnotateKernel extends RecursiveVisitor {
 class TreeShaker {
   final TypeFlowAnalysis typeFlowAnalysis;
   final bool treeShakeWriteOnlyFields;
+  final Set<Library> _usedLibraries = new Set<Library>();
   final Set<Class> _usedClasses = new Set<Class>();
   final Set<Class> _classesUsedInType = new Set<Class>();
   final Set<Member> _usedMembers = new Set<Member>();
   final Set<Extension> _usedExtensions = new Set<Extension>();
+  final Set<InlineClass> _usedInlineClasses = new Set<InlineClass>();
   final Set<Typedef> _usedTypedefs = new Set<Typedef>();
   final FinalizableTypes _finalizableTypes;
   late final FieldMorpher fieldMorpher;
@@ -734,6 +735,7 @@ class TreeShaker {
     _pass2.transformComponent(component);
   }
 
+  bool isLibraryUsed(Library l) => _usedLibraries.contains(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
@@ -741,6 +743,7 @@ class TreeShaker {
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
   bool isMemberUsed(Member m) => _usedMembers.contains(m);
   bool isExtensionUsed(Extension e) => _usedExtensions.contains(e);
+  bool isInlineClassUsed(InlineClass e) => _usedInlineClasses.contains(e);
   bool isMemberBodyReachable(Member m) =>
       typeFlowAnalysis.isMemberUsed(m) ||
       fieldMorpher.isExtraMemberWithReachableBody(m);
@@ -771,6 +774,7 @@ class TreeShaker {
         debugPrint('Class ${c.name} used in type');
       }
       _usedClasses.add(c);
+      _usedLibraries.add(c.enclosingLibrary);
       visitIterable(c.supers, typeVisitor);
       _pass1.transformTypeParameterList(c.typeParameters, c);
       _pass1.transformExpressionList(c.annotations, c);
@@ -793,6 +797,7 @@ class TreeShaker {
         }
         _usedClasses.add(enclosingClass);
       }
+      _usedLibraries.add(m.enclosingLibrary);
 
       FunctionNode? func = null;
       if (m is Field) {
@@ -844,6 +849,21 @@ class TreeShaker {
         // shaken)
         addUsedExtension(extension);
       }
+
+      // If the member is kept alive we need to keep the inline class alive
+      // to maintain consistency of the AST.
+      if (m.isInlineClassMember) {
+        // The AST should have exactly one [InlineClass] for [m].
+        final inlineClass =
+            m.enclosingLibrary.inlineClasses.firstWhere((inlineClass) {
+          return inlineClass.members
+              .any((descriptor) => descriptor.member.asMember == m);
+        });
+
+        // Ensure we retain the [InlineClass] itself (though members might be
+        // shaken)
+        addUsedInlineClass(inlineClass);
+      }
     }
   }
 
@@ -864,8 +884,18 @@ class TreeShaker {
     }
   }
 
+  void addUsedInlineClass(InlineClass node) {
+    if (_usedInlineClasses.add(node)) {
+      node.annotations = const <Expression>[];
+      _pass1.transformTypeParameterList(node.typeParameters, node);
+      node.declaredRepresentationType.accept(typeVisitor);
+      visitList(node.implements, typeVisitor);
+    }
+  }
+
   void addUsedTypedef(Typedef typedef) {
     if (_usedTypedefs.add(typedef)) {
+      _usedLibraries.add(typedef.enclosingLibrary);
       typedef.annotations = const <Expression>[];
       _pass1.transformTypeParameterList(typedef.typeParameters, typedef);
       typedef.type?.accept(typeVisitor);
@@ -1130,6 +1160,13 @@ class _TreeShakerPass1 extends RemovingTransformer {
   }
 
   @override
+  TreeNode visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
+    // The inline class can be considered a weak node, we'll only retain it if
+    // normal code references any of it's members.
+    return node;
+  }
+
+  @override
   TreeNode visitClass(Class node, TreeNode? removalSentinel) {
     if (shaker.isClassAllocated(node) ||
         shaker.isClassReferencedFromNativeCode(node)) {
@@ -1138,7 +1175,6 @@ class _TreeShakerPass1 extends RemovingTransformer {
     transformConstructorList(node.constructors, node);
     transformProcedureList(node.procedures, node);
     transformFieldList(node.fields, node);
-    transformRedirectingFactoryList(node.redirectingFactories, node);
     return node;
   }
 
@@ -1183,6 +1219,19 @@ class _TreeShakerPass1 extends RemovingTransformer {
       fieldMorpher.adjustInstanceCallTarget(node, isSetter: true);
     }
     currentMember = null;
+    return node;
+  }
+
+  @override
+  TreeNode visitLoadLibrary(LoadLibrary node, TreeNode? removalSentinel) {
+    shaker._usedLibraries.add(node.import.targetLibrary);
+    return node;
+  }
+
+  @override
+  TreeNode visitCheckLibraryIsLoaded(
+      CheckLibraryIsLoaded node, TreeNode? removalSentinel) {
+    shaker._usedLibraries.add(node.import.targetLibrary);
     return node;
   }
 
@@ -1696,8 +1745,44 @@ class _TreeShakerPass2 extends RemovingTransformer {
     }
   }
 
+  final _libraryExportDeps = <Library, Set<Library>>{};
+  final _additionalDeps = <Library>{};
+
+  // Returns set of export dependencies of given library.
+  Set<Library> getLibraryExportDeps(Library node) =>
+      _libraryExportDeps[node] ??= calculateLibraryExportDeps(node);
+
+  Set<Library> calculateLibraryExportDeps(Library node) {
+    final processed = <Library>{};
+    final worklist = <Library>[];
+    final deps = <Library>{};
+    worklist.add(node);
+    processed.add(node);
+    while (worklist.isNotEmpty) {
+      final lib = worklist.removeLast();
+      for (final dep in lib.dependencies) {
+        if (!dep.isExport) {
+          continue;
+        }
+        final targetLibrary = dep.targetLibrary;
+        if (processed.add(targetLibrary)) {
+          if (shaker.isLibraryUsed(targetLibrary)) {
+            deps.add(targetLibrary);
+          } else {
+            worklist.add(targetLibrary);
+          }
+        }
+      }
+    }
+    return deps;
+  }
+
   @override
   TreeNode visitLibrary(Library node, TreeNode? removalSentinel) {
+    if (!shaker.isLibraryUsed(node) && node.importUri.scheme != 'dart') {
+      return removalSentinel!;
+    }
+    _additionalDeps.clear();
     node.transformOrRemoveChildren(this);
     // The transformer API does not iterate over `Library.additionalExports`,
     // so we manually delete the references to shaken nodes.
@@ -1709,10 +1794,35 @@ class _TreeShakerPass2 extends RemovingTransformer {
         return !shaker.isTypedefUsed(node);
       } else if (node is Extension) {
         return !shaker.isExtensionUsed(node);
+      } else if (node is InlineClass) {
+        return !shaker.isInlineClassUsed(node);
       } else {
         return !shaker.isMemberUsed(node as Member);
       }
     });
+    // Add transitive export dependencies of the removed imported libraries.
+    // This is needed to maintain connected library graph
+    // which is critical for calculation of the deferred loading units.
+    if (_additionalDeps.isNotEmpty) {
+      for (final dep in node.dependencies) {
+        _additionalDeps.remove(dep.targetLibrary);
+      }
+      for (final lib in _additionalDeps) {
+        node.addDependency(LibraryDependency.import(lib));
+      }
+      _additionalDeps.clear();
+    }
+    return node;
+  }
+
+  @override
+  TreeNode visitLibraryDependency(
+      LibraryDependency node, TreeNode? removalSentinel) {
+    final targetLibrary = node.targetLibrary;
+    if (!shaker.isLibraryUsed(targetLibrary)) {
+      _additionalDeps.addAll(getLibraryExportDeps(targetLibrary));
+      return removalSentinel!;
+    }
     return node;
   }
 
@@ -1867,6 +1977,31 @@ class _TreeShakerPass2 extends RemovingTransformer {
     return removalSentinel!;
   }
 
+  @override
+  TreeNode visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
+    if (shaker.isInlineClassUsed(node)) {
+      int writeIndex = 0;
+      for (int i = 0; i < node.members.length; ++i) {
+        final InlineClassMemberDescriptor descriptor = node.members[i];
+
+        // To avoid depending on the order in which members and inline classes are
+        // visited during the transformation, we handle both cases: either the
+        // member was already removed or it will be removed later.
+        final Reference memberReference = descriptor.member;
+        final bool isBound = memberReference.node != null;
+        if (isBound && shaker.isMemberUsed(memberReference.asMember)) {
+          node.members[writeIndex++] = descriptor;
+        }
+      }
+      node.members.length = writeIndex;
+
+      // We only retain the inline class if at least one member is retained.
+      assert(node.members.isNotEmpty);
+      return node;
+    }
+    return removalSentinel!;
+  }
+
   void _makeUnreachableBody(FunctionNode function) {
     if (function.body != null) {
       function.body = new ExpressionStatement(new Throw(new StringLiteral(
@@ -1933,6 +2068,10 @@ class _TreeShakerConstantVisitor extends ConstantVisitor<Null> {
 
   @override
   visitSymbolConstant(SymbolConstant constant) {
+    final libraryRef = constant.libraryReference;
+    if (libraryRef != null) {
+      shaker._usedLibraries.add(libraryRef.asLibrary);
+    }
     // The Symbol class and it's _name field are always retained.
   }
 

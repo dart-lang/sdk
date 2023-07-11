@@ -172,9 +172,6 @@ class MatchContext<Node extends Object, Expression extends Node,
   /// Indicates whether variables declared in the pattern should be `final`.
   final bool isFinal;
 
-  /// Indicates whether variables declared in the pattern should be `late`.
-  final bool isLate;
-
   /// The switch scrutinee, or `null` if this pattern does not occur in a switch
   /// statement or switch expression, or this pattern is not the top-level
   /// pattern.
@@ -199,7 +196,6 @@ class MatchContext<Node extends Object, Expression extends Node,
   MatchContext({
     this.irrefutableContext,
     required this.isFinal,
-    this.isLate = false,
     this.switchScrutinee,
     this.assignedVariables,
     required this.componentVariables,
@@ -215,7 +211,6 @@ class MatchContext<Node extends Object, Expression extends Node,
           ? this
           : new MatchContext(
               isFinal: isFinal,
-              isLate: isLate,
               switchScrutinee: switchScrutinee,
               assignedVariables: assignedVariables,
               componentVariables: componentVariables,
@@ -229,7 +224,6 @@ class MatchContext<Node extends Object, Expression extends Node,
       new MatchContext(
         irrefutableContext: irrefutableContext,
         isFinal: isFinal,
-        isLate: isLate,
         switchScrutinee: null,
         assignedVariables: assignedVariables,
         componentVariables: componentVariables,
@@ -246,7 +240,6 @@ class MatchContext<Node extends Object, Expression extends Node,
     return new MatchContext(
       irrefutableContext: irrefutableContext,
       isFinal: isFinal,
-      isLate: isLate,
       assignedVariables: assignedVariables,
       switchScrutinee: null,
       componentVariables: componentVariables,

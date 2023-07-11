@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "initializer_rewrite_from_opt_out_lib.dart" as ini;
@@ -109,7 +109,7 @@ static method throws(() → dynamic f, core::String message) → dynamic {
   throw "${message}: ${value}";
 }
 
-library;
+library /*isLegacy*/;
 import self as ini;
 import "dart:core" as core;
 

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -25,28 +25,28 @@ extension Extension<T extends core::num> on core::List<T> {
   set fieldSetter = self::Extension|set#fieldSetter;
   static set staticFieldSetter = set self::Extension|staticFieldSetter;
 }
-external static method Extension|get#field<T extends core::num>(lowered core::List<self::Extension|get#field::T> #this) → self::Extension|get#field::T;
-external static method Extension|set#field<T extends core::num>(lowered core::List<self::Extension|set#field::T> #this, self::Extension|set#field::T #externalFieldValue) → void;
-external static get Extension|staticField() → core::int;
-external static set Extension|staticField(core::int #externalFieldValue) → void;
-external static method Extension|get#finalField<T extends core::num>(lowered core::List<self::Extension|get#finalField::T> #this) → self::Extension|get#finalField::T;
-external static get Extension|staticFinalField() → core::int;
-external static method Extension|method<T extends core::num>(lowered final core::List<self::Extension|method::T> #this) → self::Extension|method::T;
-static method Extension|get#method<T extends core::num>(lowered final core::List<self::Extension|get#method::T> #this) → () → self::Extension|get#method::T
+external static extension-member method Extension|get#field<T extends core::num>(lowered core::List<self::Extension|get#field::T> #this) → self::Extension|get#field::T;
+external static extension-member method Extension|set#field<T extends core::num>(lowered core::List<self::Extension|set#field::T> #this, self::Extension|set#field::T #externalFieldValue) → void;
+external static extension-member get Extension|staticField() → core::int;
+external static extension-member set Extension|staticField(core::int #externalFieldValue) → void;
+external static extension-member method Extension|get#finalField<T extends core::num>(lowered core::List<self::Extension|get#finalField::T> #this) → self::Extension|get#finalField::T;
+external static extension-member get Extension|staticFinalField() → core::int;
+external static extension-member method Extension|method<T extends core::num>(lowered final core::List<self::Extension|method::T> #this) → self::Extension|method::T;
+static extension-member method Extension|get#method<T extends core::num>(lowered final core::List<self::Extension|get#method::T> #this) → () → self::Extension|get#method::T
   return () → self::Extension|get#method::T => self::Extension|method<self::Extension|get#method::T>(#this);
-external static method Extension|staticMethod() → core::int;
-external static method Extension|get#getter<T extends core::num>(lowered final core::List<self::Extension|get#getter::T> #this) → self::Extension|get#getter::T;
-external static get Extension|staticGetter() → core::int;
-external static method Extension|set#setter<T extends core::num>(lowered final core::List<self::Extension|set#setter::T> #this, self::Extension|set#setter::T value) → void;
-external static set Extension|staticSetter(core::int value) → void;
-external static method Extension|get#property<T extends core::num>(lowered final core::List<self::Extension|get#property::T> #this) → self::Extension|get#property::T;
-external static method Extension|set#property<T extends core::num>(lowered final core::List<self::Extension|set#property::T> #this, self::Extension|set#property::T value) → void;
-external static get Extension|staticProperty() → core::int;
-external static set Extension|staticProperty(core::int value) → void;
-external static method Extension|get#fieldSetter<T extends core::num>(lowered core::List<self::Extension|get#fieldSetter::T> #this) → self::Extension|get#fieldSetter::T;
-external static method Extension|set#fieldSetter<T extends core::num>(lowered final core::List<self::Extension|set#fieldSetter::T> #this, self::Extension|set#fieldSetter::T value) → void;
-external static get Extension|staticFieldSetter() → core::int;
-external static set Extension|staticFieldSetter(core::int value) → void;
+external static extension-member method Extension|staticMethod() → core::int;
+external static extension-member method Extension|get#getter<T extends core::num>(lowered final core::List<self::Extension|get#getter::T> #this) → self::Extension|get#getter::T;
+external static extension-member get Extension|staticGetter() → core::int;
+external static extension-member method Extension|set#setter<T extends core::num>(lowered final core::List<self::Extension|set#setter::T> #this, self::Extension|set#setter::T value) → void;
+external static extension-member set Extension|staticSetter(core::int value) → void;
+external static extension-member method Extension|get#property<T extends core::num>(lowered final core::List<self::Extension|get#property::T> #this) → self::Extension|get#property::T;
+external static extension-member method Extension|set#property<T extends core::num>(lowered final core::List<self::Extension|set#property::T> #this, self::Extension|set#property::T value) → void;
+external static extension-member get Extension|staticProperty() → core::int;
+external static extension-member set Extension|staticProperty(core::int value) → void;
+external static extension-member method Extension|get#fieldSetter<T extends core::num>(lowered core::List<self::Extension|get#fieldSetter::T> #this) → self::Extension|get#fieldSetter::T;
+external static extension-member method Extension|set#fieldSetter<T extends core::num>(lowered final core::List<self::Extension|set#fieldSetter::T> #this, self::Extension|set#fieldSetter::T value) → void;
+external static extension-member get Extension|staticFieldSetter() → core::int;
+external static extension-member set Extension|staticFieldSetter(core::int value) → void;
 static method test() → dynamic {
   core::List<core::int> list = core::_GrowableList::•<core::int>(0);
   core::int value = self::Extension|get#field<core::int>(list);

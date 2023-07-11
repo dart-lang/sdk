@@ -11,6 +11,7 @@ import 'dart:_js_embedded_names'
         DEFERRED_PART_URIS,
         DEFERRED_PART_HASHES,
         GET_ISOLATE_TAG,
+        INITIALIZATION_EVENT_LOG,
         INITIALIZE_LOADED_HUNK,
         INTERCEPTORS_BY_TAG,
         IS_HUNK_LOADED,
@@ -277,7 +278,8 @@ class JSInvocationMirror implements Invocation {
 class Primitives {
   static Object? _identityHashCodeProperty;
 
-  static int objectHashCode(object) {
+  /// Identity hash code for a JavaScript object or function.
+  static int objectHashCode(Object? object) {
     Object property =
         _identityHashCodeProperty ??= _computeIdentityHashCodeProperty();
     int? hash = JS('int|Null', r'#[#]', object, property);
@@ -1849,12 +1851,37 @@ class _StackTrace implements StackTrace {
   }
 }
 
-int objectHashCode(var object) {
-  if (object == null || JS('bool', 'typeof # != "object"', object)) {
-    return object.hashCode;
-  } else {
+/// Implementation of `identityHashCode`.
+///
+/// This hash code is compatible with identical, which means that it's
+/// guaranteed to give the same result every time it's passed the same argument,
+/// throughout a single program execution, for any non-record object.
+int objectHashCode(Object? object) {
+  // `typeof null == "object"` so test `null` first.
+  if (object == null) return object.hashCode;
+  if (JS('bool', 'typeof # == "object"', object)) {
     return Primitives.objectHashCode(object);
   }
+  // Other values are primitives so use the override of `Object.hashCode`.
+  return object.hashCode;
+}
+
+/// Hash code for constant Maps and Sets. Unlike `identityHashCode`, this is
+/// defined for Records.
+int constantHashCode(Object? key) {
+  // Types are tested here one-by-one so that each call to get:hashCode can be
+  // resolved differently.
+
+  // Some common primitives used as keys in a GeneralConstantMap.
+  if (key is num) return key.hashCode; // One method on JSNumber.
+
+  // Specially handled known types.
+  if (key is Type) return key.hashCode;
+  if (key is Record) return key.hashCode;
+  if (key is Symbol) return key.hashCode;
+
+  // Everything else, including less common primitives.
+  return identityHashCode(key);
 }
 
 /// Called by generated code to build a map literal. [keyValuePairs] is
@@ -2755,16 +2782,46 @@ String getIsolateAffinityTag(String name) {
   return JS('String', '#(#)', isolateTagGetter, name);
 }
 
-final Map<String, Future<Null>?> _loadingLibraries = <String, Future<Null>?>{};
-final Set<String> _loadedLibraries = new Set<String>();
-
-/// Events used to diagnose failures from deferred loading requests.
-final List<String> _eventLog = <String>[];
+final Map<String, Completer<Null>?> _loadingLibraries = {};
+final Set<String> _loadedLibraries = {};
 
 typedef void DeferredLoadCallback();
 
 // Function that will be called every time a new deferred import is loaded.
 DeferredLoadCallback? deferredLoadHook;
+
+/// Add events to global initialization event log.
+void _addEvent(
+    {required String part,
+    required String event,
+    String? loadId,
+    String? hash}) {
+  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
+  var dataObj = JS('=Object', '{p: #, e: #}', part, event);
+  if (hash != null) JS('', '#.h = #', dataObj, hash);
+  if (loadId != null) JS('', '#.l = #', dataObj, loadId);
+  JS('', '#.s = #', dataObj, thisScript);
+  JS('', '#.push(#)', initializationEventLog, dataObj);
+}
+
+/// Returns the event log as a string where each line is a JSON format event.
+///
+/// The events are printed in reverse chronological order in case the tail gets
+/// truncated, the newest events are retained.
+String _getEventLog() {
+  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
+  final o = JS('', 'Array.from(#).reverse()', initializationEventLog);
+  JS(
+      '',
+      '#.reduce((p, e, i, a) => {e.i = a.length - i; '
+          'if (p == null) return e.s; '
+          'if (e.s == null) return p; '
+          'if (e.s === p) { delete e.s; return p; }'
+          'return e.s;}'
+          ', null)',
+      o);
+  return JS('String', '#.map((e) => JSON.stringify(e)).join("\\n")', o);
+}
 
 /// Loads a deferred library. The compiler generates a call to this method to
 /// implement `import.loadLibrary()`. The [priority] argument is the index of
@@ -2820,29 +2877,33 @@ Future<Null> loadDeferredLibrary(String loadId, int priority) {
       var uri = uris[i];
       var hash = hashes[i];
       if (JS('bool', '#(#)', isHunkInitialized, hash)) {
-        _eventLog.add(' - already initialized: $uri ($hash)');
+        _addEvent(
+            part: uri, hash: hash, event: 'alreadyInitialized', loadId: loadId);
         continue;
       }
-      // On strange scenarios, e.g. if js encounters parse errors, we might get
-      // an "success" callback on the script load but the hunk will be null.
+      // This check is just an extra precaution, `isHunkLoaded(hash)` should
+      // always be true at this point. `_loadHunk` does this check and throws
+      // for any part that failed to load.
       if (JS('bool', '#(#)', isHunkLoaded, hash)) {
-        _eventLog.add(' - initialize: $uri ($hash)');
+        _addEvent(part: uri, hash: hash, event: 'initialize', loadId: loadId);
         JS('void', '#(#)', initializer, hash);
       } else {
-        _eventLog.add(' - missing hunk: $uri ($hash)');
+        _addEvent(part: uri, hash: hash, event: 'missing', loadId: loadId);
+
         throw new DeferredLoadException("Loading ${uris[i]} failed: "
             "the code with hash '${hash}' was not loaded.\n"
-            "event log:\n${_eventLog.join("\n")}\n");
+            "event log:\n${_getEventLog()}\n");
       }
     }
   }
 
   Future loadAndInitialize(int i) {
-    if (JS('bool', '#(#)', isHunkLoaded, hashes[i])) {
+    final hash = hashes[i];
+    if (JS('bool', '#(#)', isHunkLoaded, hash)) {
       waitingForLoad[i] = false;
       return new Future.value();
     }
-    return _loadHunk(uris[i], loadId, priority).then((Null _) {
+    return _loadHunk(uris[i], loadId, priority, hash, 0).then((Null _) {
       waitingForLoad[i] = false;
       initializeSomeLoadedHunks();
     });
@@ -2934,16 +2995,16 @@ Object _computePolicy() {
 /// loading is changed to use a more structured layout with subdirectories, this
 /// method will need to be updated to make the URL still clearly safe by
 /// construction.
-Object _getBasedScriptUrl(String component) {
+Object _getBasedScriptUrl(String component, String suffix) {
   final base = _thisScriptBaseUrl;
   final encodedComponent = _encodeURIComponent(component);
-  final url = '$base$encodedComponent';
+  final url = '$base$encodedComponent$suffix';
   final policy = _deferredLoadingTrustedTypesPolicy;
   return JS('', '#.createScriptURL(#)', policy, url);
 }
 
 Object getBasedScriptUrlForTesting(String component) =>
-    _getBasedScriptUrl(component);
+    _getBasedScriptUrl(component, '');
 
 String _encodeURIComponent(String component) {
   return JS('', 'self.encodeURIComponent(#)', component);
@@ -2998,38 +3059,56 @@ String _computeThisScriptFromTrace() {
   throw new UnsupportedError('Cannot extract URI from "$stack"');
 }
 
-Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
-  var future = _loadingLibraries[hunkName];
-  _eventLog.add(' - _loadHunk: $hunkName');
-  if (future != null) {
-    _eventLog.add('reuse: $hunkName');
-    return future.then((Null _) => null);
-  }
+Future<Null> _loadHunk(
+    String hunkName, String loadId, int priority, String hash, int retryCount) {
+  const int maxRetries = 3;
+  var initializationEventLog = JS_EMBEDDED_GLOBAL('', INITIALIZATION_EVENT_LOG);
 
-  Object trustedScriptUri = _getBasedScriptUrl(hunkName);
+  var completer = _loadingLibraries[hunkName];
+  _addEvent(part: hunkName, event: 'startLoad', loadId: loadId);
+  if (completer != null && retryCount == 0) {
+    _addEvent(part: hunkName, event: 'reuse', loadId: loadId);
+    return completer.future;
+  }
+  completer ??= _loadingLibraries[hunkName] = Completer();
+
+  Object trustedScriptUri = _getBasedScriptUrl(
+      hunkName, retryCount > 0 ? '?dart2jsRetry=$retryCount' : '');
   // [trustedScriptUri] is either a String, in which case `toString()` is an
   // identity function, or it is a TrustedScriptURL and `toString()` returns the
   // sanitized URL.
   String uriAsString = JS('', '#.toString()', trustedScriptUri);
 
-  _eventLog.add(' - download: $hunkName from $uriAsString');
+  _addEvent(part: hunkName, event: 'download', loadId: loadId);
 
   var deferredLibraryLoader = JS('', 'self.dartDeferredLibraryLoader');
-  Completer<Null> completer = Completer();
-
-  void success() {
-    _eventLog.add(' - download success: $hunkName');
-    completer.complete(null);
-  }
 
   void failure(error, String context, StackTrace? stackTrace) {
-    _eventLog.add(' - download failed: $hunkName (context: $context)');
-    _loadingLibraries[hunkName] = null;
-    stackTrace ??= StackTrace.current;
-    completer.completeError(
-        DeferredLoadException('Loading $uriAsString failed: $error\n'
-            'event log:\n${_eventLog.join("\n")}\n'),
-        stackTrace);
+    if (retryCount < maxRetries) {
+      _addEvent(part: hunkName, event: 'retry$retryCount', loadId: loadId);
+      _loadHunk(hunkName, loadId, priority, hash, retryCount + 1);
+    } else {
+      _addEvent(part: hunkName, event: 'downloadFailure', loadId: loadId);
+      _loadingLibraries[hunkName] = null;
+      stackTrace ??= StackTrace.current;
+      completer!.completeError(
+          DeferredLoadException('Loading $uriAsString failed: $error\n'
+              'Context: $context\n'
+              'event log:\n${_getEventLog()}\n'),
+          stackTrace);
+    }
+  }
+
+  void success() {
+    var isHunkLoaded = JS_EMBEDDED_GLOBAL('', IS_HUNK_LOADED);
+
+    if (JS('bool', '#(#)', isHunkLoaded, hash)) {
+      _addEvent(part: hunkName, event: 'downloadSuccess', loadId: loadId);
+      completer!.complete(null);
+    } else {
+      failure(
+          'Success callback invoked but part $hunkName not loaded.', '', null);
+    }
   }
 
   var jsSuccess = convertDartClosureToJS(success, 0);
@@ -3098,7 +3177,6 @@ Future<Null> _loadHunk(String hunkName, String loadId, int priority) {
     JS('', '#.addEventListener("error", #, false)', script, jsFailure);
     JS('', 'document.body.appendChild(#)', script);
   }
-  _loadingLibraries[hunkName] = completer.future;
   return completer.future;
 }
 

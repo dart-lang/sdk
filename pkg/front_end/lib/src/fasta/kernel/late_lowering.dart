@@ -26,8 +26,6 @@ Statement createGetterWithInitializer(CoreTypes coreTypes, int fileOffset,
     required Expression createIsSetRead(),
     required Expression createIsSetWrite(Expression value),
     required IsSetEncoding isSetEncoding}) {
-  // ignore: unnecessary_null_comparison
-  assert(isSetEncoding != null);
   switch (isSetEncoding) {
     case IsSetEncoding.useIsSetField:
       // Generate:
@@ -120,8 +118,6 @@ Statement createGetterWithInitializerWithRecheck(CoreTypes coreTypes,
     required Expression createIsSetWrite(Expression value),
     required IsSetEncoding isSetEncoding,
     required bool forField}) {
-  // ignore: unnecessary_null_comparison
-  assert(forField != null);
   Constructor constructor = forField
       ? coreTypes.lateInitializationFieldAssignedDuringInitializationConstructor
       : coreTypes
@@ -271,10 +267,6 @@ Statement createGetterBodyWithoutInitializer(
     required Expression createIsSetRead(),
     required IsSetEncoding isSetEncoding,
     required bool forField}) {
-  // ignore: unnecessary_null_comparison
-  assert(forField != null);
-  // ignore: unnecessary_null_comparison
-  assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
           forField
@@ -356,8 +348,6 @@ Statement createSetterBody(CoreTypes coreTypes, int fileOffset, String name,
     required Expression createVariableWrite(Expression value),
     required Expression createIsSetWrite(Expression value),
     required IsSetEncoding isSetEncoding}) {
-  // ignore: unnecessary_null_comparison
-  assert(isSetEncoding != null);
   Statement createReturn(Expression value) {
     if (shouldReturnValue) {
       return new ReturnStatement(value)..fileOffset = fileOffset;
@@ -406,10 +396,6 @@ Statement createSetterBodyFinal(CoreTypes coreTypes, int fileOffset,
     required Expression createIsSetWrite(Expression value),
     required IsSetEncoding isSetEncoding,
     required bool forField}) {
-  // ignore: unnecessary_null_comparison
-  assert(forField != null);
-  // ignore: unnecessary_null_comparison
-  assert(isSetEncoding != null);
   Expression exception = new Throw(
       new ConstructorInvocation(
           forField

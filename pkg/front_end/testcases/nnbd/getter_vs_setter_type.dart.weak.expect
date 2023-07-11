@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -237,37 +237,37 @@ static set property2(core::num value) → void {}
 static get property3() → core::num
   return 0;
 static set property3(core::int value) → void {}
-static method Extension|get#property1<T extends core::Object? = dynamic, S extends self::Extension|get#property1::T% = dynamic>(lowered final core::int #this) → core::int
+static extension-member method Extension|get#property1<T extends core::Object? = dynamic, S extends self::Extension|get#property1::T% = dynamic>(lowered final core::int #this) → core::int
   return 0;
-static method Extension|set#property1<T extends core::Object? = dynamic, S extends self::Extension|set#property1::T% = dynamic>(lowered final core::int #this, core::int i) → void {}
-static method Extension|get#property2<T extends core::Object? = dynamic, S extends self::Extension|get#property2::T% = dynamic>(lowered final core::int #this) → core::int
+static extension-member method Extension|set#property1<T extends core::Object? = dynamic, S extends self::Extension|set#property1::T% = dynamic>(lowered final core::int #this, core::int i) → void {}
+static extension-member method Extension|get#property2<T extends core::Object? = dynamic, S extends self::Extension|get#property2::T% = dynamic>(lowered final core::int #this) → core::int
   return 0;
-static method Extension|set#property2<T extends core::Object? = dynamic, S extends self::Extension|set#property2::T% = dynamic>(lowered final core::int #this, core::num i) → void {}
-static method Extension|get#property3<T extends core::Object? = dynamic, S extends self::Extension|get#property3::T% = dynamic>(lowered final core::int #this) → core::num
+static extension-member method Extension|set#property2<T extends core::Object? = dynamic, S extends self::Extension|set#property2::T% = dynamic>(lowered final core::int #this, core::num i) → void {}
+static extension-member method Extension|get#property3<T extends core::Object? = dynamic, S extends self::Extension|get#property3::T% = dynamic>(lowered final core::int #this) → core::num
   return 0;
-static method Extension|set#property3<T extends core::Object? = dynamic, S extends self::Extension|set#property3::T% = dynamic>(lowered final core::int #this, core::int i) → void {}
-static method Extension|get#property4<T extends core::Object? = dynamic, S extends self::Extension|get#property4::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property4::S%
+static extension-member method Extension|set#property3<T extends core::Object? = dynamic, S extends self::Extension|set#property3::T% = dynamic>(lowered final core::int #this, core::int i) → void {}
+static extension-member method Extension|get#property4<T extends core::Object? = dynamic, S extends self::Extension|get#property4::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property4::S%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:130:22: Error: A value of type 'int' can't be returned from a function with return type 'S'.
   S get property4 => 0; // ok
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
-static method Extension|set#property4<T extends core::Object? = dynamic, S extends self::Extension|set#property4::T% = dynamic>(lowered final core::int #this, self::Extension|set#property4::S% i) → void {}
-static method Extension|get#property5<T extends core::Object? = dynamic, S extends self::Extension|get#property5::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property5::S%
+                     ^" in 0 as{TypeError} Never;
+static extension-member method Extension|set#property4<T extends core::Object? = dynamic, S extends self::Extension|set#property4::T% = dynamic>(lowered final core::int #this, self::Extension|set#property4::S% i) → void {}
+static extension-member method Extension|get#property5<T extends core::Object? = dynamic, S extends self::Extension|get#property5::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property5::S%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:133:22: Error: A value of type 'int' can't be returned from a function with return type 'S'.
   S get property5 => 0; // ok
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
-static method Extension|set#property5<T extends core::Object? = dynamic, S extends self::Extension|set#property5::T% = dynamic>(lowered final core::int #this, self::Extension|set#property5::T% i) → void {}
-static method Extension|get#property6<T extends core::Object? = dynamic, S extends self::Extension|get#property6::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property6::T%
+                     ^" in 0 as{TypeError} Never;
+static extension-member method Extension|set#property5<T extends core::Object? = dynamic, S extends self::Extension|set#property5::T% = dynamic>(lowered final core::int #this, self::Extension|set#property5::T% i) → void {}
+static extension-member method Extension|get#property6<T extends core::Object? = dynamic, S extends self::Extension|get#property6::T% = dynamic>(lowered final core::int #this) → self::Extension|get#property6::T%
   return invalid-expression "pkg/front_end/testcases/nnbd/getter_vs_setter_type.dart:136:22: Error: A value of type 'int' can't be returned from a function with return type 'T'.
   T get property6 => 0; // error
-                     ^" in 0 as{TypeError,ForNonNullableByDefault} Never;
-static method Extension|set#property6<T extends core::Object? = dynamic, S extends self::Extension|set#property6::T% = dynamic>(lowered final core::int #this, self::Extension|set#property6::S% i) → void {}
-static get Extension|property7() → core::int
+                     ^" in 0 as{TypeError} Never;
+static extension-member method Extension|set#property6<T extends core::Object? = dynamic, S extends self::Extension|set#property6::T% = dynamic>(lowered final core::int #this, self::Extension|set#property6::S% i) → void {}
+static extension-member get Extension|property7() → core::int
   return 0;
-static set Extension|property7(core::int value) → void {}
-static get Extension|property8() → core::int
+static extension-member set Extension|property7(core::int value) → void {}
+static extension-member get Extension|property8() → core::int
   return 0;
-static set Extension|property8(core::num value) → void {}
-static get Extension|property9() → core::num
+static extension-member set Extension|property8(core::num value) → void {}
+static extension-member get Extension|property9() → core::num
   return 0;
-static set Extension|property9(core::int value) → void {}
+static extension-member set Extension|property9(core::int value) → void {}
 static method main() → dynamic {}

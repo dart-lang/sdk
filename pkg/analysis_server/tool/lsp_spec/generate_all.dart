@@ -504,7 +504,9 @@ Future<List<LspEntity>> getSpecClasses(ArgResults args) async {
 }
 
 class AbstractGetter extends Member {
+  // ignore:unreachable_from_main
   final TypeBase type;
+
   AbstractGetter({
     required super.name,
     super.comment,

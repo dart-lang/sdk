@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -28,15 +28,15 @@ extension E on self::A {
 }
 static method foo(core::int x, core::int y, {required core::int z}) → dynamic
   ;
-static method E|method1(lowered final self::A #this) → dynamic
+static extension-member method E|method1(lowered final self::A #this) → dynamic
   ;
-static method E|get#method1(lowered final self::A #this) → () → dynamic
+static extension-member method E|get#method1(lowered final self::A #this) → () → dynamic
   return () → dynamic => self::E|method1(#this);
-static method E|method2(lowered final self::A #this, core::int bar, {core::int? foo}) → dynamic
+static extension-member method E|method2(lowered final self::A #this, core::int bar, {core::int? foo}) → dynamic
   ;
-static method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
+static extension-member method E|get#method2(lowered final self::A #this) → (core::int, {foo: core::int?}) → dynamic
   return (core::int bar, {core::int? foo}) → dynamic => self::E|method2(#this, bar, foo: foo);
-static method E|staticMethod2(core::int bar, {core::int? foo}) → dynamic
+static extension-member method E|staticMethod2(core::int bar, {core::int? foo}) → dynamic
   ;
 static method test(dynamic d, core::Function f, self::A a) → dynamic
   ;

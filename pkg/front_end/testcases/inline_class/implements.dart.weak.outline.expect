@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
@@ -32,45 +32,45 @@ inline class D1 /* declaredRepresentationType = core::int */ implements self::C1
   constructor • = self::D1|;
   tearoff • = self::D1|_#new#tearOff;
 }
-static method A|(core::int it) → self::A
+static inline-class-member method A|(core::int it) → self::A
   ;
-static method A|_#new#tearOff(core::int it) → self::A
+static inline-class-member method A|_#new#tearOff(core::int it) → self::A
   return self::A|(it);
-static method A|methodA(lowered final self::A #this) → core::int
+static inline-class-member method A|methodA(lowered final self::A #this) → core::int
   ;
-static method A|get#methodA(lowered final self::A #this) → () → core::int
+static inline-class-member method A|get#methodA(lowered final self::A #this) → () → core::int
   return () → core::int => self::A|methodA(#this);
-static method B|<T extends core::Object? = dynamic>(self::B|::T% it) → self::B<self::B|::T%>
+static inline-class-member method B|<T extends core::Object? = dynamic>(self::B|::T% it) → self::B<self::B|::T%>
   ;
-static method B|_#new#tearOff<T extends core::Object? = dynamic>(self::B|_#new#tearOff::T% it) → self::B<self::B|_#new#tearOff::T%>
+static inline-class-member method B|_#new#tearOff<T extends core::Object? = dynamic>(self::B|_#new#tearOff::T% it) → self::B<self::B|_#new#tearOff::T%>
   return self::B|<self::B|_#new#tearOff::T%>(it);
-static method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%> #this) → self::B|methodB::T%
+static inline-class-member method B|methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|methodB::T%> #this) → self::B|methodB::T%
   ;
-static method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> #this) → () → self::B|get#methodB::T%
+static inline-class-member method B|get#methodB<T extends core::Object? = dynamic>(lowered final self::B<self::B|get#methodB::T%> #this) → () → self::B|get#methodB::T%
   return () → self::B|get#methodB::T% => self::B|methodB<self::B|get#methodB::T%>(#this);
-static method C1|(core::int it) → self::C1
+static inline-class-member method C1|(core::int it) → self::C1
   ;
-static method C1|_#new#tearOff(core::int it) → self::C1
+static inline-class-member method C1|_#new#tearOff(core::int it) → self::C1
   return self::C1|(it);
-static method C1|methodC1(lowered final self::C1 #this) → core::int
+static inline-class-member method C1|methodC1(lowered final self::C1 #this) → core::int
   ;
-static method C1|get#methodC1(lowered final self::C1 #this) → () → core::int
+static inline-class-member method C1|get#methodC1(lowered final self::C1 #this) → () → core::int
   return () → core::int => self::C1|methodC1(#this);
-static method C2|(core::int it) → self::C2
+static inline-class-member method C2|(core::int it) → self::C2
   ;
-static method C2|_#new#tearOff(core::int it) → self::C2
+static inline-class-member method C2|_#new#tearOff(core::int it) → self::C2
   return self::C2|(it);
-static method C2|methodC2(lowered final self::C2 #this) → core::int
+static inline-class-member method C2|methodC2(lowered final self::C2 #this) → core::int
   ;
-static method C2|get#methodC2(lowered final self::C2 #this) → () → core::int
+static inline-class-member method C2|get#methodC2(lowered final self::C2 #this) → () → core::int
   return () → core::int => self::C2|methodC2(#this);
-static method D1|(core::int it) → self::D1
+static inline-class-member method D1|(core::int it) → self::D1
   ;
-static method D1|_#new#tearOff(core::int it) → self::D1
+static inline-class-member method D1|_#new#tearOff(core::int it) → self::D1
   return self::D1|(it);
-static method D1|methodD1(lowered final self::D1 #this) → core::int
+static inline-class-member method D1|methodD1(lowered final self::D1 #this) → core::int
   ;
-static method D1|get#methodD1(lowered final self::D1 #this) → () → core::int
+static inline-class-member method D1|get#methodD1(lowered final self::D1 #this) → () → core::int
   return () → core::int => self::D1|methodD1(#this);
 static method errors(self::A a, self::B<core::String> b1, self::B<core::num> b2, self::C1 c1, self::C2 c2, self::D1 d1) → dynamic
   ;

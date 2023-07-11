@@ -37,6 +37,7 @@ where *options* include:
 | `--`[`no-`]`polymorphic-specialization` | no      | Do virtual calls by switching on the class ID instead of using `call_indirect`.
 | `--`[`no-`]`print-kernel`               | no      | Print IR for each function before compiling it.
 | `--`[`no-`]`print-wasm`                 | no      | Print Wasm instructions of each compiled function.
+| `--`[`no-`]`stringref`                  | no      | Use the experimental stringref Wasm proposal.
 | `--`[`no-`]`enable-asserts`             | no      | Enable assertions at runtime.
 | `--shared-memory-max-pages` *pagecount* |         | Max size of the imported memory buffer. If `--shared-import-memory` is specified, this must also be specified.
 | `--watch` *offset*                      |         | Print stack trace leading to the byte at offset *offset* in the `.wasm` output file. Can be specified multiple times.

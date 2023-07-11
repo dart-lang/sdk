@@ -1,4 +1,4 @@
-library #lib /*isNonNullableByDefault*/;
+library #lib;
 import self as self;
 import "dart:core" as core;
 import "enum_from_lib_used_as_type.lib.dart" as lib;
@@ -11,11 +11,11 @@ static method main() → dynamic {
   if([@vm.direct-call.metadata=dart.core::_GrowableList.isNotEmpty] [@vm.inferred-type.metadata=dart.core::bool] list.{core::Iterable::isNotEmpty}{core::bool}) {
     block {
       new lib::Class::•();
-      _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic,ForNonNullableByDefault} lib::Enum;
+      _in::unsafeCast<dynamic>(null) as{TypeError,ForDynamic} lib::Enum;
     } =>throw "Attempt to execute code removed by Dart AOT compiler (TFA)";
   }
 }
-library enum_from_lib_used_as_type.lib.dart /*isNonNullableByDefault*/;
+library enum_from_lib_used_as_type.lib.dart;
 import self as self;
 import "dart:core" as core;
 

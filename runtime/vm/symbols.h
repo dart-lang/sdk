@@ -24,6 +24,7 @@ class ObjectPointerVisitor;
   V(ApiError, "ApiError")                                                      \
   V(ArgDescVar, ":arg_desc")                                                   \
   V(ArgumentError, "ArgumentError")                                            \
+  V(StateError, "StateError")                                                  \
   V(AssertionError, "_AssertionError")                                         \
   V(AssignIndexToken, "[]=")                                                   \
   V(AsyncStarMoveNextHelper, "_asyncStarMoveNextHelper")                       \
@@ -40,7 +41,6 @@ class ObjectPointerVisitor;
   V(Code, "Code")                                                              \
   V(CodeSourceMap, "CodeSourceMap")                                            \
   V(ColonMatcher, ":matcher")                                                  \
-  V(Completer, "Completer")                                                    \
   V(Compound, "_Compound")                                                     \
   V(CompressedStackMaps, "CompressedStackMaps")                                \
   V(Context, "Context")                                                        \
@@ -116,6 +116,7 @@ class ObjectPointerVisitor;
   V(FfiNativeType, "NativeType")                                               \
   V(FfiNativeTypes, "nativeTypes")                                             \
   V(FfiPointer, "Pointer")                                                     \
+  V(FfiPointerAsyncFromFunctionSendArgs, "_pointerAsyncFromFunctionSendArgs")  \
   V(FfiStructLayout, "_FfiStructLayout")                                       \
   V(FfiStructLayoutArray, "_FfiInlineArray")                                   \
   V(FfiTrampolineData, "FfiTrampolineData")                                    \

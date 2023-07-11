@@ -4,9 +4,7 @@
 
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/element.dart';
-import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/error/codes.g.dart';
 import 'package:analyzer/src/generated/element_type_provider.dart';
 import 'package:nnbd_migration/fix_reason_target.dart';
@@ -107,13 +105,6 @@ class FixBuilderTest extends EdgeBuilderTestBase {
   static final isWeakNullAwareAssignment =
       TypeMatcher<NodeChangeForAssignment>()
           .having((c) => c.isWeakNullAware, 'isWeakNullAware', true);
-
-  DartType get dynamicType => postMigrationTypeProvider.dynamicType;
-
-  DartType get objectType => postMigrationTypeProvider.objectType;
-
-  TypeProvider get postMigrationTypeProvider =>
-      (typeProvider as TypeProviderImpl).asNonNullableByDefault;
 
   @override
   Future<CompilationUnit> analyze(String code) async {

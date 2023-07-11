@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 
 import "org-dartlang-testcase:///deferred_explicit_access_lib.dart" deferred as prefix hide Extension;
@@ -8,7 +8,7 @@ static method main() → dynamic async
 static method expect(dynamic expected, dynamic actual) → dynamic
   ;
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 
@@ -24,19 +24,19 @@ extension Extension on core::int {
 }
 static field core::int Extension|staticField;
 static field core::int topLevelField;
-static get Extension|staticProperty() → core::int
+static extension-member get Extension|staticProperty() → core::int
   ;
-static set Extension|staticProperty(core::int value) → void
+static extension-member set Extension|staticProperty(core::int value) → void
   ;
-static method Extension|staticMethod() → core::int
+static extension-member method Extension|staticMethod() → core::int
   ;
-static method Extension|get#property(lowered final core::int #this) → core::int
+static extension-member method Extension|get#property(lowered final core::int #this) → core::int
   ;
-static method Extension|set#property(lowered final core::int #this, core::int value) → void
+static extension-member method Extension|set#property(lowered final core::int #this, core::int value) → void
   ;
-static method Extension|method(lowered final core::int #this) → core::int
+static extension-member method Extension|method(lowered final core::int #this) → core::int
   ;
-static method Extension|get#method(lowered final core::int #this) → () → core::int
+static extension-member method Extension|get#method(lowered final core::int #this) → () → core::int
   return () → core::int => self2::Extension|method(#this);
 static get topLevelProperty() → core::int
   ;

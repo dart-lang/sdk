@@ -63,6 +63,23 @@ class StubCode : public AllStatic {
 #undef STUB_CODE_ACCESSOR
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+  static const Code& SubtypeTestCacheStubForUsedInputs(intptr_t i) {
+    switch (i) {
+      case 1:
+        return StubCode::Subtype1TestCache();
+      case 2:
+        return StubCode::Subtype2TestCache();
+      case 4:
+        return StubCode::Subtype4TestCache();
+      case 6:
+        return StubCode::Subtype6TestCache();
+      case 7:
+        return StubCode::Subtype7TestCache();
+      default:
+        UNREACHABLE();
+        return StubCode::Subtype7TestCache();
+    }
+  }
   static CodePtr GetAllocationStubForClass(const Class& cls);
   static CodePtr GetAllocationStubForTypedData(classid_t class_id);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)

@@ -121,6 +121,11 @@ bool SocketBase::AvailableDatagram(intptr_t fd,
   return client_socket->DataReady();
 }
 
+bool SocketBase::HasPendingWrite(intptr_t fd) {
+  Handle* handle = reinterpret_cast<Handle*>(fd);
+  return handle->HasPendingWrite();
+}
+
 intptr_t SocketBase::Write(intptr_t fd,
                            const void* buffer,
                            intptr_t num_bytes,
@@ -183,9 +188,14 @@ SocketAddress* SocketBase::GetRemotePeer(intptr_t fd, intptr_t* port) {
   ASSERT(reinterpret_cast<Handle*>(fd)->is_socket());
   SocketHandle* socket_handle = reinterpret_cast<SocketHandle*>(fd);
   RawAddr raw;
-  socklen_t size = sizeof(raw);
-  if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
-    return nullptr;
+  if (socket_handle->is_client_socket() &&
+      reinterpret_cast<ClientSocket*>(fd)->PopulateRemoteAddr(raw)) {
+    // `raw` was populated by `ClientSocket::PopulateRemoteAddr`.
+  } else {
+    socklen_t size = sizeof(raw);
+    if (getpeername(socket_handle->socket(), &raw.addr, &size)) {
+      return nullptr;
+    }
   }
   *port = SocketAddress::GetAddrPort(raw);
   // Clear the port before calling WSAAddressToString as WSAAddressToString

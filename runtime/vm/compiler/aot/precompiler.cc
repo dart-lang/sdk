@@ -627,7 +627,6 @@ void Precompiler::DoCompileAll() {
         IG->object_store()->set_pragma_class(null_class);
         IG->object_store()->set_pragma_name(null_field);
         IG->object_store()->set_pragma_options(null_field);
-        IG->object_store()->set_completer_class(null_class);
         IG->object_store()->set_compiletime_error_class(null_class);
         IG->object_store()->set_growable_list_factory(null_function);
         IG->object_store()->set_simple_instance_of_function(null_function);
@@ -2324,6 +2323,9 @@ void Precompiler::DropFunctions() {
   // Note: in PRODUCT mode snapshotter will drop this field when serializing.
   // This is done in ProgramSerializationRoots.
   IG->object_store()->set_closure_functions(retained_functions);
+
+  // Only needed during compilation.
+  IG->object_store()->set_closure_functions_table(Object::null_array());
 }
 
 void Precompiler::DropFields() {

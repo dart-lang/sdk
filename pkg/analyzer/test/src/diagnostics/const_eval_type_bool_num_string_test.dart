@@ -214,4 +214,12 @@ const b = a != 0;
       error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 67, 6),
     ]);
   }
+
+  test_stringInterpolation_list() async {
+    await assertErrorsInCode(r'''
+const x = '${const [2]}';
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_TYPE_BOOL_NUM_STRING, 11, 12),
+    ]);
+  }
 }

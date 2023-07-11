@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:_internal" as _in;
@@ -98,17 +98,17 @@ static method initLateTopLevelField1(core::int value) → core::int {
 }
 static get lateTopLevelField1() → core::int
   return let final core::int? #t11 = self::_#lateTopLevelField1 in #t11 == null ?{core::int} let final core::int #t12 = self::initLateTopLevelField1(123) in self::_#lateTopLevelField1 == null ?{core::int} self::_#lateTopLevelField1 = #t12 : throw new _in::LateError::fieldADI("lateTopLevelField1") : #t11{core::int};
-static method Extension|initLateExtensionField1(core::int value) → core::int {
+static extension-member method Extension|initLateExtensionField1(core::int value) → core::int {
   return self::Extension|lateExtensionField1Init = value;
 }
-static get Extension|lateExtensionField1() → core::int
+static extension-member get Extension|lateExtensionField1() → core::int
   return let final core::int? #t13 = self::_#Extension|lateExtensionField1 in #t13 == null ?{core::int} let final core::int #t14 = self::Extension|initLateExtensionField1(87) in self::_#Extension|lateExtensionField1 == null ?{core::int} self::_#Extension|lateExtensionField1 = #t14 : throw new _in::LateError::fieldADI("lateExtensionField1") : #t13{core::int};
-static method Extension|initLateExtensionField2(core::int value) → core::int {
+static extension-member method Extension|initLateExtensionField2(core::int value) → core::int {
   return self::Extension|lateExtensionField2Init = value;
 }
-static get Extension|lateExtensionField2() → core::int
+static extension-member get Extension|lateExtensionField2() → core::int
   return let final core::int? #t15 = self::_#Extension|lateExtensionField2 in #t15 == null ?{core::int} let final core::int #t16 = self::Extension|initLateExtensionField2(42) in self::_#Extension|lateExtensionField2 == null ?{core::int} self::_#Extension|lateExtensionField2 = #t16 : throw new _in::LateError::fieldADI("lateExtensionField2") : #t15{core::int};
-static method Extension|staticMethod() → dynamic {
+static extension-member method Extension|staticMethod() → dynamic {
   self::expect(null, self::Extension|lateExtensionField2Init);
   self::expect(42, self::Extension|lateExtensionField2);
   self::expect(42, self::Extension|lateExtensionField2Init);

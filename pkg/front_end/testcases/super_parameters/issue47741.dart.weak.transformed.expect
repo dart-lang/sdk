@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -22,12 +22,12 @@ class B extends self::A {
   constructor sub1(<T1 extends core::Object? = dynamic>(core::int) → core::double bar1) → self::B
     : super self::A::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue47741.dart:10:23: Error: The argument type 'double Function<T1>(int)' can't be assigned to the parameter type 'int Function<T>(int)'.
   B.sub1(double super.bar1<T1>(int a1),);
-                      ^" in bar1 as{TypeError,ForNonNullableByDefault} <T extends core::Object? = dynamic>(core::int) → core::int)
+                      ^" in bar1 as{TypeError} <T extends core::Object? = dynamic>(core::int) → core::int)
     ;
   constructor sub2(<T2 extends core::Object? = dynamic>(core::int) → core::double bar2) → self::B
     : super self::A::•(invalid-expression "pkg/front_end/testcases/super_parameters/issue47741.dart:11:23: Error: The argument type 'double Function<T2>(int)' can't be assigned to the parameter type 'int Function<T>(int)'.
   B.sub2(double super.bar2<T2>(int a2),);
-                      ^" in bar2 as{TypeError,ForNonNullableByDefault} <T extends core::Object? = dynamic>(core::int) → core::int)
+                      ^" in bar2 as{TypeError} <T extends core::Object? = dynamic>(core::int) → core::int)
     ;
 }
 static method main() → dynamic {}

@@ -96,6 +96,7 @@ class Lists {
 // the type of a value.
 //
 // Important: this is unsafe and must be used with care.
+@patch
 external T unsafeCast<T>(Object? v);
 
 // A version of [unsafeCast] that is opaque to the TFA. The TFA knows about the
@@ -180,14 +181,6 @@ List<String> _makeStringList() => <String>[];
 
 @pragma("wasm:export", "\$listAdd")
 void _listAdd(List<dynamic> list, dynamic item) => list.add(item);
-
-// Schedule a callback from JS via setTimeout.
-void scheduleCallback(double millis, dynamic Function() callback) {
-  JS<void>(r"""(ms, c) =>
-            setTimeout(
-                () => dartInstance.exports.$invokeCallback(c),ms)""", millis,
-      callback);
-}
 
 String jsonEncode(String object) => JS<String>(
     "s => stringToDartString(JSON.stringify(stringFromDartString(s)))", object);

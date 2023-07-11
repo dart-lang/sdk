@@ -944,6 +944,119 @@ p.B? b;
         modifiedOtherFileContent: modifiedOtherFileContent);
   }
 
+  /// Test moving declarations to a file that imports a library that exports a
+  /// referenced declaration, but currently hides it.
+  Future<void> test_imports_showHide_destinationHides() async {
+    var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
+    var destinationFileName = 'moving.dart';
+    var destinationFilePath =
+        join(projectFolderPath, 'lib', destinationFileName);
+    addSource(libFilePath, 'export "src/a.dart";');
+    addSource(srcFilePath, 'class A {}');
+    addSource(destinationFilePath, '''
+import 'package:test/a.dart' hide A;
+''');
+    var originalSource = '''
+import 'package:test/a.dart';
+
+A? staying;
+A? mov^ing;
+''';
+    var modifiedSource = '''
+import 'package:test/a.dart';
+
+A? staying;
+''';
+    var declarationName = 'moving';
+
+    var expectedDestinationContent = '''
+import 'package:test/a.dart' hide A;
+import 'package:test/a.dart';
+
+A? moving;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: destinationFileName,
+        newFileContent: expectedDestinationContent);
+  }
+
+  /// Test moving declarations to a file that imports a library that exports a
+  /// referenced declaration, but currently hides it.
+  Future<void> test_imports_showHide_destinationHides_sourceShows() async {
+    var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
+    var destinationFileName = 'moving.dart';
+    var destinationFilePath =
+        join(projectFolderPath, 'lib', destinationFileName);
+    addSource(libFilePath, 'export "src/a.dart";');
+    addSource(srcFilePath, 'class A {}');
+    addSource(destinationFilePath, '''
+import 'package:test/a.dart' hide A;
+''');
+    var originalSource = '''
+import 'package:test/a.dart' show A;
+
+A? staying;
+A? mov^ing;
+''';
+    var modifiedSource = '''
+import 'package:test/a.dart' show A;
+
+A? staying;
+''';
+    var declarationName = 'moving';
+
+    var expectedDestinationContent = '''
+import 'package:test/a.dart' hide A;
+import 'package:test/a.dart' show A;
+
+A? moving;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: destinationFileName,
+        newFileContent: expectedDestinationContent);
+  }
+
+  /// Test that if the moving declaration was imported with 'show' that any new
+  /// import added to the destination also only shows it.
+  Future<void> test_imports_showHide_sourceShows() async {
+    var libFilePath = join(projectFolderPath, 'lib', 'a.dart');
+    var srcFilePath = join(projectFolderPath, 'lib', 'src', 'a.dart');
+    addSource(libFilePath, 'export "src/a.dart";');
+    addSource(srcFilePath, 'class A {}');
+    var originalSource = '''
+import 'package:test/a.dart' show A;
+
+A? staying;
+A? mov^ing;
+''';
+    var modifiedSource = '''
+import 'package:test/a.dart' show A;
+
+A? staying;
+''';
+    var declarationName = 'moving';
+    var newFileName = 'moving.dart';
+    var newFileContent = '''
+import 'package:test/a.dart' show A;
+
+A? moving;
+''';
+    await _singleDeclaration(
+        originalSource: originalSource,
+        modifiedSource: modifiedSource,
+        declarationName: declarationName,
+        newFileName: newFileName,
+        newFileContent: newFileContent);
+  }
+
   Future<void> test_kind_class() async {
     var originalSource = '''
 class A {}
@@ -1084,6 +1197,12 @@ void functionToMove() {
     await expectCodeAction(simpleClassRefactorTitle);
   }
 
+  Future<void> test_protocol_available_withoutExperimentalOptIn() async {
+    addTestSource(simpleClassContent);
+    await initializeServer(experimentalOptInFlag: false);
+    await expectCodeAction(simpleClassRefactorTitle);
+  }
+
   Future<void> test_protocol_clientModifiedValues() async {
     addTestSource(simpleClassContent);
 
@@ -1103,12 +1222,6 @@ class A {}
     await executeRefactor(action);
 
     expect(content[newFilePath], expectedNewFileContent);
-  }
-
-  Future<void> test_protocol_unavailable_withoutExperimentalOptIn() async {
-    addTestSource(simpleClassContent);
-    await initializeServer(experimentalOptInFlag: false);
-    await expectNoCodeAction(simpleClassRefactorTitle);
   }
 
   Future<void> test_protocol_unavailable_withoutFileCreateSupport() async {

@@ -877,7 +877,10 @@ class Assembler : public MicroAssembler {
   void TsanStoreRelease(Register addr);
 #endif
 
-  void LoadAcquire(Register dst, Register address, int32_t offset = 0) override;
+  void LoadAcquire(Register dst,
+                   Register address,
+                   int32_t offset = 0,
+                   OperandSize size = kWordBytes) override;
 
   void LoadAcquireCompressed(Register dst,
                              Register address,
@@ -895,7 +898,9 @@ class Assembler : public MicroAssembler {
                                             Register base,
                                             int32_t offset);
 
-  void CompareWithMemoryValue(Register value, Address address);
+  void CompareWithMemoryValue(Register value,
+                              Address address,
+                              OperandSize size = kWordBytes) override;
 
   // Debugging and bringup support.
   void Breakpoint() override { trap(); }

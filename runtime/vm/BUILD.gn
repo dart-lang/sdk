@@ -139,7 +139,7 @@ proto_library("perfetto_protos_dart") {
   generator_plugin_suffixes = [ ".pb.dart" ]
 
   proto_in_dir = "."
-  proto_out_dir = "//pkg/vm_service/lib/src"
+  proto_out_dir = "//pkg/vm_service_protos/lib/src"
 
   sources = _perfetto_proto_definition_sources
 }

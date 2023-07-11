@@ -1,11 +1,11 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 
 extension /* unnamed */ _extension#0 on core::Object {
   get q = self::_extension#0|get#q;
 }
-static method _extension#0|get#q(lowered final core::Object #this) → core::int
+static extension-member method _extension#0|get#q(lowered final core::Object #this) → core::int
   ;
 static method main() → void
   ;

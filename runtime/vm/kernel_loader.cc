@@ -1744,9 +1744,12 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
 
   for (intptr_t i = 0; i < annotation_count; ++i) {
     const intptr_t tag = helper_.PeekTag();
-    if (tag == kConstantExpression) {
+    if (tag == kConstantExpression || tag == kFileUriConstantExpression) {
       helper_.ReadByte();      // Skip the tag.
       helper_.ReadPosition();  // Skip fileOffset.
+      if (tag == kFileUriConstantExpression) {
+        helper_.ReadUInt();  // Skip uri.
+      }
       helper_.SkipDartType();  // Skip type.
       const intptr_t index_in_constant_table = helper_.ReadUInt();
 
@@ -1849,7 +1852,6 @@ void KernelLoader::LoadProcedure(const Library& library,
   }
   function.set_kernel_offset(procedure_offset);
   function.set_is_extension_member(is_extension_member);
-  function.set_is_redirecting_factory(procedure_helper.IsRedirectingFactory());
   if ((library.is_dart_scheme() &&
        H.IsPrivate(procedure_helper.canonical_name_)) ||
       (function.is_static() && (library.ptr() == Library::InternalLibrary()))) {
@@ -1895,6 +1897,10 @@ void KernelLoader::LoadProcedure(const Library& library,
                             false,  // is_closure
                             &function_node_helper);
   T.SetupUnboxingInfoMetadata(function, library_kernel_offset_);
+
+  function_node_helper.ReadUntilExcluding(
+      FunctionNodeHelper::kRedirectingFactoryTarget);
+  function.set_is_redirecting_factory(helper_.ReadTag() == kSomething);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.

@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "dart:core" as core;
 import "dart:async" as asy;
@@ -17,7 +17,7 @@ class A<X extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
   method foo([covariant-by-class FutureOr<self::A::X%>? x = #C1]) → dynamic {
-    if(x is{ForNonNullableByDefault} asy::Future<self::A::X%>) {
+    if(x is asy::Future<self::A::X%>) {
       this.{self::A::b}{self::B<self::A::X%>}.{self::B::bar}(x{asy::Future<self::A::X%>}){(FutureOr<self::A::X%>) → dynamic};
     }
   }

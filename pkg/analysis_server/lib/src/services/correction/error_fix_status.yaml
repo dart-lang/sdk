@@ -380,6 +380,10 @@ CompileTimeErrorCode.CONST_DEFERRED_CLASS:
   status: needsFix
   notes: |-
     Remove the `deferred` keyword from the import.
+CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
+  status: needsEvaluation
+CompileTimeErrorCode.CONST_EVAL_FOR_ELEMENT:
+  status: needsEvaluation
 CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION:
   status: noFix
 CompileTimeErrorCode.CONST_EVAL_THROWS_IDBZE:
@@ -1051,6 +1055,14 @@ CompileTimeErrorCode.MIXIN_OF_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
 CompileTimeErrorCode.MIXIN_ON_TYPE_ALIAS_EXPANDS_TO_TYPE_PARAMETER:
   status: noFix
+CompileTimeErrorCode.MIXIN_SUBTYPE_OF_BASE_IS_NOT_BASE:
+  status: needsFix
+  notes: |-
+    Add `base`.
+CompileTimeErrorCode.MIXIN_SUBTYPE_OF_FINAL_IS_NOT_BASE:
+  status: needsFix
+  notes: |-
+    Add `base`.
 CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_DEFERRED_CLASS:
   status: needsFix
   notes: |-
@@ -1706,6 +1718,8 @@ FfiCode.MUST_BE_A_NATIVE_FUNCTION_TYPE:
   status: noFix
 FfiCode.MUST_BE_A_SUBTYPE:
   status: noFix
+FfiCode.MUST_RETURN_VOID:
+  status: noFix
 FfiCode.NON_CONSTANT_TYPE_ARGUMENT:
   status: noFix
 FfiCode.NON_NATIVE_FUNCTION_TYPE_ARGUMENT_TO_POINTER:
@@ -2355,6 +2369,8 @@ LintCode.unnecessary_library_directive:
   status: hasFix
 LintCode.unnecessary_new:
   status: hasFix
+LintCode.no_wildcard_variable_uses:
+  status: needsEvaluation
 LintCode.unnecessary_null_aware_assignments:
   status: hasFix
 LintCode.unnecessary_null_aware_operator_on_extension_on_nullable:
@@ -2386,8 +2402,10 @@ LintCode.unreachable_from_main:
   notes: |-
     Theoretically we could remove the unreachable declaration, but that seems
     like a dangerous option to provide.
-LintCode.unrelated_type_equality_checks:
-  status: noFix
+LintCode.unrelated_type_equality_checks_expression:
+  status: needsEvaluation
+LintCode.unrelated_type_equality_checks_pattern:
+  status: needsEvaluation
 LintCode.unsafe_html_attribute:
   status: noFix
 LintCode.unsafe_html_method:
@@ -2699,9 +2717,7 @@ ParserErrorCode.EXTENSION_DECLARES_ABSTRACT_MEMBER:
   notes: |-
     Provide an empty body for the member.
 ParserErrorCode.EXTENSION_DECLARES_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the constructor.
+  status: hasFix
 ParserErrorCode.EXTENSION_DECLARES_INSTANCE_FIELD:
   status: needsFix
   notes: |-
@@ -3034,9 +3050,7 @@ ParserErrorCode.MISSING_VARIABLE_IN_FOR_EACH:
 ParserErrorCode.MIXED_PARAMETER_GROUPS:
   status: noFix
 ParserErrorCode.MIXIN_DECLARES_CONSTRUCTOR:
-  status: needsFix
-  notes: |-
-    Remove the constructor.
+  status: hasFix
 ParserErrorCode.MIXIN_WITH_CLAUSE:
   status: needsEvaluation
 ParserErrorCode.MODIFIER_OUT_OF_ORDER:
@@ -3529,6 +3543,8 @@ WarningCode.INVALID_VISIBILITY_ANNOTATION:
   status: hasFix
 WarningCode.INVALID_VISIBLE_FOR_OVERRIDING_ANNOTATION:
   status: hasFix
+WarningCode.INVALID_VISIBLE_OUTSIDE_TEMPLATE_ANNOTATION:
+  status: needsEvaluation
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_ONE:
   status: hasFix
 WarningCode.MISSING_OVERRIDE_OF_MUST_BE_OVERRIDDEN_TWO:

@@ -214,15 +214,6 @@ FunctionPtr ObjectStore::PrivateObjectLookup(const String& name) {
   return result.ptr();
 }
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-static void DisableDebuggingAndInlining(const Function& function) {
-  if (FLAG_async_debugger) {
-    function.set_is_debuggable(false);
-    function.set_is_inlinable(false);
-  }
-}
-#endif  // DART_PRECOMPILED_RUNTIME
-
 void ObjectStore::InitKnownObjects() {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -244,9 +235,6 @@ void ObjectStore::InitKnownObjects() {
   cls = async_lib.LookupClass(Symbols::Future());
   ASSERT(!cls.IsNull());
   set_future_class(cls);
-  cls = async_lib.LookupClass(Symbols::Completer());
-  ASSERT(!cls.IsNull());
-  set_completer_class(cls);
 
   String& function_name = String::Handle(zone);
   Function& function = Function::Handle(zone);
@@ -270,18 +258,19 @@ void ObjectStore::InitKnownObjects() {
   ASSERT(!field.IsNull());
   set_async_star_stream_controller_async_star_body(field);
 
-  if (FLAG_async_debugger) {
-    // Disable debugging and inlining of all functions on the
-    // _AsyncStarStreamController class.
-    const Array& functions = Array::Handle(zone, cls.current_functions());
-    for (intptr_t i = 0; i < functions.Length(); i++) {
-      function ^= functions.At(i);
-      if (function.IsNull()) {
-        break;
-      }
-      DisableDebuggingAndInlining(function);
+#if !defined(PRODUCT)
+  // Disable debugging and inlining of all functions on the
+  // _AsyncStarStreamController class.
+  const Array& functions = Array::Handle(zone, cls.current_functions());
+  for (intptr_t i = 0; i < functions.Length(); i++) {
+    function ^= functions.At(i);
+    if (function.IsNull()) {
+      break;
     }
+    function.set_is_debuggable(false);
+    function.set_is_inlinable(false);
   }
+#endif
 
   cls = async_lib.LookupClassAllowPrivate(Symbols::Stream());
   ASSERT(!cls.IsNull());
@@ -494,9 +483,8 @@ void ObjectStore::LazyInitAsyncMembers() {
   auto* const thread = Thread::Current();
   SafepointWriteRwLocker locker(thread,
                                 thread->isolate_group()->program_lock());
-  if (non_nullable_future_rare_type_.load() == Type::null()) {
+  if (nullable_future_null_type_.load() == Type::null()) {
     ASSERT(non_nullable_future_never_type_.load() == Type::null());
-    ASSERT(nullable_future_null_type_.load() == Type::null());
 
     auto* const zone = thread->zone();
     const auto& cls = Class::Handle(zone, future_class());
@@ -521,9 +509,6 @@ void ObjectStore::LazyInitAsyncMembers() {
     type.SetIsFinalized();
     type ^= type.Canonicalize(thread);
     nullable_future_null_type_.store(type.ptr());
-
-    type = cls.RareType();
-    non_nullable_future_rare_type_.store(type.ptr());
   }
 }
 

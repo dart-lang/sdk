@@ -6,5 +6,5 @@ Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>() → dynamic
   return () → Null {
-    #lib1::A::debugExpr::T% k = invalid-expression "org-dartlang-debug:synthetic_debug_expression:2:13: Error: A value of type 'A<dynamic>' can't be assigned to a variable of type 'T'.\n - 'A' is from 'org-dartlang-testcase:///main.dart'.\n  T k = new A();\n            ^" in new #lib1::A::•<dynamic>() as{TypeError,ForNonNullableByDefault} Never;
+    #lib1::A::debugExpr::T% k = invalid-expression "org-dartlang-debug:synthetic_debug_expression:2:13: Error: A value of type 'A<dynamic>' can't be assigned to a variable of type 'T'.\n - 'A' is from 'org-dartlang-testcase:///main.dart'.\n  T k = new A();\n            ^" in new #lib1::A::•<dynamic>() as{TypeError} Never;
   };

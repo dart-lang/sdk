@@ -78,6 +78,7 @@ namespace dart {
   V(Developer_log, 8)                                                          \
   V(Developer_postEvent, 2)                                                    \
   V(Developer_webServerControl, 3)                                             \
+  V(Developer_NativeRuntime_buildId, 0)                                        \
   V(Developer_NativeRuntime_writeHeapSnapshotToFile, 1)                        \
   V(Developer_reachability_barrier, 0)                                         \
   V(Double_getIsNegative, 1)                                                   \
@@ -364,7 +365,10 @@ namespace dart {
   V(VMService_RemoveUserTagsFromStreamableSampleList, 1)                       \
   V(Ffi_asFunctionInternal, 2)                                                 \
   V(Ffi_pointerFromFunction, 1)                                                \
+  V(Ffi_pointerAsyncFromFunction, 2)                                           \
+  V(Ffi_deleteAsyncFunctionPointer, 1)                                         \
   V(Ffi_dl_open, 1)                                                            \
+  V(Ffi_dl_close, 1)                                                           \
   V(Ffi_dl_lookup, 2)                                                          \
   V(Ffi_dl_getHandle, 1)                                                       \
   V(Ffi_dl_providesSymbol, 2)                                                  \

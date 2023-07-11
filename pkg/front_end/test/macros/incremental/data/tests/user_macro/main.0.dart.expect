@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "macro.dart" as mac;
 import "dart:core" as core;
@@ -17,12 +17,12 @@ class Class extends core::Object {
   }
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mai;
 
 static method existingMethodDependency() → void {}
 
-library /*isNonNullableByDefault*/;
+library;
 import self as mac;
 import "dart:core" as core;
 import "package:_fe_analyzer_shared/src/macros/api.dart" as api;
@@ -39,7 +39,7 @@ macro class MethodMacro extends core::Object implements api::ClassDeclarationsMa
   method buildDeclarationsForClass(api::ClassDeclaration clazz, api::MemberDeclarationBuilder builder) → FutureOr<void> async /* futureValueType= void */ {}
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as self2;
 import "dart:core" as core;
 

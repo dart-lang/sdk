@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -451,7 +451,7 @@ class SubAbstractSubClassWith4 extends self::AbstractSubClassWith4 {
     ;
 }
 
-library /*isNonNullableByDefault*/;
+library;
 import self as acc;
 import "dart:core" as core;
 

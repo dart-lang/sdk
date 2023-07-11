@@ -12,7 +12,6 @@ import 'package:analysis_server/src/utilities/strings.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/precedence.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -549,7 +548,7 @@ class CancelCorrectionException {
 
 class CorrectionUtils {
   final CompilationUnit unit;
-  final LibraryElement _library;
+  final LibraryElement? _library;
   final String _buffer;
 
   /// The [ClassElement] the generated code is inserted to, so we can decide if
@@ -560,9 +559,9 @@ class CorrectionUtils {
 
   String? _endOfLine;
 
-  CorrectionUtils(ResolvedUnitResult result)
+  CorrectionUtils(ParsedUnitResult result)
       : unit = result.unit,
-        _library = result.libraryElement,
+        _library = result is ResolvedUnitResult ? result.libraryElement : null,
         _buffer = result.content;
 
   /// Returns the EOL to use for this [CompilationUnit].
@@ -1006,6 +1005,21 @@ class CorrectionUtils {
     return buffer.toString();
   }
 
+  /// Splits [text] into lines, and adds [level] indents to each line.
+  String indentRight(String text, {int level = 1}) {
+    final buffer = StringBuffer();
+    final indent = getIndent(level);
+    final eol = endOfLine;
+    final lines = text.split(eol);
+    for (final line in lines) {
+      if (buffer.isNotEmpty) {
+        buffer.write(eol);
+      }
+      buffer.write('$indent$line');
+    }
+    return buffer.toString();
+  }
+
   /// Indents given source left or right.
   String indentSourceLeftRight(String source, {bool indentLeft = true}) {
     var sb = StringBuffer();
@@ -1093,7 +1107,7 @@ class CorrectionUtils {
     return null;
   }
 
-  InsertionLocation? prepareEnumNewConstructorLocation(
+  InsertionLocation prepareEnumNewConstructorLocation(
     EnumDeclaration enumDeclaration,
   ) {
     var indent = getIndent(1);
@@ -1305,7 +1319,11 @@ class CorrectionUtils {
   /// Return the import element used to import given [element] into the library.
   /// May be `null` if was not imported, i.e. declared in the same library.
   LibraryImportElement? _getImportElement(Element element) {
-    for (var imp in _library.libraryImports) {
+    var library = _library;
+    if (library == null) {
+      return null;
+    }
+    for (var imp in library.libraryImports) {
       var definedNames = getImportNamespace(imp);
       if (definedNames.containsValue(element)) {
         return imp;

@@ -1,4 +1,4 @@
-library test;
+library test /*isLegacy*/;
 //
 // Problems in library:
 //
@@ -14,15 +14,15 @@ static method block_test() → void {
   g = () → core::List<core::Object*>* {
     return <core::Object*>[3];
   };
-  assert(g is () →* core::List<core::Object*>*);
-  assert(!(g is () →* core::List<core::int*>*));
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
   g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
   core::List<core::int*>* l = <core::int*>[3];
   g = () → core::List<core::int*>* {
     return l;
   };
-  assert(g is () →* core::List<core::Object*>*);
-  assert(g is () →* core::List<core::int*>*);
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(g is{ForLegacy} () →* core::List<core::int*>*);
   try {
     g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
     throw "expected a runtime error";
@@ -31,11 +31,11 @@ static method block_test() → void {
   }
   core::Object* o = l;
   g = () → core::List<core::Object*>* {
-    return o as{TypeError} core::List<core::Object*>*;
+    return o as{TypeError,ForLegacy} core::List<core::Object*>*;
   };
-  assert(g is () →* core::List<core::Object*>*);
-  assert(!(g is () →* core::List<core::int*>*));
-  assert(!(g is () →* core::Object*));
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
+  assert(!(g is{ForLegacy} () →* core::Object*));
   g(){() →* core::List<core::Object*>*};
   o = 3;
   try {
@@ -48,13 +48,13 @@ static method block_test() → void {
 static method arrow_test() → void {
   () →* core::List<core::Object*>* g;
   g = () → core::List<core::Object*>* => <core::Object*>[3];
-  assert(g is () →* core::List<core::Object*>*);
-  assert(!(g is () →* core::List<core::int*>*));
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
   g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
   core::List<core::int*>* l = <core::int*>[3];
   g = () → core::List<core::int*>* => l;
-  assert(g is () →* core::List<core::Object*>*);
-  assert(g is () →* core::List<core::int*>*);
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(g is{ForLegacy} () →* core::List<core::int*>*);
   try {
     g(){() →* core::List<core::Object*>*}.{core::List::add}("hello"){(core::Object*) →* void};
     throw "expected a runtime error";
@@ -62,10 +62,10 @@ static method arrow_test() → void {
   on core::TypeError* catch(no-exception-var) {
   }
   core::Object* o = l;
-  g = () → core::List<core::Object*>* => o as{TypeError} core::List<core::Object*>*;
-  assert(g is () →* core::List<core::Object*>*);
-  assert(!(g is () →* core::List<core::int*>*));
-  assert(!(g is () →* core::Object*));
+  g = () → core::List<core::Object*>* => o as{TypeError,ForLegacy} core::List<core::Object*>*;
+  assert(g is{ForLegacy} () →* core::List<core::Object*>*);
+  assert(!(g is{ForLegacy} () →* core::List<core::int*>*));
+  assert(!(g is{ForLegacy} () →* core::Object*));
   g(){() →* core::List<core::Object*>*};
   o = 3;
   try {

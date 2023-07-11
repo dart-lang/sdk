@@ -1754,6 +1754,7 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
 // Returns new string as tagged pointer in A0.
 static void TryAllocateString(Assembler* assembler,
                               classid_t cid,
+                              intptr_t max_elements,
                               Label* ok,
                               Label* failure) {
   ASSERT(cid == kOneByteStringCid || cid == kTwoByteStringCid);
@@ -1761,7 +1762,9 @@ static void TryAllocateString(Assembler* assembler,
   // _Mint length: call to runtime to produce error.
   __ BranchIfNotSmi(length_reg, failure);
   // negative length: call to runtime to produce error.
-  __ bltz(length_reg, failure);
+  // Too big: call to runtime to allocate old.
+  __ CompareImmediate(length_reg, target::ToRawSmi(max_elements));
+  __ BranchIf(UNSIGNED_GREATER, failure);
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(cid, failure, TMP));
   __ mv(T0, length_reg);  // Save the length register.
@@ -1854,7 +1857,9 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   __ BranchIfNotSmi(T1, normal_ir_body);  // 'start', 'end' not Smi.
 
   __ sub(A1, T0, TMP);
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
   __ Bind(&ok);
   // A0: new string as tagged pointer.
   // Copy string.
@@ -1922,7 +1927,9 @@ void AsmIntrinsifier::AllocateOneByteString(Assembler* assembler,
   Label ok;
 
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateString(assembler, kOneByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kOneByteStringCid,
+                    target::OneByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ ret();
@@ -1935,7 +1942,9 @@ void AsmIntrinsifier::AllocateTwoByteString(Assembler* assembler,
   Label ok;
 
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Length.
-  TryAllocateString(assembler, kTwoByteStringCid, &ok, normal_ir_body);
+  TryAllocateString(assembler, kTwoByteStringCid,
+                    target::TwoByteString::kMaxNewSpaceElements, &ok,
+                    normal_ir_body);
 
   __ Bind(&ok);
   __ ret();

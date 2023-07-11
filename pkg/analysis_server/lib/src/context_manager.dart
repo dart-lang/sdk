@@ -90,9 +90,19 @@ abstract class ContextManager {
   /// analyzed in one of the analysis contexts.
   bool isAnalyzed(String path);
 
+  /// Pauses file watchers.
+  ///
+  /// Throws if watchers are already paused.
+  void pauseWatchers();
+
   /// Rebuild the set of contexts from scratch based on the data last sent to
   /// [setRoots].
   Future<void> refresh();
+
+  /// Unpauses file watchers.
+  ///
+  /// Throws if watchers are not paused.
+  void resumeWatchers();
 
   /// Change the set of paths which should be used as starting points to
   /// determine the context directories.
@@ -200,6 +210,14 @@ class ContextManagerImpl implements ContextManager {
   /// Subscriptions to watch included resources for changes.
   final List<StreamSubscription<WatchEvent>> watcherSubscriptions = [];
 
+  /// Whether or not the watchers have been paused.
+  ///
+  /// This occurs when a request like "Fix All" is temporarily using (and
+  /// reverting) overlays and we must prevent any external updates.
+  ///
+  /// Set via [pauseWatchers] and [resumeWatchers].
+  bool _watchersPaused = false;
+
   /// For each folder, stores the subscription to the Blaze workspace so that we
   /// can establish watches for the generated files.
   final blazeSearchSubscriptions =
@@ -285,10 +303,32 @@ class ContextManagerImpl implements ContextManager {
     );
   }
 
+  @override
+  void pauseWatchers() {
+    if (_watchersPaused) {
+      throw StateError('Watchers are already paused');
+    }
+    for (final subscription in watcherSubscriptions) {
+      subscription.pause();
+    }
+    _watchersPaused = true;
+  }
+
   /// Starts (an asynchronous) rebuild of analysis contexts.
   @override
   Future<void> refresh() async {
     await _createAnalysisContexts();
+  }
+
+  @override
+  void resumeWatchers() {
+    if (!_watchersPaused) {
+      throw StateError('Watchers are not paused');
+    }
+    for (final subscription in watcherSubscriptions) {
+      subscription.resume();
+    }
+    _watchersPaused = false;
   }
 
   /// Updates the analysis roots and waits for the contexts to rebuild.
@@ -694,11 +734,13 @@ class ContextManagerImpl implements ContextManager {
   }
 
   Future<void> _destroyAnalysisContexts() async {
+    for (final subscription in watcherSubscriptions) {
+      await subscription.cancel();
+    }
+    watcherSubscriptions.clear();
+
     final collection = _collection;
     if (collection != null) {
-      for (final subscription in watcherSubscriptions) {
-        await subscription.cancel();
-      }
       for (final analysisContext in collection.contexts) {
         _destroyAnalysisContext(analysisContext);
       }

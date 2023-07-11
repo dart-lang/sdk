@@ -1,4 +1,4 @@
 Errors: {
 }
 method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr<T extends dynamic>(dynamic x) → dynamic
-  return x is{ForNonNullableByDefault} #lib1::A::debugExpr::T%;
+  return x is #lib1::A::debugExpr::T%;

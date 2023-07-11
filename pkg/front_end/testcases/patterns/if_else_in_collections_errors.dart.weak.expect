@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
@@ -24,7 +24,7 @@ static method test1(dynamic x) → dynamic
     {
       hoisted core::int y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t2 = y = #0#0{core::int} in true))
+      if(#0#0 is core::int && (let final dynamic #t2 = y = #0#0{core::int} in true))
         #t1.{core::List::add}{Invariant}(2){(core::int) → void};
       else
         #t1.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/if_else_in_collections_errors.dart:5:50: Error: Undefined name 'y'.
@@ -40,7 +40,7 @@ static method test2(dynamic x) → dynamic
     {
       hoisted core::int y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t4 = y = #0#0{core::int} in true))
+      if(#0#0 is core::int && (let final dynamic #t4 = y = #0#0{core::int} in true))
         #t3.{core::Set::add}{Invariant}(2){(core::int) → core::bool};
       else
         #t3.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/patterns/if_else_in_collections_errors.dart:7:55: Error: Undefined name 'y'.
@@ -56,7 +56,7 @@ static method test3(dynamic x) → dynamic
     {
       hoisted core::int y;
       final synthesized dynamic #0#0 = x;
-      if(#0#0 is{ForNonNullableByDefault} core::int && (let final dynamic #t6 = y = #0#0{core::int} in true))
+      if(#0#0 is core::int && (let final dynamic #t6 = y = #0#0{core::int} in true))
         #t5.{core::Map::[]=}{Invariant}(2, 2){(core::int, core::int) → void};
       else
         #t5.{core::Map::[]=}{Invariant}(2, invalid-expression "pkg/front_end/testcases/patterns/if_else_in_collections_errors.dart:9:69: Error: Undefined name 'y'.

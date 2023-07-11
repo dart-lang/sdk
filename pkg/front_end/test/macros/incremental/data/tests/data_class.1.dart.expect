@@ -1,4 +1,4 @@
-library /*isNonNullableByDefault*/;
+library;
 import self as self;
 import "package:macro/macro.dart" as mac;
 import "dart:core" as core;
