@@ -9,8 +9,8 @@ import 'dart:isolate';
 export '../../../../../benchmarks/IsolateFibonacci/dart/IsolateFibonacci.dart'
     show fibonacciRecursive;
 
-final bool isDebugMode = Platform.script.path.contains('Debug');
-final bool isSimulator = Platform.script.path.contains('SIM');
+final bool isDebugMode = Platform.resolvedExecutable.contains('Debug');
+final bool isSimulator = Platform.resolvedExecutable.contains('SIM');
 final bool isArtificialReloadMode = Platform.executableArguments.any((arg) => [
       '--hot-reload-rollback-test-mode',
       '--hot-reload-test-mode'
