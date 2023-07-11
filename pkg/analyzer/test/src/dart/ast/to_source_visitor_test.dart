@@ -2464,6 +2464,16 @@ void f(x) {
     );
   }
 
+  void test_visitMethodDeclaration_augment() {
+    final code = 'augment void foo() {}';
+    final findNode = _parseStringToFindNode('''
+class A {
+  $code
+}
+''');
+    _assertSource(code, findNode.singleMethodDeclaration);
+  }
+
   void test_visitMethodDeclaration_external() {
     final code = 'external foo();';
     final findNode = _parseStringToFindNode('''

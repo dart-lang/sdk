@@ -56,6 +56,9 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+abstract class AugmentationExecutableElementImpl
+    implements AugmentationExecutableElement {}
+
 class AugmentationImportElementImpl extends _ExistingElementImpl
     implements AugmentationImportElement {
   @override
@@ -95,6 +98,16 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
   @override
   T? accept<T>(ElementVisitor<T> visitor) =>
       visitor.visitAugmentationImportElement(this);
+}
+
+class AugmentationMethodElementImpl extends AugmentationExecutableElementImpl
+    implements AugmentationMethodElement {
+  @override
+  final MethodElement? augmentationTarget;
+
+  AugmentationMethodElementImpl({
+    required this.augmentationTarget,
+  });
 }
 
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
@@ -1042,6 +1055,9 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   bool isConstantEvaluated = false;
+
+  @override
+  AugmentationExecutableElementImpl? maybeAugmentation;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
@@ -3217,6 +3233,9 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 /// A concrete implementation of a [FunctionElement].
 class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement, FunctionTypedElementImpl {
+  @override
+  AugmentationExecutableElementImpl? maybeAugmentation;
+
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
   FunctionElementImpl(super.name, super.offset);
@@ -4983,15 +5002,15 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// this field contains the base method.
   MethodElement? prototype;
 
+  @override
+  MethodElementImpl? augmentation;
+
+  @override
+  AugmentationMethodElementImpl? maybeAugmentation;
+
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(super.name, super.offset);
-
-  @override
-  MethodAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
 
   @override
   MethodElement get declaration => prototype ?? this;
@@ -6202,6 +6221,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// with some modifications (such as making some parameters covariant),
   /// this field contains the base method.
   PropertyAccessorElement? prototype;
+
+  @override
+  AugmentationExecutableElementImpl? maybeAugmentation;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
