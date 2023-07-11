@@ -3028,10 +3028,10 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "c_compiler",
             "dart_style",
             "native_assets_builder",
             "native_assets_cli",
+            "native_toolchain_c",
             "package_config"
           ]
         },
@@ -3090,7 +3090,7 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
-            "c_compiler",
+            "native_toolchain_c",
             "dart_style",
             "native_assets_builder",
             "native_assets_cli",
@@ -3134,7 +3134,7 @@
           "name": "third_party tested packages",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "c_compiler",
+            "native_toolchain_c",
             "dart_style",
             "native_assets_builder",
             "native_assets_cli",

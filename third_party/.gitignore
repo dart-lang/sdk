@@ -9,8 +9,8 @@
 !unittest.tar.gz.sha1
 !update.sh
 !/wasmer
-!/pkg/c_compiler.status
 !/pkg/native_assets_builder.status
 !/pkg/native_assets_cli.status
+!/pkg/native_toolchain_c.status
 # but ignore a subfolder of tcmalloc (some client ignores /tcmalloc/.gitignore)
 /tcmalloc/gperftools
