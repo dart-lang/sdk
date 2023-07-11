@@ -1061,13 +1061,13 @@ void ARMDecoder::DecodeType6(Instr* instr) {
     }
   } else if (instr->IsVFPMultipleLoadStore()) {
     if (instr->HasL()) {    // vldm
-      if (instr->Bit(8)) {  // vldmd
+      if (instr->Bit(8) != 0) {  // vldmd
         Format(instr, "vldmd'cond'pu 'rn'w, 'dlist");
       } else {  // vldms
         Format(instr, "vldms'cond'pu 'rn'w, 'slist");
       }
     } else {                // vstm
-      if (instr->Bit(8)) {  // vstmd
+      if (instr->Bit(8) != 0) {  // vstmd
         Format(instr, "vstmd'cond'pu 'rn'w, 'dlist");
       } else {  // vstms
         Format(instr, "vstms'cond'pu 'rn'w, 'slist");
@@ -1388,11 +1388,11 @@ void ARMDecoder::DecodeSIMDDataProcessing(Instr* instr) {
                (instr->Bits(20, 2) == 3) && (instr->Bits(23, 2) == 3) &&
                (instr->Bit(7) == 0)) {
       int32_t imm4 = instr->Bits(16, 4);
-      if (imm4 & 1) {
+      if ((imm4 & 1) != 0) {
         Format(instr, "vdupb 'qd, 'dm['imm4_vdup]");
-      } else if (imm4 & 2) {
+      } else if ((imm4 & 2) != 0) {
         Format(instr, "vduph 'qd, 'dm['imm4_vdup]");
-      } else if (imm4 & 4) {
+      } else if ((imm4 & 4) != 0) {
         Format(instr, "vdupw 'qd, 'dm['imm4_vdup]");
       } else {
         Unknown(instr);
@@ -1506,7 +1506,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
   Utils::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
-  if (out_instr_size) {
+  if (out_instr_size != nullptr) {
     *out_instr_size = Instr::kInstrSize;
   }
 

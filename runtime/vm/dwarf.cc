@@ -606,7 +606,7 @@ class LineNumberProgramWriter {
   intptr_t file_ = 1;
   intptr_t line_ = 1;
   intptr_t column_ = 0;
-  intptr_t end_sequence_ = false;
+  bool end_sequence_ = false;
 
   // Other info not stored in the state machine registers.
   intptr_t label_ = 0;

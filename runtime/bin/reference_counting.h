@@ -7,6 +7,8 @@
 
 #include <atomic>
 
+#include "platform/assert.h"
+
 namespace dart {
 namespace bin {
 

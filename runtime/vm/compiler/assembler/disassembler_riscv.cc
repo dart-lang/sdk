@@ -259,7 +259,7 @@ void RISCVDisassembler::DisassembleInstruction(CInstr instr) {
       break;
 #endif
     case C_JR:
-      if (instr.encoding() & (C_JALR ^ C_JR)) {
+      if ((instr.encoding() & (C_JALR ^ C_JR)) != 0) {
         if ((instr.rs1() == ZR) && (instr.rs2() == ZR)) {
           Print("ebreak", instr, RV_C);
         } else if (instr.rs2() == ZR) {
@@ -1788,7 +1788,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
     Utils::SNPrint(hex_buffer, hex_size, "%08x",
                    LoadUnaligned(reinterpret_cast<uint32_t*>(pc)));
   }
-  if (out_instr_size) {
+  if (out_instr_size != nullptr) {
     *out_instr_size = instr_size;
   }
 

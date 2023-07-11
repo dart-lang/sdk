@@ -310,8 +310,8 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     }
     if (instr->RnField() == instr->RtField()) {
       Instr* add = Instr::At(pc - Instr::kInstrSize);
-      if (add->IsAddSubImmOp() && add->SFField() && (instr->Bit(22) == 1) &&
-          (add->RdField() == add->RtField())) {
+      if (add->IsAddSubImmOp() && (add->SFField() != 0) &&
+          (instr->Bit(22) == 1) && (add->RdField() == add->RtField())) {
         offset = (add->Imm12Field() << 12) + offset;
         if (add->RnField() == PP) {
           // PP is untagged on ARM64.
@@ -326,7 +326,7 @@ bool DecodeLoadObjectFromPoolOrThread(uword pc, const Code& code, Object* obj) {
     // TODO(rmacnak): Loads with offsets beyond 24 bits.
   }
 
-  if (instr->IsAddSubImmOp() && instr->SFField() &&
+  if (instr->IsAddSubImmOp() && (instr->SFField() != 0) &&
       (instr->RnField() == NULL_REG)) {
     uint32_t imm = (instr->Bit(22) == 1) ? (instr->Imm12Field() << 12)
                                          : (instr->Imm12Field());

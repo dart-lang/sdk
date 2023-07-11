@@ -380,13 +380,13 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
         ASSERT(STRING_STARTS_WITH(format, "csz"));
         const int32_t imm5 = instr->Bits(16, 5);
         char const* typ = "??";
-        if (imm5 & 0x1) {
+        if ((imm5 & 0x1) != 0) {
           typ = "b";
-        } else if (imm5 & 0x2) {
+        } else if ((imm5 & 0x2) != 0) {
           typ = "h";
-        } else if (imm5 & 0x4) {
+        } else if ((imm5 & 0x4) != 0) {
           typ = "s";
-        } else if (imm5 & 0x8) {
+        } else if ((imm5 & 0x8) != 0) {
           typ = "d";
         }
         buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
@@ -484,13 +484,13 @@ int ARM64Decoder::FormatOption(Instr* instr, const char* format) {
           shift = 1;
         }
         int32_t idx = -1;
-        if (imm5 & 0x1) {
+        if ((imm5 & 0x1) != 0) {
           idx = imm >> shift;
-        } else if (imm5 & 0x2) {
+        } else if ((imm5 & 0x2) != 0) {
           idx = imm >> (shift + 1);
-        } else if (imm5 & 0x4) {
+        } else if ((imm5 & 0x4) != 0) {
           idx = imm >> (shift + 2);
-        } else if (imm5 & 0x8) {
+        } else if ((imm5 & 0x8) != 0) {
           idx = imm >> (shift + 3);
         }
         buffer_pos_ += Utils::SNPrint(current_position_in_buffer(),
@@ -783,7 +783,7 @@ void ARM64Decoder::DecodeLoadRegLiteral(Instr* instr) {
       (instr->Bits(24, 3) != 0)) {
     Unknown(instr);
   }
-  if (instr->Bit(30)) {
+  if (instr->Bit(30) != 0) {
     Format(instr, "ldrx 'rt, 'pcldr");
   } else {
     Format(instr, "ldrw 'rt, 'pcldr");
@@ -1663,7 +1663,7 @@ void Disassembler::DecodeInstruction(char* hex_buffer,
   decoder.InstructionDecode(pc);
   int32_t instruction_bits = Instr::At(pc)->InstructionBits();
   Utils::SNPrint(hex_buffer, hex_size, "%08x", instruction_bits);
-  if (out_instr_size) {
+  if (out_instr_size != nullptr) {
     *out_instr_size = Instr::kInstrSize;
   }
 
