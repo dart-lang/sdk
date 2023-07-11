@@ -514,18 +514,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
       _inOrderAsyncStateGuardable([node.expression, ...node.statements]);
 
   @override
-  AsyncState? visitSwitchPatternCase(SwitchPatternCase node) {
-    var statementsAsyncState =
-        _visitBlockLike(node.statements, parent: node.parent);
-    if (statementsAsyncState != null) return statementsAsyncState;
-    if (node.statements.contains(reference)) {
-      return node.guardedPattern.whenClause?.accept(this);
-    } else {
-      return node.guardedPattern.whenClause?.accept(this)?.asynchronousOrNull;
-    }
-  }
-
-  @override
   AsyncState? visitSwitchDefault(SwitchDefault node) =>
       _inOrderAsyncStateGuardable(node.statements);
 
@@ -535,8 +523,6 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
 
   @override
   AsyncState? visitSwitchExpressionCase(SwitchExpressionCase node) {
-    // TODO(srawlins): Handle async and mounted checks in fallthrough case when
-    // clauses.
     if (reference == node.guardedPattern) {
       return null;
     }
@@ -553,11 +539,78 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   }
 
   @override
-  AsyncState? visitSwitchStatement(SwitchStatement node) =>
-      // TODO(srawlins): Check for definite exits and mounted checks in the
-      // members.
-      node.expression.accept(this)?.asynchronousOrNull ??
-      _asynchronousIfAnyIsAsync(node.members);
+  AsyncState? visitSwitchPatternCase(SwitchPatternCase node) {
+    if (reference == node.guardedPattern) {
+      return null;
+    }
+    var statementsAsyncState =
+        _visitBlockLike(node.statements, parent: node.parent);
+    if (statementsAsyncState != null) return statementsAsyncState;
+    if (node.statements.contains(reference)) {
+      // Any when-clause in `node` and any fallthrough when-clauses are handled
+      // in `visitSwitchStatement`.
+      return null;
+    } else {
+      return node.guardedPattern.whenClause?.accept(this)?.asynchronousOrNull;
+    }
+  }
+
+  @override
+  AsyncState? visitSwitchStatement(SwitchStatement node) {
+    // TODO(srawlins): Check for definite exits in the members.
+    node.expression.accept(this)?.asynchronousOrNull ??
+        _asynchronousIfAnyIsAsync(node.members);
+
+    var reference = this.reference;
+    if (reference is SwitchMember) {
+      var index = node.members.indexOf(reference);
+
+      // Control may flow to `node.statements` via this case's `guardedPattern`,
+      // or via fallthrough. Consider fallthrough when-clauses.
+
+      // Track whether we are iterating in fall-through cases.
+      var checkedCasesFallThrough = true;
+      // Track whether all checked cases have been `AsyncState.mountedCheck`
+      // (only relevant for fall-through cases).
+      var checkedCasesAreAllMountedChecks = true;
+
+      for (var i = index; i >= 0; i--) {
+        var case_ = node.members[i];
+        if (case_ is! SwitchPatternCase) {
+          continue;
+        }
+
+        var whenAsyncState = case_.guardedPattern.whenClause?.accept(this);
+        if (whenAsyncState == AsyncState.asynchronous) {
+          return AsyncState.asynchronous;
+        }
+        if (checkedCasesFallThrough) {
+          var caseIsFallThrough = i == index || case_.statements.isEmpty;
+
+          if (caseIsFallThrough) {
+            checkedCasesAreAllMountedChecks &=
+                whenAsyncState == AsyncState.mountedCheck;
+          } else {
+            // We have collected whether all of the fallthrough cases have
+            // mounted guards.
+            if (checkedCasesAreAllMountedChecks) {
+              return AsyncState.mountedCheck;
+            }
+          }
+          checkedCasesFallThrough &= caseIsFallThrough;
+        }
+      }
+
+      if (checkedCasesFallThrough && checkedCasesAreAllMountedChecks) {
+        return AsyncState.mountedCheck;
+      }
+
+      return null;
+    } else {
+      return node.expression.accept(this)?.asynchronousOrNull ??
+          _asynchronousIfAnyIsAsync(node.members);
+    }
+  }
 
   @override
   AsyncState? visitTryStatement(TryStatement node) {
@@ -873,8 +926,6 @@ extension on Expression {
       self = self.expression;
     }
     if (self is PropertyAccess) {
-      // TODO(srawlins): What about `BuildContext` in the middle, like
-      // `foo.bar.buildContext.baz`? Seems this should be reported.
       self = self.propertyName;
     }
 

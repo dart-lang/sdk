@@ -1181,9 +1181,26 @@ void foo(BuildContext context) async {
   }
 }
 ''');
-    var switchCase = findNode.switchPatternCase('case');
-    var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchCase.asyncStateFor(reference), AsyncState.asynchronous);
+    var switchStatement = findNode.switchStatement('switch');
+    var reference = findNode.switchPatternCase('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceInCaseBody_awaitInOtherCase() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1:
+      await Future.value();
+    case 2:
+      context /* ref */;
+  }
+}
+''');
+    var switchCase = findNode.switchStatement('switch');
+    var reference = findNode.switchPatternCase('context /* ref */');
+    expect(switchCase.asyncStateFor(reference), isNull);
   }
 
   test_switchStatement_referenceInCaseBody_mountedCheckInCaseWhen() async {
@@ -1196,9 +1213,73 @@ void foo(BuildContext context) async {
   }
 }
 ''');
-    var switchCase = findNode.switchPatternCase('case');
+    var switchStatement = findNode.switchStatement('switch');
+    var reference = findNode.switchPatternCase('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_switchStatement_referenceInCaseBody_mountedCheckInCaseWhen2() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when true:
+    case 2 when context.mounted:
+      context /* ref */;
+  }
+}
+''');
+    var switchCase = findNode.switchPatternCase('case 2');
     var reference = findNode.expressionStatement('context /* ref */');
-    expect(switchCase.asyncStateFor(reference), AsyncState.mountedCheck);
+    expect(switchCase.asyncStateFor(reference), isNull);
+  }
+
+  test_switchStatement_referenceInCaseBody_mountedCheckInCaseWhen3() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when await Future.value(true):
+    case 2 when context.mounted:
+      context /* ref */;
+  }
+}
+''');
+    var switchStatement = findNode.switchStatement('switch');
+    var reference = findNode.switchPatternCase('context /* ref */');
+    expect(switchStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_switchStatement_referenceInCaseBody_mountedCheckInCaseWhen4() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when context.mounted:
+      print(1);
+    case 2:
+      context /* ref */;
+  }
+}
+''');
+    var switchCase = findNode.switchPatternCase('case 2');
+    var reference = findNode.expressionStatement('context /* ref */');
+    expect(switchCase.asyncStateFor(reference), isNull);
+  }
+
+  test_switchStatement_referenceInCaseWhen() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  switch (1) {
+    case 1 when context /* ref */:
+      await Future.value();
+  }
+}
+''');
+    var switchCase = findNode.switchPatternCase('case');
+    var reference = findNode.whenClause('context /* ref */').parent!;
+    expect(switchCase.asyncStateFor(reference), isNull);
   }
 
   test_switchStatement_referenceInDefault_awaitInDefault() async {
