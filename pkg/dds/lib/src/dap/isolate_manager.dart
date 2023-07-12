@@ -430,7 +430,10 @@ class IsolateManager {
   }
 
   ThreadInfo? threadForIsolate(vm.IsolateRef? isolate) =>
-      isolate?.id != null ? _threadsByIsolateId[isolate!.id!] : null;
+      isolate?.id != null ? threadForIsolateId(isolate!.id!) : null;
+
+  ThreadInfo? threadForIsolateId(String isolateId) =>
+      _threadsByIsolateId[isolateId];
 
   /// Evaluates breakpoint condition [condition] and returns whether the result
   /// is true (or non-zero for a numeric), sending any evaluation error to the

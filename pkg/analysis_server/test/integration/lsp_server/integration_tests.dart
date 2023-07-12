@@ -13,10 +13,14 @@ import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
 
+import '../../lsp/request_helpers_mixin.dart';
 import '../../lsp/server_abstract.dart';
 
 abstract class AbstractLspAnalysisServerIntegrationTest
-    with ClientCapabilitiesHelperMixin, LspAnalysisServerTestMixin {
+    with
+        ClientCapabilitiesHelperMixin,
+        LspRequestHelpersMixin,
+        LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient? client;
   InstrumentationService? instrumentationService;

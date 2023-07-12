@@ -786,9 +786,7 @@ class InferrerEngine {
       // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
-      final invalidRefine =
-          abstractValueDomain.isInvalidRefinement(oldType, newType);
-      if (!invalidRefine && (info.type = newType) != oldType) {
+      if ((info.type = newType) != oldType) {
         _overallRefineCount++;
         info.incrementRefineCount();
         if (info.refineCount > _MAX_CHANGE_COUNT) {
