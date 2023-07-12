@@ -722,13 +722,15 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
   /// Compute the [AsyncState] of a "block-like" node which has [statements].
   AsyncState? _visitBlockLike(List<Statement> statements,
       {required AstNode? parent}) {
+    var reference = this.reference;
     if (reference is Statement) {
-      var index = statements.indexOf(reference as Statement);
+      var index = statements.indexOf(reference);
       if (index >= 0) {
         var precedingAsyncState = _inOrderAsyncStateGuardable(statements);
         if (precedingAsyncState != null) return precedingAsyncState;
-        // TODO(srawlins): Also DoStatement and ForStatement.
-        if (parent is WhileStatement) {
+        if (parent is DoStatement ||
+            parent is ForStatement ||
+            parent is WhileStatement) {
           // Check for asynchrony in the statements that _follow_ [reference],
           // as they may lead to an async gap before we loop back to
           // [reference].

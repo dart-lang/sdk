@@ -204,6 +204,36 @@ void foo(BuildContext context) async {
     expect(conditional.asyncStateFor(reference), isNull);
   }
 
+  test_doWhileStatement_referenceInBody_asyncInBody() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  do {
+    await Future.value();
+    context /* ref */;
+  } while (true);
+}
+''');
+    var block = findNode.block('context /* ref */');
+    var reference = findNode.statement('context /* ref */');
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_doWhileStatement_referenceInBody_asyncInBody2() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  do {
+    context /* ref */;
+    await Future.value();
+  } while (true);
+}
+''');
+    var block = findNode.block('context /* ref */');
+    var reference = findNode.statement('context /* ref */');
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
   test_extensionOverride_referenceAfter_awaitInArgument() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -367,6 +397,36 @@ void foo(BuildContext context, int i) async {
     var forElement = findNode.forElement('for ');
     var reference = findNode.expression('context /* ref */');
     expect(forElement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_forStatement_referenceInBody_asyncInBody() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  for (var a in []) {
+    await Future.value();
+    context /* ref */;
+  }
+}
+''');
+    var block = findNode.block('context /* ref */');
+    var reference = findNode.statement('context /* ref */');
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_forStatement_referenceInBody_asyncInBody2() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  for (var a in []) {
+    context /* ref */;
+    await Future.value();
+  }
+}
+''');
+    var block = findNode.block('context /* ref */');
+    var reference = findNode.statement('context /* ref */');
+    expect(block.asyncStateFor(reference), AsyncState.asynchronous);
   }
 
   test_forStatementWithDeclaration_referenceAfter_awaitInPartCondition() async {
@@ -1604,6 +1664,26 @@ Future<void> f() async {}
     ]);
   }
 
+  test_awaitBeforeForBody_referenceToContext_thenMountedGuard() async {
+    // Await, then for-each statement, and inside the for-body: use of
+    // BuildContext, then mounted guard, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  await f();
+  for (var e in []) {
+    Navigator.of(context);
+    if (context.mounted) return;
+  }
+}
+
+Future<void> f() async {}
+''', [
+      lint(118, 21),
+    ]);
+  }
+
   test_awaitBeforeIfStatement_withReferenceToContext() async {
     // Await, then use of BuildContext in an unrelated if-body, is REPORTED.
     await assertDiagnostics(r'''
@@ -1654,7 +1734,6 @@ void foo(BuildContext context) async {
   }
 }
 
-bool mounted = false;
 Future<void> f() async {}
 ''', [
       lint(113, 21),
@@ -1876,6 +1955,63 @@ void foo(BuildContext context) async {
 }
 
 ''');
+  }
+
+  test_referenceToContextInDoWhileBody_thenAwait() async {
+    // Do-while statement, and inside the do-while-body: use of BuildContext,
+    // then await, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  do {
+    Navigator.of(context);
+    await f();
+  } while (true);
+}
+
+Future<void> f() async {}
+''', [
+      lint(90, 21),
+    ]);
+  }
+
+  test_referenceToContextInForBody_thenAwait() async {
+    // For-each statement, and inside the for-body: use of BuildContext, then
+    // await, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  for (var e in []) {
+    Navigator.of(context);
+    await f();
+  }
+}
+
+Future<void> f() async {}
+''', [
+      lint(105, 21),
+    ]);
+  }
+
+  test_referenceToContextInWhileBody_thenAwait() async {
+    // While statement, and inside the while-body: use of BuildContext, then
+    // await, is REPORTED.
+    await assertDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+void foo(BuildContext context) async {
+  while (true) {
+    Navigator.of(context);
+    await f();
+  }
+}
+
+Future<void> f() async {}
+''', [
+      lint(100, 21),
+    ]);
   }
 }
 

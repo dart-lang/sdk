@@ -76,24 +76,6 @@ class _MyState extends State<MyWidget> {
     Navigator.of(context).pushNamed('routeName'); // LINT
   }
 
-  // Another conditional path.
-  void methodWithBuildContextParameter2a(BuildContext context) async {
-    bool f() => true;
-    while (f()) {
-      await Future<void>.delayed(Duration());
-    }
-    Navigator.of(context).pushNamed('routeName'); // LINT
-  }
-
-  // And another.
-  void methodWithBuildContextParameter2d(BuildContext context) async {
-    bool f() => true;
-    do {
-      await Future<void>.delayed(Duration());
-    } while (f());
-    Navigator.of(context).pushNamed('routeName'); // LINT
-  }
-
   void methodWithBuildContextParameter2g(BuildContext context) async {
     await Future<void>.delayed(Duration());
     switch (1) {
