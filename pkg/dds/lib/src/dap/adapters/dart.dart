@@ -346,8 +346,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
 
   /// Manages VM Isolates and their events, including fanning out any requests
   /// to set breakpoints etc. from the client to all Isolates.
-  @visibleForTesting
-  late IsolateManager isolateManager;
+  late final IsolateManager isolateManager;
 
   /// A helper that handlers converting to/from DAP and VM Service types.
   late ProtocolConverter _converter;
@@ -1897,6 +1896,30 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
         value: '<inspected variable>', // Shown to user, expandable.
         variablesReference: instance != null ? thread.storeData(instance) : 0,
       ));
+    } else if (data is WrappedInstanceVariable) {
+      // WrappedInstanceVariables are used to support DAP-over-DDS clients that
+      // had a VM Instance ID and wanted to convert it to a variable for use in
+      // `variables` requests.
+      final response = await isolateManager.getObject(
+        storedData.thread.isolate,
+        vm.ObjRef(id: data.instanceId),
+        offset: childStart,
+        count: childCount,
+      );
+      // Because `variables` requests are a request for _child_ variables but we
+      // want DAP-over-DDS clients to be able to get the whole variable (eg.
+      // including toe initial string representation of the variable itself) the
+      // initial request will return a list containing a single variable named
+      // `value`. This will contain both the `variablesReference` to get the
+      // children, and also a `value` field with the display string.
+      final variable = await _converter.convertVmResponseToVariable(
+        thread,
+        response,
+        name: 'value',
+        evaluateName: null,
+        allowCallingToString: evaluateToStringInDebugViews,
+      );
+      variables.add(variable);
     } else if (data is vm.MapAssociation) {
       final key = data.key;
       final value = data.value;

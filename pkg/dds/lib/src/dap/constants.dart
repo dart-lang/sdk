@@ -6,8 +6,16 @@ class Command {
   static const initialize = 'initialize';
   static const configurationDone = 'configurationDone';
   static const attach = 'attach';
+  static const createVariableForInstance = r'$/createVariableForInstance';
+  static const getVariablesInstanceId = r'$/getVariablesInstanceId';
 }
 
 class ErrorMessageType {
   static const general = 1;
+}
+
+class Parameters {
+  static const isolateId = 'isolateId';
+  static const instanceId = 'instanceId';
+  static const variablesReference = 'variablesReference';
 }
