@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// VMOptions=--disable-heap-verification --disable-thread-pool-limit
+// VMOptions=--disable_heap_verification --disable_thread_pool_limit --no_check_function_fingerprints
 
 import 'dart:async';
 import 'dart:math' as math;

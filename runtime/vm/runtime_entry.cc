@@ -110,15 +110,6 @@ DECLARE_FLAG(int, reload_every);
 DECLARE_FLAG(bool, reload_every_optimized);
 DECLARE_FLAG(bool, reload_every_back_off);
 
-#if defined(TESTING) || defined(DEBUG)
-void VerifyOnTransition() {
-  Thread* thread = Thread::Current();
-  TransitionGeneratedToVM transition(thread);
-  VerifyPointersVisitor::VerifyPointers("VerifyOnTransition");
-  thread->isolate_group()->heap()->Verify("VerifyOnTransition");
-}
-#endif
-
 DEFINE_RUNTIME_ENTRY(RangeError, 2) {
   const Instance& length = Instance::CheckedHandle(zone, arguments.ArgAt(0));
   const Instance& index = Instance::CheckedHandle(zone, arguments.ArgAt(1));
@@ -3986,17 +3977,6 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   // Is this an async callback?
   if (metadata.trampoline_type() ==
       FfiCallbackMetadata::TrampolineType::kAsync) {
-    Isolate* current_isolate = nullptr;
-    if (current_thread != nullptr) {
-      // TODO(https://dartbug.com/52764): Fast path if current_isolate is the
-      // target_isolate.
-      current_isolate = current_thread->isolate();
-      ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
-      current_thread->ExitSafepoint();
-      current_thread->set_execution_state(Thread::kThreadInVM);
-      Thread::ExitIsolate(/*isolate_shutdown=*/false);
-    }
-
     // It's possible that the callback was deleted, or the target isolate was
     // shut down, in between looking up the metadata above, and this point. So
     // grab the lock and then check that the callback is still alive.
@@ -4010,23 +3990,33 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     if (!metadata.IsLive() || !metadata.IsSameCallback(metadata2)) {
       TRACE_RUNTIME_CALL("GetFfiCallbackMetadata callback deleted %p",
                          reinterpret_cast<void*>(trampoline));
-      locker.Unlock();
-      if (current_isolate != nullptr) {
-        Thread::EnterIsolate(current_isolate);
-        ASSERT(current_thread == Thread::Current());
-        current_thread->EnterSafepoint();
-      }
-      locker.Lock();  // MutexLocker::~MutexLocker assumes lock is held.
       return nullptr;
     }
 
-    // Enter the temporary isolate.
-    *out_entry_point = metadata2.target_entry_point();
-    Isolate* target_isolate = metadata2.target_isolate();
-    target_isolate->group()->EnterTemporaryIsolate();
+    *out_entry_point = metadata.target_entry_point();
+    Isolate* target_isolate = metadata.target_isolate();
+
+    Isolate* current_isolate = nullptr;
+    if (current_thread != nullptr) {
+      current_isolate = current_thread->isolate();
+      ASSERT(current_thread->execution_state() == Thread::kThreadInNative);
+      current_thread->ExitSafepoint();
+      current_thread->set_execution_state(Thread::kThreadInVM);
+    }
+
+    // Enter the temporary isolate. If the current isolate is in the same group
+    // as the target isolate, we can skip entering the temp isolate, and marshal
+    // the args on the current isolate.
+    if (current_isolate == nullptr ||
+        current_isolate->group() != target_isolate->group()) {
+      if (current_isolate != nullptr) {
+        Thread::ExitIsolate(/*isolate_shutdown=*/false);
+      }
+      target_isolate->group()->EnterTemporaryIsolate();
+    }
     Thread* const temp_thread = Thread::Current();
     ASSERT(temp_thread != nullptr);
-    temp_thread->set_unboxed_int64_runtime_arg(metadata2.send_port());
+    temp_thread->set_unboxed_int64_runtime_arg(metadata.send_port());
     temp_thread->set_unboxed_int64_runtime_second_arg(
         reinterpret_cast<intptr_t>(current_isolate));
     ASSERT(!temp_thread->IsAtSafepoint());
@@ -4078,12 +4068,20 @@ extern "C" void DLRT_ExitTemporaryIsolate() {
   ASSERT(thread != nullptr);
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
-  IsolateGroup::ExitTemporaryIsolate();
-  if (source_isolate != nullptr) {
-    TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
-                       source_isolate);
-    Thread::EnterIsolate(source_isolate);
-    Thread::Current()->EnterSafepoint();
+
+  // We're either inside a temp isolate, or inside the source_isolate.
+  const bool inside_temp_isolate =
+      source_isolate == nullptr || source_isolate != thread->isolate();
+  if (inside_temp_isolate) {
+    IsolateGroup::ExitTemporaryIsolate();
+    if (source_isolate != nullptr) {
+      TRACE_RUNTIME_CALL("ExitTemporaryIsolate re-entering source isolate %p",
+                         source_isolate);
+      Thread::EnterIsolate(source_isolate);
+      Thread::Current()->EnterSafepoint();
+    }
+  } else {
+    thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
 }

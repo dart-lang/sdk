@@ -6,20 +6,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary2/data_reader.dart';
 import 'package:analyzer/src/summary2/data_writer.dart';
 
-class ClassAugmentationElementFlags {
-  static void read(
-    SummaryDataReader reader,
-    ClassAugmentationElementImpl element,
-  ) {
-    reader.readUInt30();
-  }
-
-  static void write(BufferedSink sink, ClassAugmentationElementImpl element) {
-    var result = 0;
-    sink.writeUInt30(result);
-  }
-}
-
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
   static const int _isBase = 1 << 1;
@@ -32,32 +18,50 @@ class ClassElementFlags {
   static const int _isSealed = 1 << 8;
   static const int _isSimplyBounded = 1 << 9;
 
-  static void read(SummaryDataReader reader, ClassElementImpl element) {
+  static void read(
+    SummaryDataReader reader,
+    ClassOrAugmentationElementMixin element,
+  ) {
     var byte = reader.readUInt30();
     element.isAbstract = (byte & _isAbstract) != 0;
     element.isBase = (byte & _isBase) != 0;
     element.isFinal = (byte & _isFinal) != 0;
-    element.isInline = (byte & _isInline) != 0;
+    if (element is ClassElementImpl) {
+      element.isInline = (byte & _isInline) != 0;
+    }
     element.isInterface = (byte & _isInterface) != 0;
     element.isMacro = (byte & _isMacro) != 0;
-    element.isMixinApplication = (byte & _isMixinApplication) != 0;
+    if (element is ClassElementImpl) {
+      element.isMixinApplication = (byte & _isMixinApplication) != 0;
+    }
     element.isMixinClass = (byte & _isMixinClass) != 0;
     element.isSealed = (byte & _isSealed) != 0;
-    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    if (element is ClassElementImpl) {
+      element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    }
   }
 
-  static void write(BufferedSink sink, ClassElementImpl element) {
+  static void write(
+    BufferedSink sink,
+    ClassOrAugmentationElementMixin element,
+  ) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isBase ? _isBase : 0;
     result |= element.isFinal ? _isFinal : 0;
-    result |= element.isInline ? _isInline : 0;
+    if (element is ClassElementImpl) {
+      result |= element.isInline ? _isInline : 0;
+    }
     result |= element.isInterface ? _isInterface : 0;
     result |= element.isMacro ? _isMacro : 0;
-    result |= element.isMixinApplication ? _isMixinApplication : 0;
+    if (element is ClassElementImpl) {
+      result |= element.isMixinApplication ? _isMixinApplication : 0;
+    }
     result |= element.isMixinClass ? _isMixinClass : 0;
     result |= element.isSealed ? _isSealed : 0;
-    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    if (element is ClassElementImpl) {
+      result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    }
     sink.writeUInt30(result);
   }
 }
@@ -260,38 +264,28 @@ class MethodElementFlags {
   }
 }
 
-class MixinAugmentationElementFlags {
-  static const int _isBase = 1 << 0;
-
-  static void read(
-    SummaryDataReader reader,
-    MixinAugmentationElementImpl element,
-  ) {
-    final byte = reader.readByte();
-    element.isBase = (byte & _isBase) != 0;
-  }
-
-  static void write(BufferedSink sink, MixinAugmentationElementImpl element) {
-    var result = 0;
-    result |= element.isBase ? _isBase : 0;
-    sink.writeUInt30(result);
-  }
-}
-
 class MixinElementFlags {
   static const int _isBase = 1 << 0;
   static const int _isSimplyBounded = 1 << 1;
 
-  static void read(SummaryDataReader reader, MixinElementImpl element) {
+  static void read(
+    SummaryDataReader reader,
+    MixinOrAugmentationElementMixin element,
+  ) {
     var byte = reader.readByte();
     element.isBase = (byte & _isBase) != 0;
-    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    if (element is MixinElementImpl) {
+      element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
+    }
   }
 
-  static void write(BufferedSink sink, MixinElementImpl element) {
+  static void write(
+      BufferedSink sink, MixinOrAugmentationElementMixin element) {
     var result = 0;
     result |= element.isBase ? _isBase : 0;
-    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    if (element is MixinElementImpl) {
+      result |= element.isSimplyBounded ? _isSimplyBounded : 0;
+    }
     sink.writeByte(result);
   }
 }

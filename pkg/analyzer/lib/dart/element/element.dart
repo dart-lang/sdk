@@ -242,18 +242,6 @@ abstract class ClassElement
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
 
-  /// Whether the class is abstract. A class is abstract if it has an
-  /// explicit `abstract` modifier. Note, that this definition of
-  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
-  bool get isAbstract;
-
-  /// Whether this class is a base class.
-  ///
-  /// A class is a base class if it has an explicit `base` modifier, or the
-  /// class has a `base` induced modifier and [isSealed] is `true` as well.
-  /// The base modifier allows the class to be extended but not implemented.
-  bool get isBase;
-
   /// Whether the class can be instantiated.
   bool get isConstructable;
 
@@ -268,43 +256,17 @@ abstract class ClassElement
   /// covered all possible instances of the type.
   bool get isExhaustive;
 
-  /// Whether the class is a final class.
-  ///
-  /// A class is a final class if it has an explicit `final` modifier, or the
-  /// class has a `final` induced modifier and [isSealed] is `true` as well.
-  /// The final modifier prohibits this class from being extended, implemented,
-  /// or mixed in.
-  bool get isFinal;
-
   /// Whether the class is an inline class.
   ///
   /// A class is an inline class if it has an explicit `inline` modifier.
   @experimental
   bool get isInline;
 
-  /// Whether the class is an interface class.
-  ///
-  /// A class is an interface class if it has an explicit `interface` modifier,
-  /// or the class has an `interface` induced modifier and [isSealed] is `true`
-  /// as well. The interface modifier allows the class to be implemented, but
-  /// not extended or mixed in.
-  bool get isInterface;
-
   /// Whether the class is a mixin application.
   ///
   /// A class is a mixin application if it was declared using the syntax
   /// `class A = B with C;`.
   bool get isMixinApplication;
-
-  /// Whether the class is a mixin class.
-  ///
-  /// A class is a mixin class if it has an explicit `mixin` modifier.
-  bool get isMixinClass;
-
-  /// Whether the class is a sealed class.
-  ///
-  /// A class is a sealed class if it has an explicit `sealed` modifier.
-  bool get isSealed;
 
   /// Whether the class can validly be used as a mixin when defining
   /// another class.
@@ -369,6 +331,44 @@ abstract class ClassOrAugmentationElement
 
   @override
   ClassElement? get augmentedDeclaration;
+
+  /// Whether the class is abstract. A class is abstract if it has an
+  /// explicit `abstract` modifier. Note, that this definition of
+  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
+  bool get isAbstract;
+
+  /// Whether this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
+  bool get isBase;
+
+  /// Whether the class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
+  bool get isFinal;
+
+  /// Whether the class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
+  bool get isInterface;
+
+  /// Whether the class is a mixin class.
+  ///
+  /// A class is a mixin class if it has an explicit `mixin` modifier.
+  bool get isMixinClass;
+
+  /// Whether the class is a sealed class.
+  ///
+  /// A class is a sealed class if it has an explicit `sealed` modifier.
+  bool get isSealed;
 }
 
 /// An element representing a compilation unit.

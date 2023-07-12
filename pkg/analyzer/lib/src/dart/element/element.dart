@@ -366,16 +366,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
-  /// Set whether this class is abstract.
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  @override
   bool get isConstructable => !isSealed && !isAbstract;
 
   @override
@@ -432,38 +422,12 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   bool get isExhaustive => isSealed;
 
   @override
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  @override
   bool get isInline {
     return hasModifier(Modifier.INLINE);
   }
 
   set isInline(bool isInline) {
     setModifier(Modifier.INLINE, isInline);
-  }
-
-  @override
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isMacro {
-    return hasModifier(Modifier.MACRO);
-  }
-
-  set isMacro(bool isMacro) {
-    setModifier(Modifier.MACRO, isMacro);
   }
 
   @override
@@ -474,24 +438,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   /// Set whether this class is a mixin application.
   set isMixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
-  }
-
-  @override
-  bool get isMixinClass {
-    return hasModifier(Modifier.MIXIN_CLASS);
-  }
-
-  set isMixinClass(bool isMixinClass) {
-    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
-  }
-
-  @override
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -697,6 +643,68 @@ mixin ClassOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
 
   @override
   ClassElementImpl? get augmentedDeclaration;
+
+  @override
+  bool get isAbstract {
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  set isAbstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
+  @override
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  set isBase(bool isBase) {
+    setModifier(Modifier.BASE, isBase);
+  }
+
+  @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
+  bool get isMacro {
+    return hasModifier(Modifier.MACRO);
+  }
+
+  set isMacro(bool isMacro) {
+    setModifier(Modifier.MACRO, isMacro);
+  }
+
+  @override
+  bool get isMixinClass {
+    return hasModifier(Modifier.MIXIN_CLASS);
+  }
+
+  set isMixinClass(bool isMixinClass) {
+    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
+  @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
+  }
 }
 
 abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {

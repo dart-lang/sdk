@@ -4,7 +4,7 @@
 
 // @dart = 2.9
 
-// VMOptions=--disable-heap-verification
+// VMOptions=--disable_heap_verification --no_check_function_fingerprints
 
 import 'dart:math' as math;
 

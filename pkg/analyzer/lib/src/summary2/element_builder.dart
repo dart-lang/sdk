@@ -92,6 +92,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     final name = nameToken.lexeme;
 
     final element = ClassAugmentationElementImpl(name, nameToken.offset);
+    element.isAbstract = node.abstractKeyword != null;
+    element.isBase = node.baseKeyword != null;
+    element.isFinal = node.finalKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isMacro = node.macroKeyword != null;
+    element.isMixinClass = node.mixinKeyword != null;
+    if (node.sealedKeyword != null) {
+      element.isAbstract = true;
+      element.isSealed = true;
+    }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -143,16 +153,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    if (node.sealedKeyword != null) {
-      element.isSealed = true;
-      element.isAbstract = true;
-    }
     element.isBase = node.baseKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
     element.isInline = node.inlineKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isMacro = node.macroKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;
+    if (node.sealedKeyword != null) {
+      element.isAbstract = true;
+      element.isSealed = true;
+    }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);
@@ -186,16 +196,16 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    if (node.sealedKeyword != null) {
-      element.isSealed = true;
-      element.isAbstract = true;
-    }
     element.isBase = node.baseKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
     element.isFinal = node.finalKeyword != null;
+    element.isInterface = node.interfaceKeyword != null;
+    element.isMacro = node.macroKeyword != null;
     element.isMixinApplication = true;
     element.isMixinClass = node.mixinKeyword != null;
+    if (node.sealedKeyword != null) {
+      element.isAbstract = true;
+      element.isSealed = true;
+    }
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
     _setDocumentation(element, node);

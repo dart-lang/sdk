@@ -395,6 +395,216 @@ library
 ''');
   }
 
+  test_modifiers_abstract() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment abstract class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+abstract class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract class A @40
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment abstract class A @52
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_base() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment base class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+base class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      base class A @36
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment base class A @48
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_final() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment final class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+final class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      final class A @37
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment final class A @49
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_interface() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment interface class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+interface class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      interface class A @41
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment interface class A @53
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_macro() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment macro class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+macro class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      macro class A @37
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment macro class A @49
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_mixin() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      mixin class A @37
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment mixin class A @49
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
+  test_modifiers_sealed() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment sealed class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+sealed class A {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      abstract sealed class A @38
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        augmented
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment abstract sealed class A @50
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+''');
+  }
+
   test_notAugmented_interfaces() async {
     var library = await buildLibrary(r'''
 class A implements I {}

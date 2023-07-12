@@ -4,14 +4,6 @@
 
 ### Libraries
 
-#### `dart:convert`
-
-- **Breaking change** [#52801][]:
-  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
-    `List<int>` to `Uint8List`.
-
-[#52801]: https://dartbug.com/52801
-
 #### `dart:async`
 
 - **Breaking change** [#52334][]:
@@ -20,6 +12,14 @@
     `StreamTransformer`.
 
 [#52334]: https://dartbug.com/52334
+
+#### `dart:convert`
+
+- **Breaking change** [#52801][]:
+  - Changed return types of `utf8.encode()` and `Utf8Codec.encode()` from
+    `List<int>` to `Uint8List`.
+
+[#52801]: https://dartbug.com/52801
 
 #### `dart:core`
 
