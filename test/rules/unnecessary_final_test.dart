@@ -17,6 +17,32 @@ class UnnecessaryFinalTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_final';
 
+  test_field_final() async {
+    await assertNoDiagnostics(r'''
+class C {
+  final int x = 3;
+}
+''');
+  }
+
+  test_forEachLoopVariable_final() async {
+    await assertDiagnostics(r'''
+void f() {
+  for (final x in []) {}
+}
+''', [
+      lint(18, 5),
+    ]);
+  }
+
+  test_forEachLoopVariable_var() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  for (var x in []) {}
+}
+''');
+  }
+
   test_listPattern_destructured() async {
     await assertDiagnostics(r'''
 f() {
@@ -35,6 +61,24 @@ f(Object o) {
 ''', [
       lint(35, 5),
     ]);
+  }
+
+  test_localVariable_final() async {
+    await assertDiagnostics(r'''
+void f() {
+  final x = 1;
+}
+''', [
+      lint(13, 5),
+    ]);
+  }
+
+  test_localVariable_var() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var x = 1;
+}
+''');
   }
 
   test_mapPattern_destructured() async {
@@ -116,6 +160,39 @@ f() {
 ''', [
       lint(79, 5),
     ]);
+  }
+
+  test_parameter_function_finalTyped() async {
+    await assertDiagnostics(r'''
+void f(final int x) {}
+''', [
+      lint(7, 5),
+    ]);
+  }
+
+  test_parameter_function_typed() async {
+    await assertNoDiagnostics(r'''
+void f(int x) {
+}
+''');
+  }
+
+  test_parameter_functionExpression_final() async {
+    await assertDiagnostics(r'''
+void f() {
+  (final c) => c.length;
+}
+''', [
+      lint(14, 5),
+    ]);
+  }
+
+  test_parameter_functionExpression_typed() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  (String c) => c.length;
+}
+''');
   }
 
   test_recordPattern_destructured() async {
