@@ -783,13 +783,10 @@ void testShardHash() {
   var testFile = parseTestFile("", path: "a_test.dart");
   Expect.type<int>(testFile.shardHash);
 
-  // VM test files are hard-coded to return hash zero because they don't have a
-  // path to base the hash on.
-  Expect.equals(
-      0,
-      TestFile.vmUnitTest(
-              hasCompileError: false, hasCrash: false, hasRuntimeError: false)
-          .shardHash);
+  // VM test files are based on a fake path.
+  testFile = TestFile.vmUnitTest("ExampleTestName",
+      hasCompileError: false, hasCrash: false, hasRuntimeError: false);
+  Expect.type<int>(testFile.shardHash);
 }
 
 void expectParseErrorExpectations(String source, List<StaticError> errors) {
