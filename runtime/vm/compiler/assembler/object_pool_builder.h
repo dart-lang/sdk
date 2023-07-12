@@ -21,13 +21,13 @@ bool IsSameObject(const Object& a, const Object& b);
 
 struct ObjectPoolBuilderEntry {
   enum Patchability {
-    kPatchable,
+    kPatchable = 0,
     kNotPatchable,
   };
 
   enum EntryType {
+    kImmediate = 0,
     kTaggedObject,
-    kImmediate,
     kNativeFunction,
 
     // Used only during AOT snapshot serialization/deserialization.

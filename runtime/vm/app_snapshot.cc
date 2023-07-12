@@ -6051,6 +6051,8 @@ class VMSerializationRoots : public SerializationRoots {
     s->AddBaseObject(Object::empty_array().ptr(), "Array", "<empty_array>");
     s->AddBaseObject(Object::empty_instantiations_cache_array().ptr(), "Array",
                      "<empty_instantiations_cache_array>");
+    s->AddBaseObject(Object::empty_subtype_test_cache_array().ptr(), "Array",
+                     "<empty_subtype_test_cache_array>");
     s->AddBaseObject(Object::dynamic_type().ptr(), "Type", "<dynamic type>");
     s->AddBaseObject(Object::void_type().ptr(), "Type", "<void type>");
     s->AddBaseObject(Object::empty_type_arguments().ptr(), "TypeArguments",
@@ -6086,8 +6088,6 @@ class VMSerializationRoots : public SerializationRoots {
       s->AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
                        "<empty icdata entries>");
     }
-    s->AddBaseObject(SubtypeTestCache::cached_array_, "Array",
-                     "<empty subtype entries>");
 
     ClassTable* table = s->isolate_group()->class_table();
     for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
@@ -6174,6 +6174,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::optimized_out().ptr());
     d->AddBaseObject(Object::empty_array().ptr());
     d->AddBaseObject(Object::empty_instantiations_cache_array().ptr());
+    d->AddBaseObject(Object::empty_subtype_test_cache_array().ptr());
     d->AddBaseObject(Object::dynamic_type().ptr());
     d->AddBaseObject(Object::void_type().ptr());
     d->AddBaseObject(Object::empty_type_arguments().ptr());
@@ -6197,7 +6198,6 @@ class VMDeserializationRoots : public DeserializationRoots {
     for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
       d->AddBaseObject(ICData::cached_icdata_arrays_[i]);
     }
-    d->AddBaseObject(SubtypeTestCache::cached_array_);
 
     ClassTable* table = d->isolate_group()->class_table();
     for (intptr_t cid = kFirstInternalOnlyCid; cid <= kLastInternalOnlyCid;
