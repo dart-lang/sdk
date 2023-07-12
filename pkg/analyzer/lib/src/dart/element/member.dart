@@ -63,6 +63,11 @@ class ConstructorMember extends ExecutableMember
   bool get isFactory => declaration.isFactory;
 
   @override
+  AugmentationExecutableElement? get maybeAugmentation {
+    return declaration.maybeAugmentation;
+  }
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -483,6 +488,11 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
   bool get isEntryPoint => declaration.isEntryPoint;
 
   @override
+  AugmentationExecutableElement? get maybeAugmentation {
+    return declaration.maybeAugmentation;
+  }
+
+  @override
   String get name => declaration.name;
 
   @override
@@ -821,7 +831,7 @@ class MethodMember extends ExecutableMember implements MethodElement {
   );
 
   @override
-  MethodAugmentationElement? get augmentation {
+  MethodElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
@@ -835,6 +845,11 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   Element get enclosingElement2 => declaration.enclosingElement2;
+
+  @override
+  AugmentationMethodElement? get maybeAugmentation {
+    return declaration.maybeAugmentation;
+  }
 
   @override
   String get name => declaration.name;
@@ -1077,6 +1092,11 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   bool get isSetter => declaration.isSetter;
+
+  @override
+  AugmentationExecutableElement? get maybeAugmentation {
+    return declaration.maybeAugmentation;
+  }
 
   @override
   String get name => declaration.name;

@@ -1320,6 +1320,7 @@ class AstBuilder extends StackListener {
       MethodDeclarationImpl(
         comment: comment,
         metadata: metadata,
+        augmentKeyword: modifiers?.augmentKeyword,
         externalKeyword: modifiers?.externalKeyword,
         modifierKeyword: modifiers?.abstractKeyword ?? modifiers?.staticKeyword,
         returnType: returnType,

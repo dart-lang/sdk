@@ -1294,29 +1294,6 @@ void f() {
     );
   }
 
-  void test_methodDeclaration() {
-    var findNode = _parseStringToFindNode(r'''
-class A {
-  @myA1
-  @myA2
-  int foo<T>(int a) {}
-  double bar<U>(double b) {}
-}
-''');
-    var foo = findNode.methodDeclaration('foo');
-    _assertAnnotatedNode(foo);
-    _assertReplacementForChildren<MethodDeclaration>(
-      destination: foo,
-      source: findNode.methodDeclaration('bar'),
-      childAccessors: [
-        (node) => node.returnType!,
-        (node) => node.typeParameters!,
-        (node) => node.parameters!,
-        (node) => node.body,
-      ],
-    );
-  }
-
   void test_methodInvocation() {
     var findNode = _parseStringToFindNode(r'''
 void f() {

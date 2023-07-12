@@ -1055,7 +1055,10 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) {
-  if (function().is_static()) {
+  if (function().IsClosureFunction()) {
+    return Library::Handle(Library()).EvaluateCompiledExpression(
+        kernel_buffer, type_definitions, arguments, type_arguments);
+  } else if (function().is_static()) {
     const Class& cls = Class::Handle(function().Owner());
     return cls.EvaluateCompiledExpression(kernel_buffer, type_definitions,
                                           arguments, type_arguments);

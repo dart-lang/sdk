@@ -523,17 +523,7 @@ class UntaggedObject {
   //
   // Always returns an offset after the object header tags.
   template <typename T>
-  static constexpr std::enable_if_t<!T::kContainsPointerFields, uword>
-  from_offset();
-
-  // The first offset in an allocated object of the given untagged type that
-  // contains a (possibly compressed) object pointer. Used to initialize object
-  // pointer fields to Object::null() instead of 0.
-  //
-  // Always returns an offset after the object header tags.
-  template <typename T>
-  DART_FORCE_INLINE static std::enable_if_t<T::kContainsPointerFields, uword>
-  from_offset();
+  DART_FORCE_INLINE static uword from_offset();
 
   // The last offset in an allocated object of the given untagged type that
   // contains a (possibly compressed) object pointer. Used to initialize object
@@ -545,21 +535,7 @@ class UntaggedObject {
   // If there are no pointer fields in the object, then
   // to_offset<T>() < from_offset<T>().
   template <typename T>
-  static constexpr std::enable_if_t<!T::kContainsPointerFields, uword>
-  to_offset(intptr_t length = 0);
-
-  // The last offset in an allocated object of the given untagged type that
-  // contains a (possibly compressed) object pointer. Used to initialize object
-  // pointer fields to Object::null() instead of 0.
-  //
-  // Takes an optional argument that is the number of elements in the payload,
-  // which is ignored if the object never contains a payload.
-  //
-  // If there are no pointer fields in the object, then
-  // to_offset<T>() < from_offset<T>().
-  template <typename T>
-  DART_FORCE_INLINE static std::enable_if_t<T::kContainsPointerFields, uword>
-  to_offset(intptr_t length = 0);
+  DART_FORCE_INLINE static uword to_offset(intptr_t length = 0);
 
   // All writes to heap objects should ultimately pass through one of the
   // methods below or their counterparts in Object, to ensure that the
@@ -854,30 +830,29 @@ class UntaggedObject {
 // in WeakArray/WeakProperty/WeakReference), then specialize the definitions.
 
 template <typename T>
-constexpr std::enable_if_t<!T::kContainsPointerFields, uword>
-UntaggedObject::from_offset() {
-  // Non-zero to ensure to_offset() < from_offset() in this case, as
-  // to_offset() is the offset to the last pointer field, not past it.
-  return sizeof(UntaggedObject);
-}
-template <typename T>
-DART_FORCE_INLINE std::enable_if_t<T::kContainsPointerFields, uword>
-UntaggedObject::from_offset() {
-  return reinterpret_cast<uword>(reinterpret_cast<T*>(kOffsetOfPtr)->from()) -
-         kOffsetOfPtr;
+DART_FORCE_INLINE uword UntaggedObject::from_offset() {
+  if constexpr (T::kContainsPointerFields) {
+    return reinterpret_cast<uword>(reinterpret_cast<T*>(kOffsetOfPtr)->from()) -
+           kOffsetOfPtr;
+  } else {
+    // Non-zero to ensure to_offset() < from_offset() in this case, as
+    // to_offset() is the offset to the last pointer field, not past it.
+    return sizeof(UntaggedObject);
+  }
 }
 
 template <typename T>
-constexpr std::enable_if_t<!T::kContainsPointerFields, uword>
-UntaggedObject::to_offset(intptr_t length) {
-  return 0;
-}
-template <typename T>
-DART_FORCE_INLINE std::enable_if_t<T::kContainsPointerFields, uword>
-UntaggedObject::to_offset(intptr_t length) {
-  return reinterpret_cast<uword>(
-             reinterpret_cast<T*>(kOffsetOfPtr)->to(length)) -
-         kOffsetOfPtr;
+DART_FORCE_INLINE uword UntaggedObject::to_offset(intptr_t length) {
+  if constexpr (T::kContainsPointerFields) {
+    return reinterpret_cast<uword>(
+               reinterpret_cast<T*>(kOffsetOfPtr)->to(length)) -
+           kOffsetOfPtr;
+  } else {
+    USE(length);
+    // Zero to ensure to_offset() < from_offset() in this case, as
+    // from_offset() is guaranteed to return an offset after the header tags.
+    return 0;
+  }
 }
 
 inline intptr_t ObjectPtr::GetClassId() const {

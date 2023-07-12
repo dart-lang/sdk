@@ -54,6 +54,19 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
+/// Information about [ExecutableElement] that is an augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentationExecutableElement {
+  /// The element that is augmented by this augmentation.
+  ///
+  /// The chain of augmentations should normally end with a [ExecutableElement]
+  /// that is not augmentation, but might end with `null` immediately or
+  /// after a few intermediate augmentations in case of invalid code when an
+  /// augmentation is declared without the corresponding declaration.
+  ExecutableElement? get augmentationTarget;
+}
+
 /// A library augmentation import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -75,6 +88,15 @@ abstract class AugmentationImportElement implements _ExistingElement {
 
   /// The interpretation of the URI specified in the directive.
   DirectiveUri get uri;
+}
+
+/// Information about [MethodElement] that is an augmentation.
+///
+/// Clients may not extend, implement or mix-in this class.
+abstract class AugmentationMethodElement
+    implements AugmentationExecutableElement {
+  @override
+  MethodElement? get augmentationTarget;
 }
 
 /// The result of applying augmentations to a [ClassElement].
@@ -1294,6 +1316,11 @@ abstract class ExecutableElement implements FunctionTypedElement {
   /// Whether the executable element has a body marked as being synchronous.
   bool get isSynchronous;
 
+  /// The augmentation specific information.
+  ///
+  /// Not `null` if this [ExecutableElement] is an augmentation.
+  AugmentationExecutableElement? get maybeAugmentation;
+
   @override
   String get name;
 }
@@ -2119,20 +2146,6 @@ abstract class LocalVariableElement implements PromotableElement {
   String get name;
 }
 
-/// An element that represents a method augmentation defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class MethodAugmentationElement implements MethodElement {
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations should normally end with a [MethodElement]
-  /// that is not [MethodAugmentationElement], but might end with `null`
-  /// immediately or after a few intermediate [MethodAugmentationElement]s in
-  /// case of invalid code when an augmentation is declared without the
-  /// corresponding method declaration.
-  MethodElement? get augmentationTarget;
-}
-
 /// An element that represents a method defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2140,12 +2153,15 @@ abstract class MethodElement implements ClassMemberElement, ExecutableElement {
   /// The immediate augmentation of this element, or `null` if there are no
   /// augmentations.
   ///
-  /// [MethodAugmentationElement.augmentationTarget] is the back pointer that
+  /// [AugmentationMethodElement.augmentationTarget] is the back pointer that
   /// will point at this element.
-  MethodAugmentationElement? get augmentation;
+  MethodElement? get augmentation;
 
   @override
   MethodElement get declaration;
+
+  @override
+  AugmentationMethodElement? get maybeAugmentation;
 }
 
 /// A class augmentation, defined by a mixin augmentation declaration.
