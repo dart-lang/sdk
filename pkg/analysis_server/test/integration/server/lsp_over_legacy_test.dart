@@ -9,6 +9,7 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../lsp/request_helpers_mixin.dart';
 import '../../utils/test_code_extensions.dart';
 import '../support/integration_tests.dart';
 
@@ -19,7 +20,33 @@ void main() {
 }
 
 @reflectiveTest
-class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest {
+class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
+    with LspRequestHelpersMixin {
+  @override
+  Future<T> expectSuccessfulResponseTo<T, R>(
+      RequestMessage request, T Function(R) fromJson) async {
+    final resp = await server.send(
+      request.method.toString(),
+      specToJson(request.params) as Map<String, Object?>,
+    );
+    return fromJson(resp as R);
+  }
+
+  Future<void> test_error() async {
+    // This file will not be created.
+    final testFile = sourcePath('lib/test.dart');
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    try {
+      await getHover(Uri.file(testFile), Position(character: 0, line: 0));
+      fail('expected INVALID_REQUEST');
+    } on ServerErrorMessage catch (message) {
+      expect(message.error['code'], 'INVALID_REQUEST');
+      expect(message.error['message'], 'File does not exist');
+    }
+  }
+
   Future<void> test_hover() async {
     final testFile = sourcePath('lib/test.dart');
     final code = TestCode.parse('''
@@ -31,14 +58,9 @@ class [!A^aa!] {}
     await standardAnalysisSetup();
     await analysisFinished;
 
-    final result = await _sendHover(
-      HoverParams(
-        position: code.position.position,
-        textDocument: TextDocumentIdentifier(uri: Uri.file(testFile)),
-      ),
-    );
+    final result = await getHover(Uri.file(testFile), code.position.position);
 
-    expect(result.range, code.range.range);
+    expect(result!.range, code.range.range);
     _expectMarkdown(
       result.contents,
       '''
@@ -64,14 +86,5 @@ This is my class.
 
     expect(markup.kind, MarkupKind.Markdown);
     expect(markup.value.trimRight(), expected.trimRight());
-  }
-
-  Future<Hover> _sendHover(HoverParams params) async {
-    final response = await server.send(
-      Method.textDocument_hover.toString(),
-      params.toJson(),
-    );
-
-    return Hover.fromJson(response!);
   }
 }
