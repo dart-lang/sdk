@@ -57,7 +57,7 @@ void main() {
 
       expect(output, contains('providing this information'));
       expect(output, contains('## Process info'));
-      expect(output, contains('| Memory'));
+      expect(output, contains('Memory |')); // Header is aligned right.
       expect(output, contains('| dart '));
     });
   }, timeout: longTimeout);
