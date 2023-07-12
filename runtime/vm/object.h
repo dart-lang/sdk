@@ -467,6 +467,7 @@ class Object {
   V(TypeArguments, empty_type_arguments)                                       \
   V(Array, empty_array)                                                        \
   V(Array, empty_instantiations_cache_array)                                   \
+  V(Array, empty_subtype_test_cache_array)                                     \
   V(ContextScope, empty_context_scope)                                         \
   V(ObjectPool, empty_object_pool)                                             \
   V(CompressedStackMaps, empty_compressed_stackmaps)                           \
@@ -2175,7 +2176,7 @@ class Class : public Object {
   intptr_t ComputeNumTypeArguments() const;
 
   // Assigns empty array to all raw class array fields.
-  void InitEmptyFields();
+  void InitEmptyFields() const;
 
   static FunctionPtr CheckFunctionType(const Function& func, MemberKind kind);
   FunctionPtr LookupFunctionReadLocked(const String& name,
@@ -4957,8 +4958,6 @@ class Script : public Object {
   void set_load_timestamp(int64_t value) const;
   ArrayPtr debug_positions() const;
 
-  static ScriptPtr New();
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Script, Object);
   friend class Class;
   friend class Precompiler;
@@ -7708,9 +7707,6 @@ class SubtypeTestCache : public Object {
     return RoundedAllocationSize(sizeof(UntaggedSubtypeTestCache));
   }
 
-  static void Init();
-  static void Cleanup();
-
   static intptr_t cache_offset() {
     return OFFSET_OF(UntaggedSubtypeTestCache, cache_);
   }
@@ -7858,10 +7854,6 @@ class SubtypeTestCache : public Object {
                              BaseTextBuffer* buffer,
                              const char* line_prefix = nullptr) const;
 
-  // An array where each entry is an array that is a VM heap allocated
-  // preinitialized empty subtype entry array.
-  static ArrayPtr cached_array_;
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(SubtypeTestCache, Object);
   friend class Class;
   friend class FieldInvalidator;
@@ -7994,7 +7986,7 @@ class LanguageError : public Error {
   void set_token_pos(TokenPosition value) const;
 
   bool report_after_token() const { return untag()->report_after_token_; }
-  void set_report_after_token(bool value);
+  void set_report_after_token(bool value) const;
 
   void set_kind(uint8_t value) const;
 
@@ -12456,8 +12448,6 @@ class Closure : public Instance {
   FunctionTypePtr GetInstantiatedSignature(Zone* zone) const;
 
  private:
-  static ClosurePtr New();
-
   FINAL_HEAP_OBJECT_IMPLEMENTATION(Closure, Instance);
   friend class Class;
 };

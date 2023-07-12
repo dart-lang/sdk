@@ -400,7 +400,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     OffsetsTable::Init();
     ArgumentsDescriptor::Init();
     ICData::Init();
-    SubtypeTestCache::Init();
     if (params->vm_snapshot_data != nullptr) {
 #if defined(SUPPORT_TIMELINE)
       TimelineBeginEndScope tbes(Timeline::GetVMStream(), "ReadVMSnapshot");
@@ -747,7 +746,6 @@ char* Dart::Cleanup() {
   UserTags::Cleanup();
   IsolateGroup::Cleanup();
   ICData::Cleanup();
-  SubtypeTestCache::Cleanup();
   ArgumentsDescriptor::Cleanup();
   OffsetsTable::Cleanup();
   FfiCallbackMetadata::Cleanup();

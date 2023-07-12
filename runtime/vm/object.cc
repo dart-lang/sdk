@@ -119,8 +119,6 @@ static const intptr_t kInitPrefixLength = strlen(kInitPrefix);
 
 // A cache of VM heap allocated preinitialized empty ic data entry arrays.
 ArrayPtr ICData::cached_icdata_arrays_[kCachedICDataArrayCount];
-// A VM heap allocated preinitialized empty subtype entry array.
-ArrayPtr SubtypeTestCache::cached_array_;
 
 cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = {};
 
@@ -757,6 +755,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // allocated (RAW_NULL is not available).
   *empty_array_ = Array::null();
   *empty_instantiations_cache_array_ = Array::null();
+  *empty_subtype_test_cache_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -1038,6 +1037,28 @@ void Object::Init(IsolateGroup* isolate_group) {
     empty_instantiations_cache_array_->SetCanonical();
   }
 
+  // Allocate and initialize the empty subtype test cache array instance,
+  // which contains a single unoccupied entry.
+  {
+    const intptr_t array_size = SubtypeTestCache::kTestEntryLength;
+    uword address =
+        heap->Allocate(thread, Array::InstanceSize(array_size), Heap::kOld);
+    InitializeObjectVariant<Array>(address, kImmutableArrayCid, array_size);
+    Array::initializeHandle(empty_subtype_test_cache_array_,
+                            static_cast<ArrayPtr>(address + kHeapObjectTag));
+    empty_subtype_test_cache_array_->untag()->set_length(Smi::New(array_size));
+    // Make the first (and only) entry unoccupied by setting its first element
+    // to the null value.
+    empty_subtype_test_cache_array_->SetAt(
+        SubtypeTestCache::kInstanceCidOrSignature, Object::null_object());
+    smi = TypeArguments::Cache::Sentinel();
+    SubtypeTestCacheTable table(*empty_subtype_test_cache_array_);
+    table.At(0).Set<SubtypeTestCache::kInstanceCidOrSignature>(
+        Object::null_object());
+    // The other contents of the array are immaterial.
+    empty_subtype_test_cache_array_->SetCanonical();
+  }
+
   // Allocate and initialize the canonical empty context scope object.
   {
     uword address =
@@ -1272,6 +1293,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(empty_array_->IsArray());
   ASSERT(!empty_instantiations_cache_array_->IsSmi());
   ASSERT(empty_instantiations_cache_array_->IsArray());
+  ASSERT(!empty_subtype_test_cache_array_->IsSmi());
+  ASSERT(empty_subtype_test_cache_array_->IsArray());
   ASSERT(!empty_type_arguments_->IsSmi());
   ASSERT(empty_type_arguments_->IsTypeArguments());
   ASSERT(!empty_context_scope_->IsSmi());
@@ -3101,12 +3124,7 @@ TypePtr Class::RareType() const {
 template <class FakeObject, class TargetFakeObject>
 ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
   ASSERT(Object::class_class() != Class::null());
-  Class& result = Class::Handle();
-  {
-    auto raw = Object::Allocate<Class>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Class::Handle(Object::Allocate<Class>(Heap::kOld));
   Object::VerifyBuiltinVtable<FakeObject>(FakeObject::kClassId);
   NOT_IN_PRECOMPILED(result.set_token_pos(TokenPosition::kNoSource));
   NOT_IN_PRECOMPILED(result.set_end_token_pos(TokenPosition::kNoSource));
@@ -3202,7 +3220,7 @@ void Class::set_can_be_future(bool value) const {
 }
 
 // Initialize class fields of type Array with empty array.
-void Class::InitEmptyFields() {
+void Class::InitEmptyFields() const {
   if (Object::empty_array().ptr() == Array::null()) {
     // The empty array has not been initialized yet.
     return;
@@ -5014,12 +5032,7 @@ bool Class::InjectCIDFields() const {
 template <class FakeInstance, class TargetFakeInstance>
 ClassPtr Class::NewCommon(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
-  Class& result = Class::Handle();
-  {
-    auto raw = Object::Allocate<Class>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Class::Handle(Object::Allocate<Class>(Heap::kOld));
   // Here kIllegalCid means not-yet-assigned.
   Object::VerifyBuiltinVtable<FakeInstance>(index == kIllegalCid ? kInstanceCid
                                                                  : index);
@@ -11471,9 +11484,10 @@ void FfiTrampolineData::set_callback_kind(FfiCallbackKind kind) const {
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
   ASSERT(Object::ffi_trampoline_data_class() != Class::null());
-  auto data = Object::Allocate<FfiTrampolineData>(Heap::kOld);
-  data->untag()->callback_id_ = -1;
-  return data;
+  const auto& data = FfiTrampolineData::Handle(
+      Object::Allocate<FfiTrampolineData>(Heap::kOld));
+  data.set_callback_id(-1);
+  return data.ptr();
 }
 
 const char* FfiTrampolineData::ToCString() const {
@@ -13200,11 +13214,6 @@ StringPtr Script::GetSnippet(intptr_t from_line,
   return String::SubString(src, start, end - start);
 }
 
-ScriptPtr Script::New() {
-  ASSERT(Object::script_class() != Class::null());
-  return Object::Allocate<Script>(Heap::kOld);
-}
-
 ScriptPtr Script::New(const String& url, const String& source) {
   return Script::New(url, url, source);
 }
@@ -13212,17 +13221,22 @@ ScriptPtr Script::New(const String& url, const String& source) {
 ScriptPtr Script::New(const String& url,
                       const String& resolved_url,
                       const String& source) {
+  ASSERT(Object::script_class() != Class::null());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& result = Script::Handle(zone, Script::New());
+  const Script& result =
+      Script::Handle(zone, Object::Allocate<Script>(Heap::kOld));
   result.set_url(String::Handle(zone, Symbols::New(thread, url)));
   result.set_resolved_url(
       String::Handle(zone, Symbols::New(thread, resolved_url)));
   result.set_source(source);
-  NOT_IN_PRECOMPILED(result.SetHasCachedMaxPosition(false));
-  result.set_kernel_script_index(0);
-  result.set_load_timestamp(
-      FLAG_remove_script_timestamps_for_test ? 0 : OS::GetCurrentTimeMillis());
+  NOT_IN_PRECOMPILED(ASSERT_EQUAL(result.HasCachedMaxPosition(), false));
+  ASSERT_EQUAL(result.kernel_script_index(), 0);
+  if (FLAG_remove_script_timestamps_for_test) {
+    ASSERT_EQUAL(result.load_timestamp(), 0);
+  } else {
+    result.set_load_timestamp(OS::GetCurrentTimeMillis());
+  }
   return result.ptr();
 }
 
@@ -15501,9 +15515,11 @@ InstructionsPtr Instructions::New(intptr_t size, bool has_monomorphic_entry) {
     NoSafepointScope no_safepoint;
     result = raw;
     result.SetSize(size);
+    // Set this within the NoSafepointScope as well since it is contained in
+    // the same bitfield as the size.
     result.SetHasMonomorphicEntry(has_monomorphic_entry);
-    result.set_stats(nullptr);
   }
+  ASSERT(result.stats() == nullptr);
   return result.ptr();
 }
 
@@ -15559,18 +15575,14 @@ InstructionsTablePtr InstructionsTable::New(intptr_t length,
   ASSERT(Object::instructions_table_class() != Class::null());
   ASSERT(length >= 0);
   ASSERT(start_pc <= end_pc);
-  Thread* thread = Thread::Current();
-  InstructionsTable& result = InstructionsTable::Handle(thread->zone());
-  {
-    auto raw = Object::Allocate<InstructionsTable>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.set_length(length);
-  }
+  auto* const zone = Thread::Current()->zone();
   const Array& code_objects =
       (length == 0) ? Object::empty_array()
-                    : Array::Handle(Array::New(length, Heap::kOld));
+                    : Array::Handle(zone, Array::New(length, Heap::kOld));
+  const auto& result = InstructionsTable::Handle(
+      zone, Object::Allocate<InstructionsTable>(Heap::kOld));
   result.set_code_objects(code_objects);
+  result.set_length(length);
   result.set_start_pc(start_pc);
   result.set_end_pc(end_pc);
   result.set_rodata(rodata);
@@ -15696,19 +15708,21 @@ ObjectPoolPtr ObjectPool::New(intptr_t len) {
     // This should be caught before we reach here.
     FATAL("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
   }
-  ObjectPool& result = ObjectPool::Handle();
-  {
-    auto raw = Object::Allocate<ObjectPool>(Heap::kOld, len);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(len);
-    for (intptr_t i = 0; i < len; i++) {
-      result.SetTypeAt(i, ObjectPool::EntryType::kImmediate,
-                       ObjectPool::Patchability::kPatchable);
-    }
+  // We only verify the entry bits in DEBUG, so only allocate a handle there.
+  DEBUG_ONLY(auto& result = ObjectPool::Handle());
+  auto raw = Object::Allocate<ObjectPool>(Heap::kOld, len);
+  NoSafepointScope no_safepoint;
+  raw->untag()->length_ = len;
+#if defined(DEBUG)
+  result = raw;
+  for (intptr_t i = 0; i < len; i++) {
+    // Verify that InitializeObject() already set the payload as expected.
+    ASSERT_EQUAL(result.PatchableAt(i), ObjectPool::Patchability::kPatchable);
+    ASSERT_EQUAL(result.TypeAt(i), ObjectPool::EntryType::kImmediate);
+    ASSERT_EQUAL(result.RawValueAt(i), 0);
   }
-
-  return result.ptr();
+#endif
+  return raw;
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -15837,8 +15851,8 @@ PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
     NoSafepointScope no_safepoint;
     result = raw;
     result.SetLength(size);
-    result.CopyData(delta_encoded_data, size);
   }
+  result.CopyData(delta_encoded_data, size);
   return result.ptr();
 }
 
@@ -16054,6 +16068,8 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
         UntaggedCompressedStackMaps::GlobalTableBit::encode(is_global_table) |
         UntaggedCompressedStackMaps::UsesTableBit::encode(uses_global_table) |
         UntaggedCompressedStackMaps::SizeField::encode(size));
+    // Perform the copy under the NoSafepointScope since it uses a raw pointer
+    // to the payload, and so the object should not move during the copy.
     auto cursor =
         result.UnsafeMutableNonPointer(result.untag()->payload()->data());
     memcpy(cursor, payload, size);  // NOLINT
@@ -16190,14 +16206,10 @@ LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
         "invalid num_variables %" Pd ". Maximum is: %d\n",
         num_variables, UntaggedLocalVarDescriptors::kMaxIndex);
   }
-  LocalVarDescriptors& result = LocalVarDescriptors::Handle();
-  {
-    auto raw = Object::Allocate<LocalVarDescriptors>(Heap::kOld, num_variables);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.StoreNonPointer(&result.untag()->num_entries_, num_variables);
-  }
-  return result.ptr();
+  auto raw = Object::Allocate<LocalVarDescriptors>(Heap::kOld, num_variables);
+  NoSafepointScope no_safepoint;
+  raw->untag()->num_entries_ = num_variables;
+  return raw;
 }
 
 intptr_t LocalVarDescriptors::Length() const {
@@ -16300,20 +16312,10 @@ ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
         "invalid num_handlers %" Pd "\n",
         num_handlers);
   }
-  ExceptionHandlers& result = ExceptionHandlers::Handle();
-  {
-    auto raw = Object::Allocate<ExceptionHandlers>(Heap::kOld, num_handlers);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.StoreNonPointer(
-        &result.untag()->packed_fields_,
-        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
-  }
   const Array& handled_types_data =
       (num_handlers == 0) ? Object::empty_array()
                           : Array::Handle(Array::New(num_handlers, Heap::kOld));
-  result.set_handled_types_data(handled_types_data);
-  return result.ptr();
+  return ExceptionHandlers::New(handled_types_data);
 }
 
 ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
@@ -16330,9 +16332,8 @@ ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
     auto raw = Object::Allocate<ExceptionHandlers>(Heap::kOld, num_handlers);
     NoSafepointScope no_safepoint;
     result = raw;
-    result.StoreNonPointer(
-        &result.untag()->packed_fields_,
-        UntaggedExceptionHandlers::NumEntriesBits::update(num_handlers, 0));
+    result.untag()->packed_fields_ =
+        UntaggedExceptionHandlers::NumEntriesBits::encode(num_handlers);
   }
   result.set_handled_types_data(handled_types_data);
   return result.ptr();
@@ -16410,18 +16411,7 @@ const char* SingleTargetCache::ToCString() const {
 }
 
 SingleTargetCachePtr SingleTargetCache::New() {
-  SingleTargetCache& result = SingleTargetCache::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    auto raw = Object::Allocate<SingleTargetCache>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
-  result.set_target(Code::Handle());
-  result.set_entry_point(0);
-  result.set_lower_limit(kIllegalCid);
-  result.set_upper_limit(kIllegalCid);
-  return result.ptr();
+  return Object::Allocate<SingleTargetCache>(Heap::kOld);
 }
 
 void UnlinkedCall::set_can_patch_to_monomorphic(bool value) const {
@@ -17417,18 +17407,14 @@ ICDataPtr ICData::NewDescriptor(Zone* zone,
   ASSERT(!arguments_descriptor.IsNull());
   ASSERT(Object::icdata_class() != Class::null());
   ASSERT(num_args_tested >= 0);
-  ICData& result = ICData::Handle(zone);
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    auto raw = Object::Allocate<ICData>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  // IC data objects are long living objects, allocate them in old generation.
+  const auto& result =
+      ICData::Handle(zone, Object::Allocate<ICData>(Heap::kOld));
   result.set_owner(owner);
   result.set_target_name(target_name);
   result.set_arguments_descriptor(arguments_descriptor);
   NOT_IN_PRECOMPILED(result.set_deopt_id(deopt_id));
-  result.clear_state_bits();
+  ASSERT_EQUAL(result.untag()->state_bits_, 0);
   result.set_rebind_rule(rebind_rule);
   result.SetNumArgsTested(num_args_tested);
   NOT_IN_PRECOMPILED(result.SetReceiversStaticType(receivers_static_type));
@@ -17440,15 +17426,10 @@ bool ICData::IsImmutable() const {
 }
 
 ICDataPtr ICData::New() {
-  ICData& result = ICData::Handle();
-  {
-    // IC data objects are long living objects, allocate them in old generation.
-    auto raw = Object::Allocate<ICData>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  // IC data objects are long living objects, allocate them in old generation.
+  const auto& result = ICData::Handle(Object::Allocate<ICData>(Heap::kOld));
+  ASSERT_EQUAL(result.untag()->state_bits_, 0);
   result.set_deopt_id(DeoptId::kNone);
-  result.clear_state_bits();
   return result.ptr();
 }
 
@@ -17631,17 +17612,13 @@ ObjectPtr WeakSerializationReference::New(const Object& target,
           replacement.ptr()) {
     return target.ptr();
   }
-  WeakSerializationReference& result = WeakSerializationReference::Handle();
-  {
-    auto raw = Object::Allocate<WeakSerializationReference>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    // Don't nest WSRs, instead just use the old WSR's target.
-    result.untag()->set_target(target.IsWeakSerializationReference()
-                                   ? WeakSerializationReference::Unwrap(target)
-                                   : target.ptr());
-    result.untag()->set_replacement(replacement.ptr());
-  }
+  const auto& result = WeakSerializationReference::Handle(
+      Object::Allocate<WeakSerializationReference>(Heap::kOld));
+  // Don't nest WSRs, instead just use the old WSR's target.
+  result.untag()->set_target(target.IsWeakSerializationReference()
+                                 ? WeakSerializationReference::Unwrap(target)
+                                 : target.ptr());
+  result.untag()->set_replacement(replacement.ptr());
   return result.ptr();
 }
 
@@ -17657,6 +17634,7 @@ WeakArrayPtr WeakArray::New(intptr_t length, Heap::Space space) {
     FATAL("Fatal error in WeakArray::New: invalid len %" Pd "\n", length);
   }
   auto raw = Object::Allocate<WeakArray>(space, length);
+  NoSafepointScope no_safepoint;
   raw->untag()->set_length(Smi::New(length));
   return raw;
 }
@@ -18086,15 +18064,15 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     auto raw = Object::Allocate<Code>(Heap::kOld, pointer_offsets_length);
     NoSafepointScope no_safepoint;
     result = raw;
-    result.set_state_bits(0);
     result.set_pointer_offsets_length(pointer_offsets_length);
-#if defined(INCLUDE_IL_PRINTER)
-    result.set_comments(Comments::New(0));
-#endif
-    NOT_IN_PRODUCT(result.set_compile_timestamp(0));
-    result.set_pc_descriptors(Object::empty_descriptors());
-    result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
   }
+  ASSERT_EQUAL(result.untag()->state_bits_, 0);
+  DEBUG_ASSERT(result.compile_timestamp() == 0);
+#if defined(INCLUDE_IL_PRINTER)
+  result.set_comments(Comments::New(0));
+#endif
+  result.set_pc_descriptors(Object::empty_descriptors());
+  result.set_compressed_stackmaps(Object::empty_compressed_stackmaps());
   return result.ptr();
 }
 
@@ -18625,14 +18603,10 @@ ContextPtr Context::New(intptr_t num_variables, Heap::Space space) {
     FATAL("Fatal error in Context::New: invalid num_variables %" Pd "\n",
           num_variables);
   }
-  Context& result = Context::Handle();
-  {
-    auto raw = Object::Allocate<Context>(space, num_variables);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.set_num_variables(num_variables);
-  }
-  return result.ptr();
+  auto raw = Object::Allocate<Context>(space, num_variables);
+  NoSafepointScope no_safepoint;
+  raw->untag()->num_variables_ = num_variables;
+  return raw;
 }
 
 const char* Context::ToCString() const {
@@ -18699,8 +18673,8 @@ ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
     NoSafepointScope no_safepoint;
     result = raw;
     result.set_num_variables(num_variables);
-    result.set_is_implicit(is_implicit);
   }
+  result.set_is_implicit(is_implicit);
   return result.ptr();
 }
 
@@ -18894,16 +18868,13 @@ MegamorphicCachePtr MegamorphicCache::New() {
 
 MegamorphicCachePtr MegamorphicCache::New(const String& target_name,
                                           const Array& arguments_descriptor) {
-  MegamorphicCache& result = MegamorphicCache::Handle();
-  {
-    auto raw = Object::Allocate<MegamorphicCache>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  auto* const zone = Thread::Current()->zone();
+  const auto& result = MegamorphicCache::Handle(
+      zone, Object::Allocate<MegamorphicCache>(Heap::kOld));
   const intptr_t capacity = kInitialCapacity;
   const Array& buckets =
-      Array::Handle(Array::New(kEntryLength * capacity, Heap::kOld));
-  const Object& handler = Object::Handle();
+      Array::Handle(zone, Array::New(kEntryLength * capacity, Heap::kOld));
+  const Object& handler = Object::Handle(zone);
   for (intptr_t i = 0; i < capacity; ++i) {
     SetEntry(buckets, i, smi_illegal_cid(), handler);
   }
@@ -19040,33 +19011,17 @@ const char* MegamorphicCache::ToCString() const {
                      name.ToCString());
 }
 
-void SubtypeTestCache::Init() {
-  const auto& array =
-      Array::Handle(Array::NewUninitialized(kTestEntryLength, Heap::kOld));
-  // Mark the first (only) entry unoccupied before making this array visible.
-  array.SetAt(kInstanceCidOrSignature, Object::null_object());
-  cached_array_ = array.ptr();
-}
-
-void SubtypeTestCache::Cleanup() {
-  cached_array_ = nullptr;
-}
-
 SubtypeTestCachePtr SubtypeTestCache::New(intptr_t num_inputs) {
   ASSERT(Object::subtypetestcache_class() != Class::null());
   ASSERT(num_inputs >= 1);
   ASSERT(num_inputs <= kMaxInputs);
-  SubtypeTestCache& result = SubtypeTestCache::Handle();
-  {
-    // SubtypeTestCache objects are long living objects, allocate them in the
-    // old generation.
-    auto raw = Object::Allocate<SubtypeTestCache>(Heap::kOld);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.untag()->num_inputs_ = num_inputs;
-  }
-  result.set_num_occupied(0);
-  result.set_cache(Array::Handle(cached_array_));
+  // SubtypeTestCache objects are long living objects, allocate them in the
+  // old generation.
+  const auto& result =
+      SubtypeTestCache::Handle(Object::Allocate<SubtypeTestCache>(Heap::kOld));
+  ASSERT_EQUAL(result.num_occupied(), 0);
+  result.untag()->num_inputs_ = num_inputs;
+  result.set_cache(Object::empty_subtype_test_cache_array());
   return result.ptr();
 }
 
@@ -19131,7 +19086,7 @@ intptr_t SubtypeTestCache::AddCheck(
   Array& data = Array::Handle(zone, cache());
   bool was_grown;
   data = EnsureCapacity(zone, data, old_num + 1, &was_grown);
-  ASSERT(data.ptr() != cached_array_);
+  ASSERT(data.ptr() != Object::empty_subtype_test_cache_array().ptr());
 
   const auto& loc = FindKeyOrUnused(
       data, num_inputs(), instance_class_id_or_signature, destination_type,
@@ -19267,7 +19222,9 @@ SubtypeTestCache::KeyLocation SubtypeTestCache::FindKeyOrUnused(
     const TypeArguments& instance_parent_function_type_arguments,
     const TypeArguments& instance_delayed_type_arguments) {
   // Fast case for empty STCs.
-  if (array.ptr() == cached_array_) return {0, false};
+  if (array.ptr() == Object::empty_subtype_test_cache_array().ptr()) {
+    return {0, false};
+  }
   const bool is_hash = IsHash(array);
   SubtypeTestCacheTable table(array);
   const intptr_t num_entries = table.Length();
@@ -19527,7 +19484,7 @@ void SubtypeTestCache::GetCheckFromArray(
     TypeArguments* instance_parent_function_type_arguments,
     TypeArguments* instance_delayed_type_arguments,
     Bool* test_result) {
-  ASSERT(array.ptr() != cached_array_);
+  ASSERT(array.ptr() != Object::empty_subtype_test_cache_array().ptr());
   SubtypeTestCacheTable entries(array);
   auto entry = entries[ix];
   // First get the field that determines occupancy. We have to do this with
@@ -19753,7 +19710,7 @@ void SubtypeTestCache::WriteToBufferUnlocked(Zone* zone,
 
 void SubtypeTestCache::Reset() const {
   set_num_occupied(0);
-  set_cache(Array::Handle(cached_array_));
+  set_cache(Object::empty_subtype_test_cache_array());
 }
 
 bool SubtypeTestCache::Equals(const SubtypeTestCache& other) const {
@@ -19948,12 +19905,7 @@ ApiErrorPtr ApiError::New(const String& message, Heap::Space space) {
 #endif  // !PRODUCT
 
   ASSERT(Object::api_error_class() != Class::null());
-  ApiError& result = ApiError::Handle();
-  {
-    auto raw = Object::Allocate<ApiError>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = ApiError::Handle(Object::Allocate<ApiError>(space));
   result.set_message(message);
   return result.ptr();
 }
@@ -19985,12 +19937,8 @@ LanguageErrorPtr LanguageError::NewFormattedV(const Error& prev_error,
                                               const char* format,
                                               va_list args) {
   ASSERT(Object::language_error_class() != Class::null());
-  LanguageError& result = LanguageError::Handle();
-  {
-    auto raw = Object::Allocate<LanguageError>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result =
+      LanguageError::Handle(Object::Allocate<LanguageError>(space));
   result.set_previous_error(prev_error);
   result.set_script(script);
   result.set_token_pos(token_pos);
@@ -20023,12 +19971,8 @@ LanguageErrorPtr LanguageError::New(const String& formatted_message,
                                     Report::Kind kind,
                                     Heap::Space space) {
   ASSERT(Object::language_error_class() != Class::null());
-  LanguageError& result = LanguageError::Handle();
-  {
-    auto raw = Object::Allocate<LanguageError>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result =
+      LanguageError::Handle(Object::Allocate<LanguageError>(space));
   result.set_formatted_message(formatted_message);
   result.set_kind(kind);
   return result.ptr();
@@ -20047,7 +19991,7 @@ void LanguageError::set_token_pos(TokenPosition token_pos) const {
   StoreNonPointer(&untag()->token_pos_, token_pos);
 }
 
-void LanguageError::set_report_after_token(bool value) {
+void LanguageError::set_report_after_token(bool value) const {
   StoreNonPointer(&untag()->report_after_token_, value);
 }
 
@@ -20093,12 +20037,8 @@ UnhandledExceptionPtr UnhandledException::New(const Instance& exception,
                                               const Instance& stacktrace,
                                               Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
-  UnhandledException& result = UnhandledException::Handle();
-  {
-    auto raw = Object::Allocate<UnhandledException>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result =
+      UnhandledException::Handle(Object::Allocate<UnhandledException>(space));
   result.set_exception(exception);
   result.set_stacktrace(stacktrace);
   return result.ptr();
@@ -20106,15 +20046,7 @@ UnhandledExceptionPtr UnhandledException::New(const Instance& exception,
 
 UnhandledExceptionPtr UnhandledException::New(Heap::Space space) {
   ASSERT(Object::unhandled_exception_class() != Class::null());
-  UnhandledException& result = UnhandledException::Handle();
-  {
-    auto raw = Object::Allocate<UnhandledException>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
-  result.set_exception(Object::null_instance());
-  result.set_stacktrace(StackTrace::Handle());
-  return result.ptr();
+  return Object::Allocate<UnhandledException>(space);
 }
 
 void UnhandledException::set_exception(const Instance& exception) const {
@@ -20169,14 +20101,10 @@ const char* UnhandledException::ToCString() const {
 
 UnwindErrorPtr UnwindError::New(const String& message, Heap::Space space) {
   ASSERT(Object::unwind_error_class() != Class::null());
-  UnwindError& result = UnwindError::Handle();
-  {
-    auto raw = Object::Allocate<UnwindError>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result =
+      UnwindError::Handle(Object::Allocate<UnwindError>(space));
   result.set_message(message);
-  result.set_is_user_initiated(false);
+  ASSERT_EQUAL(result.is_user_initiated(), false);
   return result.ptr();
 }
 
@@ -21159,10 +21087,9 @@ InstancePtr Instance::NewAlreadyFinalized(const Class& cls, Heap::Space space) {
       instance_size - (Instance::ContainsCompressedPointers()
                            ? kCompressedWordSize
                            : kWordSize);
-  ObjectPtr raw = Object::Allocate(
+  return static_cast<InstancePtr>(Object::Allocate(
       cls.id(), instance_size, space, Instance::ContainsCompressedPointers(),
-      from_offset<Instance>(), ptr_field_end_offset);
-  return static_cast<InstancePtr>(raw);
+      from_offset<Instance>(), ptr_field_end_offset));
 }
 
 bool Instance::IsValidFieldOffset(intptr_t offset) const {
@@ -23693,12 +23620,7 @@ MintPtr Mint::New(int64_t val, Heap::Space space) {
   ASSERT(!Smi::IsValid(val));
   ASSERT(IsolateGroup::Current()->object_store()->mint_class() !=
          Class::null());
-  Mint& result = Mint::Handle();
-  {
-    auto raw = Object::Allocate<Mint>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Mint::Handle(Object::Allocate<Mint>(space));
   result.set_value(val);
   return result.ptr();
 }
@@ -23794,12 +23716,7 @@ uint32_t Double::CanonicalizeHash() const {
 DoublePtr Double::New(double d, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->double_class() !=
          Class::null());
-  Double& result = Double::Handle();
-  {
-    auto raw = Object::Allocate<Double>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Double::Handle(Object::Allocate<Double>(space));
   result.set_value(d);
   return result.ptr();
 }
@@ -24900,31 +24817,17 @@ OneByteStringPtr OneByteString::New(intptr_t len, Heap::Space space) {
     // This should be caught before we reach here.
     FATAL("Fatal error in OneByteString::New: invalid len %" Pd "\n", len);
   }
-  {
-    auto result = Object::Allocate<OneByteString>(space, len);
-    NoSafepointScope no_safepoint;
-#if DART_COMPRESSED_POINTERS
-    // Gap caused by less-than-a-word length_ smi sitting before data_.
-    const intptr_t length_offset =
-        reinterpret_cast<intptr_t>(&result->untag()->length_);
-    const intptr_t data_offset =
-        reinterpret_cast<intptr_t>(result->untag()->data());
-    const intptr_t length_with_gap = data_offset - length_offset;
-    ASSERT(length_with_gap > kCompressedWordSize);
-    ASSERT(length_with_gap == kWordSize);
-    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
-#endif
-    result->untag()->set_length(Smi::New(len));
+  auto result = Object::Allocate<OneByteString>(space, len);
+  NoSafepointScope no_safepoint;
+  result->untag()->set_length(Smi::New(len));
 #if !defined(HASH_IN_OBJECT_HEADER)
-    result->untag()->set_hash(Smi::New(0));
+  result->untag()->set_hash(Smi::New(0));
 #endif
-    OneByteStringPtr s = static_cast<OneByteStringPtr>(result);
-    intptr_t size = OneByteString::UnroundedSize(s);
-    ASSERT(size <= s->untag()->HeapSize());
-    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
-           s->untag()->HeapSize() - size);
-    return result;
-  }
+  intptr_t size = OneByteString::UnroundedSize(result);
+  ASSERT(size <= result->untag()->HeapSize());
+  memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(result) + size), 0,
+         result->untag()->HeapSize() - size);
+  return result;
 }
 
 OneByteStringPtr OneByteString::New(const uint8_t* characters,
@@ -25106,31 +25009,17 @@ TwoByteStringPtr TwoByteString::New(intptr_t len, Heap::Space space) {
     // This should be caught before we reach here.
     FATAL("Fatal error in TwoByteString::New: invalid len %" Pd "\n", len);
   }
-  String& result = String::Handle();
-  {
-    auto s = Object::Allocate<TwoByteString>(space, len);
-    NoSafepointScope no_safepoint;
-    result = s;
-#if DART_COMPRESSED_POINTERS
-    // Gap caused by less-than-a-word length_ smi sitting before data_.
-    const intptr_t length_offset =
-        reinterpret_cast<intptr_t>(&s->untag()->length_);
-    const intptr_t data_offset = reinterpret_cast<intptr_t>(s->untag()->data());
-    const intptr_t length_with_gap = data_offset - length_offset;
-    ASSERT(length_with_gap > kCompressedWordSize);
-    ASSERT(length_with_gap == kWordSize);
-    memset(reinterpret_cast<void*>(length_offset), 0, length_with_gap);
-#endif
-    result.SetLength(len);
+  auto s = Object::Allocate<TwoByteString>(space, len);
+  NoSafepointScope no_safepoint;
+  s->untag()->set_length(Smi::New(len));
 #if !defined(HASH_IN_OBJECT_HEADER)
-    result.ptr()->untag()->set_hash(Smi::New(0));
+  s->untag()->set_hash(Smi::New(0));
 #endif
-    intptr_t size = TwoByteString::UnroundedSize(s);
-    ASSERT(size <= s->untag()->HeapSize());
-    memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
-           s->untag()->HeapSize() - size);
-  }
-  return TwoByteString::raw(result);
+  intptr_t size = TwoByteString::UnroundedSize(s);
+  ASSERT(size <= s->untag()->HeapSize());
+  memset(reinterpret_cast<void*>(UntaggedObject::ToAddr(s) + size), 0,
+         s->untag()->HeapSize() - size);
+  return s;
 }
 
 TwoByteStringPtr TwoByteString::New(const uint16_t* utf16_array,
@@ -25263,17 +25152,13 @@ ExternalOneByteStringPtr ExternalOneByteString::New(
     FATAL("Fatal error in ExternalOneByteString::New: invalid len %" Pd "\n",
           len);
   }
-  String& result = String::Handle();
-  {
-    auto raw = Object::Allocate<ExternalOneByteString>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(len);
+  const auto& result =
+      String::Handle(Object::Allocate<ExternalOneByteString>(space));
 #if !defined(HASH_IN_OBJECT_HEADER)
-    result.ptr()->untag()->set_hash(Smi::New(0));
+  result.ptr()->untag()->set_hash(Smi::New(0));
 #endif
-    SetExternalData(result, data, peer);
-  }
+  result.SetLength(len);
+  SetExternalData(result, data, peer);
   AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalOneByteString::raw(result);
 }
@@ -25293,17 +25178,13 @@ ExternalTwoByteStringPtr ExternalTwoByteString::New(
     FATAL("Fatal error in ExternalTwoByteString::New: invalid len %" Pd "\n",
           len);
   }
-  String& result = String::Handle();
-  {
-    auto raw = Object::Allocate<ExternalTwoByteString>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(len);
+  const auto& result =
+      String::Handle(Object::Allocate<ExternalTwoByteString>(space));
 #if !defined(HASH_IN_OBJECT_HEADER)
-    result.ptr()->untag()->set_hash(Smi::New(0));
+  result.ptr()->untag()->set_hash(Smi::New(0));
 #endif
-    SetExternalData(result, data, peer);
-  }
+  result.SetLength(len);
+  SetExternalData(result, data, peer);
   AddFinalizer(result, peer, callback, external_allocation_size);
   return ExternalTwoByteString::raw(result);
 }
@@ -25392,16 +25273,14 @@ ArrayPtr Array::NewUninitialized(intptr_t class_id,
     // This should be caught before we reach here.
     FATAL("Fatal error in Array::New: invalid len %" Pd "\n", len);
   }
-  {
-    auto raw = Object::AllocateVariant<Array>(class_id, space, len);
-    NoSafepointScope no_safepoint;
-    raw->untag()->set_length(Smi::New(len));
-    if (UseCardMarkingForAllocation(len)) {
-      ASSERT(raw->IsOldObject());
-      raw->untag()->SetCardRememberedBitUnsynchronized();
-    }
-    return raw;
+  auto raw = Object::AllocateVariant<Array>(class_id, space, len);
+  NoSafepointScope no_safepoint;
+  raw->untag()->set_length(Smi::New(len));
+  if (UseCardMarkingForAllocation(len)) {
+    ASSERT(raw->IsOldObject());
+    raw->untag()->SetCardRememberedBitUnsynchronized();
   }
+  return raw;
 }
 
 ArrayPtr Array::New(intptr_t class_id, intptr_t len, Heap::Space space) {
@@ -25651,14 +25530,10 @@ GrowableObjectArrayPtr GrowableObjectArray::New(const Array& array,
   ASSERT(
       IsolateGroup::Current()->object_store()->growable_object_array_class() !=
       Class::null());
-  GrowableObjectArray& result = GrowableObjectArray::Handle();
-  {
-    auto raw = Object::Allocate<GrowableObjectArray>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(0);
-    result.SetData(array);
-  }
+  const auto& result =
+      GrowableObjectArray::Handle(Object::Allocate<GrowableObjectArray>(space));
+  result.SetLength(0);
+  result.SetData(array);
   return result.ptr();
 }
 
@@ -25738,13 +25613,7 @@ MapPtr Map::New(intptr_t class_id,
 MapPtr Map::NewUninitialized(intptr_t class_id, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->map_impl_class() !=
          Class::null());
-  Map& result = Map::Handle();
-  {
-    auto raw = Object::AllocateVariant<Map>(class_id, space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
-  return result.ptr();
+  return Object::AllocateVariant<Map>(class_id, space);
 }
 
 const char* Map::ToCString() const {
@@ -25902,13 +25771,7 @@ SetPtr Set::NewDefault(intptr_t class_id, Heap::Space space) {
 SetPtr Set::NewUninitialized(intptr_t class_id, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->set_impl_class() !=
          Class::null());
-  Set& result = Set::Handle();
-  {
-    auto raw = Object::AllocateVariant<Set>(class_id, space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
-  return result.ptr();
+  return Object::AllocateVariant<Set>(class_id, space);
 }
 
 ConstSetPtr ConstSet::NewDefault(Heap::Space space) {
@@ -25942,12 +25805,7 @@ Float32x4Ptr Float32x4::New(float v0,
                             Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->float32x4_class() !=
          Class::null());
-  Float32x4& result = Float32x4::Handle();
-  {
-    auto raw = Object::Allocate<Float32x4>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Float32x4::Handle(Object::Allocate<Float32x4>(space));
   result.set_x(v0);
   result.set_y(v1);
   result.set_z(v2);
@@ -25958,12 +25816,7 @@ Float32x4Ptr Float32x4::New(float v0,
 Float32x4Ptr Float32x4::New(simd128_value_t value, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->float32x4_class() !=
          Class::null());
-  Float32x4& result = Float32x4::Handle();
-  {
-    auto raw = Object::Allocate<Float32x4>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Float32x4::Handle(Object::Allocate<Float32x4>(space));
   result.set_value(value);
   return result.ptr();
 }
@@ -26026,12 +25879,7 @@ Int32x4Ptr Int32x4::New(int32_t v0,
                         Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Int32x4& result = Int32x4::Handle();
-  {
-    auto raw = Object::Allocate<Int32x4>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Int32x4::Handle(Object::Allocate<Int32x4>(space));
   result.set_x(v0);
   result.set_y(v1);
   result.set_z(v2);
@@ -26042,12 +25890,7 @@ Int32x4Ptr Int32x4::New(int32_t v0,
 Int32x4Ptr Int32x4::New(simd128_value_t value, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->int32x4_class() !=
          Class::null());
-  Int32x4& result = Int32x4::Handle();
-  {
-    auto raw = Object::Allocate<Int32x4>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Int32x4::Handle(Object::Allocate<Int32x4>(space));
   result.set_value(value);
   return result.ptr();
 }
@@ -26106,12 +25949,7 @@ const char* Int32x4::ToCString() const {
 Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->float64x2_class() !=
          Class::null());
-  Float64x2& result = Float64x2::Handle();
-  {
-    auto raw = Object::Allocate<Float64x2>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Float64x2::Handle(Object::Allocate<Float64x2>(space));
   result.set_x(value0);
   result.set_y(value1);
   return result.ptr();
@@ -26120,12 +25958,7 @@ Float64x2Ptr Float64x2::New(double value0, double value1, Heap::Space space) {
 Float64x2Ptr Float64x2::New(simd128_value_t value, Heap::Space space) {
   ASSERT(IsolateGroup::Current()->object_store()->float64x2_class() !=
          Class::null());
-  Float64x2& result = Float64x2::Handle();
-  {
-    auto raw = Object::Allocate<Float64x2>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = Float64x2::Handle(Object::Allocate<Float64x2>(space));
   result.set_value(value);
   return result.ptr();
 }
@@ -26221,16 +26054,12 @@ TypedDataPtr TypedData::New(intptr_t class_id,
   if (len < 0 || len > TypedData::MaxElements(class_id)) {
     FATAL("Fatal error in TypedData::New: invalid len %" Pd "\n", len);
   }
-  TypedData& result = TypedData::Handle();
-  {
-    auto raw = Object::AllocateVariant<TypedData>(
-        class_id, space, len * ElementSizeInBytes(class_id));
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(len);
-    result.RecomputeDataField();
-  }
-  return result.ptr();
+  auto raw = Object::AllocateVariant<TypedData>(
+      class_id, space, len * ElementSizeInBytes(class_id));
+  NoSafepointScope no_safepoint;
+  raw->untag()->set_length(Smi::New(len));
+  raw->untag()->RecomputeDataField();
+  return raw;
 }
 
 TypedDataPtr TypedData::Grow(const TypedData& current,
@@ -26274,14 +26103,10 @@ ExternalTypedDataPtr ExternalTypedData::New(
     MSAN_CHECK_INITIALIZED(data, len);
   }
 
-  ExternalTypedData& result = ExternalTypedData::Handle();
-  {
-    auto raw = Object::AllocateVariant<ExternalTypedData>(class_id, space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.SetLength(len);
-    result.SetData(data);
-  }
+  const auto& result = ExternalTypedData::Handle(
+      Object::AllocateVariant<ExternalTypedData>(class_id, space));
+  result.SetLength(len);
+  result.SetData(data);
   return result.ptr();
 }
 
@@ -26295,14 +26120,7 @@ ExternalTypedDataPtr ExternalTypedData::NewFinalizeWithFree(uint8_t* data,
 }
 
 TypedDataViewPtr TypedDataView::New(intptr_t class_id, Heap::Space space) {
-  auto& result = TypedDataView::Handle();
-  {
-    auto raw = Object::AllocateVariant<TypedDataView>(class_id, space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.Clear();
-  }
-  return result.ptr();
+  return Object::AllocateVariant<TypedDataView>(class_id, space);
 }
 
 TypedDataViewPtr TypedDataView::New(intptr_t class_id,
@@ -26359,9 +26177,8 @@ DynamicLibraryPtr DynamicLibrary::New(void* handle,
                                       Heap::Space space) {
   const auto& result =
       DynamicLibrary::Handle(Object::Allocate<DynamicLibrary>(space));
-  NoSafepointScope no_safepoint;
+  ASSERT_EQUAL(result.IsClosed(), false);
   result.SetHandle(handle);
-  result.SetClosed(false);
   result.SetCanBeClosed(canBeClosed);
   return result.ptr();
 }
@@ -26380,13 +26197,8 @@ const char* DynamicLibrary::ToCString() const {
 }
 
 CapabilityPtr Capability::New(uint64_t id, Heap::Space space) {
-  Capability& result = Capability::Handle();
-  {
-    auto raw = Object::Allocate<Capability>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.StoreNonPointer(&result.untag()->id_, id);
-  }
+  const auto& result = Capability::Handle(Object::Allocate<Capability>(space));
+  result.StoreNonPointer(&result.untag()->id_, id);
   return result.ptr();
 }
 
@@ -26408,22 +26220,15 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
       HasStack() ? GetCurrentStackTrace(0) : StackTrace::Handle();
 #endif  // !defined(PRODUCT)
 
-  ReceivePort& result = ReceivePort::Handle(zone);
-  {
-    auto raw = Object::Allocate<ReceivePort>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.untag()->set_send_port(send_port.ptr());
+  const auto& result =
+      ReceivePort::Handle(zone, Object::Allocate<ReceivePort>(space));
+  result.untag()->set_send_port(send_port.ptr());
 #if !defined(PRODUCT)
-    result.untag()->set_debug_name(debug_name.ptr());
-    result.untag()->set_allocation_location(allocation_location_.ptr());
+  result.untag()->set_debug_name(debug_name.ptr());
+  result.untag()->set_allocation_location(allocation_location_.ptr());
 #endif  // !defined(PRODUCT)
-  }
-  if (is_control_port) {
-    PortMap::SetPortState(id, PortMap::kControlPort);
-  } else {
-    PortMap::SetPortState(id, PortMap::kLivePort);
-  }
+  PortMap::SetPortState(
+      id, is_control_port ? PortMap::kControlPort : PortMap::kLivePort);
   return result.ptr();
 }
 
@@ -26439,14 +26244,9 @@ SendPortPtr SendPort::New(Dart_Port id,
                           Dart_Port origin_id,
                           Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
-  SendPort& result = SendPort::Handle();
-  {
-    auto raw = Object::Allocate<SendPort>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.StoreNonPointer(&result.untag()->id_, id);
-    result.StoreNonPointer(&result.untag()->origin_id_, origin_id);
-  }
+  const auto& result = SendPort::Handle(Object::Allocate<SendPort>(space));
+  result.StoreNonPointer(&result.untag()->id_, id);
+  result.StoreNonPointer(&result.untag()->origin_id_, origin_id);
   return result.ptr();
 }
 
@@ -26461,17 +26261,14 @@ static void TransferableTypedDataFinalizer(void* isolate_callback_data,
 
 TransferableTypedDataPtr TransferableTypedData::New(uint8_t* data,
                                                     intptr_t length) {
-  TransferableTypedDataPeer* peer = new TransferableTypedDataPeer(data, length);
+  auto* const peer = new TransferableTypedDataPeer(data, length);
 
   Thread* thread = Thread::Current();
-  TransferableTypedData& result = TransferableTypedData::Handle();
-  {
-    auto raw = Object::Allocate<TransferableTypedData>(
-        thread->heap()->SpaceForExternal(length));
-    NoSafepointScope no_safepoint;
-    thread->heap()->SetPeer(raw, peer);
-    result = raw;
-  }
+  const auto& result =
+      TransferableTypedData::Handle(Object::Allocate<TransferableTypedData>(
+          thread->heap()->SpaceForExternal(length)));
+  thread->heap()->SetPeer(result.ptr(), peer);
+
   // Set up finalizer so it frees allocated memory if handle is
   // garbage-collected.
   FinalizablePersistentHandle* finalizable_ref =
@@ -26595,26 +26392,17 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
   ASSERT(function_type_arguments.IsCanonical());
   ASSERT(delayed_type_arguments.IsCanonical());
   ASSERT(FunctionType::Handle(function.signature()).IsCanonical());
-  Closure& result = Closure::Handle();
-  {
-    auto raw = Object::Allocate<Closure>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.untag()->set_instantiator_type_arguments(
-        instantiator_type_arguments.ptr());
-    result.untag()->set_function_type_arguments(function_type_arguments.ptr());
-    result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
-    result.untag()->set_function(function.ptr());
-    result.untag()->set_context(context.ptr());
+  const auto& result = Closure::Handle(Object::Allocate<Closure>(space));
+  result.untag()->set_instantiator_type_arguments(
+      instantiator_type_arguments.ptr());
+  result.untag()->set_function_type_arguments(function_type_arguments.ptr());
+  result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
+  result.untag()->set_function(function.ptr());
+  result.untag()->set_context(context.ptr());
 #if defined(DART_PRECOMPILED_RUNTIME)
-    result.set_entry_point(function.entry_point());
+  result.set_entry_point(function.entry_point());
 #endif
-  }
   return result.ptr();
-}
-
-ClosurePtr Closure::New() {
-  return Object::Allocate<Closure>(Heap::kOld);
 }
 
 FunctionTypePtr Closure::GetInstantiatedSignature(Zone* zone) const {
@@ -26705,16 +26493,11 @@ bool StackTrace::expand_inlined() const {
 StackTracePtr StackTrace::New(const Array& code_array,
                               const TypedData& pc_offset_array,
                               Heap::Space space) {
-  StackTrace& result = StackTrace::Handle();
-  {
-    auto raw = Object::Allocate<StackTrace>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = StackTrace::Handle(Object::Allocate<StackTrace>(space));
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
   result.set_expand_inlined(true);  // default.
-  result.set_skip_sync_start_in_parent_stack(false);
+  ASSERT_EQUAL(result.skip_sync_start_in_parent_stack(), false);
   return result.ptr();
 }
 
@@ -26723,12 +26506,7 @@ StackTracePtr StackTrace::New(const Array& code_array,
                               const StackTrace& async_link,
                               bool skip_sync_start_in_parent_stack,
                               Heap::Space space) {
-  StackTrace& result = StackTrace::Handle();
-  {
-    auto raw = Object::Allocate<StackTrace>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result = StackTrace::Handle(Object::Allocate<StackTrace>(space));
   result.set_async_link(async_link);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
@@ -27082,26 +26860,25 @@ DEFINE_FLAG_HANDLER(DwarfStackTracesHandler,
 SuspendStatePtr SuspendState::New(intptr_t frame_size,
                                   const Instance& function_data,
                                   Heap::Space space) {
-  SuspendState& result = SuspendState::Handle();
+  ASSERT(frame_size >= 0);
   const intptr_t num_elements = frame_size + SuspendState::FrameSizeGrowthGap();
-  {
-    auto raw = Object::Allocate<SuspendState>(space, num_elements);
-    NoSafepointScope no_safepoint;
-    result = raw;
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    // Include heap object alignment overhead into the frame capacity.
-    const intptr_t instance_size = SuspendState::InstanceSize(num_elements);
-    const intptr_t frame_capacity =
-        instance_size - SuspendState::payload_offset();
-    ASSERT(SuspendState::InstanceSize(frame_capacity) == instance_size);
-    ASSERT(frame_size <= frame_capacity);
-    result.set_frame_capacity(frame_capacity);
+  // Include heap object alignment overhead into the frame capacity.
+  const intptr_t instance_size = SuspendState::InstanceSize(num_elements);
+  const intptr_t frame_capacity =
+      instance_size - SuspendState::payload_offset();
+  ASSERT(SuspendState::InstanceSize(frame_capacity) == instance_size);
+  ASSERT(frame_size <= frame_capacity);
 #endif
-    result.set_frame_size(frame_size);
-    result.set_pc(0);
-    result.set_function_data(function_data);
-  }
-  return result.ptr();
+  auto raw = Object::Allocate<SuspendState>(space, num_elements);
+  NoSafepointScope no_safepoint;
+  ASSERT_EQUAL(raw->untag()->pc_, 0);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  raw->untag()->frame_capacity_ = frame_capacity;
+#endif
+  raw->untag()->frame_size_ = frame_size;
+  raw->untag()->set_function_data(function_data.ptr());
+  return raw;
 }
 
 SuspendStatePtr SuspendState::Clone(Thread* thread,
@@ -27245,17 +27022,12 @@ void RegExp::set_capture_name_map(const Array& array) const {
 }
 
 RegExpPtr RegExp::New(Zone* zone, Heap::Space space) {
-  RegExp& result = RegExp::Handle();
-  {
-    auto raw = Object::Allocate<RegExp>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-    result.set_type(kUninitialized);
-    result.set_flags(RegExpFlags());
-    result.set_num_bracket_expressions(-1);
-    result.set_num_registers(/*is_one_byte=*/false, -1);
-    result.set_num_registers(/*is_one_byte=*/true, -1);
-  }
+  const auto& result = RegExp::Handle(Object::Allocate<RegExp>(space));
+  ASSERT_EQUAL(result.type(), kUninitialized);
+  ASSERT(result.flags() == RegExpFlags());
+  result.set_num_bracket_expressions(-1);
+  result.set_num_registers(/*is_one_byte=*/false, -1);
+  result.set_num_registers(/*is_one_byte=*/true, -1);
 
   if (!FLAG_interpret_irregexp) {
     auto thread = Thread::Current();
@@ -27456,7 +27228,7 @@ FinalizerEntryPtr FinalizerEntry::New(const FinalizerBase& finalizer,
          Class::null());
   const auto& entry =
       FinalizerEntry::Handle(Object::Allocate<FinalizerEntry>(space));
-  entry.set_external_size(0);
+  ASSERT_EQUAL(entry.external_size(), 0);
   entry.set_finalizer(finalizer);
   return entry.ptr();
 }
@@ -27506,12 +27278,8 @@ TypeParameterPtr MirrorReference::GetTypeParameterReferent() const {
 
 MirrorReferencePtr MirrorReference::New(const Object& referent,
                                         Heap::Space space) {
-  MirrorReference& result = MirrorReference::Handle();
-  {
-    auto raw = Object::Allocate<MirrorReference>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  const auto& result =
+      MirrorReference::Handle(Object::Allocate<MirrorReference>(space));
   result.set_referent(referent);
   return result.ptr();
 }
@@ -27559,11 +27327,7 @@ UserTagPtr UserTag::New(const String& label, Heap::Space space) {
     Exceptions::ThrowByType(Exceptions::kUnsupported, args);
   }
   // No tag with label exists, create and register with isolate tag table.
-  {
-    auto raw = Object::Allocate<UserTag>(space);
-    NoSafepointScope no_safepoint;
-    result = raw;
-  }
+  result = Object::Allocate<UserTag>(space);
   result.set_label(label);
   result.set_streamable(UserTags::IsTagNameStreamable(label.ToCString()));
   AddTagToIsolate(thread, result);
@@ -28313,14 +28077,10 @@ bool RecordType::IsSubtypeOf(
 RecordPtr Record::New(RecordShape shape, Heap::Space space) {
   const intptr_t num_fields = shape.num_fields();
   ASSERT(num_fields >= 0);
-  Record& result = Record::Handle();
-  {
-    auto raw = Object::Allocate<Record>(space, num_fields);
-    NoSafepointScope no_safepoint;
-    raw->untag()->set_shape(shape.AsSmi());
-    result = raw;
-  }
-  return result.ptr();
+  auto raw = Object::Allocate<Record>(space, num_fields);
+  NoSafepointScope no_safepoint;
+  raw->untag()->set_shape(shape.AsSmi());
+  return raw;
 }
 
 const char* Record::ToCString() const {
