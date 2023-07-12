@@ -1023,6 +1023,7 @@ class RestoreWriteBarrierInvariantVisitor : public ObjectPointerVisitor {
 void Thread::RestoreWriteBarrierInvariant(RestoreWriteBarrierInvariantOp op) {
   ASSERT(IsAtSafepoint() || OwnsGCSafepoint());
   ASSERT(IsDartMutatorThread());
+  if (!FLAG_eliminate_write_barriers) return;
 
   const StackFrameIterator::CrossThreadPolicy cross_thread_policy =
       StackFrameIterator::kAllowCrossThreadIteration;
