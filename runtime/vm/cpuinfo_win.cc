@@ -20,6 +20,7 @@ CpuInfoMethod CpuInfo::method_ = kCpuInfoDefault;
 const char* CpuInfo::fields_[kCpuInfoMax] = {};
 
 void CpuInfo::Init() {
+#if defined(HOST_ARCH_IA32) || defined(HOST_ARCH_X64)
   method_ = kCpuInfoCpuId;
 
   // Initialize the CpuId information.
@@ -30,28 +31,55 @@ void CpuInfo::Init() {
   fields_[kCpuInfoHardware] = "Hardware";
   fields_[kCpuInfoFeatures] = "Features";
   fields_[kCpuInfoArchitecture] = nullptr;
+#elif defined(HOST_ARCH_ARM) || defined(HOST_ARCH_ARM64)
+  // We only rely on the base ARM64 version, so we don't need dynamic feature
+  // detection.
+  method_ = kCpuInfoNone;
+#else
+#error Unrecognized target architecture
+#endif
 }
 
 void CpuInfo::Cleanup() {
-  CpuId::Cleanup();
+  if (method_ == kCpuInfoCpuId) {
+    CpuId::Cleanup();
+  } else {
+    ASSERT(method_ == kCpuInfoNone);
+  }
 }
 
 bool CpuInfo::FieldContains(CpuInfoIndices idx, const char* search_string) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return strstr(CpuId::field(idx), search_string);
+  if (method_ == kCpuInfoCpuId) {
+    return CpuId::field(idx);
+  } else {
+    UNREACHABLE();
+  }
 }
 
 const char* CpuInfo::ExtractField(CpuInfoIndices idx) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return CpuId::field(idx);
+  if (method_ == kCpuInfoCpuId) {
+    return CpuId::field(idx);
+  } else if (method_ == kCpuInfoNone) {
+    if (idx == kCpuInfoHardware) {
+      return "Generic ARM64";
+    }
+    UNREACHABLE();
+  } else {
+    UNREACHABLE();
+  }
 }
 
 bool CpuInfo::HasField(const char* field) {
-  ASSERT(method_ != kCpuInfoDefault);
-  return (strcmp(field, fields_[kCpuInfoProcessor]) == 0) ||
-         (strcmp(field, fields_[kCpuInfoModel]) == 0) ||
-         (strcmp(field, fields_[kCpuInfoHardware]) == 0) ||
-         (strcmp(field, fields_[kCpuInfoFeatures]) == 0);
+  if (method_ == kCpuInfoCpuId) {
+    return (strcmp(field, fields_[kCpuInfoProcessor]) == 0) ||
+           (strcmp(field, fields_[kCpuInfoModel]) == 0) ||
+           (strcmp(field, fields_[kCpuInfoHardware]) == 0) ||
+           (strcmp(field, fields_[kCpuInfoFeatures]) == 0);
+  } else if (method_ == kCpuInfoNone) {
+    return false;
+  } else {
+    UNREACHABLE();
+  }
 }
 
 }  // namespace dart
