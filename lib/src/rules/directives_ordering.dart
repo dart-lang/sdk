@@ -116,6 +116,9 @@ const _importKeyword = 'import';
 ///
 /// Package is everything until the first `/`.
 int compareDirectives(String a, String b) {
+  if (!a.startsWith('package:') || !b.startsWith('package:')) {
+    return a.compareTo(b);
+  }
   var indexA = a.indexOf('/');
   var indexB = b.indexOf('/');
   if (indexA == -1 || indexB == -1) return a.compareTo(b);

@@ -274,4 +274,24 @@ import 'a.dart';
       lint(102, 16),
     ]);
   }
+
+  test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import() async {
+    await assertDiagnostics(r'''
+import './foo1.dart';
+import '../../foo2.dart';
+import '../foo3.dart';
+import 'foo4.dart';
+// ignore_for_file: unused_import, uri_does_not_exist
+''', [lint(22, 25)]);
+  }
+
+  test_sortDirectiveSectionsAlphabetically_dotInRelativePath_import_ok() async {
+    await assertNoDiagnostics(r'''
+import '../../foo4.dart';
+import '../foo3.dart';
+import './foo2.dart';
+import 'foo1.dart';
+// ignore_for_file: unused_import, uri_does_not_exist
+''');
+  }
 }
