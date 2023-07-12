@@ -338,22 +338,7 @@ late E e = E.two;
     ]);
   }
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4541')
-  test_deprecatedExtension_usedInExtensionOverride() async {
-    await assertDiagnostics(r'''
-@deprecated
-extension E on int {
-  void f() {}
-}
-
-var x = E(0).f();
-''', [
-      lint(58, 1),
-    ]);
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/4541')
-  test_deprecatedExtension_usedInOverride() async {
+  test_deprecatedExtension_usedInExtensionOverride_getter() async {
     await assertDiagnostics(r'''
 @deprecated
 extension E on int {
@@ -363,6 +348,19 @@ extension E on int {
 var x = E(0).foo;
 ''', [
       lint(64, 1),
+    ]);
+  }
+
+  test_deprecatedExtension_usedInExtensionOverride_methodInvocation() async {
+    await assertDiagnostics(r'''
+@deprecated
+extension E on int {
+  void f() {}
+}
+
+var x = E(0).f();
+''', [
+      lint(58, 1),
     ]);
   }
 
