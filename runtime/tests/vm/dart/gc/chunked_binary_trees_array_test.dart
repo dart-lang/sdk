@@ -9,6 +9,10 @@
 // VMOptions=--no_eliminate_write_barriers
 // VMOptions=--no_inline_alloc
 
+// Stress test for write barrier elimination that leaves many stores with
+// eliminated barriers that create the only reference to an object in flight at
+// the same time.
+
 buildTopDown(List n, int depth) {
   if (depth == 0) return;
 
