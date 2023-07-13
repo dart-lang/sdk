@@ -229,16 +229,6 @@ class LibraryMacroApplier {
             );
           }
         },
-        whenGetter: ({
-          required macroClass,
-          required instanceCreation,
-        }) async {
-          return await instantiateSingle(
-            macroClass: macroClass,
-            constructorName: instanceCreation.constructorName.name?.name ?? '',
-            argumentsNode: instanceCreation.argumentList,
-          );
-        },
       );
 
       if (macroInstance != null) {
@@ -288,10 +278,6 @@ class LibraryMacroApplier {
       required ClassElementImpl macroClass,
       required String? constructorName,
     }) whenClass,
-    required Future<R?> Function({
-      required ClassElementImpl macroClass,
-      required InstanceCreationExpression instanceCreation,
-    }) whenGetter,
   }) async {
     final String? prefix;
     final String name;
@@ -342,24 +328,6 @@ class LibraryMacroApplier {
             macroClass: element,
             constructorName: constructorName,
           );
-        }
-      } else if (element is PropertyAccessorElementImpl &&
-          element.isGetter &&
-          element.isSynthetic) {
-        final variable = element.variable;
-        final variableType = variable.type;
-        if (variable is ConstTopLevelVariableElementImpl &&
-            variableType is InterfaceType) {
-          final macroClass = variableType.element;
-          final initializer = variable.constantInitializer;
-          if (macroClass is ClassElementImpl &&
-              macroClass.isMacro &&
-              initializer is InstanceCreationExpression) {
-            return await whenGetter(
-              macroClass: macroClass,
-              instanceCreation: initializer,
-            );
-          }
         }
       }
     }
