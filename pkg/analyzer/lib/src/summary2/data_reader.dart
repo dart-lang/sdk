@@ -126,6 +126,16 @@ class SummaryDataReader {
     }, growable: false);
   }
 
+  List<T> readTypedListCast<T>(Object? Function() read) {
+    var length = readUInt30();
+    if (length == 0) {
+      return const <Never>[];
+    }
+    return List<T>.generate(length, (_) {
+      return read() as T;
+    }, growable: false);
+  }
+
   int readUInt30() {
     var byte = readByte();
     if (byte & 0x80 == 0) {

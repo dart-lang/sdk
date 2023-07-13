@@ -207,19 +207,33 @@ class _ElementWriter {
       }
     }
 
+    final augmented = e.augmented;
+
+    void writeMethods() {
+      _writeElements('methods', augmented.methods, (element) {
+        if (element.enclosingElement2 == e) {
+          _writeMethodElement(element);
+        } else {
+          _sink.writeIndent();
+          _elementPrinter.writeElement(element);
+        }
+      });
+    }
+
     _sink.writelnWithIndent('augmented');
     _sink.withIndent(() {
-      final augmented = e.augmented;
       switch (augmented) {
         case AugmentedClassElement():
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeMethods();
         case AugmentedMixinElement():
           _elementPrinter.writeTypeList(
             'superclassConstraints',
             augmented.superclassConstraints,
           );
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeMethods();
       }
       // TODO(scheglov) Add other types and properties
     });
@@ -466,7 +480,7 @@ class _ElementWriter {
     _sink.withIndent(() {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
-      _writeElements('methods', e.methods, _writeMethodElement);
+      _writeMethods(e.methods);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -612,7 +626,7 @@ class _ElementWriter {
       }
 
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
-      _writeElements('methods', e.methods, _writeMethodElement);
+      _writeMethods(e.methods);
 
       if (e is InterfaceElementImpl) {
         _writeAugmented(e);
@@ -709,6 +723,10 @@ class _ElementWriter {
     } else {
       _assertNonSyntheticElementSelf(e);
     }
+  }
+
+  void _writeMethods(List<MethodElement> elements) {
+    _writeElements('methods', elements, _writeMethodElement);
   }
 
   void _writeName(Element e) {

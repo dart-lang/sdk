@@ -157,6 +157,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
       element.augmentedInternal = augmented;
       augmented.mixins = reader._readInterfaceTypeList();
       augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
@@ -248,7 +249,7 @@ abstract class ElementLinkedData<E extends ElementImpl> {
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement2;
-    if (enclosing is InterfaceElement) {
+    if (enclosing is InstanceOrAugmentationElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
@@ -1739,6 +1740,7 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
       element.augmentedInternal = augmented;
       augmented.superclassConstraints = reader._readInterfaceTypeList();
       augmented.interfaces = reader._readInterfaceTypeList();
+      augmented.methods = reader.readElementList();
     }
 
     applyConstantOffsets?.perform();
@@ -1838,6 +1840,10 @@ class ResolutionReader {
     }
 
     throw UnimplementedError('memberFlags: $memberFlags');
+  }
+
+  List<T> readElementList<T extends Element>() {
+    return _reader.readTypedListCast<T>(readElement);
   }
 
   FunctionType? readOptionalFunctionType() {

@@ -10,6 +10,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -128,19 +129,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(
-      element,
-      element.augmentedDeclaration,
-      (declaration, substitution) {
-        final augmented = declaration.augmented;
-        augmented.mixins.addAll(
-          substitution.mapInterfaceTypes(element.mixins),
-        );
-        augmented.interfaces.addAll(
-          substitution.mapInterfaceTypes(element.interfaces),
-        );
-      },
-    );
+    _updatedAugmented(element);
   }
 
   void _classDeclaration(ClassDeclaration node) {
@@ -173,6 +162,7 @@ class TypesBuilder {
       element.augmentedInternal = augmented;
       augmented.mixins.addAll(element.mixins);
       augmented.interfaces.addAll(element.interfaces);
+      augmented.methods.addAll(element.methods);
     }
   }
 
@@ -346,19 +336,7 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    _updatedAugmented(
-      element,
-      element.augmentedDeclaration,
-      (declaration, substitution) {
-        final augmented = declaration.augmented;
-        augmented.superclassConstraints.addAll(
-          substitution.mapInterfaceTypes(element.superclassConstraints),
-        );
-        augmented.interfaces.addAll(
-          substitution.mapInterfaceTypes(element.interfaces),
-        );
-      },
-    );
+    _updatedAugmented(element);
   }
 
   void _mixinDeclaration(MixinDeclaration node) {
@@ -381,6 +359,7 @@ class TypesBuilder {
       element.augmentedInternal = augmented;
       augmented.superclassConstraints.addAll(element.superclassConstraints);
       augmented.interfaces.addAll(element.interfaces);
+      augmented.methods.addAll(element.methods);
     }
   }
 
@@ -424,9 +403,8 @@ class TypesBuilder {
 
   void _updatedAugmented<Declaration extends InstanceElementImpl>(
     InstanceAugmentationElementImpl element,
-    Declaration? declaration,
-    void Function(Declaration declaration, Substitution substitution) f,
   ) {
+    final declaration = element.augmentedDeclaration;
     if (declaration == null) {
       return;
     }
@@ -446,7 +424,38 @@ class TypesBuilder {
       }).toList(),
     );
 
-    f(declaration, substitution);
+    final typeProvider = element.library.typeProvider;
+    final augmented = declaration.augmented;
+
+    if (element is InterfaceAugmentationElementImpl &&
+        augmented is AugmentedInterfaceElementImpl) {
+      augmented.mixins.addAll(
+        substitution.mapInterfaceTypes(element.mixins),
+      );
+      augmented.interfaces.addAll(
+        substitution.mapInterfaceTypes(element.interfaces),
+      );
+    }
+
+    if (element is MixinAugmentationElementImpl &&
+        augmented is AugmentedMixinElementImpl) {
+      augmented.superclassConstraints.addAll(
+        substitution.mapInterfaceTypes(element.superclassConstraints),
+      );
+    }
+
+    if (augmented is AugmentedInstanceElementImpl) {
+      MethodElement mapMethodElement(MethodElement element) {
+        if (substitution.map.isEmpty) {
+          return element;
+        }
+        return MethodMember(typeProvider, element, substitution, false);
+      }
+
+      augmented.methods.addAll(
+        element.methods.map(mapMethodElement),
+      );
+    }
   }
 
   /// The [FunctionType] to use when a function type is expected for a type
