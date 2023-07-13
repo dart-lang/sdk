@@ -72,13 +72,7 @@ extension FunctionToJSExportedDartFunction on Function {
       js_util.allowInterop(this) as JSExportedDartFunction;
 }
 
-/// Embedded global property for wrapped Dart objects passed via JS interop.
-///
-/// This is a Symbol so that different Dart applications don't share Dart
-/// objects from different Dart runtimes. We expect all [JSBoxedDartObject]s to
-/// have this Symbol.
-final Object _jsBoxedDartObjectProperty =
-    foreign_helper.JS('', 'Symbol("jsBoxedDartObjectProperty")');
+const _jsBoxedDartObjectProperty = "'_\$jsBoxedDartObject'";
 
 /// [JSBoxedDartObject] <-> [Object]
 @patch
@@ -86,25 +80,37 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
   @patch
   @pragma('dart2js:prefer-inline')
   Object get toDart {
-    final val = js_util.getProperty(this, _jsBoxedDartObjectProperty);
-    if (val == null) {
-      throw 'Expected a wrapped Dart object, but got a JS object or a wrapped '
-          'Dart object from a separate runtime instead.';
+    if (this is JavaScriptObject) {
+      final val = foreign_helper.JS(
+          'Object|Null', '#[$_jsBoxedDartObjectProperty]', this);
+      if (val == null) {
+        throw 'Expected a wrapped Dart object, but got a JS object instead.';
+      }
+      return val as Object;
     }
-    return val as Object;
+    // TODO(srujzs): Currently we have to still support Dart objects being
+    // returned from JS until `Object.toJS` is removed. Once that is removed,
+    // and the runtime type of this type is changed, we can get rid of this and
+    // the type check above.
+    return this;
   }
 }
 
 @patch
 extension ObjectToJSBoxedDartObject on Object {
+  // TODO(srujzs): Remove.
+  @patch
+  @pragma('dart2js:prefer-inline')
+  JSBoxedDartObject get toJS => this as JSBoxedDartObject;
+
   @patch
   @pragma('dart2js:prefer-inline')
   JSBoxedDartObject get toJSBox {
     if (this is JavaScriptObject) {
       throw 'Attempting to box non-Dart object.';
     }
-    final box = js_util.newObject();
-    js_util.setProperty(box, _jsBoxedDartObjectProperty, this);
+    final box =
+        foreign_helper.JS('=Object', '{$_jsBoxedDartObjectProperty: #}', this);
     return box as JSBoxedDartObject;
   }
 }
@@ -300,6 +306,11 @@ extension ListToJSArray on List<JSAny?> {
 /// [JSNumber] -> [double] or [int].
 @patch
 extension JSNumberToNumber on JSNumber {
+  // TODO(srujzs): Remove.
+  @patch
+  @pragma('dart2js:prefer-inline')
+  double get toDart => this as double;
+
   @patch
   @pragma('dart2js:prefer-inline')
   double get toDartDouble => this as double;

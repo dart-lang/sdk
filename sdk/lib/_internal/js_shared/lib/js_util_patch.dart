@@ -67,7 +67,7 @@ dynamic jsify(Object? object) {
 Object get globalThis => JS('', 'globalThis');
 
 @patch
-T newObject<T>() => JS('PlainJavaScriptObject', '{}');
+T newObject<T>() => JS('=Object', '{}');
 
 @patch
 bool hasProperty(Object o, Object name) => JS('bool', '# in #', name, o);

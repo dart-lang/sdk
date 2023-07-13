@@ -1,22 +1,3 @@
-## 3.2.0
-
-### Language
-
-### Libraries
-
-#### `dart:js_interop`
-
-- **JSNumber.toDart and Object.toJS**:
-  `JSNumber.toDart` is removed in favor of `toDartDouble` and `toDartInt` to
-  make the type explicit. `Object.toJS` is also removed in favor of
-  `Object.toJSBox`. Previously, this function would allow Dart objects to flow
-  into JS unwrapped on the JS backends. Now, there's an explicit wrapper that is
-  added and unwrapped via `JSBoxedDartObject.toDart`. Similarly,
-  `JSExportedDartObject` is renamed to `JSBoxedDartObject` and the extensions
-  `ObjectToJSExportedDartObject` and `JSExportedDartObjectToObject` are renamed
-  to `ObjectToJSBoxedDartObject` and `JSBoxedDartObjectToObject` in order to
-  avoid confusion with `@JSExport`.
-
 ## 3.1.0
 
 ### Language
