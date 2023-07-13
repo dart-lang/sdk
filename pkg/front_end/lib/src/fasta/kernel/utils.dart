@@ -246,7 +246,7 @@ final TypeBuilder dummyTypeBuilder =
 final FormalParameterBuilder dummyFormalParameterBuilder =
     new FormalParameterBuilder(null, FormalParameterKind.requiredPositional, 0,
         const ImplicitTypeBuilder(), '', null, -1,
-        fileUri: dummyUri);
+        fileUri: dummyUri, hasImmediatelyDeclaredInitializer: false);
 final TypeVariableBuilder dummyTypeVariableBuilder = new TypeVariableBuilder(
     TypeVariableBuilder.noNameSentinel, null, -1, null,
     kind: TypeVariableKind.function);

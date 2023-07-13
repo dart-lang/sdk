@@ -1,0 +1,50 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+abstract class B extends core::Object /*hasConstConstructor*/  {
+  final field core::bool autofocus;
+  const constructor •({required core::bool autofocus = null}) → self::B
+    : self::B::autofocus = autofocus, super core::Object::•()
+    ;
+}
+class O1 extends self::B /*hasConstConstructor*/  {
+  const constructor •({core::bool autofocus = true}) → self::O1
+    : super self::B::•(autofocus: autofocus)
+    ;
+  static method _#new#tearOff({has-declared-initializer core::bool autofocus}) → self::O1
+    return new self::O1::•(autofocus: autofocus);
+}
+class O2 extends self::B /*hasConstConstructor*/  {
+  const constructor •({core::bool autofocus = true}) → self::O2
+    : super self::B::•(autofocus: autofocus)
+    ;
+  static method _#new#tearOff({has-declared-initializer core::bool autofocus}) → self::O2
+    return new self::O2::•(autofocus: autofocus);
+}
+abstract class C extends core::Object /*hasConstConstructor*/  {
+  final field core::bool a;
+  final field core::bool b;
+  const constructor •({core::bool a = true, core::bool b = false}) → self::C
+    : self::C::a = a, self::C::b = b, super core::Object::•()
+    ;
+}
+class P1 extends self::C /*hasConstConstructor*/  {
+  final field core::int c;
+  const constructor •(core::int c, {core::bool a = true, core::bool b = false}) → self::P1
+    : self::P1::c = c, super self::C::•(a: a, b: b)
+    ;
+  static method _#new#tearOff(core::int c, {core::bool a = true, core::bool b = false}) → self::P1
+    return new self::P1::•(c, a: a, b: b);
+}
+class P2 extends self::C /*hasConstConstructor*/  {
+  const constructor •({core::bool b = false, core::bool a = true}) → self::P2
+    : super self::C::•(b: b, a: a)
+    ;
+  static method _#new#tearOff({core::bool b = false, core::bool a = true}) → self::P2
+    return new self::P2::•(b: b, a: a);
+}
+static method main() → dynamic
+  ;
+static method expect(dynamic expected, dynamic actual) → dynamic
+  ;

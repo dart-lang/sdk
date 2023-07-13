@@ -655,7 +655,8 @@ class DeclaredSourceConstructorBuilder
       FormalParameterBuilder formal = formals![formalIndex];
       if (formal.isSuperInitializingFormal) {
         superInitializingFormalIndex++;
-        bool hasImmediatelyDeclaredInitializer = formal.hasDeclaredInitializer;
+        bool hasImmediatelyDeclaredInitializer =
+            formal.hasImmediatelyDeclaredInitializer;
 
         DartType? correspondingSuperFormalType;
         if (formal.isPositional) {
@@ -718,6 +719,15 @@ class DeclaredSourceConstructorBuilder
             namedSuperParameters: namedSuperParameters ?? const <String>[],
             isOutlineNode: true,
             libraryBuilder: libraryBuilder));
+        if (_constructorTearOff != null) {
+          delayedDefaultValueCloners.add(new DelayedDefaultValueCloner(
+              superTarget, _constructorTearOff!, substitution,
+              positionalSuperParameters:
+                  positionalSuperParameters ?? const <int>[],
+              namedSuperParameters: namedSuperParameters ?? const <String>[],
+              isOutlineNode: true,
+              libraryBuilder: libraryBuilder));
+        }
         _hasDefaultValueCloner = true;
       }
     }

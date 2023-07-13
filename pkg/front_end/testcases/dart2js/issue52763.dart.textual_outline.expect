@@ -1,0 +1,30 @@
+abstract class B {
+  final bool autofocus;
+  const B({required this.autofocus});
+}
+
+class O1 extends B {
+  const O1({bool autofocus = true}) : super(autofocus: autofocus);
+}
+
+class O2 extends B {
+  const O2({super.autofocus = true});
+}
+
+abstract class C {
+  final bool a;
+  final bool b;
+  const C({this.a = true, this.b = false});
+}
+
+class P1 extends C {
+  final int c;
+  const P1(this.c, {super.a, super.b});
+}
+
+class P2 extends C {
+  const P2({super.b, super.a});
+}
+
+main() {}
+expect(expected, actual) {}

@@ -35,7 +35,7 @@ library from "org-dartlang-test:///main.dart" as main {
     const constructor •({fra::Key? key = #C1}) → main::GalleryApp
       : super fra::StatefulWidget::•(key: key)
       ;
-    static method _#new#tearOff({fra::Key? key}) → main::GalleryApp
+    static method _#new#tearOff({fra::Key? key = #C1}) → main::GalleryApp
       return new main::GalleryApp::•(key: key);
   }
 }

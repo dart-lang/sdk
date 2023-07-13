@@ -3310,9 +3310,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     FormalParameterBuilder formal = new FormalParameterBuilder(
         metadata, kind, modifiers, type, name, this, charOffset,
-        fileUri: fileUri)
-      ..initializerToken = initializerToken
-      ..hasDeclaredInitializer = (initializerToken != null);
+        fileUri: fileUri,
+        hasImmediatelyDeclaredInitializer: initializerToken != null)
+      ..initializerToken = initializerToken;
     return formal;
   }
 

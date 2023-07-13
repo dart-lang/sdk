@@ -10,11 +10,19 @@ library;
 //   D6([int super.x]); // Error
 //                 ^
 //
-// pkg/front_end/testcases/super_parameters/default_values.dart:118:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+// pkg/front_end/testcases/super_parameters/default_values.dart:119:18: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+//   C5b({int super.x}); // Error.
+//                  ^
+//
+// pkg/front_end/testcases/super_parameters/default_values.dart:133:18: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+//   D6b({int super.x}); // Error
+//                  ^
+//
+// pkg/front_end/testcases/super_parameters/default_values.dart:186:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
 //   Bp([int super.x]); // Error.
 //                 ^
 //
-// pkg/front_end/testcases/super_parameters/default_values.dart:127:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
+// pkg/front_end/testcases/super_parameters/default_values.dart:195:17: Error: Type 'int' of the optional super-initializer parameter 'x' doesn't allow 'null', but the parameter doesn't have a default value, and the default value can't be copied from the corresponding parameter of the super constructor.
 //   Bn({int super.x}); // Error.
 //                 ^
 //
@@ -149,6 +157,88 @@ class S9 extends core::Object {
   field core::int s;
   constructor •([core::int x = #C1]) → self::S9
     : self::S9::s = x.{core::num::-}(1){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class S5b extends core::Object {
+  field core::num a;
+  constructor •({core::num x = #C3}) → self::S5b
+    : self::S5b::a = x.{core::num::-}(1){(core::num) → core::num}, super core::Object::•()
+    ;
+}
+class C5b extends self::S5b {
+  constructor •({core::int x = #C4}) → self::C5b
+    : super self::S5b::•(x: x)
+    ;
+}
+class S6b extends core::Object {
+  field core::num? a;
+  constructor •({core::num? x = #C3}) → self::S6b
+    : self::S6b::a = x, super core::Object::•()
+    ;
+}
+class C6b extends self::S6b {
+  field core::int? b = null;
+  constructor •({core::int? x = #C4}) → self::C6b
+    : super self::S6b::•(x: x)
+    ;
+}
+class D6b extends self::C6b {
+  constructor •({core::int x = #C4}) → self::D6b
+    : super self::C6b::•(x: x)
+    ;
+}
+class S7b extends core::Object {
+  field core::int s;
+  constructor •({core::int x = #C1}) → self::S7b
+    : self::S7b::s = x.{core::num::-}(1){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class C7b extends self::S7b {
+  field core::int c;
+  constructor •({core::int x = #C1}) → self::C7b
+    : self::C7b::c = x.{core::num::+}(1){(core::num) → core::int}, super self::S7b::•(x: x)
+    ;
+}
+class CC7b extends self::C7b {
+  field core::int cc;
+  constructor •({core::int x = #C1}) → self::CC7b
+    : self::CC7b::cc = x.{core::num::*}(1){(core::num) → core::int}, super self::C7b::•(x: x)
+    ;
+}
+class S8b extends core::Object /*hasConstConstructor*/  {
+  final field core::int s;
+  const constructor •({core::int x = #C1}) → self::S8b
+    : self::S8b::s = x.{core::num::-}(1){(core::num) → core::int}, super core::Object::•()
+    ;
+}
+class CC8b extends self::C8b /*hasConstConstructor*/  {
+  final field core::int cc;
+  const constructor •({core::int x = #C1}) → self::CC8b
+    : self::CC8b::cc = x.{core::num::*}(1){(core::num) → core::int}, super self::C8b::•(x: x)
+    ;
+}
+class C8b extends self::S8b /*hasConstConstructor*/  {
+  final field core::int c;
+  const constructor •({core::int x = #C1}) → self::C8b
+    : self::C8b::c = x.{core::num::+}(1){(core::num) → core::int}, super self::S8b::•(x: x)
+    ;
+}
+class CC9b extends self::C9b {
+  field core::int cc;
+  constructor •({core::int x = #C1}) → self::CC9b
+    : self::CC9b::cc = x.{core::num::*}(1){(core::num) → core::int}, super self::C9b::•(x: x)
+    ;
+}
+class C9b extends self::S9b {
+  field core::int c;
+  constructor •({core::int x = #C1}) → self::C9b
+    : self::C9b::c = x.{core::num::+}(1){(core::num) → core::int}, super self::S9b::•(x: x)
+    ;
+}
+class S9b extends core::Object {
+  field core::int s;
+  constructor •({core::int x = #C1}) → self::S9b
+    : self::S9b::s = x.{core::num::-}(1){(core::num) → core::int}, super core::Object::•()
     ;
 }
 class Ap extends core::Object {

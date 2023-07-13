@@ -97,14 +97,21 @@ class FormalParameterBuilder extends ModifierBuilderImpl
   bool initializerWasInferred = false;
 
   /// True if the initializer was declared by the programmer.
-  bool hasDeclaredInitializer = false;
+  final bool hasImmediatelyDeclaredInitializer;
+
+  /// True if the initializer was declared by the programmer, either directly
+  /// or inferred from a super parameter.
+  bool hasDeclaredInitializer;
 
   final bool isExtensionThis;
 
   FormalParameterBuilder(this.metadata, this.kind, this.modifiers, this.type,
       this.name, LibraryBuilder? compilationUnit, int charOffset,
-      {Uri? fileUri, this.isExtensionThis = false})
+      {Uri? fileUri,
+      this.isExtensionThis = false,
+      required this.hasImmediatelyDeclaredInitializer})
       : this.fileUri = fileUri ?? compilationUnit?.fileUri,
+        this.hasDeclaredInitializer = hasImmediatelyDeclaredInitializer,
         super(compilationUnit, charOffset) {
     type.registerInferredTypeListener(this);
   }
@@ -203,7 +210,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           null,
           charOffset,
           fileUri: fileUri,
-          isExtensionThis: isExtensionThis)
+          isExtensionThis: isExtensionThis,
+          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
         ..parent = parent
         ..variable = variable;
     } else if (isSuperInitializingFormal) {
@@ -216,7 +224,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
           null,
           charOffset,
           fileUri: fileUri,
-          isExtensionThis: isExtensionThis)
+          isExtensionThis: isExtensionThis,
+          hasImmediatelyDeclaredInitializer: hasImmediatelyDeclaredInitializer)
         ..parent = parent
         ..variable = variable;
     } else {
@@ -278,7 +287,8 @@ class FormalParameterBuilder extends ModifierBuilderImpl
         bodyBuilder.performBacklogComputations(
             delayedActionPerformers: delayedActionPerformers,
             allowFurtherDelays: false);
-      } else if (kind != FormalParameterKind.requiredPositional) {
+      } else if (kind != FormalParameterKind.requiredPositional &&
+          !isSuperInitializingFormal) {
         // As done by BodyBuilder.endFormalParameter.
         variable!.initializer = new NullLiteral()..parent = variable;
       }
