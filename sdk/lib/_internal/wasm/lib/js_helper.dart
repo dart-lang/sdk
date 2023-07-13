@@ -110,7 +110,7 @@ class JSArrayIteratorAdapter<T> implements Iterator<T> {
   @override
   bool moveNext() {
     index++;
-    int length = array.length.toDart.toInt();
+    int length = array.length.toDartInt;
     if (index > length) {
       throw 'Iterator out of bounds';
     }
@@ -132,7 +132,7 @@ class JSArrayIterableAdapter<T> extends EfficientLengthIterable<T> {
   Iterator<T> get iterator => JSArrayIteratorAdapter<T>(array);
 
   @override
-  int get length => array.length.toDart.toInt();
+  int get length => array.length.toDartInt;
 }
 
 // Convert to double to avoid converting to [BigInt] in the case of int64.

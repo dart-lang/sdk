@@ -176,12 +176,12 @@ class _MatchImplementation implements RegExpMatch {
 
   String get input => _match.input.toDart;
 
-  int get start => _match.index.toDart.toInt();
+  int get start => _match.index.toDartInt;
 
   int get end => (start + (_match[0.toJS].toString()).length);
 
   String? group(int index) {
-    if (index < 0 || index >= _match.length.toDart.toInt()) {
+    if (index < 0 || index >= _match.length.toDartInt) {
       throw RangeError("Index $index is out of range ${_match.length}");
     }
     return _match[index.toJS]?.toString();
@@ -189,7 +189,7 @@ class _MatchImplementation implements RegExpMatch {
 
   String? operator [](int index) => group(index);
 
-  int get groupCount => _match.length.toDart.toInt() - 1;
+  int get groupCount => _match.length.toDartInt - 1;
 
   List<String?> groups(List<int> groups) {
     List<String?> out = [];
@@ -311,7 +311,7 @@ int regExpCaptureCount(JSSyntaxRegExp regexp) {
   final match = nativeAnchoredRegExp.exec(''.toJS)!;
   // The native-anchored regexp always have one capture more than the original,
   // and always matches the empty string.
-  return match.length.toDart.toInt() - 2;
+  return match.length.toDartInt - 2;
 }
 
 /// Find the first match of [regExp] in [string] at or after [start].

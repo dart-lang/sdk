@@ -197,9 +197,6 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
 }
 
 extension ObjectToJSBoxedDartObject on Object {
-  // TODO(srujzs): Remove. Prefer toJSBox.
-  external JSBoxedDartObject get toJS;
-
   external JSBoxedDartObject get toJSBox;
 }
 
@@ -321,9 +318,6 @@ extension ListToJSArray on List<JSAny?> {
 
 /// [JSNumber] -> [double] or [int].
 extension JSNumberToNumber on JSNumber {
-  // TODO(srujzs): Remove. Prefer toDartDouble or toDartInt.
-  external double get toDart;
-
   /// Returns a Dart [double] for the given [JSNumber].
   external double get toDartDouble;
 
