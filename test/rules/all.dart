@@ -155,6 +155,8 @@ import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
 import 'unnecessary_statements_test.dart' as unnecessary_statements;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
+import 'unnecessary_string_interpolations_test.dart'
+    as unnecessary_string_interpolations;
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
@@ -297,6 +299,7 @@ void main() {
   unnecessary_parenthesis.main();
   unnecessary_statements.main();
   unnecessary_string_escapes.main();
+  unnecessary_string_interpolations.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
   unreachable_from_main.main();
