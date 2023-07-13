@@ -62,10 +62,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    // TODO(scheglov) implements
-    // scope = InterfaceScope(scope, element);
-    // LinkingNodeContext(node, scope);
-    // node.members.accept(this);
+    final declaration = element.augmentedDeclaration;
+    if (declaration != null) {
+      scope = InterfaceScope(scope, declaration);
+      LinkingNodeContext(node, scope);
+      node.members.accept(this);
+    }
 
     nodesToBuildType.addDeclaration(node);
     scope = outerScope;
@@ -344,10 +346,12 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
 
-    // TODO(scheglov) implements
-    // scope = InterfaceScope(scope, element);
-    // LinkingNodeContext(node, scope);
-    // node.members.accept(this);
+    final declaration = element.augmentedDeclaration;
+    if (declaration != null) {
+      scope = InterfaceScope(scope, declaration);
+      LinkingNodeContext(node, scope);
+      node.members.accept(this);
+    }
 
     nodesToBuildType.addDeclaration(node);
     scope = outerScope;

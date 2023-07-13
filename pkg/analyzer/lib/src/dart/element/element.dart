@@ -125,6 +125,9 @@ class AugmentedInlineClassElementImpl extends AugmentedNamedInstanceElementImpl
 abstract class AugmentedInstanceElementImpl
     implements AugmentedInstanceElement {
   @override
+  List<MethodElement> methods = [];
+
+  @override
   // TODO: implement accessors
   List<PropertyAccessorElement> get accessors => throw UnimplementedError();
 
@@ -135,10 +138,6 @@ abstract class AugmentedInstanceElementImpl
   @override
   // TODO: implement metadata
   List<ElementAnnotation> get metadata => throw UnimplementedError();
-
-  @override
-  // TODO: implement methods
-  List<MethodElement> get methods => throw UnimplementedError();
 
   @override
   FieldElement? getField(String name) {

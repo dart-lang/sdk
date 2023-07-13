@@ -187,6 +187,7 @@ class BundleWriter {
         (augmented) {
           _resolutionSink._writeTypeList(augmented.mixins);
           _resolutionSink._writeTypeList(augmented.interfaces);
+          _resolutionSink._writeElementList(augmented.methods);
         },
       );
 
@@ -476,6 +477,7 @@ class BundleWriter {
         (augmented) {
           _resolutionSink._writeTypeList(augmented.superclassConstraints);
           _resolutionSink._writeTypeList(augmented.interfaces);
+          _resolutionSink._writeElementList(augmented.methods);
         },
       );
 
@@ -811,6 +813,13 @@ class ResolutionSink extends _SummaryDataWriter {
     writeUInt30(elementIndex);
   }
 
+  void _writeElementList(List<Element> elements) {
+    writeUInt30(elements.length);
+    for (final element in elements) {
+      writeElement(element);
+    }
+  }
+
   void _writeFormalParameters(
     List<ParameterElement> parameters, {
     required bool withAnnotations,
@@ -935,11 +944,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
 
     var enclosing = declaration.enclosingElement2;
-    if (enclosing is TypeParameterizedElement) {
-      if (enclosing is! InterfaceElement && enclosing is! ExtensionElement) {
-        return const <DartType>[];
-      }
-
+    if (enclosing is InstanceOrAugmentationElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];

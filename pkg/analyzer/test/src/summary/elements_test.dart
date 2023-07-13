@@ -347,6 +347,102 @@ library
 ''');
   }
 
+  test_augmented_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        methods
+          foo @42
+            returnType: void
+        augmented
+          methods
+            foo @42
+              returnType: void
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            methods
+              bar @54
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> {
+  T2 bar() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        methods
+          foo @42
+            returnType: T
+        augmented
+          methods
+            foo @42
+              returnType: T
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+              substitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            methods
+              bar @56
+                returnType: T2
+''');
+  }
+
   test_augmented_mixins() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
@@ -45459,6 +45555,105 @@ library
                 augmentedDeclaration: self::@mixin::A
                 interfaces
                   I3
+''');
+  }
+
+  test_augmented_methods() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  void bar() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo @42
+            returnType: void
+        augmented
+          superclassConstraints
+            Object
+          methods
+            foo @42
+              returnType: void
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            methods
+              bar @54
+                returnType: void
+''');
+  }
+
+  test_augmented_methods_generic() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A<T2> {
+  T2 bar() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A<T> {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo @42
+            returnType: T
+        augmented
+          superclassConstraints
+            Object
+          methods
+            foo @42
+              returnType: T
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+              substitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @43
+            typeParameters
+              covariant T2 @45
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            methods
+              bar @56
+                returnType: T2
 ''');
   }
 
