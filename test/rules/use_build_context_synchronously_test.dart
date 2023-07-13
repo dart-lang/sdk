@@ -786,6 +786,66 @@ void foo(BuildContext context) async {
     expect(ifStatement.asyncStateFor(reference), isNull);
   }
 
+  test_ifStatement_referenceInElse_notMounted() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInElse_notMountedOrUninterestingInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (!context.mounted || 1 == 2) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInElse_uninterestingAndNotMountedInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2 && !context.mounted) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
+  }
+
+  test_ifStatement_referenceInElse_uninterestingOrNotMountedInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2 || !context.mounted) {
+  } else {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
+  }
+
   test_ifStatement_referenceInThen_asyncInAssignmentInCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -856,20 +916,6 @@ void foo(BuildContext context) async {
     expect(ifStatement.asyncStateFor(reference), AsyncState.mountedCheck);
   }
 
-  test_ifStatement_referenceInThen_conditionOrMountedInCondition() async {
-    await resolveCode(r'''
-import 'package:flutter/widgets.dart';
-void foo(BuildContext context) async {
-  if (1 == 2 || context.mounted) {
-    context /* ref */;
-  }
-}
-''');
-    var ifStatement = findNode.ifStatement('if ');
-    var reference = findNode.block('context /* ref */');
-    expect(ifStatement.asyncStateFor(reference), isNull);
-  }
-
   test_ifStatement_referenceInThen_mountedAndAwaitInCondition() async {
     await resolveCode(r'''
 import 'package:flutter/widgets.dart';
@@ -910,6 +956,20 @@ void foo(BuildContext context) async {
     var ifStatement = findNode.ifStatement('if ');
     var reference = findNode.block('context /* ref */');
     expect(ifStatement.asyncStateFor(reference), AsyncState.asynchronous);
+  }
+
+  test_ifStatement_referenceInThen_uninterestingOrMountedInCondition() async {
+    await resolveCode(r'''
+import 'package:flutter/widgets.dart';
+void foo(BuildContext context) async {
+  if (1 == 2 || context.mounted) {
+    context /* ref */;
+  }
+}
+''');
+    var ifStatement = findNode.ifStatement('if ');
+    var reference = findNode.block('context /* ref */');
+    expect(ifStatement.asyncStateFor(reference), isNull);
   }
 
   test_indexExpression_referenceInRhs_asyncInIndex() async {

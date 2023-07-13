@@ -269,8 +269,7 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         // A mounted guard only applies if both sides are guarded.
         (AsyncState.mountedCheck, AsyncState.mountedCheck) =>
           AsyncState.mountedCheck,
-        (AsyncState.notMountedCheck, AsyncState.notMountedCheck) =>
-          AsyncState.notMountedCheck,
+        (AsyncState.notMountedCheck, _) => AsyncState.notMountedCheck,
         // Otherwise it's just uninteresting.
         (_, _) => null,
       };
