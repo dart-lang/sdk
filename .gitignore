@@ -107,3 +107,4 @@ tools/xcodebuild
 /pkg/front_end/testcases/old_dills/
 logs/logs.json
 logs/results.json
+.dart_tool/bisect_dart/
