@@ -1,0 +1,11 @@
+name: bisect_dart
+# This package is not intended for consumption on pub.dev. DO NOT publish.
+publish_to: none
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  cli_config: any
+  intl: any
+  logging: any
