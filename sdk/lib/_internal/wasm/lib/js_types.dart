@@ -8,7 +8,8 @@
 /// library.
 library dart._js_types;
 
-import 'dart:_internal' show CodeUnits, FixedLengthListMixin;
+import 'dart:_internal'
+    show CodeUnits, FixedLengthListMixin, IterableElementError, Lists;
 import 'dart:_js_helper' as js;
 import 'dart:_string_helper';
 import 'dart:_wasm';
