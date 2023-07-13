@@ -789,44 +789,32 @@
           ]
         },
         {
-          "name": "front_end weak co19 tests",
+          "name": "front_end weak tests",
           "arguments": [
             "-ncfe-weak-${system}",
-            "co19"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
-          "name": "front_end strong co19 tests",
-          "arguments": [
-            "-ncfe-strong-${system}",
-            "co19"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
-          "name": "front_end weak sdk tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
+            "co19",
             "corelib",
             "ffi",
             "language",
             "lib",
             "service"
-          ]
+          ],
+          "fileset": "front-end",
+          "shards": 2
         },
         {
-          "name": "front_end strong sdk tests",
+          "name": "front_end strong tests",
           "arguments": [
             "-ncfe-strong-${system}",
+            "co19",
             "corelib",
             "ffi",
             "language",
             "lib",
             "service"
-          ]
+          ],
+          "fileset": "front-end",
+          "shards": 2
         }
       ]
     },
