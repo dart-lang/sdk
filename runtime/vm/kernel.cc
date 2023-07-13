@@ -113,7 +113,6 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
       GrowableArray<intptr_t>* record_token_positions_into)
       : KernelReaderHelper(zone,
                            translation_helper,
-                           script,
                            data,
                            data_program_offset),
         current_script_id_(initial_script_index),
@@ -223,11 +222,17 @@ static void CollectKernelDataTokenPositions(
   token_position_collector.CollectTokenPositions(kernel_offset);
 }
 
-void CollectTokenPositionsFor(const Script& interesting_script) {
+}  // namespace kernel
+
+void Script::CollectTokenPositionsFor() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  TranslationHelper helper(thread);
-  helper.InitFromScript(interesting_script);
+
+  const auto& kernel_info =
+      KernelProgramInfo::Handle(zone, kernel_program_info());
+
+  kernel::TranslationHelper helper(thread);
+  helper.InitFromKernelProgramInfo(kernel_info);
 
   GrowableArray<intptr_t> token_positions(10);
 
@@ -238,6 +243,8 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
   ExternalTypedData& data = ExternalTypedData::Handle(zone);
+
+  auto& interesting_script = *this;
 
   auto& temp_array = Array::Handle(zone);
   auto& temp_field = Field::Handle(zone);
@@ -334,28 +341,34 @@ void CollectTokenPositionsFor(const Script& interesting_script) {
 
   Script& script = Script::Handle(zone, interesting_script.ptr());
   Array& array_object = Array::Handle(zone);
-  array_object = AsSortedDuplicateFreeArray(&token_positions);
+  array_object = kernel::AsSortedDuplicateFreeArray(&token_positions);
   script.set_debug_positions(array_object);
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
+ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  TranslationHelper helper(thread);
-  helper.InitFromScript(interesting_script);
+  kernel::TranslationHelper helper(thread);
+
+  const auto& interesting_script = *this;
+
+  const auto& kernel_info =
+      KernelProgramInfo::Handle(zone, kernel_program_info());
+  helper.InitFromKernelProgramInfo(kernel_info);
 
   ExternalTypedData& data =
       ExternalTypedData::Handle(zone, interesting_script.constant_coverage());
 
-  KernelReaderHelper kernel_reader(zone, &helper, interesting_script, data, 0);
+  kernel::KernelReaderHelper kernel_reader(zone, &helper, data, 0);
 
   // Read "constant coverage constructors".
-  const intptr_t constant_coverage_constructors = kernel_reader.ReadUInt();
+  const intptr_t constant_coverage_constructors =
+      kernel_reader.ReadListLength();
   const Array& constructors =
       Array::Handle(Array::New(constant_coverage_constructors));
   for (intptr_t i = 0; i < constant_coverage_constructors; ++i) {
-    NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
+    kernel::NameIndex kernel_name = kernel_reader.ReadCanonicalNameReference();
     Class& klass = Class::ZoneHandle(
         zone,
         helper.LookupClassByKernelClass(helper.EnclosingName(kernel_name)));
@@ -367,6 +380,8 @@ ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script) {
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
+namespace kernel {
+
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
   ASSERT(field.is_static() && field.is_const());
 
@@ -375,16 +390,16 @@ ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(zone, field.Script());
-    helper.InitFromScript(script);
+    auto& kernel_program_info =
+        KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
+    helper.InitFromKernelProgramInfo(kernel_program_info);
 
     const Class& owner_class = Class::Handle(zone, field.Owner());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     KernelReaderHelper kernel_reader(
-        zone, &helper, script,
-        ExternalTypedData::Handle(zone, field.KernelData()),
+        zone, &helper, ExternalTypedData::Handle(zone, field.KernelData()),
         field.KernelDataProgramOffset());
     kernel_reader.SetOffset(field.kernel_offset());
     ConstantReader constant_reader(&kernel_reader, &active_class);
@@ -403,13 +418,11 @@ class MetadataEvaluator : public KernelReaderHelper {
  public:
   MetadataEvaluator(Zone* zone,
                     TranslationHelper* translation_helper,
-                    const Script& script,
                     const ExternalTypedData& data,
                     intptr_t data_program_offset,
                     ActiveClass* active_class)
       : KernelReaderHelper(zone,
                            translation_helper,
-                           script,
                            data,
                            data_program_offset),
         constant_reader_(this, active_class) {}
@@ -466,17 +479,16 @@ ObjectPtr EvaluateMetadata(const Library& library,
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(
-        zone, Class::Handle(zone, library.toplevel_class()).script());
-    helper.InitFromScript(script);
+    const auto& kernel_info =
+        KernelProgramInfo::Handle(zone, library.kernel_program_info());
+    helper.InitFromKernelProgramInfo(kernel_info);
 
     const Class& owner_class = Class::Handle(zone, library.toplevel_class());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     MetadataEvaluator metadata_evaluator(
-        zone, &helper, script,
-        ExternalTypedData::Handle(zone, library.kernel_data()),
+        zone, &helper, ExternalTypedData::Handle(zone, library.kernel_data()),
         library.kernel_offset(), &active_class);
 
     return metadata_evaluator.EvaluateMetadata(kernel_offset,
@@ -490,14 +502,12 @@ ObjectPtr EvaluateMetadata(const Library& library,
 class ParameterDescriptorBuilder : public KernelReaderHelper {
  public:
   ParameterDescriptorBuilder(TranslationHelper* translation_helper,
-                             const Script& script,
                              Zone* zone,
                              const ExternalTypedData& data,
                              intptr_t data_program_offset,
                              ActiveClass* active_class)
       : KernelReaderHelper(zone,
                            translation_helper,
-                           script,
                            data,
                            data_program_offset),
         constant_reader_(this, active_class) {}
@@ -575,17 +585,19 @@ ObjectPtr BuildParameterDescriptor(const Function& function) {
   if (setjmp(*jump.Set()) == 0) {
     Thread* thread = Thread::Current();
     Zone* zone = thread->zone();
+
+    const auto& kernel_info =
+        KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
+
     TranslationHelper helper(thread);
-    Script& script = Script::Handle(zone, function.script());
-    helper.InitFromScript(script);
+    helper.InitFromKernelProgramInfo(kernel_info);
 
     const Class& owner_class = Class::Handle(zone, function.Owner());
     ActiveClass active_class;
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     ParameterDescriptorBuilder builder(
-        &helper, Script::Handle(zone, function.script()), zone,
-        ExternalTypedData::Handle(zone, function.KernelData()),
+        &helper, zone, ExternalTypedData::Handle(zone, function.KernelData()),
         function.KernelDataProgramOffset(), &active_class);
 
     return builder.BuildParameterDescriptor(function);
@@ -604,12 +616,14 @@ void ReadParameterCovariance(const Function& function,
   ASSERT(is_covariant->length() == num_params);
   ASSERT(is_generic_covariant_impl->length() == num_params);
 
-  const auto& script = Script::Handle(zone, function.script());
+  const auto& kernel_info =
+      KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
+
   TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
+  translation_helper.InitFromKernelProgramInfo(kernel_info);
 
   KernelReaderHelper reader_helper(
-      zone, &translation_helper, script,
+      zone, &translation_helper,
       ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset());
 
@@ -731,14 +745,14 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
 
 static ProcedureAttributesMetadata ProcedureAttributesOf(
     Zone* zone,
-    const Script& script,
+    const KernelProgramInfo& kernel_program_info,
     const ExternalTypedData& kernel_data,
     intptr_t kernel_data_program_offset,
     intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
-  translation_helper.InitFromScript(script);
-  KernelReaderHelper reader_helper(zone, &translation_helper, script,
-                                   kernel_data, kernel_data_program_offset);
+  translation_helper.InitFromKernelProgramInfo(kernel_program_info);
+  KernelReaderHelper reader_helper(zone, &translation_helper, kernel_data,
+                                   kernel_data_program_offset);
   ProcedureAttributesMetadataHelper procedure_attributes_metadata_helper(
       &reader_helper);
   ProcedureAttributesMetadata attrs =
@@ -749,40 +763,45 @@ static ProcedureAttributesMetadata ProcedureAttributesOf(
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
                                                   Zone* zone) {
-  const Script& script = Script::Handle(zone, function.script());
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
   return ProcedureAttributesOf(
-      zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
+      zone, kernel_program_info,
+      ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset(), function.kernel_offset());
 }
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
                                                   Zone* zone) {
-  const Class& parent = Class::Handle(zone, field.Owner());
-  const Script& script = Script::Handle(zone, parent.script());
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
   return ProcedureAttributesOf(
-      zone, script, ExternalTypedData::Handle(zone, field.KernelData()),
+      zone, kernel_program_info,
+      ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset(), field.kernel_offset());
 }
 
 static UnboxingInfoMetadata* UnboxingInfoMetadataOf(
     Zone* zone,
-    const Script& script,
+    const KernelProgramInfo& kernel_program_info,
     const ExternalTypedData& kernel_data,
     intptr_t kernel_data_program_offset,
     intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
-  translation_helper.InitFromScript(script);
-  KernelReaderHelper reader_helper(zone, &translation_helper, script,
-                                   kernel_data, kernel_data_program_offset);
+  translation_helper.InitFromKernelProgramInfo(kernel_program_info);
+  KernelReaderHelper reader_helper(zone, &translation_helper, kernel_data,
+                                   kernel_data_program_offset);
   UnboxingInfoMetadataHelper unboxing_info_metadata_helper(&reader_helper);
   return unboxing_info_metadata_helper.GetUnboxingInfoMetadata(kernel_offset);
 }
 
 UnboxingInfoMetadata* UnboxingInfoMetadataOf(const Function& function,
                                              Zone* zone) {
-  const Script& script = Script::Handle(zone, function.script());
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
   return UnboxingInfoMetadataOf(
-      zone, script, ExternalTypedData::Handle(zone, function.KernelData()),
+      zone, kernel_program_info,
+      ExternalTypedData::Handle(zone, function.KernelData()),
       function.KernelDataProgramOffset(), function.kernel_offset());
 }
 
@@ -792,8 +811,7 @@ TableSelectorMetadata* TableSelectorMetadataForProgram(
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromKernelProgramInfo(info);
   const auto& data = ExternalTypedData::Handle(zone, info.metadata_payloads());
-  KernelReaderHelper reader_helper(zone, &translation_helper,
-                                   Script::Handle(zone), data, 0);
+  KernelReaderHelper reader_helper(zone, &translation_helper, data, 0);
   TableSelectorMetadataHelper table_selector_metadata_helper(&reader_helper);
   return table_selector_metadata_helper.GetTableSelectorMetadata(zone);
 }

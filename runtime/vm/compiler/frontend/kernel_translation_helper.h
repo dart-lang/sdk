@@ -15,6 +15,7 @@
 #include "vm/object.h"
 
 namespace dart {
+
 namespace kernel {
 
 class ConstantReader;
@@ -30,8 +31,6 @@ class TranslationHelper {
   virtual ~TranslationHelper() {}
 
   void Reset();
-
-  void InitFromScript(const Script& script);
 
   void InitFromKernelProgramInfo(const KernelProgramInfo& info);
 
@@ -70,8 +69,6 @@ class TranslationHelper {
   // Access to the raw bytes of the constants table.
   const ExternalTypedData& constants_table() const { return constants_table_; }
   void SetConstantsTable(const ExternalTypedData& constants_table);
-
-  KernelProgramInfo& info() { return info_; }
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -1238,13 +1235,11 @@ class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
-                     const Script& script,
                      const ExternalTypedData& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
         reader_(data),
-        script_(script),
         data_program_offset_(data_program_offset) {}
 
   KernelReaderHelper(Zone* zone,
@@ -1254,7 +1249,6 @@ class KernelReaderHelper {
       : zone_(zone),
         translation_helper_(*translation_helper),
         reader_(binary),
-        script_(Script::Handle(zone_)),
         data_program_offset_(data_program_offset) {}
 
   virtual ~KernelReaderHelper() = default;
@@ -1262,6 +1256,8 @@ class KernelReaderHelper {
   void SetOffset(intptr_t offset);
 
   intptr_t ReadListLength();
+  NameIndex ReadCanonicalNameReference();
+
   virtual void ReportUnexpectedTag(const char* variant, Tag tag);
 
   void ReadUntilFunctionNode();
@@ -1269,8 +1265,6 @@ class KernelReaderHelper {
   Tag PeekTag(uint8_t* payload = nullptr);
 
  protected:
-  const Script& script() const { return script_; }
-
   virtual void set_current_script_id(intptr_t id) {
     // Do nothing by default.
     // This is overridden in KernelTokenPositionCollector.
@@ -1294,7 +1288,6 @@ class KernelReaderHelper {
   double ReadDouble();
   uint32_t PeekListLength();
   StringIndex ReadStringReference();
-  NameIndex ReadCanonicalNameReference();
   NameIndex ReadInterfaceMemberNameReference();
   StringIndex ReadNameAsStringIndex();
   const String& ReadNameAsMethodName();
@@ -1344,7 +1337,6 @@ class KernelReaderHelper {
   Zone* zone_;
   TranslationHelper& translation_helper_;
   Reader reader_;
-  const Script& script_;
   // Some items like variables are specified in the kernel binary as
   // absolute offsets (as in, offsets within the whole kernel program)
   // of their declaration nodes. Hence, to cache and/or access them
@@ -1426,6 +1418,16 @@ class ActiveClass {
 
   const char* ToCString() {
     return member != nullptr ? member->ToCString() : klass->ToCString();
+  }
+
+  ScriptPtr ActiveScript() {
+    if (member != nullptr && !member->IsNull()) {
+      return member->script();
+    }
+    if (klass != nullptr && !klass->IsNull()) {
+      return klass->script();
+    }
+    return Script::null();
   }
 
   // The current enclosing class (or the library top-level class).
@@ -1572,6 +1574,13 @@ class TypeTranslator {
   void BuildIntersectionType();
   void BuildInlineType();
   void BuildFutureOrType();
+
+  ScriptPtr Script() {
+    if (active_class_ != nullptr) {
+      return active_class_->ActiveScript();
+    }
+    return Script::null();
+  }
 
   class TypeParameterScope {
    public:

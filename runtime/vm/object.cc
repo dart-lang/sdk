@@ -5482,6 +5482,11 @@ void Class::set_script(const Script& value) const {
 }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+KernelProgramInfoPtr Class::KernelProgramInfo() const {
+  const auto& lib = Library::Handle(library());
+  return lib.kernel_program_info();
+}
+
 void Class::set_token_pos(TokenPosition token_pos) const {
   ASSERT(!token_pos.IsClassifying());
   StoreNonPointer(&untag()->token_pos_, token_pos);
@@ -7822,9 +7827,12 @@ const char* PatchClass::ToCString() const {
 }
 
 PatchClassPtr PatchClass::New(const Class& wrapped_class,
+                              const KernelProgramInfo& info,
                               const Script& script) {
   const PatchClass& result = PatchClass::Handle(PatchClass::New());
   result.set_wrapped_class(wrapped_class);
+  NOT_IN_PRECOMPILED_RUNTIME(
+      result.untag()->set_kernel_program_info(info.ptr()));
   result.set_script(script);
   result.set_library_kernel_offset(-1);
   return result.ptr();
@@ -7838,6 +7846,12 @@ PatchClassPtr PatchClass::New() {
 void PatchClass::set_wrapped_class(const Class& value) const {
   untag()->set_wrapped_class(value.ptr());
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void PatchClass::set_kernel_program_info(const KernelProgramInfo& info) const {
+  untag()->set_kernel_program_info(info.ptr());
+}
+#endif
 
 void PatchClass::set_script(const Script& value) const {
   untag()->set_script(value.ptr());
@@ -8413,8 +8427,9 @@ void Function::SetForwardingTarget(const Function& target) const {
 
 // This field is heavily overloaded:
 //   kernel eval function:    Array[0] = Script
-//                            Array[1] = Kernel data
-//                            Array[2] = Kernel offset of enclosing library
+//                            Array[1] = KernelProgramInfo
+//                            Array[2] = Kernel data
+//                            Array[3] = Kernel offset of enclosing library
 //   method extractor:        Function extracted closure function
 //   implicit getter:         Field
 //   implicit setter:         Field
@@ -8864,6 +8879,14 @@ void Function::set_token_pos(TokenPosition token_pos) const {
 
 void Function::set_kind_tag(uint32_t value) const {
   untag()->kind_tag_ = value;
+}
+
+bool Function::is_eval_function() const {
+  if (data()->IsArray()) {
+    const intptr_t len = Array::LengthOf(Array::RawCast(data()));
+    return len == static_cast<intptr_t>(EvalFunctionData::kLength);
+  }
+  return false;
 }
 
 void Function::set_packed_fields(uint32_t packed_fields) const {
@@ -10642,13 +10665,19 @@ void Function::InheritKernelOffsetFrom(const Field& src) const {
 #endif
 }
 
-void Function::SetKernelDataAndScript(const Script& script,
-                                      const ExternalTypedData& data,
-                                      intptr_t offset) const {
-  Array& data_field = Array::Handle(Array::New(3));
-  data_field.SetAt(0, script);
-  data_field.SetAt(1, data);
-  data_field.SetAt(2, Smi::Handle(Smi::New(offset)));
+void Function::SetKernelDataAndEvalScript(
+    const Script& script,
+    const class KernelProgramInfo& kernel_program_info,
+    const ExternalTypedData& data,
+    intptr_t offset) const {
+  Array& data_field = Array::Handle(
+      Array::New(static_cast<intptr_t>(EvalFunctionData::kLength)));
+  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kScript), script);
+  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelProgramInfo),
+                   kernel_program_info);
+  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelData), data);
+  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelOffset),
+                   Smi::Handle(Smi::New(offset)));
   set_data(data_field);
 }
 
@@ -10663,12 +10692,10 @@ ScriptPtr Function::script() const {
     const auto& field = Field::Handle(accessor_field());
     return field.IsNull() ? Script::null() : field.Script();
   }
-  Object& data = Object::Handle(this->data());
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return Script::Cast(script).ptr();
-    }
+  if (is_eval_function()) {
+    const auto& fdata = Array::Handle(Array::RawCast(data()));
+    return Script::RawCast(
+        fdata.At(static_cast<intptr_t>(EvalFunctionData::kScript)));
   }
   if (token_pos() == TokenPosition::kMinSource) {
     // Testing for position 0 is an optimization that relies on temporary
@@ -10691,13 +10718,30 @@ ScriptPtr Function::script() const {
   return Class::Cast(obj).script();
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+KernelProgramInfoPtr Function::KernelProgramInfo() const {
+  if (is_eval_function()) {
+    const auto& fdata = Array::Handle(Array::RawCast(data()));
+    return KernelProgramInfo::RawCast(
+        fdata.At(static_cast<intptr_t>(EvalFunctionData::kKernelProgramInfo)));
+  }
+  if (IsClosureFunction()) {
+    const auto& parent = Function::Handle(parent_function());
+    return parent.KernelProgramInfo();
+  }
+  const auto& owner = Object::Handle(RawOwner());
+  if (owner.IsClass()) {
+    return Class::Cast(owner).KernelProgramInfo();
+  }
+  return PatchClass::Cast(owner).kernel_program_info();
+}
+#endif
+
 ExternalTypedDataPtr Function::KernelData() const {
-  Object& data = Object::Handle(this->data());
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return ExternalTypedData::RawCast(Array::Cast(data).At(1));
-    }
+  if (is_eval_function()) {
+    const auto& fdata = Array::Handle(Array::RawCast(data()));
+    return ExternalTypedData::RawCast(
+        fdata.At(static_cast<intptr_t>(EvalFunctionData::kKernelData)));
   }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
@@ -10705,13 +10749,11 @@ ExternalTypedDataPtr Function::KernelData() const {
     return parent.KernelData();
   }
 
-  const Object& obj = Object::Handle(untag()->owner());
-  if (obj.IsClass()) {
-    Library& lib = Library::Handle(Class::Cast(obj).library());
-    return lib.kernel_data();
+  const auto& owner = Object::Handle(RawOwner());
+  if (owner.IsClass()) {
+    return Library::Handle(Class::Cast(owner).library()).kernel_data();
   }
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).library_kernel_data();
+  return PatchClass::Cast(owner).library_kernel_data();
 }
 
 intptr_t Function::KernelDataProgramOffset() const {
@@ -10719,12 +10761,10 @@ intptr_t Function::KernelDataProgramOffset() const {
       IsFfiTrampoline()) {
     return 0;
   }
-  Object& data = Object::Handle(this->data());
-  if (data.IsArray()) {
-    Object& script = Object::Handle(Array::Cast(data).At(0));
-    if (script.IsScript()) {
-      return Smi::Value(Smi::RawCast(Array::Cast(data).At(2)));
-    }
+  if (is_eval_function()) {
+    const auto& fdata = Array::Handle(Array::RawCast(data()));
+    return Smi::Value(static_cast<SmiPtr>(
+        fdata.At(static_cast<intptr_t>(EvalFunctionData::kKernelOffset))));
   }
   if (IsClosureFunction()) {
     Function& parent = Function::Handle(parent_function());
@@ -11645,6 +11685,16 @@ ScriptPtr Field::Script() const {
   ASSERT(obj.IsPatchClass());
   return PatchClass::Cast(obj).script();
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+KernelProgramInfoPtr Field::KernelProgramInfo() const {
+  const auto& owner = Object::Handle(RawOwner());
+  if (owner.IsClass()) {
+    return Class::Cast(owner).KernelProgramInfo();
+  }
+  return PatchClass::Cast(owner).kernel_program_info();
+}
+#endif
 
 uint32_t Field::Hash() const {
   return String::HashRawSymbol(name());
@@ -12863,22 +12913,19 @@ void Script::LoadSourceFromKernel(const uint8_t* kernel_buffer,
       kernel_buffer, kernel_buffer_len, uri));
   set_source(source);
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
-void Script::set_kernel_program_info(const KernelProgramInfo& info) const {
+void Script::InitializeFromKernel(
+    const KernelProgramInfo& info,
+    intptr_t script_index,
+    const TypedData& line_starts,
+    const ExternalTypedData& constant_coverage) const {
+  StoreNonPointer(&untag()->kernel_script_index_, script_index);
   untag()->set_kernel_program_info(info.ptr());
+  untag()->set_line_starts(line_starts.ptr());
+  untag()->set_debug_positions(Array::null_array().ptr());
+  NOT_IN_PRODUCT(untag()->set_constant_coverage(constant_coverage.ptr()));
 }
-
-void Script::set_kernel_script_index(const intptr_t kernel_script_index) const {
-  StoreNonPointer(&untag()->kernel_script_index_, kernel_script_index);
-}
-
-TypedDataPtr Script::kernel_string_offsets() const {
-  KernelProgramInfo& program_info =
-      KernelProgramInfo::Handle(kernel_program_info());
-  ASSERT(!program_info.IsNull());
-  return program_info.string_offsets();
-}
+#endif
 
 GrowableObjectArrayPtr Script::GenerateLineNumberArray() const {
   Zone* zone = Thread::Current()->zone();
@@ -12963,15 +13010,7 @@ void Script::set_source(const String& value) const {
   untag()->set_source(value.ptr());
 }
 
-void Script::set_line_starts(const TypedData& value) const {
-  untag()->set_line_starts(value.ptr());
-}
-
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-void Script::set_constant_coverage(const ExternalTypedData& value) const {
-  untag()->set_constant_coverage(value.ptr());
-}
-
 ExternalTypedDataPtr Script::constant_coverage() const {
   return untag()->constant_coverage();
 }
@@ -12990,7 +13029,7 @@ ArrayPtr Script::debug_positions() const {
   Array& debug_positions_array = Array::Handle(untag()->debug_positions());
   if (debug_positions_array.IsNull()) {
     // This is created lazily. Now we need it.
-    kernel::CollectTokenPositionsFor(*this);
+    CollectTokenPositionsFor();
   }
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
   return untag()->debug_positions();
@@ -13358,6 +13397,12 @@ void Library::set_url(const String& url) const {
 void Library::set_private_key(const String& key) const {
   untag()->set_private_key(key.ptr());
 }
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+void Library::set_kernel_program_info(const KernelProgramInfo& info) const {
+  untag()->set_kernel_program_info(info.ptr());
+}
+#endif
 
 void Library::set_kernel_data(const ExternalTypedData& data) const {
   untag()->set_kernel_data(data.ptr());
@@ -14276,6 +14321,8 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
   result.untag()->set_used_scripts(list.ptr());
   result.untag()->set_imports(Object::empty_array().ptr());
   result.untag()->set_exports(Object::empty_array().ptr());
+  NOT_IN_PRECOMPILED_RUNTIME(
+      result.untag()->set_kernel_program_info(KernelProgramInfo::null()));
   result.untag()->set_loaded_scripts(Array::null());
   result.set_native_entry_resolver(nullptr);
   result.set_native_entry_symbol_resolver(nullptr);

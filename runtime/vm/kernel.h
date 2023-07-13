@@ -204,12 +204,6 @@ class KernelLineStartsReader {
   DISALLOW_COPY_AND_ASSIGN(KernelLineStartsReader);
 };
 
-void CollectTokenPositionsFor(const Script& script);
-
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-ArrayPtr CollectConstConstructorCoverageFrom(const Script& interesting_script);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
 ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field);
 ObjectPtr EvaluateMetadata(const Library& library,
                            intptr_t kernel_offset,

@@ -48,11 +48,17 @@ class ConstantReader {
   intptr_t NavigateToIndex(KernelReaderHelper* reader, intptr_t constant_index);
   intptr_t NumConstants(KernelReaderHelper* reader);
 
+  ScriptPtr Script() {
+    if (active_class_ != nullptr) {
+      return active_class_->ActiveScript();
+    }
+    return Script::null();
+  }
+
   KernelReaderHelper* helper_;
   Zone* zone_;
   TranslationHelper& translation_helper_;
   ActiveClass* active_class_;
-  const Script& script_;
   Object& result_;
 
   DISALLOW_COPY_AND_ASSIGN(ConstantReader);

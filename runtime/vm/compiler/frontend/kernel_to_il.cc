@@ -95,9 +95,9 @@ FlowGraphBuilder::FlowGraphBuilder(
       catch_block_(nullptr),
       prepend_type_arguments_(Function::ZoneHandle(zone_)),
       throw_new_null_assertion_(Function::ZoneHandle(zone_)) {
-  const Script& script =
-      Script::Handle(Z, parsed_function->function().script());
-  H.InitFromScript(script);
+  const auto& info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(info);
 }
 
 FlowGraphBuilder::~FlowGraphBuilder() {}

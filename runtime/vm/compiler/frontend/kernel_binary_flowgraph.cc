@@ -1270,7 +1270,8 @@ void StreamingFlowGraphBuilder::ReportUnexpectedTag(const char* variant,
   if ((flow_graph_builder_ == nullptr) || (parsed_function() == nullptr)) {
     KernelReaderHelper::ReportUnexpectedTag(variant, tag);
   } else {
-    H.ReportError(script_, TokenPosition::kNoSource,
+    const auto& script = Script::Handle(Z, Script());
+    H.ReportError(script, TokenPosition::kNoSource,
                   "Unexpected tag %d (%s) in %s, expected %s", tag,
                   Reader::TagName(tag),
                   parsed_function()->function().ToQualifiedCString(), variant);
@@ -2026,7 +2027,8 @@ Fragment StreamingFlowGraphBuilder::BuildInvalidExpression(
 
   // Invalid expression message has pointer to the source code, no need to
   // report it twice.
-  H.ReportError(script(), TokenPosition::kNoSource, "%s", message.ToCString());
+  const auto& script = Script::Handle(Z, Script());
+  H.ReportError(script, TokenPosition::kNoSource, "%s", message.ToCString());
   return Fragment();
 }
 
@@ -4297,7 +4299,8 @@ Fragment StreamingFlowGraphBuilder::BuildBigIntLiteral(
       H.DartString(ReadStringReference());  // read index into string table.
   const Integer& integer = Integer::ZoneHandle(Z, Integer::NewCanonical(value));
   if (integer.IsNull()) {
-    H.ReportError(script_, TokenPosition::kNoSource,
+    const auto& script = Script::Handle(Z, Script());
+    H.ReportError(script, TokenPosition::kNoSource,
                   "Integer literal %s is out of range", value.ToCString());
     UNREACHABLE();
   }

@@ -137,6 +137,8 @@ class ScopeBuilder {
                          const String& symbol,
                          intptr_t kernel_offset);
 
+  ScriptPtr Script() { return active_class_.ActiveScript(); }
+
   struct DepthState {
     explicit DepthState(intptr_t function)
         : loop_(0),

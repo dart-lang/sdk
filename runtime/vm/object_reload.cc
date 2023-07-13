@@ -275,8 +275,9 @@ class EnumMapTraits {
 void Class::PatchFieldsAndFunctions() const {
   // Move all old functions and fields to a patch class so that they
   // still refer to their original script.
-  const PatchClass& patch =
-      PatchClass::Handle(PatchClass::New(*this, Script::Handle(script())));
+  const auto& kernel_info = KernelProgramInfo::Handle(KernelProgramInfo());
+  const PatchClass& patch = PatchClass::Handle(
+      PatchClass::New(*this, kernel_info, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
   patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));

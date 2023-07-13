@@ -1281,6 +1281,10 @@ class Class : public Object {
   ScriptPtr script() const { return untag()->script(); }
   void set_script(const Script& value) const;
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  KernelProgramInfoPtr KernelProgramInfo() const;
+#endif
+
   TokenPosition token_pos() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return TokenPosition::kNoSource;
@@ -2252,6 +2256,13 @@ class PatchClass : public Object {
         StoreNonPointer(&untag()->library_kernel_offset_, offset));
   }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  KernelProgramInfoPtr kernel_program_info() const {
+    return untag()->kernel_program_info();
+  }
+  void set_kernel_program_info(const KernelProgramInfo& info) const;
+#endif
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedPatchClass));
   }
@@ -2260,7 +2271,9 @@ class PatchClass : public Object {
     return Class::IsInFullSnapshot(cls->untag()->wrapped_class());
   }
 
-  static PatchClassPtr New(const Class& wrapped_class, const Script& source);
+  static PatchClassPtr New(const Class& wrapped_class,
+                           const KernelProgramInfo& info,
+                           const Script& source);
 
  private:
   void set_wrapped_class(const Class& value) const;
@@ -3045,6 +3058,9 @@ class Function : public Object {
   ClassPtr Owner() const;
   void set_owner(const Object& value) const;
   ScriptPtr script() const;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  KernelProgramInfoPtr KernelProgramInfo() const;
+#endif
   ObjectPtr RawOwner() const { return untag()->owner(); }
 
   // The NNBD mode of the library declaring this function.
@@ -3539,9 +3555,11 @@ class Function : public Object {
     set_optimized_call_site_count(value);
   }
 
-  void SetKernelDataAndScript(const Script& script,
-                              const ExternalTypedData& data,
-                              intptr_t offset) const;
+  void SetKernelDataAndEvalScript(
+      const Script& script,
+      const class KernelProgramInfo& kernel_program_info,
+      const ExternalTypedData& data,
+      intptr_t offset) const;
 
   intptr_t KernelDataProgramOffset() const;
 
@@ -4208,6 +4226,13 @@ class Function : public Object {
 #undef DEFINE_BIT
 
  private:
+  enum class EvalFunctionData {
+    kScript,
+    kKernelProgramInfo,
+    kKernelData,
+    kKernelOffset,
+    kLength,
+  };
   enum NativeFunctionData {
     kNativeName,
     kTearOff,
@@ -4230,6 +4255,7 @@ class Function : public Object {
   void set_eval_script(const Script& value) const;
   void set_num_optional_parameters(intptr_t value) const;  // Encoded value.
   void set_kind_tag(uint32_t value) const;
+  bool is_eval_function() const;
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
   ArrayPtr positional_parameter_names() const {
@@ -4475,6 +4501,9 @@ class Field : public Object {
 
   ClassPtr Owner() const;
   ScriptPtr Script() const;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  KernelProgramInfoPtr KernelProgramInfo() const;
+#endif
   ObjectPtr RawOwner() const;
 
   uint32_t Hash() const;
@@ -4874,15 +4903,17 @@ class Script : public Object {
   // The load time in milliseconds since epoch.
   int64_t load_timestamp() const { return untag()->load_timestamp_; }
 
-  KernelProgramInfoPtr kernel_program_info() const {
-    return untag()->kernel_program_info();
-  }
-  void set_kernel_program_info(const KernelProgramInfo& info) const;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  // Initializes thie script object from a kernel file.
+  void InitializeFromKernel(const KernelProgramInfo& info,
+                            intptr_t script_index,
+                            const TypedData& line_starts,
+                            const ExternalTypedData& constant_coverage) const;
+#endif
 
+  // The index of this script into the [KernelProgramInfo] object's source
+  // table.
   intptr_t kernel_script_index() const { return untag()->kernel_script_index_; }
-  void set_kernel_script_index(const intptr_t kernel_script_index) const;
-
-  TypedDataPtr kernel_string_offsets() const;
 
   static intptr_t line_starts_offset() {
     return OFFSET_OF(UntaggedScript, line_starts_);
@@ -4892,13 +4923,7 @@ class Script : public Object {
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   ExternalTypedDataPtr constant_coverage() const;
-
-  void set_constant_coverage(const ExternalTypedData& value) const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-
-  void set_line_starts(const TypedData& value) const;
-
-  void set_debug_positions(const Array& value) const;
 
   LibraryPtr FindLibrary() const;
   StringPtr GetLine(intptr_t line_number, Heap::Space space = Heap::kNew) const;
@@ -4942,10 +4967,18 @@ class Script : public Object {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   void LoadSourceFromKernel(const uint8_t* kernel_buffer,
                             intptr_t kernel_buffer_len) const;
-  bool IsLazyLookupSourceAndLineStarts() const;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
+  void CollectTokenPositionsFor() const;
+  ArrayPtr CollectConstConstructorCoverageFrom() const;
+
  private:
+  KernelProgramInfoPtr kernel_program_info() const {
+    return untag()->kernel_program_info();
+  }
+
+  void set_debug_positions(const Array& value) const;
+
 #if !defined(DART_PRECOMPILED_RUNTIME)
   bool HasCachedMaxPosition() const;
 
@@ -5247,6 +5280,13 @@ class Library : public Object {
   bool IsAnyCoreLibrary() const;
 
   inline intptr_t UrlHash() const;
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  KernelProgramInfoPtr kernel_program_info() const {
+    return untag()->kernel_program_info();
+  }
+  void set_kernel_program_info(const KernelProgramInfo& info) const;
+#endif
 
   ExternalTypedDataPtr kernel_data() const { return untag()->kernel_data(); }
   void set_kernel_data(const ExternalTypedData& data) const;

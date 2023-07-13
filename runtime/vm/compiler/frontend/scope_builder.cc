@@ -29,7 +29,6 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       helper_(
           zone_,
           &translation_helper_,
-          Script::Handle(Z, parsed_function->function().script()),
           ExternalTypedData::Handle(Z,
                                     parsed_function->function().KernelData()),
           parsed_function->function().KernelDataProgramOffset()),
@@ -40,7 +39,9 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
                        &constant_reader_,
                        &active_class_,
                        /*finalize=*/true) {
-  H.InitFromScript(helper_.script());
+  const auto& kernel_program_info = KernelProgramInfo::Handle(
+      Z, parsed_function->function().KernelProgramInfo());
+  H.InitFromKernelProgramInfo(kernel_program_info);
   ASSERT(type_translator_.active_class_ == &active_class_);
 }
 
@@ -462,7 +463,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
 }
 
 void ScopeBuilder::ReportUnexpectedTag(const char* variant, Tag tag) {
-  H.ReportError(helper_.script(), TokenPosition::kNoSource,
+  const auto& script = Script::Handle(Z, Script());
+  H.ReportError(script, TokenPosition::kNoSource,
                 "Unexpected tag %d (%s) in %s, expected %s", tag,
                 Reader::TagName(tag),
                 parsed_function_->function().ToQualifiedCString(), variant);

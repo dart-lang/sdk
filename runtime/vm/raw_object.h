@@ -1072,7 +1072,6 @@ class UntaggedClass : public UntaggedObject {
   // Not preserved in AOT snapshots.
   COMPRESSED_POINTER_FIELD(TypeArgumentsPtr,
                            declaration_instance_type_arguments)
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
   // Stub code for allocation of instances.
   COMPRESSED_POINTER_FIELD(CodePtr, allocation_stub)
@@ -1166,6 +1165,10 @@ class UntaggedPatchClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ClassPtr, wrapped_class)
   VISIT_FROM(wrapped_class)
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
+#endif
+  // A sub-view into the bytes of a kernel blob that encode the library.
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
   VISIT_TO(library_kernel_data)
 
@@ -1684,6 +1687,10 @@ class UntaggedLibrary : public UntaggedObject {
   // List of re-exported Namespaces.
   COMPRESSED_POINTER_FIELD(ArrayPtr, exports)
   COMPRESSED_POINTER_FIELD(ArrayPtr, dependencies)
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
+#endif
+  // A sub-view into the bytes of a kernel blob that encode the library.
   COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, kernel_data)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -1754,6 +1761,9 @@ class UntaggedNamespace : public UntaggedObject {
   }
 };
 
+// Contains information about a kernel [Component].
+//
+// Used to access string tables, canonical name tables, constants, metadata, ...
 class UntaggedKernelProgramInfo : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
