@@ -18111,9 +18111,9 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     auto raw = Object::Allocate<Code>(Heap::kOld, pointer_offsets_length);
     NoSafepointScope no_safepoint;
     result = raw;
+    ASSERT_EQUAL(result.untag()->state_bits_, 0);
     result.set_pointer_offsets_length(pointer_offsets_length);
   }
-  ASSERT_EQUAL(result.untag()->state_bits_, 0);
   DEBUG_ASSERT(result.compile_timestamp() == 0);
 #if defined(INCLUDE_IL_PRINTER)
   result.set_comments(Comments::New(0));
