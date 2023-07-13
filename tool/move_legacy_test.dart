@@ -31,10 +31,7 @@ class LegacyTestMover {
     }
 
     var newTest = File('test/rules/${ruleName}_test.dart');
-    if (newTest.existsSync()) {
-      print('TODO: Support appending to existing reflective test.');
-      return;
-    }
+    var newTestExists = newTest.existsSync();
 
     var legacyLines = legacyTest.readAsLinesSync();
 
@@ -42,21 +39,36 @@ class LegacyTestMover {
 
     // [snippets] is now our complete list of snippets.
 
-    var buffer = StringBuffer(newTestFileHeader);
+    var buffer = StringBuffer();
+    if (newTestExists) {
+      var existingNewTestLines = newTest.readAsLinesSync();
+      var classCloseIndex = existingNewTestLines
+          .lastIndexWhere((element) => element.startsWith(RegExp('^}')));
+      existingNewTestLines.take(classCloseIndex).forEach(buffer.writeln);
+      buffer.writeln();
+    } else {
+      buffer.write(newTestFileHeader);
+    }
     for (var testIndex = 0; testIndex < snippets.length; testIndex++) {
       var snippet = snippets[testIndex];
       buffer.writeln(testBody(testIndex.toString(), snippet));
       buffer.writeln();
     }
     buffer.writeln('}');
-    print(buffer);
     newTest.writeAsStringSync(buffer.toString());
 
-    updateAllTestFile();
+    if (!newTestExists) {
+      updateAllTestFile();
+    }
 
-    print('To remove legacy test: git rm ${legacyTest.path}');
-    print('To add new test: git add test');
-    print('To run new test: dart run test ${newTest.path}');
+    print('''
+You probably want to run these:
+
+    dart format test/rules/all.dart
+    git rm ${legacyTest.path}
+    git add test
+    dart run test ${newTest.path}
+''');
   }
 
   List<String> gatherSnippets(List<String> legacyLines) {
