@@ -322,7 +322,7 @@ class VMTestSuite extends TestSuite {
     }
 
     // Update the new workflow based expectations to include [testExpectation].
-    var testFile = TestFile.vmUnitTest(
+    var testFile = TestFile.vmUnitTest(test.name,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasCrash: testExpectation == Expectation.crash);
@@ -461,7 +461,7 @@ class FfiTestSuite extends TestSuite {
     }
 
     // Update the new workflow based expectations to include [testExpectation].
-    final testFile = TestFile.vmUnitTest(
+    final testFile = TestFile.vmUnitTest(test.name,
         hasCompileError: testExpectation == Expectation.compileTimeError,
         hasRuntimeError: testExpectation == Expectation.runtimeError,
         hasCrash: testExpectation == Expectation.crash);
