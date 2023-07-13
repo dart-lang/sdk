@@ -124,6 +124,7 @@ import 'sort_constructors_first_test.dart' as sort_constructors_first;
 import 'sort_pub_dependencies_test.dart' as sort_pub_dependencies;
 import 'sort_unnamed_constructors_first_test.dart'
     as sort_unnamed_constructors_first;
+import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
@@ -275,6 +276,7 @@ void main() {
   sort_constructors_first.main();
   sort_pub_dependencies.main();
   sort_unnamed_constructors_first.main();
+  test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
   type_init_formals.main();
