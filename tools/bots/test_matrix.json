@@ -2409,22 +2409,14 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-d8",
+            "co19",
             "corelib",
             "language",
             "lib",
             "pkg",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform_hostasserts"
-        },
-        {
-          "name": "dart2js co19 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-d8",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 13,
           "fileset": "js_platform_hostasserts"
         }
       ]
