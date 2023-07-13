@@ -2443,22 +2443,14 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
+            "co19",
             "corelib",
             "language",
             "lib",
             "pkg",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "dart2js co19 tests",
-          "arguments": [
-            "-ndart2js-${system}-${runtime}",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 12,
           "fileset": "js_platform"
         }
       ]
