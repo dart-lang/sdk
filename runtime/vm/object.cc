@@ -566,7 +566,20 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
         heap->Allocate(thread, Instance::InstanceSize(), Heap::kOld);
     null_ = static_cast<InstancePtr>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
-    InitializeObjectVariant<Instance>(address, kNullCid);
+    //
+    // TODO(52910): Change the below to
+    //   InitializeObjectVariant<Instance>(address, kNullCid);
+    // after we've fixed the unboxing of the null object without checking for
+    // null first when --no-sound-null-safety is on. (This is a stopgap so that
+    // those bad unboxings pull out really large values that almost certainly
+    // will fail, which was the old status quo.)
+    const intptr_t ptr_field_end_offset =
+        Instance::InstanceSize() - (Instance::ContainsCompressedPointers()
+                                        ? kCompressedWordSize
+                                        : kWordSize);
+    InitializeObject(address, kNullCid, Instance::InstanceSize(),
+                     Instance::ContainsCompressedPointers(),
+                     sizeof(UntaggedObject), ptr_field_end_offset);
     null_->untag()->SetCanonical();
   }
 
