@@ -86,270 +86,6 @@ class MacroElementsTest extends ElementsBaseTest {
     );
   }
 
-  test_application_getter_withoutPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromString('class MyClass {}'),
-    );
-  }
-}
-
-const myMacro = MyMacro();
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-
-@myMacro
-class A {}
-''', preBuildSequence: [
-      _macroApiSet,
-      {'package:test/a.dart'}
-    ]);
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class A @33
-        metadata
-          Annotation
-            atSign: @ @18
-            name: SimpleIdentifier
-              token: myMacro @19
-              staticElement: package:test/a.dart::@getter::myMacro
-              staticType: null
-            element: package:test/a.dart::@getter::myMacro
-        constructors
-          synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-          constructors
-            synthetic @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
-''');
-  }
-
-  test_application_getter_withoutPrefix_namedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro.named();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromString('class MyClass {}'),
-    );
-  }
-}
-
-const myMacro = MyMacro.named();
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart';
-
-@myMacro
-class A {}
-''', preBuildSequence: [
-      _macroApiSet,
-      {'package:test/a.dart'}
-    ]);
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart
-  definingUnit
-    classes
-      class A @33
-        metadata
-          Annotation
-            atSign: @ @18
-            name: SimpleIdentifier
-              token: myMacro @19
-              staticElement: package:test/a.dart::@getter::myMacro
-              staticType: null
-            element: package:test/a.dart::@getter::myMacro
-        constructors
-          synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-          constructors
-            synthetic @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
-''');
-  }
-
-  test_application_getter_withPrefix() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromString('class MyClass {}'),
-    );
-  }
-}
-
-const myMacro = MyMacro();
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart' as prefix;
-
-@prefix.myMacro
-class A {}
-''', preBuildSequence: [
-      _macroApiSet,
-      {'package:test/a.dart'}
-    ]);
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart as prefix @19
-  definingUnit
-    classes
-      class A @50
-        metadata
-          Annotation
-            atSign: @ @28
-            name: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: prefix @29
-                staticElement: self::@prefix::prefix
-                staticType: null
-              period: . @35
-              identifier: SimpleIdentifier
-                token: myMacro @36
-                staticElement: package:test/a.dart::@getter::myMacro
-                staticType: null
-              staticElement: package:test/a.dart::@getter::myMacro
-              staticType: null
-            element: package:test/a.dart::@getter::myMacro
-        constructors
-          synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-          constructors
-            synthetic @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
-''');
-  }
-
-  test_application_getter_withPrefix_namedConstructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-import 'dart:async';
-import 'package:_fe_analyzer_shared/src/macros/api.dart';
-
-macro class MyMacro implements ClassTypesMacro {
-  const MyMacro.named();
-
-  FutureOr<void> buildTypesForClass(clazz, builder) {
-    builder.declareType(
-      'MyClass',
-      DeclarationCode.fromString('class MyClass {}'),
-    );
-  }
-}
-
-const myMacro = MyMacro.named();
-''');
-
-    var library = await buildLibrary(r'''
-import 'a.dart' as prefix;
-
-@prefix.myMacro
-class A {}
-''', preBuildSequence: [
-      _macroApiSet,
-      {'package:test/a.dart'}
-    ]);
-
-    configuration.withExportScope = true;
-    checkElementText(library, r'''
-library
-  imports
-    package:test/a.dart as prefix @19
-  definingUnit
-    classes
-      class A @50
-        metadata
-          Annotation
-            atSign: @ @28
-            name: PrefixedIdentifier
-              prefix: SimpleIdentifier
-                token: prefix @29
-                staticElement: self::@prefix::prefix
-                staticType: null
-              period: . @35
-              identifier: SimpleIdentifier
-                token: myMacro @36
-                staticElement: package:test/a.dart::@getter::myMacro
-                staticType: null
-              staticElement: package:test/a.dart::@getter::myMacro
-              staticType: null
-            element: package:test/a.dart::@getter::myMacro
-        constructors
-          synthetic @-1
-  parts
-    package:test/_macro_types.dart
-      classes
-        class MyClass @-1
-          constructors
-            synthetic @-1
-  exportedReferences
-    declared self::@class::MyClass
-    declared self::@class::A
-  exportNamespace
-    A: self::@class::A
-    MyClass: self::@class::MyClass
-''');
-  }
-
   test_application_newInstance_withoutPrefix() async {
     newFile('$testPackageLibPath/a.dart', r'''
 import 'dart:async';
@@ -639,46 +375,6 @@ library
       argumentsCode: '(0, const Object())',
       expectedErrors: 'Argument(annotation: 0, argument: 1, '
           'message: Not supported: InstanceCreationExpressionImpl)',
-    );
-  }
-
-  test_arguments_getter_type_bool() async {
-    await _assertTypesPhaseArgumentsText(
-      fields: {
-        'foo': 'bool',
-        'bar': 'bool',
-      },
-      constructorParametersCode: '(this.foo, this.bar)',
-      argumentsCode: '(true, false)',
-      usingGetter: true,
-      expected: r'''
-foo: true
-bar: false
-''',
-    );
-  }
-
-  test_arguments_getter_type_int() async {
-    await _assertTypesPhaseArgumentsText(
-      fields: {'foo': 'int'},
-      constructorParametersCode: '(this.foo)',
-      argumentsCode: '(42)',
-      usingGetter: true,
-      expected: r'''
-foo: 42
-''',
-    );
-  }
-
-  test_arguments_getter_type_string() async {
-    await _assertTypesPhaseArgumentsText(
-      fields: {'foo': 'String'},
-      constructorParametersCode: '(this.foo)',
-      argumentsCode: "('aaa')",
-      usingGetter: true,
-      expected: r'''
-foo: aaa
-''',
     );
   }
 
@@ -1162,14 +858,12 @@ macro class MyMacro implements ClassDeclarationsMacro {
     );
   }
 }
-
-const myMacro = MyMacro();
 ''');
 
     var library = await buildLibrary(r'''
 import 'a.dart';
 
-@myMacro
+@MyMacro()
 class A {}
 ''', preBuildSequence: [
       _macroApiSet,
@@ -1182,15 +876,18 @@ library
     package:test/a.dart
   definingUnit
     classes
-      class A @33
+      class A @35
         metadata
           Annotation
             atSign: @ @18
             name: SimpleIdentifier
-              token: myMacro @19
-              staticElement: package:test/a.dart::@getter::myMacro
+              token: MyMacro @19
+              staticElement: package:test/a.dart::@class::MyMacro
               staticType: null
-            element: package:test/a.dart::@getter::myMacro
+            arguments: ArgumentList
+              leftParenthesis: ( @26
+              rightParenthesis: ) @27
+            element: package:test/a.dart::@class::MyMacro::@constructor::new
         constructors
           synthetic @-1
     topLevelVariables
@@ -1213,7 +910,7 @@ class C implements A, B {}
     await _assertIntrospectDeclarationsText(r'''
 import 'a.dart';
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends C {}
 ''', r'''
 class X
@@ -1235,7 +932,7 @@ abstract class A {}
     await _assertIntrospectDeclarationsText(r'''
 import 'a.dart';
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends A {}
 ''', r'''
 class X
@@ -1256,7 +953,7 @@ class C with M1, M2 {}
     await _assertIntrospectDeclarationsText(r'''
 import 'a.dart';
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends C {}
 ''', r'''
 class X
@@ -1279,7 +976,7 @@ class B extends A {}
     await _assertIntrospectDeclarationsText(r'''
 import 'a.dart';
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends B {}
 ''', r'''
 class X
@@ -1300,7 +997,7 @@ class A<T, U extends List<T>> {}
     await _assertIntrospectDeclarationsText(r'''
 import 'a.dart';
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends A {}
 ''', r'''
 class X
@@ -1319,7 +1016,7 @@ class X
     await _assertIntrospectDeclarationsText(r'''
 class A {}
 
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends A {}
 ''', r'''
 class X
@@ -1332,7 +1029,7 @@ class X
 
   test_introspect_declarations_ClassDeclaration_superclassOf_implicit() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X {}
 ''', r'''
 class X
@@ -1341,7 +1038,7 @@ class X
 
   test_introspect_declarations_ClassDeclaration_superclassOf_unresolved() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacro
+@IntrospectDeclarationsPhaseMacro()
 class X extends A {}
 ''', r'''
 class X
@@ -1352,7 +1049,9 @@ class X
 
   test_introspect_declarations_FieldDeclaration_isExternal() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacroX
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
 class X {
   external int a;
   int b = 0;
@@ -1369,7 +1068,9 @@ class X
 
   test_introspect_declarations_FieldDeclaration_isFinal() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacroX
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
 class X {
   final int a = 0;
   int b = 0;
@@ -1386,7 +1087,9 @@ class X
 
   test_introspect_declarations_FieldDeclaration_isLate() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacroX
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
 class X {
   late final int a;
   final int b = 0;
@@ -1403,7 +1106,9 @@ class X
 
   test_introspect_declarations_FieldDeclaration_isStatic() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacroX
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
 class X {
   static int a = 0;
   int b = 0;
@@ -1420,7 +1125,9 @@ class X
 
   test_introspect_declarations_FieldDeclaration_type_explicit() async {
     await _assertIntrospectDeclarationsText(r'''
-@introspectMacroX
+@IntrospectDeclarationsPhaseMacro(
+  withDetailsFor: {'X'},
+)
 class X {
   int a = 0;
   List<String> b = [];
@@ -1752,7 +1459,6 @@ library
     required String argumentsCode,
     String? expected,
     String? expectedErrors,
-    bool usingGetter = false,
   }) async {
     final dumpCode = fields.keys.map((name) {
       return "$name: \$$name\\\\n";
@@ -1776,14 +1482,12 @@ ${fields.entries.map((e) => '  final ${e.value} ${e.key};').join('\n')}
     );
   }
 }
-
-${usingGetter ? 'const argumentsTextMacro = ArgumentsTextMacro$argumentsCode;' : ''}
 ''');
 
     final library = await buildLibrary('''
 import 'arguments_text.dart';
 
-${usingGetter ? '@argumentsTextMacro' : '@ArgumentsTextMacro$argumentsCode'}
+@ArgumentsTextMacro$argumentsCode
 class A {}
     ''', preBuildSequence: [
       _macroApiSet,

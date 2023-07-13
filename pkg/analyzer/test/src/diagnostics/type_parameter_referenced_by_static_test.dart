@@ -15,19 +15,7 @@ main() {
 
 @reflectiveTest
 class TypeParameterReferencedByStaticTest extends PubPackageResolutionTest {
-  test_expression_method() async {
-    await assertErrorsInCode('''
-class A<T> {
-  static foo() {
-    T;
-  }
-}
-''', [
-      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1),
-    ]);
-  }
-
-  test_type_field() async {
+  test_class_field() async {
     await assertErrorsInCode('''
 class A<T> {
   static T? foo;
@@ -37,7 +25,7 @@ class A<T> {
     ]);
   }
 
-  test_type_getter() async {
+  test_class_getter() async {
     await assertErrorsInCode('''
 class A<T> {
   static T? get foo => null;
@@ -47,7 +35,7 @@ class A<T> {
     ]);
   }
 
-  test_type_method_bodyReference() async {
+  test_class_method_bodyReference() async {
     await assertErrorsInCode('''
 class A<T> {
   static foo() {
@@ -60,7 +48,7 @@ class A<T> {
     ]);
   }
 
-  test_type_method_closure() async {
+  test_class_method_closure() async {
     await assertErrorsInCode('''
 class A<T> {
   static Object foo() {
@@ -72,7 +60,7 @@ class A<T> {
     ]);
   }
 
-  test_type_method_parameter() async {
+  test_class_method_parameter() async {
     await assertErrorsInCode('''
 class A<T> {
   static foo(T a) {}
@@ -82,7 +70,7 @@ class A<T> {
     ]);
   }
 
-  test_type_method_return() async {
+  test_class_method_return() async {
     await assertErrorsInCode('''
 class A<T> {
   static T foo() {
@@ -94,13 +82,55 @@ class A<T> {
     ]);
   }
 
-  test_type_setter() async {
+  test_class_setter() async {
     await assertErrorsInCode('''
 class A<T> {
   static set foo(T _) {}
 }
 ''', [
       error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 30, 1),
+    ]);
+  }
+
+  test_expression_method() async {
+    await assertErrorsInCode('''
+class A<T> {
+  static foo() {
+    T;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 34, 1),
+    ]);
+  }
+
+  test_extension_field() async {
+    await assertErrorsInCode('''
+extension E<T> on int {
+  static T? foo;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1),
+    ]);
+  }
+
+  test_extension_method_return() async {
+    await assertErrorsInCode('''
+extension E<T> on int {
+  static T foo() => throw 0;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 33, 1),
+    ]);
+  }
+
+  test_mixin_field() async {
+    await assertErrorsInCode('''
+mixin A<T> {
+  static T? foo;
+}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_REFERENCED_BY_STATIC, 22, 1),
     ]);
   }
 }

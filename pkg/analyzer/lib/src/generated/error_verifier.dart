@@ -4666,7 +4666,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }) {
     if (_enclosingExecutable.inStaticMethod || _isInStaticVariableDeclaration) {
       if (element is TypeParameterElement &&
-          element.enclosingElement2 is InterfaceElement) {
+          element.enclosingElement2 is InstanceElement) {
         // The class's type parameters are not in scope for static methods.
         // However all other type parameters are legal (e.g. the static method's
         // type parameters, or a local function's type parameters).

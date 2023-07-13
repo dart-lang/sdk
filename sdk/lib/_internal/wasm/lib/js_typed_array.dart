@@ -37,12 +37,13 @@ final class JSArrayBufferImpl implements ByteBuffer {
       JSInt32ArrayImpl.view(this, offsetInBytes, length);
 
   Uint64List asUint64List([int offsetInBytes = 0, int? length]) =>
-      throw UnsupportedError("Uint64List not supported by JSArrayBufferImpl.");
+      JSBigUint64ArrayImpl.view(this, offsetInBytes, length);
 
   Int64List asInt64List([int offsetInBytes = 0, int? length]) =>
-      throw UnsupportedError("Int64List not supported by JSArrayBufferImpl.");
+      JSBigInt64ArrayImpl.view(this, offsetInBytes, length);
 
   Int32x4List asInt32x4List([int offsetInBytes = 0, int? length]) {
+    _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     final storage = JSInt32ArrayImpl.view(this, offsetInBytes, length * 4);
     return JSInt32x4ArrayImpl._externalStorage(storage);
@@ -55,12 +56,14 @@ final class JSArrayBufferImpl implements ByteBuffer {
       JSFloat64ArrayImpl.view(this, offsetInBytes, length);
 
   Float32x4List asFloat32x4List([int offsetInBytes = 0, int? length]) {
+    _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     final storage = JSFloat32ArrayImpl.view(this, offsetInBytes, length * 4);
     return JSFloat32x4ArrayImpl._externalStorage(storage);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
+    _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     final storage = JSFloat64ArrayImpl.view(this, offsetInBytes, length * 2);
     return JSFloat64x2ArrayImpl._externalStorage(storage);
@@ -68,6 +71,13 @@ final class JSArrayBufferImpl implements ByteBuffer {
 
   ByteData asByteData([int offsetInBytes = 0, int? length]) =>
       JSDataViewImpl.view(this, offsetInBytes, length);
+
+  @override
+  bool operator ==(Object that) =>
+      that is JSArrayBufferImpl && js.areEqualInJS(_ref, that._ref);
+
+  @override
+  int get hashCode => 0;
 }
 
 final class JSArrayBufferViewImpl implements TypedData {
@@ -94,6 +104,13 @@ final class JSArrayBufferViewImpl implements TypedData {
       js.JS<double>('o => o.BYTES_PER_ELEMENT', toExternRef).toInt();
 
   int get length => js.JS<double>('o => o.length', toExternRef).toInt();
+
+  @override
+  bool operator ==(Object that) =>
+      that is JSArrayBufferViewImpl && js.areEqualInJS(_ref, that._ref);
+
+  @override
+  int get hashCode => 0;
 }
 
 final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
@@ -133,9 +150,11 @@ final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
           byteOffset.toDouble(), Endian.little == endian)
       .toInt();
 
-  int getInt64(int byteOffset, [Endian endian = Endian.big]) {
-    throw UnsupportedError('Int64 accessor not supported by JSDataViewImpl');
-  }
+  int getInt64(int byteOffset, [Endian endian = Endian.big]) => js.JS<int>(
+      '(b, o, e) => b.getBigInt64(o, e)',
+      toExternRef,
+      byteOffset.toDouble(),
+      Endian.little == endian);
 
   int getInt8(int byteOffset) => js
       .JS<double>('(b, o) => b.getInt8(o)', toExternRef, byteOffset.toDouble())
@@ -151,9 +170,11 @@ final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
           byteOffset.toDouble(), Endian.little == endian)
       .toInt();
 
-  int getUint64(int byteOffset, [Endian endian = Endian.big]) {
-    throw UnsupportedError('Uint64 accessor not supported by JSDataViewImpl');
-  }
+  int getUint64(int byteOffset, [Endian endian = Endian.big]) => js.JS<int>(
+      '(b, o, e) => b.getBigUint64(o, e)',
+      toExternRef,
+      byteOffset.toDouble(),
+      Endian.little == endian);
 
   int getUint8(int byteOffset) => js
       .JS<double>('(b, o) => b.getUint8(o)', toExternRef, byteOffset.toDouble())
@@ -175,9 +196,9 @@ final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
       js.JS<void>('(b, o, v, e) => b.setInt32(o, v, e)', toExternRef,
           byteOffset.toDouble(), value.toDouble(), Endian.little == endian);
 
-  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw UnsupportedError('Int64 accessor not supported by JSDataViewImpl');
-  }
+  void setInt64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      js.JS<void>('(b, o, v, e) => b.setBigInt64(o, v, e)', toExternRef,
+          byteOffset.toDouble(), value, Endian.little == endian);
 
   void setInt8(int byteOffset, int value) => js.JS<void>(
       '(b, o, v) => b.setInt8(o, v)',
@@ -193,9 +214,9 @@ final class JSDataViewImpl extends JSArrayBufferViewImpl implements ByteData {
       js.JS<void>('(b, o, v, e) => b.setUint32(o, v, e)', toExternRef,
           byteOffset.toDouble(), value.toDouble(), Endian.little == endian);
 
-  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) {
-    throw UnsupportedError('Uint64 accessor not supported by JSDataViewImpl');
-  }
+  void setUint64(int byteOffset, int value, [Endian endian = Endian.big]) =>
+      js.JS<void>('(b, o, v, e) => b.setBigUint64(o, v, e)', toExternRef,
+          byteOffset.toDouble(), value, Endian.little == endian);
 
   void setUint8(int byteOffset, int value) => js.JS<void>(
       '(b, o, v) => b.setUint8(o, v)',
@@ -224,12 +245,41 @@ final class JSIntArrayImpl extends JSArrayBufferViewImpl
   }
 
   @override
+  void setAll(int index, Iterable<int> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  @override
   void setRange(int start, int end, Iterable<int> iterable,
       [int skipCount = 0]) {
-    if (iterable is JSIntArrayImpl) {
-      _setRangeFast(this, start, end, iterable, skipCount);
+    int count = end - start;
+    RangeError.checkValidRange(start, end, length);
+
+    if (skipCount < 0) throw ArgumentError(skipCount);
+
+    int sourceLength = iterable.length;
+    if (sourceLength - skipCount < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (iterable is JSArrayBufferViewImpl) {
+      _setRangeFast(this, start, end, count, iterable as JSArrayBufferViewImpl,
+          sourceLength, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      List<int> otherList;
+      int otherStart;
+      if (iterable is List<int>) {
+        otherList = iterable;
+        otherStart = skipCount;
+      } else {
+        otherList = iterable.skip(skipCount).toList(growable: false);
+        otherStart = 0;
+      }
+      if (otherStart + count > otherList.length) {
+        throw IterableElementError.tooFew();
+      }
+      Lists.copy(otherList, otherStart, this, start, count);
     }
   }
 }
@@ -318,14 +368,13 @@ final class JSUint16ArrayImpl extends JSIntArrayImpl implements Uint16List {
 
   factory JSUint16ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Uint16Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Uint16Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Uint16List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Uint16List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Uint16Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSUint16ArrayImpl(jsBuffer);
   }
 
@@ -343,14 +392,13 @@ final class JSInt16ArrayImpl extends JSIntArrayImpl implements Int16List {
 
   factory JSInt16ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Int16Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Int16Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Int16List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Int16List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Int16Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSInt16ArrayImpl(jsBuffer);
   }
 
@@ -368,14 +416,13 @@ final class JSUint32ArrayImpl extends JSIntArrayImpl implements Uint32List {
 
   factory JSUint32ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Uint32Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Uint32Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Uint32List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Uint32List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Uint32Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSUint32ArrayImpl(jsBuffer);
   }
 
@@ -393,14 +440,13 @@ final class JSInt32ArrayImpl extends JSIntArrayImpl implements Int32List {
 
   factory JSInt32ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Int32Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Int32Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Int32List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Int32List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Int32Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSInt32ArrayImpl(jsBuffer);
   }
 
@@ -463,6 +509,71 @@ final class JSInt32x4ArrayImpl
   }
 }
 
+final class JSBigIntArrayImpl extends JSIntArrayImpl {
+  JSBigIntArrayImpl(super._ref);
+
+  @override
+  int operator [](int index) {
+    IndexError.check(index, length);
+    return js.JS<int>('(o, i) => o[i]', toExternRef, index.toDouble()).toInt();
+  }
+
+  @override
+  void operator []=(int index, int value) {
+    IndexError.check(index, length);
+    js.JS<void>('(o, i, v) => o[i] = v', toExternRef, index.toDouble(), value);
+  }
+}
+
+final class JSBigUint64ArrayImpl extends JSBigIntArrayImpl
+    implements Uint64List {
+  JSBigUint64ArrayImpl(super._ref);
+
+  factory JSBigUint64ArrayImpl.view(
+      JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
+    _offsetAlignmentCheck(offsetInBytes, Uint64List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Uint64List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new BigUint64Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
+    return JSBigUint64ArrayImpl(jsBuffer);
+  }
+
+  @override
+  Uint64List sublist(int start, [int? end]) {
+    final stop = RangeError.checkValidRange(start, end, length);
+    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
+        toExternRef, start.toDouble(), stop.toDouble());
+    return JSBigUint64ArrayImpl(source);
+  }
+}
+
+final class JSBigInt64ArrayImpl extends JSBigIntArrayImpl implements Int64List {
+  JSBigInt64ArrayImpl(super._ref);
+
+  factory JSBigInt64ArrayImpl.view(
+      JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
+    _offsetAlignmentCheck(offsetInBytes, Int64List.bytesPerElement);
+    length ??= _adjustLength(buffer, offsetInBytes, Int64List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new BigInt64Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
+    return JSBigInt64ArrayImpl(jsBuffer);
+  }
+
+  @override
+  Int64List sublist(int start, [int? end]) {
+    final stop = RangeError.checkValidRange(start, end, length);
+    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
+        toExternRef, start.toDouble(), stop.toDouble());
+    return JSBigInt64ArrayImpl(source);
+  }
+}
+
 final class JSFloatArrayImpl extends JSArrayBufferViewImpl
     with ListMixin<double>, FixedLengthListMixin<double> {
   JSFloatArrayImpl(super._ref);
@@ -481,12 +592,41 @@ final class JSFloatArrayImpl extends JSArrayBufferViewImpl
   }
 
   @override
+  void setAll(int index, Iterable<double> iterable) {
+    final end = iterable.length + index;
+    setRange(index, end, iterable);
+  }
+
+  @override
   void setRange(int start, int end, Iterable<double> iterable,
       [int skipCount = 0]) {
-    if (iterable is JSFloatArrayImpl) {
-      _setRangeFast(this, start, end, iterable, skipCount);
+    int count = end - start;
+    RangeError.checkValidRange(start, end, length);
+
+    if (skipCount < 0) throw ArgumentError(skipCount);
+
+    int sourceLength = iterable.length;
+    if (sourceLength - skipCount < count) {
+      throw IterableElementError.tooFew();
+    }
+
+    if (iterable is JSArrayBufferViewImpl) {
+      _setRangeFast(this, start, end, count, iterable as JSArrayBufferViewImpl,
+          sourceLength, skipCount);
     } else {
-      super.setRange(start, end, iterable, skipCount);
+      List<double> otherList;
+      int otherStart;
+      if (iterable is List<double>) {
+        otherList = iterable;
+        otherStart = skipCount;
+      } else {
+        otherList = iterable.skip(skipCount).toList(growable: false);
+        otherStart = 0;
+      }
+      if (otherStart + count > otherList.length) {
+        throw IterableElementError.tooFew();
+      }
+      Lists.copy(otherList, otherStart, this, start, count);
     }
   }
 }
@@ -496,14 +636,14 @@ final class JSFloat32ArrayImpl extends JSFloatArrayImpl implements Float32List {
 
   factory JSFloat32ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Float32Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Float32Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Float32List.bytesPerElement);
+    length ??=
+        _adjustLength(buffer, offsetInBytes, Float32List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Float32Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSFloat32ArrayImpl(jsBuffer);
   }
 
@@ -521,14 +661,14 @@ final class JSFloat64ArrayImpl extends JSFloatArrayImpl implements Float64List {
 
   factory JSFloat64ArrayImpl.view(
       JSArrayBufferImpl buffer, int offsetInBytes, int? length) {
-    WasmExternRef? jsBuffer;
-    if (length == null) {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o) => new Float64Array(b, o)',
-          buffer.toExternRef, offsetInBytes.toDouble());
-    } else {
-      jsBuffer = js.JS<WasmExternRef?>('(b, o, l) => new Float64Array(b, o, l)',
-          buffer.toExternRef, offsetInBytes.toDouble(), length.toDouble());
-    }
+    _offsetAlignmentCheck(offsetInBytes, Float64List.bytesPerElement);
+    length ??=
+        _adjustLength(buffer, offsetInBytes, Float64List.bytesPerElement);
+    WasmExternRef? jsBuffer = js.JS<WasmExternRef?>(
+        '(b, o, l) => new Float64Array(b, o, l)',
+        buffer.toExternRef,
+        offsetInBytes.toDouble(),
+        length.toDouble());
     return JSFloat64ArrayImpl(jsBuffer);
   }
 
@@ -637,18 +777,8 @@ final class JSFloat64x2ArrayImpl
   }
 }
 
-void _setRangeFast(JSArrayBufferViewImpl target, int start, int end,
-    JSArrayBufferViewImpl source, int skipCount) {
-  RangeError.checkValidRange(start, end, target.length);
-  int count = end - start;
-
-  if (skipCount < 0) throw ArgumentError(skipCount);
-
-  int sourceLength = source.length;
-  if (sourceLength - skipCount < count) {
-    throw StateError('Not enough elements');
-  }
-
+void _setRangeFast(JSArrayBufferViewImpl target, int start, int end, int count,
+    JSArrayBufferViewImpl source, int sourceLength, int skipCount) {
   WasmExternRef? jsSource;
   if (skipCount != 0 || sourceLength != count) {
     // Create a view of the exact subrange that is copied from the source.
@@ -662,4 +792,14 @@ void _setRangeFast(JSArrayBufferViewImpl target, int start, int end,
   }
   js.JS<void>('(t, s, i) => t.set(s, i)', target.toExternRef, jsSource,
       start.toDouble());
+}
+
+int _adjustLength(ByteBuffer buffer, int offsetInBytes, int bytesPerElement) =>
+    (buffer.lengthInBytes - offsetInBytes) ~/ bytesPerElement;
+
+void _offsetAlignmentCheck(int offset, int alignment) {
+  if ((offset % alignment) != 0) {
+    throw new RangeError('Offset ($offset) must be a multiple of '
+        'bytesPerElement ($alignment)');
+  }
 }

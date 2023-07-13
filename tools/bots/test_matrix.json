@@ -789,44 +789,32 @@
           ]
         },
         {
-          "name": "front_end weak co19 tests",
+          "name": "front_end weak tests",
           "arguments": [
             "-ncfe-weak-${system}",
-            "co19"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
-          "name": "front_end strong co19 tests",
-          "arguments": [
-            "-ncfe-strong-${system}",
-            "co19"
-          ],
-          "fileset": "front-end",
-          "shards": 2
-        },
-        {
-          "name": "front_end weak sdk tests",
-          "arguments": [
-            "-ncfe-weak-${system}",
+            "co19",
             "corelib",
             "ffi",
             "language",
             "lib",
             "service"
-          ]
+          ],
+          "fileset": "front-end",
+          "shards": 2
         },
         {
-          "name": "front_end strong sdk tests",
+          "name": "front_end strong tests",
           "arguments": [
             "-ncfe-strong-${system}",
+            "co19",
             "corelib",
             "ffi",
             "language",
             "lib",
             "service"
-          ]
+          ],
+          "fileset": "front-end",
+          "shards": 2
         }
       ]
     },
@@ -2421,22 +2409,14 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-d8",
+            "co19",
             "corelib",
             "language",
             "lib",
             "pkg",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform_hostasserts"
-        },
-        {
-          "name": "dart2js co19 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-d8",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 13,
           "fileset": "js_platform_hostasserts"
         }
       ]
@@ -2463,22 +2443,14 @@
           "name": "dart2js tests",
           "arguments": [
             "-ndart2js-${system}-${runtime}",
+            "co19",
             "corelib",
             "language",
             "lib",
             "pkg",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "dart2js co19 tests",
-          "arguments": [
-            "-ndart2js-${system}-${runtime}",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 12,
           "fileset": "js_platform"
         }
       ]
@@ -2717,30 +2689,12 @@
           ]
         },
         {
-          "name": "analyzer unit tests",
+          "name": "unit tests",
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/analyzer"
+            "pkg/(analyzer|analysis_server|nnbd_migration|analyzer_cli|analyzer_plugin)"
           ],
-          "shards": 4,
-          "fileset": "analyzer_unit_tests"
-        },
-        {
-          "name": "analysis_server unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/analysis_server"
-          ],
-          "shards": 4,
-          "fileset": "analyzer_unit_tests"
-        },
-        {
-          "name": "nnbd_migration unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/nnbd_migration"
-          ],
-          "shards": 1,
+          "shards": 9,
           "fileset": "analyzer_unit_tests"
         },
         {
@@ -2750,41 +2704,15 @@
           ]
         },
         {
-          "name": "analyze migrated tests enable-asserts",
+          "name": "enable-asserts",
           "arguments": [
             "-nanalyzer-asserts-${system}",
             "corelib",
             "ffi",
             "language",
             "lib",
-            "standalone"
-          ]
-        },
-        {
-          "name": "analyze pkg tests enable-asserts",
-          "arguments": [
-            "-nanalyzer-asserts-${system}",
-            "pkg"
-          ]
-        },
-        {
-          "name": "analyzer_cli unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/analyzer_cli"
-          ]
-        },
-        {
-          "name": "analyzer_plugin unit tests",
-          "arguments": [
-            "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/analyzer_plugin"
-          ]
-        },
-        {
-          "name": "analyze co19 tests",
-          "arguments": [
-            "-nanalyzer-asserts-${system}",
+            "standalone",
+            "pkg",
             "co19",
             "co19_2"
           ]

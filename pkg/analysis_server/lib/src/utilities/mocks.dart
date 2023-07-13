@@ -95,20 +95,14 @@ class MockServerChannel implements ServerCommunicationChannel {
   /// client, and return a future that will complete when a response associated
   /// with the [request] has been received.
   ///
-  /// The value of the future will be the received response. If [throwOnError]
-  /// is `true` (the default) then the returned future will throw an exception
-  /// if a server error is reported before the response has been received.
-  Future<Response> simulateRequestFromClient(Request request,
-      {bool throwOnError = true}) {
-    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
-    // have the default behavior be the only behavior.
-    // No further requests should be sent after the connection is closed.
+  /// The value of the future will be the received response.
+  Future<Response> simulateRequestFromClient(Request request) {
     if (_closed) {
       throw Exception('simulateRequestFromClient after connection closed');
     }
     // Wrap send request in future to simulate WebSocket.
     Future(() => requestController.add(request));
-    return waitForResponse(request, throwOnError: throwOnError);
+    return waitForResponse(request);
   }
 
   /// Send the given [response] to the server as if it had been sent from the
@@ -124,28 +118,14 @@ class MockServerChannel implements ServerCommunicationChannel {
 
   /// Return a future that will complete when a response associated with the
   /// given [request] has been received. The value of the future will be the
-  /// received response. If [throwOnError] is `true` (the default) then the
-  /// returned future will throw an exception if a server error is reported
-  /// before the response has been received.
+  /// received response.
   ///
   /// Unlike [simulateRequestFromClient], this method assumes that the [request]
   /// has already been sent to the server.
-  Future<Response> waitForResponse(Request request,
-      {bool throwOnError = true}) {
-    // TODO(brianwilkerson) Attempt to remove the `throwOnError` parameter and
-    // have the default behavior be the only behavior.
+  Future<Response> waitForResponse(Request request) {
     var id = request.id;
-    var response =
-        responseController.stream.firstWhere((response) => response.id == id);
-    if (throwOnError) {
-      var completer = errorCompleter = Completer<Response>();
-      try {
-        return Future.any([response, completer.future]);
-      } finally {
-        errorCompleter = null;
-      }
-    }
-    return response;
+    return responseController.stream
+        .firstWhere((response) => response.id == id);
   }
 }
 

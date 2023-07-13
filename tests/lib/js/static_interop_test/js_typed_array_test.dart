@@ -347,6 +347,43 @@ void testSimd() {
   Expect.equals(4, sf64a[0].y);
 }
 
+void bigTest() {
+  if (const bool.fromEnvironment('dart.library.html')) {
+    // Not yet supported on JS backends.
+    return;
+  }
+
+  // Uint64List
+  {
+    final buffer = Uint32List(2).toJS.toDart.buffer;
+    final bigList = buffer.asUint64List();
+    final littleList = buffer.asUint8List();
+    bigList[0] = 4294967296; // Max 32 bit unsigned + 1
+    Expect.equals(4294967296, bigList[0]);
+    Expect.listEquals([0, 0, 0, 0, 1, 0, 0, 0], littleList);
+
+    final byteData = ByteData.view(buffer);
+    byteData.setUint64(0, 4294967297);
+    Expect.equals(4294967297, byteData.getUint64(0));
+    Expect.listEquals([0, 0, 0, 1, 0, 0, 0, 1], littleList);
+  }
+
+  // Int64List
+  {
+    final buffer = Int32List(2).toJS.toDart.buffer;
+    final bigList = buffer.asInt64List();
+    final littleList = buffer.asInt8List();
+    bigList[0] = -2147483648; // Min 32 bit signed - 1
+    Expect.equals(-2147483648, bigList[0]);
+    Expect.listEquals([0, 0, 0, -128, -1, -1, -1, -1], littleList);
+
+    final byteData = ByteData.view(buffer);
+    byteData.setInt64(0, -2147483649);
+    Expect.equals(-2147483649, byteData.getInt64(0));
+    Expect.listEquals([-1, -1, -1, -1, 127, -1, -1, -1], littleList);
+  }
+}
+
 void main() {
   for (final mode in [
     TestMode.jsReceiver,
@@ -361,4 +398,5 @@ void main() {
   clampingTest();
   overlapTest();
   testSimd();
+  bigTest();
 }

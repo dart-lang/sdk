@@ -263,6 +263,8 @@ class ClassInfoCollector {
       "JSInt32ArrayImpl",
       "JSInt32x4ArrayImpl",
       "JSUint32ArrayImpl",
+      "JSBigUint64ArrayImpl",
+      "JSBigInt64ArrayImpl",
       "JSFloat32ArrayImpl",
       "JSFloat32x4ArrayImpl",
       "JSFloat64ArrayImpl",
