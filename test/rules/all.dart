@@ -114,6 +114,8 @@ import 'prefer_mixin_test.dart' as prefer_mixin;
 import 'prefer_relative_imports_test.dart' as prefer_relative_imports;
 import 'prefer_single_quotes_test.dart' as prefer_single_quotes;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
+import 'prefer_typing_uninitialized_variables_test.dart'
+    as prefer_typing_uninitialized_variables;
 import 'prefer_void_to_null_test.dart' as prefer_void_to_null;
 import 'provide_deprecation_message_test.dart' as provide_deprecation_message;
 import 'public_member_api_docs_test.dart' as public_member_api_docs;
@@ -267,6 +269,7 @@ void main() {
   prefer_relative_imports.main();
   prefer_single_quotes.main();
   prefer_spread_collections.main();
+  prefer_typing_uninitialized_variables.main();
   prefer_void_to_null.main();
   provide_deprecation_message.main();
   public_member_api_docs.main();
