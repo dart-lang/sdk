@@ -138,6 +138,7 @@ import 'unnecessary_breaks_test.dart' as unnecessary_breaks;
 import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'unnecessary_constructor_name_test.dart' as unnecessary_constructor_name;
 import 'unnecessary_final_test.dart' as unnecessary_final;
+import 'unnecessary_getters_setters_test.dart' as unnecessary_getters_setters;
 import 'unnecessary_lambdas_test.dart' as unnecessary_lambdas;
 import 'unnecessary_late_test.dart' as unnecessary_late;
 import 'unnecessary_library_directive_test.dart'
@@ -283,6 +284,7 @@ void main() {
   unnecessary_const.main();
   unnecessary_constructor_name.main();
   unnecessary_final.main();
+  unnecessary_getters_setters.main();
   unnecessary_lambdas.main();
   unnecessary_late.main();
   unnecessary_library_directive.main();

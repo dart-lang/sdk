@@ -251,8 +251,8 @@ bool isSimpleGetter(MethodDeclaration declaration) {
 /// A simple setter takes this basic form:
 ///
 /// ```dart
-/// var _x;
-/// set(x) {
+/// int _x;
+/// set(int x) {
 ///   _x = x;
 /// }
 /// ```
@@ -260,10 +260,12 @@ bool isSimpleGetter(MethodDeclaration declaration) {
 /// or:
 ///
 /// ```dart
-/// set(x) => _x = x;
+/// int _x;
+/// set(int x) => _x = x;
 /// ```
 ///
-/// where the static type of the left and right hand sides must be the same.
+/// where the static type of the left and right hand sides of the assignment
+/// expression are the same.
 bool isSimpleSetter(MethodDeclaration setter) {
   var body = setter.body;
   if (body is ExpressionFunctionBody) {
