@@ -2637,48 +2637,32 @@
             "corelib",
             "language"
           ],
-          "shards": 6,
+          "shards": 4,
           "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-chrome-unsound",
+            "co19",
             "lib",
             "pkg",
             "web"
           ],
-          "shards": 3,
-          "fileset": "js_platform_hostasserts"
-        },
-        {
-          "name": "dart2js chrome co19 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-chrome-unsound",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 10,
           "fileset": "js_platform_hostasserts"
         },
         {
           "name": "dart2js chrome _2 tests",
           "arguments": [
             "-ndart2js-hostasserts-linux-chrome-unsound_2",
+            "co19_2",
             "corelib_2",
             "language_2",
             "lib_2",
             "web_2"
           ],
-          "shards": 6,
-          "fileset": "js_platform_hostasserts_2"
-        },
-        {
-          "name": "dart2js chrome co19_2 tests",
-          "arguments": [
-            "-ndart2js-hostasserts-linux-chrome-unsound_2",
-            "co19_2"
-          ],
-          "shards": 6,
+          "shards": 14,
           "fileset": "js_platform_hostasserts_2"
         }
       ]
