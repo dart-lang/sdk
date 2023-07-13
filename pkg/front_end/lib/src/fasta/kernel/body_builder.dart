@@ -1210,26 +1210,32 @@ class BodyBuilder extends StackListenerImpl
       for (int i = 0; i < formals.parameters!.length; i++) {
         FormalParameterBuilder parameter = formals.parameters![i];
         Expression? initializer = parameter.variable!.initializer;
-        if (!parameter.isSuperInitializingFormal &&
-            (parameter.isOptionalPositional || initializer != null)) {
+        bool inferInitializer;
+        if (parameter.isSuperInitializingFormal) {
+          // Super-parameters can inherit the default value from the super
+          // constructor so we only handle explicit default values here.
+          inferInitializer = parameter.hasImmediatelyDeclaredInitializer;
+        } else if (initializer != null) {
+          inferInitializer = true;
+        } else {
+          inferInitializer = parameter.isOptional;
+        }
+        if (inferInitializer) {
           if (!parameter.initializerWasInferred) {
-            parameter.initializerWasInferred = true;
-            if (parameter.isOptionalPositional) {
-              initializer ??= forest.createNullLiteral(
-                  // TODO(ahe): Should store: originParameter.fileOffset
-                  // https://github.com/dart-lang/sdk/issues/32289
-                  noLocation);
-            }
+            initializer ??= forest.createNullLiteral(
+                // TODO(ahe): Should store: originParameter.fileOffset
+                // https://github.com/dart-lang/sdk/issues/32289
+                noLocation);
             VariableDeclaration originParameter =
                 _context.getFormalParameter(i);
             initializer = typeInferrer.inferParameterInitializer(
                 this,
-                initializer!,
+                initializer,
                 originParameter.type,
                 parameter.hasDeclaredInitializer);
             originParameter.initializer = initializer..parent = originParameter;
+            parameter.initializerWasInferred = true;
           }
-
           VariableDeclaration? tearOffParameter =
               _context.getTearOffParameter(i);
           if (tearOffParameter != null) {
@@ -1744,7 +1750,8 @@ class BodyBuilder extends StackListenerImpl
                     formal.name!,
                     libraryBuilder,
                     formal.fileOffset,
-                    fileUri: uri)
+                    fileUri: uri,
+                    hasImmediatelyDeclaredInitializer: false)
                   ..variable = formal;
               }, growable: false);
     enterLocalScope(new FormalParameters(formals, fileOffset, noLength, uri)
@@ -5348,8 +5355,8 @@ class BodyBuilder extends StackListenerImpl
           name?.name ?? '',
           libraryBuilder,
           offsetForToken(nameToken),
-          fileUri: uri)
-        ..hasDeclaredInitializer = (initializerStart != null);
+          fileUri: uri,
+          hasImmediatelyDeclaredInitializer: initializerStart != null);
     }
     VariableDeclaration variable = parameter.build(libraryBuilder);
     Expression? initializer = name?.initializer;

@@ -233,7 +233,7 @@ class KernelLoader : public ValueObject {
                          bool* is_isolate_unsendable,
                          bool* has_pragma_annotation);
 
-  KernelLoader(const Script& script,
+  KernelLoader(const KernelProgramInfo& kernel_program_info,
                const ExternalTypedData& kernel_data,
                intptr_t data_program_offset);
 

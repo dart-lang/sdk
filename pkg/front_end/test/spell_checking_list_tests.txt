@@ -52,6 +52,7 @@ augmented
 auth
 authority
 autobianchi
+autofocus
 automatic
 averaged
 averages

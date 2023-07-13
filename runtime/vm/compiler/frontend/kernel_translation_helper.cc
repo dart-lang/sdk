@@ -62,21 +62,14 @@ void TranslationHelper::Reset() {
   constants_ = Array::null();
 }
 
-void TranslationHelper::InitFromScript(const Script& script) {
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(Z, script.kernel_program_info());
+void TranslationHelper::InitFromKernelProgramInfo(
+    const KernelProgramInfo& info) {
   if (info.IsNull()) {
-    // If there is no kernel data associated with the script, then
-    // do not bother initializing!.
+    // If there is no kernel data available then do not bother initializing!
     // This can happen with few special functions like
     // NoSuchMethodDispatcher and InvokeFieldDispatcher.
     return;
   }
-  InitFromKernelProgramInfo(info);
-}
-
-void TranslationHelper::InitFromKernelProgramInfo(
-    const KernelProgramInfo& info) {
   SetStringOffsets(TypedData::Handle(Z, info.string_offsets()));
   SetStringData(ExternalTypedData::Handle(Z, info.string_data()));
   SetCanonicalNames(TypedData::Handle(Z, info.canonical_names()));
@@ -3580,8 +3573,9 @@ void TypeTranslator::BuildTypeParameterType() {
     return;
   }
 
+  const auto& script = Script::Handle(Z, Script());
   H.ReportError(
-      helper_->script(), TokenPosition::kNoSource,
+      script, TokenPosition::kNoSource,
       "Unbound type parameter found in %s.  Please report this at dartbug.com.",
       active_class_->ToCString());
 }

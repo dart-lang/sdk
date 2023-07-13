@@ -452,7 +452,7 @@ void KernelLoader::InitializeFields(UriToSourceTable* uri_to_source_table) {
   }
 }
 
-KernelLoader::KernelLoader(const Script& script,
+KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
                            const ExternalTypedData& kernel_data,
                            intptr_t data_program_offset)
     : program_(nullptr),
@@ -465,9 +465,9 @@ KernelLoader::KernelLoader(const Script& script,
       loading_native_wrappers_library_(false),
       library_kernel_data_(ExternalTypedData::ZoneHandle(zone_)),
       kernel_program_info_(
-          KernelProgramInfo::ZoneHandle(zone_, script.kernel_program_info())),
+          KernelProgramInfo::ZoneHandle(zone_, kernel_program_info.ptr())),
       translation_helper_(this, thread_, Heap::kOld),
-      helper_(zone_, &translation_helper_, script, kernel_data, 0),
+      helper_(zone_, &translation_helper_, kernel_data, 0),
       constant_reader_(&helper_, &active_class_),
       type_translator_(&helper_,
                        &constant_reader_,
@@ -617,7 +617,8 @@ ObjectPtr KernelLoader::LoadExpressionEvaluationFunction(
   auto& kernel_data = ExternalTypedData::Handle(
       Z, expression_evaluation_library_.kernel_data());
   intptr_t kernel_offset = expression_evaluation_library_.kernel_offset();
-  function.SetKernelDataAndScript(eval_script, kernel_data, kernel_offset);
+  function.SetKernelDataAndEvalScript(eval_script, kernel_program_info_,
+                                      kernel_data, kernel_offset);
 
   function.set_owner(real_class);
 
@@ -848,6 +849,7 @@ LibraryPtr KernelLoader::LoadLibrary(intptr_t index) {
       library_kernel_offset_, library_kernel_offset_ + library_size);
   library.set_kernel_data(library_kernel_data_);
   library.set_kernel_offset(library_kernel_offset_);
+  library.set_kernel_program_info(kernel_program_info_);
 
   LibraryIndex library_index(library_kernel_data_);
   intptr_t class_count = library_index.class_count();
@@ -1681,7 +1683,6 @@ void KernelLoader::FinishLoading(const Class& klass) {
   ASSERT(klass.IsTopLevel() || (klass.kernel_offset() > 0));
 
   Zone* zone = Thread::Current()->zone();
-  const Script& script = Script::Handle(zone, klass.script());
   const Library& library = Library::Handle(zone, klass.library());
   const Class& toplevel_class = Class::Handle(zone, library.toplevel_class());
   const ExternalTypedData& library_kernel_data =
@@ -1690,7 +1691,10 @@ void KernelLoader::FinishLoading(const Class& klass) {
   const intptr_t library_kernel_offset = library.kernel_offset();
   ASSERT(library_kernel_offset > 0);
 
-  KernelLoader kernel_loader(script, library_kernel_data,
+  auto& kernel_info =
+      KernelProgramInfo::Handle(zone, klass.KernelProgramInfo());
+
+  KernelLoader kernel_loader(kernel_info, library_kernel_data,
                              library_kernel_offset);
   LibraryIndex library_index(library_kernel_data);
 
@@ -1927,7 +1931,8 @@ const Object& KernelLoader::ClassForScriptAt(const Class& klass,
     patch_class ^= patch_classes_.At(source_uri_index);
     if (patch_class.IsNull() || patch_class.wrapped_class() != klass.ptr()) {
       ASSERT(!library_kernel_data_.IsNull());
-      patch_class = PatchClass::New(klass, correct_script);
+      patch_class =
+          PatchClass::New(klass, kernel_program_info_, correct_script);
       patch_class.set_library_kernel_data(library_kernel_data_);
       patch_class.set_library_kernel_offset(library_kernel_offset_);
       patch_classes_.SetAt(source_uri_index, patch_class);
@@ -1941,10 +1946,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
                                      UriToSourceTable* uri_to_source_table) {
   const String& uri_string = helper_.SourceTableUriFor(index);
   const String& import_uri_string = helper_.SourceTableImportUriFor(index);
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedData& constant_coverage =
-      ExternalTypedData::Handle(Z, helper_.GetConstantCoverageFor(index));
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
+  auto& constant_coverage = ExternalTypedData::Handle(Z);
+  NOT_IN_PRODUCT(constant_coverage = helper_.GetConstantCoverageFor(index));
 
   String& sources = String::Handle(Z);
   TypedData& line_starts = TypedData::Handle(Z);
@@ -1987,13 +1990,8 @@ ScriptPtr KernelLoader::LoadScriptAt(intptr_t index,
 
   const Script& script =
       Script::Handle(Z, Script::New(import_uri_string, uri_string, sources));
-  script.set_kernel_script_index(index);
-  script.set_kernel_program_info(kernel_program_info_);
-  script.set_line_starts(line_starts);
-#if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  script.set_constant_coverage(constant_coverage);
-#endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  script.set_debug_positions(Array::null_array());
+  script.InitializeFromKernel(kernel_program_info_, index, line_starts,
+                              constant_coverage);
   return script.ptr();
 }
 
@@ -2231,8 +2229,10 @@ FunctionPtr CreateFieldInitializerFunction(Thread* thread,
   // Compare https://codereview.chromium.org//1317753004
   const Script& script = Script::Handle(zone, field.Script());
   const Class& field_owner = Class::Handle(zone, field.Owner());
-  const PatchClass& initializer_owner =
-      PatchClass::Handle(zone, PatchClass::New(field_owner, script));
+  const auto& kernel_program_info =
+      KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
+  const PatchClass& initializer_owner = PatchClass::Handle(
+      zone, PatchClass::New(field_owner, kernel_program_info, script));
   const Library& lib = Library::Handle(zone, field_owner.library());
   initializer_owner.set_library_kernel_data(
       ExternalTypedData::Handle(zone, lib.kernel_data()));

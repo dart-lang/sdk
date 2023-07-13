@@ -2102,7 +2102,8 @@ class OutlineBuilder extends StackListenerImpl {
               null,
               charOffset,
               fileUri: uri,
-              isExtensionThis: true));
+              isExtensionThis: true,
+              hasImmediatelyDeclaredInitializer: false));
           if (formals != null) {
             synthesizedFormals.addAll(formals);
           }

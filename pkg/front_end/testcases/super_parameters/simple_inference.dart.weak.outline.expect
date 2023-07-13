@@ -20,7 +20,7 @@ class B1 extends self::A1 {
     ;
   constructor named2(core::int foo) → self::B1
     ;
-  constructor named3({required core::int foo = null}) → self::B1
+  constructor named3({required core::int foo}) → self::B1
     ;
 }
 class A2 extends core::Object {
@@ -30,7 +30,7 @@ class A2 extends core::Object {
     ;
 }
 class B2 extends self::A2 {
-  constructor •({required core::String bar = null, required core::int foo = null}) → self::B2
+  constructor •({required core::String bar, required core::int foo}) → self::B2
     ;
 }
 static method main() → dynamic

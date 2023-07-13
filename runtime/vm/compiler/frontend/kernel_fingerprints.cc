@@ -15,12 +15,10 @@ class KernelFingerprintHelper : public KernelReaderHelper {
  public:
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
-                          const Script& script,
                           const ExternalTypedData& data,
                           intptr_t data_program_offset)
       : KernelReaderHelper(zone,
                            translation_helper,
-                           script,
                            data,
                            data_program_offset),
         hash_(0) {}
@@ -990,13 +988,13 @@ uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
     const Field& field) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, field.Script());
+  const auto& info = KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
 
   TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
+  translation_helper.InitFromKernelProgramInfo(info);
 
   KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
+      zone, &translation_helper,
       ExternalTypedData::Handle(zone, field.KernelData()),
       field.KernelDataProgramOffset());
   helper.SetOffset(field.kernel_offset());
@@ -1007,13 +1005,13 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
     const Function& func) {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
-  const Script& script = Script::Handle(zone, func.script());
+  const auto& info = KernelProgramInfo::Handle(zone, func.KernelProgramInfo());
 
   TranslationHelper translation_helper(thread);
-  translation_helper.InitFromScript(script);
+  translation_helper.InitFromKernelProgramInfo(info);
 
   KernelFingerprintHelper helper(
-      zone, &translation_helper, script,
+      zone, &translation_helper,
       ExternalTypedData::Handle(zone, func.KernelData()),
       func.KernelDataProgramOffset());
   helper.SetOffset(func.kernel_offset());

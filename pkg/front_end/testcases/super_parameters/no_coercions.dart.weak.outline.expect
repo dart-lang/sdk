@@ -17,9 +17,9 @@ class A2 extends core::Object {
     ;
 }
 class B2 extends self::A2 {
-  constructor one({required dynamic x = null}) → self::B2
+  constructor one({required dynamic x}) → self::B2
     ;
-  constructor two({required dynamic x = null}) → self::B2
+  constructor two({required dynamic x}) → self::B2
     ;
 }
 class A3 extends core::Object {
@@ -37,9 +37,9 @@ class A4 extends core::Object {
     ;
 }
 class B4 extends self::A4 {
-  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f = null}) → self::B4
+  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     ;
-  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f = null}) → self::B4
+  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     ;
 }
 abstract class C5 extends core::Object {
@@ -62,9 +62,9 @@ class A6 extends core::Object {
     ;
 }
 class B6 extends self::A6 {
-  constructor one({required self::C5 f = null}) → self::B6
+  constructor one({required self::C5 f}) → self::B6
     ;
-  constructor two({required self::C5 f = null}) → self::B6
+  constructor two({required self::C5 f}) → self::B6
     ;
 }
 class A7 extends core::Object {
@@ -72,7 +72,7 @@ class A7 extends core::Object {
     ;
 }
 class B7 extends self::A7 {
-  constructor •({required dynamic x1 = null, required dynamic x2 = null, required <X extends core::Object? = dynamic>(core::Object) → X% f1 = null, required <X extends core::Object? = dynamic>(core::Object) → X% f2 = null, required <X extends core::Object? = dynamic>(X%) → void g1 = null, required <X extends core::Object? = dynamic>(X%) → void g2 = null}) → self::B7
+  constructor •({required dynamic x1, required dynamic x2 = null, required <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2 = null, required <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2 = null}) → self::B7
     ;
 }
 static method main() → dynamic

@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends self::B {
-  constructor •({required invalid-type field = null}) → self::A
+  constructor •({required invalid-type field}) → self::A
     ;
 }
 class B extends core::Object {

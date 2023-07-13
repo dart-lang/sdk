@@ -28,9 +28,6 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
       : KernelReaderHelper(
             flow_graph_builder->zone_,
             &flow_graph_builder->translation_helper_,
-            Script::Handle(
-                flow_graph_builder->zone_,
-                flow_graph_builder->parsed_function_->function().script()),
             data,
             data_program_offset),
         flow_graph_builder_(flow_graph_builder),
@@ -93,6 +90,13 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment ShortcutForUserDefinedEquals(const Function& dart_function,
                                         LocalVariable* first_parameter);
   Fragment TypeArgumentsHandling(const Function& dart_function);
+
+  ScriptPtr Script() {
+    if (active_class_ != nullptr) {
+      return active_class_->ActiveScript();
+    }
+    return Script::null();
+  }
 
   static UncheckedEntryPointStyle ChooseEntryPointStyle(
       const Function& dart_function,

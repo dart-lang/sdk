@@ -789,7 +789,7 @@ void SourceReport::CollectConstConstructorCoverageFromScripts(
     {
       Script& scriptRef = Script::Handle(zone());
       const Array& constructors =
-          Array::Handle(kernel::CollectConstConstructorCoverageFrom(*script));
+          Array::Handle(script->CollectConstConstructorCoverageFrom());
       intptr_t constructors_count = constructors.Length();
       Function& constructor = Function::Handle(zone());
       Code& code = Code::Handle(zone());

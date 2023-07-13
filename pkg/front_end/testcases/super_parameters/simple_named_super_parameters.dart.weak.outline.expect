@@ -8,11 +8,11 @@ class A1 extends core::Object {
     ;
 }
 class B1 extends self::A1 {
-  constructor •({required core::int foo = null}) → self::B1
+  constructor •({required core::int foo}) → self::B1
     ;
 }
 class C1 extends self::A1 {
-  constructor •({required core::int foo = null}) → self::C1
+  constructor •({required core::int foo}) → self::C1
     ;
 }
 class A2 extends core::Object {
@@ -26,9 +26,9 @@ class B2 extends self::A2 {
     ;
 }
 class C2 extends self::A2 {
-  constructor •({required core::int foo = null}) → self::C2
+  constructor •({required core::int foo}) → self::C2
     ;
-  constructor other({required core::int foo = null}) → self::C2
+  constructor other({required core::int foo}) → self::C2
     ;
 }
 static method main() → dynamic

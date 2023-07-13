@@ -670,7 +670,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -686,7 +686,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -1386,7 +1386,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -1402,7 +1402,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -2091,7 +2091,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -2107,7 +2107,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -2809,7 +2809,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -2825,7 +2825,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -4942,7 +4942,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -4958,7 +4958,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x14;
@@ -5659,7 +5659,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -5675,7 +5675,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x28;
@@ -6359,7 +6359,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -6375,7 +6375,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -7067,7 +7067,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -7083,7 +7083,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
@@ -7764,7 +7764,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -7780,7 +7780,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -8474,7 +8474,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -8490,7 +8490,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
@@ -10583,7 +10583,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x30;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x1c;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0x58;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0x5c;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x1c;
@@ -10599,7 +10599,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x10;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x4;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x4;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x14;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x8;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0xc;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0xc;
@@ -11292,7 +11292,7 @@ static constexpr dart::compiler::target::word Integer_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word KernelProgramInfo_InstanceSize =
     0x60;
 static constexpr dart::compiler::target::word LanguageError_InstanceSize = 0x30;
-static constexpr dart::compiler::target::word Library_InstanceSize = 0xa8;
+static constexpr dart::compiler::target::word Library_InstanceSize = 0xb0;
 static constexpr dart::compiler::target::word LibraryPrefix_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word LinkedHashBase_InstanceSize =
     0x38;
@@ -11308,7 +11308,7 @@ static constexpr dart::compiler::target::word Namespace_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word NativeArguments_StructSize = 0x20;
 static constexpr dart::compiler::target::word Number_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Object_InstanceSize = 0x8;
-static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x28;
+static constexpr dart::compiler::target::word PatchClass_InstanceSize = 0x30;
 static constexpr dart::compiler::target::word PcDescriptors_HeaderSize = 0x10;
 static constexpr dart::compiler::target::word Pointer_InstanceSize = 0x18;
 static constexpr dart::compiler::target::word ReceivePort_InstanceSize = 0x18;
