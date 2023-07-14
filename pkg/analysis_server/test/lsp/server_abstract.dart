@@ -6,7 +6,6 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
@@ -29,6 +28,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart' hide expect;
+import 'package:unified_analytics/unified_analytics.dart';
 
 import '../mocks.dart';
 import '../mocks_lsp.dart';
@@ -270,7 +270,7 @@ abstract class AbstractLspAnalysisServerTest
         resourceProvider,
         serverOptions,
         DartSdkManager(sdkRoot.path),
-        AnalyticsManager(NoopAnalytics()),
+        AnalyticsManager(NoOpAnalytics()),
         CrashReportingAttachmentsBuilder.empty,
         InstrumentationService.NULL_SERVICE,
         httpClient: httpClient,
