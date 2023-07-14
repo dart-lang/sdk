@@ -297,10 +297,10 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     // duplicate null-safety info messages from the frontend when generating
     // a kernel snapshot (this flag is instead set in
     // Snapshot::GenerateKernel()).
-    const bool snapshot = Options::gen_snapshot_kind() == kAppJIT;
+    const bool for_app_jit_snapshot = Options::gen_snapshot_kind() == kAppJIT;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             resolved_packages_config, snapshot);
+                             resolved_packages_config, for_app_jit_snapshot);
     if (application_kernel_buffer == nullptr) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();

@@ -2773,6 +2773,16 @@ static intptr_t PrepareInlineIndexedOp(FlowGraph* flow_graph,
       new (Z) Value(*array), Slot::GetLengthFieldForArrayCid(array_cid),
       call->source());
   *cursor = flow_graph->AppendTo(*cursor, length, nullptr, FlowGraph::kValue);
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. By inserting the null-check, we can allow the
+    // unbox instruction later inserted to be non-speculative.
+    auto* const null_check = new (Z) CheckNullInstr(
+        new (Z) Value(*index), Symbols::Index(), call->deopt_id(),
+        call->source(), CheckNullInstr::kArgumentError);
+    *cursor = flow_graph->AppendTo(*cursor, null_check, call->env(),
+                                   FlowGraph::kEffect);
+  }
   *index = flow_graph->CreateCheckBound(length, *index, call->deopt_id());
   *cursor =
       flow_graph->AppendTo(*cursor, *index, call->env(), FlowGraph::kValue);
@@ -3483,6 +3493,16 @@ static Definition* PrepareInlineStringIndexOp(FlowGraph* flow_graph,
   cursor = flow_graph->AppendTo(cursor, length, nullptr, FlowGraph::kValue);
 
   // Bounds check.
+  if (CompilerState::Current().is_aot()) {
+    // Add a null-check in case the index argument is known to be compatible
+    // but possibly nullable. By inserting the null-check, we can allow the
+    // unbox instruction later inserted to be non-speculative.
+    auto* const null_check = new (Z)
+        CheckNullInstr(new (Z) Value(index), Symbols::Index(), call->deopt_id(),
+                       call->source(), CheckNullInstr::kArgumentError);
+    cursor = flow_graph->AppendTo(cursor, null_check, call->env(),
+                                  FlowGraph::kEffect);
+  }
   index = flow_graph->CreateCheckBound(length, index, call->deopt_id());
   cursor = flow_graph->AppendTo(cursor, index, call->env(), FlowGraph::kValue);
 

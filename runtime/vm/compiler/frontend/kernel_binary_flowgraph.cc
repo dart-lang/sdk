@@ -275,7 +275,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         });
     constructor_initialized_field_offsets.Add(-1);
 
-    ExternalTypedData& kernel_data = ExternalTypedData::Handle(Z);
+    auto& kernel_data = TypedDataView::Handle(Z);
     Array& class_fields = Array::Handle(Z, parent_class.fields());
     Field& class_field = Field::Handle(Z);
     intptr_t next_constructor_initialized_field_index = 0;
@@ -298,7 +298,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
           is_constructor_initialized = true;
         }
 
-        kernel_data = class_field.KernelData();
+        kernel_data = class_field.KernelLibrary();
         ASSERT(!kernel_data.IsNull());
         AlternativeReadingScopeWithNewData alt(&reader_, &kernel_data,
                                                field_offset);

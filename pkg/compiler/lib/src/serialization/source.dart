@@ -287,13 +287,28 @@ class DataSourceReader {
     return _sourceReader.readAtOffset(offset, f);
   }
 
-  Deferrable<E> readDeferrable<E>(E f(), {bool cacheData = true}) {
+  Deferrable<E> readDeferrable<E>(E f(DataSourceReader source),
+      {bool cacheData = true}) {
     return enableDeferredStrategy
         ? (useDeferredStrategy
             ? Deferrable<E>.deferred(this, f, _sourceReader.readDeferred(),
                 cacheData: cacheData)
-            : Deferrable<E>.eager(_sourceReader.readDeferredAsEager(f)))
-        : Deferrable<E>.eager(f());
+            : Deferrable<E>.eager(
+                _sourceReader.readDeferredAsEager(() => f(this))))
+        : Deferrable<E>.eager(f(this));
+  }
+
+  Deferrable<E> readDeferrableWithArg<E, A>(
+      E f(DataSourceReader source, A arg), A arg,
+      {bool cacheData = true}) {
+    return enableDeferredStrategy
+        ? (useDeferredStrategy
+            ? Deferrable.deferredWithArg<E, A>(
+                this, f, arg, _sourceReader.readDeferred(),
+                cacheData: cacheData)
+            : Deferrable<E>.eager(
+                _sourceReader.readDeferredAsEager(() => f(this, arg))))
+        : Deferrable<E>.eager(f(this, arg));
   }
 
   /// Invoke [f] in the context of [member]. This sets up support for

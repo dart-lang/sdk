@@ -639,6 +639,11 @@ abstract class JMemberDataImpl implements JMemberData {
 
   JMemberDataImpl._deserialized(this.node, this.definition, this._staticTypes);
 
+  static StaticTypeCache _readStaticTypeCache(
+      DataSourceReader source, ir.Member node) {
+    return StaticTypeCache.readFromDataSource(source, node);
+  }
+
   @override
   InterfaceType? getMemberThisType(JsToElementMap elementMap) {
     MemberEntity member = elementMap.getMember(node);
@@ -770,8 +775,8 @@ class FunctionDataImpl extends JMemberDataImpl
           "Unexpected member node $node (${node.runtimeType}).");
     }
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    Deferrable<StaticTypeCache> staticTypes = source
-        .readDeferrable(() => StaticTypeCache.readFromDataSource(source, node));
+    Deferrable<StaticTypeCache> staticTypes = source.readDeferrableWithArg(
+        JMemberDataImpl._readStaticTypeCache, node);
     source.end(tag);
     return FunctionDataImpl._deserialized(
         node, functionNode, definition, staticTypes);
@@ -822,13 +827,18 @@ class SignatureFunctionData implements FunctionData {
   SignatureFunctionData._deserialized(this.definition, this.memberThisType,
       this._typeParameters, this.classTypeVariableAccess);
 
+  static List<ir.TypeParameter> _readTypeParameterNodes(
+      DataSourceReader source) {
+    return source.readTypeParameterNodes();
+  }
+
   factory SignatureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
     InterfaceType? memberThisType =
         source.readDartTypeOrNull() as InterfaceType?;
     Deferrable<List<ir.TypeParameter>> typeParameters =
-        source.readDeferrable(() => source.readTypeParameterNodes());
+        source.readDeferrable(_readTypeParameterNodes);
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
     source.end(tag);
@@ -975,8 +985,8 @@ class JConstructorData extends FunctionDataImpl {
           "Unexpected member node $node (${node.runtimeType}).");
     }
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    Deferrable<StaticTypeCache> staticTypes = source
-        .readDeferrable(() => StaticTypeCache.readFromDataSource(source, node));
+    Deferrable<StaticTypeCache> staticTypes = source.readDeferrableWithArg(
+        JMemberDataImpl._readStaticTypeCache, node);
     source.end(tag);
     return JConstructorData._deserialized(
         node, functionNode, definition, staticTypes);
@@ -1023,8 +1033,8 @@ class ConstructorBodyDataImpl extends FunctionDataImpl {
           "Unexpected member node $node (${node.runtimeType}).");
     }
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    Deferrable<StaticTypeCache> staticTypes = source
-        .readDeferrable(() => StaticTypeCache.readFromDataSource(source, node));
+    Deferrable<StaticTypeCache> staticTypes = source.readDeferrableWithArg(
+        JMemberDataImpl._readStaticTypeCache, node);
     source.end(tag);
     return ConstructorBodyDataImpl._deserialized(
         node, functionNode, definition, staticTypes);
@@ -1067,8 +1077,8 @@ class JFieldDataImpl extends JMemberDataImpl implements JFieldData {
     source.begin(tag);
     ir.Member node = source.readMemberNode();
     MemberDefinition definition = MemberDefinition.readFromDataSource(source);
-    Deferrable<StaticTypeCache> staticTypes = source
-        .readDeferrable(() => StaticTypeCache.readFromDataSource(source, node));
+    Deferrable<StaticTypeCache> staticTypes = source.readDeferrableWithArg(
+        JMemberDataImpl._readStaticTypeCache, node);
     source.end(tag);
     return JFieldDataImpl._deserialized(
         node as ir.Field, definition, staticTypes);

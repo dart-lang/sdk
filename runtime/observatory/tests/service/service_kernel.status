@@ -19,6 +19,7 @@ evaluate_*: SkipByDesign # No incremental compiler available.
 get_allocation_traces_test: SkipByDesign # Allocation traces aren't consistent when running from snapshot.
 get_instances_as_array_rpc_expression_evaluation_on_internal_test: SkipByDesign # No incremental compiler available.
 get_object_rpc_test: SkipByDesign # App-JIT snapshots don't contain script sources.
+get_source_report_const_coverage_test: SkipByDesign # AppJit doesn't include sources & therefore no coverage of sources.
 pause_on_exceptions_test: SkipByDesign # No incremental compiler available.
 rewind_optimized_out_test: SkipByDesign # No incremental compiler available.
 rewind_test: SkipByDesign # No incremental compiler available.

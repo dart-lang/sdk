@@ -66,21 +66,40 @@ class ClosureDataImpl implements ClosureData {
       this._localClosureRepresentationMap,
       this._enclosingMembers);
 
+  static Map<MemberEntity, ScopeInfo> _readScopeMap(DataSourceReader source) {
+    return source.readMemberMap(
+        (MemberEntity member) => ScopeInfo.readFromDataSource(source));
+  }
+
+  static Map<ir.TreeNode, CapturedScope> _readCapturedScopesMap(
+      DataSourceReader source) {
+    return source
+        .readTreeNodeMap(() => CapturedScope.readFromDataSource(source));
+  }
+
+  static Map<MemberEntity, CapturedScope> _readCapturedScopeForSignatureMap(
+      DataSourceReader source) {
+    return source
+        .readMemberMap((_) => CapturedScope.readFromDataSource(source));
+  }
+
+  static Map<ir.LocalFunction, ClosureRepresentationInfo>
+      _readLocalClosureRepresentationMap(DataSourceReader source) {
+    return source.readTreeNodeMap<ir.LocalFunction, ClosureRepresentationInfo>(
+        () => ClosureRepresentationInfo.readFromDataSource(source));
+  }
+
   /// Deserializes a [ClosureData] object from [source].
   factory ClosureDataImpl.readFromDataSource(
       JsToElementMap elementMap, DataSourceReader source) {
     source.begin(tag);
     // TODO(johnniwinther): Support shared [ScopeInfo].
-    final scopeMap = source.readDeferrable(() => source.readMemberMap(
-        (MemberEntity member) => ScopeInfo.readFromDataSource(source)));
-    final capturedScopesMap = source.readDeferrable(() =>
-        source.readTreeNodeMap(() => CapturedScope.readFromDataSource(source)));
-    final capturedScopeForSignatureMap = source.readDeferrable(() =>
-        source.readMemberMap(
-            (MemberEntity member) => CapturedScope.readFromDataSource(source)));
-    final localClosureRepresentationMap = source.readDeferrable(() =>
-        source.readTreeNodeMap<ir.LocalFunction, ClosureRepresentationInfo>(
-            () => ClosureRepresentationInfo.readFromDataSource(source)));
+    final scopeMap = source.readDeferrable(_readScopeMap);
+    final capturedScopesMap = source.readDeferrable(_readCapturedScopesMap);
+    final capturedScopeForSignatureMap =
+        source.readDeferrable(_readCapturedScopeForSignatureMap);
+    final localClosureRepresentationMap =
+        source.readDeferrable(_readLocalClosureRepresentationMap);
     Map<MemberEntity, MemberEntity> enclosingMembers =
         source.readMemberMap((member) => source.readMember());
     source.end(tag);
@@ -1205,6 +1224,10 @@ class ClosureFunctionData extends ClosureMemberData
   ClosureFunctionData._deserialized(super.definition, super.memberThisType,
       this.functionType, this._functionNode, this.classTypeVariableAccess);
 
+  static ir.FunctionNode _readFunctionNode(DataSourceReader source) {
+    return source.readTreeNode() as ir.FunctionNode;
+  }
+
   factory ClosureFunctionData.readFromDataSource(DataSourceReader source) {
     source.begin(tag);
     ClosureMemberDefinition definition =
@@ -1213,7 +1236,7 @@ class ClosureFunctionData extends ClosureMemberData
         source.readDartTypeOrNull() as InterfaceType?;
     FunctionType functionType = source.readDartType() as FunctionType;
     Deferrable<ir.FunctionNode> functionNode =
-        source.readDeferrable(() => source.readTreeNode() as ir.FunctionNode);
+        source.readDeferrable(_readFunctionNode);
     ClassTypeVariableAccess classTypeVariableAccess =
         source.readEnum(ClassTypeVariableAccess.values);
     source.end(tag);

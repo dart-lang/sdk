@@ -106,15 +106,12 @@ class KernelTokenPositionCollector : public KernelReaderHelper {
       Zone* zone,
       TranslationHelper* translation_helper,
       const Script& script,
-      const ExternalTypedData& data,
+      const TypedDataView& data,
       intptr_t data_program_offset,
       intptr_t initial_script_index,
       intptr_t record_for_script_id,
       GrowableArray<intptr_t>* record_token_positions_into)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           data,
-                           data_program_offset),
+      : KernelReaderHelper(zone, translation_helper, data, data_program_offset),
         current_script_id_(initial_script_index),
         record_for_script_id_(record_for_script_id),
         record_token_positions_into_(record_token_positions_into) {}
@@ -202,8 +199,8 @@ static ArrayPtr AsSortedDuplicateFreeArray(GrowableArray<intptr_t>* source) {
   return array_object.ptr();
 }
 
-static void CollectKernelDataTokenPositions(
-    const ExternalTypedData& kernel_data,
+static void CollectKernelLibraryTokenPositions(
+    const TypedDataView& kernel_data,
     const Script& script,
     intptr_t kernel_offset,
     intptr_t data_kernel_offset,
@@ -242,7 +239,7 @@ void Script::CollectTokenPositionsFor() const {
   Library& lib = Library::Handle(zone);
   Object& entry = Object::Handle(zone);
   Script& entry_script = Script::Handle(zone);
-  ExternalTypedData& data = ExternalTypedData::Handle(zone);
+  auto& data = TypedDataView::Handle(zone);
 
   auto& interesting_script = *this;
 
@@ -255,7 +252,7 @@ void Script::CollectTokenPositionsFor() const {
     DictionaryIterator it(lib);
     while (it.HasNext()) {
       entry = it.GetNext();
-      data = ExternalTypedData::null();
+      data = TypedDataView::null();
       if (entry.IsClass()) {
         const Class& klass = Class::Cast(entry);
         if (klass.script() == interesting_script.ptr()) {
@@ -274,11 +271,11 @@ void Script::CollectTokenPositionsFor() const {
             if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
-            data = temp_field.KernelData();
-            CollectKernelDataTokenPositions(
-                data, interesting_script, temp_field.kernel_offset(),
-                temp_field.KernelDataProgramOffset(), zone, &helper,
-                &token_positions);
+            data = temp_field.KernelLibrary();
+            CollectKernelLibraryTokenPositions(data, interesting_script,
+                                               temp_field.kernel_offset(),
+                                               temp_field.KernelLibraryOffset(),
+                                               zone, &helper, &token_positions);
           }
           temp_array = klass.current_functions();
           for (intptr_t i = 0; i < temp_array.Length(); ++i) {
@@ -287,18 +284,18 @@ void Script::CollectTokenPositionsFor() const {
             if (entry_script.ptr() != interesting_script.ptr()) {
               continue;
             }
-            data = temp_function.KernelData();
-            CollectKernelDataTokenPositions(
+            data = temp_function.KernelLibrary();
+            CollectKernelLibraryTokenPositions(
                 data, interesting_script, temp_function.kernel_offset(),
-                temp_function.KernelDataProgramOffset(), zone, &helper,
+                temp_function.KernelLibraryOffset(), zone, &helper,
                 &token_positions);
           }
         } else {
           // Class isn't finalized yet: read the data attached to it.
           ASSERT(klass.kernel_offset() > 0);
-          data = lib.kernel_data();
+          data = lib.KernelLibrary();
           ASSERT(!data.IsNull());
-          const intptr_t library_kernel_offset = lib.kernel_offset();
+          const intptr_t library_kernel_offset = lib.KernelLibraryOffset();
           ASSERT(library_kernel_offset > 0);
           const intptr_t class_offset = klass.kernel_offset();
 
@@ -306,9 +303,9 @@ void Script::CollectTokenPositionsFor() const {
           if (entry_script.ptr() != interesting_script.ptr()) {
             continue;
           }
-          CollectKernelDataTokenPositions(data, interesting_script,
-                                          class_offset, library_kernel_offset,
-                                          zone, &helper, &token_positions);
+          CollectKernelLibraryTokenPositions(
+              data, interesting_script, class_offset, library_kernel_offset,
+              zone, &helper, &token_positions);
         }
       } else if (entry.IsFunction()) {
         temp_function ^= entry.ptr();
@@ -316,11 +313,11 @@ void Script::CollectTokenPositionsFor() const {
         if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
-        data = temp_function.KernelData();
-        CollectKernelDataTokenPositions(data, interesting_script,
-                                        temp_function.kernel_offset(),
-                                        temp_function.KernelDataProgramOffset(),
-                                        zone, &helper, &token_positions);
+        data = temp_function.KernelLibrary();
+        CollectKernelLibraryTokenPositions(data, interesting_script,
+                                           temp_function.kernel_offset(),
+                                           temp_function.KernelLibraryOffset(),
+                                           zone, &helper, &token_positions);
       } else if (entry.IsField()) {
         const Field& field = Field::Cast(entry);
         if (field.kernel_offset() <= 0) {
@@ -331,10 +328,10 @@ void Script::CollectTokenPositionsFor() const {
         if (entry_script.ptr() != interesting_script.ptr()) {
           continue;
         }
-        data = field.KernelData();
-        CollectKernelDataTokenPositions(
+        data = field.KernelLibrary();
+        CollectKernelLibraryTokenPositions(
             data, interesting_script, field.kernel_offset(),
-            field.KernelDataProgramOffset(), zone, &helper, &token_positions);
+            field.KernelLibraryOffset(), zone, &helper, &token_positions);
       }
     }
   }
@@ -357,8 +354,8 @@ ArrayPtr Script::CollectConstConstructorCoverageFrom() const {
       KernelProgramInfo::Handle(zone, kernel_program_info());
   helper.InitFromKernelProgramInfo(kernel_info);
 
-  ExternalTypedData& data =
-      ExternalTypedData::Handle(zone, interesting_script.constant_coverage());
+  const auto& data =
+      TypedDataView::Handle(zone, interesting_script.constant_coverage());
 
   kernel::KernelReaderHelper kernel_reader(zone, &helper, data, 0);
 
@@ -399,8 +396,8 @@ ObjectPtr EvaluateStaticConstFieldInitializer(const Field& field) {
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     KernelReaderHelper kernel_reader(
-        zone, &helper, ExternalTypedData::Handle(zone, field.KernelData()),
-        field.KernelDataProgramOffset());
+        zone, &helper, TypedDataView::Handle(zone, field.KernelLibrary()),
+        field.KernelLibraryOffset());
     kernel_reader.SetOffset(field.kernel_offset());
     ConstantReader constant_reader(&kernel_reader, &active_class);
 
@@ -418,13 +415,10 @@ class MetadataEvaluator : public KernelReaderHelper {
  public:
   MetadataEvaluator(Zone* zone,
                     TranslationHelper* translation_helper,
-                    const ExternalTypedData& data,
+                    const TypedDataView& data,
                     intptr_t data_program_offset,
                     ActiveClass* active_class)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           data,
-                           data_program_offset),
+      : KernelReaderHelper(zone, translation_helper, data, data_program_offset),
         constant_reader_(this, active_class) {}
 
   ObjectPtr EvaluateMetadata(intptr_t kernel_offset,
@@ -488,8 +482,8 @@ ObjectPtr EvaluateMetadata(const Library& library,
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     MetadataEvaluator metadata_evaluator(
-        zone, &helper, ExternalTypedData::Handle(zone, library.kernel_data()),
-        library.kernel_offset(), &active_class);
+        zone, &helper, TypedDataView::Handle(zone, library.KernelLibrary()),
+        library.KernelLibraryOffset(), &active_class);
 
     return metadata_evaluator.EvaluateMetadata(kernel_offset,
                                                is_annotations_offset);
@@ -503,13 +497,10 @@ class ParameterDescriptorBuilder : public KernelReaderHelper {
  public:
   ParameterDescriptorBuilder(TranslationHelper* translation_helper,
                              Zone* zone,
-                             const ExternalTypedData& data,
+                             const TypedDataView& data,
                              intptr_t data_program_offset,
                              ActiveClass* active_class)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           data,
-                           data_program_offset),
+      : KernelReaderHelper(zone, translation_helper, data, data_program_offset),
         constant_reader_(this, active_class) {}
 
   ObjectPtr BuildParameterDescriptor(const Function& function);
@@ -597,8 +588,8 @@ ObjectPtr BuildParameterDescriptor(const Function& function) {
     ActiveClassScope active_class_scope(&active_class, &owner_class);
 
     ParameterDescriptorBuilder builder(
-        &helper, zone, ExternalTypedData::Handle(zone, function.KernelData()),
-        function.KernelDataProgramOffset(), &active_class);
+        &helper, zone, TypedDataView::Handle(zone, function.KernelLibrary()),
+        function.KernelLibraryOffset(), &active_class);
 
     return builder.BuildParameterDescriptor(function);
   } else {
@@ -624,8 +615,8 @@ void ReadParameterCovariance(const Function& function,
 
   KernelReaderHelper reader_helper(
       zone, &translation_helper,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset());
+      TypedDataView::Handle(zone, function.KernelLibrary()),
+      function.KernelLibraryOffset());
 
   reader_helper.SetOffset(function.kernel_offset());
   reader_helper.ReadUntilFunctionNode();
@@ -746,7 +737,7 @@ bool NeedsDynamicInvocationForwarder(const Function& function) {
 static ProcedureAttributesMetadata ProcedureAttributesOf(
     Zone* zone,
     const KernelProgramInfo& kernel_program_info,
-    const ExternalTypedData& kernel_data,
+    const TypedDataView& kernel_data,
     intptr_t kernel_data_program_offset,
     intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
@@ -767,8 +758,8 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Function& function,
       KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
   return ProcedureAttributesOf(
       zone, kernel_program_info,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset(), function.kernel_offset());
+      TypedDataView::Handle(zone, function.KernelLibrary()),
+      function.KernelLibraryOffset(), function.kernel_offset());
 }
 
 ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
@@ -777,14 +768,14 @@ ProcedureAttributesMetadata ProcedureAttributesOf(const Field& field,
       KernelProgramInfo::Handle(zone, field.KernelProgramInfo());
   return ProcedureAttributesOf(
       zone, kernel_program_info,
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset(), field.kernel_offset());
+      TypedDataView::Handle(zone, field.KernelLibrary()),
+      field.KernelLibraryOffset(), field.kernel_offset());
 }
 
 static UnboxingInfoMetadata* UnboxingInfoMetadataOf(
     Zone* zone,
     const KernelProgramInfo& kernel_program_info,
-    const ExternalTypedData& kernel_data,
+    const TypedDataView& kernel_data,
     intptr_t kernel_data_program_offset,
     intptr_t kernel_offset) {
   TranslationHelper translation_helper(Thread::Current());
@@ -801,8 +792,8 @@ UnboxingInfoMetadata* UnboxingInfoMetadataOf(const Function& function,
       KernelProgramInfo::Handle(zone, function.KernelProgramInfo());
   return UnboxingInfoMetadataOf(
       zone, kernel_program_info,
-      ExternalTypedData::Handle(zone, function.KernelData()),
-      function.KernelDataProgramOffset(), function.kernel_offset());
+      TypedDataView::Handle(zone, function.KernelLibrary()),
+      function.KernelLibraryOffset(), function.kernel_offset());
 }
 
 TableSelectorMetadata* TableSelectorMetadataForProgram(
@@ -810,7 +801,7 @@ TableSelectorMetadata* TableSelectorMetadataForProgram(
     Zone* zone) {
   TranslationHelper translation_helper(Thread::Current());
   translation_helper.InitFromKernelProgramInfo(info);
-  const auto& data = ExternalTypedData::Handle(zone, info.metadata_payloads());
+  const auto& data = TypedDataView::Handle(zone, info.metadata_payloads());
   KernelReaderHelper reader_helper(zone, &translation_helper, data, 0);
   TableSelectorMetadataHelper table_selector_metadata_helper(&reader_helper);
   return table_selector_metadata_helper.GetTableSelectorMetadata(zone);

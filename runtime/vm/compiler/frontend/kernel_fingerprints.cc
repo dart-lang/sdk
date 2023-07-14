@@ -15,12 +15,9 @@ class KernelFingerprintHelper : public KernelReaderHelper {
  public:
   KernelFingerprintHelper(Zone* zone,
                           TranslationHelper* translation_helper,
-                          const ExternalTypedData& data,
+                          const TypedDataView& data,
                           intptr_t data_program_offset)
-      : KernelReaderHelper(zone,
-                           translation_helper,
-                           data,
-                           data_program_offset),
+      : KernelReaderHelper(zone, translation_helper, data, data_program_offset),
         hash_(0) {}
 
   virtual ~KernelFingerprintHelper() {}
@@ -995,8 +992,8 @@ uint32_t KernelSourceFingerprintHelper::CalculateFieldFingerprint(
 
   KernelFingerprintHelper helper(
       zone, &translation_helper,
-      ExternalTypedData::Handle(zone, field.KernelData()),
-      field.KernelDataProgramOffset());
+      TypedDataView::Handle(zone, field.KernelLibrary()),
+      field.KernelLibraryOffset());
   helper.SetOffset(field.kernel_offset());
   return helper.CalculateFieldFingerprint();
 }
@@ -1012,8 +1009,8 @@ uint32_t KernelSourceFingerprintHelper::CalculateFunctionFingerprint(
 
   KernelFingerprintHelper helper(
       zone, &translation_helper,
-      ExternalTypedData::Handle(zone, func.KernelData()),
-      func.KernelDataProgramOffset());
+      TypedDataView::Handle(zone, func.KernelLibrary()),
+      func.KernelLibraryOffset());
   helper.SetOffset(func.kernel_offset());
   return helper.CalculateFunctionFingerprint();
 }

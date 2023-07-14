@@ -1167,10 +1167,10 @@ class UntaggedPatchClass : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ScriptPtr, script)
 #if !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
+  VISIT_TO(kernel_program_info)
+#else
+  VISIT_TO(script)
 #endif
-  // A sub-view into the bytes of a kernel blob that encode the library.
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, library_kernel_data)
-  VISIT_TO(library_kernel_data)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
@@ -1179,7 +1179,12 @@ class UntaggedPatchClass : public UntaggedObject {
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<CompressedObjectPtr*>(&library_kernel_data_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
+#else
+        UNREACHABLE();
+        return nullptr;
+#endif
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1188,7 +1193,7 @@ class UntaggedPatchClass : public UntaggedObject {
     return nullptr;
   }
 
-  NOT_IN_PRECOMPILED(intptr_t library_kernel_offset_);
+  NOT_IN_PRECOMPILED(intptr_t kernel_library_index_);
 
   friend class Function;
 };
@@ -1587,7 +1592,7 @@ class alignas(8) UntaggedScript : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(StringPtr, resolved_url)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, line_starts)
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constant_coverage)
+  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, constant_coverage)
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(ArrayPtr, debug_positions)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
@@ -1690,8 +1695,6 @@ class UntaggedLibrary : public UntaggedObject {
 #if !defined(DART_PRECOMPILED_RUNTIME)
   COMPRESSED_POINTER_FIELD(KernelProgramInfoPtr, kernel_program_info)
 #endif
-  // A sub-view into the bytes of a kernel blob that encode the library.
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, kernel_data)
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     switch (kind) {
       case Snapshot::kFullAOT:
@@ -1699,7 +1702,12 @@ class UntaggedLibrary : public UntaggedObject {
       case Snapshot::kFull:
       case Snapshot::kFullCore:
       case Snapshot::kFullJIT:
-        return reinterpret_cast<CompressedObjectPtr*>(&kernel_data_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+        return reinterpret_cast<CompressedObjectPtr*>(&kernel_program_info_);
+#else
+        UNREACHABLE();
+        return nullptr;
+#endif
       case Snapshot::kNone:
       case Snapshot::kInvalid:
         break;
@@ -1725,7 +1733,7 @@ class UntaggedLibrary : public UntaggedObject {
   uint8_t flags_;         // BitField for LibraryFlags.
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
-  uint32_t kernel_offset_;
+  uint32_t kernel_library_index_;
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
   friend class Class;
@@ -1767,19 +1775,19 @@ class UntaggedNamespace : public UntaggedObject {
 class UntaggedKernelProgramInfo : public UntaggedObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(KernelProgramInfo);
 
+  COMPRESSED_POINTER_FIELD(TypedDataBasePtr, kernel_component)
+  VISIT_FROM(kernel_component)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, string_offsets)
-  VISIT_FROM(string_offsets)
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, string_data)
+  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, string_data)
   COMPRESSED_POINTER_FIELD(TypedDataPtr, canonical_names)
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_payloads)
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, metadata_mappings)
+  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, metadata_payloads)
+  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, metadata_mappings)
   COMPRESSED_POINTER_FIELD(ArrayPtr, scripts)
   COMPRESSED_POINTER_FIELD(ArrayPtr, constants)
-  COMPRESSED_POINTER_FIELD(ExternalTypedDataPtr, constants_table)
+  COMPRESSED_POINTER_FIELD(TypedDataViewPtr, constants_table)
   COMPRESSED_POINTER_FIELD(ArrayPtr, libraries_cache)
   COMPRESSED_POINTER_FIELD(ArrayPtr, classes_cache)
-  COMPRESSED_POINTER_FIELD(ObjectPtr, retained_kernel_blob)
-  VISIT_TO(retained_kernel_blob)
+  VISIT_TO(classes_cache)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) {
     return reinterpret_cast<CompressedObjectPtr*>(&constants_table_);

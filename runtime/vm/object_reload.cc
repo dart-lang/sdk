@@ -280,8 +280,7 @@ void Class::PatchFieldsAndFunctions() const {
       PatchClass::New(*this, kernel_info, Script::Handle(script())));
   ASSERT(!patch.IsNull());
   const Library& lib = Library::Handle(library());
-  patch.set_library_kernel_data(ExternalTypedData::Handle(lib.kernel_data()));
-  patch.set_library_kernel_offset(lib.kernel_offset());
+  patch.set_kernel_library_index(lib.kernel_library_index());
 
   const Array& funcs = Array::Handle(current_functions());
   Function& func = Function::Handle();

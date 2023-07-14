@@ -23,13 +23,12 @@ namespace kernel {
 class StreamingFlowGraphBuilder : public KernelReaderHelper {
  public:
   StreamingFlowGraphBuilder(FlowGraphBuilder* flow_graph_builder,
-                            const ExternalTypedData& data,
+                            const TypedDataView& data,
                             intptr_t data_program_offset)
-      : KernelReaderHelper(
-            flow_graph_builder->zone_,
-            &flow_graph_builder->translation_helper_,
-            data,
-            data_program_offset),
+      : KernelReaderHelper(flow_graph_builder->zone_,
+                           &flow_graph_builder->translation_helper_,
+                           data,
+                           data_program_offset),
         flow_graph_builder_(flow_graph_builder),
         active_class_(&flow_graph_builder->active_class_),
         constant_reader_(this, active_class_),

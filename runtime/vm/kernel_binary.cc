@@ -76,6 +76,23 @@ const char* kKernelInvalidSdkHash = "Invalid SDK hash";
 const int kSdkHashSizeInBytes = 10;
 const char* kSdkHashNull = "0000000000";
 
+bool IsValidSdkHash(const uint8_t* sdk_hash) {
+  if (memcmp(Version::SdkHash(), kSdkHashNull, kSdkHashSizeInBytes) != 0 &&
+      memcmp(sdk_hash, kSdkHashNull, kSdkHashSizeInBytes) != 0 &&
+      memcmp(sdk_hash, Version::SdkHash(), kSdkHashSizeInBytes) != 0) {
+    return false;
+  }
+  return true;
+}
+
+NNBDCompiledMode Program::DetectNullSafety(const uint8_t* buffer,
+                                           intptr_t buffer_length) {
+  Reader reader(buffer, buffer_length);
+  std::unique_ptr<Program> program = Program::ReadFrom(&reader, nullptr);
+  if (program == nullptr) return NNBDCompiledMode::kInvalid;
+  return program->compilation_mode_;
+}
+
 std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
   if (reader->size() < 70) {
     // A kernel file (v43) currently contains at least the following:
@@ -115,22 +132,15 @@ std::unique_ptr<Program> Program::ReadFrom(Reader* reader, const char** error) {
     return nullptr;
   }
 
-  uint8_t sdkHash[kSdkHashSizeInBytes + 1];
-  reader->ReadBytes(sdkHash, kSdkHashSizeInBytes);
-  sdkHash[kSdkHashSizeInBytes] = 0;  // Null terminate.
-  if (strcmp(Version::SdkHash(), kSdkHashNull) != 0 &&
-      strcmp((const char*)sdkHash, kSdkHashNull) != 0 &&
-      strcmp((const char*)sdkHash, Version::SdkHash()) != 0) {
+  if (!IsValidSdkHash(reader->BufferAt(reader->offset()))) {
     if (error != nullptr) {
       *error = kKernelInvalidSdkHash;
     }
     return nullptr;
   }
+  reader->set_offset(reader->offset() + kSdkHashSizeInBytes);
 
-  std::unique_ptr<Program> program(new Program());
-  program->binary_.typed_data = reader->typed_data();
-  program->binary_.kernel_data = reader->buffer();
-  program->binary_.kernel_data_size = reader->size();
+  std::unique_ptr<Program> program(new Program(reader->typed_data()));
 
   // Dill files can be concatenated (e.g. cat a.dill b.dill > c.dill). Find out
   // if this dill contains more than one program.
@@ -195,8 +205,7 @@ std::unique_ptr<Program> Program::ReadFromFile(
   const Object& ret = Object::Handle(isolate_group->CallTagHandler(
       Dart_kKernelTag, Object::null_object(), uri));
   if (ret.IsExternalTypedData()) {
-    const auto& typed_data = ExternalTypedData::Handle(
-        thread->zone(), ExternalTypedData::RawCast(ret.ptr()));
+    const auto& typed_data = ExternalTypedData::Cast(ret);
     kernel_program = kernel::Program::ReadFromTypedData(typed_data);
     return kernel_program;
   } else if (error != nullptr) {
@@ -213,7 +222,12 @@ std::unique_ptr<Program> Program::ReadFromFile(
 std::unique_ptr<Program> Program::ReadFromBuffer(const uint8_t* buffer,
                                                  intptr_t buffer_length,
                                                  const char** error) {
-  kernel::Reader reader(buffer, buffer_length);
+  // Whoever called this method (e.g. embedder) has to ensure the buffer stays
+  // alive until the VM is done with the last usage (e.g. isolate shutdown).
+  const auto& binary = ExternalTypedData::Handle(ExternalTypedData::New(
+      kExternalTypedDataUint8ArrayCid, const_cast<uint8_t*>(buffer),
+      buffer_length, Heap::kNew));
+  kernel::Reader reader(binary);
   return kernel::Program::ReadFrom(&reader, error);
 }
 

@@ -29,9 +29,8 @@ ScopeBuilder::ScopeBuilder(ParsedFunction* parsed_function)
       helper_(
           zone_,
           &translation_helper_,
-          ExternalTypedData::Handle(Z,
-                                    parsed_function->function().KernelData()),
-          parsed_function->function().KernelDataProgramOffset()),
+          TypedDataView::Handle(Z, parsed_function->function().KernelLibrary()),
+          parsed_function->function().KernelLibraryOffset()),
       constant_reader_(&helper_, &active_class_),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       procedure_attributes_metadata_helper_(&helper_),
@@ -178,8 +177,8 @@ ScopeBuildingResult* ScopeBuilder::BuildScopes() {
           for (intptr_t i = 0; i < class_fields.Length(); ++i) {
             class_field ^= class_fields.At(i);
             if (!class_field.is_static()) {
-              ExternalTypedData& kernel_data =
-                  ExternalTypedData::Handle(Z, class_field.KernelData());
+              const auto& kernel_data =
+                  TypedDataView::Handle(Z, class_field.KernelLibrary());
               ASSERT(!kernel_data.IsNull());
               intptr_t field_offset = class_field.kernel_offset();
               AlternativeReadingScopeWithNewData alt(
@@ -507,8 +506,8 @@ void ScopeBuilder::VisitConstructor() {
     for (intptr_t i = 0; i < class_fields.Length(); ++i) {
       class_field ^= class_fields.At(i);
       if (!class_field.is_static()) {
-        ExternalTypedData& kernel_data =
-            ExternalTypedData::Handle(Z, class_field.KernelData());
+        const auto& kernel_data =
+            TypedDataView::Handle(Z, class_field.KernelLibrary());
         ASSERT(!kernel_data.IsNull());
         intptr_t field_offset = class_field.kernel_offset();
         AlternativeReadingScopeWithNewData alt(&helper_.reader_, &kernel_data,
@@ -1896,8 +1895,7 @@ LocalVariable* ScopeBuilder::LookupVariable(
 StringIndex ScopeBuilder::GetNameFromVariableDeclaration(
     intptr_t kernel_offset,
     const Function& function) {
-  ExternalTypedData& kernel_data =
-      ExternalTypedData::Handle(Z, function.KernelData());
+  const auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
   ASSERT(!kernel_data.IsNull());
 
   // Temporarily go to the variable declaration, read the name.

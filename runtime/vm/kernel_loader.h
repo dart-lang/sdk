@@ -83,8 +83,7 @@ class Mapping {
 
 class LibraryIndex {
  public:
-  // |kernel_data| is the kernel data for one library alone.
-  explicit LibraryIndex(const ExternalTypedData& kernel_data);
+  explicit LibraryIndex(const TypedDataView& kernel_data);
 
   intptr_t class_count() const { return class_count_; }
   intptr_t procedure_count() const { return procedure_count_; }
@@ -123,15 +122,9 @@ class LibraryIndex {
 
 class ClassIndex {
  public:
-  // |class_offset| is the offset of class' kernel data in |buffer| of
-  // size |size|. The size of the class' kernel data is |class_size|.
-  ClassIndex(const ProgramBinary& binary,
-             intptr_t class_offset,
-             intptr_t class_size);
-
   // |class_offset| is the offset of class' kernel data in |kernel_data|.
   // The size of the class' kernel data is |class_size|.
-  ClassIndex(const ExternalTypedData& kernel_data,
+  ClassIndex(const TypedDataBase& kernel_data,
              intptr_t class_offset,
              intptr_t class_size);
 
@@ -234,7 +227,7 @@ class KernelLoader : public ValueObject {
                          bool* has_pragma_annotation);
 
   KernelLoader(const KernelProgramInfo& kernel_program_info,
-               const ExternalTypedData& kernel_data,
+               const TypedDataBase& kernel_data,
                intptr_t data_program_offset);
 
   void InitializeFields(
@@ -364,7 +357,7 @@ class KernelLoader : public ValueObject {
 
   NameIndex skip_vmservice_library_;
 
-  ExternalTypedData& library_kernel_data_;
+  TypedDataView& library_kernel_data_;
   KernelProgramInfo& kernel_program_info_;
   BuildingTranslationHelper translation_helper_;
   KernelReaderHelper helper_;

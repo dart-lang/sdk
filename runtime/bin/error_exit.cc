@@ -21,7 +21,11 @@ void ErrorExit(int exit_code, const char* format, ...) {
   Syslog::VPrintErr(format, arguments);
   va_end(arguments);
 
-  Dart_ShutdownIsolate();
+  // Sometimes ErrorExit is called even before we have entered an isolate.
+  // We need to shutdown the isolate only if one exists.
+  if (Dart_CurrentIsolate() != nullptr) {
+    Dart_ShutdownIsolate();
+  }
 
   // Terminate process exit-code handler.
   Process::TerminateExitCodeHandler();

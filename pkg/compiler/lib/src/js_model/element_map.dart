@@ -450,11 +450,13 @@ class SpecialMemberDefinition implements MemberDefinition {
 
   SpecialMemberDefinition._deserialized(this._node, this.kind);
 
+  static ir.TreeNode _readNode(DataSourceReader source) =>
+      source.readTreeNode();
+
   factory SpecialMemberDefinition.readFromDataSource(
       DataSourceReader source, MemberKind kind) {
     source.begin(tag);
-    Deferrable<ir.TreeNode> node =
-        source.readDeferrable(() => source.readTreeNode());
+    Deferrable<ir.TreeNode> node = source.readDeferrable(_readNode);
     source.end(tag);
     return SpecialMemberDefinition._deserialized(node, kind);
   }
@@ -497,12 +499,14 @@ class ClosureMemberDefinition implements MemberDefinition {
       : assert(
             kind == MemberKind.closureCall || kind == MemberKind.closureField);
 
+  static ir.TreeNode _readNode(DataSourceReader source) =>
+      source.readTreeNode();
+
   factory ClosureMemberDefinition.readFromDataSource(
       DataSourceReader source, MemberKind kind) {
     source.begin(tag);
     SourceSpan location = source.readSourceSpan();
-    Deferrable<ir.TreeNode> node =
-        source.readDeferrable(() => source.readTreeNode());
+    Deferrable<ir.TreeNode> node = source.readDeferrable(_readNode);
     source.end(tag);
     return ClosureMemberDefinition._deserialized(location, kind, node);
   }

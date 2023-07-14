@@ -358,6 +358,9 @@ class _DirectiveInfo implements Comparable<_DirectiveInfo> {
   /// https://github.com/dart-lang/linter/blob/658f497eef/lib/src/rules/directives_ordering.dart#L380-L387
   /// Consider finding a way to share this code!
   static int _compareUri(String a, String b) {
+    if (!a.startsWith('package:') || !b.startsWith('package:')) {
+      return a.compareTo(b);
+    }
     var indexA = a.indexOf('/');
     var indexB = b.indexOf('/');
     if (indexA == -1 || indexB == -1) return a.compareTo(b);
