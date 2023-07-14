@@ -30,7 +30,6 @@ namespace dart {
   F(Class, invocation_dispatcher_cache_)                                       \
   F(PatchClass, wrapped_class_)                                                \
   F(PatchClass, script_)                                                       \
-  F(PatchClass, library_kernel_data_)                                          \
   F(Function, name_)                                                           \
   F(Function, owner_)                                                          \
   F(Function, signature_)                                                      \
@@ -64,7 +63,6 @@ namespace dart {
   F(Library, imports_)                                                         \
   F(Library, exports_)                                                         \
   F(Library, dependencies_)                                                    \
-  F(Library, kernel_data_)                                                     \
   F(Library, resolved_names_)                                                  \
   F(Library, exported_names_)                                                  \
   F(Library, loaded_scripts_)                                                  \
@@ -72,6 +70,7 @@ namespace dart {
   F(Namespace, show_names_)                                                    \
   F(Namespace, hide_names_)                                                    \
   F(Namespace, owner_)                                                         \
+  F(KernelProgramInfo, kernel_component_)                                      \
   F(KernelProgramInfo, string_offsets_)                                        \
   F(KernelProgramInfo, string_data_)                                           \
   F(KernelProgramInfo, canonical_names_)                                       \
@@ -82,7 +81,6 @@ namespace dart {
   F(KernelProgramInfo, constants_table_)                                       \
   F(KernelProgramInfo, libraries_cache_)                                       \
   F(KernelProgramInfo, classes_cache_)                                         \
-  F(KernelProgramInfo, retained_kernel_blob_)                                  \
   F(WeakSerializationReference, target_)                                       \
   F(WeakSerializationReference, replacement_)                                  \
   F(WeakArray, length_)                                                        \

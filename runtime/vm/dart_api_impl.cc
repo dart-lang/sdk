@@ -6241,11 +6241,10 @@ DART_EXPORT bool Dart_DetectNullSafety(const char* script_uri,
   // kernel file or the kernel file of the application,
   // figure out the null safety mode by sniffing the kernel file.
   if (kernel_buffer != nullptr) {
-    const char* error = nullptr;
-    std::unique_ptr<kernel::Program> program = kernel::Program::ReadFromBuffer(
-        kernel_buffer, kernel_buffer_size, &error);
-    if (program != nullptr) {
-      return program->compilation_mode() == NNBDCompiledMode::kStrong;
+    const auto null_safety =
+        kernel::Program::DetectNullSafety(kernel_buffer, kernel_buffer_size);
+    if (null_safety != NNBDCompiledMode::kInvalid) {
+      return null_safety == NNBDCompiledMode::kStrong;
     }
   }
 #endif

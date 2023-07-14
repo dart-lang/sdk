@@ -935,7 +935,7 @@ class PatchClassSerializationCluster : public SerializationCluster {
       AutoTraceObject(cls);
       WriteFromTo(cls);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<int32_t>(cls->untag()->library_kernel_offset_);
+        s->Write<int32_t>(cls->untag()->kernel_library_index_);
       }
     }
   }
@@ -965,7 +965,7 @@ class PatchClassDeserializationCluster : public DeserializationCluster {
       d.ReadFromTo(cls);
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
-      cls->untag()->library_kernel_offset_ = d.Read<int32_t>();
+      cls->untag()->kernel_library_index_ = d.Read<int32_t>();
 #endif
     }
   }
@@ -1710,7 +1710,7 @@ class LibrarySerializationCluster : public SerializationCluster {
       s->Write<int8_t>(lib->untag()->load_state_);
       s->Write<uint8_t>(lib->untag()->flags_);
       if (s->kind() != Snapshot::kFullAOT) {
-        s->Write<uint32_t>(lib->untag()->kernel_offset_);
+        s->Write<uint32_t>(lib->untag()->kernel_library_index_);
       }
     }
   }
@@ -1746,7 +1746,7 @@ class LibraryDeserializationCluster : public DeserializationCluster {
           UntaggedLibrary::InFullSnapshotBit::update(true, d.Read<uint8_t>());
 #if !defined(DART_PRECOMPILED_RUNTIME)
       ASSERT(d_->kind() != Snapshot::kFullAOT);
-      lib->untag()->kernel_offset_ = d.Read<uint32_t>();
+      lib->untag()->kernel_library_index_ = d.Read<uint32_t>();
 #endif
     }
   }

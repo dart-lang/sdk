@@ -7833,7 +7833,7 @@ PatchClassPtr PatchClass::New(const Class& wrapped_class,
   NOT_IN_PRECOMPILED_RUNTIME(
       result.untag()->set_kernel_program_info(info.ptr()));
   result.set_script(script);
-  result.set_library_kernel_offset(-1);
+  result.set_kernel_library_index(-1);
   return result.ptr();
 }
 
@@ -7854,10 +7854,6 @@ void PatchClass::set_kernel_program_info(const KernelProgramInfo& info) const {
 
 void PatchClass::set_script(const Script& value) const {
   untag()->set_script(value.ptr());
-}
-
-void PatchClass::set_library_kernel_data(const ExternalTypedData& data) const {
-  untag()->set_library_kernel_data(data.ptr());
 }
 
 uword Function::Hash() const {
@@ -8427,8 +8423,7 @@ void Function::SetForwardingTarget(const Function& target) const {
 // This field is heavily overloaded:
 //   kernel eval function:    Array[0] = Script
 //                            Array[1] = KernelProgramInfo
-//                            Array[2] = Kernel data
-//                            Array[3] = Kernel offset of enclosing library
+//                            Array[2] = Kernel index of enclosing library
 //   method extractor:        Function extracted closure function
 //   implicit getter:         Field
 //   implicit setter:         Field
@@ -10664,19 +10659,17 @@ void Function::InheritKernelOffsetFrom(const Field& src) const {
 #endif
 }
 
-void Function::SetKernelDataAndEvalScript(
+void Function::SetKernelLibraryAndEvalScript(
     const Script& script,
     const class KernelProgramInfo& kernel_program_info,
-    const ExternalTypedData& data,
-    intptr_t offset) const {
+    intptr_t index) const {
   Array& data_field = Array::Handle(
       Array::New(static_cast<intptr_t>(EvalFunctionData::kLength)));
   data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kScript), script);
   data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelProgramInfo),
                    kernel_program_info);
-  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelData), data);
-  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelOffset),
-                   Smi::Handle(Smi::New(offset)));
+  data_field.SetAt(static_cast<intptr_t>(EvalFunctionData::kKernelLibraryIndex),
+                   Smi::Handle(Smi::New(index)));
   set_data(data_field);
 }
 
@@ -10734,51 +10727,44 @@ KernelProgramInfoPtr Function::KernelProgramInfo() const {
   }
   return PatchClass::Cast(owner).kernel_program_info();
 }
-#endif
 
-ExternalTypedDataPtr Function::KernelData() const {
-  if (is_eval_function()) {
-    const auto& fdata = Array::Handle(Array::RawCast(data()));
-    return ExternalTypedData::RawCast(
-        fdata.At(static_cast<intptr_t>(EvalFunctionData::kKernelData)));
-  }
-  if (IsClosureFunction()) {
-    Function& parent = Function::Handle(parent_function());
-    ASSERT(!parent.IsNull());
-    return parent.KernelData();
-  }
-
-  const auto& owner = Object::Handle(RawOwner());
-  if (owner.IsClass()) {
-    return Library::Handle(Class::Cast(owner).library()).kernel_data();
-  }
-  return PatchClass::Cast(owner).library_kernel_data();
+TypedDataViewPtr Function::KernelLibrary() const {
+  const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
+  return info.KernelLibrary(KernelLibraryIndex());
 }
 
-intptr_t Function::KernelDataProgramOffset() const {
+intptr_t Function::KernelLibraryOffset() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return 0;
+  const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
+  return info.KernelLibraryStartOffset(kernel_library_index);
+}
+
+intptr_t Function::KernelLibraryIndex() const {
   if (IsNoSuchMethodDispatcher() || IsInvokeFieldDispatcher() ||
       IsFfiTrampoline()) {
-    return 0;
+    return -1;
   }
   if (is_eval_function()) {
     const auto& fdata = Array::Handle(Array::RawCast(data()));
-    return Smi::Value(static_cast<SmiPtr>(
-        fdata.At(static_cast<intptr_t>(EvalFunctionData::kKernelOffset))));
+    return Smi::Value(static_cast<SmiPtr>(fdata.At(
+        static_cast<intptr_t>(EvalFunctionData::kKernelLibraryIndex))));
   }
   if (IsClosureFunction()) {
-    Function& parent = Function::Handle(parent_function());
+    const auto& parent = Function::Handle(parent_function());
     ASSERT(!parent.IsNull());
-    return parent.KernelDataProgramOffset();
+    return parent.KernelLibraryIndex();
   }
 
-  const Object& obj = Object::Handle(untag()->owner());
+  const auto& obj = Object::Handle(untag()->owner());
   if (obj.IsClass()) {
-    Library& lib = Library::Handle(Class::Cast(obj).library());
-    return lib.kernel_offset();
+    const auto& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_library_index();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).library_kernel_offset();
+  return PatchClass::Cast(obj).kernel_library_index();
 }
+#endif
 
 bool Function::HasOptimizedCode() const {
   return HasCode() && Code::Handle(CurrentCode()).is_optimized();
@@ -11699,20 +11685,6 @@ uint32_t Field::Hash() const {
   return String::HashRawSymbol(name());
 }
 
-ExternalTypedDataPtr Field::KernelData() const {
-  const Object& obj = Object::Handle(this->untag()->owner());
-  // During background JIT compilation field objects are copied
-  // and copy points to the original field via the owner field.
-  if (obj.IsField()) {
-    return Field::Cast(obj).KernelData();
-  } else if (obj.IsClass()) {
-    Library& library = Library::Handle(Class::Cast(obj).library());
-    return library.kernel_data();
-  }
-  ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).library_kernel_data();
-}
-
 void Field::InheritKernelOffsetFrom(const Field& src) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
   UNREACHABLE();
@@ -11721,19 +11693,33 @@ void Field::InheritKernelOffsetFrom(const Field& src) const {
 #endif
 }
 
-intptr_t Field::KernelDataProgramOffset() const {
+#if !defined(DART_PRECOMPILED_RUNTIME)
+TypedDataViewPtr Field::KernelLibrary() const {
+  const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
+  return info.KernelLibrary(KernelLibraryIndex());
+}
+
+intptr_t Field::KernelLibraryOffset() const {
+  const intptr_t kernel_library_index = KernelLibraryIndex();
+  if (kernel_library_index == -1) return 0;
+  const auto& info = KernelProgramInfo::Handle(KernelProgramInfo());
+  return info.KernelLibraryStartOffset(kernel_library_index);
+}
+
+intptr_t Field::KernelLibraryIndex() const {
   const Object& obj = Object::Handle(untag()->owner());
   // During background JIT compilation field objects are copied
   // and copy points to the original field via the owner field.
   if (obj.IsField()) {
-    return Field::Cast(obj).KernelDataProgramOffset();
+    return Field::Cast(obj).KernelLibraryIndex();
   } else if (obj.IsClass()) {
-    Library& lib = Library::Handle(Class::Cast(obj).library());
-    return lib.kernel_offset();
+    const auto& lib = Library::Handle(Class::Cast(obj).library());
+    return lib.kernel_library_index();
   }
   ASSERT(obj.IsPatchClass());
-  return PatchClass::Cast(obj).library_kernel_offset();
+  return PatchClass::Cast(obj).kernel_library_index();
 }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 void Field::SetFieldTypeSafe(const AbstractType& value) const {
   ASSERT(IsOriginal());
@@ -12917,7 +12903,7 @@ void Script::InitializeFromKernel(
     const KernelProgramInfo& info,
     intptr_t script_index,
     const TypedData& line_starts,
-    const ExternalTypedData& constant_coverage) const {
+    const TypedDataView& constant_coverage) const {
   StoreNonPointer(&untag()->kernel_script_index_, script_index);
   untag()->set_kernel_program_info(info.ptr());
   untag()->set_line_starts(line_starts.ptr());
@@ -13010,7 +12996,7 @@ void Script::set_source(const String& value) const {
 }
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-ExternalTypedDataPtr Script::constant_coverage() const {
+TypedDataViewPtr Script::constant_coverage() const {
   return untag()->constant_coverage();
 }
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
@@ -13401,11 +13387,17 @@ void Library::set_private_key(const String& key) const {
 void Library::set_kernel_program_info(const KernelProgramInfo& info) const {
   untag()->set_kernel_program_info(info.ptr());
 }
-#endif
 
-void Library::set_kernel_data(const ExternalTypedData& data) const {
-  untag()->set_kernel_data(data.ptr());
+TypedDataViewPtr Library::KernelLibrary() const {
+  const auto& info = KernelProgramInfo::Handle(kernel_program_info());
+  return info.KernelLibrary(kernel_library_index());
 }
+
+intptr_t Library::KernelLibraryOffset() const {
+  const auto& info = KernelProgramInfo::Handle(kernel_program_info());
+  return info.KernelLibraryStartOffset(kernel_library_index());
+}
+#endif
 
 void Library::set_loading_unit(const LoadingUnit& value) const {
   untag()->set_loading_unit(value.ptr());
@@ -14342,7 +14334,8 @@ LibraryPtr Library::NewLibraryHelper(const String& url, bool import_core_lib) {
     result.set_debuggable(true);
   }
   result.set_is_dart_scheme(dart_scheme);
-  NOT_IN_PRECOMPILED(result.set_kernel_offset(0));
+  NOT_IN_PRECOMPILED(
+      result.StoreNonPointer(&result.untag()->kernel_library_index_, -1));
   result.StoreNonPointer(&result.untag()->load_state_,
                          UntaggedLibrary::kAllocated);
   result.StoreNonPointer(&result.untag()->index_, -1);
@@ -15180,18 +15173,24 @@ KernelProgramInfoPtr KernelProgramInfo::New() {
 }
 
 KernelProgramInfoPtr KernelProgramInfo::New(
+    const TypedDataBase& kernel_component,
+    const TypedDataView& string_data,
+    const TypedDataView& metadata_payloads,
+    const TypedDataView& metadata_mappings,
+    const TypedDataView& constants_table,
     const TypedData& string_offsets,
-    const ExternalTypedData& string_data,
     const TypedData& canonical_names,
-    const ExternalTypedData& metadata_payloads,
-    const ExternalTypedData& metadata_mappings,
-    const ExternalTypedData& constants_table,
     const Array& scripts,
     const Array& libraries_cache,
-    const Array& classes_cache,
-    const Object& retained_kernel_blob) {
-  const KernelProgramInfo& info =
-      KernelProgramInfo::Handle(KernelProgramInfo::New());
+    const Array& classes_cache) {
+  ASSERT(kernel_component.IsExternalOrExternalView());
+  ASSERT(string_data.IsExternalOrExternalView());
+  ASSERT(metadata_payloads.IsExternalOrExternalView());
+  ASSERT(metadata_mappings.IsExternalOrExternalView());
+  ASSERT(constants_table.IsExternalOrExternalView());
+
+  const auto& info = KernelProgramInfo::Handle(KernelProgramInfo::New());
+  info.untag()->set_kernel_component(kernel_component.ptr());
   info.untag()->set_string_offsets(string_offsets.ptr());
   info.untag()->set_string_data(string_data.ptr());
   info.untag()->set_canonical_names(canonical_names.ptr());
@@ -15201,7 +15200,6 @@ KernelProgramInfoPtr KernelProgramInfo::New(
   info.untag()->set_constants_table(constants_table.ptr());
   info.untag()->set_libraries_cache(libraries_cache.ptr());
   info.untag()->set_classes_cache(classes_cache.ptr());
-  info.untag()->set_retained_kernel_blob(retained_kernel_blob.ptr());
   return info.ptr();
 }
 
@@ -15223,8 +15221,40 @@ void KernelProgramInfo::set_constants(const Array& constants) const {
   untag()->set_constants(constants.ptr());
 }
 
-void KernelProgramInfo::set_constants_table(
-    const ExternalTypedData& value) const {
+intptr_t KernelProgramInfo::KernelLibraryStartOffset(
+    intptr_t library_index) const {
+  const auto& blob = TypedDataBase::Handle(kernel_component());
+  const intptr_t library_count =
+      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
+  const intptr_t library_start =
+      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() -
+                        (2 + 1 + (library_count - library_index)) * 4)));
+  return library_start;
+}
+
+TypedDataViewPtr KernelProgramInfo::KernelLibrary(
+    intptr_t library_index) const {
+  const intptr_t start_offset = KernelLibraryStartOffset(library_index);
+  const intptr_t end_offset = KernelLibraryEndOffset(library_index);
+  const auto& component = TypedDataBase::Handle(kernel_component());
+  return component.ViewFromTo(start_offset, end_offset);
+}
+
+intptr_t KernelProgramInfo::KernelLibraryEndOffset(
+    intptr_t library_index) const {
+  const auto& blob = TypedDataBase::Handle(kernel_component());
+  const intptr_t library_count =
+      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(
+          blob.DataAddr(blob.LengthInBytes() - 2 * 4)));
+  const intptr_t library_end =
+      Utils::BigEndianToHost32(*reinterpret_cast<uint32_t*>(blob.DataAddr(
+          blob.LengthInBytes() - (2 + (library_count - library_index)) * 4)));
+  return library_end;
+}
+
+void KernelProgramInfo::set_constants_table(const TypedDataView& value) const {
   untag()->set_constants_table(value.ptr());
 }
 
@@ -26177,6 +26207,44 @@ TypedDataViewPtr TypedDataView::New(intptr_t class_id,
   auto& result = TypedDataView::Handle(TypedDataView::New(class_id, space));
   result.InitializeWith(typed_data, offset_in_bytes, length);
   return result.ptr();
+}
+
+bool TypedDataBase::IsExternalOrExternalView() const {
+  if (IsExternalTypedData()) return true;
+  if (IsTypedDataView()) {
+    const auto& backing =
+        TypedDataBase::Handle(TypedDataView::Cast(*this).typed_data());
+    return backing.IsExternalTypedData();
+  }
+  return false;
+}
+
+TypedDataViewPtr TypedDataBase::ViewFromTo(intptr_t start,
+                                           intptr_t end,
+                                           Heap::Space space) const {
+  const intptr_t len = end - start;
+  ASSERT(0 <= len);
+  ASSERT(start < Length());
+  ASSERT((start + len) <= Length());
+
+  const intptr_t cid = GetClassId();
+
+  if (IsTypedDataView()) {
+    const auto& view = TypedDataView::Cast(*this);
+    const auto& td = TypedDataBase::Handle(view.typed_data());
+    const intptr_t view_offset = Smi::Value(view.offset_in_bytes());
+    ASSERT(IsTypedDataViewClassId(cid));
+    return TypedDataView::New(cid, ExternalTypedData::Cast(td),
+                              view_offset + start, len, Heap::kOld);
+  } else if (IsExternalTypedData()) {
+    ASSERT(IsExternalTypedDataClassId(cid));
+    ASSERT(IsTypedDataViewClassId(cid - 1));
+    return TypedDataView::New(cid - 1, *this, start, len, Heap::kOld);
+  }
+  RELEASE_ASSERT(IsTypedData());
+  ASSERT(IsExternalTypedDataClassId(cid));
+  ASSERT(IsTypedDataViewClassId(cid + 1));
+  return TypedDataView::New(cid + 1, *this, start, len, Heap::kOld);
 }
 
 const char* TypedDataBase::ToCString() const {

@@ -2239,21 +2239,16 @@ class PatchClass : public Object {
  public:
   ClassPtr wrapped_class() const { return untag()->wrapped_class(); }
   ScriptPtr script() const { return untag()->script(); }
-  ExternalTypedDataPtr library_kernel_data() const {
-    return untag()->library_kernel_data();
-  }
-  void set_library_kernel_data(const ExternalTypedData& data) const;
 
-  intptr_t library_kernel_offset() const {
+  intptr_t kernel_library_index() const {
 #if !defined(DART_PRECOMPILED_RUNTIME)
-    return untag()->library_kernel_offset_;
+    return untag()->kernel_library_index_;
 #else
     return -1;
 #endif
   }
-  void set_library_kernel_offset(intptr_t offset) const {
-    NOT_IN_PRECOMPILED(
-        StoreNonPointer(&untag()->library_kernel_offset_, offset));
+  void set_kernel_library_index(intptr_t index) const {
+    NOT_IN_PRECOMPILED(StoreNonPointer(&untag()->kernel_library_index_, index));
   }
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
@@ -3555,15 +3550,15 @@ class Function : public Object {
     set_optimized_call_site_count(value);
   }
 
-  void SetKernelDataAndEvalScript(
+  void SetKernelLibraryAndEvalScript(
       const Script& script,
       const class KernelProgramInfo& kernel_program_info,
-      const ExternalTypedData& data,
-      intptr_t offset) const;
+      intptr_t index) const;
 
-  intptr_t KernelDataProgramOffset() const;
+  intptr_t KernelLibraryOffset() const;
+  intptr_t KernelLibraryIndex() const;
 
-  ExternalTypedDataPtr KernelData() const;
+  TypedDataViewPtr KernelLibrary() const;
 
   bool IsOptimizable() const;
   void SetIsOptimizable(bool value) const;
@@ -4229,8 +4224,7 @@ class Function : public Object {
   enum class EvalFunctionData {
     kScript,
     kKernelProgramInfo,
-    kKernelData,
-    kKernelOffset,
+    kKernelLibraryIndex,
     kLength,
   };
   enum NativeFunctionData {
@@ -4472,9 +4466,9 @@ class Field : public Object {
 
   void InheritKernelOffsetFrom(const Field& src) const;
 
-  ExternalTypedDataPtr KernelData() const;
-
-  intptr_t KernelDataProgramOffset() const;
+  TypedDataViewPtr KernelLibrary() const;
+  intptr_t KernelLibraryOffset() const;
+  intptr_t KernelLibraryIndex() const;
 
   // Called during class finalization.
   inline void SetOffset(intptr_t host_offset_in_bytes,
@@ -4908,7 +4902,7 @@ class Script : public Object {
   void InitializeFromKernel(const KernelProgramInfo& info,
                             intptr_t script_index,
                             const TypedData& line_starts,
-                            const ExternalTypedData& constant_coverage) const;
+                            const TypedDataView& constant_coverage) const;
 #endif
 
   // The index of this script into the [KernelProgramInfo] object's source
@@ -4922,7 +4916,7 @@ class Script : public Object {
   TypedDataPtr line_starts() const;
 
 #if !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
-  ExternalTypedDataPtr constant_coverage() const;
+  TypedDataViewPtr constant_coverage() const;
 #endif  // !defined(PRODUCT) && !defined(DART_PRECOMPILED_RUNTIME)
 
   LibraryPtr FindLibrary() const;
@@ -5286,25 +5280,24 @@ class Library : public Object {
     return untag()->kernel_program_info();
   }
   void set_kernel_program_info(const KernelProgramInfo& info) const;
+  TypedDataViewPtr KernelLibrary() const;
+  intptr_t KernelLibraryOffset() const;
 #endif
 
-  ExternalTypedDataPtr kernel_data() const { return untag()->kernel_data(); }
-  void set_kernel_data(const ExternalTypedData& data) const;
-
-  intptr_t kernel_offset() const {
+  intptr_t kernel_library_index() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     return 0;
 #else
-    return untag()->kernel_offset_;
+    return untag()->kernel_library_index_;
 #endif
   }
 
-  void set_kernel_offset(intptr_t value) const {
+  void set_kernel_library_index(intptr_t value) const {
 #if defined(DART_PRECOMPILED_RUNTIME)
     UNREACHABLE();
 #else
     ASSERT(value >= 0);
-    StoreNonPointer(&untag()->kernel_offset_, value);
+    StoreNonPointer(&untag()->kernel_library_index_, value);
 #endif
   }
 
@@ -5473,16 +5466,16 @@ class Namespace : public Object {
 
 class KernelProgramInfo : public Object {
  public:
-  static KernelProgramInfoPtr New(const TypedData& string_offsets,
-                                  const ExternalTypedData& string_data,
+  static KernelProgramInfoPtr New(const TypedDataBase& kernel_component,
+                                  const TypedDataView& string_data,
+                                  const TypedDataView& metadata_payload,
+                                  const TypedDataView& metadata_mappings,
+                                  const TypedDataView& constants_table,
+                                  const TypedData& string_offsets,
                                   const TypedData& canonical_names,
-                                  const ExternalTypedData& metadata_payload,
-                                  const ExternalTypedData& metadata_mappings,
-                                  const ExternalTypedData& constants_table,
                                   const Array& scripts,
                                   const Array& libraries_cache,
-                                  const Array& classes_cache,
-                                  const Object& retained_kernel_blob);
+                                  const Array& classes_cache);
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedKernelProgramInfo));
@@ -5490,23 +5483,30 @@ class KernelProgramInfo : public Object {
 
   TypedDataPtr string_offsets() const { return untag()->string_offsets(); }
 
-  ExternalTypedDataPtr string_data() const { return untag()->string_data(); }
+  TypedDataBasePtr kernel_component() const {
+    return untag()->kernel_component();
+  }
+  TypedDataViewPtr string_data() const { return untag()->string_data(); }
 
   TypedDataPtr canonical_names() const { return untag()->canonical_names(); }
 
-  ExternalTypedDataPtr metadata_payloads() const {
+  TypedDataViewPtr metadata_payloads() const {
     return untag()->metadata_payloads();
   }
 
-  ExternalTypedDataPtr metadata_mappings() const {
+  TypedDataViewPtr metadata_mappings() const {
     return untag()->metadata_mappings();
   }
 
-  ExternalTypedDataPtr constants_table() const {
+  intptr_t KernelLibraryStartOffset(intptr_t library_index) const;
+  intptr_t KernelLibraryEndOffset(intptr_t library_index) const;
+  TypedDataViewPtr KernelLibrary(intptr_t library_index) const;
+
+  TypedDataViewPtr constants_table() const {
     return untag()->constants_table();
   }
 
-  void set_constants_table(const ExternalTypedData& value) const;
+  void set_constants_table(const TypedDataView& value) const;
 
   ArrayPtr scripts() const { return untag()->scripts(); }
   void set_scripts(const Array& scripts) const;
@@ -11659,6 +11659,11 @@ class TypedDataBase : public PointerBase {
     }
   }
 
+  bool IsExternalOrExternalView() const;
+  TypedDataViewPtr ViewFromTo(intptr_t start,
+                              intptr_t end,
+                              Heap::Space space = Heap::kNew) const;
+
   void* DataAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset == 0) ||
            ((byte_offset > 0) && (byte_offset < LengthInBytes())));
@@ -11907,7 +11912,7 @@ class TypedDataView : public TypedDataBase {
     return OFFSET_OF(UntaggedTypedDataView, offset_in_bytes_);
   }
 
-  InstancePtr typed_data() const { return untag()->typed_data(); }
+  TypedDataBasePtr typed_data() const { return untag()->typed_data(); }
 
   void InitializeWith(const TypedDataBase& typed_data,
                       intptr_t offset_in_bytes,

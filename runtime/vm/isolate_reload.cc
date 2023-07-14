@@ -825,7 +825,7 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
     kernel_program = kernel::Program::ReadFromFile(root_script_url);
     if (kernel_program != nullptr) {
       num_received_libs_ = kernel_program->library_count();
-      bytes_received_libs_ = kernel_program->kernel_data_size();
+      bytes_received_libs_ = kernel_program->binary().LengthInBytes();
       p_num_received_classes = &num_received_classes_;
       p_num_received_procedures = &num_received_procedures_;
     } else {
@@ -854,10 +854,9 @@ bool IsolateGroupReloadContext::Reload(bool force_reload,
 
     NoActiveIsolateScope no_active_isolate_scope;
 
-    ExternalTypedData& external_typed_data =
-        ExternalTypedData::Handle(Z, kernel_program->typed_data()->ptr());
     IsolateGroupSource* source = IsolateGroup::Current()->source();
-    source->add_loaded_blob(Z, external_typed_data);
+    source->add_loaded_blob(Z,
+                            ExternalTypedData::Cast(kernel_program->binary()));
 
     modified_libs_ = new (Z) BitVector(Z, num_old_libs_);
     kernel::KernelLoader::FindModifiedLibraries(

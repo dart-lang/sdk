@@ -275,18 +275,10 @@ static constexpr int HeaderSize = 8;  // 'magic', 'formatVersion'.
 
 class Reader : public ValueObject {
  public:
-  explicit Reader(const ProgramBinary& binary)
-      : Reader(binary.kernel_data, binary.kernel_data_size) {
-    // Make sure to link any Program / KernelProgramInfo objects created
-    // from this reader back to originating typed data to keep it alive.
-    set_typed_data(binary.typed_data);
+  explicit Reader(const TypedDataBase& typed_data)
+      : thread_(Thread::Current()), typed_data_(&typed_data) {
+    Init();
   }
-
-  explicit Reader(const ExternalTypedData& typed_data)
-      : thread_(Thread::Current()),
-        raw_buffer_(nullptr),
-        typed_data_(&typed_data),
-        size_(typed_data.IsNull() ? 0 : typed_data.Length()) {}
 
   uint32_t ReadFromIndex(intptr_t end_offset,
                          intptr_t fields_before,
@@ -295,19 +287,14 @@ class Reader : public ValueObject {
     intptr_t org_offset = offset();
     uint32_t result =
         ReadFromIndexNoReset(end_offset, fields_before, list_size, list_index);
-    set_offset(org_offset);
+    offset_ = org_offset;
     return result;
   }
 
   uint32_t ReadUInt32At(intptr_t offset) const {
     ASSERT((size_ >= 4) && (offset >= 0) && (offset <= size_ - 4));
-    uint32_t value;
-    if (raw_buffer_ != nullptr) {
-      value = LoadUnaligned(
-          reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
-    } else {
-      value = typed_data_->GetUint32(offset);
-    }
+    uint32_t value =
+        LoadUnaligned(reinterpret_cast<const uint32_t*>(raw_buffer_ + offset));
     return Utils::BigEndianToHost32(value);
   }
 
@@ -315,7 +302,7 @@ class Reader : public ValueObject {
                                 intptr_t fields_before,
                                 intptr_t list_size,
                                 intptr_t list_index) {
-    set_offset(end_offset - (fields_before + list_size - list_index) * 4);
+    offset_ = end_offset - (fields_before + list_size - list_index) * 4;
     return ReadUInt32();
   }
 
@@ -327,8 +314,8 @@ class Reader : public ValueObject {
 
   double ReadDouble() {
     ASSERT((size_ >= 8) && (offset_ >= 0) && (offset_ <= size_ - 8));
-    double value = LoadUnaligned(
-        reinterpret_cast<const double*>(&this->buffer()[offset_]));
+    double value =
+        LoadUnaligned(reinterpret_cast<const double*>(&raw_buffer_[offset_]));
     offset_ += 8;
     return value;
   }
@@ -336,7 +323,7 @@ class Reader : public ValueObject {
   uint32_t ReadUInt() {
     ASSERT((size_ >= 1) && (offset_ >= 0) && (offset_ <= size_ - 1));
 
-    const uint8_t* buffer = this->buffer();
+    const uint8_t* buffer = raw_buffer_;
     uint8_t byte0 = buffer[offset_];
     if ((byte0 & 0x80) == 0) {
       // 0...
@@ -359,14 +346,14 @@ class Reader : public ValueObject {
   }
 
   intptr_t ReadSLEB128() {
-    ReadStream stream(this->buffer(), size_, offset_);
+    ReadStream stream(raw_buffer_, size_, offset_);
     const intptr_t result = stream.ReadSLEB128();
     offset_ = stream.Position();
     return result;
   }
 
   int64_t ReadSLEB128AsInt64() {
-    ReadStream stream(this->buffer(), size_, offset_);
+    ReadStream stream(raw_buffer_, size_, offset_);
     const int64_t result = stream.ReadSLEB128<int64_t>();
     offset_ = stream.Position();
     return result;
@@ -387,9 +374,9 @@ class Reader : public ValueObject {
 
   intptr_t ReadListLength() { return ReadUInt(); }
 
-  uint8_t ReadByte() { return buffer()[offset_++]; }
+  uint8_t ReadByte() { return raw_buffer_[offset_++]; }
 
-  uint8_t PeekByte() { return buffer()[offset_]; }
+  uint8_t PeekByte() { return raw_buffer_[offset_]; }
 
   void ReadBytes(uint8_t* buffer, uint8_t size) {
     for (int i = 0; i < size; i++) {
@@ -476,52 +463,52 @@ class Reader : public ValueObject {
   // the root name as in the canonical name table.
   NameIndex ReadCanonicalNameReference() { return NameIndex(ReadUInt() - 1); }
 
+  const TypedDataBase* typed_data() { return typed_data_; }
+
   intptr_t offset() const { return offset_; }
-  void set_offset(intptr_t offset) { offset_ = offset; }
-
-  intptr_t size() const { return size_; }
-  void set_size(intptr_t size) { size_ = size; }
-
-  const ExternalTypedData* typed_data() const { return typed_data_; }
-  void set_typed_data(const ExternalTypedData* typed_data) {
-    typed_data_ = typed_data;
+  void set_offset(intptr_t offset) {
+    ASSERT(offset < size_);
+    offset_ = offset;
   }
+  intptr_t size() const { return size_; }
 
-  const uint8_t* raw_buffer() const { return raw_buffer_; }
-  void set_raw_buffer(const uint8_t* raw_buffer) { raw_buffer_ = raw_buffer; }
-
-  ExternalTypedDataPtr ExternalDataFromTo(intptr_t start, intptr_t end) {
-    return ExternalTypedData::New(kExternalTypedDataUint8ArrayCid,
-                                  const_cast<uint8_t*>(buffer() + start),
-                                  end - start, Heap::kOld);
+  TypedDataViewPtr ViewFromTo(intptr_t start, intptr_t end) {
+    return typed_data_->ViewFromTo(start, end, Heap::kOld);
   }
 
   const uint8_t* BufferAt(intptr_t offset) {
     ASSERT((offset >= 0) && (offset < size_));
-    return &buffer()[offset];
+    return &raw_buffer_[offset];
   }
 
   TypedDataPtr ReadLineStartsData(intptr_t line_start_count);
 
  private:
+  friend class Program;
+  friend class AlternativeReadingScopeWithNewData;
+  friend class AlternativeReadingScope;
+
   Reader(const uint8_t* buffer, intptr_t size)
       : thread_(nullptr),
         raw_buffer_(buffer),
-        typed_data_(nullptr),
         size_(size) {}
 
-  const uint8_t* buffer() const {
-    if (raw_buffer_ != nullptr) {
-      return raw_buffer_;
-    }
-    NoSafepointScope no_safepoint(thread_);
-    return reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+  void Init() {
+    ASSERT(typed_data_->IsExternalOrExternalView());
+    raw_buffer_ = reinterpret_cast<uint8_t*>(typed_data_->DataAddr(0));
+    size_ = typed_data_->LengthInBytes();
+    offset_ = 0;
   }
 
-  Thread* thread_;
-  const uint8_t* raw_buffer_;
-  const ExternalTypedData* typed_data_;
-  intptr_t size_;
+  Thread* thread_ = nullptr;
+
+  // A external typed data or a view on an external typed data.
+  const TypedDataBase* typed_data_ = nullptr;
+
+  // The raw data size/length of [typed_data_].
+  const uint8_t* raw_buffer_ = nullptr;
+  intptr_t size_ = 0;
+
   intptr_t offset_ = 0;
   TokenPosition max_position_ = TokenPosition::kNoSource;
   TokenPosition min_position_ = TokenPosition::kNoSource;
@@ -536,14 +523,14 @@ class Reader : public ValueObject {
 class AlternativeReadingScope {
  public:
   AlternativeReadingScope(Reader* reader, intptr_t new_position)
-      : reader_(reader), saved_offset_(reader_->offset()) {
-    reader_->set_offset(new_position);
+      : reader_(reader), saved_offset_(reader_->offset_) {
+    reader_->offset_ = new_position;
   }
 
   explicit AlternativeReadingScope(Reader* reader)
-      : reader_(reader), saved_offset_(reader_->offset()) {}
+      : reader_(reader), saved_offset_(reader_->offset_) {}
 
-  ~AlternativeReadingScope() { reader_->set_offset(saved_offset_); }
+  ~AlternativeReadingScope() { reader_->offset_ = saved_offset_; }
 
   intptr_t saved_offset() { return saved_offset_; }
 
@@ -559,24 +546,23 @@ class AlternativeReadingScope {
 class AlternativeReadingScopeWithNewData {
  public:
   AlternativeReadingScopeWithNewData(Reader* reader,
-                                     const ExternalTypedData* new_typed_data,
+                                     const TypedDataBase* new_typed_data,
                                      intptr_t new_position)
       : reader_(reader),
-        saved_size_(reader_->size()),
-        saved_raw_buffer_(reader_->raw_buffer()),
-        saved_typed_data_(reader_->typed_data()),
-        saved_offset_(reader_->offset()) {
-    reader_->set_raw_buffer(nullptr);
-    reader_->set_typed_data(new_typed_data);
-    reader_->set_size(new_typed_data->Length());
-    reader_->set_offset(new_position);
+        saved_size_(reader_->size_),
+        saved_raw_buffer_(reader_->raw_buffer_),
+        saved_typed_data_(reader_->typed_data_),
+        saved_offset_(reader_->offset_) {
+    reader_->typed_data_ = new_typed_data;
+    reader_->Init();
+    reader_->offset_ = new_position;
   }
 
   ~AlternativeReadingScopeWithNewData() {
-    reader_->set_raw_buffer(saved_raw_buffer_);
-    reader_->set_typed_data(saved_typed_data_);
-    reader_->set_size(saved_size_);
-    reader_->set_offset(saved_offset_);
+    reader_->raw_buffer_ = saved_raw_buffer_;
+    reader_->typed_data_ = saved_typed_data_;
+    reader_->size_ = saved_size_;
+    reader_->offset_ = saved_offset_;
   }
 
   intptr_t saved_offset() { return saved_offset_; }
@@ -585,7 +571,7 @@ class AlternativeReadingScopeWithNewData {
   Reader* reader_;
   intptr_t saved_size_;
   const uint8_t* saved_raw_buffer_;
-  const ExternalTypedData* saved_typed_data_;
+  const TypedDataBase* saved_typed_data_;
   intptr_t saved_offset_;
 
   DISALLOW_COPY_AND_ASSIGN(AlternativeReadingScopeWithNewData);

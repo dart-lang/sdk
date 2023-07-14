@@ -810,8 +810,8 @@ FlowGraph* FlowGraphBuilder::BuildGraph() {
   }
 #endif
 
-  auto& kernel_data = ExternalTypedData::Handle(Z, function.KernelData());
-  intptr_t kernel_data_program_offset = function.KernelDataProgramOffset();
+  auto& kernel_data = TypedDataView::Handle(Z, function.KernelLibrary());
+  intptr_t kernel_data_program_offset = function.KernelLibraryOffset();
 
   StreamingFlowGraphBuilder streaming_flow_graph_builder(
       this, kernel_data, kernel_data_program_offset);

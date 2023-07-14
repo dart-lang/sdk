@@ -46,29 +46,25 @@ class TranslationHelper {
   const TypedData& string_offsets() const { return string_offsets_; }
   void SetStringOffsets(const TypedData& string_offsets);
 
-  const ExternalTypedData& string_data() const { return string_data_; }
-  void SetStringData(const ExternalTypedData& string_data);
+  const TypedDataView& string_data() const { return string_data_; }
+  void SetStringData(const TypedDataView& string_data);
 
   const TypedData& canonical_names() const { return canonical_names_; }
   void SetCanonicalNames(const TypedData& canonical_names);
 
-  const ExternalTypedData& metadata_payloads() const {
-    return metadata_payloads_;
-  }
-  void SetMetadataPayloads(const ExternalTypedData& metadata_payloads);
+  const TypedDataView& metadata_payloads() const { return metadata_payloads_; }
+  void SetMetadataPayloads(const TypedDataView& metadata_payloads);
 
-  const ExternalTypedData& metadata_mappings() const {
-    return metadata_mappings_;
-  }
-  void SetMetadataMappings(const ExternalTypedData& metadata_mappings);
+  const TypedDataView& metadata_mappings() const { return metadata_mappings_; }
+  void SetMetadataMappings(const TypedDataView& metadata_mappings);
 
   // Access to previously evaluated constants from the constants table.
   const Array& constants() { return constants_; }
   void SetConstants(const Array& constants);
 
   // Access to the raw bytes of the constants table.
-  const ExternalTypedData& constants_table() const { return constants_table_; }
-  void SetConstantsTable(const ExternalTypedData& constants_table);
+  const TypedDataView& constants_table() const { return constants_table_; }
+  void SetConstantsTable(const TypedDataView& constants_table);
 
   void SetKernelProgramInfo(const KernelProgramInfo& info);
   const KernelProgramInfo& GetKernelProgramInfo() const { return info_; }
@@ -251,12 +247,12 @@ class TranslationHelper {
   Heap::Space allocation_space_;
 
   TypedData& string_offsets_;
-  ExternalTypedData& string_data_;
+  TypedDataView& string_data_;
   TypedData& canonical_names_;
-  ExternalTypedData& metadata_payloads_;
-  ExternalTypedData& metadata_mappings_;
+  TypedDataView& metadata_payloads_;
+  TypedDataView& metadata_mappings_;
   Array& constants_;
-  ExternalTypedData& constants_table_;
+  TypedDataView& constants_table_;
   KernelProgramInfo& info_;
   Smi& name_index_handle_;
   GrowableObjectArray* potential_extension_libraries_ = nullptr;
@@ -945,8 +941,7 @@ class MetadataHelper {
                  bool precompiler_only);
 
 #if defined(DEBUG)
-  static void VerifyMetadataMappings(
-      const ExternalTypedData& metadata_mappings);
+  static void VerifyMetadataMappings(const TypedDataView& metadata_mappings);
 #endif
 
  protected:
@@ -1235,20 +1230,11 @@ class KernelReaderHelper {
  public:
   KernelReaderHelper(Zone* zone,
                      TranslationHelper* translation_helper,
-                     const ExternalTypedData& data,
+                     const TypedDataBase& data,
                      intptr_t data_program_offset)
       : zone_(zone),
         translation_helper_(*translation_helper),
         reader_(data),
-        data_program_offset_(data_program_offset) {}
-
-  KernelReaderHelper(Zone* zone,
-                     TranslationHelper* translation_helper,
-                     const ProgramBinary& binary,
-                     intptr_t data_program_offset)
-      : zone_(zone),
-        translation_helper_(*translation_helper),
-        reader_(binary),
         data_program_offset_(data_program_offset) {}
 
   virtual ~KernelReaderHelper() = default;
@@ -1332,7 +1318,7 @@ class KernelReaderHelper {
   const String& GetSourceFor(intptr_t index);
   TypedDataPtr GetLineStartsFor(intptr_t index);
   String& SourceTableImportUriFor(intptr_t index);
-  ExternalTypedDataPtr GetConstantCoverageFor(intptr_t index);
+  TypedDataViewPtr GetConstantCoverageFor(intptr_t index);
 
   Zone* zone_;
   TranslationHelper& translation_helper_;
