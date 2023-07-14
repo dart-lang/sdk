@@ -350,7 +350,8 @@ final a1 = '';
     final hints = await _fetchHints(code.code);
     final location = hints.single.labelParts.single.location!;
 
-    expect(location.uri, Uri.file(convertPath('/sdk/lib/core/core.dart')));
+    expect(location.uri,
+        pathContext.toUri(convertPath('/sdk/lib/core/core.dart')));
     // Check range looks like sensible values.
     expect(location.range.start.line, greaterThanOrEqualTo(1));
     expect(location.range.start.character,

@@ -32,7 +32,8 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
   /// The result of the last prepareTypeHierarchy call.
   TypeHierarchyItem? prepareResult;
 
-  late final dartCodeUri = Uri.file(convertPath('/sdk/lib/core/core.dart'));
+  late final dartCodeUri =
+      pathContext.toUri(convertPath('/sdk/lib/core/core.dart'));
 
   /// Matches a [TypeHierarchyItem] for [Object].
   Matcher get _isObject => TypeMatcher<TypeHierarchyItem>()
@@ -56,7 +57,7 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
   void setUp() {
     super.setUp();
     otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    otherFileUri = Uri.file(otherFilePath);
+    otherFileUri = pathContext.toUri(otherFilePath);
   }
 
   /// Matches a [TypeHierarchyItem] with the given values.

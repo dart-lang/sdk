@@ -112,7 +112,7 @@ class DocumentSymbolHandler extends LspMessageHandler<DocumentSymbolParams,
     } else {
       // Otherwise, we need to use the original flat SymbolInformation.
       final allSymbols = <SymbolInformation>[];
-      final documentUri = Uri.file(path);
+      final documentUri = pathContext.toUri(path);
 
       // Adds a symbol and it's children recursively, supplying the parent
       // name as required by SymbolInformation.

@@ -2,11 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
+import 'package:path/path.dart' as package_path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -75,7 +74,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   Future<void> test_analysisRoot_doesNotExist() async {
     final notExistingPath = convertPath('/does/not/exist');
     resourceProvider.emitPathNotFoundExceptionsForPaths.add(notExistingPath);
-    await initialize(workspaceFolders: [Uri.file(notExistingPath)]);
+    await initialize(workspaceFolders: [pathContext.toUri(notExistingPath)]);
 
     // Wait a short period and ensure there was exactly one context build.
     await pumpEventQueue(times: 10000);
@@ -101,7 +100,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     newFile(mainFilePath, 'NotAClass a;');
 
     await initialize(
-      workspaceFolders: [projectFolderUri, Uri.file(notExistingPath)],
+      workspaceFolders: [projectFolderUri, pathContext.toUri(notExistingPath)],
     );
 
     // Wait a short period and ensure there was exactly one context build.
@@ -175,7 +174,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_path_doesNotExist() async {
-    final missingFileUri = Uri.file(join(projectFolderPath, 'missing.dart'));
+    final missingFileUri = toUri(join(projectFolderPath, 'missing.dart'));
     await initialize();
     await expectLater(
       getHover(missingFileUri, startOfDocPos),
@@ -201,15 +200,15 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     //    file:///foo/bar.dart
     // is valid for non-Windows platforms, but not valid on Windows as it does
     // not have a drive letter.
-    if (!Platform.isWindows) {
+    if (pathContext.style != package_path.Style.windows) {
       return;
     }
-    final missingDriveLetterFileUri = Uri.file('/foo/bar.dart');
+    final missingDriveLetterFileUri = pathContext.toUri('/foo/bar.dart');
     await initialize();
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
-      // The Uri.file() above translates to a non-file:// URI of just 'a/b.dart'
-      // so will get the not-file-scheme error message.
+      // The pathContext.toUri() above translates to a non-file:// URI of just
+      // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'URI was not an absolute file path (missing drive letter)')),
     );
@@ -226,12 +225,12 @@ class ServerTest extends AbstractLspAnalysisServerTest {
   }
 
   Future<void> test_path_relative() async {
-    final relativeFileUri = Uri.file('a/b.dart');
+    final relativeFileUri = pathContext.toUri('a/b.dart');
     await initialize();
     await expectLater(
       getHover(relativeFileUri, startOfDocPos),
-      // The Uri.file() above translates to a non-file:// URI of just 'a/b.dart'
-      // so will get the not-file-scheme error message.
+      // The pathContext.toUri() above translates to a non-file:// URI of just
+      // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'URI was not a valid file:// URI')),
     );

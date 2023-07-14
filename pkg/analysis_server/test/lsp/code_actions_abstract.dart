@@ -25,7 +25,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     bool failTestOnAnyErrorNotification = true,
   }) async {
     filePath ??= mainFilePath;
-    final fileUri = Uri.file(filePath);
+    final fileUri = pathContext.toUri(filePath);
     final code = TestCode.parse(content);
     newFile(filePath, code.code);
 
@@ -78,7 +78,7 @@ abstract class AbstractCodeActionsTest extends AbstractLspAnalysisServerTest {
     await initialize();
 
     final codeActions = await getCodeActions(
-      Uri.file(filePath),
+      pathContext.toUri(filePath),
       position: code.positions.isNotEmpty ? code.position.position : null,
       range: code.ranges.isNotEmpty ? code.range.range : null,
       workDoneToken: workDoneToken,

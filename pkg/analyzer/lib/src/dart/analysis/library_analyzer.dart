@@ -49,6 +49,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as package_path;
 
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
@@ -66,6 +67,7 @@ class LibraryAnalyzer {
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
   final InheritanceManager3 _inheritance;
+  final package_path.Context _pathContext;
 
   final LibraryElementImpl _libraryElement;
 
@@ -77,7 +79,7 @@ class LibraryAnalyzer {
   final TestingData? _testingData;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
-      this._libraryElement, this._inheritance, this._library,
+      this._libraryElement, this._inheritance, this._library, this._pathContext,
       {TestingData? testingData})
       : _testingData = testingData;
 
@@ -342,6 +344,7 @@ class LibraryAnalyzer {
       _inheritance,
       analysisOptions,
       file.workspacePackage,
+      _pathContext,
     );
     for (var linter in analysisOptions.lintRules) {
       linter.reporter = errorReporter;
@@ -432,6 +435,7 @@ class LibraryAnalyzer {
         inheritanceManager: _inheritance,
         analysisOptions: _analysisOptions,
         workspacePackage: _library.file.workspacePackage,
+        pathContext: _pathContext,
       ),
     );
 

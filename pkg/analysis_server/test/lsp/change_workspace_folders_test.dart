@@ -29,9 +29,9 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     newFolder(workspaceFolder2Path);
     newFolder(workspaceFolder3Path);
 
-    workspaceFolder1Uri = Uri.file(workspaceFolder1Path);
-    workspaceFolder2Uri = Uri.file(workspaceFolder2Path);
-    workspaceFolder3Uri = Uri.file(workspaceFolder3Path);
+    workspaceFolder1Uri = pathContext.toUri(workspaceFolder1Path);
+    workspaceFolder2Uri = pathContext.toUri(workspaceFolder2Path);
+    workspaceFolder3Uri = pathContext.toUri(workspaceFolder3Path);
 
     newPubspecYamlFile(workspaceFolder1Path, '');
     newPubspecYamlFile(workspaceFolder2Path, '');
@@ -108,7 +108,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -145,7 +145,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(allowEmptyRootUri: true);
@@ -183,7 +183,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
@@ -218,7 +218,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);
@@ -254,7 +254,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final nestedFolderPath =
         join(workspaceFolder1Path, 'nested', 'deeply', 'in', 'folders');
     final nestedFilePath = join(nestedFolderPath, 'test.dart');
-    final nestedFileUri = Uri.file(nestedFilePath);
+    final nestedFileUri = pathContext.toUri(nestedFilePath);
     newFile(nestedFilePath, '');
 
     // Ensure no pubspecs in tree.
@@ -293,7 +293,7 @@ class ChangeWorkspaceFoldersTest extends AbstractLspAnalysisServerTest {
     final workspace1FilePath = join(workspaceFolder1Path, 'test.dart');
     newFile(workspace1FilePath, '');
     final workspace2FilePath = join(workspaceFolder2Path, 'test.dart');
-    final workspace2FileUri = Uri.file(workspace2FilePath);
+    final workspace2FileUri = pathContext.toUri(workspace2FilePath);
     newFile(workspace2FilePath, '');
 
     await initialize(workspaceFolders: [workspaceFolder1Uri]);

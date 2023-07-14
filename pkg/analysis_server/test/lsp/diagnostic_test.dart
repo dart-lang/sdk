@@ -23,7 +23,7 @@ void main() {
 @reflectiveTest
 class DiagnosticTest extends AbstractLspAnalysisServerTest {
   Future<void> checkPluginErrorsForFile(String pluginAnalyzedFilePath) async {
-    final pluginAnalyzedUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedUri = pathContext.toUri(pluginAnalyzedFilePath);
 
     newFile(pluginAnalyzedFilePath, '''String a = "Test";
 String b = "Test";
@@ -285,7 +285,7 @@ void f() {
   Future<void> test_dotFilesExcluded() async {
     var dotFolderFilePath =
         join(projectFolderPath, '.dart_tool', 'tool_file.dart');
-    var dotFolderFileUri = Uri.file(dotFolderFilePath);
+    var dotFolderFileUri = pathContext.toUri(dotFolderFilePath);
 
     newFile(dotFolderFilePath, 'String a = 1;');
 
@@ -307,7 +307,7 @@ void f() {
 
   Future<void> test_fixDataFile() async {
     var fixDataPath = join(projectFolderPath, 'lib', 'fix_data.yaml');
-    var fixDataUri = Uri.file(fixDataPath);
+    var fixDataUri = pathContext.toUri(fixDataPath);
     newFile(fixDataPath, '''
 version: latest
 ''').path;

@@ -61,6 +61,9 @@ abstract class AbstractLspAnalysisServerTest
 
   DartFixPromptManager? get dartFixPromptManager => null;
 
+  @override
+  path.Context get pathContext => server.resourceProvider.pathContext;
+
   AnalysisServerOptions get serverOptions => AnalysisServerOptions();
 
   @override
@@ -182,7 +185,7 @@ abstract class AbstractLspAnalysisServerTest
   String? getCurrentFileContent(Uri uri) {
     try {
       return server.resourceProvider
-          .getFile(uri.toFilePath())
+          .getFile(pathContext.fromUri(uri))
           .readAsStringSync();
     } catch (_) {
       return null;
@@ -276,16 +279,16 @@ abstract class AbstractLspAnalysisServerTest
     server.pluginManager = pluginManager;
 
     projectFolderPath = convertPath('/home/my_project');
-    projectFolderUri = Uri.file(projectFolderPath);
+    projectFolderUri = toUri(projectFolderPath);
     newFolder(projectFolderPath);
     newFolder(join(projectFolderPath, 'lib'));
     // Create a folder and file to aid testing that includes imports/completion.
     newFolder(join(projectFolderPath, 'lib', 'folder'));
     newFile(join(projectFolderPath, 'lib', 'file.dart'), '');
     mainFilePath = join(projectFolderPath, 'lib', 'main.dart');
-    mainFileUri = Uri.file(mainFilePath);
+    mainFileUri = toUri(mainFilePath);
     pubspecFilePath = join(projectFolderPath, file_paths.pubspecYaml);
-    pubspecFileUri = Uri.file(pubspecFilePath);
+    pubspecFileUri = toUri(pubspecFilePath);
     analysisOptionsPath = join(projectFolderPath, 'analysis_options.yaml');
     newFile(analysisOptionsPath, '''
 analyzer:
@@ -295,7 +298,7 @@ analyzer:
     - sealed-class
 ''');
 
-    analysisOptionsUri = Uri.file(analysisOptionsPath);
+    analysisOptionsUri = pathContext.toUri(analysisOptionsPath);
     writePackageConfig(projectFolderPath);
   }
 
@@ -931,6 +934,8 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
       .map((message) =>
           OpenUriParams.fromJson(message.params as Map<String, Object?>));
 
+  path.Context get pathContext;
+
   /// A stream of [RequestMessage]s from the server.
   Stream<RequestMessage> get requestsFromServer {
     return serverToClient
@@ -1240,7 +1245,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         rootUri == null &&
         workspaceFolders == null &&
         !allowEmptyRootUri) {
-      rootUri = Uri.file(projectFolderPath);
+      rootUri = pathContext.toUri(projectFolderPath);
     }
     final request = makeRequest(
         Method.initialize,
@@ -1408,7 +1413,8 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path = uri != null ? Uri.parse(uri).toFilePath() : null;
+            final path =
+                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;
@@ -1506,13 +1512,14 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativePath(String filePath) =>
-      path.relative(filePath, from: projectFolderPath).replaceAll(r'\', '/');
+  String relativePath(String filePath) => pathContext
+      .relative(filePath, from: projectFolderPath)
+      .replaceAll(r'\', '/');
 
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(uri.toFilePath());
+  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
 
   Future<WorkspaceEdit?> rename(
     Uri uri,
@@ -1614,7 +1621,8 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         .map((notification) => PublishDiagnosticsParams.fromJson(
             notification.params as Map<String, Object?>))
         .listen((diagnostics) {
-      latestDiagnostics[diagnostics.uri.toFilePath()] = diagnostics.diagnostics;
+      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
+          diagnostics.diagnostics;
     });
   }
 

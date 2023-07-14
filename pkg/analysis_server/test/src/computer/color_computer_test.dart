@@ -8,6 +8,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../tool/codebase/failing_tests.dart';
 import '../../abstract_context.dart';
 
 void main() {
@@ -137,7 +138,7 @@ class ColorComputerTest extends AbstractContextTest {
     final result = await getResolvedUnit(testFile);
     expectNoErrors(result);
 
-    computer = ColorComputer(result);
+    computer = ColorComputer(result, pathContext);
     final colors = computer.compute();
 
     expect(

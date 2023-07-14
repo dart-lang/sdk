@@ -232,7 +232,7 @@ class MyInterface {
     bool expectResults = true,
   }) async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     final code = TestCode.parse(content);
     final otherCode =
         otherContent != null ? TestCode.parse(otherContent) : null;

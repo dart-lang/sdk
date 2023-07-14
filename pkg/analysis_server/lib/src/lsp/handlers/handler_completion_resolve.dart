@@ -143,13 +143,13 @@ class CompletionResolveHandler
           if (importUris.length == 1) {
             // If the only URI we have is a file:// URI, display it as relative to
             // the file we're importing into, rather than the full URI.
-            final pathContext = server.resourceProvider.pathContext;
+            final pathContext = server.pathContext;
             final libraryUri = importUris.first;
             final autoImportDisplayUri = libraryUri.isScheme('file')
                 // Compute the relative path and then put into a URI so the display
                 // always uses forward slashes (as a URI) regardless of platform.
-                ? Uri.file(pathContext.relative(
-                    libraryUri.toFilePath(),
+                ? pathContext.toUri(pathContext.relative(
+                    pathContext.fromUri(libraryUri),
                     from: pathContext.dirname(file),
                   ))
                 : libraryUri;

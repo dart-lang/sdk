@@ -50,8 +50,9 @@ abstract class DartSnippetProducer extends SnippetProducer {
 
   bool get isInTestDirectory {
     final path = request.unit.path;
-    return LinterContextImpl.testDirectories
-        .any((testDir) => path.contains(testDir));
+    return LinterContextImpl.getTestDirectories(
+            request.resourceProvider.pathContext)
+        .any(path.contains);
   }
 
   /// The nullable suffix to use in this library.

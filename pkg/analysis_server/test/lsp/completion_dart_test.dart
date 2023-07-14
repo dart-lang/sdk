@@ -1259,7 +1259,7 @@ void f() {
   Future<void> test_fromPlugin_nonDartFile() async {
     if (!AnalysisServer.supportsPlugins) return;
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
-    final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     final content = '''
     CREATE TABLE foo (
       id INTEGER NOT NULL PRIMARY KEY
@@ -2175,7 +2175,8 @@ void f() { }
     newFile(readmeFilePath, '');
     await initialize();
 
-    final res = await getCompletion(Uri.file(readmeFilePath), startOfDocPos);
+    final res =
+        await getCompletion(pathContext.toUri(readmeFilePath), startOfDocPos);
     expect(res, isEmpty);
   }
 
@@ -3061,7 +3062,7 @@ void f() {
   /// https://github.com/Dart-Code/Dart-Code/issues/2286#issuecomment-658597532
   Future<void> test_unimportedSymbols_modifiedFiles() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
 
     final mainFileContent = 'MyOtherClass^';
     final initialAnalysis = waitForAnalysisComplete();
@@ -3223,7 +3224,7 @@ class BaseImpl extends Base {
     _enableLints([LintNames.prefer_relative_imports]);
     final importingFilePath =
         join(projectFolderPath, 'lib', 'nested1', 'main.dart');
-    final importingFileUri = Uri.file(importingFilePath);
+    final importingFileUri = pathContext.toUri(importingFilePath);
     final importedFilePath =
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
@@ -3261,7 +3262,7 @@ void f() {
     _enableLints([LintNames.prefer_relative_imports]);
     final importingFilePath =
         join(projectFolderPath, 'bin', 'nested1', 'main.dart');
-    final importingFileUri = Uri.file(importingFilePath);
+    final importingFileUri = pathContext.toUri(importingFilePath);
     final importedFilePath =
         join(projectFolderPath, 'lib', 'nested2', 'imported.dart');
 
@@ -3778,8 +3779,13 @@ void f() {
   }
 
   Future<void> test_snippets_testBlock() async {
+    // This test fails when running on macOS using Windows style paths. This
+    // is because DartSnippetProducer.isInTestDirectory compares a path using
+    // the tests PathContext (eg. backslashes when running as Windows-on-macOS)
+    // to `LinterContextImpl.testDirectories` which are always using native
+    // paths.
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = Uri.file(mainFilePath);
+    mainFileUri = pathContext.toUri(mainFilePath);
     final content = '''
 void f() {
   test^
@@ -3803,8 +3809,10 @@ void f() {
   }
 
   Future<void> test_snippets_testGroupBlock() async {
+    // This test fails when running on macOS using Windows style paths. See
+    // explanation in test_snippets_testBlock.
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
-    mainFileUri = Uri.file(mainFilePath);
+    mainFileUri = pathContext.toUri(mainFilePath);
     final content = '''
 void f() {
   group^
@@ -4135,7 +4143,7 @@ stle^
 ''';
 
     await initializeWithSnippetSupport();
-    final otherFileUri = Uri.file(convertPath('/other/file.dart'));
+    final otherFileUri = pathContext.toUri(convertPath('/other/file.dart'));
     await openFile(otherFileUri, withoutMarkers(content));
     final res = await getCompletion(otherFileUri, positionFromMarker(content));
     final snippetItems = res.where((c) => c.kind == CompletionItemKind.Snippet);

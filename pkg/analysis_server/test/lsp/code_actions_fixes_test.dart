@@ -640,7 +640,7 @@ ProcessInfo b;
 
   Future<void> test_outsideRoot() async {
     final otherFilePath = convertPath('/home/otherProject/foo.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     newFile(otherFilePath, 'bad code to create error');
     await initialize();
 

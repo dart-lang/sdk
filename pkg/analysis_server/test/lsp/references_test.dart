@@ -205,7 +205,7 @@ f^oo() {
     final mainCode = TestCode.parse(mainContent);
     final otherCode =
         otherContent != null ? TestCode.parse(otherContent) : null;
-    final otherFileUri = Uri.file(join(projectFolderPath, 'lib', 'other.dart'));
+    final otherFileUri = toUri(join(projectFolderPath, 'lib', 'other.dart'));
 
     await initialize();
     await openFile(mainFileUri, mainCode.code);

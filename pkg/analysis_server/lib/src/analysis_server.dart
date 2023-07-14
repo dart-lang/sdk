@@ -214,7 +214,8 @@ abstract class AnalysisServer {
     final pubCommand = processRunner != null &&
             Platform.environment[PubCommand.disablePubCommandEnvironmentKey] ==
                 null
-        ? PubCommand(instrumentationService, processRunner)
+        ? PubCommand(
+            instrumentationService, resourceProvider.pathContext, processRunner)
         : null;
 
     pubPackageService = PubPackageService(

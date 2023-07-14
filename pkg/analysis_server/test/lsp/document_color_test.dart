@@ -266,7 +266,7 @@ const white = [!Color(0xFFFFFFFF)!];
     await initialize();
 
     final colorPresentations = await getColorPresentation(
-      Uri.file(testFilePath),
+      pathContext.toUri(testFilePath),
       colorRange,
       select,
     );

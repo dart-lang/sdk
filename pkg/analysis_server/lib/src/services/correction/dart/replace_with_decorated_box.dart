@@ -44,7 +44,7 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
 
     var deletions = <Token>[];
     var replacements = <AstNode, String>{};
-    var linterContext = getLinterContext();
+    var linterContext = getLinterContext(resourceProvider.pathContext);
 
     void replace(Expression expression, {required bool addConst}) {
       if (expression is InstanceCreationExpression && _hasLint(expression)) {

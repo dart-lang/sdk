@@ -99,7 +99,7 @@ class WorkspaceSymbolHandler
       declaration.codeLength,
     );
     final location = Location(
-      uri: Uri.file(filePath),
+      uri: pathContext.toUri(filePath),
       range: range,
     );
 

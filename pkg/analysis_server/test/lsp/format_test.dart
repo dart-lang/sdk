@@ -636,7 +636,7 @@ void f() {
     await initialize();
 
     await expectLater(
-      formatDocument(Uri.file(join(projectFolderPath, 'missing.dart'))),
+      formatDocument(toUri(join(projectFolderPath, 'missing.dart'))),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'File does not exist')),
     );

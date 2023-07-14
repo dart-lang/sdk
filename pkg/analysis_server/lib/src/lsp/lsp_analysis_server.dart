@@ -51,6 +51,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
+import 'package:path/path.dart' as package_path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
@@ -71,8 +72,7 @@ class LspAnalysisServer extends AnalysisServer {
   /// initializationOptions but can be updated dynamically rather than set
   /// only when the server starts.
   @override
-  final LspClientConfiguration lspClientConfiguration =
-      LspClientConfiguration();
+  final LspClientConfiguration lspClientConfiguration;
 
   /// The channel from which messages are received and to which responses should
   /// be sent.
@@ -153,7 +153,9 @@ class LspAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
-  }) : super(
+  })  : lspClientConfiguration =
+            LspClientConfiguration(baseResourceProvider.pathContext),
+        super(
           options,
           sdkManager,
           diagnosticServer,
@@ -245,6 +247,8 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
+  package_path.Context get pathContext => resourceProvider.pathContext;
+
   @override
   set pluginManager(PluginManager value) {
     if (AnalysisServer.supportsPlugins) {
@@ -302,7 +306,7 @@ class LspAnalysisServer extends AnalysisServer {
             // Dart settings for each workspace folder.
             for (final folder in folders)
               ConfigurationItem(
-                scopeUri: Uri.file(folder).toString(),
+                scopeUri: pathContext.toUri(folder).toString(),
                 section: 'dart',
               ),
             // Global Dart settings. This comes last to simplify matching up the
@@ -376,7 +380,7 @@ class LspAnalysisServer extends AnalysisServer {
   OptionalVersionedTextDocumentIdentifier getVersionedDocumentIdentifier(
       String path) {
     return OptionalVersionedTextDocumentIdentifier(
-        uri: Uri.file(path), version: getDocumentVersion(path));
+        uri: pathContext.toUri(path), version: getDocumentVersion(path));
   }
 
   @override
@@ -633,8 +637,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishClosingLabels(String path, List<ClosingLabel> labels) {
-    final params =
-        PublishClosingLabelsParams(uri: Uri.file(path), labels: labels);
+    final params = PublishClosingLabelsParams(
+        uri: pathContext.toUri(path), labels: labels);
     final message = NotificationMessage(
       method: CustomMethods.publishClosingLabels,
       params: params,
@@ -644,8 +648,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishDiagnostics(String path, List<Diagnostic> errors) {
-    final params =
-        PublishDiagnosticsParams(uri: Uri.file(path), diagnostics: errors);
+    final params = PublishDiagnosticsParams(
+        uri: pathContext.toUri(path), diagnostics: errors);
     final message = NotificationMessage(
       method: Method.textDocument_publishDiagnostics,
       params: params,
@@ -655,8 +659,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishFlutterOutline(String path, FlutterOutline outline) {
-    final params =
-        PublishFlutterOutlineParams(uri: Uri.file(path), outline: outline);
+    final params = PublishFlutterOutlineParams(
+        uri: pathContext.toUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishFlutterOutline,
       params: params,
@@ -666,7 +670,8 @@ class LspAnalysisServer extends AnalysisServer {
   }
 
   void publishOutline(String path, Outline outline) {
-    final params = PublishOutlineParams(uri: Uri.file(path), outline: outline);
+    final params =
+        PublishOutlineParams(uri: pathContext.toUri(path), outline: outline);
     final message = NotificationMessage(
       method: CustomMethods.publishOutline,
       params: params,

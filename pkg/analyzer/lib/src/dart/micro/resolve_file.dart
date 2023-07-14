@@ -591,6 +591,7 @@ class FileResolver {
           elementFactory.libraryOfUri2(libraryKind.file.uri),
           analysisSession.inheritanceManager,
           libraryKind,
+          resourceProvider.pathContext,
         );
 
         final analysisResult = performance!.run('analyze', (performance) {
@@ -656,6 +657,7 @@ class FileResolver {
           libraryContext!.elementFactory.libraryOfUri2(libraryKind.file.uri),
           libraryContext!.elementFactory.analysisSession.inheritanceManager,
           libraryKind,
+          resourceProvider.pathContext,
         );
 
         results = performance!.run('analyze', (performance) {

@@ -88,9 +88,9 @@ class WillRenameFilesTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_renameFile_updatesImports() async {
     final otherFilePath = join(projectFolderPath, 'lib', 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
     final otherFileNewPath = join(projectFolderPath, 'lib', 'other_new.dart');
-    final otherFileNewUri = Uri.file(otherFileNewPath);
+    final otherFileNewUri = pathContext.toUri(otherFileNewPath);
 
     final mainContent = '''
 import 'other.dart';
@@ -126,7 +126,7 @@ final a = A();
     final oldFolderPath = join(projectFolderPath, 'lib', 'folder');
     final newFolderPath = join(projectFolderPath, 'lib', 'folder_new');
     final otherFilePath = join(oldFolderPath, 'other.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
 
     final mainContent = '''
 import 'folder/other.dart';
@@ -150,8 +150,8 @@ final a = A();
     await openFile(otherFileUri, otherContent);
     final edit = await onWillRename([
       FileRename(
-        oldUri: Uri.file(oldFolderPath).toString(),
-        newUri: Uri.file(newFolderPath).toString(),
+        oldUri: pathContext.toUri(oldFolderPath).toString(),
+        newUri: pathContext.toUri(newFolderPath).toString(),
       ),
     ]);
 
