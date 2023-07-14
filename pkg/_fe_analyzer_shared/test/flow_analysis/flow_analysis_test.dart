@@ -24,7 +24,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
@@ -32,7 +32,7 @@ main() {
 
     test('asExpression_end handles other expressions', () {
       h.run([
-        expr('Object').as_('int').stmt,
+        expr('Object').as_('int'),
       ]);
     });
 
@@ -43,7 +43,7 @@ main() {
       // a validation of the "mini AST" logic.
       h.run([
         checkReachable(true),
-        expr('int').as_('Never').stmt,
+        expr('int').as_('Never'),
         checkReachable(false),
       ]);
     });
@@ -65,11 +65,11 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
-        z.expr.as_('int').stmt,
+        x.expr.as_('int'),
+        z.expr.as_('int'),
         assert_(block([
-          x.write(expr('int?')).stmt,
-          z.write(expr('int?')).stmt,
+          x.write(expr('int?')),
+          z.write(expr('int?')),
         ]).thenExpr(x.expr.notEq(nullLiteral).and(y.expr.notEq(nullLiteral)))),
         // x should be promoted because it was promoted before the assert, and
         // it is re-promoted within the assert (if it passes)
@@ -87,11 +87,9 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr
-            .notEq(nullLiteral)
-            .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
-                checkNotPromoted(x).thenExpr(expr('int')))
-            .stmt,
+        x.expr.notEq(nullLiteral).conditional(
+            checkPromoted(x, 'int').thenExpr(expr('int')),
+            checkNotPromoted(x).thenExpr(expr('int'))),
         checkNotPromoted(x),
       ]);
     });
@@ -100,11 +98,9 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr
-            .eq(nullLiteral)
-            .conditional(checkNotPromoted(x).thenExpr(expr('Null')),
-                checkPromoted(x, 'int').thenExpr(expr('Null')))
-            .stmt,
+        x.expr.eq(nullLiteral).conditional(
+            checkNotPromoted(x).thenExpr(expr('Null')),
+            checkPromoted(x, 'int').thenExpr(expr('Null'))),
         checkNotPromoted(x),
       ]);
     });
@@ -118,17 +114,15 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
-        expr('bool')
-            .conditional(
-                block([
-                  x.expr.as_('int').stmt,
-                  y.expr.as_('int').stmt,
-                ]).thenExpr(expr('Null')),
-                block([
-                  x.expr.as_('int').stmt,
-                  z.expr.as_('int').stmt,
-                ]).thenExpr(expr('Null')))
-            .stmt,
+        expr('bool').conditional(
+            block([
+              x.expr.as_('int'),
+              y.expr.as_('int'),
+            ]).thenExpr(expr('Null')),
+            block([
+              x.expr.as_('int'),
+              z.expr.as_('int'),
+            ]).thenExpr(expr('Null'))),
         checkPromoted(x, 'int'),
         checkNotPromoted(y),
         checkNotPromoted(z),
@@ -403,7 +397,7 @@ main() {
           checkPromoted(x, 'int'),
         ]),
         localFunction([
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
         ]),
         if_(x.expr.notEq(nullLiteral), [
           checkNotPromoted(x),
@@ -436,13 +430,13 @@ main() {
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         do_([
           getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
           checkNotPromoted(x),
-          x.write(expr('Null')).stmt,
+          x.write(expr('Null')),
         ], expr('bool')),
       ]);
     });
@@ -452,12 +446,12 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         do_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           // The promotion should have no effect, because the second time
           // through the loop, x has been write-captured.
           checkNotPromoted(x),
           localFunction([
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
           ]),
         ], expr('bool')),
       ]);
@@ -598,7 +592,7 @@ main() {
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         for_(
@@ -609,7 +603,7 @@ main() {
             ]).thenExpr(expr('bool')),
             null,
             [
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
             ]),
       ]);
     });
@@ -618,15 +612,15 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         for_(
             null,
             block([
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
               checkNotPromoted(x),
               localFunction([
-                x.write(expr('int?')).stmt,
+                x.write(expr('int?')),
               ]),
             ]).thenExpr(expr('bool')),
             null,
@@ -639,14 +633,14 @@ main() {
       var y = Var('y');
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
+        y.expr.as_('int'),
         for_(
             null,
             declare(x, type: 'int?', initializer: expr('int?'))
                 .thenExpr(expr('bool')),
             null,
             [
-              x.write(expr('Null')).stmt,
+              x.write(expr('Null')),
             ]),
       ]);
     });
@@ -701,12 +695,12 @@ main() {
             ]).thenExpr(expr('Null')),
             [
               if_(expr('bool'), [
-                x.expr.as_('int').stmt,
-                y.expr.as_('int').stmt,
+                x.expr.as_('int'),
+                y.expr.as_('int'),
                 continue_(),
               ]),
-              x.expr.as_('int').stmt,
-              z.expr.as_('int').stmt,
+              x.expr.as_('int'),
+              z.expr.as_('int'),
             ]),
       ]);
     });
@@ -725,8 +719,8 @@ main() {
         declare(z, type: 'int?', initializer: expr('int?')),
         for_(null, x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), null, [
           if_(expr('bool'), [
-            x.expr.as_('int').stmt,
-            y.expr.as_('int').stmt,
+            x.expr.as_('int'),
+            y.expr.as_('int'),
             break_(),
           ]),
         ]),
@@ -745,7 +739,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           getSsaNodes((nodes) {
             xSsaInsideLoop = nodes[x]!;
@@ -773,7 +767,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         for_(null, expr('bool'), null, [
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.expr.is_('int'), []),
           getSsaNodes((nodes) {
@@ -796,13 +790,13 @@ main() {
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         forEachWithNonVariable(expr('List<int?>'), [
           checkNotPromoted(x),
           getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
         ]),
       ]);
     });
@@ -811,13 +805,13 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         forEachWithNonVariable(expr('List<int?>'), [
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkNotPromoted(x),
           localFunction([
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
           ]),
         ]),
       ]);
@@ -857,7 +851,7 @@ main() {
           // Since a write to x occurs somewhere in the loop, x should no
           // longer be considered unassigned.
           checkUnassigned(x, false),
-          break_(), x.write(expr('int')).stmt,
+          break_(), x.write(expr('int')),
         ]),
         // Even though the write to x is unreachable (since it occurs after a
         // break), x should still be considered "possibly assigned" because of
@@ -871,7 +865,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         forEachWithNonVariable(expr('List<int?>'), [
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
         ]),
         checkNotPromoted(x),
@@ -885,8 +879,8 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
-        y.expr.as_('int').stmt,
+        x.expr.as_('int'),
+        y.expr.as_('int'),
         checkPromoted(x, 'int'),
         checkPromoted(y, 'int'),
         getSsaNodes((nodes) {
@@ -900,7 +894,7 @@ main() {
             expect(nodes[x], isNull);
             expect(nodes[y], isNotNull);
           }),
-          x.write(expr('int?')).stmt, x.expr.as_('int').stmt,
+          x.write(expr('int?')), x.expr.as_('int'),
         ]),
         // x is unpromoted after the local function too
         checkNotPromoted(x), checkPromoted(y, 'int'),
@@ -918,7 +912,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt, y.expr.as_('int').stmt,
+        x.expr.as_('int'), y.expr.as_('int'),
         checkPromoted(x, 'int'), checkPromoted(y, 'int'),
         localFunction([
           // x is unpromoted within the local function, because the write
@@ -926,7 +920,7 @@ main() {
           checkNotPromoted(x), checkPromoted(y, 'int'),
           // And any effort to promote x fails, because there is no way of
           // knowing when the captured write might occur.
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkNotPromoted(x), checkPromoted(y, 'int'),
         ]),
         // x is still promoted after the local function, though, because the
@@ -935,7 +929,7 @@ main() {
         localFunction([
           // x is unpromoted inside this local function too.
           checkNotPromoted(x), checkPromoted(y, 'int'),
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
         ]),
         // And since the second local function captured x, it remains
         // unpromoted.
@@ -950,7 +944,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt, y.expr.as_('int').stmt,
+        x.expr.as_('int'), y.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeFunction = nodes[x]!),
         checkPromoted(y, 'int'),
@@ -961,7 +955,7 @@ main() {
           getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeFunction))),
           checkPromoted(y, 'int'),
           // But it can be re-promoted because the write isn't captured.
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'), checkPromoted(y, 'int'),
         ]),
         // x is still promoted after the local function, though, because the
@@ -969,7 +963,7 @@ main() {
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforeFunction))),
         checkPromoted(y, 'int'),
-        x.write(expr('int?')).stmt,
+        x.write(expr('int?')),
         // x is unpromoted now.
         checkNotPromoted(x), checkPromoted(y, 'int'),
       ]);
@@ -982,8 +976,8 @@ main() {
         // x is declared after the local function, so the local function
         // cannot possibly write to x.
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
-        checkPromoted(x, 'int'), x.write(expr('Null')).stmt,
+        x.expr.as_('int'),
+        checkPromoted(x, 'int'), x.write(expr('Null')),
       ]);
     });
 
@@ -994,17 +988,17 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
+        y.expr.as_('int'),
         getSsaNodes((nodes) => expect(nodes[x], isNotNull)),
         localFunction([
           getSsaNodes((nodes) => expect(nodes[x], isNot(nodes[y]))),
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           // Promotion should not occur, because x might be write-captured by
           // the time this code is reached.
           checkNotPromoted(x),
         ]),
         localFunction([
-          x.write(expr('Null')).stmt,
+          x.write(expr('Null')),
         ]),
       ]);
     });
@@ -1024,7 +1018,7 @@ main() {
         // But now that we are back outside the function expression, we once
         // again know that x is unassigned.
         checkUnassigned(x, true),
-        x.write(expr('int')).stmt,
+        x.write(expr('int')),
         checkUnassigned(x, false),
       ]);
     });
@@ -1121,14 +1115,13 @@ main() {
         x.expr
             .ifNull(block([
               checkReachable(true),
-              x.write(expr('int')).stmt,
+              x.write(expr('int')),
               checkPromoted(x, 'int'),
             ]).thenExpr(expr('int?')))
             .thenStmt(block([
               checkReachable(true),
               checkPromoted(x, 'int'),
-            ]))
-            .stmt,
+            ])),
       ]);
     });
 
@@ -1139,14 +1132,13 @@ main() {
         x.expr
             .ifNull(block([
               checkReachable(true),
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
               checkPromoted(x, 'int'),
             ]).thenExpr(expr('int?')))
             .thenStmt(block([
               checkReachable(true),
               checkPromoted(x, 'int'),
-            ]))
-            .stmt,
+            ])),
       ]);
     });
 
@@ -1157,14 +1149,13 @@ main() {
         expr('int?')
             .ifNull(block([
               checkReachable(true),
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
               checkPromoted(x, 'int'),
             ]).thenExpr(expr('int?')))
             .thenStmt(block([
               checkReachable(true),
               checkNotPromoted(x),
-            ]))
-            .stmt,
+            ])),
       ]);
     });
 
@@ -1172,8 +1163,7 @@ main() {
       h.run([
         expr('int')
             .ifNull(checkReachable(true).thenExpr(expr('int')))
-            .thenStmt(checkReachable(true))
-            .stmt,
+            .thenStmt(checkReachable(true)),
       ]);
     });
 
@@ -1182,8 +1172,7 @@ main() {
       h.run([
         expr('Null')
             .ifNull(checkReachable(true).thenExpr(expr('Null')))
-            .thenStmt(checkReachable(true))
-            .stmt,
+            .thenStmt(checkReachable(true)),
       ]);
     });
 
@@ -1193,8 +1182,7 @@ main() {
       h.run([
         expr('Null')
             .ifNull(checkReachable(true).thenExpr(throw_(expr('Object'))))
-            .thenStmt(checkReachable(false))
-            .stmt,
+            .thenStmt(checkReachable(false)),
       ]);
     });
 
@@ -1204,8 +1192,7 @@ main() {
       h.run([
         expr('Object')
             .ifNull(checkReachable(true).thenExpr(throw_(expr('Object'))))
-            .thenStmt(checkReachable(true))
-            .stmt,
+            .thenStmt(checkReachable(true)),
       ]);
     });
 
@@ -1247,15 +1234,15 @@ main() {
         declare(x, type: 'bool', initializer: expr('bool')),
         declare(y, type: 'bool', initializer: expr('bool')),
         declare(z, type: 'bool', initializer: expr('bool')),
-        x.write(w.expr.is_('int')).stmt,
+        x.write(w.expr.is_('int')),
         getSsaNodes((nodes) {
           xSsaNodeBeforeIf = nodes[x]!;
           expect(xSsaNodeBeforeIf.expressionInfo, isNotNull);
         }),
         if_(expr('bool'), [
-          y.write(w.expr.is_('String')).stmt,
+          y.write(w.expr.is_('String')),
         ], [
-          z.write(w.expr.is_('bool')).stmt,
+          z.write(w.expr.is_('bool')),
         ]),
         getSsaNodes((nodes) {
           expect(nodes[x], same(xSsaNodeBeforeIf));
@@ -1276,7 +1263,7 @@ main() {
           xSsaNodeBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [
-          x.write(expr('Object')).stmt,
+          x.write(expr('Object')),
           return_(),
         ]),
         getSsaNodes((nodes) {
@@ -1296,7 +1283,7 @@ main() {
           xSsaNodeBeforeIf = nodes[x]!;
         }),
         if_(expr('bool'), [], [
-          x.write(expr('Object')).stmt,
+          x.write(expr('Object')),
           return_(),
         ]),
         getSsaNodes((nodes) {
@@ -1474,7 +1461,7 @@ main() {
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([
-          y.write(expr('int?')).stmt,
+          y.write(expr('int?')),
         ]),
         declare(x,
             type: 'Object',
@@ -1563,7 +1550,7 @@ main() {
           checkPromoted(x, 'int'),
         ]),
         localFunction([
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
         ]),
         if_(x.expr.is_('int'), [
           checkNotPromoted(x),
@@ -1677,8 +1664,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .notEq(nullLiteral)
-            .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
-            .stmt,
+            .and(checkPromoted(x, 'int').thenExpr(expr('bool'))),
       ]);
     });
 
@@ -1709,8 +1695,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         x.expr
             .eq(nullLiteral)
-            .or(checkPromoted(x, 'int').thenExpr(expr('bool')))
-            .stmt,
+            .or(checkPromoted(x, 'int').thenExpr(expr('bool'))),
       ]);
     });
 
@@ -1774,7 +1759,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
-        x.expr.nonNullAssert.stmt,
+        x.expr.nonNullAssert,
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
@@ -1786,7 +1771,7 @@ main() {
       // implemented in the flow analysis client, but we test it here anyway as
       // a validation of the "mini AST" logic.
       h.run([
-        expr('Null').nonNullAssert.thenStmt(checkReachable(false)).stmt,
+        expr('Null').nonNullAssert.thenStmt(checkReachable(false)),
       ]);
     });
 
@@ -1796,14 +1781,11 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforePromotion = nodes[x]!),
-        x.expr
-            .nullAwareAccess(block([
-              checkReachable(true),
-              checkPromoted(x, 'int'),
-              getSsaNodes(
-                  (nodes) => expect(nodes[x], same(ssaBeforePromotion))),
-            ]).thenExpr(expr('Null')))
-            .stmt,
+        x.expr.nullAwareAccess(block([
+          checkReachable(true),
+          checkPromoted(x, 'int'),
+          getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
+        ]).thenExpr(expr('Null'))),
         checkNotPromoted(x),
         getSsaNodes((nodes) => expect(nodes[x], same(ssaBeforePromotion))),
       ]);
@@ -1813,14 +1795,12 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr
-            .nullAwareAccess(
-                block([
-                  checkReachable(true),
-                  checkNotPromoted(x),
-                ]).thenExpr(expr('Null')),
-                isCascaded: true)
-            .stmt,
+        x.expr.nullAwareAccess(
+            block([
+              checkReachable(true),
+              checkNotPromoted(x),
+            ]).thenExpr(expr('Null')),
+            isCascaded: true),
       ]);
     });
 
@@ -1828,13 +1808,11 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
-        expr('int')
-            .nullAwareAccess(block([
-              checkReachable(true),
-              checkPromoted(x, 'int'),
-            ]).thenExpr(x.write(expr('int?'))).thenStmt(checkNotPromoted(x)))
-            .stmt,
+        x.expr.as_('int'),
+        expr('int').nullAwareAccess(block([
+          checkReachable(true),
+          checkPromoted(x, 'int'),
+        ]).thenExpr(x.write(expr('int?'))).thenStmt(checkNotPromoted(x))),
         checkNotPromoted(x),
       ]);
     });
@@ -1845,8 +1823,7 @@ main() {
             .nullAwareAccess(block([
               checkReachable(false),
             ]).thenExpr(expr('Object?')))
-            .thenStmt(checkReachable(true))
-            .stmt,
+            .thenStmt(checkReachable(true)),
       ]);
     });
 
@@ -1854,13 +1831,11 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        expr('int')
-            .nullAwareAccess(block([
-              checkReachable(true),
-              x.expr.as_('int').stmt,
-              checkPromoted(x, 'int'),
-            ]).thenExpr(expr('Null')))
-            .stmt,
+        expr('int').nullAwareAccess(block([
+          checkReachable(true),
+          x.expr.as_('int'),
+          checkPromoted(x, 'int'),
+        ]).thenExpr(expr('Null'))),
         // Since the null-shorting path was reachable, promotion of `x` should
         // be cancelled.
         checkNotPromoted(x),
@@ -1892,12 +1867,12 @@ main() {
           expr('num'),
           w.pattern(type: 'int'),
           [
-            x.write(expr('int')).stmt,
-            y.write(expr('int')).stmt,
+            x.write(expr('int')),
+            y.write(expr('int')),
           ],
           [
-            y.write(expr('int')).stmt,
-            z.write(expr('int')).stmt,
+            y.write(expr('int')),
+            z.write(expr('int')),
           ],
         ),
         checkAssigned(x, false),
@@ -1925,12 +1900,12 @@ main() {
       h.run([
         declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
-        x.expr.as_('num').stmt,
+        x.expr.as_('num'),
         checkPromoted(x, 'num'),
         // Check that it's a type of interest by promoting and de-promoting.
         if_(x.expr.is_('int'), [
           checkPromoted(x, 'int'),
-          x.write(expr('num')).stmt,
+          x.write(expr('num')),
           checkPromoted(x, 'num'),
         ]),
       ]);
@@ -1941,7 +1916,7 @@ main() {
       h.run([
         declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
-        x.expr.as_('String').stmt,
+        x.expr.as_('String'),
         checkNotPromoted(x),
       ]);
     });
@@ -1952,9 +1927,9 @@ main() {
         declare(x, type: 'num?', initializer: expr('num?')),
         checkNotPromoted(x),
         localFunction([
-          x.write(expr('num')).stmt,
+          x.write(expr('num')),
         ]),
-        x.expr.as_('num').stmt,
+        x.expr.as_('num'),
         checkNotPromoted(x),
       ]);
     });
@@ -1976,7 +1951,7 @@ main() {
               .pattern
               .thenExpr(checkReachable(false).thenExpr(intLiteral(1))),
           default_.thenExpr(checkReachable(false).thenExpr(intLiteral(2))),
-        ]).stmt,
+        ]),
         checkReachable(false),
       ]);
     });
@@ -1986,7 +1961,7 @@ main() {
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
           default_.thenExpr(checkReachable(true).thenExpr(intLiteral(2))),
-        ]).stmt,
+        ]),
         checkReachable(true),
       ]);
     });
@@ -1996,7 +1971,7 @@ main() {
         switchExpr(expr('int'), [
           intLiteral(0).pattern.thenExpr(throw_(expr('C'))),
           default_.thenExpr(throw_(expr('C'))),
-        ]).stmt,
+        ]),
         checkReachable(false),
       ]);
     });
@@ -2008,7 +1983,7 @@ main() {
           x
               .pattern(type: 'int?')
               .thenExpr(checkPromoted(x, 'int').thenExpr(nullLiteral)),
-        ]).stmt,
+        ]),
       ]);
     });
 
@@ -2056,7 +2031,7 @@ main() {
               .pattern()
               .when(x.expr.is_('int'))
               .thenExpr(checkPromoted(x, 'int').thenExpr(expr('String'))),
-        ]).stmt,
+        ]),
       ]);
     });
 
@@ -2064,16 +2039,16 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         switch_(expr('int'), [
           intLiteral(0).pattern.then([
             checkPromoted(x, 'int'),
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
             checkNotPromoted(x),
           ]),
           intLiteral(1).pattern.then([
             checkPromoted(x, 'int'),
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
             checkNotPromoted(x),
           ]),
         ]),
@@ -2084,11 +2059,11 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         switch_(expr('int'), [
           intLiteral(0).pattern.then([
             checkPromoted(x, 'int'),
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
             checkNotPromoted(x),
           ])
         ]),
@@ -2100,14 +2075,14 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         switch_(
           expr('int'),
           [
             intLiteral(0).pattern.then([
               checkPromoted(x, 'int'),
               localFunction([
-                x.write(expr('int?')).stmt,
+                x.write(expr('int?')),
               ]),
               checkNotPromoted(x),
             ]),
@@ -2121,7 +2096,7 @@ main() {
       late SsaNode<Type> ssaBeforeSwitch;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         switch_(
           expr('int').thenStmt(block([
             checkPromoted(x, 'int'),
@@ -2133,7 +2108,7 @@ main() {
             ], [
               checkNotPromoted(x),
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
               checkNotPromoted(x),
             ], hasLabels: true),
           ],
@@ -2145,17 +2120,17 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         switch_(
           expr('int'),
           [
             switchStatementMember([
               intLiteral(0).pattern.switchCase,
             ], [
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
               checkNotPromoted(x),
               localFunction([
-                x.write(expr('int?')).stmt,
+                x.write(expr('int?')),
               ]),
               checkNotPromoted(x),
             ], hasLabels: true),
@@ -2172,12 +2147,12 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
-        z.expr.as_('int').stmt,
+        y.expr.as_('int'),
+        z.expr.as_('int'),
         switch_(expr('int'), [
           intLiteral(0).pattern.then([
-            x.expr.as_('int').stmt,
-            y.write(expr('int?')).stmt,
+            x.expr.as_('int'),
+            y.write(expr('int?')),
             break_(),
           ]),
         ]),
@@ -2197,20 +2172,20 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
-        y.expr.as_('int').stmt,
-        z.expr.as_('int').stmt,
+        x.expr.as_('int'),
+        y.expr.as_('int'),
+        z.expr.as_('int'),
         switch_(expr('int'), [
           intLiteral(0).pattern.then([
-            w.expr.as_('int').stmt,
-            y.expr.as_('int').stmt,
-            x.write(expr('int?')).stmt,
+            w.expr.as_('int'),
+            y.expr.as_('int'),
+            x.write(expr('int?')),
             break_(),
           ]),
           default_.then([
-            w.expr.as_('int').stmt,
-            x.expr.as_('int').stmt,
-            y.write(expr('int?')).stmt,
+            w.expr.as_('int'),
+            x.expr.as_('int'),
+            y.write(expr('int?')),
             break_(),
           ]),
         ]),
@@ -2227,7 +2202,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         switch_(expr('int'), [
           intLiteral(0).pattern.then([
-            x.expr.as_('int').stmt,
+            x.expr.as_('int'),
             break_(),
           ]),
           default_.then([]),
@@ -2273,9 +2248,9 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
+        y.expr.as_('int'),
         try_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
         ]).catch_(body: [
@@ -2291,11 +2266,11 @@ main() {
       late SsaNode<Type> ssaAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         try_([
-          x.write(expr('int?')).stmt,
-          x.expr.as_('int').stmt,
+          x.write(expr('int?')),
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ]).catch_(body: [
@@ -2313,15 +2288,15 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         try_([
           localFunction([
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
           ]),
           return_(),
         ]).catch_(body: [
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkNotPromoted(x),
         ]),
       ]);
@@ -2333,7 +2308,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         try_([]).catch_(body: [
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
         ]).catch_(body: [
           checkNotPromoted(x),
@@ -2362,11 +2337,11 @@ main() {
         declare(y, type: 'int?', initializer: expr('int?')),
         declare(z, type: 'int?', initializer: expr('int?')),
         try_([
-          x.expr.as_('int').stmt,
-          y.expr.as_('int').stmt,
+          x.expr.as_('int'),
+          y.expr.as_('int'),
         ]).catch_(body: [
-          x.expr.as_('int').stmt,
-          z.expr.as_('int').stmt,
+          x.expr.as_('int'),
+          z.expr.as_('int'),
         ]),
         // Only x should be promoted, because it's the only variable
         // promoted in both the try body and the catch handler.
@@ -2385,11 +2360,11 @@ main() {
         try_([
           return_(),
         ]).catch_(body: [
-          x.expr.as_('int').stmt,
-          y.expr.as_('int').stmt,
+          x.expr.as_('int'),
+          y.expr.as_('int'),
         ]).catch_(body: [
-          x.expr.as_('int').stmt,
-          z.expr.as_('int').stmt,
+          x.expr.as_('int'),
+          z.expr.as_('int'),
         ]),
         // Only x should be promoted, because it's the only variable promoted
         // in both catch handlers.
@@ -2403,9 +2378,9 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
+        y.expr.as_('int'),
         try_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           checkPromoted(y, 'int'),
         ]).finally_([
@@ -2423,12 +2398,12 @@ main() {
       late SsaNode<Type> ssaAfterTry;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         try_([
           getSsaNodes((nodes) => ssaAtStartOfTry = nodes[x]!),
-          x.write(expr('int?')).stmt,
-          x.expr.as_('int').stmt,
+          x.write(expr('int?')),
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           getSsaNodes((nodes) => ssaAfterTry = nodes[x]!),
         ]).finally_([
@@ -2455,11 +2430,11 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         try_([
           localFunction([
-            x.write(expr('int?')).stmt,
+            x.write(expr('int?')),
           ]),
           return_(),
         ]).finally_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkNotPromoted(x),
         ]),
       ]);
@@ -2472,11 +2447,11 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         try_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
         ]).finally_([
           checkNotPromoted(x),
-          y.expr.as_('int').stmt,
+          y.expr.as_('int'),
           checkPromoted(y, 'int'),
         ]),
         // Both x and y should now be promoted.
@@ -2495,13 +2470,13 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         try_([
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
         ]).finally_([
           checkNotPromoted(x),
-          x.write(expr('int?')).stmt,
-          y.write(expr('int?')).stmt,
-          y.expr.as_('int').stmt,
+          x.write(expr('int?')),
+          y.write(expr('int?')),
+          y.expr.as_('int'),
           checkPromoted(y, 'int'),
           getSsaNodes((nodes) {
             xSsaAtEndOfFinally = nodes[x]!;
@@ -2536,18 +2511,18 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           declare(y, type: 'int?', initializer: expr('int?')),
           try_([
-            x.write(expr('int?')).stmt,
-            y.write(expr('int?')).stmt,
+            x.write(expr('int?')),
+            y.write(expr('int?')),
             getSsaNodes((nodes) {
               xSsaAtEndOfTry = nodes[x]!;
               ySsaAtEndOfTry = nodes[y]!;
             }),
           ]).finally_([
             if_(expr('bool'), [
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
             ]),
             if_(expr('bool'), [
-              y.write(expr('int?')).stmt,
+              y.write(expr('int?')),
               return_(),
             ]),
             getSsaNodes((nodes) {
@@ -2628,7 +2603,7 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           try_([
             localFunction([
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
             ]),
           ]).finally_([]),
           if_(x.expr.notEq(nullLiteral), [
@@ -2645,7 +2620,7 @@ main() {
           declare(x, type: 'int?', initializer: expr('int?')),
           try_([]).finally_([
             localFunction([
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
             ]),
           ]),
           if_(x.expr.notEq(nullLiteral), [
@@ -2667,7 +2642,7 @@ main() {
             checkPromoted(x, 'int'),
           ]).finally_([
             localFunction([
-              x.write(expr('int?')).stmt,
+              x.write(expr('int?')),
             ]),
           ]),
           // The capture in the `finally` cancels old promotions and prevents
@@ -2697,7 +2672,7 @@ main() {
           ]),
           // The promotion chain now contains both `num` and `int`.
           checkPromoted(x, 'int'),
-          x.write(expr('num')).stmt,
+          x.write(expr('num')),
           checkPromoted(x, 'num'),
         ]);
       });
@@ -2714,7 +2689,7 @@ main() {
             ]),
             checkPromoted(x, 'String'),
           ]).finally_([
-            x.write(expr('Object')).stmt,
+            x.write(expr('Object')),
             if_(x.expr.is_('int', isInverted: true), [
               return_(),
             ]),
@@ -2738,10 +2713,10 @@ main() {
           ]),
           checkNotPromoted(x),
           if_(expr('bool'), [
-            x.write(expr('String')).stmt,
+            x.write(expr('String')),
             checkPromoted(x, 'String'),
           ], [
-            x.write(expr('int')).stmt,
+            x.write(expr('int')),
             checkPromoted(x, 'int'),
           ]),
         ]);
@@ -2756,12 +2731,12 @@ main() {
           checkAssigned(x, false),
           try_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkAssigned(x, false),
           ]).finally_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkAssigned(x, false),
           ]),
@@ -2777,11 +2752,11 @@ main() {
           declare(x, type: 'Object'),
           checkAssigned(x, false),
           try_([
-            x.write(expr('Object')).stmt,
+            x.write(expr('Object')),
             checkAssigned(x, true),
           ]).finally_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkAssigned(x, false),
           ]),
@@ -2798,11 +2773,11 @@ main() {
           checkAssigned(x, false),
           try_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkAssigned(x, false),
           ]).finally_([
-            x.write(expr('Object')).stmt,
+            x.write(expr('Object')),
             checkAssigned(x, true),
           ]),
           checkAssigned(x, true),
@@ -2836,7 +2811,7 @@ main() {
             checkUnassigned(x, true),
           ]).finally_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkUnassigned(x, false),
           ]),
@@ -2853,7 +2828,7 @@ main() {
           checkUnassigned(x, true),
           try_([
             if_(expr('bool'), [
-              x.write(expr('Object')).stmt,
+              x.write(expr('Object')),
             ]),
             checkUnassigned(x, false),
           ]).finally_([
@@ -2874,16 +2849,15 @@ main() {
         declare(z, type: 'bool', initializer: expr('bool')),
         // Create a variable that promotes x if its value is true, and y if its
         // value is false.
-        z
-            .write(x.expr.notEq(nullLiteral).conditional(
-                booleanLiteral(true),
-                y.expr.notEq(nullLiteral).conditional(
-                    booleanLiteral(false), throw_(expr('Object')))))
-            .stmt,
+        z.write(x.expr.notEq(nullLiteral).conditional(
+            booleanLiteral(true),
+            y.expr
+                .notEq(nullLiteral)
+                .conditional(booleanLiteral(false), throw_(expr('Object'))))),
         checkNotPromoted(x),
         checkNotPromoted(y),
         // Simply reading the variable shouldn't promote anything.
-        z.expr.stmt,
+        z.expr,
         checkNotPromoted(x),
         checkNotPromoted(y),
         // But reading it in an "if" condition should promote.
@@ -2914,7 +2888,7 @@ main() {
         checkNotPromoted(x),
         checkNotPromoted(y),
         // Simply reading the variable shouldn't promote anything.
-        z.expr.stmt,
+        z.expr,
         checkNotPromoted(x),
         checkNotPromoted(y),
         // But reading it in an "if" condition should promote.
@@ -2940,16 +2914,15 @@ main() {
         declare(z, type: 'bool', initializer: expr('bool')),
         // Create a variable that promotes x if its value is true, and y if its
         // value is false.
-        z
-            .write(x.expr.notEq(nullLiteral).conditional(
-                booleanLiteral(true),
-                y.expr.notEq(nullLiteral).conditional(
-                    booleanLiteral(false), throw_(expr('Object')))))
-            .stmt,
+        z.write(x.expr.notEq(nullLiteral).conditional(
+            booleanLiteral(true),
+            y.expr
+                .notEq(nullLiteral)
+                .conditional(booleanLiteral(false), throw_(expr('Object'))))),
         checkNotPromoted(w),
         checkNotPromoted(x),
         checkNotPromoted(y),
-        w.expr.nonNullAssert.stmt,
+        w.expr.nonNullAssert,
         checkPromoted(w, 'int'),
         // Reading the value of z in an "if" condition should promote x or y,
         // and keep the promotion of w.
@@ -2976,7 +2949,7 @@ main() {
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.write(nullLiteral).stmt,
+        y.write(nullLiteral),
         checkNotPromoted(x),
         checkNotPromoted(y),
         if_(x.expr.eq(y.expr), [
@@ -2996,7 +2969,7 @@ main() {
       late SsaNode<Type> ssaBeforeLoop;
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeLoop = nodes[x]!),
         while_(
@@ -3005,7 +2978,7 @@ main() {
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeLoop))),
             ]).thenExpr(expr('bool')),
             [
-              x.write(expr('Null')).stmt,
+              x.write(expr('Null')),
             ]),
       ]);
     });
@@ -3015,14 +2988,14 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         while_(
             block([
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
               checkNotPromoted(x),
               localFunction([
-                x.write(expr('int?')).stmt,
+                x.write(expr('int?')),
               ]),
             ]).thenExpr(expr('bool')),
             []),
@@ -3034,12 +3007,12 @@ main() {
       var y = Var('y');
       h.run([
         declare(y, type: 'int?', initializer: expr('int?')),
-        y.expr.as_('int').stmt,
+        y.expr.as_('int'),
         while_(
             declare(x, type: 'int?', initializer: expr('int?'))
                 .thenExpr(expr('bool')),
             [
-              x.write(expr('Null')).stmt,
+              x.write(expr('Null')),
             ]),
       ]);
     });
@@ -3068,8 +3041,8 @@ main() {
         declare(z, type: 'int?', initializer: expr('int?')),
         while_(x.expr.eq(nullLiteral).or(z.expr.eq(nullLiteral)), [
           if_(expr('bool'), [
-            x.expr.as_('int').stmt,
-            y.expr.as_('int').stmt,
+            x.expr.as_('int'),
+            y.expr.as_('int'),
             break_(),
           ]),
         ]),
@@ -3088,7 +3061,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           getSsaNodes((nodes) {
             xSsaInsideLoop = nodes[x]!;
@@ -3116,7 +3089,7 @@ main() {
         declare(x, type: 'int?', initializer: expr('int?')),
         declare(y, type: 'int?', initializer: expr('int?')),
         while_(expr('bool'), [
-          x.write(expr('int?')).stmt,
+          x.write(expr('int?')),
           if_(expr('bool'), [break_()]),
           if_(x.expr.is_('int'), []),
           getSsaNodes((nodes) {
@@ -3142,15 +3115,13 @@ main() {
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
-        x
-            .write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
-              expect(info, isNotNull);
-              writtenValueInfo = info!;
-            }))
-            .stmt,
+        x.write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
+          expect(info, isNotNull);
+          writtenValueInfo = info!;
+        })),
         checkNotPromoted(x),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
@@ -3168,12 +3139,10 @@ main() {
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
-        x
-            .write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
-              expect(info, isNotNull);
-              writtenValueInfo = info!;
-            }))
-            .stmt,
+        x.write(y.expr.eq(nullLiteral).getExpressionInfo((info) {
+          expect(info, isNotNull);
+          writtenValueInfo = info!;
+        })),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
           expect(nodes[x]!.expressionInfo, same(writtenValueInfo));
@@ -3205,7 +3174,7 @@ main() {
           xSsaBeforeWrite = nodes[x]!;
           ySsa = nodes[y]!;
         }),
-        x.write(y.expr).stmt,
+        x.write(y.expr),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(xSsaBeforeWrite));
           expect(nodes[x], isNot(ySsa));
@@ -3221,16 +3190,14 @@ main() {
         declare(x, type: 'Object', initializer: expr('Object')),
         declare(y, type: 'int?', initializer: expr('int?')),
         localFunction([
-          y.write(expr('int?')).stmt,
+          y.write(expr('int?')),
         ]),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
         // `y == null` is a trivial expression because y has been write
         // captured.
-        x
-            .write(y.expr
-                .eq(nullLiteral)
-                .getExpressionInfo((info) => expect(info, isNotNull)))
-            .stmt,
+        x.write(y.expr
+            .eq(nullLiteral)
+            .getExpressionInfo((info) => expect(info, isNotNull))),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
           expect(nodes[x]!.expressionInfo, isNull);
@@ -3244,7 +3211,7 @@ main() {
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         getSsaNodes((nodes) => ssaBeforeWrite = nodes[x]!),
-        x.write(null).stmt,
+        x.write(null),
         getSsaNodes((nodes) {
           expect(nodes[x], isNot(ssaBeforeWrite));
           expect(nodes[x]!.expressionInfo, isNull);
@@ -3257,7 +3224,7 @@ main() {
       h.run([
         declare(x, type: 'int'),
         while_(booleanLiteral(true), [
-          x.write(expr('Null')).stmt,
+          x.write(expr('Null')),
         ]),
         checkAssigned(x, false),
       ]);
@@ -3267,7 +3234,7 @@ main() {
       var x = Var('x');
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkPromoted(x, 'int'),
         if_(booleanLiteral(false), [
           checkPromoted(x, 'int'),
@@ -3280,10 +3247,10 @@ main() {
       h.run([
         declare(x, type: 'Object', initializer: expr('Object')),
         localFunction([
-          x.write(expr('Object')).stmt,
+          x.write(expr('Object')),
         ]),
         getSsaNodes((nodes) => expect(nodes[x], isNull)),
-        x.expr.as_('int').stmt,
+        x.expr.as_('int'),
         checkNotPromoted(x),
         getSsaNodes((nodes) => expect(nodes[x], isNull)),
       ]);
@@ -3295,17 +3262,17 @@ main() {
         declare(x, type: 'Object', initializer: expr('Object')),
         if_(expr('bool'), [
           localFunction([
-            x.write(expr('Object')).stmt,
+            x.write(expr('Object')),
           ]),
         ], [
           // Promotion should work here because the write capture is in the
           // other branch.
-          x.expr.as_('int').stmt, checkPromoted(x, 'int'),
+          x.expr.as_('int'), checkPromoted(x, 'int'),
         ]),
         // But the promotion should be cancelled now, after the join.
         checkNotPromoted(x),
         // And further attempts to promote should fail due to the write capture.
-        x.expr.as_('int').stmt, checkNotPromoted(x),
+        x.expr.as_('int'), checkNotPromoted(x),
       ]);
     });
 
@@ -3318,10 +3285,10 @@ main() {
           declare(i, isFinal: true, type: 'int'),
           if_(b.expr, [
             checkUnassigned(i, true),
-            i.write(expr('int')).stmt,
+            i.write(expr('int')),
           ], [
             checkUnassigned(i, true),
-            i.write(expr('int')).stmt,
+            i.write(expr('int')),
           ]),
         ]),
       ]);
@@ -4962,7 +4929,7 @@ main() {
             declare(x, type: 'Object'),
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
-              x.write(expr('int')).stmt,
+              x.write(expr('int')),
             ]),
           ]);
         });
@@ -4992,7 +4959,7 @@ main() {
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
             ], [
-              x.write(expr('int')).stmt,
+              x.write(expr('int')),
             ]),
           ]);
         });
@@ -5006,7 +4973,7 @@ main() {
               checkNotPromoted(x),
             ]),
             localFunction([
-              x.write(expr('int')).stmt,
+              x.write(expr('int')),
             ]),
           ]);
         });
@@ -5021,10 +4988,10 @@ main() {
             if_(x.expr.is_('int'), [
               checkNotPromoted(x),
               localFunction([
-                x.expr.stmt,
+                x.expr,
               ]),
             ]),
-            x.write(expr('int')).stmt,
+            x.write(expr('int')),
           ]);
         });
 
@@ -5039,11 +5006,11 @@ main() {
               checkNotPromoted(x),
               localFunction([
                 localFunction([
-                  x.expr.stmt,
+                  x.expr,
                 ]),
               ]),
             ]),
-            x.write(expr('int')).stmt,
+            x.write(expr('int')),
           ]);
         });
 
@@ -5056,12 +5023,12 @@ main() {
             declare(x, type: 'Object'),
             if_(
                 localFunction([
-                  x.expr.stmt,
+                  x.expr,
                 ]).thenExpr(expr('bool')).and(x.expr.is_('int')),
                 [
                   checkPromoted(x, 'int'),
                 ]),
-            x.write(expr('int')).stmt,
+            x.write(expr('int')),
           ]);
         });
 
@@ -5076,10 +5043,10 @@ main() {
               checkPromoted(x, 'int'),
             ], [
               localFunction([
-                x.expr.stmt,
+                x.expr,
               ]),
             ]),
-            x.write(expr('int')).stmt,
+            x.write(expr('int')),
           ]);
         });
 
@@ -5093,7 +5060,7 @@ main() {
             if_(x.expr.is_('int'), [
               checkPromoted(x, 'int'),
               localFunction([
-                x.expr.stmt,
+                x.expr,
               ]),
             ]),
           ]);
@@ -5138,11 +5105,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
+            x.expr.is_('int').conditional(
+                checkPromoted(x, 'int').thenExpr(expr('Object')),
+                expr('Object')),
           ]);
         });
 
@@ -5151,11 +5116,8 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(expr('Object'),
-                    checkNotPromoted(x).thenExpr(expr('Object')))
-                .stmt,
+            x.expr.is_('int').conditional(
+                expr('Object'), checkNotPromoted(x).thenExpr(expr('Object'))),
           ]);
         });
 
@@ -5164,15 +5126,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(
-                    block([
-                      checkNotPromoted(x),
-                      x.write(expr('int')).stmt,
-                    ]).thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
+            x.expr.is_('int').conditional(
+                block([
+                  checkNotPromoted(x),
+                  x.write(expr('int')),
+                ]).thenExpr(expr('Object')),
+                expr('Object')),
           ]);
         });
 
@@ -5187,8 +5146,7 @@ main() {
                 .eq(expr('int'))
                 .and(x.expr.is_('int'))
                 .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
+                    expr('Object')),
           ]);
         });
 
@@ -5197,11 +5155,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(checkPromoted(x, 'int').thenExpr(expr('int')),
-                    x.write(expr('int')))
-                .stmt,
+            x.expr.is_('int').conditional(
+                checkPromoted(x, 'int').thenExpr(expr('int')),
+                x.write(expr('int'))),
           ]);
         });
 
@@ -5210,13 +5166,10 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(checkNotPromoted(x).thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
+            x.expr.is_('int').conditional(
+                checkNotPromoted(x).thenExpr(expr('Object')), expr('Object')),
             localFunction([
-              x.write(expr('int')).stmt,
+              x.write(expr('int')),
             ]),
           ]);
         });
@@ -5228,18 +5181,15 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(
-                    block([
-                      checkNotPromoted(x),
-                      localFunction([
-                        x.expr.stmt,
-                      ]),
-                    ]).thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
-            x.write(expr('int')).stmt,
+            x.expr.is_('int').conditional(
+                block([
+                  checkNotPromoted(x),
+                  localFunction([
+                    x.expr,
+                  ]),
+                ]).thenExpr(expr('Object')),
+                expr('Object')),
+            x.write(expr('int')),
           ]);
         });
 
@@ -5251,14 +5201,11 @@ main() {
           h.run([
             declare(x, type: 'Object'),
             localFunction([
-              x.expr.stmt,
-            ])
-                .thenExpr(expr('Object'))
-                .and(x.expr.is_('int'))
-                .conditional(checkPromoted(x, 'int').thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
-            x.write(expr('int')).stmt,
+              x.expr,
+            ]).thenExpr(expr('Object')).and(x.expr.is_('int')).conditional(
+                checkPromoted(x, 'int').thenExpr(expr('Object')),
+                expr('Object')),
+            x.write(expr('int')),
           ]);
         });
 
@@ -5269,15 +5216,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(
-                    checkPromoted(x, 'int').thenExpr(expr('Object')),
-                    localFunction([
-                      x.expr.stmt,
-                    ]).thenExpr(expr('Object')))
-                .stmt,
-            x.write(expr('int')).stmt,
+            x.expr.is_('int').conditional(
+                checkPromoted(x, 'int').thenExpr(expr('Object')),
+                localFunction([
+                  x.expr,
+                ]).thenExpr(expr('Object'))),
+            x.write(expr('int')),
           ]);
         });
 
@@ -5288,17 +5232,14 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'Object'),
-            x.expr
-                .is_('int')
-                .conditional(
-                    block([
-                      checkPromoted(x, 'int'),
-                      localFunction([
-                        x.expr.stmt,
-                      ]),
-                    ]).thenExpr(expr('Object')),
-                    expr('Object'))
-                .stmt,
+            x.expr.is_('int').conditional(
+                block([
+                  checkPromoted(x, 'int'),
+                  localFunction([
+                    x.expr,
+                  ]),
+                ]).thenExpr(expr('Object')),
+                expr('Object')),
           ]);
         });
       });
@@ -5306,7 +5247,7 @@ main() {
       test('handles arbitrary conditions', () {
         h.legacy = true;
         h.run([
-          expr('bool').conditional(expr('Object'), expr('Object')).stmt,
+          expr('bool').conditional(expr('Object'), expr('Object')),
         ]);
       });
 
@@ -5315,7 +5256,7 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'bool'),
-          x.expr.conditional(expr('Object'), expr('Object')).stmt,
+          x.expr.conditional(expr('Object'), expr('Object')),
         ]);
       });
 
@@ -5326,16 +5267,12 @@ main() {
         h.run([
           declare(x, type: 'Object'),
           declare(y, type: 'Object'),
-          x.expr
-              .is_('int')
-              .and(y.expr.is_('String'))
-              .conditional(
-                  block([
-                    checkPromoted(x, 'int'),
-                    checkPromoted(y, 'String'),
-                  ]).thenExpr(expr('Object')),
-                  expr('Object'))
-              .stmt
+          x.expr.is_('int').and(y.expr.is_('String')).conditional(
+              block([
+                checkPromoted(x, 'int'),
+                checkPromoted(y, 'String'),
+              ]).thenExpr(expr('Object')),
+              expr('Object'))
         ]);
       });
     });
@@ -5402,7 +5339,7 @@ main() {
                 checkNotPromoted(x),
               ]),
               localFunction([
-                x.write(expr('int')).stmt,
+                x.write(expr('int')),
               ]),
             ]);
           });
@@ -5416,8 +5353,7 @@ main() {
               declare(x, type: 'Object'),
               x.expr
                   .is_('int')
-                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
-                  .stmt,
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool'))),
             ]);
           });
 
@@ -5432,8 +5368,7 @@ main() {
                   .eq(expr('int'))
                   .and(x.expr.is_('int'))
                   .parenthesized
-                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
-                  .stmt,
+                  .and(checkNotPromoted(x).thenExpr(expr('bool'))),
             ]);
           });
 
@@ -5444,8 +5379,7 @@ main() {
               declare(x, type: 'Object'),
               x.expr
                   .is_('int')
-                  .and(checkNotPromoted(x).thenExpr(x.write(expr('bool'))))
-                  .stmt,
+                  .and(checkNotPromoted(x).thenExpr(x.write(expr('bool')))),
             ]);
           });
 
@@ -5454,12 +5388,9 @@ main() {
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
-              x.expr
-                  .is_('int')
-                  .and(checkNotPromoted(x).thenExpr(expr('bool')))
-                  .stmt,
+              x.expr.is_('int').and(checkNotPromoted(x).thenExpr(expr('bool'))),
               localFunction([
-                x.write(expr('int')).stmt,
+                x.write(expr('int')),
               ]),
             ]);
           });
@@ -5471,16 +5402,13 @@ main() {
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
-              x.expr
-                  .is_('int')
-                  .and(block([
+              x.expr.is_('int').and(block([
                     checkNotPromoted(x),
                     localFunction([
-                      x.expr.stmt,
+                      x.expr,
                     ]),
-                  ]).thenExpr(expr('bool')))
-                  .stmt,
-              x.write(expr('int')).stmt,
+                  ]).thenExpr(expr('bool'))),
+              x.write(expr('int')),
             ]);
           });
 
@@ -5492,14 +5420,13 @@ main() {
             h.run([
               declare(x, type: 'Object'),
               localFunction([
-                x.expr.stmt,
+                x.expr,
               ])
                   .thenExpr(expr('Object'))
                   .and(x.expr.is_('int'))
                   .parenthesized
-                  .and(checkPromoted(x, 'int').thenExpr(expr('bool')))
-                  .stmt,
-              x.write(expr('int')).stmt,
+                  .and(checkPromoted(x, 'int').thenExpr(expr('bool'))),
+              x.write(expr('int')),
             ]);
           });
 
@@ -5510,15 +5437,12 @@ main() {
             var x = Var('x');
             h.run([
               declare(x, type: 'Object'),
-              x.expr
-                  .is_('int')
-                  .and(block([
+              x.expr.is_('int').and(block([
                     checkPromoted(x, 'int'),
                     localFunction([
-                      x.expr.stmt,
+                      x.expr,
                     ]),
-                  ]).thenExpr(expr('bool')))
-                  .stmt,
+                  ]).thenExpr(expr('bool'))),
             ]);
           });
         });
@@ -5569,8 +5493,7 @@ main() {
                 .and(block([
                   checkPromoted(x, 'int'),
                   checkPromoted(y, 'String'),
-                ]).thenExpr(expr('bool')))
-                .stmt,
+                ]).thenExpr(expr('bool'))),
           ]);
         });
 
@@ -5737,9 +5660,7 @@ main() {
                 .readAndCheckPromotedType((type) => expect(type, isNull))
                 .is_('int'),
             [
-              x
-                  .readAndCheckPromotedType((type) => expect(type!.type, 'int'))
-                  .stmt,
+              x.readAndCheckPromotedType((type) => expect(type!.type, 'int')),
             ]),
       ]);
     });
@@ -5755,14 +5676,14 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        (writeExpression = x.write(expr('int?'))).stmt,
+        (writeExpression = x.write(expr('int?'))),
         checkNotPromoted(x),
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5778,7 +5699,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        (writeExpression = x.write(expr('Object?'))).stmt,
+        (writeExpression = x.write(expr('Object?'))),
         checkNotPromoted(x),
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int'), Type('int?')]));
@@ -5786,7 +5707,7 @@ main() {
               same(writeExpression));
           expect((reasons[Type('int?')] as DemoteViaExplicitWrite<Var>).node,
               same(writeExpression));
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5799,14 +5720,14 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        (writePattern = x.pattern()).assign(expr('int?')).stmt,
+        (writePattern = x.pattern()).assign(expr('int?')),
         checkNotPromoted(x),
         x.expr.whyNotPromoted((reasons) {
           expect(reasons.keys, unorderedEquals([Type('int')]));
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writePattern));
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5819,7 +5740,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        (writeExpression = x.write(expr('int?'))).stmt,
+        (writeExpression = x.write(expr('int?'))),
         checkNotPromoted(x),
         if_(expr('bool'), [
           return_(),
@@ -5829,7 +5750,7 @@ main() {
           var nonPromotionReason =
               reasons.values.single as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5842,7 +5763,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        (writeExpression = x.write(expr('Object'))).stmt,
+        (writeExpression = x.write(expr('Object'))),
         checkNotPromoted(x),
         if_(x.expr.is_('num', isInverted: true), [
           return_(),
@@ -5852,7 +5773,7 @@ main() {
           var nonPromotionReason =
               reasons[Type('int')] as DemoteViaExplicitWrite<Var>;
           expect(nonPromotionReason.node, same(writeExpression));
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5864,7 +5785,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x, 'int'),
-        x.write(expr('int?')).stmt,
+        x.write(expr('int?')),
         checkNotPromoted(x),
         if_(x.expr.eq(nullLiteral), [
           return_(),
@@ -5872,7 +5793,7 @@ main() {
         checkPromoted(x, 'int'),
         x.expr.whyNotPromoted((reasons) {
           expect(reasons, isEmpty);
-        }).stmt,
+        }),
       ]);
     });
 
@@ -5888,7 +5809,7 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
-          }).stmt,
+          }),
         ]);
       });
 
@@ -5903,7 +5824,7 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
-          }).stmt,
+          }),
         ]);
       });
 
@@ -5919,7 +5840,7 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('Object')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<PropertyNotPromoted>());
-          }).stmt,
+          }),
         ]);
       });
     });
@@ -5937,7 +5858,7 @@ main() {
             expect(reasons.keys, unorderedEquals([Type('D')]));
             var nonPromotionReason = reasons.values.single;
             expect(nonPromotionReason, TypeMatcher<ThisNotPromoted>());
-          }).stmt,
+          }),
         ]);
       });
 
@@ -5969,7 +5890,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'Object'),
-        x.expr.property('_field').checkType('Object').stmt,
+        x.expr.property('_field').checkType('Object'),
       ]);
     });
 
@@ -5981,7 +5902,7 @@ main() {
           return_(),
         ]),
         checkPromoted(thisProperty('_field'), 'Object'),
-        thisProperty('_field').checkType('Object').stmt,
+        thisProperty('_field').checkType('Object'),
       ]);
     });
 
@@ -5994,7 +5915,7 @@ main() {
           return_(),
         ]),
         checkNotPromoted(x.expr.property('_field')),
-        x.expr.property('_field').checkType('Object?').stmt,
+        x.expr.property('_field').checkType('Object?'),
       ]);
     });
 
@@ -6006,7 +5927,7 @@ main() {
           return_(),
         ]),
         checkNotPromoted(thisProperty('_field')),
-        thisProperty('_field').checkType('Object?').stmt,
+        thisProperty('_field').checkType('Object?'),
       ]);
     });
 
@@ -6022,7 +5943,7 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'int'),
-        x.expr.property('_field').checkType('int').stmt,
+        x.expr.property('_field').checkType('int'),
       ]);
     });
 
@@ -6037,7 +5958,7 @@ main() {
           return_(),
         ]),
         checkPromoted(thisProperty('_field'), 'int'),
-        thisProperty('_field').checkType('int').stmt,
+        thisProperty('_field').checkType('int'),
       ]);
     });
 
@@ -6053,12 +5974,12 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'Object'),
-        x.expr.property('_field').checkType('Object').stmt,
+        x.expr.property('_field').checkType('Object'),
         if_(x.expr.isNot('C'), [
           return_(),
         ]),
         checkNotPromoted(x.expr.property('_field')),
-        x.expr.property('_field').checkType('num?').stmt,
+        x.expr.property('_field').checkType('num?'),
       ]);
     });
 
@@ -6074,12 +5995,12 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'int'),
-        x.expr.property('_field').checkType('int').stmt,
+        x.expr.property('_field').checkType('int'),
         if_(x.expr.isNot('C'), [
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'int'),
-        x.expr.property('_field').checkType('int').stmt,
+        x.expr.property('_field').checkType('int'),
       ]);
     });
 
@@ -6094,12 +6015,12 @@ main() {
         if_(x.expr.is_('C'), [
           if_(x.expr.property('_field').notEq(nullLiteral), [
             checkPromoted(x.expr.property('_field'), 'Object'),
-            x.expr.property('_field').checkType('Object').stmt,
+            x.expr.property('_field').checkType('Object'),
           ]),
         ]),
         if_(x.expr.property('_field').notEq(nullLiteral), [
           checkNotPromoted(x.expr.property('_field')),
-          x.expr.property('_field').checkType('Object?').stmt,
+          x.expr.property('_field').checkType('Object?'),
         ]),
       ]);
     });
@@ -6114,12 +6035,12 @@ main() {
         declare(x, type: 'B', initializer: expr('B')),
         if_(x.expr.property('_field').notEq(nullLiteral), [
           checkNotPromoted(x.expr.property('_field')),
-          x.expr.property('_field').checkType('Object?').stmt,
+          x.expr.property('_field').checkType('Object?'),
         ]),
         if_(x.expr.is_('C'), [
           if_(x.expr.property('_field').notEq(nullLiteral), [
             checkPromoted(x.expr.property('_field'), 'Object'),
-            x.expr.property('_field').checkType('Object').stmt,
+            x.expr.property('_field').checkType('Object'),
           ]),
         ]),
       ]);
@@ -6147,21 +6068,21 @@ main() {
           return_(),
         ]),
         checkPromoted(thisProperty('_field1'), 'String'),
-        thisProperty('_field1').checkType('String').stmt,
+        thisProperty('_field1').checkType('String'),
         checkPromoted(this_.property('_field1'), 'String'),
-        this_.property('_field1').checkType('String').stmt,
+        this_.property('_field1').checkType('String'),
         checkPromoted(thisProperty('_field2'), 'String?'),
-        thisProperty('_field2').checkType('String?').stmt,
+        thisProperty('_field2').checkType('String?'),
         checkPromoted(this_.property('_field2'), 'String?'),
-        this_.property('_field2').checkType('String?').stmt,
+        this_.property('_field2').checkType('String?'),
         checkPromoted(x.expr.property('_field1'), 'int'),
-        x.expr.property('_field1').checkType('int').stmt,
+        x.expr.property('_field1').checkType('int'),
         checkNotPromoted(x.expr.property('_field2')),
-        x.expr.property('_field2').checkType('Object?').stmt,
+        x.expr.property('_field2').checkType('Object?'),
         checkPromoted(y.expr.property('_field1'), 'double'),
-        y.expr.property('_field1').checkType('double').stmt,
+        y.expr.property('_field1').checkType('double'),
         checkNotPromoted(y.expr.property('_field2')),
-        y.expr.property('_field2').checkType('Object?').stmt,
+        y.expr.property('_field2').checkType('Object?'),
       ]);
     });
 
@@ -6175,10 +6096,10 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'String'),
-        x.expr.property('_field').checkType('String').stmt,
-        x.write(expr('C')).stmt,
+        x.expr.property('_field').checkType('String'),
+        x.write(expr('C')),
         checkNotPromoted(x.expr.property('_field')),
-        x.expr.property('_field').checkType('Object?').stmt,
+        x.expr.property('_field').checkType('Object?'),
       ]);
     });
 
@@ -6193,14 +6114,10 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
-        x.expr.property('_field1').property('_field2').checkType('String').stmt,
-        x.write(expr('C')).stmt,
+        x.expr.property('_field1').property('_field2').checkType('String'),
+        x.write(expr('C')),
         checkNotPromoted(x.expr.property('_field1').property('_field2')),
-        x.expr
-            .property('_field1')
-            .property('_field2')
-            .checkType('Object?')
-            .stmt,
+        x.expr.property('_field1').property('_field2').checkType('Object?'),
       ]);
     });
 
@@ -6214,11 +6131,11 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'String'),
-        x.expr.property('_field').checkType('String').stmt,
+        x.expr.property('_field').checkType('String'),
         while_(expr('bool'), [
           checkNotPromoted(x.expr.property('_field')),
-          x.expr.property('_field').checkType('Object?').stmt,
-          x.write(expr('C')).stmt,
+          x.expr.property('_field').checkType('Object?'),
+          x.write(expr('C')),
         ]),
       ]);
     });
@@ -6234,15 +6151,11 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
-        x.expr.property('_field1').property('_field2').checkType('String').stmt,
+        x.expr.property('_field1').property('_field2').checkType('String'),
         while_(expr('bool'), [
           checkNotPromoted(x.expr.property('_field1').property('_field2')),
-          x.expr
-              .property('_field1')
-              .property('_field2')
-              .checkType('Object?')
-              .stmt,
-          x.write(expr('C')).stmt,
+          x.expr.property('_field1').property('_field2').checkType('Object?'),
+          x.write(expr('C')),
         ]),
       ]);
     });
@@ -6257,12 +6170,12 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field'), 'String'),
-        x.expr.property('_field').checkType('String').stmt,
+        x.expr.property('_field').checkType('String'),
         localFunction([
-          x.write(expr('C')).stmt,
+          x.write(expr('C')),
         ]),
         checkNotPromoted(x.expr.property('_field')),
-        x.expr.property('_field').checkType('Object?').stmt,
+        x.expr.property('_field').checkType('Object?'),
       ]);
     });
 
@@ -6277,16 +6190,12 @@ main() {
           return_(),
         ]),
         checkPromoted(x.expr.property('_field1').property('_field2'), 'String'),
-        x.expr.property('_field1').property('_field2').checkType('String').stmt,
+        x.expr.property('_field1').property('_field2').checkType('String'),
         localFunction([
-          x.write(expr('C')).stmt,
+          x.write(expr('C')),
         ]),
         checkNotPromoted(x.expr.property('_field1').property('_field2')),
-        x.expr
-            .property('_field1')
-            .property('_field2')
-            .checkType('Object?')
-            .stmt,
+        x.expr.property('_field1').property('_field2').checkType('Object?'),
       ]);
     });
 
@@ -6297,13 +6206,13 @@ main() {
       h.run([
         declare(x, type: 'C', initializer: expr('C')),
         localFunction([
-          x.write(expr('C')).stmt,
+          x.write(expr('C')),
         ]),
         if_(x.expr.property('_field').isNot('String'), [
           return_(),
         ]),
         checkNotPromoted(x.expr.property('_field')),
-        x.expr.property('_field').checkType('Object?').stmt,
+        x.expr.property('_field').checkType('Object?'),
       ]);
     });
 
@@ -6315,17 +6224,13 @@ main() {
       h.run([
         declare(x, type: 'C', initializer: expr('C')),
         localFunction([
-          x.write(expr('C')).stmt,
+          x.write(expr('C')),
         ]),
         if_(x.expr.property('_field1').property('_field2').isNot('String'), [
           return_(),
         ]),
         checkNotPromoted(x.expr.property('_field1').property('_field2')),
-        x.expr
-            .property('_field1')
-            .property('_field2')
-            .checkType('Object?')
-            .stmt,
+        x.expr.property('_field1').property('_field2').checkType('Object?'),
       ]);
     });
 
@@ -6338,7 +6243,7 @@ main() {
           return_(),
         ]),
         checkNotPromoted(thisProperty('_field1').property('_field2')),
-        thisProperty('_field1').property('_field2').checkType('Object?').stmt,
+        thisProperty('_field1').property('_field2').checkType('Object?'),
       ]);
     });
 
@@ -6352,13 +6257,13 @@ main() {
       h.run([
         if_(thisProperty('_field').notEq(nullLiteral), [
           checkPromoted(thisProperty('_field'), 'int'),
-          this_.property('_field').checkType('int').stmt,
+          this_.property('_field').checkType('int'),
           checkNotPromoted(superProperty('_field')),
         ]),
         if_(superProperty('_field').notEq(nullLiteral), [
           checkPromoted(superProperty('_field'), 'int'),
           checkNotPromoted(thisProperty('_field')),
-          this_.property('_field').checkType('int?').stmt,
+          this_.property('_field').checkType('int?'),
         ]),
       ]);
     });
@@ -6370,12 +6275,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('C')),
-            x.expr.property('_field').as_('int').stmt,
+            x.expr.property('_field').as_('int'),
             checkPromoted(x.expr.property('_field'), 'int'),
             x.expr.cascade([
               (v) => v.property('_field').checkType('int'),
               (v) => v.property('_field').checkType('int'),
-            ]).stmt,
+            ]),
           ]);
         });
 
@@ -6384,13 +6289,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('C')),
-            x.expr.property('_field').as_('int').stmt,
+            x.expr.property('_field').as_('int'),
             checkPromoted(x.expr.property('_field'), 'int'),
             x.expr
                 .cascade([(v) => v.property('_field').checkType('int')])
                 .property('_field')
-                .checkType('int')
-                .stmt,
+                .checkType('int'),
           ]);
         });
 
@@ -6399,9 +6303,7 @@ main() {
           h.run([
             declare(x, initializer: expr('int?')),
             x.expr
-                .cascade([(v) => v.invokeMethod('toString', [])])
-                .nonNullAssert
-                .stmt,
+                .cascade([(v) => v.invokeMethod('toString', [])]).nonNullAssert,
             checkNotPromoted(x),
           ]);
         });
@@ -6415,8 +6317,7 @@ main() {
                   (v) => v.property('_field').checkType('int'),
                 ])
                 .property('_field')
-                .checkType('int')
-                .stmt,
+                .checkType('int'),
           ]);
         });
 
@@ -6426,7 +6327,7 @@ main() {
           h.run([
             declare(x, initializer: expr('C')),
             localFunction([
-              x.write(expr('C')).stmt,
+              x.write(expr('C')),
             ]),
             x.expr
                 .cascade([
@@ -6434,8 +6335,7 @@ main() {
                   (v) => v.property('_field').checkType('int'),
                 ])
                 .property('_field')
-                .checkType('int')
-                .stmt,
+                .checkType('int'),
           ]);
         });
       });
@@ -6446,12 +6346,12 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('C')),
-            x.expr.property('_field').as_('int').stmt,
+            x.expr.property('_field').as_('int'),
             checkPromoted(x.expr.property('_field'), 'int'),
             x.expr.cascade(isNullAware: true, [
               (v) => v.property('_field').checkType('int'),
               (v) => v.property('_field').checkType('int'),
-            ]).stmt,
+            ]),
           ]);
         });
 
@@ -6460,15 +6360,14 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('C')),
-            x.expr.property('_field').as_('int').stmt,
+            x.expr.property('_field').as_('int'),
             checkPromoted(x.expr.property('_field'), 'int'),
             x.expr
                 .cascade(
                     isNullAware: true,
                     [(v) => v.property('_field').checkType('int')])
                 .property('_field')
-                .checkType('int')
-                .stmt,
+                .checkType('int'),
           ]);
         });
 
@@ -6476,11 +6375,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, initializer: expr('int?')),
-            x.expr
-                .cascade(
-                    isNullAware: true, [(v) => v.invokeMethod('toString', [])])
-                .nonNullAssert
-                .stmt,
+            x.expr.cascade(
+                isNullAware: true,
+                [(v) => v.invokeMethod('toString', [])]).nonNullAssert,
             checkNotPromoted(x),
           ]);
         });
@@ -6502,8 +6399,7 @@ main() {
                 // benefit to justify the work).
                 .nonNullAssert
                 .property('_field')
-                .checkType('int?')
-                .stmt,
+                .checkType('int?'),
           ]);
         });
 
@@ -6513,7 +6409,7 @@ main() {
           h.run([
             declare(x, initializer: expr('C')),
             localFunction([
-              x.write(expr('C')).stmt,
+              x.write(expr('C')),
             ]),
             x.expr
                 .cascade(isNullAware: true, [
@@ -6527,8 +6423,7 @@ main() {
                 // so, and it's not clear that there would be enough user
                 // benefit to justify the work).
                 .property('_field')
-                .checkType('int?')
-                .stmt,
+                .checkType('int?'),
           ]);
         });
       });
@@ -6542,9 +6437,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
-            x.expr.nonNullAssert.stmt,
+            x.expr.nonNullAssert,
             checkPromoted(x, 'int'),
-            x.pattern().assign(expr('int?')).stmt,
+            x.pattern().assign(expr('int?')),
             checkNotPromoted(x),
           ]);
         });
@@ -6553,9 +6448,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'num?'),
-            x.expr.nonNullAssert.stmt,
+            x.expr.nonNullAssert,
             checkPromoted(x, 'num'),
-            x.pattern().assign(expr('int')).stmt,
+            x.pattern().assign(expr('int')),
             checkPromoted(x, 'num'),
           ]);
         });
@@ -6566,7 +6461,7 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
-            x.pattern().assign(expr('int').checkContext('int?')).stmt,
+            x.pattern().assign(expr('int').checkContext('int?')),
           ]);
         });
 
@@ -6574,9 +6469,9 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'int?'),
-            x.expr.nonNullAssert.stmt,
+            x.expr.nonNullAssert,
             checkPromoted(x, 'int'),
-            x.pattern().assign(expr('int').checkContext('int')).stmt,
+            x.pattern().assign(expr('int').checkContext('int')),
           ]);
         });
       });
@@ -6588,7 +6483,7 @@ main() {
             declare(x, type: 'num'),
             if_(x.expr.is_('int'), []),
             checkNotPromoted(x),
-            x.pattern().assign(expr('int')).stmt,
+            x.pattern().assign(expr('int')),
             checkPromoted(x, 'int'),
           ]);
         });
@@ -6597,7 +6492,7 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'num'),
-            x.pattern().assign(expr('int')).stmt,
+            x.pattern().assign(expr('int')),
             checkNotPromoted(x),
           ]);
         });
@@ -6614,8 +6509,7 @@ main() {
             x
                 .pattern()
                 .and(wildcard().nullAssert..errorId = 'NULLASSERT')
-                .assign(expr('dynamic'))
-                .stmt,
+                .assign(expr('dynamic')),
           ], expectedErrors: {
             'matchedTypeIsStrictlyNonNullable(pattern: NULLASSERT, '
                 'matchedType: int)'
@@ -6636,11 +6530,7 @@ main() {
           h.run([
             declare(x, type: 'int'),
             declare(y, initializer: expr('dynamic')),
-            x
-                .pattern()
-                .and(wildcard()..errorId = 'WILDCARD')
-                .assign(y.expr)
-                .stmt,
+            x.pattern().and(wildcard()..errorId = 'WILDCARD').assign(y.expr),
             checkNotPromoted(y),
           ], expectedErrors: {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
@@ -6654,7 +6544,7 @@ main() {
         h.run([
           declare(x, type: 'int'),
           checkAssigned(x, false),
-          x.pattern().assign(expr('int')).stmt,
+          x.pattern().assign(expr('int')),
           checkAssigned(x, true),
         ]);
       });
@@ -6666,7 +6556,7 @@ main() {
           h.run([
             declare(x, type: 'int?'),
             declare(b, type: 'bool'),
-            b.pattern().assign(x.expr.notEq(nullLiteral)).stmt,
+            b.pattern().assign(x.expr.notEq(nullLiteral)),
             if_(b.expr, [
               // `x` is promoted because `b` is known to equal `x != null`.
               checkPromoted(x, 'int'),
@@ -6680,7 +6570,7 @@ main() {
           h.run([
             declare(x, type: 'int?'),
             declare(b, type: 'bool'),
-            b.pattern().parenthesized.assign(x.expr.notEq(nullLiteral)).stmt,
+            b.pattern().parenthesized.assign(x.expr.notEq(nullLiteral)),
             if_(b.expr, [
               // `x` is promoted because `b` is known to equal `x != null`.
               checkPromoted(x, 'int'),
@@ -6698,8 +6588,7 @@ main() {
             objectPattern(
                     requiredType: 'bool',
                     fields: [b.pattern().recordField('foo')])
-                .assign(x.expr.notEq(nullLiteral))
-                .stmt,
+                .assign(x.expr.notEq(nullLiteral)),
             if_(b.expr, [
               // Even though the RHS of the pattern is `x != null`, `x` is not
               // promoted because the pattern for `b` is in a subpattern
@@ -6720,8 +6609,7 @@ main() {
             recordPattern([y.pattern().recordField()])
                 .and(wildcard(expectInferredType: '(int,)')
                   ..errorId = 'WILDCARD')
-                .assign(x.expr)
-                .stmt,
+                .assign(x.expr),
             checkNotPromoted(x),
           ], expectedErrors: {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
@@ -6738,8 +6626,7 @@ main() {
             recordPattern([y.pattern().recordField()])
                 .and(wildcard(expectInferredType: '(int,)')
                   ..errorId = 'WILDCARD')
-                .assign(x.expr)
-                .stmt,
+                .assign(x.expr),
             checkNotPromoted(x),
           ], expectedErrors: {
             'unnecessaryWildcardPattern(pattern: WILDCARD, '
@@ -6969,9 +6856,7 @@ main() {
         h.run([
           declare(x, initializer: expr('int?')),
           switch_(x.expr, [
-            wildcard()
-                .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
-                .then([
+            wildcard().when(x.write(expr('int?')).thenExpr(expr('bool'))).then([
               break_(),
             ]),
             nullLiteral.pattern.then([
@@ -7951,7 +7836,7 @@ main() {
             declare(x, initializer: expr('Object?')),
             switch_(x.expr, [
               wildcard()
-                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .when(x.write(expr('Object?')).thenExpr(expr('bool')))
                   .then([
                 break_(),
               ]),
@@ -8075,7 +7960,7 @@ main() {
             declare(x, initializer: expr('Object?')),
             switch_(x.expr, [
               wildcard()
-                  .when(x.write(expr('Object?')).stmt.thenExpr(expr('bool')))
+                  .when(x.write(expr('Object?')).thenExpr(expr('bool')))
                   .then([
                 break_(),
               ]),
@@ -8282,7 +8167,7 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('num')),
-          wildcard().as_('int').assign(x.expr).stmt,
+          wildcard().as_('int').assign(x.expr),
           checkNotPromoted(x),
         ]);
       });
@@ -8353,7 +8238,7 @@ main() {
           declare(x, initializer: expr('Object')),
           ifCase(x.expr, recordPattern([wildcard(type: 'int').recordField()]), [
             checkPromoted(x, '(int,)'),
-            x.write(expr('(num,)')).stmt,
+            x.write(expr('(num,)')),
             checkPromoted(x, '(Object?,)'),
           ]),
         ]);
@@ -8527,7 +8412,7 @@ main() {
             declare(x, initializer: expr('int?')),
             switch_(x.expr, [
               wildcard()
-                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .when(x.write(expr('int?')).thenExpr(expr('bool')))
                   .then([
                 break_(),
               ]),
@@ -8644,7 +8529,7 @@ main() {
             declare(x, initializer: expr('int?')),
             switch_(x.expr, [
               wildcard()
-                  .when(x.write(expr('int?')).stmt.thenExpr(expr('bool')))
+                  .when(x.write(expr('int?')).thenExpr(expr('bool')))
                   .then([
                 break_(),
               ]),
@@ -8771,7 +8656,7 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]).thenExpr(expr('String'))),
-          ]).stmt,
+          ]),
         ]);
       });
 
@@ -8787,7 +8672,7 @@ main() {
               wildcard().thenExpr(block([
                 checkPromoted(x, 'int'),
               ]).thenExpr(intLiteral(1))),
-            ]).stmt,
+            ]),
           ]);
         });
 
@@ -8805,7 +8690,7 @@ main() {
               wildcard().thenExpr(block([
                 checkNotPromoted(x),
               ]).thenExpr(intLiteral(1))),
-            ]).stmt,
+            ]),
           ]);
         });
       });
@@ -8824,7 +8709,7 @@ main() {
               checkReachable(true),
               checkNotPromoted(x),
             ]).thenExpr(expr('String'))),
-          ]).stmt,
+          ]),
         ]);
       });
 
@@ -8842,7 +8727,7 @@ main() {
                   checkPromoted(x, 'int'),
                 ]).thenExpr(intLiteral(0))),
             wildcard()
-                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .when(x.write(expr('Object')).thenExpr(expr('bool')))
                 .thenExpr(intLiteral(1)),
             wildcard(type: 'int')
                 .and(wildcard(expectInferredType: 'int')..errorId = 'WILDCARD2')
@@ -8850,7 +8735,7 @@ main() {
                   checkNotPromoted(x),
                 ]).thenExpr(intLiteral(2))),
             wildcard().thenExpr(intLiteral(3)),
-          ]).stmt,
+          ]),
         ], expectedErrors: {
           'unnecessaryWildcardPattern(pattern: WILDCARD1, '
               'kind: logicalAndPatternOperand)',
@@ -8869,22 +8754,22 @@ main() {
         // is still used for type inference in the later `case var y`.
         h.run([
           declare(x, initializer: expr('Object')),
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           switchExpr(x.expr, [
             wildcard()
-                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .when(x.write(expr('Object')).thenExpr(expr('bool')))
                 .thenExpr(intLiteral(0)),
             y.pattern(expectInferredType: 'int').thenExpr(block([
                   checkNotPromoted(x),
                 ]).thenExpr(intLiteral(1))),
-          ]).stmt,
+          ]),
         ]);
       });
 
       test('no cases', () {
         h.run([
-          switchExpr(expr('A'), []).stmt,
+          switchExpr(expr('A'), []),
           checkReachable(false),
         ]);
       });
@@ -8900,7 +8785,7 @@ main() {
             wildcard().thenExpr(block([
               checkReachable(true),
             ]).thenExpr(intLiteral(1))),
-          ]).stmt,
+          ]),
         ]);
       });
     });
@@ -8992,7 +8877,7 @@ main() {
             switchStatementMember([
               wildcard(type: 'int').switchCase
             ], [
-              x.expr.as_('int').stmt,
+              x.expr.as_('int'),
             ]),
             switchStatementMember([default_], [return_()])
           ]),
@@ -9147,7 +9032,7 @@ main() {
               checkPromoted(x, 'int'),
             ]),
             wildcard()
-                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .when(x.write(expr('Object')).thenExpr(expr('bool')))
                 .then([
               break_(),
             ]),
@@ -9175,11 +9060,11 @@ main() {
         // is still used for type inference in the later `case var y`.
         h.run([
           declare(x, initializer: expr('Object')),
-          x.expr.as_('int').stmt,
+          x.expr.as_('int'),
           checkPromoted(x, 'int'),
           switch_(x.expr, [
             wildcard()
-                .when(x.write(expr('Object')).stmt.thenExpr(expr('bool')))
+                .when(x.write(expr('Object')).thenExpr(expr('bool')))
                 .then([break_()]),
             y.pattern(expectInferredType: 'int').then([
               checkNotPromoted(x),
@@ -9196,10 +9081,10 @@ main() {
         h.run([
           switch_(expr('Object'), [
             wildcard().then([
-              intLiteral(0).stmt,
+              intLiteral(0),
             ]),
             wildcard().then([
-              intLiteral(1).stmt,
+              intLiteral(1),
             ]),
           ]).checkIR('switch(expr(Object), '
               'case(heads(head(wildcardPattern(matchedType: Object), true, '
