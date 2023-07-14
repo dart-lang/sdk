@@ -716,7 +716,7 @@
             "co19_2"
           ],
           "fileset": "front-end",
-          "shards": 2
+          "shards": 1
         },
         {
           "name": "front_end sdk tests",
@@ -724,7 +724,7 @@
             "-ncfe-${system}"
           ],
           "fileset": "front-end",
-          "shards": 2
+          "shards": 1
         },
         {
           "name": "front_end unit tests (no git)",
@@ -733,7 +733,7 @@
             "pkg/pkg/(kernel|front_end|fasta)\/(*?)(?<!_git)_test"
           ],
           "fileset": "front-end",
-          "shards": 3
+          "shards": 4
         },
         {
           "name": "front_end unit tests suites (no git)",
