@@ -227,7 +227,8 @@ final class JSStringImpl implements String {
     return replaceRange(match.start, match.end, replacement);
   }
 
-  // TODO(joshualitt): Return a JSArray instead.
+  // TODO(joshualitt): Create a subtype of `JSArrayImpl` that can support lazily
+  // converting arguments `toDart` and return that here.
   List<String> _jsSplit(WasmExternRef? token) => (js.JSValue(
               js.JS<WasmExternRef?>('(s, t) => s.split(t)', toExternRef, token))
           as JSArray)
