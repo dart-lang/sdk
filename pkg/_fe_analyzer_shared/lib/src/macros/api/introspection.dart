@@ -9,6 +9,11 @@ part of '../api.dart';
 /// Could be a [Declaration] or [Library].
 abstract interface class MacroTarget {}
 
+/// The interface for things that can be annotated with [MetadataAnnotation]s.
+abstract interface class Annotatable {
+  Iterable<MetadataAnnotation> get metadata;
+}
+
 /// A concrete reference to a named declaration, which may or may not yet be
 /// resolved.
 ///
@@ -100,7 +105,7 @@ abstract interface class StaticType {
 abstract interface class NamedStaticType implements StaticType {}
 
 /// The interface for all declarations.
-abstract interface class Declaration implements MacroTarget {
+abstract interface class Declaration implements Annotatable, MacroTarget {
   /// The library in which this declaration is defined.
   Library get library;
 
@@ -297,7 +302,7 @@ abstract interface class FieldDeclaration
 
 /// General parameter introspection information, see the subtypes
 /// [FunctionTypeParameter] and [ParameterDeclaration].
-abstract interface class Parameter {
+abstract interface class Parameter implements Annotatable {
   /// The type of this parameter.
   TypeAnnotation get type;
 
@@ -356,7 +361,7 @@ abstract interface class RecordFieldDeclaration implements Declaration {
 }
 
 /// Introspection information for a Library.
-abstract interface class Library implements MacroTarget {
+abstract interface class Library implements Annotatable, MacroTarget {
   /// The language version of this library.
   LanguageVersion get languageVersion;
 
@@ -370,4 +375,27 @@ abstract interface class LanguageVersion {
   int get major;
 
   int get minor;
+}
+
+/// A metadata annotation on a declaration or library directive.
+abstract interface class MetadataAnnotation {}
+
+/// A [MetadataAnnotation] which is a reference to a const value.
+abstract interface class IdentifierMetadataAnnotation
+    implements MetadataAnnotation {
+  /// The [Identifier] for the const reference.
+  Identifier get identifier;
+}
+
+/// A [Metadata] annotation which is a constructor call.
+abstract interface class ConstructorMetadataAnnotation
+    implements MetadataAnnotation {
+  /// And [Identifier] referring to the type that is being constructed.
+  Identifier get type;
+
+  /// An [Identifier] referring to the specific constructor being called.
+  ///
+  /// For unnamed constructors, the name of this identifier will be the empty
+  /// String.
+  Identifier get constructor;
 }

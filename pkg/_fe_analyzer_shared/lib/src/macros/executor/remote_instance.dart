@@ -101,6 +101,7 @@ class RemoteInstanceImpl extends RemoteInstance {
 enum RemoteInstanceKind {
   classDeclaration,
   constructorDeclaration,
+  constructorMetadataAnnotation,
   enumDeclaration,
   enumValueDeclaration,
   fieldDeclaration,
@@ -108,6 +109,7 @@ enum RemoteInstanceKind {
   functionTypeAnnotation,
   functionTypeParameter,
   identifier,
+  identifierMetadataAnnotation,
   identifierResolver,
   introspectableClassDeclaration,
   introspectableEnumDeclaration,

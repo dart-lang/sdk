@@ -161,11 +161,13 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'foo'),
             library: Fixtures.library,
+            metadata: [],
             type: fooType);
         final fooNamedFunctionTypeParam = FunctionTypeParameterImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
+            metadata: [],
             name: 'foo',
             type: fooType);
 
@@ -176,11 +178,13 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
+            metadata: [],
             type: barType);
         final barPositionalFunctionTypeParam = FunctionTypeParameterImpl(
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
+            metadata: [],
             name: 'bar',
             type: fooType);
 
@@ -188,6 +192,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             isNamed: true,
             isRequired: true,
+            metadata: [],
             name: null,
             type: fooType);
 
@@ -196,6 +201,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Zap'),
             library: Fixtures.library,
+            metadata: [],
             bound: barType);
 
         // Transitively tests `TypeParameterDeclaration` and
@@ -222,6 +228,7 @@ void main() {
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
               library: Fixtures.library,
+              metadata: [],
               isAbstract: true,
               isExternal: false,
               isGetter: true,
@@ -241,6 +248,7 @@ void main() {
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
               library: Fixtures.library,
+              metadata: [],
               isAbstract: false,
               isExternal: false,
               isGetter: false,
@@ -262,6 +270,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
             library: Fixtures.library,
+            metadata: [],
             isAbstract: false,
             isExternal: false,
             isGetter: false,
@@ -284,6 +293,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
+            metadata: [],
             isExternal: true,
             isFinal: false,
             isLate: true,
@@ -299,6 +309,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
+            metadata: [],
             isExternal: false,
             isFinal: true,
             isLate: false,
@@ -332,6 +343,7 @@ void main() {
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'Foo'),
               library: Fixtures.library,
+              metadata: [],
               interfaces: [barType],
               hasAbstract: boolValue,
               hasBase: boolValue,
@@ -355,6 +367,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
             library: Fixtures.library,
+            metadata: [],
             interfaces: [barType],
             mixins: [serializableType],
             typeParameters: [zapTypeParam],
@@ -368,6 +381,7 @@ void main() {
             id: RemoteInstance.uniqueId,
             identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
             library: Fixtures.library,
+            metadata: [],
             definingEnum:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyEnum'),
           );
@@ -382,6 +396,7 @@ void main() {
               identifier:
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyMixin'),
               library: Fixtures.library,
+              metadata: [],
               hasBase: base,
               interfaces: [barType],
               superclassConstraints: [serializableType],
@@ -398,6 +413,7 @@ void main() {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'FooOfBar'),
             library: Fixtures.library,
+            metadata: [],
             typeParameters: [zapTypeParam],
             aliasedType: NamedTypeAnnotationImpl(
                 id: RemoteInstance.uniqueId,
@@ -421,6 +437,7 @@ void main() {
                 identifier:
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: r'hello'),
                 library: Fixtures.library,
+                metadata: [],
                 name: 'hello',
                 type: barType,
               ),
@@ -431,6 +448,7 @@ void main() {
                 identifier:
                     IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
                 library: Fixtures.library,
+                metadata: [],
                 name: null,
                 type: fooType,
               ),
@@ -572,6 +590,34 @@ void main() {
       }
     });
   });
+
+  group('metadata annotations can be serialized and deserialized', () {
+    for (var mode in [SerializationMode.byteData, SerializationMode.json]) {
+      group('with mode $mode', () {
+        test('identifiers', () {
+          final identifierMetadata = IdentifierMetadataAnnotationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'singleton'));
+
+          expectSerializationEquality<IdentifierMetadataAnnotationImpl>(
+              identifierMetadata, mode, RemoteInstance.deserialize);
+        });
+
+        test('constructor invocations', () {
+          final constructorMetadata = ConstructorMetadataAnnotationImpl(
+              id: RemoteInstance.uniqueId,
+              type: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'Singleton'),
+              constructor: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'someName'));
+
+          expectSerializationEquality<ConstructorMetadataAnnotationImpl>(
+              constructorMetadata, mode, RemoteInstance.deserialize);
+        });
+      });
+    }
+  });
 }
 
 /// Serializes [serializable] in server mode, then deserializes it in client
@@ -600,6 +646,8 @@ void expectSerializationEquality<T extends Serializable>(T serializable,
             TypeAnnotation() =>
               deepEqualsTypeAnnotation(deserialized as TypeAnnotation),
             Arguments() => deepEqualsArguments(deserialized),
+            MetadataAnnotation() =>
+              deepEqualsMetadataAnnotation(deserialized as MetadataAnnotation),
             _ => throw new UnsupportedError(
                 'Unsupported object type $deserialized'),
           });

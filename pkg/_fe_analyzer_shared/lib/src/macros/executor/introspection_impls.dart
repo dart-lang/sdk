@@ -158,6 +158,7 @@ class RecordFieldDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.name,
     required this.type,
   });
@@ -253,6 +254,56 @@ class OmittedTypeAnnotationImpl extends TypeAnnotationImpl
   RemoteInstanceKind get kind => RemoteInstanceKind.omittedTypeAnnotation;
 }
 
+abstract class MetadataAnnotationImpl extends RemoteInstance
+    implements MetadataAnnotation {
+  MetadataAnnotationImpl(super.id);
+}
+
+class IdentifierMetadataAnnotationImpl extends MetadataAnnotationImpl
+    implements IdentifierMetadataAnnotation {
+  @override
+  final IdentifierImpl identifier;
+
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.identifierMetadataAnnotation;
+
+  IdentifierMetadataAnnotationImpl({required int id, required this.identifier})
+      : super(id);
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    identifier.serialize(serializer);
+  }
+}
+
+class ConstructorMetadataAnnotationImpl extends MetadataAnnotationImpl
+    implements ConstructorMetadataAnnotation {
+  @override
+  final IdentifierImpl constructor;
+
+  @override
+  final IdentifierImpl type;
+
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.constructorMetadataAnnotation;
+
+  ConstructorMetadataAnnotationImpl(
+      {required int id, required this.constructor, required this.type})
+      : super(id);
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    constructor.serialize(serializer);
+    type.serialize(serializer);
+  }
+}
+
 abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   @override
   final IdentifierImpl identifier;
@@ -260,10 +311,14 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
   @override
   final LibraryImpl library;
 
+  @override
+  final List<MetadataAnnotationImpl> metadata;
+
   DeclarationImpl({
     required int id,
     required this.identifier,
     required this.library,
+    required this.metadata,
   }) : super(id);
 
   @override
@@ -272,6 +327,11 @@ abstract class DeclarationImpl extends RemoteInstance implements Declaration {
 
     identifier.serialize(serializer);
     library.serialize(serializer);
+    serializer.startList();
+    for (MetadataAnnotationImpl annotation in metadata) {
+      annotation.serialize(serializer);
+    }
+    serializer.endList();
   }
 }
 
@@ -293,6 +353,7 @@ class ParameterDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.isNamed,
     required this.isRequired,
     required this.type,
@@ -323,6 +384,9 @@ class FunctionTypeParameterImpl extends RemoteInstance
   final bool isRequired;
 
   @override
+  final List<MetadataAnnotationImpl> metadata;
+
+  @override
   final String? name;
 
   @override
@@ -335,6 +399,7 @@ class FunctionTypeParameterImpl extends RemoteInstance
     required int id,
     required this.isNamed,
     required this.isRequired,
+    required this.metadata,
     required this.name,
     required this.type,
   }) : super(id);
@@ -345,6 +410,12 @@ class FunctionTypeParameterImpl extends RemoteInstance
 
     serializer.addBool(isNamed);
     serializer.addBool(isRequired);
+
+    serializer.startList();
+    for (MetadataAnnotationImpl annotation in metadata) {
+      annotation.serialize(serializer);
+    }
+    serializer.endList();
     serializer.addNullableString(name);
     type.serialize(serializer);
   }
@@ -368,6 +439,7 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.bound,
   });
 
@@ -424,6 +496,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.isAbstract,
     required this.isExternal,
     required this.isGetter,
@@ -481,6 +554,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -518,6 +592,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // Function fields.
     required super.isAbstract,
     required super.isExternal,
@@ -565,6 +640,7 @@ class VariableDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.isExternal,
     required this.isFinal,
     required this.isLate,
@@ -596,6 +672,7 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // Variable fields.
     required super.isExternal,
     required super.isFinal,
@@ -630,6 +707,7 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.typeParameters,
   });
 
@@ -695,6 +773,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // TypeDeclaration fields.
     required super.typeParameters,
     // ClassDeclaration fields.
@@ -762,6 +841,7 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // TypeDeclaration fields.
     required super.typeParameters,
     // EnumDeclaration fields.
@@ -799,6 +879,7 @@ class EnumValueDeclarationImpl extends DeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required this.definingEnum,
   });
 
@@ -836,6 +917,7 @@ class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // TypeDeclaration fields.
     required super.typeParameters,
     // MixinDeclaration fields.
@@ -878,6 +960,7 @@ class TypeAliasDeclarationImpl extends ParameterizedTypeDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     // TypeDeclaration fields.
     required super.typeParameters,
     // TypeAlias fields.
@@ -900,10 +983,16 @@ class LibraryImpl extends RemoteInstance implements Library {
   final LanguageVersionImpl languageVersion;
 
   @override
+  final List<MetadataAnnotationImpl> metadata;
+
+  @override
   final Uri uri;
 
   LibraryImpl(
-      {required int id, required this.languageVersion, required this.uri})
+      {required int id,
+      required this.languageVersion,
+      required this.metadata,
+      required this.uri})
       : super(id);
 
   @override
@@ -911,6 +1000,11 @@ class LibraryImpl extends RemoteInstance implements Library {
     super.serializeUncached(serializer);
 
     languageVersion.serialize(serializer);
+    serializer.startList();
+    for (MetadataAnnotationImpl annotation in metadata) {
+      annotation.serialize(serializer);
+    }
+    serializer.endList();
     serializer.addUri(uri);
   }
 }

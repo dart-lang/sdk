@@ -803,7 +803,9 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           uri: builder.importUri,
           languageVersion:
-              new macro.LanguageVersionImpl(version.major, version.minor));
+              new macro.LanguageVersionImpl(version.major, version.minor),
+          // TODO: Provide metadata annotations.
+          metadata: const []);
     }();
   }
 
@@ -849,6 +851,8 @@ class MacroApplications {
                 id: macro.RemoteInstance.uniqueId,
                 identifier: identifier,
                 library: library,
+                // TODO: Provide metadata annotations.
+                metadata: const [],
                 typeParameters: typeParameters,
                 hasBase: builder.isBase,
                 interfaces: interfaces,
@@ -861,6 +865,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             typeParameters: typeParameters,
             interfaces: interfaces,
             hasAbstract: builder.isAbstract,
@@ -891,6 +897,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             name: builder.name),
         library: library,
+        // TODO: Provide metadata annotations.
+        metadata: const [],
         // TODO(johnniwinther): Support typeParameters
         typeParameters: [],
         aliasedType:
@@ -921,6 +929,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             isRequired: formal.isRequiredNamed,
             isNamed: true,
             type: type,
@@ -930,6 +940,8 @@ class MacroApplications {
             id: macro.RemoteInstance.uniqueId,
             identifier: identifier,
             library: library,
+            // TODO: Provide metadata annotations.
+            metadata: const [],
             isRequired: formal.isRequiredPositional,
             isNamed: false,
             type: type,
@@ -958,6 +970,8 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
       library: _libraryFor(builder.libraryBuilder),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -988,6 +1002,8 @@ class MacroApplications {
           id: macro.RemoteInstance.uniqueId,
           name: builder.name),
       library: _libraryFor(builder.libraryBuilder),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       isAbstract: builder.isAbstract,
@@ -1025,6 +1041,8 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
@@ -1046,6 +1064,8 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           isAbstract: builder.isAbstract,
           isExternal: builder.isExternal,
           isGetter: builder.isGetter,
@@ -1078,6 +1098,8 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
@@ -1092,6 +1114,8 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           isExternal: builder.isExternal,
           isFinal: builder.isFinal,
           isLate: builder.isLate,
