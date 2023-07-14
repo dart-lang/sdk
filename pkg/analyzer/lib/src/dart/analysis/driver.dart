@@ -1356,6 +1356,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
           libraryContext.elementFactory.libraryOfUri2(library.file.uri),
           libraryContext.elementFactory.analysisSession.inheritanceManager,
           library,
+          resourceProvider.pathContext,
           testingData: testingData,
         ).analyze();
 
@@ -1465,6 +1466,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
               libraryContext.elementFactory.libraryOfUri2(library.file.uri),
               libraryContext.elementFactory.analysisSession.inheritanceManager,
               library,
+              resourceProvider.pathContext,
               testingData: testingData)
           .analyze();
       var resolvedUnits = <ResolvedUnitResult>[];
@@ -1924,6 +1926,7 @@ class AnalysisDriver implements AnalysisDriverGeneric {
         libraryContext.elementFactory.libraryOfUri2(library.file.uri),
         libraryContext.elementFactory.analysisSession.inheritanceManager,
         library,
+        resourceProvider.pathContext,
         testingData: testingData,
       ).analyzeForCompletion(
         file: file,

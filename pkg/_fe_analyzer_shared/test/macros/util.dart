@@ -196,6 +196,10 @@ Matcher deepEqualsTypeAnnotation(TypeAnnotation declaration) =>
 Matcher deepEqualsArguments(Arguments arguments) =>
     _DeepEqualityMatcher(arguments);
 
+/// Checks if two [MetadataAnnotation]s are identical
+Matcher deepEqualsMetadataAnnotation(MetadataAnnotation metadata) =>
+    _DeepEqualityMatcher(metadata);
+
 /// Checks if two [Declaration]s, [TypeAnnotation]s, or [Code] objects are of
 /// the same type and all their fields are equal.
 class _DeepEqualityMatcher extends Matcher {
@@ -213,7 +217,9 @@ class _DeepEqualityMatcher extends Matcher {
     if (!equals(item.runtimeType).matches(instance.runtimeType, matchState)) {
       return false;
     }
-    if (instance is Declaration || instance is TypeAnnotation) {
+    if (instance is Declaration ||
+        instance is TypeAnnotation ||
+        instance is MetadataAnnotation) {
       var instanceReflector = reflect(instance);
       var itemReflector = reflect(item);
 
@@ -285,6 +291,7 @@ class Fixtures {
   static final library = LibraryImpl(
       id: RemoteInstance.uniqueId,
       languageVersion: LanguageVersionImpl(3, 0),
+      metadata: [],
       uri: Uri.parse('package:foo/bar.dart'));
   static final nullableBoolType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
@@ -311,6 +318,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'world'),
             library: Fixtures.library,
+            metadata: [],
             name: 'world',
             type: stringType),
       ],
@@ -320,6 +328,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$1'),
             library: Fixtures.library,
+            metadata: [],
             name: null,
             type: stringType),
         RecordFieldDeclarationImpl(
@@ -327,6 +336,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: r'$2'),
             library: Fixtures.library,
+            metadata: [],
             name: 'hello',
             type: nullableBoolType),
       ]);
@@ -337,6 +347,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myFunction'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -351,6 +362,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: '_myVariable'),
       library: Fixtures.library,
+      metadata: [],
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -360,6 +372,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: true,
@@ -374,6 +387,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myVariable'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -386,6 +400,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'value'),
             library: Fixtures.library,
+            metadata: [],
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -397,6 +412,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'library'),
       library: Fixtures.library,
+      metadata: [],
       isExternal: false,
       isFinal: true,
       isLate: false,
@@ -434,6 +450,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: myClassType.identifier,
       library: Fixtures.library,
+      metadata: [],
       typeParameters: [],
       interfaces: [myInterfaceType],
       hasAbstract: false,
@@ -450,6 +467,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myConstructor'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -462,6 +480,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
             library: Fixtures.library,
+            metadata: [],
             isNamed: false,
             isRequired: true,
             type: TestOmittedTypeAnnotation(myField.type))
@@ -474,6 +493,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
       library: Fixtures.library,
+      metadata: [],
       isExternal: false,
       isFinal: false,
       isLate: false,
@@ -484,6 +504,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
       library: Fixtures.library,
+      metadata: [],
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -499,6 +520,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMethod'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -514,6 +536,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
       library: Fixtures.library,
+      metadata: [],
       typeParameters: [],
       interfaces: [],
       hasAbstract: false,
@@ -538,6 +561,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: myEnumType.identifier,
       library: Fixtures.library,
+      metadata: [],
       typeParameters: [],
       interfaces: [],
       mixins: []);
@@ -546,6 +570,7 @@ class Fixtures {
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'a'),
       library: Fixtures.library,
+      metadata: [],
       definingEnum: myEnum.identifier,
     ),
   ];
@@ -554,6 +579,7 @@ class Fixtures {
       identifier: IdentifierImpl(
           id: RemoteInstance.uniqueId, name: 'myEnumConstructor'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,
@@ -566,6 +592,7 @@ class Fixtures {
             identifier:
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myField'),
             library: Fixtures.library,
+            metadata: [],
             isNamed: false,
             isRequired: true,
             type: stringType)
@@ -579,6 +606,7 @@ class Fixtures {
     id: RemoteInstance.uniqueId,
     identifier: myMixinType.identifier,
     library: Fixtures.library,
+    metadata: [],
     typeParameters: [],
     hasBase: false,
     interfaces: [],
@@ -589,6 +617,7 @@ class Fixtures {
       identifier:
           IdentifierImpl(id: RemoteInstance.uniqueId, name: 'myMixinMethod'),
       library: Fixtures.library,
+      metadata: [],
       isAbstract: false,
       isExternal: false,
       isGetter: false,

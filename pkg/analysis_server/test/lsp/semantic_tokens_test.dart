@@ -120,7 +120,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
     ];
 
     final otherFilePath = join(projectFolderPath, 'lib', 'other_file.dart');
-    final otherFileUri = Uri.file(otherFilePath);
+    final otherFileUri = pathContext.toUri(otherFilePath);
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
@@ -552,7 +552,7 @@ class SemanticTokensTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_fromPlugin() async {
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
-    final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     final content = 'CLASS STRING VARIABLE';
 
     final expected = [

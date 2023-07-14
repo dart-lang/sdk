@@ -5,6 +5,7 @@
 import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_lazy_type_hierarchy.dart'
     as type_hierarchy;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -157,7 +158,7 @@ class TypeHierarchySupertypesHandler extends LspMessageHandler<
 }
 
 /// Utility methods used by all Type Hierarchy handlers.
-mixin _TypeHierarchyUtils {
+mixin _TypeHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// Converts a server [SourceRange] to an LSP [Range].
   Range sourceRangeToRange(LineInfo lineInfo, SourceRange range) =>
       toRange(lineInfo, range.offset, range.length);
@@ -173,7 +174,7 @@ mixin _TypeHierarchyUtils {
     return TypeHierarchyItem(
       name: item.displayName,
       kind: SymbolKind.Class,
-      uri: Uri.file(item.file),
+      uri: pathContext.toUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
       data: TypeHierarchyItemInfo(

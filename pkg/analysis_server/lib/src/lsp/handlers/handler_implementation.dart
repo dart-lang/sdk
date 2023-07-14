@@ -87,7 +87,7 @@ class ImplementationHandler
                 return null;
               }
               return Location(
-                uri: Uri.file(unitElement.source.fullName),
+                uri: pathContext.toUri(unitElement.source.fullName),
                 range: toRange(
                   unitElement.lineInfo,
                   element.nameOffset,

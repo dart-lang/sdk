@@ -19,6 +19,7 @@ class ClassDeclarationImpl extends macro.ClassDeclarationImpl {
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -102,6 +103,8 @@ class DeclarationBuilderFromElement {
           id: macro.RemoteInstance.uniqueId,
           languageVersion:
               macro.LanguageVersionImpl(version.major, version.minor),
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           uri: element.library!.source.uri,
           element: element);
       _libraryMap[element.library!] = library;
@@ -143,6 +146,8 @@ class DeclarationBuilderFromElement {
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       isExternal: element.isExternal,
       isFinal: element.isFinal,
       isLate: element.isLate,
@@ -159,6 +164,8 @@ class DeclarationBuilderFromElement {
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       typeParameters: element.typeParameters.map(_typeParameter).toList(),
       interfaces: element.interfaces
           .map(_dartType)
@@ -187,6 +194,8 @@ class DeclarationBuilderFromElement {
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),
       library: library(element),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       bound: element.bound.mapOrNull(_dartType),
     );
   }
@@ -215,6 +224,8 @@ class DeclarationBuilderFromNode {
           id: macro.RemoteInstance.uniqueId,
           languageVersion:
               macro.LanguageVersionImpl(version.major, version.minor),
+          // TODO: Provide metadata annotations.
+          metadata: const [],
           uri: element.library!.source.uri,
           element: element);
       _libraryMap[element.library!] = library;
@@ -249,6 +260,8 @@ class DeclarationBuilderFromNode {
       isNamed: node.isNamed,
       isRequired: node.isRequired,
       name: node.name?.lexeme,
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       type: typeAnnotation,
     );
   }
@@ -261,6 +274,8 @@ class DeclarationBuilderFromNode {
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
       library: library(node.declaredElement!),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       typeParameters: _typeParameters(node.typeParameters),
       interfaces: _typeAnnotations(node.implementsClause?.interfaces),
       hasAbstract: node.abstractKeyword != null,
@@ -336,6 +351,8 @@ class DeclarationBuilderFromNode {
       id: macro.RemoteInstance.uniqueId,
       identifier: _declaredIdentifier(node.name, node.declaredElement!),
       library: library(node.declaredElement!),
+      // TODO: Provide metadata annotations.
+      metadata: const [],
       bound: node.bound.mapOrNull(_typeAnnotation),
     );
   }
@@ -356,6 +373,7 @@ class FieldDeclarationImpl extends macro.FieldDeclarationImpl {
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required super.isExternal,
     required super.isFinal,
     required super.isLate,
@@ -393,6 +411,7 @@ class IntrospectableClassDeclarationImpl
     required super.id,
     required super.identifier,
     required super.library,
+    required super.metadata,
     required super.typeParameters,
     required super.interfaces,
     required super.hasAbstract,
@@ -411,6 +430,7 @@ abstract class LibraryImpl extends macro.LibraryImpl {
   LibraryImpl({
     required super.id,
     required super.languageVersion,
+    required super.metadata,
     required super.uri,
   });
 
@@ -424,6 +444,7 @@ class LibraryImplFromElement extends LibraryImpl {
   LibraryImplFromElement({
     required super.id,
     required super.languageVersion,
+    required super.metadata,
     required super.uri,
     required this.element,
   });

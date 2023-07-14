@@ -283,13 +283,6 @@ abstract class LinterContext {
 
 /// Implementation of [LinterContext]
 class LinterContextImpl implements LinterContext {
-  static final testDirectories = [
-    '${p.separator}test${p.separator}',
-    '${p.separator}integration_test${p.separator}',
-    '${p.separator}test_driver${p.separator}',
-    '${p.separator}testing${p.separator}',
-  ];
-
   @override
   final List<LinterContextUnit> allUnits;
 
@@ -314,6 +307,8 @@ class LinterContextImpl implements LinterContext {
   @override
   final InheritanceManager3 inheritanceManager;
 
+  final List<String> testDirectories;
+
   LinterContextImpl(
     this.allUnits,
     this.currentUnit,
@@ -323,7 +318,8 @@ class LinterContextImpl implements LinterContext {
     this.inheritanceManager,
     this.analysisOptions,
     this.package,
-  );
+    p.Context pathContext,
+  ) : testDirectories = LinterContextImpl.getTestDirectories(pathContext);
 
   @override
   bool canBeConst(Expression expression) {
@@ -511,6 +507,16 @@ class LinterContextImpl implements LinterContext {
       ),
     );
     return listener.hasConstError;
+  }
+
+  static List<String> getTestDirectories(p.Context pathContext) {
+    final separator = pathContext.separator;
+    return [
+      '${separator}test$separator',
+      '${separator}integration_test$separator',
+      '${separator}test_driver$separator',
+      '${separator}testing$separator',
+    ];
   }
 }
 

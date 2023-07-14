@@ -45,7 +45,7 @@ class InlayHintHandler
         return success([]);
       }
 
-      final computer = DartInlayHintComputer(result);
+      final computer = DartInlayHintComputer(pathContext, result);
       final hints = computer.compute();
 
       return success(hints);

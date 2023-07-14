@@ -306,7 +306,7 @@ class LegacyAnalysisServer extends AnalysisServer {
   );
 
   @override
-  final lspClientConfiguration = lsp.LspClientConfiguration();
+  final lsp.LspClientConfiguration lspClientConfiguration;
 
   /// A table mapping [FlutterService]s to the file paths for which these
   /// notifications should be sent.
@@ -393,7 +393,9 @@ class LegacyAnalysisServer extends AnalysisServer {
     // Disable to avoid using this in unit tests.
     bool enableBlazeWatcher = false,
     DartFixPromptManager? dartFixPromptManager,
-  }) : super(
+  })  : lspClientConfiguration =
+            lsp.LspClientConfiguration(baseResourceProvider.pathContext),
+        super(
           options,
           sdkManager,
           diagnosticServer,

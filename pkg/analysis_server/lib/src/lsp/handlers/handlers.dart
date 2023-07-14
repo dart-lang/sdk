@@ -19,6 +19,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
+import 'package:path/path.dart' as package_path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
 
@@ -71,6 +72,8 @@ mixin Handler<T> {
 /// Provides some helpers for request handlers to produce common errors or
 /// obtain resolved results after waiting for in-progress analysis.
 mixin HandlerHelperMixin<S extends AnalysisServer> {
+  package_path.Context get pathContext => server.resourceProvider.pathContext;
+
   S get server;
 
   ErrorOr<T> analysisFailedError<T>(String path) => error<T>(
@@ -78,6 +81,58 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
 
   ErrorOr<T> fileNotAnalyzedError<T>(String path) => error<T>(
       ServerErrorCodes.FileNotAnalyzed, 'File is not being analyzed', path);
+
+  /// Returns the file system path for a TextDocumentIdentifier.
+  ErrorOr<String> pathOfDoc(TextDocumentIdentifier doc) => pathOfUri(doc.uri);
+
+  /// Returns the file system path for a TextDocumentItem.
+  ErrorOr<String> pathOfDocItem(TextDocumentItem doc) => pathOfUri(doc.uri);
+
+  /// Returns the file system path for a file URI.
+  ErrorOr<String> pathOfUri(Uri? uri) {
+    if (uri == null) {
+      return ErrorOr<String>.error(ResponseError(
+        code: ServerErrorCodes.InvalidFilePath,
+        message: 'Document URI was not supplied',
+      ));
+    }
+    final isValidFileUri = uri.isScheme('file');
+    if (!isValidFileUri) {
+      return ErrorOr<String>.error(ResponseError(
+        code: ServerErrorCodes.InvalidFilePath,
+        message: 'URI was not a valid file:// URI',
+        data: uri.toString(),
+      ));
+    }
+    try {
+      final context = server.resourceProvider.pathContext;
+      final isWindows = context.style == package_path.Style.windows;
+
+      // Use toFilePath() here and not context.fromUri() because they're not
+      // quite the same. `toFilePath()` will throw for some kinds of invalid
+      // file URIs (such as those with fragments) that context.fromUri() does
+      // not. We want the stricter handling here.
+      final filePath = uri.toFilePath(windows: isWindows);
+      // On Windows, paths that start with \ and not a drive letter are not
+      // supported but will return `true` from `path.isAbsolute` so check for them
+      // specifically.
+      if (isWindows && filePath.startsWith(r'\')) {
+        return ErrorOr<String>.error(ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'URI was not an absolute file path (missing drive letter)',
+          data: uri.toString(),
+        ));
+      }
+      return ErrorOr<String>.success(filePath);
+    } catch (e) {
+      // Even if tryParse() works and file == scheme, fromUri() can throw on
+      // Windows if there are invalid characters.
+      return ErrorOr<String>.error(ResponseError(
+          code: ServerErrorCodes.InvalidFilePath,
+          message: 'File URI did not contain a valid file path',
+          data: uri.toString()));
+    }
+  }
 
   /// Attempts to get a [ResolvedLibraryResult] for the library the includes the
   /// file at [path] or an error.

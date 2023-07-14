@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:io';
-
 import 'package:analysis_server/lsp_protocol/protocol.dart' hide Declaration;
 import 'package:analysis_server/lsp_protocol/protocol.dart' as lsp;
 import 'package:analysis_server/src/collections.dart';
@@ -28,6 +26,7 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as package_path;
 
 const languageSourceName = 'dart';
 
@@ -96,13 +95,14 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 }
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
-WorkspaceEdit createRenameEdit(String oldPath, String newPath) {
+WorkspaceEdit createRenameEdit(
+    package_path.Context pathContext, String oldPath, String newPath) {
   final changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
   final rename = RenameFile(
-    oldUri: Uri.file(oldPath),
-    newUri: Uri.file(newPath),
+    oldUri: pathContext.toUri(oldPath),
+    newUri: pathContext.toUri(newPath),
   );
 
   final renameUnion =
@@ -485,12 +485,12 @@ WorkspaceEdit mergeWorkspaceEdits(List<WorkspaceEdit> edits) {
 }
 
 lsp.Location navigationTargetToLocation(
-  String targetFilePath,
+  Uri targetFileUri,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
   return lsp.Location(
-    uri: Uri.file(targetFilePath),
+    uri: targetFileUri,
     range: toRange(targetLineInfo, target.offset, target.length),
   );
 }
@@ -498,7 +498,7 @@ lsp.Location navigationTargetToLocation(
 lsp.LocationLink? navigationTargetToLocationLink(
   server.NavigationRegion region,
   server.LineInfo regionLineInfo,
-  String targetFilePath,
+  Uri targetFileUri,
   server.NavigationTarget target,
   server.LineInfo targetLineInfo,
 ) {
@@ -511,58 +511,14 @@ lsp.LocationLink? navigationTargetToLocationLink(
 
   return lsp.LocationLink(
     originSelectionRange: toRange(regionLineInfo, region.offset, region.length),
-    targetUri: Uri.file(targetFilePath),
+    targetUri: targetFileUri,
     targetRange: codeRange,
     targetSelectionRange: nameRange,
   );
 }
 
-/// Returns the file system path for a TextDocumentIdentifier.
-ErrorOr<String> pathOfDoc(lsp.TextDocumentIdentifier doc) => pathOfUri(doc.uri);
-
-/// Returns the file system path for a TextDocumentItem.
-ErrorOr<String> pathOfDocItem(lsp.TextDocumentItem doc) => pathOfUri(doc.uri);
-
-/// Returns the file system path for a file URI.
-ErrorOr<String> pathOfUri(Uri? uri) {
-  if (uri == null) {
-    return ErrorOr<String>.error(ResponseError(
-      code: lsp.ServerErrorCodes.InvalidFilePath,
-      message: 'Document URI was not supplied',
-    ));
-  }
-  final isValidFileUri = uri.isScheme('file');
-  if (!isValidFileUri) {
-    return ErrorOr<String>.error(ResponseError(
-      code: lsp.ServerErrorCodes.InvalidFilePath,
-      message: 'URI was not a valid file:// URI',
-      data: uri.toString(),
-    ));
-  }
-  try {
-    final filePath = uri.toFilePath();
-    // On Windows, paths that start with \ and not a drive letter are not
-    // supported but will return `true` from `path.isAbsolute` so check for them
-    // specifically.
-    if (Platform.isWindows && filePath.startsWith(r'\')) {
-      return ErrorOr<String>.error(ResponseError(
-        code: lsp.ServerErrorCodes.InvalidFilePath,
-        message: 'URI was not an absolute file path (missing drive letter)',
-        data: uri.toString(),
-      ));
-    }
-    return ErrorOr<String>.success(filePath);
-  } catch (e) {
-    // Even if tryParse() works and file == scheme, toFilePath() can throw on
-    // Windows if there are invalid characters.
-    return ErrorOr<String>.error(ResponseError(
-        code: lsp.ServerErrorCodes.InvalidFilePath,
-        message: 'File URI did not contain a valid file path',
-        data: uri.toString()));
-  }
-}
-
 lsp.Diagnostic pluginToDiagnostic(
+  package_path.Context pathContext,
   server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
@@ -572,8 +528,8 @@ lsp.Diagnostic pluginToDiagnostic(
   final contextMessages = error.contextMessages;
   if (contextMessages != null && contextMessages.isNotEmpty) {
     relatedInformation = contextMessages
-        .map((message) =>
-            pluginToDiagnosticRelatedInformation(getLineInfo, message))
+        .map((message) => pluginToDiagnosticRelatedInformation(
+            pathContext, getLineInfo, message))
         .whereNotNull()
         .toList();
   }
@@ -611,9 +567,11 @@ lsp.Diagnostic pluginToDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
+    package_path.Context pathContext,
     server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
   final file = message.location.file;
+  final uri = pathContext.toUri(file);
   final lineInfo = getLineInfo(file);
   // We shouldn't get context messages for something we can't get a LineInfo for
   // but if we did, it's better to omit the context than fail to send the errors.
@@ -622,7 +580,7 @@ lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
   }
   return lsp.DiagnosticRelatedInformation(
       location: lsp.Location(
-        uri: Uri.file(file),
+        uri: uri,
         // TODO(dantup): Switch to using line/col information from the context
         // message once confirmed that AnalyzerConverter is not using the wrong
         // LineInfo.
@@ -1037,12 +995,14 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
+  package_path.Context pathContext,
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
   required bool clientSupportsCodeDescription,
 }) {
   return pluginToDiagnostic(
+    pathContext,
     (_) => result.lineInfo,
     server.newAnalysisError_fromEngine(result, error),
     supportedTags: supportedTags,
@@ -1128,9 +1088,10 @@ List<lsp.DocumentHighlight> toHighlights(
       .toList();
 }
 
-lsp.Location toLocation(server.Location location, server.LineInfo lineInfo) =>
+lsp.Location toLocation(package_path.Context pathContext,
+        server.Location location, server.LineInfo lineInfo) =>
     lsp.Location(
-      uri: Uri.file(location.file),
+      uri: pathContext.toUri(location.file),
       range: toRange(
         lineInfo,
         location.offset,

@@ -50,9 +50,10 @@ class ReferencesHandler
 
     return convert(collector.targets, (NavigationTarget target) {
       final targetFilePath = collector.files[target.fileIndex];
+      final targetFileUri = pathContext.toUri(targetFilePath);
       final lineInfo = server.getLineInfo(targetFilePath);
       return lineInfo != null
-          ? navigationTargetToLocation(targetFilePath, target, lineInfo)
+          ? navigationTargetToLocation(targetFileUri, target, lineInfo)
           : null;
     }).whereNotNull().toList();
   }
@@ -82,7 +83,7 @@ class ReferencesHandler
         return null;
       }
       return Location(
-        uri: Uri.file(result.file),
+        uri: pathContext.toUri(result.file),
         range: toRange(
           file.lineInfo,
           result.sourceRange.offset,

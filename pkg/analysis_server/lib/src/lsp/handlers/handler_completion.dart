@@ -136,7 +136,6 @@ class CompletionHandler
     final offset = offsetResult.result;
 
     Future<ErrorOr<_CompletionResults>>? serverResultsFuture;
-    final pathContext = server.resourceProvider.pathContext;
     final fileExtension = pathContext.extension(path.result);
 
     final maxResults = server.lspClientConfiguration

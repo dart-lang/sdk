@@ -34,6 +34,8 @@ class JSValue {
   static JSValue? box(WasmExternRef? ref) =>
       isDartNull(ref) ? null : JSValue(ref);
 
+  static T boxT<T>(WasmExternRef? ref) => unsafeCastOpaque<T>(box(ref));
+
   // We need to handle the case of a nullable [JSValue] to match the semantics
   // of the JS backends.
   static WasmExternRef? unbox(JSValue? v) =>

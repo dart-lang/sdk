@@ -12,8 +12,9 @@ import '../analysis_server_base.dart';
 abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest {
   var _requestId = 0;
 
-  TextDocumentIdentifier get testFileIdentifier =>
-      TextDocumentIdentifier(uri: Uri.file(convertPath(testFilePath)));
+  TextDocumentIdentifier get testFileIdentifier => TextDocumentIdentifier(
+      uri:
+          server.resourceProvider.pathContext.toUri(convertPath(testFilePath)));
 
   Request createRequest(Method method, ToJsonable params) {
     return Request('${_requestId++}', method.toString(),

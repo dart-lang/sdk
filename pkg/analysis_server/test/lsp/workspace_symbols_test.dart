@@ -199,7 +199,7 @@ class WorkspaceSymbolsTest extends AbstractLspAnalysisServerTest {
     // Initialize with both projects as roots.
     await initialize(workspaceFolders: [
       projectFolderUri,
-      Uri.file(convertPath('/home/otherProject')),
+      pathContext.toUri(convertPath('/home/otherProject')),
     ]);
 
     // Search for something in the SDK that's referenced by both projects and

@@ -53,7 +53,7 @@ class DocumentColorHandler
       );
     }
 
-    final computer = ColorComputer(unit);
+    final computer = ColorComputer(unit, pathContext);
     final colors = computer.compute();
     return success(colors.map(toColorInformation).toList());
   }

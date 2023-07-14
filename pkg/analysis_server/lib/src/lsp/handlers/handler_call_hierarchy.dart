@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/lsp_protocol/protocol_generated.dart';
 import 'package:analysis_server/lsp_protocol/protocol_special.dart';
+import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/computer/computer_call_hierarchy.dart'
     as call_hierarchy;
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
@@ -327,7 +328,7 @@ abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
 }
 
 /// Utility methods used by all Call Hierarchy handlers.
-mixin _CallHierarchyUtils {
+mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
   /// A mapping from server kinds to LSP [SymbolKind]s.
   static const toSymbolKindMapping = {
     call_hierarchy.CallHierarchyKind.class_: SymbolKind.Class,
@@ -369,7 +370,7 @@ mixin _CallHierarchyUtils {
       name: item.displayName,
       detail: item.containerName,
       kind: toSymbolKind(supportedSymbolKinds, item.kind),
-      uri: Uri.file(item.file),
+      uri: pathContext.toUri(item.file),
       range: sourceRangeToRange(lineInfo, item.codeRange),
       selectionRange: sourceRangeToRange(lineInfo, item.nameRange),
     );
@@ -395,7 +396,7 @@ mixin _CallHierarchyUtils {
       displayName: item.name,
       containerName: item.detail,
       kind: fromSymbolKind(item.kind),
-      file: item.uri.toFilePath(),
+      file: pathContext.fromUri(item.uri),
       nameRange: nameRange.result,
       codeRange: codeRange.result,
     );

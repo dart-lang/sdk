@@ -128,7 +128,7 @@ class TypeDefinitionHandler extends LspMessageHandler<TypeDefinitionParams,
   /// Creates an LSP [Location] for the server [location].
   Location _toLocation(plugin.Location location, LineInfo lineInfo) {
     return Location(
-      uri: Uri.file(location.file),
+      uri: pathContext.toUri(location.file),
       range: toRange(lineInfo, location.offset, location.length),
     );
   }
@@ -156,7 +156,7 @@ class TypeDefinitionHandler extends LspMessageHandler<TypeDefinitionParams,
     return LocationLink(
       originSelectionRange:
           toRange(originLineInfo, originEntity.offset, originEntity.length),
-      targetUri: Uri.file(targetLocation.file),
+      targetUri: pathContext.toUri(targetLocation.file),
       targetRange: codeRange,
       targetSelectionRange: nameRange,
     );

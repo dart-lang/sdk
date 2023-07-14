@@ -18,7 +18,7 @@ class ClientConfigurationTest with ResourceProviderMixin {
   void test_folderConfig() {
     final folder = convertPath('/home/test');
     final file = convertPath('/home/test/file.dart');
-    final config = LspClientConfiguration();
+    final config = LspClientConfiguration(resourceProvider.pathContext);
     config.replace(
       {'lineLength': 100},
       {
@@ -30,7 +30,7 @@ class ClientConfigurationTest with ResourceProviderMixin {
 
   void test_folderConfig_globalFallback() {
     final file = convertPath('/home/test/file.dart');
-    final config = LspClientConfiguration();
+    final config = LspClientConfiguration(resourceProvider.pathContext);
     config.replace({'lineLength': 100}, {});
     // Should fall back to the global config.
     expect(config.forResource(file).lineLength, equals(100));
@@ -41,7 +41,7 @@ class ClientConfigurationTest with ResourceProviderMixin {
     final folderTwo = convertPath('/one/two');
     final folderThree = convertPath('/one/two/three');
     final file = convertPath('/one/two/three/file.dart');
-    final config = LspClientConfiguration();
+    final config = LspClientConfiguration(resourceProvider.pathContext);
     config.replace(
       {'lineLength': 50},
       {
@@ -55,7 +55,7 @@ class ClientConfigurationTest with ResourceProviderMixin {
   }
 
   void test_globalConfig() {
-    final config = LspClientConfiguration();
+    final config = LspClientConfiguration(resourceProvider.pathContext);
     config.replace({'lineLength': 100}, {});
     expect(config.global.lineLength, equals(100));
   }

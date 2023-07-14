@@ -9,6 +9,7 @@ import 'dart:io';
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/channel/lsp_byte_stream_channel.dart';
 import 'package:analysis_server/src/services/pub/pub_command.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart';
@@ -32,6 +33,9 @@ abstract class AbstractLspAnalysisServerIntegrationTest
   final _overlayContent = <Uri, String>{};
 
   LspByteStreamServerChannel get channel => client!.channel!;
+
+  @override
+  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
 
   @override
   Stream<Message> get serverToClient => client!.serverToClient;
@@ -171,6 +175,8 @@ class LspServerClient {
   Future<String> get devToolsLine => _devToolsLineCompleter.future;
 
   Future<int> get exitCode => _process!.exitCode;
+
+  Context get pathContext => PhysicalResourceProvider.INSTANCE.pathContext;
 
   Stream<Message> get serverToClient => _serverToClient.stream;
 

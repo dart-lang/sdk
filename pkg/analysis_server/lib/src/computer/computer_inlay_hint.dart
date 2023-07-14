@@ -14,6 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:path/path.dart' as package_path;
 
 /// A computer for LSP Inlay Hints.
 ///
@@ -21,12 +22,13 @@ import 'package:analyzer/source/line_info.dart';
 /// argument names where they are not already explicitly present in the source
 /// but are being inferred.
 class DartInlayHintComputer {
+  final package_path.Context pathContext;
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final bool _isNonNullableByDefault;
   final List<InlayHint> _hints = [];
 
-  DartInlayHintComputer(ResolvedUnitResult result)
+  DartInlayHintComputer(this.pathContext, ResolvedUnitResult result)
       : _unit = result.unit,
         _lineInfo = result.lineInfo,
         _isNonNullableByDefault = result.unit.isNonNullableByDefault;
@@ -203,7 +205,7 @@ class DartInlayHintComputer {
       return null;
     }
     return Location(
-      uri: Uri.file(path),
+      uri: pathContext.toUri(path),
       range: toRange(lineInfo, element.nameOffset, element.nameLength),
     );
   }

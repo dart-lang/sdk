@@ -331,13 +331,18 @@ extension Float64ListToJSFloat64Array on Float64List {
 @patch
 extension JSArrayToList on JSArray {
   @patch
-  List<JSAny?> get toDart => toDartListJSAny(toExternRef);
+  List<JSAny?> get toDart => js_types.JSArrayImpl(toExternRef);
 }
 
 @patch
 extension ListToJSArray on List<JSAny?> {
   @patch
-  JSArray get toJS => toJSArray(this);
+  JSArray get toJS {
+    final t = this;
+    return t is js_types.JSArrayImpl
+        ? JSValue.boxT<JSArray>(t.toExternRef)
+        : toJSArray(this);
+  }
 }
 
 /// [JSNumber] -> [double] or [int].

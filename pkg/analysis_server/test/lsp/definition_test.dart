@@ -42,7 +42,7 @@ class DefinitionTest extends AbstractLspAnalysisServerTest {
     ''';
 
     final referencedFileUri =
-        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
@@ -266,7 +266,7 @@ class A {
   Future<void> test_fromPlugins() async {
     if (!AnalysisServer.supportsPlugins) return;
     final pluginAnalyzedFilePath = join(projectFolderPath, 'lib', 'foo.foo');
-    final pluginAnalyzedFileUri = Uri.file(pluginAnalyzedFilePath);
+    final pluginAnalyzedFileUri = pathContext.toUri(pluginAnalyzedFilePath);
     final pluginResult = plugin.AnalysisGetNavigationResult(
       [pluginAnalyzedFilePath],
       [NavigationTarget(ElementKind.CLASS, 0, 0, 5, 0, 0)],
@@ -338,7 +338,7 @@ foo(int m) {
     ''';
 
     final referencedFileUri =
-        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
     await initialize(
         textDocumentCapabilities:
@@ -381,7 +381,7 @@ foo(int m) {
     ''';
 
     final referencedFileUri =
-        Uri.file(join(projectFolderPath, 'lib', 'referenced.dart'));
+        toUri(join(projectFolderPath, 'lib', 'referenced.dart'));
 
     await initialize(
         textDocumentCapabilities:
@@ -437,8 +437,8 @@ foo(int m) {
     void otherUnrelatedFunction() {}
     ''';
 
-    final libFileUri = Uri.file(join(projectFolderPath, 'lib', 'lib.dart'));
-    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+    final libFileUri = toUri(join(projectFolderPath, 'lib', 'lib.dart'));
+    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
     await initialize(
         textDocumentCapabilities:
@@ -469,7 +469,7 @@ part 'pa^rt.dart';
 part of 'main.dart';
     ''';
 
-    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));
@@ -489,7 +489,7 @@ part 'part.dart';
 part of 'ma^in.dart';
     ''';
 
-    final partFileUri = Uri.file(join(projectFolderPath, 'lib', 'part.dart'));
+    final partFileUri = toUri(join(projectFolderPath, 'lib', 'part.dart'));
 
     await initialize();
     await openFile(mainFileUri, withoutMarkers(mainContents));

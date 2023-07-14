@@ -599,7 +599,7 @@ class MyClass {
   Future<void> test_rename_multipleFiles() async {
     final referencedFilePath =
         join(projectFolderPath, 'lib', 'referenced.dart');
-    final referencedFileUri = Uri.file(referencedFilePath);
+    final referencedFileUri = pathContext.toUri(referencedFilePath);
     const mainContent = '''
 import 'referenced.dart';
 final a = new My^Class();
@@ -953,7 +953,7 @@ final a = new MyNewClass();
   }) async {
     filePath ??= mainFilePath;
     expectedFilePath ??= filePath;
-    final fileUri = Uri.file(filePath);
+    final fileUri = pathContext.toUri(filePath);
 
     // The specific number doesn't matter here, it's just a placeholder to confirm
     // the values match.

@@ -215,9 +215,10 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
   Location? _toLocation(
       AnalysisNavigationParams mergedResults, NavigationTarget target) {
     final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetFileUri = pathContext.toUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
     return targetLineInfo != null
-        ? navigationTargetToLocation(targetFilePath, target, targetLineInfo)
+        ? navigationTargetToLocation(targetFileUri, target, targetLineInfo)
         : null;
   }
 
@@ -225,11 +226,12 @@ class DefinitionHandler extends LspMessageHandler<TextDocumentPositionParams,
       LineInfo sourceLineInfo, NavigationTarget target) {
     final region = mergedResults.regions.first;
     final targetFilePath = mergedResults.files[target.fileIndex];
+    final targetFileUri = pathContext.toUri(targetFilePath);
     final targetLineInfo = server.getLineInfo(targetFilePath);
 
     return targetLineInfo != null
         ? navigationTargetToLocationLink(
-            region, sourceLineInfo, targetFilePath, target, targetLineInfo)
+            region, sourceLineInfo, targetFileUri, target, targetLineInfo)
         : null;
   }
 

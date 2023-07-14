@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:path/path.dart' as path;
+import 'package:path/path.dart' as package_path;
 
 /// A class for interacting with the `pub` command.
 ///
@@ -25,6 +25,7 @@ class PubCommand {
       'DART_SERVER_DISABLE_PUB_COMMAND';
 
   final InstrumentationService _instrumentationService;
+  final package_path.Context _pathContext;
   late final ProcessRunner _processRunner;
   late final String _pubEnvironmentValue;
 
@@ -40,7 +41,8 @@ class PubCommand {
   /// tools (such as the IDE).
   var _lastQueuedCommand = Future<void>.value();
 
-  PubCommand(this._instrumentationService, this._processRunner) {
+  PubCommand(
+      this._instrumentationService, this._pathContext, this._processRunner) {
     // When calling the `pub` command, we must add an identifier to the
     // PUB_ENVIRONMENT environment variable (joined with colons).
     const pubEnvString = 'analysis_server.pub_api';
@@ -56,7 +58,7 @@ class PubCommand {
   /// If any error occurs executing the command, returns an empty list.
   Future<List<PubOutdatedPackageDetails>> outdatedVersions(
       String pubspecPath) async {
-    final packageDirectory = path.dirname(pubspecPath);
+    final packageDirectory = _pathContext.dirname(pubspecPath);
     final result = await _runPubJsonCommand(
         ['outdated', '--show-all', '--json'],
         workingDirectory: packageDirectory);
