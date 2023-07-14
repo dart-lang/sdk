@@ -2051,44 +2051,28 @@
           "name": "ddc sdk tests unsound",
           "arguments": [
             "-nddc-linux-chrome-unsound",
+            "co19",
             "corelib",
             "dartdevc",
             "language",
             "lib",
             "web"
           ],
-          "shards": 6,
+          "shards": 12,
           "fileset": "js_platform"
         },
         {
           "name": "ddc sdk _2 tests",
           "arguments": [
             "-nddc-linux-chrome-unsound_2",
+            "co19_2",
             "corelib_2",
             "dartdevc_2",
             "language_2",
             "lib_2",
             "web_2"
           ],
-          "shards": 6,
-          "fileset": "js_platform_2"
-        },
-        {
-          "name": "ddc co19 tests unsound",
-          "arguments": [
-            "-nddc-linux-chrome-unsound",
-            "co19"
-          ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19_2 tests",
-          "arguments": [
-            "-nddc-linux-chrome-unsound_2",
-            "co19_2"
-          ],
-          "shards": 6,
+          "shards": 12,
           "fileset": "js_platform_2"
         },
         {
