@@ -89,6 +89,13 @@ class ElementPrinter {
     }
   }
 
+  void writeElementList(String name, List<Element> elements) {
+    _sink.writeElements(name, elements, (element) {
+      _sink.writeIndent();
+      writeElement(element);
+    });
+  }
+
   void writeNamedElement(String name, Element? element) {
     _sink.writeWithIndent('$name: ');
     writeElement(element);

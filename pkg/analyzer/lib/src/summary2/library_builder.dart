@@ -29,6 +29,62 @@ import 'package:analyzer/src/summary2/types_builder.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
+class AugmentedClassDeclarationBuilder
+    extends AugmentedInstanceDeclarationBuilder {
+  final ClassElementImpl declaration;
+  ClassOrAugmentationElementMixin target;
+
+  AugmentedClassDeclarationBuilder({
+    required this.declaration,
+  }) : target = declaration {
+    addMethods(declaration.methods);
+  }
+
+  void augment(ClassAugmentationElementImpl element) {
+    element.augmentationTarget = target;
+    target.augmentation = element;
+    target = element;
+    addMethods(element.methods);
+  }
+}
+
+abstract class AugmentedInstanceDeclarationBuilder {
+  final Map<String, MethodElementImpl> methods = {};
+
+  void addMethods(List<MethodElementImpl> elements) {
+    for (final element in elements) {
+      final name = element.name;
+      final existing = methods[name];
+      if (existing != null) {
+        existing.augmentation = element;
+        element.maybeAugmentation = AugmentationMethodElementImpl(
+          augmentationTarget: existing,
+        );
+      }
+      methods[name] = element;
+    }
+  }
+}
+
+class AugmentedMixinDeclarationBuilder
+    extends AugmentedInstanceDeclarationBuilder {
+  final MixinElementImpl declaration;
+  MixinOrAugmentationElementMixin target;
+
+  AugmentedMixinDeclarationBuilder({
+    required this.declaration,
+  }) : target = declaration {
+    addMethods(declaration.methods);
+  }
+
+  void augment(MixinAugmentationElementImpl element) {
+    element.augmentationTarget = target;
+    target.augmentation = element;
+    target = element;
+    addMethods(element.methods);
+  }
+}
+
 class DefiningLinkingUnit extends LinkingUnit {
   DefiningLinkingUnit({
     required super.reference,
@@ -61,7 +117,8 @@ class LibraryBuilder {
   final List<ImplicitEnumNodes> implicitEnumNodes = [];
 
   /// The top-level elements that can be augmented.
-  final Map<String, ElementImpl> _augmentationTargets = {};
+  final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
+      {};
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -406,12 +463,15 @@ class LibraryBuilder {
     );
   }
 
-  ElementImpl? getAugmentationTarget(String name) {
-    return _augmentationTargets[name];
+  AugmentedInstanceDeclarationBuilder? getAugmentedBuilder(String name) {
+    return _augmentedBuilders[name];
   }
 
-  void putAugmentationTarget(String name, ElementImpl element) {
-    _augmentationTargets[name] = element;
+  void putAugmentedBuilder(
+    String name,
+    AugmentedInstanceDeclarationBuilder element,
+  ) {
+    _augmentedBuilders[name] = element;
   }
 
   void resolveConstructors() {

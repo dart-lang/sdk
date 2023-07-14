@@ -1683,6 +1683,13 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
+    element.augmentation = reader.readElement() as MethodElementImpl?;
+    if (reader.readBool()) {
+      final target = reader.readElement() as MethodElementImpl?;
+      element.maybeAugmentation = AugmentationMethodElementImpl(
+        augmentationTarget: target,
+      );
+    }
     applyConstantOffsets?.perform();
   }
 }

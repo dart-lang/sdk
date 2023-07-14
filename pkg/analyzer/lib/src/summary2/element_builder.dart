@@ -109,15 +109,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    switch (_libraryBuilder.getAugmentationTarget(name)) {
-      case ClassOrAugmentationElementMixin target:
-        element.augmentationTarget = target;
-        target.augmentation = element;
-    }
-
     final reference = _enclosingContext.addClassAugmentation(name, element);
     _libraryBuilder.declare(name, reference);
-    _libraryBuilder.putAugmentationTarget(name, element);
 
     final holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -139,6 +132,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.constructors = holder.constructors;
     element.fields = holder.fields;
     element.methods = holder.methods;
+
+    switch (_libraryBuilder.getAugmentedBuilder(name)) {
+      case AugmentedClassDeclarationBuilder builder:
+        builder.augment(element);
+    }
 
     // TODO(scheglov) We cannot do this anymore.
     // Not for class augmentations, not for classes.
@@ -172,7 +170,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var reference = _enclosingContext.addClass(name, element);
     _libraryBuilder.declare(name, reference);
-    _libraryBuilder.putAugmentationTarget(name, element);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -187,6 +184,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.withClause?.accept(this);
     node.implementsClause?.accept(this);
     _buildClass(node);
+
+    _libraryBuilder.putAugmentedBuilder(
+      name,
+      AugmentedClassDeclarationBuilder(
+        declaration: element,
+      ),
+    );
   }
 
   @override
@@ -936,15 +940,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.declaredElement = element;
     _linker.elementNodes[element] = node;
 
-    switch (_libraryBuilder.getAugmentationTarget(name)) {
-      case MixinOrAugmentationElementMixin target:
-        element.augmentationTarget = target;
-        target.augmentation = element;
-    }
-
     final reference = _enclosingContext.addMixinAugmentation(name, element);
     _libraryBuilder.declare(name, reference);
-    _libraryBuilder.putAugmentationTarget(name, element);
 
     final holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -965,6 +962,11 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.accessors = holder.propertyAccessors;
     element.fields = holder.fields;
     element.methods = holder.methods;
+
+    switch (_libraryBuilder.getAugmentedBuilder(name)) {
+      case AugmentedMixinDeclarationBuilder builder:
+        builder.augment(element);
+    }
   }
 
   @override
@@ -983,7 +985,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
     var reference = _enclosingContext.addMixin(name, element);
     _libraryBuilder.declare(name, reference);
-    _libraryBuilder.putAugmentationTarget(name, element);
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -997,6 +998,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.onClause?.accept(this);
     node.implementsClause?.accept(this);
     _buildMixin(node);
+
+    _libraryBuilder.putAugmentedBuilder(
+      name,
+      AugmentedMixinDeclarationBuilder(
+        declaration: element,
+      ),
+    );
   }
 
   @override

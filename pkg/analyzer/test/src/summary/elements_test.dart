@@ -19,9 +19,27 @@ import 'elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementsKeepLinkingTest);
+    defineReflectiveTests(ClassAugmentationElementsKeepLinkingTest);
+    defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
+    defineReflectiveTests(ClassAugmentationElementsFromBytesTest);
+    defineReflectiveTests(MixinAugmentationElementsFromBytesTest3);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
+}
+
+@reflectiveTest
+class ClassAugmentationElementsFromBytesTest extends ElementsBaseTest
+    with ClassAugmentationElementsMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ClassAugmentationElementsKeepLinkingTest extends ElementsBaseTest
+    with ClassAugmentationElementsMixin {
+  @override
+  bool get keepLinkingLibraries => true;
 }
 
 mixin ClassAugmentationElementsMixin on ElementsBaseTest {
@@ -375,9 +393,8 @@ library
             returnType: void
         augmented
           methods
-            foo @42
-              returnType: void
             self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+            self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -388,6 +405,122 @@ library
             methods
               bar @54
                 returnType: void
+''');
+  }
+
+  test_augmented_methods_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A {
+  augment void foo1() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo1() {}
+  void foo2() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        methods
+          foo1 @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
+          foo2 @59
+            returnType: void
+        augmented
+          methods
+            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
+            self::@class::A::@method::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            methods
+              foo1 @62
+                returnType: void
+                maybeAugmentation
+                  augmentationTarget: self::@class::A::@method::foo1
+''');
+  }
+
+  test_augmented_methods_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment class A {
+  augment void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment class A {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        methods
+          foo @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+        augmented
+          methods
+            self::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @68
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            methods
+              foo @87
+                returnType: void
+                maybeAugmentation
+                  augmentationTarget: self::@class::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classAugmentations
+              augment class A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
+                augmentedDeclaration: self::@class::A
+                methods
+                  foo @59
+                    returnType: void
+                    maybeAugmentation
+                      augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
 ''');
   }
 
@@ -422,11 +555,10 @@ library
             returnType: T
         augmented
           methods
-            foo @42
-              returnType: T
             MethodMember
               base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
               substitution: {T2: T}
+            self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -440,6 +572,59 @@ library
             methods
               bar @56
                 returnType: T2
+''');
+  }
+
+  test_augmented_methods_generic_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> {
+  augment T2 foo() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class A<T> {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        constructors
+          synthetic @-1
+        methods
+          foo @42
+            returnType: T
+            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+        augmented
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+              substitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classAugmentations
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            augmentedDeclaration: self::@class::A
+            methods
+              foo @64
+                returnType: T2
+                maybeAugmentation
+                  augmentationTarget: self::@class::A::@method::foo
 ''');
   }
 
@@ -838,15 +1023,13 @@ library
 }
 
 @reflectiveTest
-class ElementsFromBytesTest extends ElementsTest
-    with ClassAugmentationElementsMixin, MixinAugmentationElementsMixin {
+class ElementsFromBytesTest extends ElementsTest {
   @override
   bool get keepLinkingLibraries => false;
 }
 
 @reflectiveTest
-class ElementsKeepLinkingTest extends ElementsTest
-    with ClassAugmentationElementsMixin, MixinAugmentationElementsMixin {
+class ElementsKeepLinkingTest extends ElementsTest {
   @override
   bool get keepLinkingLibraries => true;
 }
@@ -45391,6 +45574,20 @@ library
   }
 }
 
+@reflectiveTest
+class MixinAugmentationElementsFromBytesTest3 extends ElementsBaseTest
+    with MixinAugmentationElementsMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class MixinAugmentationElementsKeepLinkingTest extends ElementsBaseTest
+    with MixinAugmentationElementsMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
 mixin MixinAugmentationElementsMixin on ElementsBaseTest {
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a.dart', r'''
@@ -45588,9 +45785,8 @@ library
           superclassConstraints
             Object
           methods
-            foo @42
-              returnType: void
             self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+            self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -45601,6 +45797,126 @@ library
             methods
               bar @54
                 returnType: void
+''');
+  }
+
+  test_augmented_methods_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {
+  augment void foo1() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  void foo1() {}
+  void foo2() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo1 @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+          foo2 @59
+            returnType: void
+        augmented
+          superclassConstraints
+            Object
+          methods
+            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+            self::@mixin::A::@method::foo2
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            methods
+              foo1 @62
+                returnType: void
+                maybeAugmentation
+                  augmentationTarget: self::@mixin::A::@method::foo1
+''');
+  }
+
+  test_augmented_methods_augment2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment mixin A {
+  augment void foo() {}
+}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment mixin A {
+  augment void foo() {}
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {
+  void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo @42
+            returnType: void
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+        augmented
+          superclassConstraints
+            Object
+          methods
+            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @68
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            methods
+              foo @87
+                returnType: void
+                maybeAugmentation
+                  augmentationTarget: self::@mixin::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            mixinAugmentations
+              augment mixin A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+                augmentedDeclaration: self::@mixin::A
+                methods
+                  foo @59
+                    returnType: void
+                    maybeAugmentation
+                      augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
 ''');
   }
 
@@ -45637,11 +45953,10 @@ library
           superclassConstraints
             Object
           methods
-            foo @42
-              returnType: T
             MethodMember
               base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
               substitution: {T2: T}
+            self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
@@ -45654,6 +45969,60 @@ library
             methods
               bar @56
                 returnType: T2
+''');
+  }
+
+  test_augmented_methods_generic_augment() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A<T2> {
+  augment T2 foo() => throw 0;
+}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A<T> {
+  T foo() => throw 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        typeParameters
+          covariant T @33
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        superclassConstraints
+          Object
+        methods
+          foo @42
+            returnType: T
+            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+        augmented
+          superclassConstraints
+            Object
+          methods
+            MethodMember
+              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+              substitution: {T2: T}
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixinAugmentations
+          augment mixin A @43
+            typeParameters
+              covariant T2 @45
+            augmentationTarget: self::@mixin::A
+            augmentedDeclaration: self::@mixin::A
+            methods
+              foo @64
+                returnType: T2
+                maybeAugmentation
+                  augmentationTarget: self::@mixin::A::@method::foo
 ''');
   }
 
