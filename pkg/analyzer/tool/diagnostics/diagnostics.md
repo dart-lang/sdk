@@ -14419,7 +14419,7 @@ String f(E e) => [!switch!] (e) {
 
 #### Common fixes
 
-Add a case for each of the constants that aren't currently being matched:
+Add a case for each of the values missing a match:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14431,7 +14431,7 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-If the missing values don't need to be matched, then add  a wildcard
+If the missing values don't need to be matched, then add a wildcard
 pattern:
 
 {% prettify dart tag=pre+code %}
@@ -14444,9 +14444,9 @@ String f(E e) => switch (e) {
   };
 {% endprettify %}
 
-But be aware that adding a wildcard pattern will cause any future values
-of the type to also be handled, so you will have lost the ability for the
-compiler to warn you if the `switch` needs to be updated.
+Be aware that a wildcard pattern will handle any values added to the type
+in the future. You will lose the ability to have the compiler warn you if
+the `switch` needs to be updated to account for newly added types.
 
 ### non_exhaustive_switch_statement
 
@@ -16434,15 +16434,15 @@ _Object patterns can only use named fields._
 #### Description
 
 The analyzer produces this diagnostic when an object pattern contains a
-field that doesn't have a getter name. The fields provide a pattern to
-match against the value returned by a getter, and not specifying the name
-of the getter means that there's no way to access the value that the
-pattern is intended to match against.
+field without specifying the getter name. Object pattern fields match
+against values that the object's getters return. Without a getter name
+specified, the pattern field can't access a value to attempt to match against. 
 
 #### Example
 
 The following code produces this diagnostic because the object pattern
-`String(1)` doesn't say which value to compare with `1`:
+`String(1)` doesn't specify which getter of `String` to access and compare 
+with the value `1`:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -16452,8 +16452,8 @@ void f(Object o) {
 
 #### Common fixes
 
-Add both the name of the getter to use to access the value and a colon
-before the value:
+Add the getter name (same as the field name) to access the value, followed
+by a colon before the value to match against:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -17693,14 +17693,14 @@ _A map pattern can't contain a rest pattern._
 #### Description
 
 The analyzer produces this diagnostic when a map pattern contains a rest
-pattern. The matching for map patterns already allows the map to have
-more keys than those explicitly given in the pattern, so a rest pattern
-wouldn't add anything.
+pattern. Map patterns will already match a map with more keys
+than those explicitly given in the pattern (as long as the given keys match),
+so a rest pattern is unnecesssary.
 
 #### Example
 
-The following code produces this diagnostic because there's a rest
-pattern in a map pattern:
+The following code produces this diagnostic because the map pattern contains
+a rest pattern:
 
 {% prettify dart tag=pre+code %}
 void f(Map<int, String> x) {
