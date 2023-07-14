@@ -2351,6 +2351,15 @@
           ]
         },
         {
+          "name": "dart2js unit tests",
+          "arguments": [
+            "-nweb-unittest-asserts-linux",
+            "pkg//compiler/"
+          ],
+          "shards": 4,
+          "fileset": "js_platform_2"
+        },
+        {
           "name": "dart2js legacy modular tests",
           "script": "out/ReleaseX64/dart-sdk/bin/dart",
           "testRunner": true,
@@ -2378,15 +2387,6 @@
             "-nweb-unittest-asserts-linux",
             "pkg//js_runtime/"
           ]
-        },
-        {
-          "name": "dart2js unit tests",
-          "arguments": [
-            "-nweb-unittest-asserts-linux",
-            "pkg//compiler/"
-          ],
-          "shards": 3,
-          "fileset": "js_platform_2"
         }
       ]
     },
