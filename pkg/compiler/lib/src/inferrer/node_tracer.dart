@@ -564,6 +564,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     return cls != null && cls.isClosure;
   }
 
+  bool isAsync(MemberEntity element) =>
+      element is FunctionEntity && element.asyncMarker == AsyncMarker.ASYNC;
+
   @override
   void visitMemberTypeInformation(MemberTypeInformation info) {
     if (info.isClosurized) {
@@ -571,6 +574,9 @@ abstract class TracerVisitor implements TypeInformationVisitor {
     }
     if (isClosure(info.member)) {
       bailout('Returned from a closure');
+    }
+    if (isAsync(info.member)) {
+      bailout('Returned from an async method');
     }
 
     final member = info.member;
