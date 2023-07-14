@@ -1853,22 +1853,14 @@
           "name": "ddc sdk tests",
           "arguments": [
             "-nddc-${system}-chrome",
+            "co19",
             "corelib",
             "dartdevc",
             "language",
             "lib",
             "web"
           ],
-          "shards": 6,
-          "fileset": "js_platform"
-        },
-        {
-          "name": "ddc co19 tests",
-          "arguments": [
-            "-nddc-${system}-chrome",
-            "co19"
-          ],
-          "shards": 6,
+          "shards": 12,
           "fileset": "js_platform"
         },
         {
