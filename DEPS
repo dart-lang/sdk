@@ -49,7 +49,7 @@ vars = {
   # cipd package used to run Dart scripts in the build and test infrastructure,
   # which is automatically built on the release commits.
   # Use a dev commit because Windows ARM64 is not built on beta or stable.
-  "sdk_tag": "version:3.1.0-155.0.dev",
+  "sdk_tag": "version:3.1.0-298.0.dev",
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
