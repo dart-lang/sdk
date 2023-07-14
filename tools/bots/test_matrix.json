@@ -2666,7 +2666,7 @@
             "lib",
             "web"
           ],
-          "shards": 10,
+          "shards": 8,
           "fileset": "dart2wasm_hostasserts"
         }
       ]

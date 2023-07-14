@@ -77,6 +77,7 @@ for command; do
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=ia32 create_sdk runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot
   elif [ "$command" = linux-ia32-archive ]; then
+    export GZIP=-1
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -180,18 +181,14 @@ EOF
     out/ReleaseIA32/run_vm_tests --dfe=out/ReleaseIA32/kernel-service.dart.snapshot --sound-null-safety UseDartApi
     out/ReleaseIA32/dart --profile-period=10000 benchmarks/Example/dart/Example.dart
     out/ReleaseIA32/dart --sound-null-safety --profile-period=10000 benchmarks/Example/dart/Example.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/NativeCall/dart/NativeCall.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiBoringssl/dart/FfiBoringssl.dart
     out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiAsTypedList/dart/FfiAsTypedList.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiCall/dart/FfiCall.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiMemory/dart/FfiMemory.dart
-    out/ReleaseIA32/dart --sound-null-safety benchmarks/FfiStruct/dart/FfiStruct.dart
     cd ..
     rm -rf tmp
   elif [ "$command" = linux-x64-build ]; then
     # NOTE: These are duplicated in tools/bots/test_matrix.json, keep in sync.
     ./tools/build.py --mode=release --arch=x64 create_sdk runtime gen_snapshot dart_precompiled_runtime dart2js_platform.dill dart2js_platform_unsound.dill kernel-service.dart.snapshot dartdevc_test dart2wasm_benchmark
   elif [ "$command" = linux-x64-archive ]; then
+    export GZIP=-1
     strip -w \
       -K 'kDartVmSnapshotData' \
       -K 'kDartVmSnapshotInstructions' \
@@ -339,10 +336,6 @@ EOF
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --no-sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/dev_compiler/tool/ddb -r d8 -b third_party/d8/linux/x64/d8 --sound-null-safety --mode=compile --compile-vm-options=--print-metrics --out out.js hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart parse hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/perf.dart scan hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart kernel_gen_e2e hello.dart
-    out/ReleaseX64/dart pkg/front_end/tool/fasta_perf.dart scan hello.dart
     out/ReleaseX64/dart-sdk/bin/dart pkg/analysis_server/benchmark/benchmarks.dart run --quick --repeat 1 analysis-server-cold
     echo '[{"name":"foo","edits":[["pkg/compiler/lib/src/dart2js.dart","2016","2017"],["pkg/compiler/lib/src/options.dart","2016","2017"]]}]' > appjit_train_edits.json
     out/ReleaseX64/dart --background-compilation=false --snapshot-kind=app-jit --snapshot=pkg/front_end/tool/incremental_perf.dart.appjit pkg/front_end/tool/incremental_perf.dart --target=vm --sdk-summary=out/ReleaseX64/vm_platform_strong.dill --sdk-library-specification=sdk/lib/libraries.json pkg/compiler/lib/src/dart2js.dart appjit_train_edits.json
