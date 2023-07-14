@@ -782,7 +782,17 @@ class InferrerEngine {
       _progress.showProgress('Inferred ', _overallRefineCount, ' types.');
       TypeInformation info = _workQueue.remove();
       AbstractValue oldType = info.type;
-      AbstractValue newType = info.refine(this);
+
+      // In order to ensure that types are always getting wider we union the old
+      // and new refined types. This ensures that we do not get caught in any
+      // refinement loops that can arise from horizontal or downward
+      // (i.e. narrowing) moves in the type lattice.
+      //
+      // This tends to produce comparable results to not doing the union and
+      // often with fewer refine steps since the natural progression of these
+      // refines is to take us up the lattice anyway.
+      AbstractValue newType =
+          abstractValueDomain.union(oldType, info.refine(this));
       // Check that refinement has not accidentally changed the type.
       assert(oldType == info.type);
       if (info.abandonInferencing) info.doNotEnqueue = true;
