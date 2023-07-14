@@ -1078,19 +1078,12 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 8
-        },
-        {
-          "name": "vm co19 tests",
-          "arguments": [
             "-nvm-${system}-${mode}-${arch}",
+            "--default-suites",
             "co19"
           ],
           "fileset": "vm",
-          "shards": 8
+          "shards": 16
         }
       ]
     },
@@ -1121,19 +1114,12 @@
         {
           "name": "vm tests",
           "arguments": [
-            "-nvm-aot-${system}-${mode}-${arch}"
-          ],
-          "fileset": "vm",
-          "shards": 8
-        },
-        {
-          "name": "vm co19 tests",
-          "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
+            "--default-suites",
             "co19"
           ],
           "fileset": "vm",
-          "shards": 12
+          "shards": 20
         }
       ]
     },
