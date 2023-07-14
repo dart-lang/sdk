@@ -768,7 +768,7 @@ class KernelCompilationRequest : public ValueObject {
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile,
-      bool snapshot_compile,
+      bool for_app_jit_snapshot,
       const char* package_config,
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
@@ -826,7 +826,7 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_snapshot;
     dart_snapshot.type = Dart_CObject_kBool;
-    dart_snapshot.value.as_bool = snapshot_compile;
+    dart_snapshot.value.as_bool = for_app_jit_snapshot;
 
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
@@ -1103,7 +1103,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile,
-    bool snapshot_compile,
+    bool for_app_jit_snapshot,
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme,
@@ -1130,7 +1130,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
-      incremental_compile, snapshot_compile, package_config,
+      incremental_compile, for_app_jit_snapshot, package_config,
       multiroot_filepaths, multiroot_scheme, experimental_flags_, nullptr,
       verbosity);
 }

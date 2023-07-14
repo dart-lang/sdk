@@ -82,6 +82,7 @@ CompilerOptions setupCompilerOptions(
     FileSystem fileSystem,
     Uri? platformKernelPath,
     bool enableAsserts,
+    bool embedSources,
     bool nullSafety,
     List<String>? experimentalFlags,
     Uri? packagesUri,
@@ -104,6 +105,7 @@ CompilerOptions setupCompilerOptions(
         soundNullSafety: nullSafety, supportMirrors: enableMirrors))
     ..packagesFileUri = packagesUri
     ..sdkSummary = platformKernelPath
+    ..embedSourceText = embedSources
     ..verbose = verbose
     ..omitPlatform = false // so that compilation results can be rejected,
     // which potentially is only relevant for
@@ -156,6 +158,7 @@ abstract class Compiler {
   final FileSystem fileSystem;
   final Uri? platformKernelPath;
   final bool enableAsserts;
+  final bool embedSources;
   final bool nullSafety;
   final List<String>? experimentalFlags;
   final String? packageConfig;
@@ -175,6 +178,7 @@ abstract class Compiler {
 
   Compiler(this.isolateGroupId, this.fileSystem, this.platformKernelPath,
       {this.enableAsserts = false,
+      this.embedSources = true,
       this.nullSafety = true,
       this.experimentalFlags = null,
       this.supportCodeCoverage = false,
@@ -200,6 +204,7 @@ abstract class Compiler {
         fileSystem,
         platformKernelPath,
         enableAsserts,
+        embedSources,
         nullSafety,
         experimentalFlags,
         packagesUri,
@@ -385,6 +390,7 @@ class SingleShotCompilerWrapper extends Compiler {
       int isolateGroupId, FileSystem fileSystem, Uri platformKernelPath,
       {this.requireMain = false,
       bool enableAsserts = false,
+      bool embedSources = true,
       bool nullSafety = true,
       List<String>? experimentalFlags,
       String? packageConfig,
@@ -393,6 +399,7 @@ class SingleShotCompilerWrapper extends Compiler {
       required bool enableMirrors})
       : super(isolateGroupId, fileSystem, platformKernelPath,
             enableAsserts: enableAsserts,
+            embedSources: embedSources,
             nullSafety: nullSafety,
             experimentalFlags: experimentalFlags,
             packageConfig: packageConfig,
@@ -776,7 +783,7 @@ Future _processLoadRequest(request) async {
   final Uri? script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool snapshot = request[5];
+  final bool forAppJitSnapshot = request[5];
   final bool nullSafety = request[6];
   final List sourceFiles = request[8];
   final bool enableAsserts = request[9];
@@ -799,7 +806,7 @@ Future _processLoadRequest(request) async {
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
 
-  final String invocationModes = snapshot ? 'compile' : '';
+  final String invocationModes = forAppJitSnapshot ? 'compile' : '';
 
   Compiler? compiler;
 
@@ -866,11 +873,13 @@ Future _processLoadRequest(request) async {
         enableMirrors: enableMirrors);
     fileSystem = compiler.fileSystem;
   } else {
+    final embedSources = !forAppJitSnapshot;
     fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(
         isolateGroupId, fileSystem, platformKernelPath,
         requireMain: false,
+        embedSources: embedSources,
         enableAsserts: enableAsserts,
         nullSafety: nullSafety,
         experimentalFlags: experimentalFlags,
@@ -1122,7 +1131,7 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* snapshot */,
+    false /* for_app_jit_snapshot */,
     true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,
