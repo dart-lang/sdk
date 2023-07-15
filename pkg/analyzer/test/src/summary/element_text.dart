@@ -210,14 +210,8 @@ class _ElementWriter {
     final augmented = e.augmented;
 
     void writeMethods() {
-      _writeElements('methods', augmented.methods, (element) {
-        if (element.enclosingElement2 == e) {
-          _writeMethodElement(element);
-        } else {
-          _sink.writeIndent();
-          _elementPrinter.writeElement(element);
-        }
-      });
+      final sorted = augmented.methods.sortedBy((e) => e.name);
+      _elementPrinter.writeElementList('methods', sorted);
     }
 
     _sink.writelnWithIndent('augmented');
@@ -715,6 +709,22 @@ class _ElementWriter {
       _writeParameterElements(e.parameters);
       _writeType('returnType', e.returnType2);
       _writeNonSyntheticElement(e);
+
+      final maybeAugmentation = e.maybeAugmentation;
+      if (maybeAugmentation != null) {
+        _sink.writelnWithIndent('maybeAugmentation');
+        _sink.withIndent(() {
+          _elementPrinter.writeNamedElement(
+            'augmentationTarget',
+            maybeAugmentation.augmentationTarget,
+          );
+        });
+      }
+
+      final augmentation = e.augmentation;
+      if (augmentation != null) {
+        _elementPrinter.writeNamedElement('augmentation', augmentation);
+      }
     });
 
     if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {

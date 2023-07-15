@@ -432,6 +432,13 @@ class BundleWriter {
       _writeList(element.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType2);
+      _resolutionSink.writeElement(element.augmentation);
+      _resolutionSink.writeIfType<AugmentationMethodElementImpl>(
+        element.maybeAugmentation,
+        (maybe) {
+          _resolutionSink.writeElement(maybe.augmentationTarget);
+        },
+      );
     });
   }
 

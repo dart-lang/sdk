@@ -24,6 +24,21 @@ class TreeStringSink {
     _sink.write(object);
   }
 
+  void writeElements<T extends Object>(
+    String name,
+    List<T> elements,
+    void Function(T) f,
+  ) {
+    if (elements.isNotEmpty) {
+      writelnWithIndent(name);
+      withIndent(() {
+        for (var element in elements) {
+          f(element);
+        }
+      });
+    }
+  }
+
   void writeIf(bool flag, Object object) {
     if (flag) {
       write(object);

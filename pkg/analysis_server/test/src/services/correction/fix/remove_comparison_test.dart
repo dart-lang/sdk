@@ -333,6 +333,123 @@ void f(int x) {
 ''');
   }
 
+  Future<void> test_ifStatement_alwaysFalse_hasElse_block() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x == null) {
+    1;
+  } else {
+    2;
+  }
+  3;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  2;
+  3;
+}
+''');
+  }
+
+  Future<void> test_ifStatement_alwaysFalse_hasElse_block_empty() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x == null) {
+    1;
+  } else {}
+  2;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  2;
+}
+''');
+  }
+
+  Future<void> test_ifStatement_alwaysFalse_hasElse_statement() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x == null) {
+    1;
+  } else
+    2;
+  3;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  2;
+  3;
+}
+''');
+  }
+
+  Future<void> test_ifStatement_alwaysFalse_noElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x == null) {
+    1;
+  }
+  2;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  2;
+}
+''');
+  }
+
+  Future<void> test_ifStatement_alwaysTrue_hasElse_block() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x != null) {
+    1;
+  } else {
+    2;
+  }
+  3;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  1;
+  3;
+}
+''');
+  }
+
+  Future<void> test_ifStatement_alwaysTrue_noElse() async {
+    await resolveTestCode('''
+void f(int x) {
+  0;
+  if (x != null) {
+    1;
+  }
+  2;
+}
+''');
+    await assertHasFix('''
+void f(int x) {
+  0;
+  1;
+  2;
+}
+''');
+  }
+
   Future<void> test_ifStatement_thenBlock() async {
     await resolveTestCode('''
 void f(String s) {

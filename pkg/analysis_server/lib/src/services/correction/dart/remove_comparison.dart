@@ -82,27 +82,25 @@ class RemoveComparison extends ResolvedCorrectionProducer {
     } else if (parent is IfElement) {
       await _ifElement(parent, builder);
     } else if (parent is IfStatement) {
-      if (parent.elseStatement == null && _conditionIsTrue) {
-        await _ifStatement(parent, builder);
-      }
+      await _ifStatement(parent, builder);
     }
   }
 
   Future<void> _ifElement(IfElement node, ChangeBuilder builder) async {
-    if (_conditionIsTrue) {
+    Future<void> replaceWithElement(CollectionElement element) async {
+      final text = _textWithLeadingComments(element);
+      final unIndented = utils.indentLeft(text);
       await builder.addDartFileEdit(file, (builder) {
-        final text = _textWithLeadingComments(node.thenElement);
-        final unIndented = utils.indentLeft(text);
         builder.addSimpleReplacement(range.node(node), unIndented);
       });
+    }
+
+    if (_conditionIsTrue) {
+      await replaceWithElement(node.thenElement);
     } else if (_conditionIsFalse) {
       final elseElement = node.elseElement;
       if (elseElement != null) {
-        await builder.addDartFileEdit(file, (builder) {
-          final text = _textWithLeadingComments(elseElement);
-          final unIndented = utils.indentLeft(text);
-          builder.addSimpleReplacement(range.node(node), unIndented);
-        });
+        await replaceWithElement(elseElement);
       } else {
         final elements = node.parent.containerElements;
         if (elements != null) {
@@ -116,25 +114,57 @@ class RemoveComparison extends ResolvedCorrectionProducer {
   }
 
   Future<void> _ifStatement(IfStatement node, ChangeBuilder builder) async {
-    await builder.addDartFileEdit(file, (builder) {
-      final body = node.thenStatement;
-      if (body is Block) {
-        final text = utils.getRangeText(
-          utils.getLinesRange(
-            range.endStart(body.leftBracket, body.rightBracket),
+    Future<void> replaceWithBlock(Block replacement) async {
+      final text = utils.getRangeText(
+        utils.getLinesRange(
+          range.endStart(
+            replacement.leftBracket,
+            replacement.rightBracket,
           ),
-        );
-        final unIndented = utils.indentLeft(text);
+        ),
+      );
+      final unIndented = utils.indentLeft(text);
+      await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(
           utils.getLinesRangeStatements([node]),
           unIndented,
         );
-      } else {
-        final text = _textWithLeadingComments(body);
-        final unIndented = utils.indentLeft(text);
+      });
+    }
+
+    Future<void> replaceWithStatement(Statement replacement) async {
+      final text = _textWithLeadingComments(replacement);
+      final unIndented = utils.indentLeft(text);
+      await builder.addDartFileEdit(file, (builder) {
         builder.addSimpleReplacement(range.node(node), unIndented);
+      });
+    }
+
+    final thenStatement = node.thenStatement;
+    final elseStatement = node.elseStatement;
+    if (_conditionIsTrue) {
+      if (thenStatement case Block thenBlock) {
+        await replaceWithBlock(thenBlock);
+      } else {
+        await replaceWithStatement(thenStatement);
       }
-    });
+    } else if (_conditionIsFalse) {
+      if (elseStatement != null) {
+        if (elseStatement case Block elseBlock) {
+          await replaceWithBlock(elseBlock);
+        } else {
+          await replaceWithStatement(elseStatement);
+        }
+      } else {
+        if (node.parent case final Block block) {
+          final statement = block.statements;
+          final nodeRange = range.nodeInList(statement, node);
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addDeletion(nodeRange);
+          });
+        }
+      }
+    }
   }
 
   /// Use the [builder] to add an edit to delete the operator and given

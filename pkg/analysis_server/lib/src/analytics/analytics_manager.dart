@@ -9,7 +9,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/src/analytics/active_request_data.dart';
 import 'package:analysis_server/src/analytics/context_structure.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/analytics/notification_data.dart';
 import 'package:analysis_server/src/analytics/plugin_data.dart';
 import 'package:analysis_server/src/analytics/request_data.dart';
@@ -90,7 +89,7 @@ class AnalyticsManager {
   /// Initialize a newly created analytics manager to report to the [analytics]
   /// service.
   AnalyticsManager(this.analytics) {
-    if (analytics is! NoopAnalytics) {
+    if (analytics is! NoOpAnalytics) {
       periodicTimer = Timer.periodic(Duration(minutes: 30), (_) {
         _sendPeriodicData();
       });

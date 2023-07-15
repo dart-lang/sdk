@@ -162,7 +162,7 @@ class TypesBuilder {
       element.augmentedInternal = augmented;
       augmented.mixins.addAll(element.mixins);
       augmented.interfaces.addAll(element.interfaces);
-      augmented.methods.addAll(element.methods);
+      augmented.methods.addAll(element.methods.notAugmented);
     }
   }
 
@@ -359,7 +359,7 @@ class TypesBuilder {
       element.augmentedInternal = augmented;
       augmented.superclassConstraints.addAll(element.superclassConstraints);
       augmented.interfaces.addAll(element.interfaces);
-      augmented.methods.addAll(element.methods);
+      augmented.methods.addAll(element.methods.notAugmented);
     }
   }
 
@@ -453,7 +453,7 @@ class TypesBuilder {
       }
 
       augmented.methods.addAll(
-        element.methods.map(mapMethodElement),
+        element.methods.notAugmented.map(mapMethodElement),
       );
     }
   }
@@ -703,5 +703,11 @@ class _MixinsInference {
         element.library.session.classHierarchy.remove(element);
       }
     }
+  }
+}
+
+extension on List<MethodElement> {
+  Iterable<MethodElement> get notAugmented {
+    return where((e) => e.augmentation == null);
   }
 }

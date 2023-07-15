@@ -10,7 +10,6 @@ import 'dart:math';
 import 'package:analysis_server/protocol/protocol_constants.dart'
     show PROTOCOL_VERSION;
 import 'package:analysis_server/src/analytics/analytics_manager.dart';
-import 'package:analysis_server/src/analytics/noop_analytics.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/lsp_socket_server.dart';
 import 'package:analysis_server/src/server/crash_reporting.dart';
@@ -220,7 +219,7 @@ class Driver implements ServerStarter {
     // Create the analytics manager.
     AnalyticsManager analyticsManager;
     if (disableAnalyticsForSession) {
-      analyticsManager = AnalyticsManager(NoopAnalytics());
+      analyticsManager = AnalyticsManager(NoOpAnalytics());
     } else {
       // TODO(jcollins): implement a full map of `clientId`s to tools to cover
       // more analyzer entry points than vscode.
@@ -228,7 +227,7 @@ class Driver implements ServerStarter {
         analyticsManager = AnalyticsManager(_createAnalytics(
             defaultSdk, defaultSdkPath, DashTool.vscodePlugins));
       } else {
-        analyticsManager = AnalyticsManager(NoopAnalytics());
+        analyticsManager = AnalyticsManager(NoOpAnalytics());
       }
     }
 

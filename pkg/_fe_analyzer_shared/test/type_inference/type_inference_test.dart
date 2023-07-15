@@ -245,27 +245,21 @@ main() {
       group('IR:', () {
         test('not null-aware', () {
           h.run([
-            expr('dynamic')
-                .cascade([
-                  (t) => t.invokeMethod('f', []),
-                  (t) => t.invokeMethod('g', [])
-                ])
-                .checkIR('let(t0, expr(dynamic), '
-                    'let(t1, f(t0), let(t2, g(t0), t0)))')
-                .stmt,
+            expr('dynamic').cascade([
+              (t) => t.invokeMethod('f', []),
+              (t) => t.invokeMethod('g', [])
+            ]).checkIR('let(t0, expr(dynamic), '
+                'let(t1, f(t0), let(t2, g(t0), t0)))'),
           ]);
         });
 
         test('null-aware', () {
           h.run([
-            expr('dynamic')
-                .cascade(isNullAware: true, [
-                  (t) => t.invokeMethod('f', []),
-                  (t) => t.invokeMethod('g', [])
-                ])
-                .checkIR('let(t0, expr(dynamic), '
-                    'if(==(t0, null), t0, let(t1, f(t0), let(t2, g(t0), t0))))')
-                .stmt,
+            expr('dynamic').cascade(isNullAware: true, [
+              (t) => t.invokeMethod('f', []),
+              (t) => t.invokeMethod('g', [])
+            ]).checkIR('let(t0, expr(dynamic), '
+                'if(==(t0, null), t0, let(t1, f(t0), let(t2, g(t0), t0))))'),
           ]);
         });
       });
@@ -348,7 +342,7 @@ main() {
         h.run([
           switchExpr(expr('int'), [
             default_.thenExpr(intLiteral(0)),
-          ]).checkIR('switchExpr(expr(int), case(default, 0))').stmt,
+          ]).checkIR('switchExpr(expr(int), case(default, 0))'),
         ]);
       });
 
@@ -373,12 +367,12 @@ main() {
           switchExpr(expr('int'), [
             intLiteral(0).pattern.thenExpr(expr('int')),
             default_.thenExpr(expr('double')),
-          ]).checkType('num').stmt
+          ]).checkType('num')
         ]);
       });
 
       test('no cases', () {
-        h.run([switchExpr(expr('A'), []).checkType('Never').stmt]);
+        h.run([switchExpr(expr('A'), []).checkType('Never')]);
       });
 
       test('guard', () {
@@ -392,11 +386,9 @@ main() {
                     .eq(expr('num'))
                     .checkContext('bool'))
                 .thenExpr(expr('String')),
-          ])
-              .checkIR('switchExpr(expr(int), case(head(varPattern(i, '
-                  'matchedType: int, staticType: int), ==(i, expr(num)), '
-                  'variables(i)), expr(String)))')
-              .stmt,
+          ]).checkIR('switchExpr(expr(int), case(head(varPattern(i, '
+              'matchedType: int, staticType: int), ==(i, expr(num)), '
+              'variables(i)), expr(String)))'),
         ]);
       });
 
@@ -409,7 +401,7 @@ main() {
                   .pattern()
                   .when(expr('int')..errorId = 'GUARD')
                   .thenExpr(expr('int')),
-            ]).stmt,
+            ]),
           ], expectedErrors: {
             'nonBooleanCondition(node: GUARD)'
           });
@@ -420,7 +412,7 @@ main() {
           h.run([
             switchExpr(expr('int'), [
               x.pattern().when(expr('bool')).thenExpr(expr('int')),
-            ]).stmt,
+            ]),
           ], expectedErrors: {});
         });
 
@@ -429,7 +421,7 @@ main() {
           h.run([
             switchExpr(expr('int'), [
               x.pattern().when(expr('dynamic')).thenExpr(expr('int')),
-            ]).stmt,
+            ]),
           ], expectedErrors: {});
         });
       });
@@ -444,17 +436,14 @@ main() {
               switchExpr(expr('double'), [
                 x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
                 default_.thenExpr(expr('int')),
-              ])
-                  .checkType('int')
-                  .checkIR(
+              ]).checkType('int').checkIR(
                     'switchExpr(expr(double), case(head(logicalOrPattern('
                     'varPattern(x, matchedType: double, staticType: double), '
                     'varPattern(x, matchedType: double, staticType: double), '
                     'matchedType: double), true, '
                     'variables(double x = [x1, x2])), expr(int)), '
                     'case(default, expr(int)))',
-                  )
-                  .stmt,
+                  ),
             ]);
           });
           group('not consistent:', () {
@@ -466,17 +455,14 @@ main() {
                 switchExpr(expr('double'), [
                   x1.pattern().or(x2.pattern()).thenExpr(expr('int')),
                   default_.thenExpr(expr('int')),
-                ])
-                    .checkType('int')
-                    .checkIR(
+                ]).checkType('int').checkIR(
                       'switchExpr(expr(double), case(head(logicalOrPattern('
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'double), matchedType: double), true, variables('
                       'notConsistent:differentFinalityOrType double x = '
                       '[x1, x2])), expr(int)), case(default, expr(int)))',
-                    )
-                    .stmt,
+                    ),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
                     'component: x2)'
@@ -493,17 +479,14 @@ main() {
                       .or(x2.pattern(type: 'num'))
                       .thenExpr(expr('int')),
                   default_.thenExpr(expr('int')),
-                ])
-                    .checkType('int')
-                    .checkIR(
+                ]).checkType('int').checkIR(
                       'switchExpr(expr(double), case(head(logicalOrPattern('
                       'varPattern(x, matchedType: double, staticType: double), '
                       'varPattern(x, matchedType: double, staticType: '
                       'num), matchedType: double), true, variables('
                       'notConsistent:differentFinalityOrType error x = '
                       '[x1, x2])), expr(int)), case(default, expr(int)))',
-                    )
-                    .stmt,
+                    ),
               ], expectedErrors: {
                 'inconsistentJoinedPatternVariable(variable: x = [x1, x2], '
                     'component: x2)'
@@ -520,7 +503,7 @@ main() {
       test('Condition context', () {
         h.run([
           if_(expr('dynamic').checkContext('bool'), [
-            expr('Object').stmt,
+            expr('Object'),
           ]).checkIR('if(expr(dynamic), block(stmt(expr(Object))), noop)'),
         ]);
       });
@@ -528,9 +511,9 @@ main() {
       test('With else', () {
         h.run([
           if_(expr('bool'), [
-            expr('Object').stmt,
+            expr('Object'),
           ], [
-            expr('String').stmt,
+            expr('String'),
           ]).checkIR('if(expr(bool), block(stmt(expr(Object))), '
               'block(stmt(expr(String))))'),
         ]);
@@ -558,10 +541,10 @@ main() {
             expr('num'),
             x.pattern(type: 'int'),
             [
-              expr('Object').stmt,
+              expr('Object'),
             ],
             [
-              expr('String').stmt,
+              expr('String'),
             ],
           ).checkIR('ifCase(expr(num), '
               'varPattern(x, matchedType: num, staticType: int), variables(x), '
@@ -698,7 +681,7 @@ main() {
             expr('int'),
             [
               intLiteral(0).pattern.then([
-                expr('int').stmt,
+                expr('int'),
               ]),
               intLiteral(1).pattern.then([
                 break_(),
@@ -718,7 +701,7 @@ main() {
                 break_(),
               ]),
               intLiteral(1).pattern.then([
-                expr('int').stmt,
+                expr('int'),
               ]),
             ],
             expectLastCaseTerminates: false,
@@ -1096,7 +1079,7 @@ main() {
               expr('int'),
               [
                 intLiteral(0).pattern.then([
-                  expr('int').stmt,
+                  expr('int'),
                 ]),
                 default_.then([
                   break_(),
@@ -1120,7 +1103,7 @@ main() {
                   intLiteral(1).pattern.switchCase,
                   intLiteral(2).pattern.switchCase,
                 ], [
-                  expr('int').stmt,
+                  expr('int'),
                 ]),
                 default_.then([
                   break_(),
@@ -1158,7 +1141,7 @@ main() {
               expr('int'),
               [
                 intLiteral(0).pattern.then([
-                  expr('int').stmt,
+                  expr('int'),
                 ]),
               ],
               isLegacyExhaustive: false,
@@ -1177,7 +1160,7 @@ main() {
               expr('int'),
               [
                 intLiteral(0).pattern.then([
-                  expr('int').stmt,
+                  expr('int'),
                 ]),
                 default_.then([
                   break_(),
@@ -1197,7 +1180,7 @@ main() {
               expr('int'),
               [
                 intLiteral(0).pattern.then([
-                  expr('int').stmt,
+                  expr('int'),
                 ]),
                 default_.then([
                   break_(),
@@ -3166,14 +3149,14 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'int'),
-            x.pattern().assign(expr('int')).checkType('int').stmt,
+            x.pattern().assign(expr('int')).checkType('int'),
           ]);
         });
         test('Matched type is error', () {
           var x = Var('x');
           h.run([
             declare(x, type: 'int'),
-            x.pattern().assign(expr('error')).checkType('error').stmt,
+            x.pattern().assign(expr('error')).checkType('error'),
           ]);
         });
       });
@@ -3196,7 +3179,7 @@ main() {
           recordPattern([
             (x.pattern()..errorId = 'x1').recordField(),
             (x.pattern()..errorId = 'x2').recordField(),
-          ]).assign(expr('(int, int)')).stmt,
+          ]).assign(expr('(int, int)')),
         ], expectedErrors: {
           'duplicateAssignmentPatternVariable(variable: x, original: x1, '
               'duplicate: x2)',
@@ -3211,8 +3194,7 @@ main() {
             x
                 .pattern()
                 .assign(expr('int'))
-                .checkIR('patternAssignment(expr(int), assignedVarPattern(x))')
-                .stmt,
+                .checkIR('patternAssignment(expr(int), assignedVarPattern(x))'),
           ]);
         });
 
@@ -3220,12 +3202,8 @@ main() {
           var x = Var('x');
           h.run([
             declare(x, type: 'num'),
-            x
-                .pattern()
-                .assign(expr('dynamic'))
-                .checkIR(
-                    'patternAssignment(expr(dynamic), assignedVarPattern(x))')
-                .stmt,
+            x.pattern().assign(expr('dynamic')).checkIR(
+                'patternAssignment(expr(dynamic), assignedVarPattern(x))'),
           ]);
         });
 
@@ -3234,8 +3212,7 @@ main() {
           h.run([
             declare(x, type: 'num'),
             ((x.pattern()..errorId = 'PATTERN').assign(expr('String'))
-                  ..errorId = 'CONTEXT')
-                .stmt,
+              ..errorId = 'CONTEXT'),
           ], expectedErrors: {
             'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
                 'context: CONTEXT, matchedType: String, requiredType: num)'
