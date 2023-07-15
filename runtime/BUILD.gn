@@ -211,7 +211,7 @@ config("dart_config") {
       }
     } else {
       cflags = [
-        "/O2",
+        "/O${dart_default_optimization_level}",
         "/Ob2",
         "/Oy-",
         "/Oi",
@@ -252,7 +252,7 @@ config("dart_config") {
     } else if (dart_debug) {
       cflags += [ "-O${dart_debug_optimization_level}" ]
     } else {
-      cflags += [ "-O2" ]
+      cflags += [ "-O${dart_default_optimization_level}" ]
     }
 
     if (is_fuchsia) {
