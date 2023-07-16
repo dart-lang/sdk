@@ -175,6 +175,8 @@ import 'use_full_hex_values_for_flutter_colors_test.dart'
     as use_full_hex_values_for_flutter_colors;
 import 'use_function_type_syntax_for_parameters_test.dart'
     as use_function_type_syntax_for_parameters;
+import 'use_if_null_to_convert_nulls_to_bools_test.dart'
+    as use_if_null_to_convert_nulls_to_bools;
 import 'use_is_even_rather_than_modulo_test.dart'
     as use_is_even_rather_than_modulo;
 import 'use_key_in_widget_constructors_test.dart'
@@ -317,6 +319,7 @@ void main() {
   use_enums.main();
   use_full_hex_values_for_flutter_colors.main();
   use_function_type_syntax_for_parameters.main();
+  use_if_null_to_convert_nulls_to_bools.main();
   use_is_even_rather_than_modulo.main();
   use_key_in_widget_constructors.main();
   use_late_for_private_fields_and_variables.main();
