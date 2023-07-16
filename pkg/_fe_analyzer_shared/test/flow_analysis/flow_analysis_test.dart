@@ -969,6 +969,31 @@ main() {
       ]);
     });
 
+    test('functionExpression_begin() preserves promotions of initialized vars',
+        () {
+      var x = Var('x');
+      var y = Var('y');
+      h.run([
+        declare(x, type: 'int?', initializer: expr('int?')),
+        declare(y, type: 'int?', initializer: expr('int?'), isLate: true),
+        x.expr.as_('int'),
+        y.expr.as_('int'),
+        checkPromoted(x, 'int'),
+        checkPromoted(y, 'int'),
+        localFunction([
+          // x and y remain promoted within the local function, because the
+          // assignment that happens implicitly as part of the initialization
+          // definitely happens before anything else, and hence the promotions
+          // are still valid whenever the local function executes.
+          checkPromoted(x, 'int'),
+          checkPromoted(y, 'int'),
+        ]),
+        // x and y remain promoted after the local function too.
+        checkPromoted(x, 'int'),
+        checkPromoted(y, 'int'),
+      ]);
+    });
+
     test('functionExpression_begin() handles not-yet-seen variables', () {
       var x = Var('x');
       h.run([
