@@ -203,7 +203,9 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     if (pathContext.style != package_path.Style.windows) {
       return;
     }
-    final missingDriveLetterFileUri = pathContext.toUri('/foo/bar.dart');
+    // This code deliberately does not use pathContext because we're testing a
+    // without a drive letter, but pathContext.toUri() would include one.
+    final missingDriveLetterFileUri = Uri.parse('file:///foo/bar.dart');
     await initialize();
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
