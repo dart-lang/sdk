@@ -9,6 +9,8 @@ import 'dart:typed_data';
 
 import 'package:expect/expect.dart';
 
+const isJSBackend = const bool.fromEnvironment('dart.library.html');
+
 // We run many tests in three configurations:
 // 1) Test should ensure receivers
 //    for all [TypedData] operations will be `JSTypedArrayImpl`.
@@ -348,7 +350,7 @@ void testSimd() {
 }
 
 void bigTest() {
-  if (const bool.fromEnvironment('dart.library.html')) {
+  if (isJSBackend) {
     // Not yet supported on JS backends.
     return;
   }
@@ -384,6 +386,49 @@ void bigTest() {
   }
 }
 
+void sublistTest() {
+  // Sublists should be copies.
+  void listIntTest(List<int> l) {
+    l[0] = 1;
+    final lSublist = l.sublist(0);
+    Expect.equals(1, l[0]);
+    Expect.equals(1, lSublist[0]);
+
+    lSublist[0] = 0;
+    Expect.equals(1, l[0]);
+    Expect.equals(0, lSublist[0]);
+  }
+
+  void listDoubleTest(List<double> l) {
+    l[0] = 1;
+    final lSublist = l.sublist(0);
+    Expect.equals(1, l[0]);
+    Expect.equals(1, lSublist[0]);
+
+    lSublist[0] = 0;
+    Expect.equals(1, l[0]);
+    Expect.equals(0, lSublist[0]);
+  }
+
+  listIntTest(Uint8List(4).toJS.toDart);
+  listIntTest(Uint8ClampedList(4).toJS.toDart);
+  listIntTest(Int8List(4).toJS.toDart);
+  listIntTest(Uint16List(4).toJS.toDart);
+  listIntTest(Int16List(4).toJS.toDart);
+  listIntTest(Uint32List(4).toJS.toDart);
+  listIntTest(Int32List(4).toJS.toDart);
+  listDoubleTest(Float32List(4).toJS.toDart);
+  listDoubleTest(Float64List(4).toJS.toDart);
+
+  // Big typed arrays.
+  if (isJSBackend) {
+    // Not yet supported on JS backends.
+    return;
+  }
+  listIntTest(Uint8List(16).toJS.toDart.buffer.asUint64List());
+  listIntTest(Uint8List(16).toJS.toDart.buffer.asInt64List());
+}
+
 void main() {
   for (final mode in [
     TestMode.jsReceiver,
@@ -399,4 +444,5 @@ void main() {
   overlapTest();
   testSimd();
   bigTest();
+  sublistTest();
 }

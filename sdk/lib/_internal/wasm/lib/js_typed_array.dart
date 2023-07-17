@@ -303,8 +303,11 @@ final class JSUint8ArrayImpl extends JSIntArrayImpl implements Uint8List {
   @override
   Uint8List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Uint8Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSUint8ArrayImpl(source);
   }
 }
@@ -328,8 +331,11 @@ final class JSInt8ArrayImpl extends JSIntArrayImpl implements Int8List {
   @override
   Int8List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Int8Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSInt8ArrayImpl(source);
   }
 }
@@ -357,8 +363,11 @@ final class JSUint8ClampedArrayImpl extends JSIntArrayImpl
   @override
   Uint8ClampedList sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Uint8ClampedArray(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSUint8ClampedArrayImpl(source);
   }
 }
@@ -381,8 +390,11 @@ final class JSUint16ArrayImpl extends JSIntArrayImpl implements Uint16List {
   @override
   Uint16List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Uint16Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSUint16ArrayImpl(source);
   }
 }
@@ -405,8 +417,11 @@ final class JSInt16ArrayImpl extends JSIntArrayImpl implements Int16List {
   @override
   Int16List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Int16Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSInt16ArrayImpl(source);
   }
 }
@@ -429,8 +444,11 @@ final class JSUint32ArrayImpl extends JSIntArrayImpl implements Uint32List {
   @override
   Uint32List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Uint32Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSUint32ArrayImpl(source);
   }
 }
@@ -453,8 +471,11 @@ final class JSInt32ArrayImpl extends JSIntArrayImpl implements Int32List {
   @override
   Int32List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Int32Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSInt32ArrayImpl(source);
   }
 }
@@ -544,8 +565,11 @@ final class JSBigUint64ArrayImpl extends JSBigIntArrayImpl
   @override
   Uint64List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new BigUint64Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSBigUint64ArrayImpl(source);
   }
 }
@@ -568,8 +592,11 @@ final class JSBigInt64ArrayImpl extends JSBigIntArrayImpl implements Int64List {
   @override
   Int64List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new BigInt64Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSBigInt64ArrayImpl(source);
   }
 }
@@ -650,8 +677,11 @@ final class JSFloat32ArrayImpl extends JSFloatArrayImpl implements Float32List {
   @override
   Float32List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Float32Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSFloat32ArrayImpl(source);
   }
 }
@@ -675,8 +705,11 @@ final class JSFloat64ArrayImpl extends JSFloatArrayImpl implements Float64List {
   @override
   Float64List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    final source = js.JS<WasmExternRef?>('(a, s, p) => a.subarray(s, p)',
-        toExternRef, start.toDouble(), stop.toDouble());
+    final source = js.JS<WasmExternRef?>(
+        '(a, s, p) => new Float64Array(a.subarray(s, p))',
+        toExternRef,
+        start.toDouble(),
+        stop.toDouble());
     return JSFloat64ArrayImpl(source);
   }
 }
