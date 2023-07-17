@@ -190,6 +190,7 @@ import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
+import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
 void main() {
@@ -330,5 +331,6 @@ void main() {
   use_setters_to_change_properties.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
+  valid_regexps.main();
   void_checks.main();
 }
