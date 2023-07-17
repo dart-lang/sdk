@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.10.0';
+const String vmServiceVersion = '4.11.0';
 
 /// @optional
 const String optional = 'optional';
@@ -5087,6 +5087,12 @@ class FuncRef extends ObjRef {
   /// Is this function an abstract method?
   bool? isAbstract;
 
+  /// Is this function a getter?
+  bool? isGetter;
+
+  /// Is this function a setter?
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5102,6 +5108,8 @@ class FuncRef extends ObjRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     required String id,
     this.location,
   }) : super(
@@ -5116,6 +5124,8 @@ class FuncRef extends ObjRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -5134,6 +5144,8 @@ class FuncRef extends ObjRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -5146,9 +5158,7 @@ class FuncRef extends ObjRef {
   bool operator ==(Object other) => other is FuncRef && id == other.id;
 
   @override
-  String toString() => '[FuncRef ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract]';
+  String toString() => '[FuncRef]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -5186,6 +5196,14 @@ class Func extends Obj implements FuncRef {
   @override
   bool? isAbstract;
 
+  /// Is this function a getter?
+  @override
+  bool? isGetter;
+
+  /// Is this function a setter?
+  @override
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5209,6 +5227,8 @@ class Func extends Obj implements FuncRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     this.signature,
     required String id,
     this.location,
@@ -5225,6 +5245,8 @@ class Func extends Obj implements FuncRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
     signature = createServiceObject(json['signature'], const ['InstanceRef'])
@@ -5246,6 +5268,8 @@ class Func extends Obj implements FuncRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -5260,9 +5284,7 @@ class Func extends Obj implements FuncRef {
   bool operator ==(Object other) => other is Func && id == other.id;
 
   @override
-  String toString() => '[Func ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract, signature: $signature]';
+  String toString() => '[Func]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.
