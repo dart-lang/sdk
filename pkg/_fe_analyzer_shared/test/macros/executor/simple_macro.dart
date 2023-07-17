@@ -578,10 +578,11 @@ class LibraryInfo {
 }
 
 Future<FunctionBodyCode> _buildFunctionAugmentation(
-    FunctionDeclaration function, TypeInferrer inferrer) async {
+    FunctionDeclaration function,
+    DefinitionPhaseIntrospector introspector) async {
   Future<List<Object>> typeParts(TypeAnnotation annotation) async {
     if (annotation is OmittedTypeAnnotation) {
-      var inferred = await inferrer.inferType(annotation);
+      var inferred = await introspector.inferType(annotation);
       return [inferred.code, ' (inferred)'];
     }
     return [annotation.code];

@@ -8,11 +8,9 @@ part of '../api.dart';
 /// as augment existing ones.
 abstract interface class Builder {}
 
-/// Allows you to resolve arbitrary [Identifier]s.
-///
-/// This class will likely disappear entirely once we have a different
-/// mechanism.
-abstract interface class IdentifierResolver {
+/// The interface for all introspection that is allowed during the type phase
+/// (and later).
+abstract interface class TypePhaseIntrospector {
   /// Returns an [Identifier] for a top level [name] in [library].
   ///
   /// You should only do this for libraries that are definitely in the
@@ -24,7 +22,7 @@ abstract interface class IdentifierResolver {
 
 /// The API used by [Macro]s to contribute new type declarations to the
 /// current library, and get [TypeAnnotation]s from runtime [Type] objects.
-abstract interface class TypeBuilder implements Builder, IdentifierResolver {
+abstract interface class TypeBuilder implements Builder, TypePhaseIntrospector {
   /// Adds a new type declaration to the surrounding library.
   ///
   /// The [name] must match the name of the new [typeDeclaration] (this does
@@ -32,12 +30,10 @@ abstract interface class TypeBuilder implements Builder, IdentifierResolver {
   void declareType(String name, DeclarationCode typeDeclaration);
 }
 
-/// The interface used to create [StaticType] instances, which are used to
-/// examine type relationships.
-///
-/// This API is only available to the declaration and definition phases of
-/// macro expansion.
-abstract interface class TypeResolver {
+/// The interface for all introspection that is allowed during the declaration
+/// phase (and later).
+abstract interface class DeclarationPhaseIntrospector
+    implements TypePhaseIntrospector {
   /// Instantiates a new [StaticType] for a given [type] annotation.
   ///
   /// Throws an error if the [type] object contains [Identifier]s which cannot
@@ -46,15 +42,7 @@ abstract interface class TypeResolver {
   /// development cycle. It may be helpful for users if macros provide a best
   /// effort implementation in that case or handle the error in a useful way.
   Future<StaticType> resolve(TypeAnnotationCode type);
-}
 
-/// The API used to introspect on any [TypeDeclaration] which also has the
-/// marker interface [IntrospectableType].
-///
-/// Can also be used to ask for all the types declared in a [Library].
-///
-/// Available in the declaration and definition phases.
-abstract interface class TypeIntrospector {
   /// The values available for [enuum].
   ///
   /// This may be incomplete if additional declaration macros are going to run
@@ -89,13 +77,7 @@ abstract interface class TypeIntrospector {
   /// In the definitions phase, these will be [IntrospectableType]s where
   /// appropriate (but, for instance, type aliases will not be).
   Future<List<TypeDeclaration>> typesOf(covariant Library library);
-}
 
-/// The interface used by [Macro]s to resolve any [Identifier]s pointing to
-/// types to their type declarations.
-///
-/// Only available in the declaration and definition phases of macro expansion.
-abstract interface class TypeDeclarationResolver {
   /// Resolves an [identifier] to its [TypeDeclaration].
   ///
   /// If [identifier] does not resolve to a [TypeDeclaration], then an
@@ -116,12 +98,7 @@ abstract interface class TypeDeclarationResolver {
 ///
 /// Can also be used to do subtype checks on types.
 abstract interface class DeclarationBuilder
-    implements
-        Builder,
-        IdentifierResolver,
-        TypeIntrospector,
-        TypeDeclarationResolver,
-        TypeResolver {
+    implements Builder, DeclarationPhaseIntrospector {
   /// Adds a new regular declaration to the surrounding library.
   ///
   /// Note that type declarations are not supported.
@@ -142,23 +119,16 @@ abstract interface class EnumDeclarationBuilder
   void declareEnumValue(DeclarationCode declaration);
 }
 
-/// The interface used by [Macro]s to get the inferred type for an
-/// [OmittedTypeAnnotation].
-///
-/// Only available in the definition phase of macro expansion.
-abstract interface class TypeInferrer {
+/// The interface for all introspection that is allowed during the definition
+/// phase (and later).
+abstract interface class DefinitionPhaseIntrospector
+    implements DeclarationPhaseIntrospector {
   /// Infers a real type annotation for [omittedType].
   ///
   /// If no type could be inferred, then a type annotation representing the
   /// dynamic type will be given.
   Future<TypeAnnotation> inferType(covariant OmittedTypeAnnotation omittedType);
-}
 
-/// The interface used by [Macro]s to get the list of all declarations in a
-/// [Library].
-///
-/// Only available in the definition phase of macro expansion.
-abstract interface class LibraryDeclarationsResolver {
   /// Returns a list of all the [Declaration]s in the given [library].
   ///
   /// Where applicable, these will be introspectable declarations.
@@ -169,14 +139,7 @@ abstract interface class LibraryDeclarationsResolver {
 /// any [TypeAnnotation] into its corresponding [TypeDeclaration], and also
 /// reflect more deeply on those.
 abstract interface class DefinitionBuilder
-    implements
-        Builder,
-        IdentifierResolver,
-        TypeIntrospector,
-        TypeDeclarationResolver,
-        TypeInferrer,
-        TypeResolver,
-        LibraryDeclarationsResolver {}
+    implements Builder, DefinitionPhaseIntrospector {}
 
 /// The APIs used by [Macro]s that run on library directives, to fill in the
 /// definitions of any declarations within that library.

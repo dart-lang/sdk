@@ -17,14 +17,11 @@ extension DeserializerExtensions on Deserializer {
     moveNext();
     RemoteInstanceKind kind = RemoteInstanceKind.values[expectInt()];
     final RemoteInstance instance = switch (kind) {
-      RemoteInstanceKind.typeIntrospector ||
-      RemoteInstanceKind.identifierResolver ||
-      RemoteInstanceKind.libraryDeclarationsResolver ||
+      RemoteInstanceKind.declarationPhaseIntrospector ||
+      RemoteInstanceKind.definitionPhaseIntrospector ||
+      RemoteInstanceKind.typePhaseIntrospector ||
       RemoteInstanceKind.namedStaticType ||
-      RemoteInstanceKind.staticType ||
-      RemoteInstanceKind.typeDeclarationResolver ||
-      RemoteInstanceKind.typeResolver ||
-      RemoteInstanceKind.typeInferrer =>
+      RemoteInstanceKind.staticType =>
         // These are simple wrappers, just pass in the kind
         new RemoteInstanceImpl(id: id, kind: kind),
       RemoteInstanceKind.classDeclaration =>

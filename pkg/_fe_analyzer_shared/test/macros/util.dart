@@ -9,25 +9,49 @@ import 'package:_fe_analyzer_shared/src/macros/executor.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/introspection_impls.dart';
 import 'package:_fe_analyzer_shared/src/macros/executor/remote_instance.dart';
 
-import 'package:test/fake.dart';
 import 'package:test/test.dart';
 
-class FakeTypeIntrospector extends Fake implements TypeIntrospector {}
+class TestTypePhaseIntrospector implements TypePhaseIntrospector {
+  @override
+  Future<Identifier> resolveIdentifier(Uri library, String name) async {
+    if (library == Uri.parse('dart:core') && name == 'String') {
+      return Fixtures.stringType.identifier;
+    }
+    throw UnimplementedError('Cannot resolve the identifier $library:$name');
+  }
+}
 
-class TestTypeIntrospector implements TypeIntrospector {
+class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
+    implements DeclarationPhaseIntrospector {
   final Map<IntrospectableType, List<ConstructorDeclaration>> constructors;
   final Map<IntrospectableEnum, List<EnumValueDeclaration>> enumValues;
   final Map<IntrospectableType, List<FieldDeclaration>> fields;
   final Map<IntrospectableType, List<MethodDeclaration>> methods;
   final Map<Library, List<TypeDeclaration>> libraryTypes;
+  final Map<Identifier, StaticType> staticTypes;
+  final Map<Identifier, TypeDeclaration> typeDeclarations;
 
-  TestTypeIntrospector({
-    required this.constructors,
-    required this.enumValues,
-    required this.fields,
-    required this.methods,
-    required this.libraryTypes,
-  });
+  TestDeclarationPhaseIntrospector(
+      {required this.constructors,
+      required this.enumValues,
+      required this.fields,
+      required this.methods,
+      required this.libraryTypes,
+      required this.staticTypes,
+      required this.typeDeclarations});
+
+  @override
+  Future<TypeDeclaration> declarationOf(covariant Identifier identifier) async {
+    var declaration = typeDeclarations[identifier];
+    if (declaration != null) return declaration;
+    throw 'No declaration found for ${identifier.name}';
+  }
+
+  @override
+  Future<StaticType> resolve(covariant TypeAnnotationCode type) async {
+    assert(type.parts.length == 1);
+    return staticTypes[type.parts.first]!;
+  }
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
@@ -54,44 +78,6 @@ class TestTypeIntrospector implements TypeIntrospector {
       libraryTypes[library]!;
 }
 
-class FakeIdentifierResolver implements IdentifierResolver {
-  @override
-  Future<Identifier> resolveIdentifier(Uri library, String name) async {
-    if (library == Uri.parse('dart:core') && name == 'String') {
-      return Fixtures.stringType.identifier;
-    }
-    throw UnimplementedError('Cannot resolve the identifier $library:$name');
-  }
-}
-
-class FakeTypeDeclarationResolver extends Fake
-    implements TypeDeclarationResolver {}
-
-class TestTypeDeclarationResolver implements TypeDeclarationResolver {
-  final Map<Identifier, TypeDeclaration> typeDeclarations;
-
-  TestTypeDeclarationResolver(this.typeDeclarations);
-
-  @override
-  Future<TypeDeclaration> declarationOf(covariant Identifier identifier) async {
-    var declaration = typeDeclarations[identifier];
-    if (declaration != null) return declaration;
-    throw 'No declaration found for ${identifier.name}';
-  }
-}
-
-class TestTypeResolver implements TypeResolver {
-  final Map<Identifier, StaticType> staticTypes;
-
-  TestTypeResolver(this.staticTypes);
-
-  @override
-  Future<StaticType> resolve(covariant TypeAnnotationCode type) async {
-    assert(type.parts.length == 1);
-    return staticTypes[type.parts.first]!;
-  }
-}
-
 /// Doesn't handle generics etc but thats ok for now
 class TestNamedStaticType implements NamedStaticType {
   final IdentifierImpl identifier;
@@ -115,11 +101,29 @@ class TestNamedStaticType implements NamedStaticType {
 
 /// Assumes all omitted types are [TestOmittedTypeAnnotation]s and just returns
 /// the inferred type directly.
-class TestTypeInferrer implements TypeInferrer {
+class TestDefinitionsPhaseIntrospector extends TestDeclarationPhaseIntrospector
+    implements DefinitionPhaseIntrospector {
+  final Map<Library, List<Declaration>> libraryDeclarations;
+
+  TestDefinitionsPhaseIntrospector(
+      {required this.libraryDeclarations,
+      required super.constructors,
+      required super.enumValues,
+      required super.fields,
+      required super.methods,
+      required super.libraryTypes,
+      required super.staticTypes,
+      required super.typeDeclarations});
+
   @override
   Future<TypeAnnotation> inferType(
           TestOmittedTypeAnnotation omittedType) async =>
       omittedType.inferredType!;
+
+  @override
+  Future<List<Declaration>> topLevelDeclarationsOf(
+          covariant Library library) async =>
+      libraryDeclarations[library]!;
 }
 
 /// Knows its inferred type ahead of time.
@@ -142,17 +146,6 @@ class TestIdentifier extends IdentifierImpl {
     required String? staticScope,
   }) : resolved = ResolvedIdentifier(
             kind: kind, name: name, staticScope: staticScope, uri: uri);
-}
-
-class TestLibraryDeclarationsResolver implements LibraryDeclarationsResolver {
-  final Map<Library, List<Declaration>> libraryDeclarations;
-
-  TestLibraryDeclarationsResolver(this.libraryDeclarations);
-
-  @override
-  Future<List<Declaration>> topLevelDeclarationsOf(
-          covariant Library library) async =>
-      libraryDeclarations[library]!;
 }
 
 extension DebugCodeString on Code {
@@ -630,12 +623,8 @@ class Fixtures {
       definingType: myMixinType.identifier,
       isStatic: false);
 
-  static final testTypeResolver = TestTypeResolver({
-    stringType.identifier:
-        TestNamedStaticType(stringType.identifier, 'dart:core', []),
-    myClass.identifier: myClassStaticType,
-  });
-  static final testTypeIntrospector = TestTypeIntrospector(constructors: {
+  static final testDeclarationPhaseIntrospector =
+      TestDeclarationPhaseIntrospector(constructors: {
     myClass: [myConstructor],
     myEnum: [myEnumConstructor],
     myMixin: [],
@@ -655,8 +644,11 @@ class Fixtures {
       myEnum,
       myMixin,
     ],
-  });
-  static final testTypeDeclarationResolver = TestTypeDeclarationResolver({
+  }, staticTypes: {
+    stringType.identifier:
+        TestNamedStaticType(stringType.identifier, 'dart:core', []),
+    myClass.identifier: myClassStaticType,
+  }, typeDeclarations: {
     myClass.identifier: myClass,
     myEnum.identifier: myEnum,
     mySuperclass.identifier: mySuperclass,
@@ -664,17 +656,23 @@ class Fixtures {
     myMixin.identifier: myMixin
   });
 
-  static final testTypeInferrer = TestTypeInferrer();
-
-  static final testLibraryDeclarationsResolver =
-      TestLibraryDeclarationsResolver({
-    Fixtures.library: [
-      myClass,
-      myEnum,
-      myMixin,
-      myFunction,
-      myVariable,
-      libraryVariable,
-    ],
-  });
+  static final testDefinitionPhaseIntrospector =
+      TestDefinitionsPhaseIntrospector(
+          constructors: testDeclarationPhaseIntrospector.constructors,
+          enumValues: testDeclarationPhaseIntrospector.enumValues,
+          fields: testDeclarationPhaseIntrospector.fields,
+          methods: testDeclarationPhaseIntrospector.methods,
+          libraryDeclarations: {
+            Fixtures.library: [
+              myClass,
+              myEnum,
+              myMixin,
+              myFunction,
+              myVariable,
+              libraryVariable,
+            ],
+          },
+          libraryTypes: testDeclarationPhaseIntrospector.libraryTypes,
+          staticTypes: testDeclarationPhaseIntrospector.staticTypes,
+          typeDeclarations: testDeclarationPhaseIntrospector.typeDeclarations);
 }

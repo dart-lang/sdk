@@ -9,8 +9,8 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
 Future<MacroExecutionResult> executeTypesMacro(
-    Macro macro, Object target, IdentifierResolver identifierResolver) async {
-  TypeBuilderImpl builder = new TypeBuilderImpl(identifierResolver);
+    Macro macro, Object target, TypePhaseIntrospector introspector) async {
+  TypeBuilderImpl builder = new TypeBuilderImpl(introspector);
   switch ((target, macro)) {
     case (Library target, LibraryTypesMacro macro):
       await macro.buildTypesForLibrary(target, builder);
@@ -40,13 +40,8 @@ Future<MacroExecutionResult> executeTypesMacro(
 }
 
 /// Runs [macro] in the declaration phase and returns a  [MacroExecutionResult].
-Future<MacroExecutionResult> executeDeclarationsMacro(
-    Macro macro,
-    Object target,
-    IdentifierResolver identifierResolver,
-    TypeIntrospector typeIntrospector,
-    TypeDeclarationResolver typeDeclarationResolver,
-    TypeResolver typeResolver) async {
+Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
+    Object target, DeclarationPhaseIntrospector introspector) async {
   // At most one of these will be used below.
   late MemberDeclarationBuilderImpl memberBuilder =
       new MemberDeclarationBuilderImpl(
@@ -57,15 +52,9 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
                 'Can only create member declaration builders for types or '
                 'member declarations, but got $target'),
           },
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver);
-  late DeclarationBuilderImpl topLevelBuilder = new DeclarationBuilderImpl(
-      identifierResolver,
-      typeIntrospector,
-      typeDeclarationResolver,
-      typeResolver);
+          introspector);
+  late DeclarationBuilderImpl topLevelBuilder =
+      new DeclarationBuilderImpl(introspector);
   late EnumDeclarationBuilderImpl enumBuilder = new EnumDeclarationBuilderImpl(
       switch (target) {
         EnumDeclarationImpl() => target.identifier,
@@ -74,10 +63,7 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
             'Can only create enum declaration builders for enum or enum '
             'value declarations, but got $target'),
       },
-      identifierResolver,
-      typeIntrospector,
-      typeDeclarationResolver,
-      typeResolver);
+      introspector);
 
   switch ((target, macro)) {
     case (Library target, LibraryDeclarationsMacro macro):
@@ -133,53 +119,22 @@ Future<MacroExecutionResult> executeDeclarationsMacro(
 }
 
 /// Runs [macro] in the definition phase and returns a  [MacroExecutionResult].
-Future<MacroExecutionResult> executeDefinitionMacro(
-    Macro macro,
-    Object target,
-    IdentifierResolver identifierResolver,
-    TypeIntrospector typeIntrospector,
-    TypeResolver typeResolver,
-    TypeDeclarationResolver typeDeclarationResolver,
-    TypeInferrer typeInferrer,
-    LibraryDeclarationsResolver libraryDeclarationsResolver) async {
+Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
+    DefinitionPhaseIntrospector introspector) async {
   // At most one of these will be used below.
   late FunctionDefinitionBuilderImpl functionBuilder =
       new FunctionDefinitionBuilderImpl(
-          target as FunctionDeclarationImpl,
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver,
-          typeInferrer,
-          libraryDeclarationsResolver);
+          target as FunctionDeclarationImpl, introspector);
   late VariableDefinitionBuilderImpl variableBuilder =
       new VariableDefinitionBuilderImpl(
-          target as VariableDeclaration,
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver,
-          typeInferrer,
-          libraryDeclarationsResolver);
-  late TypeDefinitionBuilderImpl typeBuilder = new TypeDefinitionBuilderImpl(
-      target as IntrospectableType,
-      identifierResolver,
-      typeIntrospector,
-      typeDeclarationResolver,
-      typeResolver,
-      typeInferrer,
-      libraryDeclarationsResolver);
+          target as VariableDeclaration, introspector);
+  late TypeDefinitionBuilderImpl typeBuilder =
+      new TypeDefinitionBuilderImpl(target as IntrospectableType, introspector);
 
   switch ((target, macro)) {
     case (Library target, LibraryDefinitionMacro macro):
-      LibraryDefinitionBuilderImpl builder = new LibraryDefinitionBuilderImpl(
-          target,
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver,
-          typeInferrer,
-          libraryDeclarationsResolver);
+      LibraryDefinitionBuilderImpl builder =
+          new LibraryDefinitionBuilderImpl(target, introspector);
       await macro.buildDefinitionForLibrary(target, builder);
       return builder.result;
     case (ClassDeclaration target, ClassDefinitionMacro macro):
@@ -196,14 +151,8 @@ Future<MacroExecutionResult> executeDefinitionMacro(
             'Enum declarations annotated with a macro should be introspectable '
             'in the definitions phase.');
       }
-      EnumDefinitionBuilderImpl builder = new EnumDefinitionBuilderImpl(
-          target,
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver,
-          typeInferrer,
-          libraryDeclarationsResolver);
+      EnumDefinitionBuilderImpl builder =
+          new EnumDefinitionBuilderImpl(target, introspector);
       await macro.buildDefinitionForEnum(target, builder);
       return builder.result;
     case (MixinDeclaration target, MixinDefinitionMacro macro):
@@ -217,25 +166,13 @@ Future<MacroExecutionResult> executeDefinitionMacro(
     case (EnumValueDeclaration target, EnumValueDefinitionMacro macro):
       EnumValueDefinitionBuilderImpl builder =
           new EnumValueDefinitionBuilderImpl(
-              target as EnumValueDeclarationImpl,
-              identifierResolver,
-              typeIntrospector,
-              typeDeclarationResolver,
-              typeResolver,
-              typeInferrer,
-              libraryDeclarationsResolver);
+              target as EnumValueDeclarationImpl, introspector);
       await macro.buildDefinitionForEnumValue(target, builder);
       return builder.result;
     case (ConstructorDeclaration target, ConstructorDefinitionMacro macro):
       ConstructorDefinitionBuilderImpl builder =
           new ConstructorDefinitionBuilderImpl(
-              target as ConstructorDeclarationImpl,
-              identifierResolver,
-              typeIntrospector,
-              typeDeclarationResolver,
-              typeResolver,
-              typeInferrer,
-              libraryDeclarationsResolver);
+              target as ConstructorDeclarationImpl, introspector);
       await macro.buildDefinitionForConstructor(target, builder);
       return builder.result;
     case (MethodDeclaration target, MethodDefinitionMacro macro):

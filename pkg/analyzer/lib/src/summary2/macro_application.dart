@@ -73,20 +73,17 @@ class LibraryMacroApplier {
   final LibraryBuilder libraryBuilder;
   final MultiMacroExecutor macroExecutor;
 
+  late final macro.DeclarationPhaseIntrospector _declarationPhaseIntrospector =
+      _DeclarationPhaseIntrospector(
+    _linker.elementFactory,
+    declarationBuilder,
+    libraryBuilder.element.typeSystem,
+  );
+
   final List<_MacroTarget> _targets = [];
 
-  late final macro.IdentifierResolver _identifierResolver =
-      _IdentifierResolver(_linker.elementFactory, declarationBuilder);
-
-  late final macro.TypeDeclarationResolver _typeDeclarationResolver =
-      _TypeDeclarationResolver(declarationBuilder);
-
-  late final macro.TypeIntrospector _typeIntrospector =
-      _TypeIntrospector(declarationBuilder);
-
-  late final macro.TypeResolver _typeResolver = _TypeResolver(
-    typeSystem: libraryBuilder.element.typeSystem,
-  );
+  late final macro.TypePhaseIntrospector _typePhaseIntrospector =
+      _TypePhaseIntrospector(_linker.elementFactory, declarationBuilder);
 
   LibraryMacroApplier({
     required this.macroExecutor,
@@ -487,20 +484,91 @@ class _ArgumentEvaluation {
   }
 }
 
-class _IdentifierResolver implements macro.IdentifierResolver {
-  final LinkedElementFactory elementFactory;
-  final DeclarationBuilder declarationBuilder;
+class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
+    implements macro.DeclarationPhaseIntrospector {
+  final TypeSystemImpl typeSystem;
 
-  _IdentifierResolver(
-    this.elementFactory,
-    this.declarationBuilder,
-  );
+  _DeclarationPhaseIntrospector(
+      super.elementFactory, super.declarationBuilder, this.typeSystem);
 
   @override
-  Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
-    final libraryElement = elementFactory.libraryOfUri2(library);
-    final element = libraryElement.scope.lookup(name).getter!;
-    return declarationBuilder.fromElement.identifier(element);
+  Future<List<macro.ConstructorDeclaration>> constructorsOf(
+      covariant macro.IntrospectableType type) {
+    // TODO: implement constructorsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<macro.TypeDeclaration> declarationOf(
+    covariant IdentifierImpl identifier,
+  ) async {
+    final element = identifier.element;
+    if (element is ClassElementImpl) {
+      return declarationBuilder.fromElement.classElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
+  }
+
+  @override
+  Future<List<macro.FieldDeclaration>> fieldsOf(
+    covariant macro.IntrospectableType type,
+  ) async {
+    if (type is! IntrospectableClassDeclarationImpl) {
+      throw UnsupportedError('Only introspection on classes is supported');
+    }
+    return type.element.fields
+        .where((e) => !e.isSynthetic)
+        .map(declarationBuilder.fromElement.fieldElement)
+        .toList();
+  }
+
+  @override
+  Future<List<macro.MethodDeclaration>> methodsOf(
+      covariant macro.IntrospectableType clazz) {
+    // TODO: implement methodsOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
+    var dartType = _resolve(type);
+    return _StaticTypeImpl(typeSystem, dartType);
+  }
+
+  @override
+  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
+    // TODO: implement typesOf
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<List<macro.EnumValueDeclaration>> valuesOf(
+      covariant macro.IntrospectableEnum type) {
+    // TODO: implement valuesOf
+    throw UnimplementedError();
+  }
+
+  DartType _resolve(macro.TypeAnnotationCode type) {
+    // TODO(scheglov) write tests
+    if (type is macro.NamedTypeAnnotationCode) {
+      final identifier = type.name as IdentifierImpl;
+      final element = identifier.element;
+      if (element is ClassElementImpl) {
+        return element.instantiate(
+          typeArguments: type.typeArguments.map(_resolve).toList(),
+          nullabilitySuffix: type.isNullable
+              ? NullabilitySuffix.question
+              : NullabilitySuffix.none,
+        );
+      } else {
+        // TODO(scheglov) Implement other elements.
+        throw UnimplementedError('(${element.runtimeType}) $element');
+      }
+    } else {
+      // TODO(scheglov) Implement other types.
+      throw UnimplementedError('(${type.runtimeType}) $type');
+    }
   }
 }
 
@@ -520,10 +588,7 @@ class _MacroApplication {
     return await executor.executeDeclarationsPhase(
       instanceIdentifier,
       target.declaration,
-      applier._identifierResolver,
-      applier._typeDeclarationResolver,
-      applier._typeResolver,
-      applier._typeIntrospector,
+      applier._declarationPhaseIntrospector,
     );
   }
 
@@ -533,7 +598,7 @@ class _MacroApplication {
     return await executor.executeTypesPhase(
       instanceIdentifier,
       target.declaration,
-      applier._identifierResolver,
+      applier._typePhaseIntrospector,
     );
   }
 
@@ -597,103 +662,20 @@ class _StaticTypeImpl implements macro.StaticType {
   }
 }
 
-class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
+class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
+  final LinkedElementFactory elementFactory;
   final DeclarationBuilder declarationBuilder;
 
-  _TypeDeclarationResolver(this.declarationBuilder);
+  _TypePhaseIntrospector(
+    this.elementFactory,
+    this.declarationBuilder,
+  );
 
   @override
-  Future<macro.TypeDeclaration> declarationOf(
-    covariant IdentifierImpl identifier,
-  ) async {
-    final element = identifier.element;
-    if (element is ClassElementImpl) {
-      return declarationBuilder.fromElement.classElement(element);
-    } else {
-      throw ArgumentError('element: $element');
-    }
-  }
-}
-
-class _TypeIntrospector implements macro.TypeIntrospector {
-  final DeclarationBuilder declarationBuilder;
-
-  _TypeIntrospector(this.declarationBuilder);
-
-  @override
-  Future<List<macro.ConstructorDeclaration>> constructorsOf(
-      covariant macro.IntrospectableType type) {
-    // TODO: implement constructorsOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.FieldDeclaration>> fieldsOf(
-    covariant macro.IntrospectableType type,
-  ) async {
-    if (type is! IntrospectableClassDeclarationImpl) {
-      throw UnsupportedError('Only introspection on classes is supported');
-    }
-    return type.element.fields
-        .where((e) => !e.isSynthetic)
-        .map(declarationBuilder.fromElement.fieldElement)
-        .toList();
-  }
-
-  @override
-  Future<List<macro.MethodDeclaration>> methodsOf(
-      covariant macro.IntrospectableType clazz) {
-    // TODO: implement methodsOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.TypeDeclaration>> typesOf(covariant macro.Library library) {
-    // TODO: implement typesOf
-    throw UnimplementedError();
-  }
-
-  @override
-  Future<List<macro.EnumValueDeclaration>> valuesOf(
-      covariant macro.IntrospectableEnum type) {
-    // TODO: implement valuesOf
-    throw UnimplementedError();
-  }
-}
-
-class _TypeResolver implements macro.TypeResolver {
-  final TypeSystemImpl typeSystem;
-
-  _TypeResolver({
-    required this.typeSystem,
-  });
-
-  @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
-    var dartType = _resolve(type);
-    return _StaticTypeImpl(typeSystem, dartType);
-  }
-
-  DartType _resolve(macro.TypeAnnotationCode type) {
-    // TODO(scheglov) write tests
-    if (type is macro.NamedTypeAnnotationCode) {
-      final identifier = type.name as IdentifierImpl;
-      final element = identifier.element;
-      if (element is ClassElementImpl) {
-        return element.instantiate(
-          typeArguments: type.typeArguments.map(_resolve).toList(),
-          nullabilitySuffix: type.isNullable
-              ? NullabilitySuffix.question
-              : NullabilitySuffix.none,
-        );
-      } else {
-        // TODO(scheglov) Implement other elements.
-        throw UnimplementedError('(${element.runtimeType}) $element');
-      }
-    } else {
-      // TODO(scheglov) Implement other types.
-      throw UnimplementedError('(${type.runtimeType}) $type');
-    }
+  Future<macro.Identifier> resolveIdentifier(Uri library, String name) async {
+    final libraryElement = elementFactory.libraryOfUri2(library);
+    final element = libraryElement.scope.lookup(name).getter!;
+    return declarationBuilder.fromElement.identifier(element);
   }
 }
 

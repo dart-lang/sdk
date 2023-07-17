@@ -62,8 +62,8 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                       deserializer, zoneId);
               SerializableResponse response;
               try {
-                IdentifierImpl identifier = await (request
-                            .identifierResolver.instance as IdentifierResolver)
+                IdentifierImpl identifier = await (request.introspector.instance
+                            as TypePhaseIntrospector)
                         // ignore: deprecated_member_use_from_same_package
                         .resolveIdentifier(request.library, request.name)
                     as IdentifierImpl;
@@ -87,9 +87,9 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             case MessageType.resolveTypeRequest:
               ResolveTypeRequest request =
                   new ResolveTypeRequest.deserialize(deserializer, zoneId);
-              StaticType instance =
-                  await (request.typeResolver.instance as TypeResolver)
-                      .resolve(request.typeAnnotationCode);
+              StaticType instance = await (request.introspector.instance
+                      as DeclarationPhaseIntrospector)
+                  .resolve(request.typeAnnotationCode);
               SerializableResponse response = new SerializableResponse(
                   response: new RemoteInstanceImpl(
                       id: RemoteInstance.uniqueId,
@@ -109,9 +109,9 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             case MessageType.inferTypeRequest:
               InferTypeRequest request =
                   new InferTypeRequest.deserialize(deserializer, zoneId);
-              TypeAnnotationImpl inferredType =
-                  await (request.typeInferrer.instance as TypeInferrer)
-                      .inferType(request.omittedType) as TypeAnnotationImpl;
+              TypeAnnotationImpl inferredType = await (request
+                      .introspector.instance as DefinitionPhaseIntrospector)
+                  .inferType(request.omittedType) as TypeAnnotationImpl;
               SerializableResponse response = new SerializableResponse(
                   response: inferredType,
                   requestId: request.id,
@@ -156,16 +156,16 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
                   new DeclarationOfRequest.deserialize(deserializer, zoneId);
               SerializableResponse response;
               try {
-                TypeDeclarationResolver resolver = request
-                    .typeDeclarationResolver
-                    .instance as TypeDeclarationResolver;
+                DeclarationPhaseIntrospector introspector = request
+                    .introspector.instance as DeclarationPhaseIntrospector;
                 response = new SerializableResponse(
                     requestId: request.id,
                     responseType: MessageType.remoteInstance,
-                    response: (await resolver.declarationOf(request.identifier)
-                        // TODO: Consider refactoring to avoid the need for
-                        //  this cast.
-                        as Serializable),
+                    response:
+                        (await introspector.declarationOf(request.identifier)
+                            // TODO: Consider refactoring to avoid the need for
+                            //  this cast.
+                            as Serializable),
                     serializationZoneId: zoneId);
               } on ArgumentError catch (error) {
                 response = new SerializableResponse(
@@ -191,12 +191,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               TypeIntrospectorRequest request =
                   new TypeIntrospectorRequest.deserialize(
                       deserializer, messageType, zoneId);
-              TypeIntrospector typeIntrospector =
-                  request.typeIntrospector.instance as TypeIntrospector;
+              DeclarationPhaseIntrospector introspector =
+                  request.introspector.instance as DeclarationPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
-                  response: new DeclarationList((await typeIntrospector
+                  response: new DeclarationList((await introspector
                           .constructorsOf(
                               request.declaration as IntrospectableType))
                       // TODO: Consider refactoring to avoid the need for this.
@@ -209,14 +209,13 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
             case MessageType.topLevelDeclarationsOfRequest:
               DeclarationsOfRequest request =
                   new DeclarationsOfRequest.deserialize(deserializer, zoneId);
-              LibraryDeclarationsResolver libraryDeclarationsResolver = request
-                  .libraryDeclarationsResolver
-                  .instance as LibraryDeclarationsResolver;
+              DefinitionPhaseIntrospector introspector =
+                  request.introspector.instance as DefinitionPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
                   response: new DeclarationList(// force newline
-                      (await libraryDeclarationsResolver
+                      (await introspector
                               .topLevelDeclarationsOf(request.library))
                           // TODO: Consider refactoring to avoid the need for
                           // this.
@@ -230,12 +229,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               TypeIntrospectorRequest request =
                   new TypeIntrospectorRequest.deserialize(
                       deserializer, messageType, zoneId);
-              TypeIntrospector typeIntrospector =
-                  request.typeIntrospector.instance as TypeIntrospector;
+              DeclarationPhaseIntrospector introspector =
+                  request.introspector.instance as DeclarationPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
-                  response: new DeclarationList((await typeIntrospector
+                  response: new DeclarationList((await introspector
                           .fieldsOf(request.declaration as IntrospectableType))
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<FieldDeclarationImpl>()),
@@ -248,12 +247,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               TypeIntrospectorRequest request =
                   new TypeIntrospectorRequest.deserialize(
                       deserializer, messageType, zoneId);
-              TypeIntrospector typeIntrospector =
-                  request.typeIntrospector.instance as TypeIntrospector;
+              DeclarationPhaseIntrospector introspector =
+                  request.introspector.instance as DeclarationPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
-                  response: new DeclarationList((await typeIntrospector
+                  response: new DeclarationList((await introspector
                           .methodsOf(request.declaration as IntrospectableType))
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<MethodDeclarationImpl>()),
@@ -266,12 +265,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               TypeIntrospectorRequest request =
                   new TypeIntrospectorRequest.deserialize(
                       deserializer, messageType, zoneId);
-              TypeIntrospector typeIntrospector =
-                  request.typeIntrospector.instance as TypeIntrospector;
+              DeclarationPhaseIntrospector introspector =
+                  request.introspector.instance as DeclarationPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
-                  response: new DeclarationList((await typeIntrospector
+                  response: new DeclarationList((await introspector
                           .typesOf(request.declaration as Library))
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<TypeDeclarationImpl>()),
@@ -284,12 +283,12 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
               TypeIntrospectorRequest request =
                   new TypeIntrospectorRequest.deserialize(
                       deserializer, messageType, zoneId);
-              TypeIntrospector typeIntrospector =
-                  request.typeIntrospector.instance as TypeIntrospector;
+              DeclarationPhaseIntrospector introspector =
+                  request.introspector.instance as DeclarationPhaseIntrospector;
               SerializableResponse response = new SerializableResponse(
                   requestId: request.id,
                   responseType: MessageType.declarationList,
-                  response: new DeclarationList((await typeIntrospector
+                  response: new DeclarationList((await introspector
                           .valuesOf(request.declaration as IntrospectableEnum))
                       // TODO: Consider refactoring to avoid the need for this.
                       .cast<EnumValueDeclarationImpl>()),
@@ -320,80 +319,40 @@ abstract class ExternalMacroExecutorBase extends MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
           MacroTarget target,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector) =>
+          DeclarationPhaseIntrospector introspector) =>
       _sendRequest((zoneId) => new ExecuteDeclarationsPhaseRequest(
           macro,
           target as RemoteInstance,
           new RemoteInstanceImpl(
-              instance: identifierResolver,
+              instance: introspector,
               id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.identifierResolver),
-          new RemoteInstanceImpl(
-              instance: typeDeclarationResolver,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeDeclarationResolver),
-          new RemoteInstanceImpl(
-              instance: typeResolver,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeResolver),
-          new RemoteInstanceImpl(
-              instance: typeIntrospector,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeIntrospector),
+              kind: RemoteInstanceKind.declarationPhaseIntrospector),
           serializationZoneId: zoneId));
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
           MacroTarget target,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector,
-          TypeInferrer typeInferrer,
-          LibraryDeclarationsResolver libraryDeclarationsResolver) =>
+          DefinitionPhaseIntrospector introspector) =>
       _sendRequest((zoneId) => new ExecuteDefinitionsPhaseRequest(
           macro,
           target as RemoteInstance,
           new RemoteInstanceImpl(
-              instance: identifierResolver,
+              instance: introspector,
               id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.identifierResolver),
-          new RemoteInstanceImpl(
-              instance: typeResolver,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeResolver),
-          new RemoteInstanceImpl(
-              instance: typeIntrospector,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeIntrospector),
-          new RemoteInstanceImpl(
-              instance: typeDeclarationResolver,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeDeclarationResolver),
-          new RemoteInstanceImpl(
-              instance: typeInferrer,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.typeInferrer),
-          new RemoteInstanceImpl(
-              instance: libraryDeclarationsResolver,
-              id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.libraryDeclarationsResolver),
+              kind: RemoteInstanceKind.definitionPhaseIntrospector),
           serializationZoneId: zoneId));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-          MacroTarget target, IdentifierResolver identifierResolver) =>
+          MacroTarget target, TypePhaseIntrospector introspector) =>
       _sendRequest((zoneId) => new ExecuteTypesPhaseRequest(
           macro,
           target as RemoteInstance,
           new RemoteInstanceImpl(
-              instance: identifierResolver,
+              instance: introspector,
               id: RemoteInstance.uniqueId,
-              kind: RemoteInstanceKind.identifierResolver),
+              kind: RemoteInstanceKind.typePhaseIntrospector),
           serializationZoneId: zoneId));
 
   @override

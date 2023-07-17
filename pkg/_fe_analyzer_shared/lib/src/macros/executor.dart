@@ -46,7 +46,7 @@ abstract class MacroExecutor {
   ///
   /// Throws an exception if there is an error executing the macro.
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-      MacroTarget target, IdentifierResolver identifierResolver);
+      MacroTarget target, TypePhaseIntrospector introspector);
 
   /// Runs the declarations phase for [macro] on a given [declaration].
   ///
@@ -54,10 +54,7 @@ abstract class MacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector);
+      DeclarationPhaseIntrospector introspector);
 
   /// Runs the definitions phase for [macro] on a given [declaration].
   ///
@@ -65,12 +62,7 @@ abstract class MacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector,
-      TypeInferrer typeInferrer,
-      LibraryDeclarationsResolver libraryDeclarationsResolver);
+      DefinitionPhaseIntrospector introspector);
 
   /// Combines multiple [MacroExecutionResult]s into a single library
   /// augmentation file, and returns a [String] representing that file.
