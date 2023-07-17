@@ -13,270 +13,13 @@ This page lists diagnostic messages produced by the Dart analyzer,
 with details about what those messages mean and how you can fix your code.
 For more information about the analyzer, see
 [Customizing static analysis](/guides/language/analysis-options).
-
-## Glossary
-
-This page uses the following terms:
-
-* [constant context][]
-* [definite assignment][]
-* [mixin application][]
-* [override inference][]
-* [part file][]
-* [potentially non-nullable][]
-* [public library][]
-
-[constant context]: #constant-context
-[definite assignment]: #definite-assignment
-[mixin application]: #mixin-application
-[override inference]: #override-inference
-[part file]: #part-file
-[potentially non-nullable]: #potentially-non-nullable
-[public library]: #public-library
-
-### Constant context
-
-A _constant context_ is a region of code in which it isn't necessary to include
-the `const` keyword because it's implied by the fact that everything in that
-region is required to be a constant. The following locations are constant
-contexts:
-
-* Everything inside a list, map or set literal that's prefixed by the
-  `const` keyword. Example:
-
-  ```dart
-  var l = const [/*constant context*/];
-  ```
-
-* The arguments inside an invocation of a constant constructor. Example:
-
-  ```dart
-  var p = const Point(/*constant context*/);
-  ```
-
-* The initializer for a variable that's prefixed by the `const` keyword.
-  Example:
-
-  ```dart
-  const v = /*constant context*/;
-  ```
-
-* Annotations
-
-* The expression in a `case` clause. Example:
-
-  ```dart
-  void f(int e) {
-    switch (e) {
-      case /*constant context*/:
-        break;
-    }
-  }
-  ```
-
-### Definite assignment
-
-Definite assignment analysis is the process of determining, for each local
-variable at each point in the code, which of the following is true:
-- The variable has definitely been assigned a value (_definitely assigned_).
-- The variable has definitely not been assigned a value (_definitely
-  unassigned_).
-- The variable might or might not have been assigned a value, depending on the
-  execution path taken to arrive at that point.
-
-Definite assignment analysis helps find problems in code, such as places where a
-variable that might not have been assigned a value is being referenced, or
-places where a variable that can only be assigned a value one time is being
-assigned after it might already have been assigned a value.
-
-For example, in the following code the variable `s` is definitely unassigned
-when it’s passed as an argument to `print`:
-
-```dart
-void f() {
-  String s;
-  print(s);
-}
-```
-
-But in the following code, the variable `s` is definitely assigned:
-
-```dart
-void f(String name) {
-  String s = 'Hello $name!';
-  print(s);
-}
-```
-
-Definite assignment analysis can even tell whether a variable is definitely
-assigned (or unassigned) when there are multiple possible execution paths. In
-the following code the `print` function is called if execution goes through
-either the true or the false branch of the `if` statement, but because `s` is
-assigned no matter which branch is taken, it’s definitely assigned before it’s
-passed to `print`:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  } else {
-    s = 'Hello $name!';
-  }
-  print(s);
-}
-```
-
-In flow analysis, the end of the `if` statement is referred to as a _join_—a
-place where two or more execution paths merge back together. Where there's a
-join, the analysis says that a variable is definitely assigned if it’s
-definitely assigned along all of the paths that are merging, and definitely
-unassigned if it’s definitely unassigned along all of the paths.
-
-Sometimes a variable is assigned a value on one path but not on another, in
-which case the variable might or might not have been assigned a value. In the
-following example, the true branch of the `if` statement might or might not be
-executed, so the variable might or might be assigned a value:
-
-```dart
-void f(String name, bool casual) {
-  String s;
-  if (casual) {
-    s = 'Hi $name!';
-  }
-  print(s);
-}
-```
-
-The same is true if there is a false branch that doesn’t assign a value to `s`.
-
-The analysis of loops is a little more complicated, but it follows the same
-basic reasoning. For example, the condition in a `while` loop is always
-executed, but the body might or might not be. So just like an `if` statement,
-there's a join at the end of the `while` statement between the path in which the
-condition is `true` and the path in which the condition is `false`.
-
-For additional details, see the
-[specification of definite assignment][definiteAssignmentSpec].
-
-[definiteAssignmentSpec]: https://github.com/dart-lang/language/blob/master/resources/type-system/flow-analysis.md
-
-### Mixin application
-
-A _mixin application_ is the class created when a mixin is applied to a class.
-For example, consider the following declarations:
-
-```dart
-class A {}
-
-mixin M {}
-
-class B extends A with M {}
-```
-
-The class `B` is a subclass of the mixin application of `M` to `A`, sometimes
-nomenclated as `A+M`. The class `A+M` is a subclass of `A` and has members that
-are copied from `M`.
-
-You can give an actual name to a mixin application by defining it as:
-
-```dart
-class A {}
-
-mixin M {}
-
-class A_M = A with M;
-```
-
-Given this declaration of `A_M`, the following declaration of `B` is equivalent
-to the declaration of `B` in the original example:
-
-```dart
-class B extends A_M {}
-```
-
-### Override inference
-
-Override inference is the process by which any missing types in a method
-declaration are inferred based on the corresponding types from the method or
-methods that it overrides.
-
-If a candidate method (the method that's missing type information) overrides a
-single inherited method, then the corresponding types from the overridden method
-are inferred. For example, consider the following code:
-
-```dart
-class A {
-  int m(String s) => 0;
-}
-
-class B extends A {
-  @override
-  m(s) => 1;
-}
-```
-
-The declaration of `m` in `B` is a candidate because it's missing both the
-return type and the parameter type. Because it overrides a single method (the
-method `m` in `A`), the types from the overridden method will be used to infer
-the missing types and it will be as if the method in `B` had been declared as
-`int m(String s) => 1;`.
-
-If a candidate method overrides multiple methods, and the function type one of
-those overridden methods, M<sub>s</sub>, is a supertype of the function types of
-all of the other overridden methods, then M<sub>s</sub> is used to infer the
-missing types. For example, consider the following code:
-
-```dart
-class A {
-  int m(num n) => 0;
-}
-
-class B {
-  num m(int i) => 0;
-}
-
-class C implements A, B {
-  @override
-  m(n) => 1;
-}
-```
-
-The declaration of `m` in `C` is a candidate for override inference because it's
-missing both the return type and the parameter type. It overrides both `m` in
-`A` and `m` in `B`, so we need to choose one of them from which the missing
-types can be inferred. But because the function type of `m` in `A`
-(`int Function(num)`) is a supertype of the function type of `m` in `B`
-(`num Function(int)`), the function in `A` is used to infer the missing types.
-The result is the same as declaring the method in `C` as `int m(num n) => 1;`.
-
-It is an error if none of the overridden methods has a function type that is a
-supertype of all the other overridden methods.
-
-### Part file
-
-A part file is a Dart source file that contains a `part of` directive.
-
-### Potentially non-nullable
-
-A type is _potentially non-nullable_ if it's either explicitly non-nullable or
-if it's a type parameter.
-
-A type is explicitly non-nullable if it is a type name that isn't followed by a
-question mark. Note that there are a few types that are always nullable, such as
-`Null` and `dynamic`, and that `FutureOr` is only non-nullable if it isn't
-followed by a question mark _and_ the type argument is non-nullable (such as
-`FutureOr<String>`).
-
-Type parameters are potentially non-nullable because the actual runtime type
-(the type specified as a type argument) might be non-nullable. For example,
-given a declaration of `class C<T> {}`, the type `C` could be used with a
-non-nullable type argument as in `C<int>`.
-
-### Public library
-
-A public library is a library that is located inside the package's `lib`
-directory but not inside the `lib/src` directory.
+[constant context]: /resources/glossary#constant-context
+[definite assignment]: /resources/glossary#definite-assignment
+[mixin application]: /resources/glossary#mixin-application
+[override inference]: /resources/glossary#override-inference
+[part file]: /resources/glossary#part-file
+[potentially non-nullable]: /resources/glossary#potentially-non-nullable
+[public library]: /resources/glossary#public-library
 
 ## Diagnostics
 
@@ -14419,7 +14162,8 @@ String f(E e) => [!switch!] (e) {
 
 #### Common fixes
 
-Add a case for each of the values missing a match:
+If the missing values are distinctly meaningful to the switch expression,
+then add a case for each of the values missing a match:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -14432,7 +14176,7 @@ String f(E e) => switch (e) {
 {% endprettify %}
 
 If the missing values don't need to be matched, then add a wildcard
-pattern:
+pattern that returns a simple default:
 
 {% prettify dart tag=pre+code %}
 enum E { one, two, three }
@@ -16436,12 +16180,12 @@ _Object patterns can only use named fields._
 The analyzer produces this diagnostic when an object pattern contains a
 field without specifying the getter name. Object pattern fields match
 against values that the object's getters return. Without a getter name
-specified, the pattern field can't access a value to attempt to match against. 
+specified, the pattern field can't access a value to attempt to match against.
 
 #### Example
 
 The following code produces this diagnostic because the object pattern
-`String(1)` doesn't specify which getter of `String` to access and compare 
+`String(1)` doesn't specify which getter of `String` to access and compare
 with the value `1`:
 
 {% prettify dart tag=pre+code %}
@@ -16452,8 +16196,8 @@ void f(Object o) {
 
 #### Common fixes
 
-Add the getter name (same as the field name) to access the value, followed
-by a colon before the value to match against:
+Add the getter name to access the value, followed
+by a colon before the pattern to match against:
 
 {% prettify dart tag=pre+code %}
 void f(Object o) {
@@ -17693,7 +17437,7 @@ _A map pattern can't contain a rest pattern._
 #### Description
 
 The analyzer produces this diagnostic when a map pattern contains a rest
-pattern. Map patterns will already match a map with more keys
+pattern. Map patterns match a map with more keys
 than those explicitly given in the pattern (as long as the given keys match),
 so a rest pattern is unnecesssary.
 
