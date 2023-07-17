@@ -2806,9 +2806,7 @@ class _NullLog implements Log {
 }
 // enums
 
-class CodeKind {
-  CodeKind._();
-
+abstract class CodeKind {
   static const String kDart = 'Dart';
   static const String kNative = 'Native';
   static const String kStub = 'Stub';
@@ -2816,9 +2814,7 @@ class CodeKind {
   static const String kCollected = 'Collected';
 }
 
-class ErrorKind {
-  ErrorKind._();
-
+abstract class ErrorKind {
   /// The isolate has encountered an unhandled Dart exception.
   static const String kUnhandledException = 'UnhandledException';
 
@@ -2959,9 +2955,7 @@ abstract class EventKind {
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
 /// change. Clients should treat unrecognized instance kinds as `PlainInstance`.
-class InstanceKind {
-  InstanceKind._();
-
+abstract class InstanceKind {
   /// A general instance of the Dart class Object.
   static const String kPlainInstance = 'PlainInstance';
 
@@ -3067,9 +3061,7 @@ class InstanceKind {
 ///
 /// Adding new values to `SentinelKind` is considered a backwards compatible
 /// change. Clients must handle this gracefully.
-class SentinelKind {
-  SentinelKind._();
-
+abstract class SentinelKind {
   /// Indicates that the object referred to has been collected by the GC.
   static const String kCollected = 'Collected';
 
@@ -3090,9 +3082,7 @@ class SentinelKind {
 }
 
 /// A `FrameKind` is used to distinguish different kinds of `Frame` objects.
-class FrameKind {
-  FrameKind._();
-
+abstract class FrameKind {
   static const String kRegular = 'Regular';
   static const String kAsyncCausal = 'AsyncCausal';
   static const String kAsyncSuspensionMarker = 'AsyncSuspensionMarker';
@@ -3101,9 +3091,7 @@ class FrameKind {
   static const String kAsyncActivation = 'AsyncActivation';
 }
 
-class SourceReportKind {
-  SourceReportKind._();
-
+abstract class SourceReportKind {
   /// Used to request a code coverage information.
   static const String kCoverage = 'Coverage';
 
@@ -3116,9 +3104,7 @@ class SourceReportKind {
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
 /// is thrown.
-class ExceptionPauseMode {
-  ExceptionPauseMode._();
-
+abstract class ExceptionPauseMode {
   static const String kNone = 'None';
   static const String kUnhandled = 'Unhandled';
   static const String kAll = 'All';
@@ -3126,9 +3112,7 @@ class ExceptionPauseMode {
 
 /// A `StepOption` indicates which form of stepping is requested in a [resume]
 /// RPC.
-class StepOption {
-  StepOption._();
-
+abstract class StepOption {
   static const String kInto = 'Into';
   static const String kOver = 'Over';
   static const String kOverAsyncSuspension = 'OverAsyncSuspension';
