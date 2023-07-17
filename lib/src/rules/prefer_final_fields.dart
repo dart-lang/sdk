@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:collection';
-
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -83,17 +81,6 @@ class NotAssignedInAllConstructors {
 ```
 ''';
 
-bool _containedInFormal(Element element, FormalParameter formal) {
-  var formalField = formal.declaredElement;
-  return formalField is FieldFormalParameterElement &&
-      formalField.field == element;
-}
-
-bool _containedInInitializer(
-        Element element, ConstructorInitializer initializer) =>
-    initializer is ConstructorFieldInitializer &&
-    initializer.fieldName.canonicalElement == element;
-
 class PreferFinalFields extends LintRule {
   static const LintCode code = LintCode(
       'prefer_final_fields', "The private field {0} could be 'final'.",
@@ -112,16 +99,39 @@ class PreferFinalFields extends LintRule {
   @override
   void registerNodeProcessors(
       NodeLintRegistry registry, LinterContext context) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(this, context);
     registry.addCompilationUnit(this, visitor);
-    registry.addFieldDeclaration(this, visitor);
   }
 }
 
-class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
-  final Set<FieldElement> _mutatedFields;
+class _DeclarationsCollector extends RecursiveAstVisitor<void> {
+  final fields = <FieldElement, VariableDeclaration>{};
 
-  _MutatedFieldsCollector(this._mutatedFields);
+  @override
+  void visitFieldDeclaration(FieldDeclaration node) {
+    if (node.parent is EnumDeclaration) return;
+    if (node.fields.isFinal || node.fields.isConst) {
+      return;
+    }
+
+    for (var variable in node.fields.variables) {
+      var element = variable.declaredElement;
+      if (element is FieldElement &&
+          element.isPrivate &&
+          !element.overridesField) {
+        fields[element] = variable;
+      }
+    }
+  }
+}
+
+class _FieldMutationFinder extends RecursiveAstVisitor<void> {
+  /// The collection of fields declared in this library.
+  ///
+  /// This visitor removes a field when it finds that it is assigned anywhere.
+  final Map<FieldElement, VariableDeclaration> _fields;
+
+  _FieldMutationFinder(this._fields);
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
@@ -148,7 +158,7 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
   void _addMutatedFieldElement(CompoundAssignmentExpression assignment) {
     var element = assignment.writeElement?.canonicalElement;
     if (element is FieldElement) {
-      _mutatedFields.add(element);
+      _fields.remove(element);
     }
   }
 }
@@ -156,59 +166,49 @@ class _MutatedFieldsCollector extends RecursiveAstVisitor<void> {
 class _Visitor extends SimpleAstVisitor<void> {
   final LintRule rule;
 
-  final Set<FieldElement> _mutatedFields = HashSet<FieldElement>();
+  final LinterContext context;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, this.context);
 
   @override
   void visitCompilationUnit(CompilationUnit node) {
-    node.accept(_MutatedFieldsCollector(_mutatedFields));
-  }
+    var declarationsCollector = _DeclarationsCollector();
+    node.accept(declarationsCollector);
+    var fields = declarationsCollector.fields;
 
-  @override
-  void visitFieldDeclaration(FieldDeclaration node) {
-    if (node.parent is EnumDeclaration) return;
-
-    var fields = node.fields;
-    if (fields.isFinal || fields.isConst) {
-      return;
+    var fieldMutationFinder = _FieldMutationFinder(fields);
+    for (var unit in context.allUnits) {
+      unit.unit.accept(fieldMutationFinder);
     }
 
-    for (var variable in fields.variables) {
-      var element = variable.declaredElement;
+    for (var MapEntry(key: field, value: variable) in fields.entries) {
+      // TODO(srawlins): We could look at the constructors once and store a set
+      // of which fields are initialized by any, and a set of which fields are
+      // initialized by all. This would concievably improve performance.
+      var classDeclaration = variable.parent?.parent?.parent;
+      var constructors = classDeclaration is ClassDeclaration
+          ? classDeclaration.members.whereType<ConstructorDeclaration>()
+          : <ConstructorDeclaration>[];
 
-      if (element is PropertyInducingElement &&
-          element.isPrivate &&
-          !_mutatedFields.contains(element)) {
-        bool fieldInConstructor(ConstructorDeclaration constructor) =>
-            constructor.initializers.any((ConstructorInitializer initializer) =>
-                _containedInInitializer(element, initializer)) ||
-            constructor.parameters.parameters.any((FormalParameter formal) =>
-                _containedInFormal(element, formal));
+      var isSetInAnyConstructor = constructors
+          .any((constructor) => field.isSetInConstructor(constructor));
 
-        var classDeclaration = node.parent;
-        var constructors = classDeclaration is ClassDeclaration
-            ? classDeclaration.members.whereType<ConstructorDeclaration>()
-            : <ConstructorDeclaration>[];
-        var isFieldInConstructors = constructors.any(fieldInConstructor);
-        var isFieldInAllConstructors = constructors.every(fieldInConstructor);
+      if (isSetInAnyConstructor) {
+        var isSetInEveryConstructor = constructors
+            .every((constructor) => field.isSetInConstructor(constructor));
 
-        if (element.overridesField()) continue;
-
-        if (isFieldInConstructors) {
-          if (isFieldInAllConstructors) {
-            rule.reportLint(variable, arguments: [variable.name.lexeme]);
-          }
-        } else if (element.hasInitializer) {
+        if (isSetInEveryConstructor) {
           rule.reportLint(variable, arguments: [variable.name.lexeme]);
         }
+      } else if (field.hasInitializer) {
+        rule.reportLint(variable, arguments: [variable.name.lexeme]);
       }
     }
   }
 }
 
 extension on VariableElement {
-  bool overridesField() {
+  bool get overridesField {
     var enclosingElement = this.enclosingElement;
     if (enclosingElement is! InterfaceElement) return false;
 
@@ -218,5 +218,21 @@ extension on VariableElement {
     return enclosingElement.thisType
             .lookUpSetter2(name, inherited: true, library) !=
         null;
+  }
+
+  bool isSetInConstructor(ConstructorDeclaration constructor) =>
+      constructor.initializers.any(isSetInInitializer) ||
+      constructor.parameters.parameters.any(isSetInParameter);
+
+  /// Whether `this` is initialized in [initializer].
+  bool isSetInInitializer(ConstructorInitializer initializer) =>
+      initializer is ConstructorFieldInitializer &&
+      initializer.fieldName.canonicalElement == this;
+
+  /// Whether `this` is initialized with [parameter].
+  bool isSetInParameter(FormalParameter parameter) {
+    var formalField = parameter.declaredElement;
+    return formalField is FieldFormalParameterElement &&
+        formalField.field == this;
   }
 }

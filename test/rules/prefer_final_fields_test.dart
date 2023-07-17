@@ -17,6 +17,38 @@ class PreferFinalFieldsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_final_fields';
 
+  test_assignedInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+class C {
+  int _x = 0;
+}
+''');
+  }
+
+  test_declaredInPart() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part of 'test.dart';
+class C {
+  int _x = 0;
+}
+''');
+    await assertNoDiagnostics(r'''
+part 'part.dart';
+int f(C c) {
+  c._x = 1;
+  return c._x;
+}
+''');
+  }
+
   test_enum() async {
     await assertDiagnostics(r'''
 enum A {
