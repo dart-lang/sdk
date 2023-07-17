@@ -197,6 +197,14 @@ f() {
     ]);
   }
 
+  test_field() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int f = 0;
+}
+''');
+  }
+
   test_ifPatternList() async {
     await assertDiagnostics(r'''
 f(Object o) {
@@ -284,6 +292,68 @@ f(Object o) {
     await assertNoDiagnostics(r'''
 f(String a, String b) {
   [a, b] = ['a', 'b'];
+}
+''');
+  }
+
+  test_notReassigned_withFinal() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  final a = 'hello';
+  print(a);
+}
+''');
+  }
+
+  test_notReassigned_withType_multiple() async {
+    await assertDiagnostics(r'''
+void f() {
+  String a = 'hello', b = 'world';
+  print(a);
+  print(b);
+}
+''', [
+      lint(13, 6),
+    ]);
+  }
+
+  test_notReassigned_withVar() async {
+    await assertDiagnostics(r'''
+void f() {
+  var a = '';
+  print(a);
+}
+''', [
+      lint(13, 3),
+    ]);
+  }
+
+  test_notReassigned_withVar_multiple() async {
+    await assertDiagnostics(r'''
+void f() {
+  var a = 'hello', b = 'world';
+  print(a);
+  print(b);
+}
+''', [
+      lint(13, 3),
+    ]);
+  }
+
+  test_reassigned() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var a = 'hello';
+  a = 'hello world';
+}
+''');
+  }
+
+  test_reassigned_multiple() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var a = 'hello', b = 'world';
+  a = 'world';
 }
 ''');
   }
