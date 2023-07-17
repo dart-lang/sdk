@@ -84,33 +84,6 @@ class BundleReader {
   }
 }
 
-class ClassAugmentationElementLinkedData
-    extends ElementLinkedData<ClassAugmentationElementImpl> {
-  ApplyConstantOffsets? applyConstantOffsets;
-
-  ClassAugmentationElementLinkedData({
-    required Reference reference,
-    required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
-    required int offset,
-  }) : super(reference, libraryReader, unitElement, offset);
-
-  @override
-  void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement2,
-    );
-    _readTypeParameters(reader, element.typeParameters);
-    element.mixins = reader._readInterfaceTypeList();
-    element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget =
-        reader.readElement() as ClassOrAugmentationElementMixin?;
-    element.augmentation =
-        reader.readElement() as ClassAugmentationElementImpl?;
-    applyConstantOffsets?.perform();
-  }
-}
-
 class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
   void Function()? _readMembers;
@@ -124,7 +97,7 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
   }) : super(reference, libraryReader, unitElement, offset);
 
   @override
-  void readMembers(InstanceOrAugmentationElementMixin element) {
+  void readMembers(InstanceElementImpl element) {
     if (element is! ClassElementImpl) {
       return;
     }
@@ -149,15 +122,18 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
     element.supertype = reader._readOptionalInterfaceType();
     element.mixins = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentation =
-        reader.readElement() as ClassAugmentationElementImpl?;
+    element.augmentation = reader.readElement() as ClassElementImpl?;
 
-    if (reader.readBool()) {
-      final augmented = AugmentedClassElementImpl();
-      element.augmentedInternal = augmented;
-      augmented.mixins = reader._readInterfaceTypeList();
-      augmented.interfaces = reader._readInterfaceTypeList();
-      augmented.methods = reader.readElementList();
+    if (element.isAugmentation) {
+      element.augmentationTarget = reader.readElement() as ClassElementImpl?;
+    } else {
+      if (reader.readBool()) {
+        final augmented = AugmentedClassElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.mixins = reader._readInterfaceTypeList();
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.methods = reader.readElementList();
+      }
     }
 
     applyConstantOffsets?.perform();
@@ -242,14 +218,14 @@ abstract class ElementLinkedData<E extends ElementImpl> {
   /// as well access them through their [Reference]s. For a class declaration
   /// this means reading them, for a named mixin application this means
   /// computing constructors.
-  void readMembers(InstanceOrAugmentationElementMixin element) {}
+  void readMembers(InstanceElementImpl element) {}
 
   void _addEnclosingElementTypeParameters(
     ResolutionReader reader,
     ElementImpl element,
   ) {
     var enclosing = element.enclosingElement2;
-    if (enclosing is InstanceOrAugmentationElement) {
+    if (enclosing is InstanceElement) {
       reader._addTypeParameters(enclosing.typeParameters);
     } else if (enclosing is CompilationUnitElement) {
       // Nothing.
@@ -640,50 +616,6 @@ class LibraryReader {
     );
   }
 
-  ClassAugmentationElementImpl _readClassAugmentationElement(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@classAugmentation').getChild(name);
-
-    var element = ClassAugmentationElementImpl(name, -1);
-
-    var linkedData = ClassAugmentationElementLinkedData(
-      reference: reference,
-      libraryReader: this,
-      unitElement: unitElement,
-      offset: resolutionOffset,
-    );
-    element.setLinkedData(reference, linkedData);
-    ClassElementFlags.read(_reader, element);
-
-    element.typeParameters = _readTypeParameters();
-
-    var fields = <FieldElementImpl>[];
-    var accessors = <PropertyAccessorElementImpl>[];
-    _readFields(unitElement, element, reference, accessors, fields);
-    _readPropertyAccessors(
-        unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields.toFixedList();
-    element.accessors = accessors.toFixedList();
-
-    element.constructors = _readConstructors(unitElement, element, reference);
-    element.methods = _readMethods(unitElement, element, reference);
-
-    return element;
-  }
-
-  void _readClassAugmentations(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
-    unitElement.classAugmentations = _reader.readTypedList(() {
-      return _readClassAugmentationElement(unitElement, unitReference);
-    });
-  }
-
   ClassElementImpl _readClassElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -757,7 +689,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructors(
     CompilationUnitElementImpl unitElement,
-    NamedInstanceOrAugmentationElementMixin classElement,
+    NamedInstanceElementImpl classElement,
     Reference classReference,
   ) {
     var containerRef = classReference.getChild('@constructor');
@@ -1205,49 +1137,6 @@ class LibraryReader {
     });
   }
 
-  MixinAugmentationElementImpl _readMixinAugmentationElement(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
-    var resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
-    var name = _reader.readStringReference();
-    var reference = unitReference.getChild('@mixinAugmentation').getChild(name);
-
-    var element = MixinAugmentationElementImpl(name, -1);
-
-    var linkedData = MixinAugmentationElementLinkedData(
-      reference: reference,
-      libraryReader: this,
-      unitElement: unitElement,
-      offset: resolutionOffset,
-    );
-    element.setLinkedData(reference, linkedData);
-    MixinElementFlags.read(_reader, element);
-
-    element.typeParameters = _readTypeParameters();
-
-    var fields = <FieldElementImpl>[];
-    var accessors = <PropertyAccessorElementImpl>[];
-    _readFields(unitElement, element, reference, accessors, fields);
-    _readPropertyAccessors(
-        unitElement, element, reference, accessors, fields, '@field');
-    element.fields = fields.toFixedList();
-    element.accessors = accessors.toFixedList();
-
-    element.methods = _readMethods(unitElement, element, reference);
-
-    return element;
-  }
-
-  void _readMixinAugmentations(
-    CompilationUnitElementImpl unitElement,
-    Reference unitReference,
-  ) {
-    unitElement.mixinAugmentations = _reader.readTypedList(() {
-      return _readMixinAugmentationElement(unitElement, unitReference);
-    });
-  }
-
   MixinElementImpl _readMixinElement(
     CompilationUnitElementImpl unitElement,
     Reference unitReference,
@@ -1629,12 +1518,10 @@ class LibraryReader {
     unitElement.isSynthetic = _reader.readBool();
 
     _readClasses(unitElement, unitReference);
-    _readClassAugmentations(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);
     _readMixins(unitElement, unitReference);
-    _readMixinAugmentations(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);
 
     var accessors = <PropertyAccessorElementImpl>[];
@@ -1684,39 +1571,7 @@ class MethodElementLinkedData extends ElementLinkedData<MethodElementImpl> {
     _readFormalParameters(reader, element.parameters);
     element.returnType = reader.readRequiredType();
     element.augmentation = reader.readElement() as MethodElementImpl?;
-    if (reader.readBool()) {
-      final target = reader.readElement() as MethodElementImpl?;
-      element.maybeAugmentation = AugmentationMethodElementImpl(
-        augmentationTarget: target,
-      );
-    }
-    applyConstantOffsets?.perform();
-  }
-}
-
-class MixinAugmentationElementLinkedData
-    extends ElementLinkedData<MixinAugmentationElementImpl> {
-  ApplyConstantOffsets? applyConstantOffsets;
-
-  MixinAugmentationElementLinkedData({
-    required Reference reference,
-    required LibraryReader libraryReader,
-    required CompilationUnitElementImpl unitElement,
-    required int offset,
-  }) : super(reference, libraryReader, unitElement, offset);
-
-  @override
-  void _read(element, reader) {
-    element.metadata = reader._readAnnotationList(
-      unitElement: element.enclosingElement2,
-    );
-    _readTypeParameters(reader, element.typeParameters);
-    element.superclassConstraints = reader._readInterfaceTypeList();
-    element.interfaces = reader._readInterfaceTypeList();
-    element.augmentationTarget =
-        reader.readElement() as MixinOrAugmentationElementMixin?;
-    element.augmentation =
-        reader.readElement() as MixinAugmentationElementImpl?;
+    element.augmentationTarget = reader.readElement() as MethodElementImpl?;
     applyConstantOffsets?.perform();
   }
 }
@@ -1739,15 +1594,18 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
     _readTypeParameters(reader, element.typeParameters);
     element.superclassConstraints = reader._readInterfaceTypeList();
     element.interfaces = reader._readInterfaceTypeList();
-    element.augmentation =
-        reader.readElement() as MixinAugmentationElementImpl?;
+    element.augmentation = reader.readElement() as MixinElementImpl?;
 
-    if (reader.readBool()) {
-      final augmented = AugmentedMixinElementImpl();
-      element.augmentedInternal = augmented;
-      augmented.superclassConstraints = reader._readInterfaceTypeList();
-      augmented.interfaces = reader._readInterfaceTypeList();
-      augmented.methods = reader.readElementList();
+    if (element.isAugmentation) {
+      element.augmentationTarget = reader.readElement() as MixinElementImpl?;
+    } else {
+      if (reader.readBool()) {
+        final augmented = AugmentedMixinElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.superclassConstraints = reader._readInterfaceTypeList();
+        augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.methods = reader.readElementList();
+      }
     }
 
     applyConstantOffsets?.perform();

@@ -231,15 +231,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
-    _sink.writeln('ClassAugmentationDeclaration');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeDeclaredElement(node.declaredElement);
-    });
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _sink.writeln('ClassDeclaration');
     _sink.withIndent(() {

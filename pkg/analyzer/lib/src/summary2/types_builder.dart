@@ -118,20 +118,6 @@ class TypesBuilder {
     );
   }
 
-  void _classAugmentationDeclaration(ClassAugmentationDeclarationImpl node) {
-    final element = node.declaredElement!;
-
-    element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes,
-    );
-
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
-
-    _updatedAugmented(element);
-  }
-
   void _classDeclaration(ClassDeclaration node) {
     var element = node.declaredElement as ClassElementImpl;
 
@@ -157,12 +143,16 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    if (element.augmentation != null) {
-      final augmented = AugmentedClassElementImpl();
-      element.augmentedInternal = augmented;
-      augmented.mixins.addAll(element.mixins);
-      augmented.interfaces.addAll(element.interfaces);
-      augmented.methods.addAll(element.methods.notAugmented);
+    if (element.isAugmentation) {
+      _updatedAugmented(element);
+    } else {
+      if (element.augmentation != null) {
+        final augmented = AugmentedClassElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.mixins.addAll(element.mixins);
+        augmented.interfaces.addAll(element.interfaces);
+        augmented.methods.addAll(element.methods.notAugmented);
+      }
     }
   }
 
@@ -188,8 +178,6 @@ class TypesBuilder {
   void _declaration(AstNode node) {
     if (node is ClassDeclaration) {
       _classDeclaration(node);
-    } else if (node is ClassAugmentationDeclarationImpl) {
-      _classAugmentationDeclaration(node);
     } else if (node is ClassTypeAlias) {
       _classTypeAlias(node);
     } else if (node is EnumDeclaration) {
@@ -230,8 +218,6 @@ class TypesBuilder {
       element.returnType = returnType;
     } else if (node is MixinDeclaration) {
       _mixinDeclaration(node);
-    } else if (node is MixinAugmentationDeclarationImpl) {
-      _mixinAugmentationDeclaration(node);
     } else if (node is SimpleFormalParameter) {
       var element = node.declaredElement as ParameterElementImpl;
       element.type = node.type?.type ?? _dynamicType;
@@ -325,27 +311,13 @@ class TypesBuilder {
     return unit!.featureSet.isEnabled(Feature.non_nullable);
   }
 
-  void _mixinAugmentationDeclaration(MixinAugmentationDeclarationImpl node) {
-    final element = node.declaredElement!;
-
-    element.superclassConstraints = _toInterfaceTypeList(
-      node.onClause?.superclassConstraints,
-    );
-
-    element.interfaces = _toInterfaceTypeList(
-      node.implementsClause?.interfaces,
-    );
-
-    _updatedAugmented(element);
-  }
-
   void _mixinDeclaration(MixinDeclaration node) {
     var element = node.declaredElement as MixinElementImpl;
 
     var constraints = _toInterfaceTypeList(
       node.onClause?.superclassConstraints,
     );
-    if (constraints.isEmpty) {
+    if (!element.isAugmentation && constraints.isEmpty) {
       constraints = [_objectType(element)];
     }
     element.superclassConstraints = constraints;
@@ -354,12 +326,16 @@ class TypesBuilder {
       node.implementsClause?.interfaces,
     );
 
-    if (element.augmentation != null) {
-      final augmented = AugmentedMixinElementImpl();
-      element.augmentedInternal = augmented;
-      augmented.superclassConstraints.addAll(element.superclassConstraints);
-      augmented.interfaces.addAll(element.interfaces);
-      augmented.methods.addAll(element.methods.notAugmented);
+    if (element.isAugmentation) {
+      _updatedAugmented(element);
+    } else {
+      if (element.augmentation != null) {
+        final augmented = AugmentedMixinElementImpl(element);
+        element.augmentedInternal = augmented;
+        augmented.superclassConstraints.addAll(element.superclassConstraints);
+        augmented.interfaces.addAll(element.interfaces);
+        augmented.methods.addAll(element.methods.notAugmented);
+      }
     }
   }
 
@@ -402,12 +378,14 @@ class TypesBuilder {
   }
 
   void _updatedAugmented<Declaration extends InstanceElementImpl>(
-    InstanceAugmentationElementImpl element,
+    InstanceElementImpl element,
   ) {
-    final declaration = element.augmentedDeclaration;
-    if (declaration == null) {
+    final augmented = element.augmented;
+    if (augmented == null) {
       return;
     }
+
+    final declaration = augmented.declaration;
 
     final elementTypeParameters = element.typeParameters;
     final declarationTypeParameters = declaration.typeParameters;
@@ -425,9 +403,8 @@ class TypesBuilder {
     );
 
     final typeProvider = element.library.typeProvider;
-    final augmented = declaration.augmented;
 
-    if (element is InterfaceAugmentationElementImpl &&
+    if (element is InterfaceElementImpl &&
         augmented is AugmentedInterfaceElementImpl) {
       augmented.mixins.addAll(
         substitution.mapInterfaceTypes(element.mixins),
@@ -437,8 +414,7 @@ class TypesBuilder {
       );
     }
 
-    if (element is MixinAugmentationElementImpl &&
-        augmented is AugmentedMixinElementImpl) {
+    if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
       augmented.superclassConstraints.addAll(
         substitution.mapInterfaceTypes(element.superclassConstraints),
       );
@@ -641,18 +617,14 @@ class _MixinsInference {
   /// we are inferring the [element] now, i.e. there is a loop.
   ///
   /// This is an error. So, we return the empty list, and break the loop.
-  List<InterfaceType> _callbackWhenLoop(
-    InterfaceOrAugmentationElementMixin element,
-  ) {
+  List<InterfaceType> _callbackWhenLoop(InterfaceElementImpl element) {
     element.mixinInferenceCallback = null;
     return <InterfaceType>[];
   }
 
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
-  List<InterfaceType>? _callbackWhenRecursion(
-    InterfaceOrAugmentationElementMixin element,
-  ) {
+  List<InterfaceType>? _callbackWhenRecursion(InterfaceElementImpl element) {
     var node = _linker.getLinkingNode(element);
     if (node != null) {
       _inferDeclaration(node);

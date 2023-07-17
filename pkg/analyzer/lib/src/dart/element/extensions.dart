@@ -26,7 +26,7 @@ extension ElementAnnotationExtensions on ElementAnnotation {
         }
       }
     } else if (element is ConstructorElement) {
-      instanceElement = element.enclosingElement2.augmentedDeclaration;
+      instanceElement = element.enclosingElement2.augmented?.declaration;
     }
     if (instanceElement == null) {
       return const <TargetKind>{};

@@ -262,24 +262,6 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
-  bool visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
-    final other = _other as ClassAugmentationDeclaration;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
-        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
-        isEqualTokens(node.classKeyword, other.classKeyword) &&
-        isEqualTokens(node.name, other.name) &&
-        isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualNodes(node.withClause, other.withClause) &&
-        isEqualNodes(node.implementsClause, other.implementsClause) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.members, other.members) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
-  }
-
-  @override
   bool visitClassDeclaration(ClassDeclaration node) {
     ClassDeclaration other = _other as ClassDeclaration;
     return isEqualNodes(
@@ -1030,24 +1012,6 @@ class AstComparator implements AstVisitor<bool> {
         isEqualTokens(node.operator, other.operator) &&
         isEqualNodes(node.methodName, other.methodName) &&
         isEqualNodes(node.argumentList, other.argumentList);
-  }
-
-  @override
-  bool visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
-    final other = _other as MixinAugmentationDeclaration;
-    return isEqualNodes(
-            node.documentationComment, other.documentationComment) &&
-        _isEqualNodeLists(node.metadata, other.metadata) &&
-        isEqualTokens(node.augmentKeyword, other.augmentKeyword) &&
-        isEqualTokens(node.baseKeyword, other.baseKeyword) &&
-        isEqualTokens(node.mixinKeyword, other.mixinKeyword) &&
-        isEqualTokens(node.name, other.name) &&
-        isEqualNodes(node.typeParameters, other.typeParameters) &&
-        isEqualNodes(node.onClause, other.onClause) &&
-        isEqualNodes(node.implementsClause, other.implementsClause) &&
-        isEqualTokens(node.leftBracket, other.leftBracket) &&
-        _isEqualNodeLists(node.members, other.members) &&
-        isEqualTokens(node.rightBracket, other.rightBracket);
   }
 
   @override

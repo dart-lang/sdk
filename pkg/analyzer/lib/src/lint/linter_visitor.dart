@@ -144,12 +144,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitClassAugmentationDeclaration(ClassAugmentationDeclaration node) {
-    _runSubscriptions(node, registry._forClassAugmentationDeclaration);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _runSubscriptions(node, registry._forClassDeclaration);
     node.visitChildren(this);
@@ -624,12 +618,6 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node) {
-    _runSubscriptions(node, registry._forMixinAugmentationDeclaration);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _runSubscriptions(node, registry._forMixinDeclaration);
     node.visitChildren(this);
@@ -1086,8 +1074,6 @@ class NodeLintRegistry {
   final List<_Subscription<CastPattern>> _forCastPattern = [];
   final List<_Subscription<CatchClause>> _forCatchClause = [];
   final List<_Subscription<CatchClauseParameter>> _forCatchClauseParameter = [];
-  final List<_Subscription<ClassAugmentationDeclaration>>
-      _forClassAugmentationDeclaration = [];
   final List<_Subscription<ClassDeclaration>> _forClassDeclaration = [];
   final List<_Subscription<ClassTypeAlias>> _forClassTypeAlias = [];
   final List<_Subscription<Comment>> _forComment = [];
@@ -1190,8 +1176,6 @@ class NodeLintRegistry {
   final List<_Subscription<MethodDeclaration>> _forMethodDeclaration = [];
   final List<_Subscription<MethodInvocation>> _forMethodInvocation = [];
   final List<_Subscription<MixinDeclaration>> _forMixinDeclaration = [];
-  final List<_Subscription<MixinAugmentationDeclaration>>
-      _forMixinAugmentationDeclaration = [];
   final List<_Subscription<NamedExpression>> _forNamedExpression = [];
   final List<_Subscription<NamedType>> _forNamedType = [];
   final List<_Subscription<NativeClause>> _forNativeClause = [];
@@ -1358,12 +1342,6 @@ class NodeLintRegistry {
   void addCatchClauseParameter(LintRule linter, AstVisitor visitor) {
     _forCatchClauseParameter
         .add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addClassAugmentationDeclaration(LintRule linter, AstVisitor visitor) {
-    _forClassAugmentationDeclaration.add(
-      _Subscription(linter, visitor, _getTimer(linter)),
-    );
   }
 
   void addClassDeclaration(LintRule linter, AstVisitor visitor) {
@@ -1721,11 +1699,6 @@ class NodeLintRegistry {
 
   void addMethodInvocation(LintRule linter, AstVisitor visitor) {
     _forMethodInvocation.add(_Subscription(linter, visitor, _getTimer(linter)));
-  }
-
-  void addMixinAugmentationDeclaration(LintRule linter, AstVisitor visitor) {
-    _forMixinAugmentationDeclaration
-        .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
   void addMixinDeclaration(LintRule linter, AstVisitor visitor) {

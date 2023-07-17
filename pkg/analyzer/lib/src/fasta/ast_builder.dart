@@ -1162,19 +1162,9 @@ class AstBuilder extends StackListener {
     debugEvent("ClassDeclaration");
 
     final builder = _classLikeBuilder as _ClassDeclarationBuilder;
-    final augmentKeyword = builder.augmentKeyword;
-
-    if (augmentKeyword != null) {
-      declarations.add(
-        builder.buildAugmentation(
-          augmentKeyword: augmentKeyword,
-        ),
-      );
-    } else {
-      declarations.add(
-        builder.build(),
-      );
-    }
+    declarations.add(
+      builder.build(),
+    );
 
     _classLikeBuilder = null;
   }
@@ -2504,19 +2494,10 @@ class AstBuilder extends StackListener {
     debugEvent("MixinDeclaration");
 
     final builder = _classLikeBuilder as _MixinDeclarationBuilder;
-    final augmentKeyword = builder.augmentKeyword;
+    declarations.add(
+      builder.build(),
+    );
 
-    if (augmentKeyword != null) {
-      declarations.add(
-        builder.buildAugmentation(
-          augmentKeyword: augmentKeyword,
-        ),
-      );
-    } else {
-      declarations.add(
-        builder.build(),
-      );
-    }
     _classLikeBuilder = null;
   }
 
@@ -5827,6 +5808,7 @@ class AstBuilder extends StackListener {
 }
 
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token? augmentKeyword;
   final Token? abstractKeyword;
   final Token? macroKeyword;
   final Token? inlineKeyword;
@@ -5834,7 +5816,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? baseKeyword;
   final Token? interfaceKeyword;
   final Token? finalKeyword;
-  final Token? augmentKeyword;
   final Token? mixinKeyword;
   final Token classKeyword;
   final Token name;
@@ -5849,6 +5830,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.typeParameters,
     required super.leftBracket,
     required super.rightBracket,
+    required this.augmentKeyword,
     required this.abstractKeyword,
     required this.macroKeyword,
     required this.inlineKeyword,
@@ -5856,7 +5838,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.baseKeyword,
     required this.interfaceKeyword,
     required this.finalKeyword,
-    required this.augmentKeyword,
     required this.mixinKeyword,
     required this.classKeyword,
     required this.name,
@@ -5870,6 +5851,7 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     return ClassDeclarationImpl(
       comment: comment,
       metadata: metadata,
+      augmentKeyword: augmentKeyword,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
       inlineKeyword: inlineKeyword,
@@ -5882,33 +5864,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       name: name,
       typeParameters: typeParameters,
       extendsClause: extendsClause,
-      withClause: withClause,
-      implementsClause: implementsClause,
-      nativeClause: nativeClause,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
-    );
-  }
-
-  ClassAugmentationDeclarationImpl buildAugmentation({
-    required Token augmentKeyword,
-  }) {
-    return ClassAugmentationDeclarationImpl(
-      comment: comment,
-      metadata: metadata,
-      abstractKeyword: abstractKeyword,
-      macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
-      sealedKeyword: sealedKeyword,
-      baseKeyword: baseKeyword,
-      interfaceKeyword: interfaceKeyword,
-      finalKeyword: finalKeyword,
-      augmentKeyword: augmentKeyword,
-      mixinKeyword: mixinKeyword,
-      classKeyword: classKeyword,
-      name: name,
-      typeParameters: typeParameters,
       withClause: withClause,
       implementsClause: implementsClause,
       nativeClause: nativeClause,
@@ -6042,24 +5997,6 @@ class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
 
   MixinDeclarationImpl build() {
     return MixinDeclarationImpl(
-      comment: comment,
-      metadata: metadata,
-      baseKeyword: baseKeyword,
-      mixinKeyword: mixinKeyword,
-      name: name,
-      typeParameters: typeParameters,
-      onClause: onClause,
-      implementsClause: implementsClause,
-      leftBracket: leftBracket,
-      members: members,
-      rightBracket: rightBracket,
-    );
-  }
-
-  MixinAugmentationDeclarationImpl buildAugmentation({
-    required Token augmentKeyword,
-  }) {
-    return MixinAugmentationDeclarationImpl(
       comment: comment,
       metadata: metadata,
       augmentKeyword: augmentKeyword,

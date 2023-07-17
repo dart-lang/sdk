@@ -23,7 +23,7 @@ main() {
     defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
     defineReflectiveTests(ClassAugmentationElementsFromBytesTest);
-    defineReflectiveTests(MixinAugmentationElementsFromBytesTest3);
+    defineReflectiveTests(MixinAugmentationElementsFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
@@ -89,54 +89,88 @@ library
   definingUnit
     classes
       class A @58
-        augmentation: self::@augmentation::package:test/a1.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a1.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a1.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @97
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/a11.dart::@classAugmentation::A
+            augmentation: self::@augmentation::package:test/a11.dart::@class::A
       augmentationImports
         package:test/a11.dart
           definingUnit
-            classAugmentations
+            classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a1.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
-                augmentation: self::@augmentation::package:test/a12.dart::@classAugmentation::A
+                augmentationTarget: self::@augmentation::package:test/a1.dart::@class::A
+                augmentation: self::@augmentation::package:test/a12.dart::@class::A
         package:test/a12.dart
           definingUnit
-            classAugmentations
+            classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a11.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
-                augmentation: self::@augmentation::package:test/a2.dart::@classAugmentation::A
+                augmentationTarget: self::@augmentation::package:test/a11.dart::@class::A
+                augmentation: self::@augmentation::package:test/a2.dart::@class::A
     package:test/a2.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @97
-            augmentationTarget: self::@augmentation::package:test/a12.dart::@classAugmentation::A
-            augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/a21.dart::@classAugmentation::A
+            augmentationTarget: self::@augmentation::package:test/a12.dart::@class::A
+            augmentation: self::@augmentation::package:test/a21.dart::@class::A
       augmentationImports
         package:test/a21.dart
           definingUnit
-            classAugmentations
+            classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a2.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
-                augmentation: self::@augmentation::package:test/a22.dart::@classAugmentation::A
+                augmentationTarget: self::@augmentation::package:test/a2.dart::@class::A
+                augmentation: self::@augmentation::package:test/a22.dart::@class::A
         package:test/a22.dart
           definingUnit
-            classAugmentations
+            classes
               augment class A @41
-                augmentationTarget: self::@augmentation::package:test/a21.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
+                augmentationTarget: self::@augmentation::package:test/a21.dart::@class::A
+''');
+  }
+
+  test_augmentationTarget_no2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment class A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment class A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+class B {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @31
+        constructors
+          synthetic @-1
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @68
+            augmentationTarget: <null>
+            augmentation: self::@augmentation::package:test/b.dart::@class::A
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            classes
+              augment class A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
 ''');
   }
 
@@ -158,7 +192,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         interfaces
           I1
         constructors
@@ -174,15 +208,13 @@ library
     package:test/a.dart
       definingUnit
         classes
+          augment class A @43
+            augmentationTarget: self::@class::A
+            interfaces
+              I2
           class I2 @68
             constructors
               synthetic @-1
-        classAugmentations
-          augment class A @43
-            augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            interfaces
-              I2
 ''');
   }
 
@@ -211,7 +243,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         interfaces
           I1
         constructors
@@ -228,29 +260,25 @@ library
     package:test/a.dart
       definingUnit
         classes
+          augment class A @68
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            interfaces
+              I2
           class I2 @93
             constructors
               synthetic @-1
-        classAugmentations
-          augment class A @68
-            augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
-            interfaces
-              I2
       augmentationImports
         package:test/b.dart
           definingUnit
             classes
+              augment class A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+                interfaces
+                  I3
               class I3 @65
                 constructors
                   synthetic @-1
-            classAugmentations
-              augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
-                interfaces
-                  I3
 ''');
   }
 
@@ -275,7 +303,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         interfaces
           I1
         constructors
@@ -291,21 +319,19 @@ library
     package:test/a.dart
       definingUnit
         classes
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            interfaces
+              I2<T2>
           class I2 @76
             typeParameters
               covariant E @79
                 defaultType: dynamic
             constructors
               synthetic @-1
-        classAugmentations
-          augment class A @43
-            typeParameters
-              covariant T2 @45
-                defaultType: dynamic
-            augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            interfaces
-              I2<T2>
 ''');
   }
 
@@ -330,7 +356,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         interfaces
           I1
         constructors
@@ -345,13 +371,6 @@ library
     package:test/a.dart
       definingUnit
         classes
-          class I2 @80
-            typeParameters
-              covariant E @83
-                defaultType: dynamic
-            constructors
-              synthetic @-1
-        classAugmentations
           augment class A @43
             typeParameters
               covariant T2 @45
@@ -359,9 +378,14 @@ library
               covariant T3 @49
                 defaultType: dynamic
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             interfaces
               I2<T2>
+          class I2 @80
+            typeParameters
+              covariant E @83
+                defaultType: dynamic
+            constructors
+              synthetic @-1
 ''');
   }
 
@@ -385,7 +409,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         methods
@@ -393,15 +417,14 @@ library
             returnType: void
         augmented
           methods
-            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+            self::@augmentation::package:test/a.dart::@class::A::@method::bar
             self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             methods
               bar @54
                 returnType: void
@@ -429,31 +452,29 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         methods
           foo1 @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo1
           foo2 @59
             returnType: void
         augmented
           methods
-            self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo1
+            self::@augmentation::package:test/a.dart::@class::A::@method::foo1
             self::@class::A::@method::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             methods
               foo1 @62
                 returnType: void
-                maybeAugmentation
-                  augmentationTarget: self::@class::A::@method::foo1
+                augmentationTarget: self::@class::A::@method::foo1
 ''');
   }
 
@@ -485,42 +506,38 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo
         augmented
           methods
-            self::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo
+            self::@augmentation::package:test/b.dart::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @68
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
-            augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A
+            augmentation: self::@augmentation::package:test/b.dart::@class::A
             methods
               foo @87
                 returnType: void
-                maybeAugmentation
-                  augmentationTarget: self::@class::A::@method::foo
-                augmentation: self::@augmentation::package:test/b.dart::@classAugmentation::A::@method::foo
+                augmentationTarget: self::@class::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@class::A::@method::foo
       augmentationImports
         package:test/b.dart
           definingUnit
-            classAugmentations
+            classes
               augment class A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A
-                augmentedDeclaration: self::@class::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
                 methods
                   foo @59
                     returnType: void
-                    maybeAugmentation
-                      augmentationTarget: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@class::A::@method::foo
 ''');
   }
 
@@ -547,7 +564,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         methods
@@ -556,19 +573,18 @@ library
         augmented
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::bar
+              base: self::@augmentation::package:test/a.dart::@class::A::@method::bar
               substitution: {T2: T}
             self::@class::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             methods
               bar @56
                 returnType: T2
@@ -598,33 +614,31 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         methods
           foo @42
             returnType: T
-            augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@class::A::@method::foo
         augmented
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@classAugmentation::A::@method::foo
+              base: self::@augmentation::package:test/a.dart::@class::A::@method::foo
               substitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             typeParameters
               covariant T2 @45
                 defaultType: dynamic
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             methods
               foo @64
                 returnType: T2
-                maybeAugmentation
-                  augmentationTarget: self::@class::A::@method::foo
+                augmentationTarget: self::@class::A::@method::foo
 ''');
   }
 
@@ -646,7 +660,7 @@ library
   definingUnit
     classes
       class A @31
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         supertype: Object
         mixins
           M1
@@ -663,10 +677,9 @@ library
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
             mixins
               M2
         mixins
@@ -692,17 +705,16 @@ library
   definingUnit
     classes
       abstract class A @40
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment abstract class A @52
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -722,17 +734,16 @@ library
   definingUnit
     classes
       base class A @36
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment base class A @48
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -752,17 +763,16 @@ library
   definingUnit
     classes
       final class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment final class A @49
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -782,17 +792,16 @@ library
   definingUnit
     classes
       interface class A @41
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment interface class A @53
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -812,17 +821,16 @@ library
   definingUnit
     classes
       macro class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment macro class A @49
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -842,17 +850,16 @@ library
   definingUnit
     classes
       mixin class A @37
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment mixin class A @49
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -872,17 +879,16 @@ library
   definingUnit
     classes
       abstract sealed class A @38
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment abstract sealed class A @50
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -961,21 +967,20 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
-          augment class A @43
+        classes
+          augment notSimplyBounded class A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>
                 defaultType: A<dynamic>
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 
@@ -1000,7 +1005,7 @@ library
           covariant T @33
             bound: B
             defaultType: B
-        augmentation: self::@augmentation::package:test/a.dart::@classAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
         augmented
@@ -1010,14 +1015,13 @@ library
   augmentationImports
     package:test/a.dart
       definingUnit
-        classAugmentations
+        classes
           augment class A @43
             typeParameters
               covariant T @45
                 bound: B
                 defaultType: B
             augmentationTarget: self::@class::A
-            augmentedDeclaration: self::@class::A
 ''');
   }
 }
@@ -45575,7 +45579,7 @@ library
 }
 
 @reflectiveTest
-class MixinAugmentationElementsFromBytesTest3 extends ElementsBaseTest
+class MixinAugmentationElementsFromBytesTest extends ElementsBaseTest
     with MixinAugmentationElementsMixin {
   @override
   bool get keepLinkingLibraries => false;
@@ -45611,7 +45615,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         augmented
@@ -45620,18 +45624,56 @@ library
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
       augmentationImports
         package:test/b.dart
           definingUnit
-            mixinAugmentations
+            mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
-                augmentedDeclaration: self::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
+''');
+  }
+
+  test_augmentationTarget_no2() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+import augment 'b.dart';
+augment mixin A {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'a.dart';
+augment mixin A {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin B {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin B @31
+        superclassConstraints
+          Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @68
+            augmentationTarget: <null>
+            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
+      augmentationImports
+        package:test/b.dart
+          definingUnit
+            mixins
+              augment mixin A @40
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
 ''');
   }
 
@@ -45657,7 +45699,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         interfaces
@@ -45675,10 +45717,9 @@ library
           class I2 @68
             constructors
               synthetic @-1
-        mixinAugmentations
+        mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             interfaces
               I2
 ''');
@@ -45713,7 +45754,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         interfaces
@@ -45732,11 +45773,10 @@ library
           class I2 @93
             constructors
               synthetic @-1
-        mixinAugmentations
+        mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
             interfaces
               I2
       augmentationImports
@@ -45746,10 +45786,9 @@ library
               class I3 @65
                 constructors
                   synthetic @-1
-            mixinAugmentations
+            mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
-                augmentedDeclaration: self::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
                 interfaces
                   I3
 ''');
@@ -45775,7 +45814,7 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         methods
@@ -45785,15 +45824,14 @@ library
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+            self::@augmentation::package:test/a.dart::@mixin::A::@method::bar
             self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             methods
               bar @54
                 returnType: void
@@ -45821,33 +45859,31 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         methods
           foo1 @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo1
           foo2 @59
             returnType: void
         augmented
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo1
+            self::@augmentation::package:test/a.dart::@mixin::A::@method::foo1
             self::@mixin::A::@method::foo2
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             methods
               foo1 @62
                 returnType: void
-                maybeAugmentation
-                  augmentationTarget: self::@mixin::A::@method::foo1
+                augmentationTarget: self::@mixin::A::@method::foo1
 ''');
   }
 
@@ -45879,44 +45915,40 @@ library
   definingUnit
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         methods
           foo @42
             returnType: void
-            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
         augmented
           superclassConstraints
             Object
           methods
-            self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo
+            self::@augmentation::package:test/b.dart::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
             methods
               foo @87
                 returnType: void
-                maybeAugmentation
-                  augmentationTarget: self::@mixin::A::@method::foo
-                augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A::@method::foo
+                augmentationTarget: self::@mixin::A::@method::foo
+                augmentation: self::@augmentation::package:test/b.dart::@mixin::A::@method::foo
       augmentationImports
         package:test/b.dart
           definingUnit
-            mixinAugmentations
+            mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
-                augmentedDeclaration: self::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
                 methods
                   foo @59
                     returnType: void
-                    maybeAugmentation
-                      augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+                    augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
 ''');
   }
 
@@ -45943,7 +45975,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         methods
@@ -45954,18 +45986,18 @@ library
             Object
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::bar
+              base: self::@augmentation::package:test/a.dart::@mixin::A::@method::bar
               substitution: {T2: T}
             self::@mixin::A::@method::foo
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @43
             typeParameters
               covariant T2 @45
+                defaultType: dynamic
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             methods
               bar @56
                 returnType: T2
@@ -45995,34 +46027,33 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         methods
           foo @42
             returnType: T
-            augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+            augmentation: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
         augmented
           superclassConstraints
             Object
           methods
             MethodMember
-              base: self::@augmentation::package:test/a.dart::@mixinAugmentation::A::@method::foo
+              base: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
               substitution: {T2: T}
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment mixin A @43
             typeParameters
               covariant T2 @45
+                defaultType: dynamic
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             methods
               foo @64
                 returnType: T2
-                maybeAugmentation
-                  augmentationTarget: self::@mixin::A::@method::foo
+                augmentationTarget: self::@mixin::A::@method::foo
 ''');
   }
 
@@ -46048,7 +46079,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           B1
         augmented
@@ -46062,10 +46093,9 @@ library
           class B2 @60
             constructors
               synthetic @-1
-        mixinAugmentations
+        mixins
           augment mixin A @43
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             superclassConstraints
               B2
 ''');
@@ -46100,7 +46130,7 @@ library
           synthetic @-1
     mixins
       mixin A @31
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           I1
         augmented
@@ -46115,11 +46145,10 @@ library
           class I2 @85
             constructors
               synthetic @-1
-        mixinAugmentations
+        mixins
           augment mixin A @68
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
-            augmentation: self::@augmentation::package:test/b.dart::@mixinAugmentation::A
+            augmentation: self::@augmentation::package:test/b.dart::@mixin::A
             superclassConstraints
               I2
       augmentationImports
@@ -46129,10 +46158,9 @@ library
               class I3 @57
                 constructors
                   synthetic @-1
-            mixinAugmentations
+            mixins
               augment mixin A @40
-                augmentationTarget: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
-                augmentedDeclaration: self::@mixin::A
+                augmentationTarget: self::@augmentation::package:test/a.dart::@mixin::A
                 superclassConstraints
                   I3
 ''');
@@ -46163,7 +46191,7 @@ library
         typeParameters
           covariant T @33
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           I1
         augmented
@@ -46180,12 +46208,12 @@ library
                 defaultType: dynamic
             constructors
               synthetic @-1
-        mixinAugmentations
+        mixins
           augment mixin A @43
             typeParameters
               covariant T2 @45
+                defaultType: dynamic
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
             superclassConstraints
               I2<T2>
 ''');
@@ -46207,7 +46235,7 @@ library
   definingUnit
     mixins
       base mixin A @36
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         augmented
@@ -46216,10 +46244,9 @@ library
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
+        mixins
           augment base mixin A @48
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
 ''');
   }
 
@@ -46297,7 +46324,7 @@ library
           covariant T @33
             bound: A<dynamic>
             defaultType: dynamic
-        augmentation: self::@augmentation::package:test/a.dart::@mixinAugmentation::A
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
         superclassConstraints
           Object
         augmented
@@ -46306,13 +46333,13 @@ library
   augmentationImports
     package:test/a.dart
       definingUnit
-        mixinAugmentations
-          augment mixin A @43
+        mixins
+          augment notSimplyBounded mixin A @43
             typeParameters
               covariant T @45
                 bound: A<dynamic>
+                defaultType: A<dynamic>
             augmentationTarget: self::@mixin::A
-            augmentedDeclaration: self::@mixin::A
 ''');
   }
 }

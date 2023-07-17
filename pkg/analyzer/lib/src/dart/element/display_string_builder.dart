@@ -34,6 +34,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeClassElement(ClassElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     if (element.isSealed) {
       _write('sealed ');
     } else if (element.isAbstract) {
@@ -171,6 +175,9 @@ class ElementDisplayStringBuilder {
   }
 
   void writeMixinElement(MixinElementImpl element) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
     if (element.isBase) {
       _write('base ');
     }

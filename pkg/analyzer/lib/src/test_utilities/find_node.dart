@@ -44,8 +44,7 @@ class FindNode {
 
   CascadeExpression get singleCascadeExpression => _single();
 
-  ClassAugmentationDeclaration get singleClassAugmentationDeclaration =>
-      _single();
+  ClassDeclaration get singleClassDeclaration => _single();
 
   ConditionalExpression get singleConditionalExpression => _single();
 
@@ -108,9 +107,6 @@ class FindNode {
   MethodDeclaration get singleMethodDeclaration => _single();
 
   MethodInvocation get singleMethodInvocation => _single();
-
-  MixinAugmentationDeclaration get singleMixinAugmentationDeclaration =>
-      _single();
 
   MixinDeclaration get singleMixinDeclaration => _single();
 
@@ -251,10 +247,6 @@ class FindNode {
 
   CatchClauseParameter catchClauseParameter(String search) {
     return _node(search, (n) => n is CatchClauseParameter);
-  }
-
-  ClassAugmentationDeclaration classAugmentationDeclaration(String search) {
-    return _node(search, (n) => n is ClassAugmentationDeclaration);
   }
 
   ClassDeclaration classDeclaration(String search) {
@@ -575,10 +567,6 @@ class FindNode {
 
   MixinDeclaration mixin(String search) {
     return _node(search, (n) => n is MixinDeclaration);
-  }
-
-  MixinAugmentationDeclaration mixinAugmentationDeclaration(String search) {
-    return _node(search, (n) => n is MixinAugmentationDeclaration);
   }
 
   MixinDeclaration mixinDeclaration(String search) {

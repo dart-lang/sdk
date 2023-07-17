@@ -102,12 +102,6 @@ class InformativeDataApplier {
         );
 
         forCorrespondingPairs(
-          unitElement.classAugmentations,
-          unitInfo.classAugmentationDeclarations,
-          _applyToClassAugmentationDeclaration,
-        );
-
-        forCorrespondingPairs(
           unitElement.classes
               .where((element) => element.isMixinApplication)
               .toList(),
@@ -126,12 +120,6 @@ class InformativeDataApplier {
 
         forCorrespondingPairs(unitElement.mixins, unitInfo.mixinDeclarations,
             _applyToMixinDeclaration);
-
-        forCorrespondingPairs(
-          unitElement.mixinAugmentations,
-          unitInfo.mixinAugmentationDeclarations,
-          _applyToMixinAugmentationDeclaration,
-        );
 
         forCorrespondingPairs(unitElement.topLevelVariables,
             unitInfo.topLevelVariable, _applyToTopLevelVariable);
@@ -213,33 +201,6 @@ class InformativeDataApplier {
         applier.applyToImports(element.libraryImports);
         applier.applyToExports(element.libraryExports);
         applier.applyToAugmentationImports(element.augmentationImports);
-      },
-    );
-  }
-
-  void _applyToClassAugmentationDeclaration(
-    ClassAugmentationElementImpl element,
-    _InfoClassDeclaration info,
-  ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-
-    _applyToConstructors(element.constructors, info.constructors);
-    _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
-    _applyToMethods(element.methods, info.methods);
-
-    var linkedData = element.linkedData as ClassAugmentationElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
       },
     );
   }
@@ -608,33 +569,6 @@ class InformativeDataApplier {
             applier.applyToFormalParameters(element.parameters);
           },
         );
-      },
-    );
-  }
-
-  void _applyToMixinAugmentationDeclaration(
-    MixinAugmentationElementImpl element,
-    _InfoClassDeclaration info,
-  ) {
-    element.setCodeRange(info.codeOffset, info.codeLength);
-    element.nameOffset = info.nameOffset;
-    element.documentationComment = info.documentationComment;
-    _applyToTypeParameters(
-      element.typeParameters_unresolved,
-      info.typeParameters,
-    );
-
-    _applyToConstructors(element.constructors, info.constructors);
-    _applyToFields(element.fields, info.fields);
-    _applyToAccessors(element.accessors, info.accessors);
-    _applyToMethods(element.methods, info.methods);
-
-    var linkedData = element.linkedData as MixinAugmentationElementLinkedData;
-    linkedData.applyConstantOffsets = ApplyConstantOffsets(
-      info.constantOffsets,
-      (applier) {
-        applier.applyToMetadata(element);
-        applier.applyToTypeParameters(element.typeParameters);
       },
     );
   }
@@ -1196,22 +1130,6 @@ class _InformativeDataWriter {
       );
     });
 
-    sink.writeList2<ClassAugmentationDeclaration>(unit.declarations, (node) {
-      sink.writeUInt30(node.offset);
-      sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name.offset);
-      _writeDocumentationComment(node);
-      _writeTypeParameters(node.typeParameters);
-      _writeConstructors(node.members);
-      _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
-      _writeOffsets(
-        metadata: node.metadata,
-        typeParameters: node.typeParameters,
-      );
-    });
-
     sink.writeList2<ClassTypeAlias>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
@@ -1331,22 +1249,6 @@ class _InformativeDataWriter {
     });
 
     sink.writeList2<MixinDeclaration>(unit.declarations, (node) {
-      sink.writeUInt30(node.offset);
-      sink.writeUInt30(node.length);
-      sink.writeUInt30(node.name.offset);
-      _writeDocumentationComment(node);
-      _writeTypeParameters(node.typeParameters);
-      _writeConstructors(node.members);
-      _writeFields(node.members);
-      _writeGettersSetters(node.members);
-      _writeMethods(node.members);
-      _writeOffsets(
-        metadata: node.metadata,
-        typeParameters: node.typeParameters,
-      );
-    });
-
-    sink.writeList2<MixinAugmentationDeclaration>(unit.declarations, (node) {
       sink.writeUInt30(node.offset);
       sink.writeUInt30(node.length);
       sink.writeUInt30(node.name.offset);
@@ -1718,7 +1620,6 @@ class _InfoUnit {
   final List<_InfoExport> exports;
   final List<_InfoPart> parts;
   final List<_InfoClassDeclaration> classDeclarations;
-  final List<_InfoClassDeclaration> classAugmentationDeclarations;
   final List<_InfoClassTypeAlias> classTypeAliases;
   final List<_InfoClassDeclaration> enums;
   final List<_InfoClassDeclaration> extensions;
@@ -1727,7 +1628,6 @@ class _InfoUnit {
   final List<_InfoFunctionTypeAlias> functionTypeAliases;
   final List<_InfoGenericTypeAlias> genericTypeAliases;
   final List<_InfoClassDeclaration> mixinDeclarations;
-  final List<_InfoClassDeclaration> mixinAugmentationDeclarations;
   final List<_InfoTopLevelVariable> topLevelVariable;
 
   factory _InfoUnit(SummaryDataReader reader) {
@@ -1748,9 +1648,6 @@ class _InfoUnit {
         () => _InfoPart(reader),
       ),
       classDeclarations: reader.readTypedList(
-        () => _InfoClassDeclaration(reader),
-      ),
-      classAugmentationDeclarations: reader.readTypedList(
         () => _InfoClassDeclaration(reader),
       ),
       classTypeAliases: reader.readTypedList(
@@ -1777,9 +1674,6 @@ class _InfoUnit {
       mixinDeclarations: reader.readTypedList(
         () => _InfoClassDeclaration(reader),
       ),
-      mixinAugmentationDeclarations: reader.readTypedList(
-        () => _InfoClassDeclaration(reader),
-      ),
       topLevelVariable: reader.readTypedList(
         () => _InfoTopLevelVariable(reader),
       ),
@@ -1797,7 +1691,6 @@ class _InfoUnit {
     required this.exports,
     required this.parts,
     required this.classDeclarations,
-    required this.classAugmentationDeclarations,
     required this.classTypeAliases,
     required this.enums,
     required this.extensions,
@@ -1806,7 +1699,6 @@ class _InfoUnit {
     required this.functionTypeAliases,
     required this.genericTypeAliases,
     required this.mixinDeclarations,
-    required this.mixinAugmentationDeclarations,
     required this.topLevelVariable,
   });
 }

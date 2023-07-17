@@ -56,9 +56,6 @@ import 'package:analyzer/src/utilities/extensions/string.dart';
 import 'package:collection/collection.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-abstract class AugmentationExecutableElementImpl
-    implements AugmentationExecutableElement {}
-
 class AugmentationImportElementImpl extends _ExistingElementImpl
     implements AugmentationImportElement {
   @override
@@ -100,18 +97,13 @@ class AugmentationImportElementImpl extends _ExistingElementImpl
       visitor.visitAugmentationImportElement(this);
 }
 
-class AugmentationMethodElementImpl extends AugmentationExecutableElementImpl
-    implements AugmentationMethodElement {
-  @override
-  final MethodElement? augmentationTarget;
-
-  AugmentationMethodElementImpl({
-    required this.augmentationTarget,
-  });
-}
-
 class AugmentedClassElementImpl extends AugmentedInterfaceElementImpl
-    implements AugmentedClassElement {}
+    implements AugmentedClassElement {
+  @override
+  final ClassElementImpl declaration;
+
+  AugmentedClassElementImpl(this.declaration);
+}
 
 class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedEnumElement {}
@@ -130,6 +122,10 @@ abstract class AugmentedInstanceElementImpl
   @override
   // TODO: implement accessors
   List<PropertyAccessorElement> get accessors => throw UnimplementedError();
+
+  @override
+  // TODO: implement declaration
+  InstanceElement get declaration => throw UnimplementedError();
 
   @override
   // TODO: implement fields
@@ -172,12 +168,21 @@ abstract class AugmentedInterfaceElementImpl
 
   @override
   List<InterfaceType> mixins = [];
+
+  @override
+  // TODO: implement declaration
+  InterfaceElement get declaration => throw UnimplementedError();
 }
 
 class AugmentedMixinElementImpl extends AugmentedInterfaceElementImpl
     implements AugmentedMixinElement {
   @override
+  final MixinElementImpl declaration;
+
+  @override
   List<InterfaceType> superclassConstraints = [];
+
+  AugmentedMixinElementImpl(this.declaration);
 }
 
 abstract class AugmentedNamedInstanceElementImpl
@@ -186,6 +191,10 @@ abstract class AugmentedNamedInstanceElementImpl
   @override
   // TODO: implement constructors
   List<ConstructorElement> get constructors => throw UnimplementedError();
+
+  @override
+  // TODO: implement declaration
+  NamedInstanceElement get declaration => throw UnimplementedError();
 
   @override
   // TODO: implement unnamedConstructor
@@ -209,41 +218,12 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
   BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 
-class ClassAugmentationElementImpl extends InterfaceAugmentationElementImpl
-    with ClassOrAugmentationElementMixin
-    implements ClassAugmentationElement {
-  ClassOrAugmentationElementMixin? _augmentationTarget;
-
-  ClassAugmentationElementImpl(super.name, super.offset);
-
-  @override
-  ClassOrAugmentationElementMixin? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(ClassOrAugmentationElementMixin? value) {
-    _augmentationTarget = value;
-  }
-
-  @override
-  ClassElementImpl? get augmentedDeclaration {
-    return augmentationTarget?.augmentedDeclaration;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.CLASS_AUGMENTATION;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitClassAugmentationElement(this);
-  }
-}
-
 /// An [InterfaceElementImpl] which is a class.
-class ClassElementImpl extends ClassOrMixinElementImpl
-    with ClassOrAugmentationElementMixin
-    implements ClassElement {
+class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
+  ClassElementImpl? _augmentationTarget;
+
+  ClassElementImpl? _augmentation;
+
   late AugmentedClassElement augmentedInternal =
       NotAugmentedClassElementImpl(this);
 
@@ -298,13 +278,34 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
-  AugmentedClassElement get augmented {
+  ClassElementImpl? get augmentation {
     linkedData?.read(this);
-    return augmentedInternal;
+    return _augmentation;
+  }
+
+  set augmentation(ClassElementImpl? value) {
+    _augmentation = value;
   }
 
   @override
-  ClassElementImpl get augmentedDeclaration => this;
+  ClassElementImpl? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(ClassElementImpl? value) {
+    _augmentationTarget = value;
+  }
+
+  @override
+  AugmentedClassElement? get augmented {
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
+  }
 
   @override
   set constructors(List<ConstructorElementImpl> constructors) {
@@ -365,6 +366,20 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 
   @override
+  bool get isAbstract {
+    return hasModifier(Modifier.ABSTRACT);
+  }
+
+  set isAbstract(bool isAbstract) {
+    setModifier(Modifier.ABSTRACT, isAbstract);
+  }
+
+  @override
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
+
+  @override
   bool get isConstructable => !isSealed && !isAbstract;
 
   @override
@@ -421,12 +436,38 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   bool get isExhaustive => isSealed;
 
   @override
+  bool get isFinal {
+    return hasModifier(Modifier.FINAL);
+  }
+
+  set isFinal(bool isFinal) {
+    setModifier(Modifier.FINAL, isFinal);
+  }
+
+  @override
   bool get isInline {
     return hasModifier(Modifier.INLINE);
   }
 
   set isInline(bool isInline) {
     setModifier(Modifier.INLINE, isInline);
+  }
+
+  @override
+  bool get isInterface {
+    return hasModifier(Modifier.INTERFACE);
+  }
+
+  set isInterface(bool isInterface) {
+    setModifier(Modifier.INTERFACE, isInterface);
+  }
+
+  bool get isMacro {
+    return hasModifier(Modifier.MACRO);
+  }
+
+  set isMacro(bool isMacro) {
+    setModifier(Modifier.MACRO, isMacro);
   }
 
   @override
@@ -437,6 +478,24 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   /// Set whether this class is a mixin application.
   set isMixinApplication(bool isMixinApplication) {
     setModifier(Modifier.MIXIN_APPLICATION, isMixinApplication);
+  }
+
+  @override
+  bool get isMixinClass {
+    return hasModifier(Modifier.MIXIN_CLASS);
+  }
+
+  set isMixinClass(bool isMixinClass) {
+    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
+  }
+
+  @override
+  bool get isSealed {
+    return hasModifier(Modifier.SEALED);
+  }
+
+  set isSealed(bool isSealed) {
+    setModifier(Modifier.SEALED, isSealed);
   }
 
   @override
@@ -626,86 +685,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl
   }
 }
 
-mixin ClassOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
-    implements ClassOrAugmentationElement {
-  ClassAugmentationElementImpl? _augmentation;
-
-  @override
-  ClassAugmentationElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(ClassAugmentationElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  ClassElementImpl? get augmentedDeclaration;
-
-  @override
-  bool get isAbstract {
-    return hasModifier(Modifier.ABSTRACT);
-  }
-
-  set isAbstract(bool isAbstract) {
-    setModifier(Modifier.ABSTRACT, isAbstract);
-  }
-
-  @override
-  bool get isBase {
-    return hasModifier(Modifier.BASE);
-  }
-
-  set isBase(bool isBase) {
-    setModifier(Modifier.BASE, isBase);
-  }
-
-  @override
-  bool get isFinal {
-    return hasModifier(Modifier.FINAL);
-  }
-
-  set isFinal(bool isFinal) {
-    setModifier(Modifier.FINAL, isFinal);
-  }
-
-  @override
-  bool get isInterface {
-    return hasModifier(Modifier.INTERFACE);
-  }
-
-  set isInterface(bool isInterface) {
-    setModifier(Modifier.INTERFACE, isInterface);
-  }
-
-  bool get isMacro {
-    return hasModifier(Modifier.MACRO);
-  }
-
-  set isMacro(bool isMacro) {
-    setModifier(Modifier.MACRO, isMacro);
-  }
-
-  @override
-  bool get isMixinClass {
-    return hasModifier(Modifier.MIXIN_CLASS);
-  }
-
-  set isMixinClass(bool isMixinClass) {
-    setModifier(Modifier.MIXIN_CLASS, isMixinClass);
-  }
-
-  @override
-  bool get isSealed {
-    return hasModifier(Modifier.SEALED);
-  }
-
-  set isSealed(bool isSealed) {
-    setModifier(Modifier.SEALED, isSealed);
-  }
-}
-
 abstract class ClassOrMixinElementImpl extends InterfaceElementImpl {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
@@ -747,7 +726,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<PropertyAccessorElementImpl> _accessors = const [];
 
   List<ClassElementImpl> _classes = const [];
-  List<ClassAugmentationElementImpl> _classAugmentations = const [];
 
   /// A list containing all of the enums contained in this compilation unit.
   List<EnumElementImpl> _enums = const [];
@@ -761,7 +739,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<FunctionElementImpl> _functions = const [];
 
   List<MixinElementImpl> _mixins = const [];
-  List<MixinAugmentationElementImpl> _mixinAugmentations = const [];
 
   /// A list containing all of the type aliases contained in this compilation
   /// unit.
@@ -806,18 +783,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         ...typeAliases,
         ...topLevelVariables,
       ];
-
-  @override
-  List<ClassAugmentationElementImpl> get classAugmentations {
-    return _classAugmentations;
-  }
-
-  set classAugmentations(List<ClassAugmentationElementImpl> elements) {
-    for (final element in elements) {
-      element.enclosingElement = this;
-    }
-    _classAugmentations = elements;
-  }
 
   @override
   List<ClassElementImpl> get classes {
@@ -900,18 +865,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   List<ElementAnnotation> get metadata {
     linkedData?.read(this);
     return super.metadata;
-  }
-
-  @override
-  List<MixinAugmentationElementImpl> get mixinAugmentations {
-    return _mixinAugmentations;
-  }
-
-  set mixinAugmentations(List<MixinAugmentationElementImpl> elements) {
-    for (final element in elements) {
-      element.enclosingElement = this;
-    }
-    _mixinAugmentations = elements;
   }
 
   @override
@@ -1064,17 +1017,14 @@ class ConstructorElementImpl extends ExecutableElementImpl
   bool isConstantEvaluated = false;
 
   @override
-  AugmentationExecutableElementImpl? maybeAugmentation;
+  ConstructorElementImpl? augmentation;
+
+  @override
+  ConstructorElementImpl? augmentationTarget;
 
   /// Initialize a newly created constructor element to have the given [name]
   /// and [offset].
   ConstructorElementImpl(super.name, super.offset);
-
-  @override
-  ConstructorAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
 
   /// Return the constant initializers for this element, which will be empty if
   /// there are no initializers, or `null` if there was an error in the source.
@@ -1107,8 +1057,8 @@ class ConstructorElementImpl extends ExecutableElementImpl
       super.enclosingElement2 as InterfaceElementImpl;
 
   @override
-  NamedInstanceOrAugmentationElement get enclosingElement2 =>
-      super.enclosingElement2 as NamedInstanceOrAugmentationElement;
+  NamedInstanceElement get enclosingElement2 =>
+      super.enclosingElement2 as NamedInstanceElement;
 
   @override
   bool get isConst {
@@ -1180,7 +1130,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
       return result;
     }
 
-    final augmentedDeclaration = enclosingElement2.augmentedDeclaration;
+    final augmentedDeclaration = enclosingElement2.augmented?.declaration;
     result = augmentedDeclaration?.thisType;
     result ??= InvalidTypeImpl.instance;
     return _returnType = result;
@@ -2657,6 +2607,9 @@ class ElementLocationImpl implements ElementLocation {
 
 /// An [InterfaceElementImpl] which is an enum.
 class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
+  late AugmentedEnumElement augmentedInternal =
+      NotAugmentedEnumElementImpl(this);
+
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   EnumElementImpl(super.name, super.offset);
@@ -2668,13 +2621,14 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   }
 
   @override
-  Never get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
+  // TODO: implement augmentationTarget
+  EnumElementImpl? get augmentationTarget => throw UnimplementedError();
 
   @override
-  EnumElementImpl get augmentedDeclaration => this;
+  AugmentedEnumElement? get augmented {
+    linkedData?.read(this);
+    return augmentedInternal;
+  }
 
   List<FieldElementImpl> get constants {
     return fields.where((field) => field.isEnumConstant).toList();
@@ -2770,6 +2724,15 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// Set whether this executable element's body is asynchronous.
   set isAsynchronous(bool isAsynchronous) {
     setModifier(Modifier.ASYNCHRONOUS, isAsynchronous);
+  }
+
+  @override
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
   }
 
   @override
@@ -2913,23 +2876,11 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
 }
 
 /// A concrete implementation of an [ExtensionElement].
-class ExtensionElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, HasCompletionData
+class ExtensionElementImpl extends InstanceElementImpl
+    with HasCompletionData
     implements ExtensionElement {
   /// The type being extended.
   DartType? _extendedType;
-
-  /// A list containing all of the accessors (getters and setters) contained in
-  /// this extension.
-  List<PropertyAccessorElementImpl> _accessors = const [];
-
-  /// A list containing all of the fields contained in this extension.
-  List<FieldElementImpl> _fields = const [];
-
-  /// A list containing all of the methods contained in this extension.
-  List<MethodElementImpl> _methods = const [];
-
-  ElementLinkedData? linkedData;
 
   /// Initialize a newly created extension element to have the given [name] at
   /// the given [offset] in the file that contains the declaration of this
@@ -2937,31 +2888,20 @@ class ExtensionElementImpl extends _ExistingElementImpl
   ExtensionElementImpl(super.name, super.nameOffset);
 
   @override
-  List<PropertyAccessorElementImpl> get accessors {
-    return _accessors;
-  }
-
-  set accessors(List<PropertyAccessorElementImpl> accessors) {
-    for (var accessor in accessors) {
-      accessor.enclosingElement = this;
-    }
-    _accessors = accessors;
-  }
-
-  @override
-  ExtensionAugmentationElement? get augmentation {
+  ExtensionElementImpl? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
 
   @override
-  AugmentedExtensionElement get augmented {
+  // TODO: implement augmentationTarget
+  ExtensionElementImpl? get augmentationTarget => throw UnimplementedError();
+
+  @override
+  AugmentedExtensionElement? get augmented {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
-
-  @override
-  ExtensionElementImpl get augmentedDeclaration => this;
 
   @override
   List<Element> get children => [
@@ -2975,17 +2915,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   @override
   String get displayName => name ?? '';
 
-  @Deprecated('Use enclosingElement2 instead')
-  @override
-  CompilationUnitElementImpl get enclosingElement {
-    return super.enclosingElement2 as CompilationUnitElementImpl;
-  }
-
-  @override
-  CompilationUnitElementImpl get enclosingElement2 {
-    return super.enclosingElement2 as CompilationUnitElementImpl;
-  }
-
   @override
   DartType get extendedType =>
       ElementTypeProvider.current.getExtendedType(this);
@@ -2997,18 +2926,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   DartType get extendedTypeInternal {
     linkedData?.read(this);
     return _extendedType!;
-  }
-
-  @override
-  List<FieldElementImpl> get fields {
-    return _fields;
-  }
-
-  set fields(List<FieldElementImpl> fields) {
-    for (var field in fields) {
-      field.enclosingElement = this;
-    }
-    _fields = fields;
   }
 
   @override
@@ -3029,19 +2946,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   List<ElementAnnotation> get metadata {
     linkedData?.read(this);
     return super.metadata;
-  }
-
-  @override
-  List<MethodElementImpl> get methods {
-    return _methods;
-  }
-
-  /// Set the methods contained in this extension to the given [methods].
-  set methods(List<MethodElementImpl> methods) {
-    for (var method in methods) {
-      method.enclosingElement = this;
-    }
-    _methods = methods;
   }
 
   @override
@@ -3110,13 +3014,6 @@ class ExtensionElementImpl extends _ExistingElementImpl
   PropertyAccessorElement? getSetter(String setterName) {
     return InterfaceElementImpl.getSetterFromAccessors(setterName, accessors);
   }
-
-  void setLinkedData(Reference reference, ElementLinkedData linkedData) {
-    this.reference = reference;
-    reference.element = this;
-
-    this.linkedData = linkedData;
-  }
 }
 
 /// A concrete implementation of a [FieldElement].
@@ -3130,12 +3027,6 @@ class FieldElementImpl extends PropertyInducingElementImpl
   /// Initialize a newly created synthetic field element to have the given
   /// [name] at the given [offset].
   FieldElementImpl(super.name, super.offset);
-
-  @override
-  FieldAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
 
   @override
   FieldElement get declaration => this;
@@ -3241,7 +3132,10 @@ class FieldFormalParameterElementImpl extends ParameterElementImpl
 class FunctionElementImpl extends ExecutableElementImpl
     implements FunctionElement, FunctionTypedElementImpl {
   @override
-  AugmentationExecutableElementImpl? maybeAugmentation;
+  FunctionElementImpl? augmentation;
+
+  @override
+  FunctionElementImpl? augmentationTarget;
 
   /// Initialize a newly created function element to have the given [name] and
   /// [offset].
@@ -3439,46 +3333,25 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   });
 }
 
-class InlineClassAugmentationElementImpl
-    extends NamedInstanceAugmentationElementImpl
-    with InlineClassOrAugmentationElementMixin
-    implements InlineClassAugmentationElement {
-  InlineClassAugmentationElementImpl(super.name, super.offset);
-
-  @override
-  // TODO: implement augmentationTarget
-  InlineClassOrAugmentationElement? get augmentationTarget =>
-      throw UnimplementedError();
-
-  @override
-  // TODO: implement augmentedDeclaration
-  InlineClassElementImpl? get augmentedDeclaration =>
-      throw UnimplementedError();
-
-  @override
-  // TODO: implement kind
-  ElementKind get kind => throw UnimplementedError();
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    // TODO: implement accept
-    throw UnimplementedError();
-  }
-}
-
 class InlineClassElementImpl extends NamedInstanceElementImpl
-    with InlineClassOrAugmentationElementMixin
     implements InlineClassElement {
   InlineClassElementImpl(super.name, super.nameOffset);
 
   @override
-  AugmentedInlineClassElement get augmented {
-    // TODO(scheglov) implement
+  Never get augmentation {
+    // TODO: implement augmentation
     throw UnimplementedError();
   }
 
   @override
-  InlineClassElementImpl get augmentedDeclaration => this;
+  // TODO: implement augmentationTarget
+  InlineClassElementImpl? get augmentationTarget => throw UnimplementedError();
+
+  @override
+  AugmentedInlineClassElement? get augmented {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
 
   @override
   List<InlineClassType> get implemented {
@@ -3513,54 +3386,17 @@ class InlineClassElementImpl extends NamedInstanceElementImpl
   }
 }
 
-mixin InlineClassOrAugmentationElementMixin
-    on NamedInstanceOrAugmentationElementMixin
-    implements InlineClassOrAugmentationElement {
-  InlineClassAugmentationElementImpl? _augmentation;
-
-  @override
-  InlineClassAugmentationElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(InlineClassAugmentationElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  InlineClassElementImpl? get augmentedDeclaration;
-}
-
-abstract class InstanceAugmentationElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
-    implements InstanceAugmentationElement {
-  InstanceAugmentationElementImpl(super.name, super.offset);
-}
-
 abstract class InstanceElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
+    with TypeParameterizedElementMixin
     implements InstanceElement {
-  InstanceElementImpl(super.name, super.nameOffset);
-
-  InstanceAugmentationElementImpl? get augmentation;
-}
-
-abstract class InstanceOrAugmentationElementImpl extends _ExistingElementImpl
-    with TypeParameterizedElementMixin, InstanceOrAugmentationElementMixin
-    implements InstanceOrAugmentationElement {
-  InstanceOrAugmentationElementImpl(super.name, super.nameOffset);
-}
-
-mixin InstanceOrAugmentationElementMixin
-    on _ExistingElementImpl, TypeParameterizedElementMixin
-    implements InstanceOrAugmentationElement {
   ElementLinkedData? linkedData;
 
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
   List<PropertyAccessorElementImpl> _accessors =
       _Sentinel.propertyAccessorElement;
   List<MethodElementImpl> _methods = _Sentinel.methodElement;
+
+  InstanceElementImpl(super.name, super.nameOffset);
 
   @override
   List<PropertyAccessorElementImpl> get accessors {
@@ -3578,6 +3414,12 @@ mixin InstanceOrAugmentationElementMixin
     }
     _accessors = accessors;
   }
+
+  @override
+  InstanceElementImpl? get augmentation;
+
+  @override
+  InstanceElementImpl? get augmentationTarget;
 
   @Deprecated('Use enclosingElement2 instead')
   @override
@@ -3605,6 +3447,15 @@ mixin InstanceOrAugmentationElementMixin
       field.enclosingElement = this;
     }
     _fields = fields;
+  }
+
+  @override
+  bool get isAugmentation {
+    return hasModifier(Modifier.AUGMENTATION);
+  }
+
+  set isAugmentation(bool value) {
+    setModifier(Modifier.AUGMENTATION, value);
   }
 
   @override
@@ -3638,18 +3489,20 @@ mixin InstanceOrAugmentationElementMixin
   }
 }
 
-abstract class InterfaceAugmentationElementImpl
-    extends NamedInstanceAugmentationElementImpl
-    with InterfaceOrAugmentationElementMixin {
-  InterfaceAugmentationElementImpl(super.name, super.offset);
-}
-
 abstract class InterfaceElementImpl extends NamedInstanceElementImpl
-    with
-        HasCompletionData,
-        MacroTargetElement,
-        InterfaceOrAugmentationElementMixin
+    with HasCompletionData, MacroTargetElement
     implements InterfaceElement {
+  /// A list containing all of the mixins that are applied to the class being
+  /// extended in order to derive the superclass of this class.
+  List<InterfaceType> _mixins = const [];
+
+  /// A list containing all of the interfaces that are implemented by this
+  /// class.
+  List<InterfaceType> _interfaces = const [];
+
+  /// This callback is set during mixins inference to handle reentrant calls.
+  List<InterfaceType>? Function(InterfaceElementImpl)? mixinInferenceCallback;
+
   InterfaceType? _supertype;
 
   /// The type defined by the class.
@@ -3669,8 +3522,35 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   }
 
   @override
-  AugmentedInterfaceElement get augmented {
+  InterfaceElementImpl? get augmentationTarget;
+
+  @override
+  AugmentedInterfaceElement? get augmented {
     throw UnimplementedError();
+  }
+
+  @override
+  List<Element> get children => [
+        ...super.children,
+        ...accessors,
+        ...fields,
+        ...constructors,
+        ...methods,
+        ...typeParameters,
+      ];
+
+  @override
+  List<InterfaceType> get interfaces {
+    return ElementTypeProvider.current.getClassInterfaces(this);
+  }
+
+  set interfaces(List<InterfaceType> interfaces) {
+    _interfaces = interfaces;
+  }
+
+  List<InterfaceType> get interfacesInternal {
+    linkedData?.read(this);
+    return _interfaces;
   }
 
   /// Return `true` if this class represents the class '_Enum' defined in the
@@ -3692,6 +3572,23 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
 
   set isSimplyBounded(bool isSimplyBounded) {
     setModifier(Modifier.SIMPLY_BOUNDED, isSimplyBounded);
+  }
+
+  @override
+  List<InterfaceType> get mixins {
+    if (mixinInferenceCallback != null) {
+      var mixins = mixinInferenceCallback!(this);
+      if (mixins != null) {
+        return _mixins = mixins;
+      }
+    }
+
+    linkedData?.read(this);
+    return _mixins;
+  }
+
+  set mixins(List<InterfaceType> mixins) {
+    _mixins = mixins;
   }
 
   @override
@@ -3721,6 +3618,19 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
       );
     }
     return _thisType!;
+  }
+
+  @override
+  List<TypeParameterElement> get typeParameters {
+    linkedData?.read(this);
+    return super.typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (TypeParameterElement typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -3963,80 +3873,6 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
     }
     return accessors.firstWhereOrNull(
         (accessor) => accessor.isSetter && accessor.name == setterName);
-  }
-}
-
-mixin InterfaceOrAugmentationElementMixin
-    on NamedInstanceOrAugmentationElementMixin
-    implements InterfaceOrAugmentationElement {
-  /// A list containing all of the mixins that are applied to the class being
-  /// extended in order to derive the superclass of this class.
-  List<InterfaceType> _mixins = const [];
-
-  /// A list containing all of the interfaces that are implemented by this
-  /// class.
-  List<InterfaceType> _interfaces = const [];
-
-  /// This callback is set during mixins inference to handle reentrant calls.
-  List<InterfaceType>? Function(InterfaceOrAugmentationElementMixin)?
-      mixinInferenceCallback;
-
-  @override
-  List<Element> get children => [
-        ...super.children,
-        ...accessors,
-        ...fields,
-        ...constructors,
-        ...methods,
-        ...typeParameters,
-      ];
-
-  @override
-  List<InterfaceType> get interfaces {
-    if (this case final InterfaceElementImpl self) {
-      return ElementTypeProvider.current.getClassInterfaces(self);
-    } else {
-      return interfacesInternal;
-    }
-  }
-
-  set interfaces(List<InterfaceType> interfaces) {
-    _interfaces = interfaces;
-  }
-
-  List<InterfaceType> get interfacesInternal {
-    linkedData?.read(this);
-    return _interfaces;
-  }
-
-  @override
-  List<InterfaceType> get mixins {
-    if (mixinInferenceCallback != null) {
-      var mixins = mixinInferenceCallback!(this);
-      if (mixins != null) {
-        return _mixins = mixins;
-      }
-    }
-
-    linkedData?.read(this);
-    return _mixins;
-  }
-
-  set mixins(List<InterfaceType> mixins) {
-    _mixins = mixins;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
-
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
   }
 }
 
@@ -5009,15 +4845,33 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// this field contains the base method.
   MethodElement? prototype;
 
-  @override
-  MethodElementImpl? augmentation;
+  MethodElementImpl? _augmentation;
 
-  @override
-  AugmentationMethodElementImpl? maybeAugmentation;
+  MethodElementImpl? _augmentationTarget;
 
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(super.name, super.offset);
+
+  @override
+  MethodElementImpl? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(MethodElementImpl? value) {
+    _augmentation = value;
+  }
+
+  @override
+  MethodElementImpl? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(MethodElementImpl? value) {
+    _augmentationTarget = value;
+  }
 
   @override
   MethodElement get declaration => prototype ?? this;
@@ -5073,41 +4927,13 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   T? accept<T>(ElementVisitor<T> visitor) => visitor.visitMethodElement(this);
 }
 
-class MixinAugmentationElementImpl extends InterfaceAugmentationElementImpl
-    with MixinOrAugmentationElementMixin
-    implements MixinAugmentationElement {
-  MixinOrAugmentationElementMixin? _augmentationTarget;
-
-  MixinAugmentationElementImpl(super.name, super.offset);
-
-  @override
-  MixinOrAugmentationElementMixin? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(MixinOrAugmentationElementMixin? value) {
-    _augmentationTarget = value;
-  }
-
-  @override
-  MixinElementImpl? get augmentedDeclaration {
-    return augmentationTarget?.augmentedDeclaration;
-  }
-
-  @override
-  ElementKind get kind => ElementKind.CLASS_AUGMENTATION;
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    return visitor.visitMixinAugmentationElement(this);
-  }
-}
-
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl
-    with MixinOrAugmentationElementMixin
-    implements MixinElement {
+class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
+  MixinElementImpl? _augmentationTarget;
+
+  MixinElementImpl? _augmentation;
+  List<InterfaceType> _superclassConstraints = const [];
+
   /// Names of methods, getters, setters, and operators that this mixin
   /// declaration super-invokes.  For setters this includes the trailing "=".
   /// The list will be empty if this class is not a mixin declaration.
@@ -5121,13 +4947,39 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   MixinElementImpl(super.name, super.offset);
 
   @override
-  AugmentedMixinElement get augmented {
+  MixinElementImpl? get augmentation {
     linkedData?.read(this);
-    return augmentedInternal;
+    return _augmentation;
+  }
+
+  set augmentation(MixinElementImpl? value) {
+    _augmentation = value;
   }
 
   @override
-  MixinElementImpl get augmentedDeclaration => this;
+  MixinElementImpl? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(MixinElementImpl? value) {
+    _augmentationTarget = value;
+  }
+
+  @override
+  AugmentedMixinElement? get augmented {
+    if (isAugmentation) {
+      return augmentationTarget?.augmented;
+    } else {
+      linkedData?.read(this);
+      return augmentedInternal;
+    }
+  }
+
+  @override
+  bool get isBase {
+    return hasModifier(Modifier.BASE);
+  }
 
   @override
   List<InterfaceType> get mixins => const [];
@@ -5135,6 +4987,16 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   @override
   set mixins(List<InterfaceType> mixins) {
     throw StateError('Attempt to set mixins for a mixin declaration.');
+  }
+
+  @override
+  List<InterfaceType> get superclassConstraints {
+    linkedData?.read(this);
+    return _superclassConstraints;
+  }
+
+  set superclassConstraints(List<InterfaceType> superclassConstraints) {
+    _superclassConstraints = superclassConstraints;
   }
 
   @override
@@ -5164,44 +5026,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl
   }
 }
 
-mixin MixinOrAugmentationElementMixin on InterfaceOrAugmentationElementMixin
-    implements MixinOrAugmentationElement {
-  MixinAugmentationElementImpl? _augmentation;
-  List<InterfaceType> _superclassConstraints = const [];
-
-  @override
-  MixinAugmentationElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(MixinAugmentationElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  MixinElementImpl? get augmentedDeclaration;
-
-  @override
-  bool get isBase {
-    return hasModifier(Modifier.BASE);
-  }
-
-  set isBase(bool isBase) {
-    setModifier(Modifier.BASE, isBase);
-  }
-
-  @override
-  List<InterfaceType> get superclassConstraints {
-    linkedData?.read(this);
-    return _superclassConstraints;
-  }
-
-  set superclassConstraints(List<InterfaceType> superclassConstraints) {
-    _superclassConstraints = superclassConstraints;
-  }
-}
-
 /// The constants for all of the modifiers defined by the Dart language and for
 /// a few additional flags that are useful.
 ///
@@ -5214,116 +5038,119 @@ class Modifier implements Comparable<Modifier> {
   /// asynchronous.
   static const Modifier ASYNCHRONOUS = Modifier('ASYNCHRONOUS', 1);
 
+  /// Indicates that the modifier 'augment' was applied to the element.
+  static const Modifier AUGMENTATION = Modifier('AUGMENTATION', 2);
+
   /// Indicates that the modifier 'base' was applied to the element.
-  static const Modifier BASE = Modifier('BASE', 2);
+  static const Modifier BASE = Modifier('BASE', 3);
 
   /// Indicates that the modifier 'const' was applied to the element.
-  static const Modifier CONST = Modifier('CONST', 3);
+  static const Modifier CONST = Modifier('CONST', 4);
 
   /// Indicates that the modifier 'covariant' was applied to the element.
-  static const Modifier COVARIANT = Modifier('COVARIANT', 4);
+  static const Modifier COVARIANT = Modifier('COVARIANT', 5);
 
   /// Indicates that the class is `Object` from `dart:core`.
-  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 5);
+  static const Modifier DART_CORE_OBJECT = Modifier('DART_CORE_OBJECT', 6);
 
   /// Indicates that the import element represents a deferred library.
-  static const Modifier DEFERRED = Modifier('DEFERRED', 6);
+  static const Modifier DEFERRED = Modifier('DEFERRED', 7);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier ENUM = Modifier('ENUM', 7);
+  static const Modifier ENUM = Modifier('ENUM', 8);
 
   /// Indicates that the element is an enum constant field.
-  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 8);
+  static const Modifier ENUM_CONSTANT = Modifier('ENUM_CONSTANT', 9);
 
   /// Indicates that a class element was defined by an enum declaration.
-  static const Modifier EXTERNAL = Modifier('EXTERNAL', 9);
+  static const Modifier EXTERNAL = Modifier('EXTERNAL', 10);
 
   /// Indicates that the modifier 'factory' was applied to the element.
-  static const Modifier FACTORY = Modifier('FACTORY', 10);
+  static const Modifier FACTORY = Modifier('FACTORY', 11);
 
   /// Indicates that the modifier 'final' was applied to the element.
-  static const Modifier FINAL = Modifier('FINAL', 11);
+  static const Modifier FINAL = Modifier('FINAL', 12);
 
   /// Indicates that an executable element has a body marked as being a
   /// generator.
-  static const Modifier GENERATOR = Modifier('GENERATOR', 12);
+  static const Modifier GENERATOR = Modifier('GENERATOR', 13);
 
   /// Indicates that the pseudo-modifier 'get' was applied to the element.
-  static const Modifier GETTER = Modifier('GETTER', 13);
+  static const Modifier GETTER = Modifier('GETTER', 14);
 
   /// A flag used for libraries indicating that the variable has an explicit
   /// initializer.
-  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 14);
+  static const Modifier HAS_INITIALIZER = Modifier('HAS_INITIALIZER', 15);
 
   /// A flag used for libraries indicating that the defining compilation unit
   /// has a `part of` directive, meaning that this unit should be a part,
   /// but is used as a library.
   static const Modifier HAS_PART_OF_DIRECTIVE =
-      Modifier('HAS_PART_OF_DIRECTIVE', 15);
+      Modifier('HAS_PART_OF_DIRECTIVE', 16);
 
   /// Indicates that the value of [Element.sinceSdkVersion] was computed.
   static const Modifier HAS_SINCE_SDK_VERSION_COMPUTED =
-      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 16);
+      Modifier('HAS_SINCE_SDK_VERSION_COMPUTED', 17);
 
   /// [HAS_SINCE_SDK_VERSION_COMPUTED] and the value was not `null`.
   static const Modifier HAS_SINCE_SDK_VERSION_VALUE =
-      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 17);
+      Modifier('HAS_SINCE_SDK_VERSION_VALUE', 18);
 
   /// Indicates that the associated element did not have an explicit type
   /// associated with it. If the element is an [ExecutableElement], then the
   /// type being referred to is the return type.
-  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 18);
+  static const Modifier IMPLICIT_TYPE = Modifier('IMPLICIT_TYPE', 19);
 
   /// Indicates that the modifier 'inline' was applied to the element.
-  static const Modifier INLINE = Modifier('INLINE', 19);
+  static const Modifier INLINE = Modifier('INLINE', 20);
 
   /// Indicates that the modifier 'interface' was applied to the element.
-  static const Modifier INTERFACE = Modifier('INTERFACE', 20);
+  static const Modifier INTERFACE = Modifier('INTERFACE', 21);
 
   /// Indicates that the method invokes the super method with the same name.
-  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 21);
+  static const Modifier INVOKES_SUPER_SELF = Modifier('INVOKES_SUPER_SELF', 22);
 
   /// Indicates that modifier 'lazy' was applied to the element.
-  static const Modifier LATE = Modifier('LATE', 22);
+  static const Modifier LATE = Modifier('LATE', 23);
 
   /// Indicates that a class is a macro builder.
-  static const Modifier MACRO = Modifier('MACRO', 23);
+  static const Modifier MACRO = Modifier('MACRO', 24);
 
   /// Indicates that a class is a mixin application.
-  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 24);
+  static const Modifier MIXIN_APPLICATION = Modifier('MIXIN_APPLICATION', 25);
 
   /// Indicates that a class is a mixin class.
-  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 25);
+  static const Modifier MIXIN_CLASS = Modifier('MIXIN_CLASS', 26);
 
-  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 26);
+  static const Modifier PROMOTABLE = Modifier('IS_PROMOTABLE', 27);
 
   /// Indicates whether the type of a [PropertyInducingElementImpl] should be
   /// used to infer the initializer. We set it to `false` if the type was
   /// inferred from the initializer itself.
   static const Modifier SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE =
-      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 27);
+      Modifier('SHOULD_USE_TYPE_FOR_INITIALIZER_INFERENCE', 28);
 
   /// Indicates that the modifier 'sealed' was applied to the element.
-  static const Modifier SEALED = Modifier('SEALED', 28);
+  static const Modifier SEALED = Modifier('SEALED', 29);
 
   /// Indicates that the pseudo-modifier 'set' was applied to the element.
-  static const Modifier SETTER = Modifier('SETTER', 29);
+  static const Modifier SETTER = Modifier('SETTER', 30);
 
   /// See [TypeParameterizedElement.isSimplyBounded].
-  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 30);
+  static const Modifier SIMPLY_BOUNDED = Modifier('SIMPLY_BOUNDED', 31);
 
   /// Indicates that the modifier 'static' was applied to the element.
-  static const Modifier STATIC = Modifier('STATIC', 31);
+  static const Modifier STATIC = Modifier('STATIC', 32);
 
   /// Indicates that the element does not appear in the source code but was
   /// implicitly created. For example, if a class does not define any
   /// constructors, an implicit zero-argument constructor will be created and it
   /// will be marked as being synthetic.
-  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 32);
+  static const Modifier SYNTHETIC = Modifier('SYNTHETIC', 33);
 
   /// Indicates that the element was appended to this enclosing element to
   /// simulate temporary the effect of applying augmentation.
-  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 33);
+  static const Modifier TEMP_AUGMENTATION = Modifier('TEMP_AUGMENTATION', 34);
 
   static const List<Modifier> values = [
     ABSTRACT,
@@ -5615,36 +5442,14 @@ class MultiplyDefinedElementImpl implements MultiplyDefinedElement {
   }
 }
 
-abstract class NamedInstanceAugmentationElementImpl
-    extends InstanceAugmentationElementImpl
-    with NamedInstanceOrAugmentationElementMixin {
-  NamedInstanceAugmentationElementImpl(super.name, super.offset);
-}
-
 abstract class NamedInstanceElementImpl extends InstanceElementImpl
-    with NamedInstanceOrAugmentationElementMixin
     implements NamedInstanceElement {
+  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
+
   NamedInstanceElementImpl(super.name, super.nameOffset);
 
   @override
-  ConstructorElement? get unnamedConstructor {
-    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
-  }
-
-  @override
-  ConstructorElement? getNamedConstructor(String name) {
-    if (name == 'new') {
-      // A constructor declared as `C.new` is unnamed, and is modeled as such.
-      name = '';
-    }
-    return constructors.firstWhereOrNull((element) => element.name == name);
-  }
-}
-
-mixin NamedInstanceOrAugmentationElementMixin
-    on InstanceOrAugmentationElementMixin
-    implements NamedInstanceOrAugmentationElement {
-  List<ConstructorElementImpl> _constructors = _Sentinel.constructorElement;
+  NamedInstanceElementImpl? get augmentationTarget;
 
   @override
   List<ConstructorElementImpl> get constructors {
@@ -5670,6 +5475,20 @@ mixin NamedInstanceOrAugmentationElementMixin
   @override
   String get name {
     return super.name!;
+  }
+
+  @override
+  ConstructorElement? get unnamedConstructor {
+    return constructors.firstWhereOrNull((element) => element.name.isEmpty);
+  }
+
+  @override
+  ConstructorElement? getNamedConstructor(String name) {
+    if (name == 'new') {
+      // A constructor declared as `C.new` is unnamed, and is modeled as such.
+      name = '';
+    }
+    return constructors.firstWhereOrNull((element) => element.name == name);
   }
 
   /// Builds constructors for this mixin application.
@@ -5739,6 +5558,9 @@ class NotAugmentedClassElementImpl extends NotAugmentedInterfaceElementImpl
   final ClassElementImpl element;
 
   NotAugmentedClassElementImpl(this.element);
+
+  @override
+  ClassElementImpl get declaration => element;
 }
 
 class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
@@ -5747,6 +5569,9 @@ class NotAugmentedEnumElementImpl extends NotAugmentedInterfaceElementImpl
   final EnumElementImpl element;
 
   NotAugmentedEnumElementImpl(this.element);
+
+  @override
+  EnumElementImpl get declaration => element;
 }
 
 class NotAugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
@@ -5763,6 +5588,9 @@ class NotAugmentedInlineClassElementImpl
   final InlineClassElementImpl element;
 
   NotAugmentedInlineClassElementImpl(this.element);
+
+  @override
+  InlineClassElementImpl get declaration => element;
 }
 
 abstract class NotAugmentedInstanceElementImpl
@@ -5853,6 +5681,9 @@ class NotAugmentedMixinElementImpl extends NotAugmentedInterfaceElementImpl
   final MixinElementImpl element;
 
   NotAugmentedMixinElementImpl(this.element);
+
+  @override
+  MixinElementImpl get declaration => element;
 
   @override
   List<InterfaceType> get superclassConstraints {
@@ -6230,7 +6061,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   PropertyAccessorElement? prototype;
 
   @override
-  AugmentationExecutableElementImpl? maybeAugmentation;
+  PropertyAccessorElementImpl? augmentationTarget;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -6247,7 +6078,7 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorAugmentationElement? get augmentation {
+  PropertyAccessorElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
   }
