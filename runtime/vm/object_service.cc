@@ -371,6 +371,8 @@ void Function::PrintJSONImpl(JSONStream* stream, bool ref) const {
   jsobj.AddProperty("abstract", is_abstract());
   jsobj.AddProperty("_intrinsic", is_intrinsic());
   jsobj.AddProperty("_native", is_native());
+  jsobj.AddProperty("isGetter", kind() == UntaggedFunction::kGetterFunction);
+  jsobj.AddProperty("isSetter", kind() == UntaggedFunction::kSetterFunction);
 
   const Script& script = Script::Handle(this->script());
   if (!script.IsNull()) {

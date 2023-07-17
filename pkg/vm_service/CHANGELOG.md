@@ -1,3 +1,7 @@
+## 11.8.0
+- Update to version `4.11` of the spec.
+- Add `isGetter` and `isSetter` properties to `FuncRef` and `Func`.
+
 ## 11.7.3
 - Update to version `4.10` of the spec.
 - Add deprecation notice to `Breakpoint.isSyntheticAsyncContinuation`.

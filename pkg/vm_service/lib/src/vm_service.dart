@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.10.0';
+const String vmServiceVersion = '4.11.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2806,9 +2806,7 @@ class _NullLog implements Log {
 }
 // enums
 
-class CodeKind {
-  CodeKind._();
-
+abstract class CodeKind {
   static const String kDart = 'Dart';
   static const String kNative = 'Native';
   static const String kStub = 'Stub';
@@ -2816,9 +2814,7 @@ class CodeKind {
   static const String kCollected = 'Collected';
 }
 
-class ErrorKind {
-  ErrorKind._();
-
+abstract class ErrorKind {
   /// The isolate has encountered an unhandled Dart exception.
   static const String kUnhandledException = 'UnhandledException';
 
@@ -2959,9 +2955,7 @@ abstract class EventKind {
 
 /// Adding new values to `InstanceKind` is considered a backwards compatible
 /// change. Clients should treat unrecognized instance kinds as `PlainInstance`.
-class InstanceKind {
-  InstanceKind._();
-
+abstract class InstanceKind {
   /// A general instance of the Dart class Object.
   static const String kPlainInstance = 'PlainInstance';
 
@@ -3067,9 +3061,7 @@ class InstanceKind {
 ///
 /// Adding new values to `SentinelKind` is considered a backwards compatible
 /// change. Clients must handle this gracefully.
-class SentinelKind {
-  SentinelKind._();
-
+abstract class SentinelKind {
   /// Indicates that the object referred to has been collected by the GC.
   static const String kCollected = 'Collected';
 
@@ -3090,9 +3082,7 @@ class SentinelKind {
 }
 
 /// A `FrameKind` is used to distinguish different kinds of `Frame` objects.
-class FrameKind {
-  FrameKind._();
-
+abstract class FrameKind {
   static const String kRegular = 'Regular';
   static const String kAsyncCausal = 'AsyncCausal';
   static const String kAsyncSuspensionMarker = 'AsyncSuspensionMarker';
@@ -3101,9 +3091,7 @@ class FrameKind {
   static const String kAsyncActivation = 'AsyncActivation';
 }
 
-class SourceReportKind {
-  SourceReportKind._();
-
+abstract class SourceReportKind {
   /// Used to request a code coverage information.
   static const String kCoverage = 'Coverage';
 
@@ -3116,9 +3104,7 @@ class SourceReportKind {
 
 /// An `ExceptionPauseMode` indicates how the isolate pauses when an exception
 /// is thrown.
-class ExceptionPauseMode {
-  ExceptionPauseMode._();
-
+abstract class ExceptionPauseMode {
   static const String kNone = 'None';
   static const String kUnhandled = 'Unhandled';
   static const String kAll = 'All';
@@ -3126,9 +3112,7 @@ class ExceptionPauseMode {
 
 /// A `StepOption` indicates which form of stepping is requested in a [resume]
 /// RPC.
-class StepOption {
-  StepOption._();
-
+abstract class StepOption {
   static const String kInto = 'Into';
   static const String kOver = 'Over';
   static const String kOverAsyncSuspension = 'OverAsyncSuspension';
@@ -5103,6 +5087,12 @@ class FuncRef extends ObjRef {
   /// Is this function an abstract method?
   bool? isAbstract;
 
+  /// Is this function a getter?
+  bool? isGetter;
+
+  /// Is this function a setter?
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5118,6 +5108,8 @@ class FuncRef extends ObjRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     required String id,
     this.location,
   }) : super(
@@ -5132,6 +5124,8 @@ class FuncRef extends ObjRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
   }
@@ -5150,6 +5144,8 @@ class FuncRef extends ObjRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
     });
     _setIfNotNull(json, 'location', location?.toJson());
     return json;
@@ -5162,9 +5158,7 @@ class FuncRef extends ObjRef {
   bool operator ==(Object other) => other is FuncRef && id == other.id;
 
   @override
-  String toString() => '[FuncRef ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract]';
+  String toString() => '[FuncRef]';
 }
 
 /// A `Func` represents a Dart language function.
@@ -5202,6 +5196,14 @@ class Func extends Obj implements FuncRef {
   @override
   bool? isAbstract;
 
+  /// Is this function a getter?
+  @override
+  bool? isGetter;
+
+  /// Is this function a setter?
+  @override
+  bool? isSetter;
+
   /// The location of this function in the source code.
   ///
   /// Note: this may not agree with the location of `owner` if this is a
@@ -5225,6 +5227,8 @@ class Func extends Obj implements FuncRef {
     this.isConst,
     this.implicit,
     this.isAbstract,
+    this.isGetter,
+    this.isSetter,
     this.signature,
     required String id,
     this.location,
@@ -5241,6 +5245,8 @@ class Func extends Obj implements FuncRef {
     isConst = json['const'] ?? false;
     implicit = json['implicit'] ?? false;
     isAbstract = json['abstract'] ?? false;
+    isGetter = json['isGetter'] ?? false;
+    isSetter = json['isSetter'] ?? false;
     location = createServiceObject(json['location'], const ['SourceLocation'])
         as SourceLocation?;
     signature = createServiceObject(json['signature'], const ['InstanceRef'])
@@ -5262,6 +5268,8 @@ class Func extends Obj implements FuncRef {
       'const': isConst ?? false,
       'implicit': implicit ?? false,
       'abstract': isAbstract ?? false,
+      'isGetter': isGetter ?? false,
+      'isSetter': isSetter ?? false,
       'signature': signature?.toJson(),
     });
     _setIfNotNull(json, 'location', location?.toJson());
@@ -5276,9 +5284,7 @@ class Func extends Obj implements FuncRef {
   bool operator ==(Object other) => other is Func && id == other.id;
 
   @override
-  String toString() => '[Func ' //
-      'id: $id, name: $name, owner: $owner, isStatic: $isStatic, ' //
-      'isConst: $isConst, implicit: $implicit, isAbstract: $isAbstract, signature: $signature]';
+  String toString() => '[Func]';
 }
 
 /// `InstanceRef` is a reference to an `Instance`.

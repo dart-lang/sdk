@@ -1037,8 +1037,7 @@ class _OutstandingRequest<T> {
   void _generateEventStream(DartGenerator gen) {
     gen.writeln();
     gen.writeDocs('An enum of available event streams.');
-    gen.writeln('class EventStreams {');
-    gen.writeln('EventStreams._();');
+    gen.writeln('abstract class EventStreams {');
     gen.writeln();
 
     for (var c in streamCategories) {
@@ -2026,8 +2025,7 @@ class Enum extends Member {
   void generate(DartGenerator gen) {
     gen.writeln();
     if (docs != null) gen.writeDocs(docs!);
-    gen.writeStatement('class $name {');
-    gen.writeStatement('$name._();');
+    gen.writeStatement('abstract class $name {');
     gen.writeln();
     for (var e in enums) {
       e.generate(gen);

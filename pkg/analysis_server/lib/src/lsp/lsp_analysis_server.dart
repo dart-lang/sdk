@@ -51,7 +51,7 @@ import 'package:analyzer_plugin/src/protocol/protocol_internal.dart' as plugin;
 import 'package:collection/collection.dart';
 import 'package:http/http.dart' as http;
 import 'package:meta/meta.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 /// Instances of the class [LspAnalysisServer] implement an LSP-based server
 /// that listens on a [CommunicationChannel] for LSP messages and processes
@@ -247,7 +247,7 @@ class LspAnalysisServer extends AnalysisServer {
     };
   }
 
-  package_path.Context get pathContext => resourceProvider.pathContext;
+  path.Context get pathContext => resourceProvider.pathContext;
 
   @override
   set pluginManager(PluginManager value) {

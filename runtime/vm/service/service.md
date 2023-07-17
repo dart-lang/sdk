@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.10
+# Dart VM Service Protocol 4.11
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.9_ of the Dart VM Service Protocol. This
+This document describes of _version 4.11_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -2776,6 +2776,12 @@ class @Function extends @Object {
   // Is this function an abstract method?
   bool abstract;
 
+  // Is this function a getter?
+  bool isGetter;
+
+  // Is this function a setter?
+  bool isSetter;
+
   // The location of this function in the source code.
   //
   // Note: this may not agree with the location of `owner` if this is a function
@@ -2810,6 +2816,12 @@ class Function extends Object {
 
   // Is this function an abstract method?
   bool abstract;
+
+  // Is this function a getter?
+  bool isGetter;
+
+  // Is this function a setter?
+  bool isSetter;
 
   // The location of this function in the source code.
   //
@@ -4706,5 +4718,6 @@ version | comments
 4.8 | Added `getIsolatePauseEvent` RPC.
 4.9 | Added `isolateGroup` property to `Event`.
 4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
+4.11 | Added `isGetter` and `isSetter` properties to `@Function` and `Function`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

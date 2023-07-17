@@ -8,7 +8,7 @@ import 'dart:io';
 
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 /// A class for interacting with the `pub` command.
 ///
@@ -25,7 +25,7 @@ class PubCommand {
       'DART_SERVER_DISABLE_PUB_COMMAND';
 
   final InstrumentationService _instrumentationService;
-  final package_path.Context _pathContext;
+  final path.Context _pathContext;
   late final ProcessRunner _processRunner;
   late final String _pubEnvironmentValue;
 

@@ -49,7 +49,7 @@ import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 class AnalysisForCompletionResult {
   final CompilationUnit parsedUnit;
@@ -67,7 +67,7 @@ class LibraryAnalyzer {
   final DeclaredVariables _declaredVariables;
   final LibraryFileKind _library;
   final InheritanceManager3 _inheritance;
-  final package_path.Context _pathContext;
+  final path.Context _pathContext;
 
   final LibraryElementImpl _libraryElement;
 

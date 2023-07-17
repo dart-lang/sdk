@@ -14,7 +14,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 /// A computer for LSP Inlay Hints.
 ///
@@ -22,7 +22,7 @@ import 'package:path/path.dart' as package_path;
 /// argument names where they are not already explicitly present in the source
 /// but are being inferred.
 class DartInlayHintComputer {
-  final package_path.Context pathContext;
+  final path.Context pathContext;
   final LineInfo _lineInfo;
   final CompilationUnit _unit;
   final bool _isNonNullableByDefault;
