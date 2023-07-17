@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/type_system_base.dart';
 import 'string_types.dart';
 
@@ -2620,6 +2621,46 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     );
   }
 
+  test_interfaceType_class_augmented_interfaces() {
+    final A = class_(name: 'A');
+    final I = class_(name: 'I');
+
+    final A1 = class_(
+      name: 'A',
+      isAugmentation: true,
+      interfaces: [
+        interfaceTypeNone(I),
+      ],
+    );
+    A.addAugmentations([A1]);
+
+    final A_none = interfaceTypeNone(A);
+    final I_none = interfaceTypeNone(I);
+
+    isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
+    isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
+  }
+
+  test_interfaceType_class_augmented_mixins() {
+    final A = class_(name: 'A');
+    final M = mixin_(name: 'M');
+
+    final A1 = class_(
+      name: 'A',
+      isAugmentation: true,
+      mixins: [
+        interfaceTypeNone(M),
+      ],
+    );
+    A.addAugmentations([A1]);
+
+    final A_none = interfaceTypeNone(A);
+    final M_none = interfaceTypeNone(M);
+
+    isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
+    isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
+  }
+
   test_interfaceType_contravariant() {
     var T = typeParameter('T', variance: Variance.contravariant);
     var A = class_(name: 'A', typeParameters: [T]);
@@ -2675,6 +2716,46 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
     isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
     isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
     isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+  }
+
+  test_interfaceType_mixin_augmented_interfaces() {
+    final M = mixin_(name: 'M');
+    final I = class_(name: 'I');
+
+    final M1 = mixin_(
+      name: 'M1',
+      isAugmentation: true,
+      interfaces: [
+        interfaceTypeNone(I),
+      ],
+    );
+    M.addAugmentations([M1]);
+
+    final M_none = interfaceTypeNone(M);
+    final I_none = interfaceTypeNone(I);
+
+    isSubtype(M_none, I_none, strT0: 'M', strT1: 'I');
+    isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
+  }
+
+  test_interfaceType_mixin_augmented_superclassConstraints() {
+    final M = mixin_(name: 'M');
+    final C = class_(name: 'C');
+
+    final M1 = mixin_(
+      name: 'M1',
+      isAugmentation: true,
+      constraints: [
+        interfaceTypeNone(C),
+      ],
+    );
+    M.addAugmentations([M1]);
+
+    final M_none = interfaceTypeNone(M);
+    final C_none = interfaceTypeNone(C);
+
+    isSubtype(M_none, C_none, strT0: 'M', strT1: 'C');
+    isNotSubtype(C_none, M_none, strT0: 'C', strT1: 'M');
   }
 
   test_invalidType() {

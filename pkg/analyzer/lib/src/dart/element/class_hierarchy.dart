@@ -32,8 +32,16 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElement element) {
-    var hierarchy = _map[element];
+    if (element.isAugmentation) {
+      throw StateError('Expected a declaration, not augmentations.');
+    }
 
+    final augmented = element.augmented;
+    if (augmented == null) {
+      throw StateError('Declarations always have augmented state.');
+    }
+
+    var hierarchy = _map[element];
     if (hierarchy != null) {
       return hierarchy;
     }
@@ -67,15 +75,15 @@ class ClassHierarchy {
     }
 
     append(element.supertype);
-    if (element is MixinElement) {
-      for (var type in element.superclassConstraints) {
+    if (augmented is AugmentedMixinElement) {
+      for (var type in augmented.superclassConstraints) {
         append(type);
       }
     }
-    for (var type in element.interfaces) {
+    for (var type in augmented.interfaces) {
       append(type);
     }
-    for (var type in element.mixins) {
+    for (var type in augmented.mixins) {
       append(type);
     }
 
