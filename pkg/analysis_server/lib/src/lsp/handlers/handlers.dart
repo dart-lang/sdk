@@ -19,7 +19,7 @@ import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/src/protocol/protocol_internal.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 export 'package:analyzer/src/utilities/cancellation.dart';
 
@@ -72,7 +72,7 @@ mixin Handler<T> {
 /// Provides some helpers for request handlers to produce common errors or
 /// obtain resolved results after waiting for in-progress analysis.
 mixin HandlerHelperMixin<S extends AnalysisServer> {
-  package_path.Context get pathContext => server.resourceProvider.pathContext;
+  path.Context get pathContext => server.resourceProvider.pathContext;
 
   S get server;
 
@@ -106,7 +106,7 @@ mixin HandlerHelperMixin<S extends AnalysisServer> {
     }
     try {
       final context = server.resourceProvider.pathContext;
-      final isWindows = context.style == package_path.Style.windows;
+      final isWindows = context.style == path.Style.windows;
 
       // Use toFilePath() here and not context.fromUri() because they're not
       // quite the same. `toFilePath()` will throw for some kinds of invalid

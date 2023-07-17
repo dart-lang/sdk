@@ -5,7 +5,7 @@
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -200,7 +200,7 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     //    file:///foo/bar.dart
     // is valid for non-Windows platforms, but not valid on Windows as it does
     // not have a drive letter.
-    if (pathContext.style != package_path.Style.windows) {
+    if (pathContext.style != path.Style.windows) {
       return;
     }
     // This code deliberately does not use pathContext because we're testing a

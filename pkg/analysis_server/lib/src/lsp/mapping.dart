@@ -26,7 +26,7 @@ import 'package:analyzer/src/dart/analysis/search.dart' as server
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as plugin;
 import 'package:collection/collection.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 const languageSourceName = 'dart';
 
@@ -96,7 +96,7 @@ lsp.WorkspaceEdit createPlainWorkspaceEdit(
 
 /// Create a [WorkspaceEdit] that renames [oldPath] to [newPath].
 WorkspaceEdit createRenameEdit(
-    package_path.Context pathContext, String oldPath, String newPath) {
+    path.Context pathContext, String oldPath, String newPath) {
   final changes =
       <Either4<CreateFile, DeleteFile, RenameFile, TextDocumentEdit>>[];
 
@@ -518,7 +518,7 @@ lsp.LocationLink? navigationTargetToLocationLink(
 }
 
 lsp.Diagnostic pluginToDiagnostic(
-  package_path.Context pathContext,
+  path.Context pathContext,
   server.LineInfo? Function(String) getLineInfo,
   plugin.AnalysisError error, {
   required Set<lsp.DiagnosticTag>? supportedTags,
@@ -567,7 +567,7 @@ lsp.Diagnostic pluginToDiagnostic(
 }
 
 lsp.DiagnosticRelatedInformation? pluginToDiagnosticRelatedInformation(
-    package_path.Context pathContext,
+    path.Context pathContext,
     server.LineInfo? Function(String) getLineInfo,
     plugin.DiagnosticMessage message) {
   final file = message.location.file;
@@ -995,7 +995,7 @@ lsp.CompletionItem toCompletionItem(
 }
 
 lsp.Diagnostic toDiagnostic(
-  package_path.Context pathContext,
+  path.Context pathContext,
   server.ResolvedUnitResult result,
   server.AnalysisError error, {
   required Set<lsp.DiagnosticTag> supportedTags,
@@ -1088,8 +1088,8 @@ List<lsp.DocumentHighlight> toHighlights(
       .toList();
 }
 
-lsp.Location toLocation(package_path.Context pathContext,
-        server.Location location, server.LineInfo lineInfo) =>
+lsp.Location toLocation(path.Context pathContext, server.Location location,
+        server.LineInfo lineInfo) =>
     lsp.Location(
       uri: pathContext.toUri(location.file),
       range: toRange(

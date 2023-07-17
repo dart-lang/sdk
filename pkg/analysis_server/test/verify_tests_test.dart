@@ -6,7 +6,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer_utilities/package_root.dart' as package_root;
 import 'package:analyzer_utilities/verify_tests.dart';
-import 'package:path/path.dart' as package_path;
+import 'package:path/path.dart' as path;
 
 void main() {
   var provider = PhysicalResourceProvider.INSTANCE;
@@ -42,7 +42,7 @@ class _VerifyTests extends VerifyTests {
     }
 
     // Allow for updating textual expectations.
-    if (package_path.url.basename(uri) == 'text_expectations.dart') {
+    if (path.url.basename(uri) == 'text_expectations.dart') {
       if (folder.path ==
           pathContext.join(testDirPath, 'services', 'completion', 'dart')) {
         return true;
