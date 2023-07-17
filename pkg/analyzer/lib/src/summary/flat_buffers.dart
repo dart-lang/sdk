@@ -403,7 +403,7 @@ class Builder {
     _ensureNoVTable();
     return _strings.putIfAbsent(value, () {
       // TODO(scheglov) optimize for ASCII strings
-      List<int> bytes = utf8.encode(value);
+      final bytes = const Utf8Encoder().convert(value);
       int length = bytes.length;
       _prepare(4, 1, additionalBytes: length);
       Offset<String> result = Offset(_tail);
