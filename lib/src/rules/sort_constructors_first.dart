@@ -34,7 +34,7 @@ abstract class Animation<T> {
 
 class SortConstructorsFirst extends LintRule {
   static const LintCode code = LintCode('sort_constructors_first',
-      'Invalid location for a constructor declaration.',
+      'Constructor declarations should be before non-constructor declarations.',
       correctionMessage:
           'Try moving the constructor declaration before all other members.');
 
