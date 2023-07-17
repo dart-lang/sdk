@@ -138,6 +138,8 @@ void syncTests() {
   edo = DartObject().toJSBox;
   expect(edo is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
+  // Should not box a non Dart-object.
+  Expect.throws(() => edo.toJSBox);
 
   // [JSArray] <-> [List<JSAny?>]
   arr = [1.0.toJS, 'foo'.toJS].toJS;

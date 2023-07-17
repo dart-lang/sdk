@@ -88,11 +88,6 @@ extension JSBoxedDartObjectToObject on JSBoxedDartObject {
 
 @patch
 extension ObjectToJSBoxedDartObject on Object {
-  // TODO(srujzs): Remove.
-  @patch
-  JSBoxedDartObject get toJS =>
-      _box<JSBoxedDartObject>(jsObjectFromDartObject(this));
-
   @patch
   JSBoxedDartObject get toJSBox {
     if (this is JSValue) {
@@ -348,10 +343,6 @@ extension ListToJSArray on List<JSAny?> {
 /// [JSNumber] -> [double] or [int].
 @patch
 extension JSNumberToNumber on JSNumber {
-  // TODO(srujzs): Remove.
-  @patch
-  double get toDart => toDartDouble;
-
   @patch
   double get toDartDouble => toDartNumber(toExternRef);
 
