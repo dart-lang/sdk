@@ -260,6 +260,7 @@ def _builder(
                     ]
 
             notifies = [notifies] if type(notifies) == type("") else notifies
+            adjusted_priority = priority + 10 if channel else priority
             luci.builder(
                 name = builder,
                 build_numbers = True,
@@ -271,7 +272,7 @@ def _builder(
                 experimental = experimental,
                 experiments = experiments,
                 expiration_timeout = expiration_timeout,
-                priority = priority,
+                priority = adjusted_priority,
                 properties = builder_properties,
                 notifies = notifies if enabled else None,
                 schedule = schedule if enabled else None,
