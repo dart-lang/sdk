@@ -820,7 +820,7 @@ class IsolateManager {
     // If we were passed a single URI, we should send breakpoints only for that
     // (this means the request came from the client), otherwise we should send
     // all of them (because this is a new/restarting isolate).
-    final uris = uri != null ? [uri] : _clientBreakpointsByUri.keys;
+    final uris = uri != null ? [uri] : _clientBreakpointsByUri.keys.toList();
 
     for (final uri in uris) {
       // Clear existing breakpoints.
