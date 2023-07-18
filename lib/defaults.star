@@ -32,6 +32,7 @@ _FOCAL = {"os": "Ubuntu-20"}
 _WINDOWS10 = {"os": "Windows-10"}
 _WINDOWS11 = {"os": "Windows-11"}
 
+_FLUTTER_POOL = {"pool": "luci.flutter.staging"}
 _EXPERIMENTAL = {"host_class": "experimental"}
 
 def _union(x, overrides):
@@ -74,6 +75,7 @@ defaults = struct(
 
 arm64 = _ARM64
 experimental = _EXPERIMENTAL
+flutter_pool = _FLUTTER_POOL
 focal = _FOCAL
 linux = _FOCAL
 mac = _MAC
