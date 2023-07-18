@@ -23,7 +23,7 @@ This section documents the styles we have agreed to follow.
 
 None.
 
-### Other style guidelines
+### Formatting and sorting
 
 All of our source code is expected to be
 - formatted by the `dart format` command, and
@@ -36,6 +36,25 @@ Formatting is enforced by presubmit and sorting is enforced by tests. We
 recommend that you enable both the formatter and the Sort Members command to be
 run on save, at least within our packages.
 
+### Naming conventions
+
+We generally follow the naming conventions from the Dart style guide. We do have
+some legacy code that uses screaming caps for constant names, but newer code
+doesn't use that style for constants.
+
+#### Import prefixes
+
+The Dart style guide doesn't explicitly specify a naming convention for import
+prefixes beyond the guidance to use snake case. (See
+https://dart.dev/effective-dart/style#do-name-import-prefixes-using-lowercase_with_underscores).
+
+However, the examples in the style guide all use the name of the file with the
+`.dart` suffix removed. That's the standard we follow, with the exception that
+we also drop `_test.dart` for test files. That includes using the prefix `path`
+for the path package, even though it's a commonly used variable name. In code
+where there's a conflict, we prefix the variable name with an adjective to form
+a unique name, such as `filePath`.
+
 ## Styles we're discussing
 
 This section documents the styles we are currently discussing. The purpose
@@ -44,8 +63,8 @@ already discussed.
 
 ### Lint rules
 
-For historic reasons we have enabled some the lint rules in the [core][core] and
-[recommended][recommended] rule sets, but some have been disabled in various
+For historic reasons we have enabled some of the lint rules in the [core][core]
+and [recommended][recommended] rule sets, but some have been disabled in various
 packages.
 
 [core]:https://github.com/dart-lang/lints/blob/main/lib/core.yaml
