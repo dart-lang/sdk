@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -19,7 +20,6 @@ import 'package:analyzer/src/summary2/constructor_initializer_resolver.dart';
 import 'package:analyzer/src/summary2/default_value_resolver.dart';
 import 'package:analyzer/src/summary2/element_builder.dart';
 import 'package:analyzer/src/summary2/export.dart';
-import 'package:analyzer/src/summary2/field_promotability.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/macro_application.dart';
 import 'package:analyzer/src/summary2/metadata_resolver.dart';
@@ -279,7 +279,7 @@ class LibraryBuilder {
       return;
     }
 
-    FieldPromotability(this).perform();
+    _FieldPromotability(this).perform();
   }
 
   void declare(String name, Reference reference) {
@@ -996,6 +996,95 @@ class LinkingUnit {
     required this.container,
     required this.element,
   });
+}
+
+/// This class examines all the [InterfaceElement]s in a library and determines
+/// which fields are promotable within that library.
+class _FieldPromotability extends FieldPromotability<InterfaceElement> {
+  /// The [_libraryBuilder] for the library being analyzed.
+  final LibraryBuilder _libraryBuilder;
+
+  /// Fields that might be promotable, if not marked unpromotable later.
+  final List<FieldElementImpl> _potentiallyPromotableFields = [];
+
+  _FieldPromotability(this._libraryBuilder);
+
+  @override
+  Iterable<InterfaceElement> getSuperclasses(InterfaceElement class_,
+      {required bool ignoreImplements}) {
+    List<InterfaceElement> result = [];
+    var supertype = class_.supertype;
+    if (supertype != null) {
+      result.add(supertype.element);
+    }
+    for (var m in class_.mixins) {
+      result.add(m.element);
+    }
+    if (!ignoreImplements) {
+      for (var interface in class_.interfaces) {
+        result.add(interface.element);
+      }
+      if (class_ is MixinElement) {
+        for (var constraint in class_.superclassConstraints) {
+          result.add(constraint.element);
+        }
+      }
+    }
+    return result;
+  }
+
+  /// Computes which fields are promotable and updates their `isPromotable`
+  /// properties accordingly.
+  void perform() {
+    // Iterate through all the classes, enums, and mixins in the library,
+    // recording the non-synthetic instance fields and getters of each.
+    for (var unitElement in _libraryBuilder.element.units) {
+      for (var class_ in unitElement.classes) {
+        _handleMembers(addClass(class_, isAbstract: class_.isAbstract), class_);
+      }
+      for (var enum_ in unitElement.enums) {
+        _handleMembers(addClass(enum_, isAbstract: false), enum_);
+      }
+      for (var mixin_ in unitElement.mixins) {
+        _handleMembers(addClass(mixin_, isAbstract: true), mixin_);
+      }
+    }
+
+    // Compute the set of field names that are not promotable.
+    var unpromotableFieldNames = computeUnpromotablePrivateFieldNames();
+
+    // Set the `isPromotable` bit for each field element that *is* promotable.
+    for (var field in _potentiallyPromotableFields) {
+      if (!unpromotableFieldNames.contains(field.name)) {
+        field.isPromotable = true;
+      }
+    }
+  }
+
+  /// Records all the non-synthetic instance fields and getters of [class_] into
+  /// [classInfo].
+  void _handleMembers(
+      ClassInfo<InterfaceElement> classInfo, InterfaceElementImpl class_) {
+    for (var field in class_.fields) {
+      if (field.isStatic || field.isSynthetic) {
+        continue;
+      }
+
+      var isPotentiallyPromotable = addField(classInfo, field.name,
+          isFinal: field.isFinal, isAbstract: field.isAbstract);
+      if (isPotentiallyPromotable) {
+        _potentiallyPromotableFields.add(field);
+      }
+    }
+
+    for (var accessor in class_.accessors) {
+      if (!accessor.isGetter || accessor.isStatic || accessor.isSynthetic) {
+        continue;
+      }
+
+      addGetter(classInfo, accessor.name, isAbstract: accessor.isAbstract);
+    }
+  }
 }
 
 class _FlushElementOffsets extends GeneralizingElementVisitor<void> {
