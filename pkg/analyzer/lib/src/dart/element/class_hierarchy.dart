@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -21,6 +22,7 @@ class ClassHierarchy {
   }
 
   void remove(InterfaceElement element) {
+    assert(!element.isAugmentation);
     _map.remove(element);
   }
 
@@ -32,14 +34,7 @@ class ClassHierarchy {
   }
 
   _Hierarchy _getHierarchy(InterfaceElement element) {
-    if (element.isAugmentation) {
-      throw StateError('Expected a declaration, not augmentations.');
-    }
-
-    final augmented = element.augmented;
-    if (augmented == null) {
-      throw StateError('Declarations always have augmented state.');
-    }
+    final augmented = element.augmentedOfDeclaration;
 
     var hierarchy = _map[element];
     if (hierarchy != null) {
