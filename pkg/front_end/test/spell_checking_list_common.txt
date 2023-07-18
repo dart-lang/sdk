@@ -738,6 +738,7 @@ dart
 dart2js
 dart2wasm
 dart2wasm_stringref
+dart2wasm_js_compatibility
 dartdevc
 data
 date

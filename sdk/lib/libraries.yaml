@@ -156,6 +156,28 @@ wasm_stringref:
       - _internal/wasm/lib/sync_star_patch.dart
       - _internal/wasm/lib/weak_patch.dart
 
+wasm_js_compatibility:
+  include:
+    - target: "wasm_common"
+  libraries:
+    core:
+      uri: core/core.dart
+      patches:
+      - _internal/wasm/lib/core_patch.dart
+      - _internal/vm_shared/lib/array_patch.dart
+      - _internal/vm_shared/lib/bigint_patch.dart
+      - _internal/vm_shared/lib/bool_patch.dart
+      - _internal/vm_shared/lib/date_patch.dart
+      - _internal/vm_shared/lib/integers_patch.dart
+      - _internal/vm_shared/lib/map_patch.dart
+      - _internal/vm_shared/lib/null_patch.dart
+      - _internal/vm_shared/lib/string_buffer_patch.dart
+      - _internal/wasm/lib/date_patch_patch.dart
+      - _internal/wasm/lib/string_buffer_create.dart
+      - _internal/wasm/lib/string_patch.dart
+      - _internal/wasm/lib/sync_star_patch.dart
+      - _internal/wasm/lib/weak_patch.dart
+
 wasm_common:
   libraries:
     _http:

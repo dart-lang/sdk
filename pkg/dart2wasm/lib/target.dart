@@ -34,11 +34,17 @@ import 'package:dart2wasm/ffi_native_transformer.dart' as wasmFfiNativeTrans;
 import 'package:dart2wasm/records.dart' show RecordShape;
 import 'package:dart2wasm/transformers.dart' as wasmTrans;
 
+enum Mode {
+  regular,
+  stringref,
+  jsCompatibility,
+}
+
 class WasmTarget extends Target {
-  WasmTarget({this.removeAsserts = true, this.useStringref = false});
+  WasmTarget({this.removeAsserts = true, this.mode = Mode.regular});
 
   bool removeAsserts;
-  bool useStringref;
+  Mode mode;
   Class? _growableList;
   Class? _immutableList;
   Class? _wasmDefaultMap;
@@ -59,7 +65,27 @@ class WasmTarget extends Target {
   Verification get verification => const WasmVerification();
 
   @override
-  String get name => useStringref ? 'wasm_stringref' : 'wasm';
+  String get name {
+    switch (mode) {
+      case Mode.regular:
+        return 'wasm';
+      case Mode.stringref:
+        return 'wasm_stringref';
+      case Mode.jsCompatibility:
+        return 'wasm_js_compatibility';
+    }
+  }
+
+  String get platformFile {
+    switch (mode) {
+      case Mode.regular:
+        return 'dart2wasm_platform.dill';
+      case Mode.stringref:
+        return 'dart2wasm_stringref_platform.dill';
+      case Mode.jsCompatibility:
+        return 'dart2wasm_js_compatibility_platform.dill';
+    }
+  }
 
   @override
   TargetFlags get flags => TargetFlags();
