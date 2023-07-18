@@ -440,7 +440,7 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
         tbes.SetNumArguments(2);
         tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
         tbes.FormatArgument(
-            1, "heapSize", "%" Pd64,
+            1, "heapSize", "%" Pd,
             vm_isolate_group()->heap()->UsedInWords(Heap::kOld) * kWordSize);
       }
 #endif  // !defined(PRODUCT)
@@ -860,7 +860,7 @@ ErrorPtr Dart::InitIsolateGroupFromSnapshot(
     if (tbes.enabled()) {
       tbes.SetNumArguments(2);
       tbes.FormatArgument(0, "snapshotSize", "%" Pd, snapshot->length());
-      tbes.FormatArgument(1, "heapSize", "%" Pd64,
+      tbes.FormatArgument(1, "heapSize", "%" Pd,
                           IG->heap()->UsedInWords(Heap::kOld) * kWordSize);
     }
 #endif  // defined(SUPPORT_TIMELINE)
