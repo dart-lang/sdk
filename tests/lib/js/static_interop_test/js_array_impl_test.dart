@@ -41,7 +41,7 @@ String jsString(String s) => s.toJS.toDart;
 
 extension ListJSAnyExtension on List<JSAny?> {
   List<double?> get toListDouble =>
-      this.map((a) => (a as JSNumber?)?.toDart).toList();
+      this.map((a) => (a as JSNumber?)?.toDartDouble).toList();
 }
 
 extension ListNumExtension on List<num?> {
@@ -55,11 +55,11 @@ extension ListStringExtension on List<String?> {
 }
 
 extension NullableJSAnyExtension on JSAny? {
-  double? get toDouble => (this as JSNumber?)?.toDart;
+  double? get toDouble => (this as JSNumber?)?.toDartDouble;
 }
 
 extension JSAnyExtension on JSAny {
-  double get toDouble => (this as JSNumber).toDart;
+  double get toDouble => (this as JSNumber).toDartDouble;
 }
 
 void modedTests(TestMode mode) {
@@ -345,7 +345,7 @@ void nonModedTests() {
       (list.reduce((a, b) =>
                   ((a as JSNumber).toDouble + (b as JSNumber).toDouble).toJS)
               as JSNumber)
-          .toDart);
+          .toDartDouble);
 
   // fold
   Expect.equals(
@@ -353,32 +353,34 @@ void nonModedTests() {
 
   // firstWhere
   Expect.equals(
-      1, list.firstWhere((a) => (a as JSNumber).toDart == 1).toDouble);
+      1, list.firstWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble);
   Expect.equals(
       45,
       list
-          .firstWhere((a) => (a as JSNumber).toDart == 4, orElse: () => 45.toJS)
+          .firstWhere((a) => (a as JSNumber).toDartDouble == 4,
+              orElse: () => 45.toJS)
           .toDouble);
 
   // lastWhere
   list = [1, 2, 3, 4].toJSListJSAny;
   Expect.equals(
-      4, list.lastWhere((a) => (a as JSNumber).toDart % 2 == 0).toDouble);
+      4, list.lastWhere((a) => (a as JSNumber).toDartDouble % 2 == 0).toDouble);
   Expect.equals(
       45,
       list
-          .lastWhere((a) => (a as JSNumber).toDart == 5, orElse: () => 45.toJS)
+          .lastWhere((a) => (a as JSNumber).toDartDouble == 5,
+              orElse: () => 45.toJS)
           .toDouble);
 
   // singleWhere
   Expect.equals(
-      1, list.singleWhere((a) => (a as JSNumber).toDart == 1).toDouble);
+      1, list.singleWhere((a) => (a as JSNumber).toDartDouble == 1).toDouble);
   Expect.throwsStateError(
-      () => list.singleWhere((a) => (a as JSNumber).toDart % 2 == 0));
+      () => list.singleWhere((a) => (a as JSNumber).toDartDouble % 2 == 0));
   Expect.equals(
       45,
       list
-          .singleWhere((a) => (a as JSNumber).toDart == 5,
+          .singleWhere((a) => (a as JSNumber).toDartDouble == 5,
               orElse: () => 45.toJS)
           .toDouble);
 

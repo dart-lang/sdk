@@ -817,6 +817,8 @@ Scavenger::Scavenger(Heap* heap, intptr_t max_semi_capacity_in_words)
       external_size_(0),
       failed_to_promote_(false),
       abort_(false) {
+  ASSERT(heap != nullptr);
+
   // Verify assumptions about the first word in objects which the scavenger is
   // going to use for forwarding pointers.
   ASSERT(Object::tags_offset() == 0);
@@ -1358,10 +1360,6 @@ void ScavengerVisitorBase<parallel>::ProcessWeakPropertiesScoped() {
 }
 
 void Scavenger::UpdateMaxHeapCapacity() {
-  if (heap_ == nullptr) {
-    // Some unit tests.
-    return;
-  }
   ASSERT(to_ != nullptr);
   ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();
@@ -1371,10 +1369,6 @@ void Scavenger::UpdateMaxHeapCapacity() {
 }
 
 void Scavenger::UpdateMaxHeapUsage() {
-  if (heap_ == nullptr) {
-    // Some unit tests.
-    return;
-  }
   ASSERT(to_ != nullptr);
   ASSERT(heap_ != nullptr);
   auto isolate_group = heap_->isolate_group();

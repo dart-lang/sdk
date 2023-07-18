@@ -10981,7 +10981,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Add a case for each of the values missing a match:
+      If the missing values are distinctly meaningful to the switch expression,
+      then add a case for each of the values missing a match:
 
       ```dart
       enum E { one, two, three }
@@ -10994,7 +10995,7 @@ CompileTimeErrorCode:
       ```
 
       If the missing values don't need to be matched, then add a wildcard
-      pattern:
+      pattern that returns a simple default:
 
       ```dart
       enum E { one, two, three }
@@ -12770,12 +12771,12 @@ CompileTimeErrorCode:
       The analyzer produces this diagnostic when an object pattern contains a
       field without specifying the getter name. Object pattern fields match
       against values that the object's getters return. Without a getter name
-      specified, the pattern field can't access a value to attempt to match against. 
+      specified, the pattern field can't access a value to attempt to match against.
 
       #### Example
 
       The following code produces this diagnostic because the object pattern
-      `String(1)` doesn't specify which getter of `String` to access and compare 
+      `String(1)` doesn't specify which getter of `String` to access and compare
       with the value `1`:
 
       ```dart
@@ -12786,8 +12787,8 @@ CompileTimeErrorCode:
 
       #### Common fixes
 
-      Add the getter name (same as the field name) to access the value, followed
-      by a colon before the value to match against:
+      Add the getter name to access the value, followed
+      by a colon before the pattern to match against:
 
       ```dart
       void f(Object o) {
@@ -14084,7 +14085,7 @@ CompileTimeErrorCode:
       #### Description
 
       The analyzer produces this diagnostic when a map pattern contains a rest
-      pattern. Map patterns will already match a map with more keys
+      pattern. Map patterns match a map with more keys
       than those explicitly given in the pattern (as long as the given keys match),
       so a rest pattern is unnecesssary.
 
