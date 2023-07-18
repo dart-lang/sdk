@@ -54,19 +54,6 @@ import 'package:analyzer/src/task/api/model.dart' show AnalysisTarget;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
-/// Information about [ExecutableElement] that is an augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentationExecutableElement {
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations should normally end with a [ExecutableElement]
-  /// that is not augmentation, but might end with `null` immediately or
-  /// after a few intermediate augmentations in case of invalid code when an
-  /// augmentation is declared without the corresponding declaration.
-  ExecutableElement? get augmentationTarget;
-}
-
 /// A library augmentation import directive within a library.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -90,19 +77,13 @@ abstract class AugmentationImportElement implements _ExistingElement {
   DirectiveUri get uri;
 }
 
-/// Information about [MethodElement] that is an augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentationMethodElement
-    implements AugmentationExecutableElement {
-  @override
-  MethodElement? get augmentationTarget;
-}
-
 /// The result of applying augmentations to a [ClassElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedClassElement implements AugmentedInterfaceElement {}
+abstract class AugmentedClassElement implements AugmentedInterfaceElement {
+  @override
+  ClassElement get declaration;
+}
 
 /// The result of applying augmentations to an [EnumElement].
 ///
@@ -126,9 +107,12 @@ abstract class AugmentedInlineClassElement
 abstract class AugmentedInstanceElement {
   /// The accessors (getters and setters) declared in this element.
   ///
-  /// [PropertyAccessorAugmentationElement]s replace corresponding elements,
+  /// [PropertyAccessorElement]s replace corresponding elements,
   /// other [PropertyAccessorElement]s are appended.
   List<PropertyAccessorElement> get accessors;
+
+  /// The declaration (not augmentation) that owns this result.
+  InstanceElement get declaration;
 
   /// The fields declared in this element.
   ///
@@ -166,6 +150,9 @@ abstract class AugmentedInstanceElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedInterfaceElement
     implements AugmentedNamedInstanceElement {
+  @override
+  InterfaceElement get declaration;
+
   /// The interfaces implemented by this element.
   ///
   /// This is a union of interfaces declared by the class declaration and
@@ -201,6 +188,9 @@ abstract class AugmentedNamedInstanceElement
   /// other [ConstructorElement]s are appended.
   List<ConstructorElement> get constructors;
 
+  @override
+  NamedInstanceElement get declaration;
+
   /// The unnamed constructor from [constructors].
   ConstructorElement? get unnamedConstructor;
 
@@ -213,34 +203,38 @@ abstract class AugmentedNamedInstanceElement
 /// Clients may not extend, implement or mix-in this class.
 abstract class BindPatternVariableElement implements PatternVariableElement {}
 
-/// A class augmentation, defined by a class augmentation declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ClassAugmentationElement implements ClassOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with a [ClassElement], but
-  /// might end with `null` immediately or after a few intermediate
-  /// [ClassAugmentationElement]s in case of invalid code when an augmentation
-  /// is declared without the corresponding class declaration.
-  ClassOrAugmentationElement? get augmentationTarget;
-}
-
 /// An element that represents a class or a mixin. The class can be defined by
 /// either a class declaration (with a class body), a mixin application (without
 /// a class body), a mixin declaration, or an enum declaration.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ClassElement
-    implements InterfaceElement, ClassOrAugmentationElement {
+abstract class ClassElement implements InterfaceElement {
   @experimental
   @override
-  AugmentedClassElement get augmented;
+  ClassElement? get augmentation;
+
+  @experimental
+  @override
+  ClassElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedClassElement? get augmented;
 
   /// Whether the class or its superclass declares a non-final instance field.
   bool get hasNonFinalField;
+
+  /// Whether the class is abstract. A class is abstract if it has an
+  /// explicit `abstract` modifier. Note, that this definition of
+  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
+  bool get isAbstract;
+
+  /// Whether this class is a base class.
+  ///
+  /// A class is a base class if it has an explicit `base` modifier, or the
+  /// class has a `base` induced modifier and [isSealed] is `true` as well.
+  /// The base modifier allows the class to be extended but not implemented.
+  bool get isBase;
 
   /// Whether the class can be instantiated.
   bool get isConstructable;
@@ -256,17 +250,43 @@ abstract class ClassElement
   /// covered all possible instances of the type.
   bool get isExhaustive;
 
+  /// Whether the class is a final class.
+  ///
+  /// A class is a final class if it has an explicit `final` modifier, or the
+  /// class has a `final` induced modifier and [isSealed] is `true` as well.
+  /// The final modifier prohibits this class from being extended, implemented,
+  /// or mixed in.
+  bool get isFinal;
+
   /// Whether the class is an inline class.
   ///
   /// A class is an inline class if it has an explicit `inline` modifier.
   @experimental
   bool get isInline;
 
+  /// Whether the class is an interface class.
+  ///
+  /// A class is an interface class if it has an explicit `interface` modifier,
+  /// or the class has an `interface` induced modifier and [isSealed] is `true`
+  /// as well. The interface modifier allows the class to be implemented, but
+  /// not extended or mixed in.
+  bool get isInterface;
+
   /// Whether the class is a mixin application.
   ///
   /// A class is a mixin application if it was declared using the syntax
   /// `class A = B with C;`.
   bool get isMixinApplication;
+
+  /// Whether the class is a mixin class.
+  ///
+  /// A class is a mixin class if it has an explicit `mixin` modifier.
+  bool get isMixinClass;
+
+  /// Whether the class is a sealed class.
+  ///
+  /// A class is a sealed class if it has an explicit `sealed` modifier.
+  bool get isSealed;
 
   /// Whether the class can validly be used as a mixin when defining
   /// another class.
@@ -316,61 +336,6 @@ abstract class ClassMemberElement implements Element {
   bool get isStatic;
 }
 
-/// Shared interface between [ClassElement] and [ClassAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ClassOrAugmentationElement
-    implements InterfaceOrAugmentationElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [ClassAugmentationElement.augmentationTarget] is the back pointer that
-  /// will point at this element.
-  ClassAugmentationElement? get augmentation;
-
-  @override
-  ClassElement? get augmentedDeclaration;
-
-  /// Whether the class is abstract. A class is abstract if it has an
-  /// explicit `abstract` modifier. Note, that this definition of
-  /// <i>abstract</i> is different from <i>has unimplemented members</i>.
-  bool get isAbstract;
-
-  /// Whether this class is a base class.
-  ///
-  /// A class is a base class if it has an explicit `base` modifier, or the
-  /// class has a `base` induced modifier and [isSealed] is `true` as well.
-  /// The base modifier allows the class to be extended but not implemented.
-  bool get isBase;
-
-  /// Whether the class is a final class.
-  ///
-  /// A class is a final class if it has an explicit `final` modifier, or the
-  /// class has a `final` induced modifier and [isSealed] is `true` as well.
-  /// The final modifier prohibits this class from being extended, implemented,
-  /// or mixed in.
-  bool get isFinal;
-
-  /// Whether the class is an interface class.
-  ///
-  /// A class is an interface class if it has an explicit `interface` modifier,
-  /// or the class has an `interface` induced modifier and [isSealed] is `true`
-  /// as well. The interface modifier allows the class to be implemented, but
-  /// not extended or mixed in.
-  bool get isInterface;
-
-  /// Whether the class is a mixin class.
-  ///
-  /// A class is a mixin class if it has an explicit `mixin` modifier.
-  bool get isMixinClass;
-
-  /// Whether the class is a sealed class.
-  ///
-  /// A class is a sealed class if it has an explicit `sealed` modifier.
-  bool get isSealed;
-}
-
 /// An element representing a compilation unit.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -378,10 +343,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The top-level accessors (getters and setters) declared in this
   /// compilation unit.
   List<PropertyAccessorElement> get accessors;
-
-  /// The class augmentations declared in this compilation unit.
-  @experimental
-  List<ClassAugmentationElement> get classAugmentations;
 
   /// The classes declared in this compilation unit.
   List<ClassElement> get classes;
@@ -407,10 +368,6 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   /// The [LineInfo] for the [source].
   LineInfo get lineInfo;
 
-  /// The mixin augmentations declared in this compilation unit.
-  @experimental
-  List<MixinAugmentationElement> get mixinAugmentations;
-
   /// The mixins declared in this compilation unit.
   List<MixinElement> get mixins;
 
@@ -434,33 +391,19 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   EnumElement? getEnum(String name);
 }
 
-/// An element representing a constructor augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class ConstructorAugmentationElement implements ConstructorElement {
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations should normally end with a
-  /// [ConstructorElement] that is not [ConstructorAugmentationElement], but
-  /// might end with `null` immediately or after a few intermediate
-  /// [ConstructorAugmentationElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding constructor
-  /// declaration.
-  ConstructorElement? get augmentationTarget;
-}
-
 /// An element representing a constructor or a factory method defined within a
 /// class.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ConstructorElement
     implements ClassMemberElement, ExecutableElement, ConstantEvaluationTarget {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [ConstructorAugmentationElement.augmentationTarget] is the back pointer
-  /// that will point at this element.
-  ConstructorAugmentationElement? get augmentation;
+  @experimental
+  @override
+  ConstructorElement? get augmentation;
+
+  @experimental
+  @override
+  ConstructorElement? get augmentationTarget;
 
   @override
   ConstructorElement get declaration;
@@ -473,7 +416,7 @@ abstract class ConstructorElement
   InterfaceElement get enclosingElement;
 
   @override
-  NamedInstanceOrAugmentationElement get enclosingElement2;
+  NamedInstanceElement get enclosingElement2;
 
   /// Whether the constructor is a const constructor.
   bool get isConst;
@@ -1162,8 +1105,6 @@ abstract class ElementLocation {
 abstract class ElementVisitor<R> {
   R? visitAugmentationImportElement(AugmentationImportElement element);
 
-  R? visitClassAugmentationElement(ClassAugmentationElement element);
-
   R? visitClassElement(ClassElement element);
 
   R? visitCompilationUnitElement(CompilationUnitElement element);
@@ -1196,8 +1137,6 @@ abstract class ElementVisitor<R> {
 
   R? visitMethodElement(MethodElement element);
 
-  R? visitMixinAugmentationElement(MixinAugmentationElement element);
-
   R? visitMixinElement(MixinElement element);
 
   R? visitMultiplyDefinedElement(MultiplyDefinedElement element);
@@ -1219,46 +1158,21 @@ abstract class ElementVisitor<R> {
   R? visitTypeParameterElement(TypeParameterElement element);
 }
 
-/// An enum augmentation, defined by a enum augmentation declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class EnumAugmentationElement implements EnumOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with an [EnumElement], but
-  /// might end with `null` immediately or after a few intermediate
-  /// [EnumAugmentationElement]s in case of invalid code when an augmentation
-  /// is declared without the corresponding enum declaration.
-  EnumOrAugmentationElement? get augmentationTarget;
-}
-
 /// An element that represents an enum.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class EnumElement
-    implements InterfaceElement, EnumOrAugmentationElement {
+abstract class EnumElement implements InterfaceElement {
   @experimental
   @override
-  AugmentedEnumElement get augmented;
-}
+  EnumElement? get augmentation;
 
-/// Shared interface between [EnumElement] and [EnumAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class EnumOrAugmentationElement
-    implements InterfaceOrAugmentationElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [EnumAugmentationElement.augmentationTarget] is the back pointer that
-  /// will point at this element.
-  EnumAugmentationElement? get augmentation;
-
+  @experimental
   @override
-  EnumElement? get augmentedDeclaration;
+  EnumElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedEnumElement? get augmented;
 }
 
 /// An element representing an executable object, including functions, methods,
@@ -1266,6 +1180,22 @@ abstract class EnumOrAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ExecutableElement implements FunctionTypedElement {
+  /// The immediate augmentation of this element, or `null` if there are no
+  /// augmentations.
+  ///
+  /// [ExecutableElement.augmentationTarget] will point back at this element.
+  @experimental
+  ExecutableElement? get augmentation;
+
+  /// The element that is augmented by this augmentation.
+  ///
+  /// The chain of augmentations normally ends with a [ExecutableElement] that
+  /// is not an augmentation, but might end with `null` immediately or after a
+  /// few intermediate [ExecutableElement]s in case of invalid code when an
+  /// augmentation is declared without the corresponding declaration.
+  @experimental
+  ExecutableElement? get augmentationTarget;
+
   @override
   ExecutableElement get declaration;
 
@@ -1292,6 +1222,11 @@ abstract class ExecutableElement implements FunctionTypedElement {
   /// Whether the executable element has body marked as being asynchronous.
   bool get isAsynchronous;
 
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
+
   /// Whether the executable element is external.
   ///
   /// Executable elements are external if they are explicitly marked as such
@@ -1316,39 +1251,25 @@ abstract class ExecutableElement implements FunctionTypedElement {
   /// Whether the executable element has a body marked as being synchronous.
   bool get isSynchronous;
 
-  /// The augmentation specific information.
-  ///
-  /// Not `null` if this [ExecutableElement] is an augmentation.
-  AugmentationExecutableElement? get maybeAugmentation;
-
   @override
   String get name;
-}
-
-/// [ExtensionOrAugmentationElement] augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExtensionAugmentationElement
-    implements ExtensionOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with a [ExtensionElement],
-  /// but might end with `null` immediately or after a few intermediate
-  /// [ExtensionAugmentationElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding extension declaration.
-  ExtensionOrAugmentationElement? get augmentationTarget;
 }
 
 /// An element that represents an extension.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class ExtensionElement
-    implements ExtensionOrAugmentationElement, InstanceElement {
+abstract class ExtensionElement implements InstanceElement {
   @experimental
   @override
-  AugmentedExtensionElement get augmented;
+  ExtensionElement? get augmentation;
+
+  @experimental
+  @override
+  ExtensionElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedExtensionElement? get augmented;
 
   /// The type that is extended by this extension.
   DartType get extendedType;
@@ -1374,46 +1295,11 @@ abstract class ExtensionElement
   PropertyAccessorElement? getSetter(String name);
 }
 
-/// Shared interface between [ExtensionElement] and augmentations.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class ExtensionOrAugmentationElement
-    implements InstanceOrAugmentationElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [ExtensionAugmentationElement.augmentationTarget] is the back pointer
-  /// that will point at this element.
-  ExtensionAugmentationElement? get augmentation;
-}
-
-/// A field augmentation defined within a class.
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class FieldAugmentationElement implements FieldElement {
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations should normally end with a [FieldElement] that
-  /// is not [FieldAugmentationElement], but might end with `null` immediately
-  /// or after a few intermediate [FieldAugmentationElement]s in case of invalid
-  /// code when an augmentation is declared without the corresponding field
-  /// declaration.
-  FieldElement? get augmentationTarget;
-}
-
 /// A field defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class FieldElement
     implements ClassMemberElement, PropertyInducingElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [FieldAugmentationElement.augmentationTarget] is the back pointer that
-  /// will point at this element.
-  FieldAugmentationElement? get augmentation;
-
   @override
   FieldElement get declaration;
 
@@ -1473,6 +1359,14 @@ abstract class FunctionElement implements ExecutableElement, LocalElement {
   /// invoke an undefined method on an object.
   static final String NO_SUCH_METHOD_METHOD_NAME = "noSuchMethod";
 
+  @experimental
+  @override
+  FunctionElement? get augmentation;
+
+  @experimental
+  @override
+  FunctionElement? get augmentationTarget;
+
   /// Whether the function represents `identical` from the `dart:core` library.
   bool get isDartCoreIdentical;
 
@@ -1525,103 +1419,56 @@ abstract class ImportElementPrefix {
   PrefixElement get element;
 }
 
-/// An inline class augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InlineClassAugmentationElement
-    implements InlineClassOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with a
-  /// [InlineClassElement], but might end with `null` immediately or after a
-  /// few intermediate [InlineClassAugmentationElement]s in case of invalid
-  /// code when an augmentation is declared without the corresponding inline
-  /// class declaration.
-  InlineClassOrAugmentationElement? get augmentationTarget;
-}
-
 /// An element that represents an inline class.
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class InlineClassElement
-    implements NamedInstanceElement, InlineClassOrAugmentationElement {
+abstract class InlineClassElement implements NamedInstanceElement {
   @experimental
   @override
-  AugmentedInlineClassElement get augmented;
+  InlineClassElement? get augmentation;
+
+  @experimental
+  @override
+  InlineClassElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedInlineClassElement? get augmented;
 
   /// The direct [InlineClassType]s that are implemented by this inline class.
   List<InlineClassType> get implemented;
-}
-
-/// Shared interface between [InlineClassElement] and
-/// [InlineClassAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InlineClassOrAugmentationElement
-    implements NamedInstanceOrAugmentationElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [InlineClassAugmentationElement.augmentationTarget] is the back pointer
-  /// that will point at this element.
-  InlineClassAugmentationElement? get augmentation;
-
-  @override
-  InlineClassElement? get augmentedDeclaration;
-}
-
-/// [InstanceElement] augmentation.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InstanceAugmentationElement
-    implements InstanceOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with a [InstanceElement],
-  /// but might end with `null` immediately or after a few intermediate
-  /// [InstanceAugmentationElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding declaration.
-  InstanceOrAugmentationElement? get augmentationTarget;
 }
 
 /// An element that has `this`.
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class InstanceElement
-    implements InstanceOrAugmentationElement, TypeDefiningElement {
-  /// The result of applying augmentations.
-  @experimental
-  AugmentedInstanceElement get augmented;
-
-  /// The type of `this` expression.
-  ///
-  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
-  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
-  /// type parameters, and either `none` or `star` is used for the nullability
-  /// suffix is used, depending on the nullability status of the declaring
-  /// library.
-  DartType get thisType;
-}
-
-/// Shared interface between [InstanceElement] and augmentations.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InstanceOrAugmentationElement
-    implements TypeParameterizedElement {
+    implements TypeDefiningElement, TypeParameterizedElement {
   /// The declared accessors (getters and setters).
   List<PropertyAccessorElement> get accessors;
 
-  /// The declaration in the main library, the start of the augmentation chain.
+  /// The immediate augmentation of this element, or `null` if there are no
+  /// augmentations.
   ///
-  /// [InstanceElement] returns itself.
-  InstanceElement? get augmentedDeclaration;
+  /// [InstanceElement.augmentationTarget] will point back at this element.
+  @experimental
+  InstanceElement? get augmentation;
+
+  /// The element that is augmented by this augmentation; or `null` if
+  /// [isAugmentation] is `false`, or there is no corresponding element to be
+  /// augmented.
+  ///
+  /// The chain of augmentations should normally end with a not augmentation
+  /// [InstanceElement], but might end with `null` immediately or after a few
+  /// intermediate elements in case of invalid code when an augmentation is
+  /// declared without the corresponding declaration.
+  @experimental
+  InstanceElement? get augmentationTarget;
+
+  /// The result of applying augmentations.
+  @experimental
+  AugmentedInstanceElement? get augmented;
 
   @Deprecated('Use enclosingElement2 instead')
   @override
@@ -1633,23 +1480,62 @@ abstract class InstanceOrAugmentationElement
   /// The declared fields.
   List<FieldElement> get fields;
 
+  /// Whether the element is an augmentation.
+  ///
+  /// If `true`, declaration has the explicit `augment` modifier.
+  bool get isAugmentation;
+
   /// The declared methods.
   List<MethodElement> get methods;
+
+  /// The type of `this` expression.
+  ///
+  /// For a class like `class MyClass<T, U> {}` the returned type is equivalent
+  /// to the type `MyClass<T, U>`. So, the type arguments are the types of the
+  /// type parameters, and either `none` or `star` is used for the nullability
+  /// suffix is used, depending on the nullability status of the declaring
+  /// library.
+  DartType get thisType;
 }
 
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InterfaceElement
-    implements NamedInstanceElement, InterfaceOrAugmentationElement {
+abstract class InterfaceElement implements NamedInstanceElement {
   /// All the supertypes defined for this element and its supertypes.
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
   List<InterfaceType> get allSupertypes;
 
+  @override
+  InterfaceElement? get augmentationTarget;
+
   @experimental
   @override
-  AugmentedInterfaceElement get augmented;
+  AugmentedInterfaceElement? get augmented;
+
+  /// The interfaces that are implemented by this class.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
+  List<InterfaceType> get interfaces;
+
+  /// The mixins that are applied to the class being extended in order to
+  /// derive the superclass of this class.
+  ///
+  /// [ClassElement] and [EnumElement] can have mixins.
+  ///
+  /// [MixinElement] cannot have mixins, so the empty list is returned.
+  ///
+  /// <b>Note:</b> Because the element model represents the state of the code,
+  /// it is possible for it to be semantically invalid. In particular, it is not
+  /// safe to assume that the inheritance structure of a class does not contain
+  /// a cycle. Clients that traverse the inheritance structure must explicitly
+  /// guard against infinite loops.
+  List<InterfaceType> get mixins;
 
   /// The superclass of this element.
   ///
@@ -1854,42 +1740,6 @@ abstract class InterfaceElement
   /// TODO(scheglov) Deprecate and remove it.
   PropertyAccessorElement? lookUpSetter(
       String setterName, LibraryElement library);
-}
-
-/// Shared interface between [InterfaceElement] and augmentations.
-///
-/// Augmentations of [InterfaceElement] don't have their own type,
-/// so they cannot by instantiated into an [InterfaceType].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InterfaceOrAugmentationElement
-    implements NamedInstanceOrAugmentationElement {
-  @override
-  InterfaceElement? get augmentedDeclaration;
-
-  /// The interfaces that are implemented by this class.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get interfaces;
-
-  /// The mixins that are applied to the class being extended in order to
-  /// derive the superclass of this class.
-  ///
-  /// [ClassElement] and [EnumElement] can have mixins.
-  ///
-  /// [MixinElement] cannot have mixins, so the empty list is returned.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get mixins;
 }
 
 /// A pattern variable that is a join of other pattern variables, created
@@ -2150,64 +2000,33 @@ abstract class LocalVariableElement implements PromotableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class MethodElement implements ClassMemberElement, ExecutableElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [AugmentationMethodElement.augmentationTarget] is the back pointer that
-  /// will point at this element.
+  @experimental
+  @override
   MethodElement? get augmentation;
+
+  @experimental
+  @override
+  MethodElement? get augmentationTarget;
 
   @override
   MethodElement get declaration;
-
-  @override
-  AugmentationMethodElement? get maybeAugmentation;
-}
-
-/// A class augmentation, defined by a mixin augmentation declaration.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class MixinAugmentationElement implements MixinOrAugmentationElement {
-  /// The element that is augmented by this augmentation; or `null` if
-  /// there is no corresponding element to be augmented.
-  ///
-  /// The chain of augmentations should normally end with a [MixinElement], but
-  /// might end with `null` immediately or after a few intermediate
-  /// [MixinAugmentationElement]s in case of invalid code when an augmentation
-  /// is declared without the corresponding class declaration.
-  MixinOrAugmentationElement? get augmentationTarget;
 }
 
 /// An element that represents a mixin.
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class MixinElement
-    implements InterfaceElement, MixinOrAugmentationElement {
+abstract class MixinElement implements InterfaceElement {
   @experimental
   @override
-  AugmentedMixinElement get augmented;
+  MixinElement? get augmentation;
 
-  /// Whether the element, assuming that it is within scope, is
-  /// implementable to classes, mixins, and enums in the given [library].
-  bool isImplementableIn(LibraryElement library);
-}
-
-/// Shared interface between [MixinElement] and [MixinAugmentationElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class MixinOrAugmentationElement
-    implements InterfaceOrAugmentationElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [MixinAugmentationElement.augmentationTarget] is the back pointer that
-  /// will point at this element.
-  MixinAugmentationElement? get augmentation;
-
+  @experimental
   @override
-  MixinElement? get augmentedDeclaration;
+  MixinElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedMixinElement? get augmented;
 
   /// Whether the mixin is a base mixin.
   ///
@@ -2226,6 +2045,10 @@ abstract class MixinOrAugmentationElement
   /// a cycle. Clients that traverse the inheritance structure must explicitly
   /// guard against infinite loops.
   List<InterfaceType> get superclassConstraints;
+
+  /// Whether the element, assuming that it is within scope, is
+  /// implementable to classes, mixins, and enums in the given [library].
+  bool isImplementableIn(LibraryElement library);
 }
 
 /// A pseudo-element that represents multiple elements defined within a single
@@ -2253,11 +2076,21 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 @experimental
-abstract class NamedInstanceElement
-    implements InstanceElement, NamedInstanceOrAugmentationElement {
+abstract class NamedInstanceElement implements InstanceElement {
+  @override
+  NamedInstanceElement? get augmentationTarget;
+
   @experimental
   @override
-  AugmentedNamedInstanceElement get augmented;
+  AugmentedNamedInstanceElement? get augmented;
+
+  /// The declared constructors.
+  ///
+  /// The list is empty for [MixinElement].
+  List<ConstructorElement> get constructors;
+
+  @override
+  String get name;
 
   /// The unnamed constructor declared directly in this class.
   ///
@@ -2277,24 +2110,6 @@ abstract class NamedInstanceElement
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
   });
-}
-
-/// [InstanceOrAugmentationElement] with a name.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class NamedInstanceOrAugmentationElement
-    implements InstanceOrAugmentationElement {
-  @override
-  NamedInstanceElement? get augmentedDeclaration;
-
-  /// The declared constructors.
-  ///
-  /// The list is empty for [MixinElement].
-  List<ConstructorElement> get constructors;
-
-  @override
-  String get name;
 }
 
 /// An object that controls how namespaces are combined.
@@ -2457,23 +2272,6 @@ abstract class PromotableElement implements LocalElement, VariableElement {
   String get name;
 }
 
-/// Augmentation of a [PropertyAccessorElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class PropertyAccessorAugmentationElement
-    implements PropertyAccessorElement {
-  /// The element that is augmented by this augmentation.
-  ///
-  /// The chain of augmentations should normally end with a
-  /// [PropertyAccessorElement] that is not
-  /// [PropertyAccessorAugmentationElement], but might end with `null`
-  /// immediately or after a few intermediate
-  /// [PropertyAccessorAugmentationElement]s in case of invalid code when an
-  /// augmentation is declared without the corresponding property accessor
-  /// declaration.
-  PropertyAccessorElement? get augmentationTarget;
-}
-
 /// A getter or a setter. Note that explicitly defined property accessors
 /// implicitly define a synthetic field. Symmetrically, synthetic accessors are
 /// implicitly created for explicitly defined fields. The following rules apply:
@@ -2488,12 +2286,13 @@ abstract class PropertyAccessorAugmentationElement
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class PropertyAccessorElement implements ExecutableElement {
-  /// The immediate augmentation of this element, or `null` if there are no
-  /// augmentations.
-  ///
-  /// [PropertyAccessorAugmentationElement.augmentationTarget] is the back
-  /// pointer that will point at this element.
-  PropertyAccessorAugmentationElement? get augmentation;
+  @experimental
+  @override
+  PropertyAccessorElement? get augmentation;
+
+  @experimental
+  @override
+  PropertyAccessorElement? get augmentationTarget;
 
   /// The accessor representing the getter that corresponds to (has the same
   /// name as) this setter, or `null` if this accessor is not a setter or

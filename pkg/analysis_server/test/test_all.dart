@@ -30,6 +30,7 @@ import 'tool/test_all.dart' as tool;
 import 'utilities/test_all.dart' as utilities;
 import 'verify_error_fix_status_test.dart' as verify_error_fix_status;
 import 'verify_no_solo_test.dart' as verify_no_solo;
+import 'verify_no_utf8_encode_test.dart' as verify_no_utf8_encode;
 import 'verify_sorted_test.dart' as verify_sorted;
 import 'verify_tests_test.dart' as verify_tests;
 
@@ -60,6 +61,7 @@ void main() {
     utilities.main();
     verify_error_fix_status.main();
     verify_no_solo.main();
+    verify_no_utf8_encode.main();
     verify_sorted.main();
     verify_tests.main();
     defineReflectiveSuite(() {

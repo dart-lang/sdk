@@ -514,7 +514,7 @@ class MacroApplications {
             await _macroExecutor.executeTypesPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver);
+                typePhaseIntrospector);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -527,13 +527,13 @@ class MacroApplications {
     return results;
   }
 
-  late macro.IdentifierResolver identifierResolver;
+  late macro.TypePhaseIntrospector typePhaseIntrospector;
   late SourceLoader sourceLoader;
 
   Future<List<SourceLibraryBuilder>> applyTypeMacros(
       SourceLoader sourceLoader) async {
     this.sourceLoader = sourceLoader;
-    identifierResolver = new _IdentifierResolver(sourceLoader);
+    typePhaseIntrospector = new _TypePhaseIntrospector(sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     _ensureApplicationData();
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
@@ -607,10 +607,7 @@ class MacroApplications {
             await _macroExecutor.executeDeclarationsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver,
-                typeDeclarationResolver,
-                typeResolver,
-                typeIntrospector);
+                declarationPhaseIntrospector);
         if (result.isNotEmpty) {
           Map<macro.OmittedTypeAnnotation, String> omittedTypes = {};
           String source = _macroExecutor.buildAugmentationLibrary([result],
@@ -652,19 +649,18 @@ class MacroApplications {
     }
   }
 
+  late ClassHierarchyBuilder classHierarchy;
   late Types types;
-  late macro.TypeDeclarationResolver typeDeclarationResolver;
-  late macro.TypeResolver typeResolver;
-  late macro.TypeIntrospector typeIntrospector;
+  late macro.DeclarationPhaseIntrospector declarationPhaseIntrospector;
 
   Future<void> applyDeclarationsMacros(
       ClassHierarchyBuilder classHierarchy,
       List<SourceClassBuilder> sortedSourceClassBuilders,
       Future<void> Function(SourceLibraryBuilder) onAugmentationLibrary) async {
+    this.classHierarchy = classHierarchy;
     types = new Types(classHierarchy);
-    typeDeclarationResolver = new _TypeDeclarationResolver(this);
-    typeResolver = new _TypeResolver(this);
-    typeIntrospector = new _TypeIntrospector(this, classHierarchy);
+    declarationPhaseIntrospector =
+        new _DeclarationPhaseIntrospector(this, classHierarchy, sourceLoader);
 
     // Apply macros to classes first, in class hierarchy order.
     for (SourceClassBuilder classBuilder in sortedSourceClassBuilders) {
@@ -711,12 +707,7 @@ class MacroApplications {
             await _macroExecutor.executeDefinitionsPhase(
                 macroApplication.instanceIdentifier,
                 declaration,
-                identifierResolver,
-                typeDeclarationResolver,
-                typeResolver,
-                typeIntrospector,
-                typeInferrer,
-                libraryDeclarationsResolver);
+                definitionPhaseIntrospector);
         if (result.isNotEmpty) {
           results.add(result);
         }
@@ -729,12 +720,11 @@ class MacroApplications {
     return results;
   }
 
-  late macro.TypeInferrer typeInferrer;
-  late macro.LibraryDeclarationsResolver libraryDeclarationsResolver;
+  late macro.DefinitionPhaseIntrospector definitionPhaseIntrospector;
 
   Future<List<SourceLibraryBuilder>> applyDefinitionMacros() async {
-    typeInferrer = new _TypeInferrer(this);
-    libraryDeclarationsResolver = new _LibraryDeclarationsResolver();
+    definitionPhaseIntrospector =
+        new _DefinitionPhaseIntrospector(this, classHierarchy, sourceLoader);
     List<SourceLibraryBuilder> augmentationLibraries = [];
     for (MapEntry<SourceLibraryBuilder, LibraryMacroApplicationData> entry
         in libraryData.entries) {
@@ -1233,10 +1223,10 @@ class _StaticTypeImpl implements macro.StaticType {
   }
 }
 
-class _IdentifierResolver implements macro.IdentifierResolver {
+class _TypePhaseIntrospector implements macro.TypePhaseIntrospector {
   final SourceLoader sourceLoader;
 
-  _IdentifierResolver(this.sourceLoader);
+  _TypePhaseIntrospector(this.sourceLoader);
 
   @override
   Future<macro.Identifier> resolveIdentifier(Uri library, String name) {
@@ -1278,23 +1268,22 @@ class _IdentifierResolver implements macro.IdentifierResolver {
   }
 }
 
-class _TypeResolver implements macro.TypeResolver {
+class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
+    implements macro.DeclarationPhaseIntrospector {
+  final ClassHierarchyBuilder classHierarchy;
   final MacroApplications macroApplications;
 
-  _TypeResolver(this.macroApplications);
+  _DeclarationPhaseIntrospector(
+      this.macroApplications, this.classHierarchy, super.sourceLoader);
 
   @override
-  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
-    return new Future.value(
-        macroApplications.resolveTypeAnnotation(typeAnnotation));
+  Future<macro.TypeDeclaration> declarationOf(macro.Identifier identifier) {
+    if (identifier is IdentifierImpl) {
+      return identifier.resolveTypeDeclaration(macroApplications);
+    }
+    throw new UnsupportedError(
+        'Unsupported identifier $identifier (${identifier.runtimeType})');
   }
-}
-
-class _TypeIntrospector implements macro.TypeIntrospector {
-  final MacroApplications macroApplications;
-  final ClassHierarchyBuilder classHierarchy;
-
-  _TypeIntrospector(this.macroApplications, this.classHierarchy);
 
   @override
   Future<List<macro.ConstructorDeclaration>> constructorsOf(
@@ -1367,36 +1356,23 @@ class _TypeIntrospector implements macro.TypeIntrospector {
     // TODO: implement typesOf
     throw new UnimplementedError();
   }
-}
-
-class _TypeDeclarationResolver implements macro.TypeDeclarationResolver {
-  final MacroApplications macroApplications;
-
-  _TypeDeclarationResolver(this.macroApplications);
 
   @override
-  Future<macro.TypeDeclaration> declarationOf(macro.Identifier identifier) {
-    if (identifier is IdentifierImpl) {
-      return identifier.resolveTypeDeclaration(macroApplications);
-    }
-    throw new UnsupportedError(
-        'Unsupported identifier $identifier (${identifier.runtimeType})');
+  Future<macro.StaticType> resolve(macro.TypeAnnotationCode typeAnnotation) {
+    return new Future.value(
+        macroApplications.resolveTypeAnnotation(typeAnnotation));
   }
 }
 
-class _TypeInferrer implements macro.TypeInferrer {
-  final MacroApplications _macroApplications;
-
-  _TypeInferrer(this._macroApplications);
+class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
+    implements macro.DefinitionPhaseIntrospector {
+  _DefinitionPhaseIntrospector(
+      super.macroApplications, super.classHierarchy, super.sourceLoader);
 
   @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
-      new Future.value(_macroApplications._inferOmittedType(omittedType));
-}
-
-class _LibraryDeclarationsResolver
-    implements macro.LibraryDeclarationsResolver {
+      new Future.value(macroApplications._inferOmittedType(omittedType));
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
       macro.Library library) {

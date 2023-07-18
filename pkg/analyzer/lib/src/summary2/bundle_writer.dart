@@ -137,33 +137,6 @@ class BundleWriter {
     _writeDirectiveUri(element.uri);
   }
 
-  void _writeClassAugmentationElement(ClassAugmentationElementImpl element) {
-    _sink.writeUInt30(_resolutionSink.offset);
-
-    _sink._writeStringReference(element.name);
-    ClassElementFlags.write(_sink, element);
-
-    _resolutionSink._writeAnnotationList(element.metadata);
-
-    _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink._writeTypeList(element.mixins);
-      _resolutionSink._writeTypeList(element.interfaces);
-      _resolutionSink.writeElement(element.augmentationTarget);
-      _resolutionSink.writeElement(element.augmentation);
-
-      _writeList(
-        element.fields.where((e) => !e.isSynthetic).toList(),
-        _writeFieldElement,
-      );
-      _writeList(
-        element.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(element.constructors, _writeConstructorElement);
-      _writeList(element.methods, _writeMethodElement);
-    });
-  }
-
   void _writeClassElement(ClassElementImpl element) {
     _sink.writeUInt30(_resolutionSink.offset);
 
@@ -182,14 +155,18 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.mixins);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeIfType<AugmentedClassElementImpl>(
-        element.augmented,
-        (augmented) {
-          _resolutionSink._writeTypeList(augmented.mixins);
-          _resolutionSink._writeTypeList(augmented.interfaces);
-          _resolutionSink._writeElementList(augmented.methods);
-        },
-      );
+      if (element.isAugmentation) {
+        _resolutionSink.writeElement(element.augmentationTarget);
+      } else {
+        _resolutionSink.writeIfType<AugmentedClassElementImpl>(
+          element.augmented,
+          (augmented) {
+            _resolutionSink._writeTypeList(augmented.mixins);
+            _resolutionSink._writeTypeList(augmented.interfaces);
+            _resolutionSink._writeElementList(augmented.methods);
+          },
+        );
+      }
 
       if (!element.isMixinApplication) {
         var membersOffset = _sink.offset;
@@ -433,38 +410,7 @@ class BundleWriter {
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _resolutionSink.writeType(element.returnType2);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeIfType<AugmentationMethodElementImpl>(
-        element.maybeAugmentation,
-        (maybe) {
-          _resolutionSink.writeElement(maybe.augmentationTarget);
-        },
-      );
-    });
-  }
-
-  void _writeMixinAugmentationElement(MixinAugmentationElementImpl element) {
-    _sink.writeUInt30(_resolutionSink.offset);
-
-    _sink._writeStringReference(element.name);
-    MixinElementFlags.write(_sink, element);
-
-    _resolutionSink._writeAnnotationList(element.metadata);
-
-    _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink._writeTypeList(element.superclassConstraints);
-      _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentationTarget);
-      _resolutionSink.writeElement(element.augmentation);
-
-      _writeList(
-        element.fields.where((e) => !e.isSynthetic).toList(),
-        _writeFieldElement,
-      );
-      _writeList(
-        element.accessors.where((e) => !e.isSynthetic).toList(),
-        _writePropertyAccessorElement,
-      );
-      _writeList(element.methods, _writeMethodElement);
     });
   }
 
@@ -479,14 +425,18 @@ class BundleWriter {
       _resolutionSink._writeTypeList(element.superclassConstraints);
       _resolutionSink._writeTypeList(element.interfaces);
       _resolutionSink.writeElement(element.augmentation);
-      _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
-        element.augmented,
-        (augmented) {
-          _resolutionSink._writeTypeList(augmented.superclassConstraints);
-          _resolutionSink._writeTypeList(augmented.interfaces);
-          _resolutionSink._writeElementList(augmented.methods);
-        },
-      );
+      if (element.isAugmentation) {
+        _resolutionSink.writeElement(element.augmentationTarget);
+      } else {
+        _resolutionSink.writeIfType<AugmentedMixinElementImpl>(
+          element.augmented,
+          (augmented) {
+            _resolutionSink._writeTypeList(augmented.superclassConstraints);
+            _resolutionSink._writeTypeList(augmented.interfaces);
+            _resolutionSink._writeElementList(augmented.methods);
+          },
+        );
+      }
 
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
@@ -611,12 +561,10 @@ class BundleWriter {
     _sink._writeOptionalStringReference(unitElement.uri);
     _sink.writeBool(unitElement.isSynthetic);
     _writeList(unitElement.classes, _writeClassElement);
-    _writeList(unitElement.classAugmentations, _writeClassAugmentationElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
     _writeList(unitElement.functions, _writeFunctionElement);
     _writeList(unitElement.mixins, _writeMixinElement);
-    _writeList(unitElement.mixinAugmentations, _writeMixinAugmentationElement);
     _writeList(unitElement.typeAliases, _writeTypeAliasElement);
 
     _writeList(
@@ -951,7 +899,7 @@ class ResolutionSink extends _SummaryDataWriter {
     }
 
     var enclosing = declaration.enclosingElement2;
-    if (enclosing is InstanceOrAugmentationElement) {
+    if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {
         return const <DartType>[];

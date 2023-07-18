@@ -151,14 +151,35 @@ class _ElementWriter {
     );
   }
 
-  void _writeAugmentation(InterfaceOrAugmentationElementMixin e) {
+  void _validateAugmentedInstanceElement(InstanceElementImpl e) {
+    final augmented = e.augmented;
+
+    // Find the end of the augmentations chain.
+    // It will be a declaration in valid code.
+    InstanceElementImpl? endOfAugmentations = e;
+    while (endOfAugmentations != null && endOfAugmentations.isAugmentation) {
+      endOfAugmentations = endOfAugmentations.augmentationTarget;
+    }
+
+    // If does not end with a declaration.
+    if (endOfAugmentations == null) {
+      expect(augmented, isNull);
+      return;
+    }
+
+    // ...otherwise we must have the augmented data.
+    expect(augmented, isNotNull);
+    expect(augmented, same(endOfAugmentations.augmented));
+  }
+
+  void _writeAugmentation(InterfaceElementImpl e) {
     switch (e) {
-      case ClassOrAugmentationElementMixin e:
+      case ClassElementImpl e:
         final augmentation = e.augmentation;
         if (augmentation != null) {
           _elementPrinter.writeNamedElement('augmentation', augmentation);
         }
-      case MixinOrAugmentationElementMixin e:
+      case MixinElementImpl e:
         final augmentation = e.augmentation;
         if (augmentation != null) {
           _elementPrinter.writeNamedElement('augmentation', augmentation);
@@ -184,8 +205,8 @@ class _ElementWriter {
     });
   }
 
-  void _writeAugmentationTarget(InterfaceOrAugmentationElementMixin e) {
-    if (e case InstanceAugmentationElementImpl e) {
+  void _writeAugmentationTarget(InterfaceElementImpl e) {
+    if (e.isAugmentation) {
       _elementPrinter.writeNamedElement(
         'augmentationTarget',
         e.augmentationTarget,
@@ -199,6 +220,10 @@ class _ElementWriter {
       return;
     }
 
+    if (e.isAugmentation) {
+      return;
+    }
+
     // No augmentation, not interesting.
     if (e.augmentation == null) {
       expect(e.augmented, TypeMatcher<NotAugmentedInstanceElementImpl>());
@@ -208,6 +233,9 @@ class _ElementWriter {
     }
 
     final augmented = e.augmented;
+    if (augmented == null) {
+      return;
+    }
 
     void writeMethods() {
       final sorted = augmented.methods.sortedBy((e) => e.name);
@@ -231,18 +259,6 @@ class _ElementWriter {
       }
       // TODO(scheglov) Add other types and properties
     });
-  }
-
-  void _writeAugmentedDeclaration(InterfaceOrAugmentationElementMixin e) {
-    final augmentedDeclaration = e.augmentedDeclaration;
-    if (identical(augmentedDeclaration, e)) {
-      return;
-    }
-
-    _elementPrinter.writeNamedElement(
-      'augmentedDeclaration',
-      augmentedDeclaration,
-    );
   }
 
   void _writeBodyModifiers(ExecutableElement e) {
@@ -536,35 +552,29 @@ class _ElementWriter {
     }
   }
 
-  void _writeInterfaceOrAugmentationElement(
-    InterfaceOrAugmentationElementMixin e,
-  ) {
+  void _writeInterfaceElement(InterfaceElementImpl e) {
     _sink.writeIndentedLine(() {
-      if (e is InstanceAugmentationElementImpl) {
+      if (e.isAugmentation) {
         _sink.write('augment ');
       }
 
       switch (e) {
-        case ClassOrAugmentationElementMixin():
+        case ClassElementImpl():
           _sink.writeIf(e.isAbstract, 'abstract ');
           _sink.writeIf(e.isMacro, 'macro ');
           _sink.writeIf(e.isSealed, 'sealed ');
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
           _sink.writeIf(e.isFinal, 'final ');
-          if (e is ClassElementImpl) {
-            _sink.writeIf(e.isInline, 'inline ');
-          }
+          _sink.writeIf(e.isInline, 'inline ');
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
-          if (e is ClassElementImpl) {
-            _sink.writeIf(e.isMixinApplication, 'alias ');
-          }
+          _sink.writeIf(e.isMixinApplication, 'alias ');
         case EnumElementImpl():
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
           _sink.write('enum ');
-        case MixinOrAugmentationElementMixin():
+        case MixinElementImpl():
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
           _sink.write('mixin ');
@@ -580,10 +590,9 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeAugmentationTarget(e);
-      _writeAugmentedDeclaration(e);
       _writeAugmentation(e);
 
-      if (e is InterfaceElementImpl) {
+      if (!e.isAugmentation) {
         final supertype = e.supertype;
         if (supertype != null &&
             (supertype.element.name != 'Object' || e.mixins.isNotEmpty)) {
@@ -591,9 +600,9 @@ class _ElementWriter {
         }
       }
 
-      if (e is MixinOrAugmentationElementMixin) {
+      if (e is MixinElementImpl) {
         final superclassConstraints = e.superclassConstraints;
-        if (e is MixinElementImpl) {
+        if (!e.isAugmentation) {
           if (superclassConstraints.isEmpty) {
             throw StateError('At least Object is expected.');
           }
@@ -610,10 +619,10 @@ class _ElementWriter {
       _writeElements('fields', e.fields, _writePropertyInducingElement);
 
       var constructors = e.constructors;
-      if (e is MixinOrAugmentationElement) {
+      if (e is MixinElement) {
         expect(constructors, isEmpty);
       } else if (configuration.withConstructors) {
-        if (e is NamedInstanceElement) {
+        if (!e.isAugmentation) {
           expect(constructors, isNotEmpty);
         }
         _writeElements('constructors', constructors, _writeConstructorElement);
@@ -622,9 +631,8 @@ class _ElementWriter {
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
 
-      if (e is InterfaceElementImpl) {
-        _writeAugmented(e);
-      }
+      _validateAugmentedInstanceElement(e);
+      _writeAugmented(e);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -710,15 +718,11 @@ class _ElementWriter {
       _writeType('returnType', e.returnType2);
       _writeNonSyntheticElement(e);
 
-      final maybeAugmentation = e.maybeAugmentation;
-      if (maybeAugmentation != null) {
-        _sink.writelnWithIndent('maybeAugmentation');
-        _sink.withIndent(() {
-          _elementPrinter.writeNamedElement(
-            'augmentationTarget',
-            maybeAugmentation.augmentationTarget,
-          );
-        });
+      if (e.isAugmentation) {
+        _elementPrinter.writeNamedElement(
+          'augmentationTarget',
+          e.augmentationTarget,
+        );
       }
 
       final augmentation = e.augmentation;
@@ -1118,20 +1122,10 @@ class _ElementWriter {
   }
 
   void _writeUnitElement(CompilationUnitElementImpl e) {
-    _writeElements('classes', e.classes, _writeInterfaceOrAugmentationElement);
-    _writeElements(
-      'classAugmentations',
-      e.classAugmentations,
-      _writeInterfaceOrAugmentationElement,
-    );
-    _writeElements('enums', e.enums, _writeInterfaceOrAugmentationElement);
+    _writeElements('classes', e.classes, _writeInterfaceElement);
+    _writeElements('enums', e.enums, _writeInterfaceElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
-    _writeElements('mixins', e.mixins, _writeInterfaceOrAugmentationElement);
-    _writeElements(
-      'mixinAugmentations',
-      e.mixinAugmentations,
-      _writeInterfaceOrAugmentationElement,
-    );
+    _writeElements('mixins', e.mixins, _writeInterfaceElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(
       'topLevelVariables',

@@ -89,10 +89,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitElement(element);
 
   @override
-  R? visitClassAugmentationElement(ClassAugmentationElement element) =>
-      visitElement(element);
-
-  @override
   R? visitClassElement(ClassElement element) => visitElement(element);
 
   @override
@@ -170,10 +166,6 @@ class GeneralizingElementVisitor<R> implements ElementVisitor<R> {
       visitExecutableElement(element);
 
   @override
-  R? visitMixinAugmentationElement(MixinAugmentationElement element) =>
-      visitElement(element);
-
-  @override
   R? visitMixinElement(MixinElement element) => visitElement(element);
 
   @override
@@ -232,12 +224,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitAugmentationImportElement(AugmentationImportElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitClassAugmentationElement(ClassAugmentationElement element) {
     element.visitChildren(this);
     return null;
   }
@@ -339,12 +325,6 @@ class RecursiveElementVisitor<R> implements ElementVisitor<R> {
   }
 
   @override
-  R? visitMixinAugmentationElement(MixinAugmentationElement element) {
-    element.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitMixinElement(MixinElement element) {
     element.visitChildren(this);
     return null;
@@ -419,9 +399,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitAugmentationImportElement(AugmentationImportElement element) => null;
 
   @override
-  R? visitClassAugmentationElement(ClassAugmentationElement element) => null;
-
-  @override
   R? visitClassElement(ClassElement element) => null;
 
   @override
@@ -473,9 +450,6 @@ class SimpleElementVisitor<R> implements ElementVisitor<R> {
   R? visitMethodElement(MethodElement element) => null;
 
   @override
-  R? visitMixinAugmentationElement(MixinAugmentationElement element) => null;
-
-  @override
   R? visitMixinElement(MixinElement element) => null;
 
   @override
@@ -520,10 +494,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitAugmentationImportElement(AugmentationImportElement element) =>
-      _throw(element);
-
-  @override
-  R? visitClassAugmentationElement(ClassAugmentationElement element) =>
       _throw(element);
 
   @override
@@ -577,10 +547,6 @@ class ThrowingElementVisitor<R> implements ElementVisitor<R> {
 
   @override
   R? visitMethodElement(MethodElement element) => _throw(element);
-
-  @override
-  R? visitMixinAugmentationElement(MixinAugmentationElement element) =>
-      _throw(element);
 
   @override
   R? visitMixinElement(MixinElement element) => _throw(element);

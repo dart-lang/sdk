@@ -104,7 +104,7 @@ class KernelCompilationService {
       });
       requestChannel.add('file.readAsBytes', (uriStr) async {
         final content = uriStrToFile(uriStr).content;
-        return utf8.encode(content);
+        return const Utf8Encoder().convert(content);
       });
       requestChannel.add('file.readAsStringSync', (uriStr) async {
         return uriStrToFile(uriStr).content;

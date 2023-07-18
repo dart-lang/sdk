@@ -117,31 +117,30 @@ void checkParameterDeclaration(
 }
 
 Future<void> checkClassDeclaration(ClassDeclaration declaration,
-    {TypeDeclarationResolver? typeDeclarationResolver,
-    TypeIntrospector? typeIntrospector}) async {
+    {DeclarationPhaseIntrospector? introspector}) async {
   String name = declaration.identifier.name;
   ClassData? expected = expectedClassData[name];
   if (expected != null) {
     expect(expected.isAbstract, declaration.hasAbstract, '$name.isAbstract');
     expect(expected.isExternal, declaration.hasExternal, '$name.isExternal');
-    if (typeDeclarationResolver != null) {
+    if (introspector != null) {
       TypeDeclaration? superclass = declaration.superclass == null
           ? null
-          : await typeDeclarationResolver
+          : await introspector
               .declarationOf(declaration.superclass!.identifier);
       expect(
           expected.superclass, superclass?.identifier.name, '$name.superclass');
       if (superclass is ClassDeclaration) {
         TypeDeclaration? superSuperclass = superclass.superclass == null
             ? null
-            : await typeDeclarationResolver
+            : await introspector
                 .declarationOf(superclass.superclass!.identifier);
         expect(expected.superSuperclass, superSuperclass?.identifier.name,
             '$name.superSuperclass');
       }
       List<TypeDeclaration> mixins = [
         for (NamedTypeAnnotation mixin in declaration.mixins)
-          await typeDeclarationResolver.declarationOf(mixin.identifier),
+          await introspector.declarationOf(mixin.identifier),
       ];
       expect(expected.mixins.length, mixins.length, '$name.mixins.length');
       for (int i = 0; i < mixins.length; i++) {
@@ -151,7 +150,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
 
       List<TypeDeclaration> interfaces = [
         for (NamedTypeAnnotation interface in declaration.interfaces)
-          await typeDeclarationResolver.declarationOf(interface.identifier),
+          await introspector.declarationOf(interface.identifier),
       ];
       expect(expected.interfaces.length, interfaces.length,
           '$name.interfaces.length');
@@ -160,10 +159,9 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
             '$name.interfaces[$i]');
       }
     }
-    if (typeIntrospector != null &&
-        declaration is IntrospectableClassDeclaration) {
+    if (introspector != null && declaration is IntrospectableClassDeclaration) {
       List<FieldDeclaration> fieldsOf =
-          await typeIntrospector.fieldsOf(declaration);
+          await introspector.fieldsOf(declaration);
       expect(
           expected.fieldsOf.length, fieldsOf.length, '$name.fieldsOf.length');
       for (int i = 0; i < fieldsOf.length; i++) {
@@ -172,7 +170,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
       }
 
       List<MethodDeclaration> methodsOf =
-          await typeIntrospector.methodsOf(declaration);
+          await introspector.methodsOf(declaration);
       expect(expected.methodsOf.length, methodsOf.length,
           '$name.methodsOf.length');
       for (int i = 0; i < methodsOf.length; i++) {
@@ -181,7 +179,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
       }
 
       List<ConstructorDeclaration> constructorsOf =
-          await typeIntrospector.constructorsOf(declaration);
+          await introspector.constructorsOf(declaration);
       expect(expected.constructorsOf.length, constructorsOf.length,
           '$name.constructorsOf.length');
       for (int i = 0; i < constructorsOf.length; i++) {
@@ -228,18 +226,17 @@ void checkFunctionDeclaration(FunctionDeclaration actual) {
   }
 }
 
-Future<void> checkIdentifierResolver(
-    IdentifierResolver identifierResolver) async {
+Future<void> checkIdentifierResolver(TypePhaseIntrospector introspector) async {
   Uri dartCore = Uri.parse('dart:core');
   Uri macroApiData = Uri.parse('package:macro_api_test/api_test_data.dart');
 
   Future<void> check(Uri uri, String name, {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
-        await identifierResolver.resolveIdentifier(uri, name);
+        await introspector.resolveIdentifier(uri, name);
       }, '$name from $uri');
     } else {
-      Identifier result = await identifierResolver.resolveIdentifier(uri, name);
+      Identifier result = await introspector.resolveIdentifier(uri, name);
       expect(name, result.name, '$name from $uri');
     }
   }
@@ -260,20 +257,19 @@ Future<void> checkIdentifierResolver(
 }
 
 Future<void> checkTypeDeclarationResolver(
-    TypeDeclarationResolver typeDeclarationResolver,
+    DeclarationPhaseIntrospector introspector,
     Map<Identifier, String?> test) async {
   Future<void> check(Identifier identifier, String name,
       {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
-        await typeDeclarationResolver.declarationOf(identifier);
+        await introspector.declarationOf(identifier);
       }, '$name from $identifier',
           expectedError: (e) => e is! ArgumentError
               ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
               : null);
     } else {
-      TypeDeclaration result =
-          await typeDeclarationResolver.declarationOf(identifier);
+      TypeDeclaration result = await introspector.declarationOf(identifier);
       expect(name, result.identifier.name, '$name from $identifier');
     }
   }

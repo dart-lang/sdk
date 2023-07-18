@@ -96,7 +96,7 @@ class ApiSignature {
 
   /// Collect a string.
   void addString(String s) {
-    List<int> bytes = utf8.encode(s);
+    final bytes = const Utf8Encoder().convert(s);
     addInt(bytes.length);
     addBytes(bytes);
   }

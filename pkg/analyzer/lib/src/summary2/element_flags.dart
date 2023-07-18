@@ -8,60 +8,51 @@ import 'package:analyzer/src/summary2/data_writer.dart';
 
 class ClassElementFlags {
   static const int _isAbstract = 1 << 0;
-  static const int _isBase = 1 << 1;
-  static const int _isFinal = 1 << 2;
-  static const int _isInline = 1 << 3;
-  static const int _isInterface = 1 << 4;
-  static const int _isMacro = 1 << 5;
-  static const int _isMixinApplication = 1 << 6;
-  static const int _isMixinClass = 1 << 7;
-  static const int _isSealed = 1 << 8;
-  static const int _isSimplyBounded = 1 << 9;
+  static const int _isAugmentation = 1 << 1;
+  static const int _isBase = 1 << 2;
+  static const int _isFinal = 1 << 3;
+  static const int _isInline = 1 << 4;
+  static const int _isInterface = 1 << 5;
+  static const int _isMacro = 1 << 6;
+  static const int _isMixinApplication = 1 << 7;
+  static const int _isMixinClass = 1 << 8;
+  static const int _isSealed = 1 << 9;
+  static const int _isSimplyBounded = 1 << 10;
 
   static void read(
     SummaryDataReader reader,
-    ClassOrAugmentationElementMixin element,
+    ClassElementImpl element,
   ) {
     var byte = reader.readUInt30();
     element.isAbstract = (byte & _isAbstract) != 0;
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isBase = (byte & _isBase) != 0;
     element.isFinal = (byte & _isFinal) != 0;
-    if (element is ClassElementImpl) {
-      element.isInline = (byte & _isInline) != 0;
-    }
+    element.isInline = (byte & _isInline) != 0;
     element.isInterface = (byte & _isInterface) != 0;
     element.isMacro = (byte & _isMacro) != 0;
-    if (element is ClassElementImpl) {
-      element.isMixinApplication = (byte & _isMixinApplication) != 0;
-    }
+    element.isMixinApplication = (byte & _isMixinApplication) != 0;
     element.isMixinClass = (byte & _isMixinClass) != 0;
     element.isSealed = (byte & _isSealed) != 0;
-    if (element is ClassElementImpl) {
-      element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
-    }
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
   static void write(
     BufferedSink sink,
-    ClassOrAugmentationElementMixin element,
+    ClassElementImpl element,
   ) {
     var result = 0;
     result |= element.isAbstract ? _isAbstract : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isBase ? _isBase : 0;
     result |= element.isFinal ? _isFinal : 0;
-    if (element is ClassElementImpl) {
-      result |= element.isInline ? _isInline : 0;
-    }
+    result |= element.isInline ? _isInline : 0;
     result |= element.isInterface ? _isInterface : 0;
     result |= element.isMacro ? _isMacro : 0;
-    if (element is ClassElementImpl) {
-      result |= element.isMixinApplication ? _isMixinApplication : 0;
-    }
+    result |= element.isMixinApplication ? _isMixinApplication : 0;
     result |= element.isMixinClass ? _isMixinClass : 0;
     result |= element.isSealed ? _isSealed : 0;
-    if (element is ClassElementImpl) {
-      result |= element.isSimplyBounded ? _isSimplyBounded : 0;
-    }
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeUInt30(result);
   }
 }
@@ -233,21 +224,23 @@ class MethodElementFlags {
   static const int _invokesSuperSelf = 1 << 1;
   static const int _isAbstract = 1 << 2;
   static const int _isAsynchronous = 1 << 3;
-  static const int _isExternal = 1 << 4;
-  static const int _isGenerator = 1 << 5;
-  static const int _isStatic = 1 << 6;
-  static const int _isSynthetic = 1 << 7;
+  static const int _isAugmentation = 1 << 4;
+  static const int _isExternal = 1 << 5;
+  static const int _isGenerator = 1 << 6;
+  static const int _isStatic = 1 << 7;
+  static const int _isSynthetic = 1 << 8;
 
   static void read(SummaryDataReader reader, MethodElementImpl element) {
-    var byte = reader.readByte();
-    element.hasImplicitReturnType = (byte & _hasImplicitReturnType) != 0;
-    element.invokesSuperSelf = (byte & _invokesSuperSelf) != 0;
-    element.isAbstract = (byte & _isAbstract) != 0;
-    element.isAsynchronous = (byte & _isAsynchronous) != 0;
-    element.isExternal = (byte & _isExternal) != 0;
-    element.isGenerator = (byte & _isGenerator) != 0;
-    element.isStatic = (byte & _isStatic) != 0;
-    element.isSynthetic = (byte & _isSynthetic) != 0;
+    final bits = reader.readUInt30();
+    element.hasImplicitReturnType = (bits & _hasImplicitReturnType) != 0;
+    element.invokesSuperSelf = (bits & _invokesSuperSelf) != 0;
+    element.isAbstract = (bits & _isAbstract) != 0;
+    element.isAsynchronous = (bits & _isAsynchronous) != 0;
+    element.isAugmentation = (bits & _isAugmentation) != 0;
+    element.isExternal = (bits & _isExternal) != 0;
+    element.isGenerator = (bits & _isGenerator) != 0;
+    element.isStatic = (bits & _isStatic) != 0;
+    element.isSynthetic = (bits & _isSynthetic) != 0;
   }
 
   static void write(BufferedSink sink, MethodElementImpl element) {
@@ -256,36 +249,35 @@ class MethodElementFlags {
     result |= element.invokesSuperSelf ? _invokesSuperSelf : 0;
     result |= element.isAbstract ? _isAbstract : 0;
     result |= element.isAsynchronous ? _isAsynchronous : 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isExternal ? _isExternal : 0;
     result |= element.isGenerator ? _isGenerator : 0;
     result |= element.isStatic ? _isStatic : 0;
     result |= element.isSynthetic ? _isSynthetic : 0;
-    sink.writeByte(result);
+    sink.writeUInt30(result);
   }
 }
 
 class MixinElementFlags {
-  static const int _isBase = 1 << 0;
-  static const int _isSimplyBounded = 1 << 1;
+  static const int _isAugmentation = 1 << 0;
+  static const int _isBase = 1 << 1;
+  static const int _isSimplyBounded = 1 << 2;
 
   static void read(
     SummaryDataReader reader,
-    MixinOrAugmentationElementMixin element,
+    MixinElementImpl element,
   ) {
     var byte = reader.readByte();
+    element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isBase = (byte & _isBase) != 0;
-    if (element is MixinElementImpl) {
-      element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
-    }
+    element.isSimplyBounded = (byte & _isSimplyBounded) != 0;
   }
 
-  static void write(
-      BufferedSink sink, MixinOrAugmentationElementMixin element) {
+  static void write(BufferedSink sink, MixinElementImpl element) {
     var result = 0;
+    result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isBase ? _isBase : 0;
-    if (element is MixinElementImpl) {
-      result |= element.isSimplyBounded ? _isSimplyBounded : 0;
-    }
+    result |= element.isSimplyBounded ? _isSimplyBounded : 0;
     sink.writeByte(result);
   }
 }

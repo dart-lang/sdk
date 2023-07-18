@@ -6,7 +6,7 @@ library _fe_analyzer_shared.scanner;
 
 import 'dart:typed_data' show Uint8List;
 
-import 'dart:convert' show unicodeReplacementCharacterRune, utf8;
+import 'dart:convert' show Utf8Encoder, unicodeReplacementCharacterRune;
 
 import 'token.dart' show Token;
 
@@ -98,7 +98,7 @@ ScannerResult _tokenizeAndRecover(Scanner scanner,
     {List<int>? bytes, String? source}) {
   Token tokens = scanner.tokenize();
   if (scanner.hasErrors) {
-    if (bytes == null) bytes = utf8.encode(source!);
+    if (bytes == null) bytes = const Utf8Encoder().convert(source!);
     tokens = scannerRecovery(bytes, tokens, scanner.lineStarts);
   }
   return new ScannerResult(tokens, scanner.lineStarts, scanner.hasErrors);

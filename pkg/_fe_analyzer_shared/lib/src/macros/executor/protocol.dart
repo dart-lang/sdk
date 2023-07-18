@@ -275,134 +275,75 @@ class DisposeMacroRequest extends Request {
   }
 }
 
-/// A request to execute a macro on a particular declaration in the types phase.
-class ExecuteTypesPhaseRequest extends Request {
+/// Base class for the requests to execute a macro in a certain phase.
+abstract class ExecutePhaseRequest extends Request {
   final MacroInstanceIdentifier macro;
   final RemoteInstance target;
+  final RemoteInstanceImpl introspector;
 
-  final RemoteInstanceImpl identifierResolver;
+  MessageType get kind;
 
-  ExecuteTypesPhaseRequest(this.macro, this.target, this.identifierResolver,
+  ExecutePhaseRequest(this.macro, this.target, this.introspector,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
+  ExecutePhaseRequest.deserialize(super.deserializer, super.serializationZoneId)
+      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
+        target = RemoteInstance.deserialize(deserializer),
+        introspector = RemoteInstance.deserialize(deserializer),
+        super.deserialize();
+
+  @override
+  void serialize(Serializer serializer) {
+    serializer.addInt(kind.index);
+    macro.serialize(serializer);
+    target.serialize(serializer);
+    introspector.serialize(serializer);
+
+    super.serialize(serializer);
+  }
+}
+
+/// A request to execute a macro on a particular declaration in the types phase.
+class ExecuteTypesPhaseRequest extends ExecutePhaseRequest {
+  @override
+  MessageType get kind => MessageType.executeTypesPhaseRequest;
+
+  ExecuteTypesPhaseRequest(super.macro, super.target, super.identifierResolver,
+      {required super.serializationZoneId});
+
   ExecuteTypesPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
-      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        target = RemoteInstance.deserialize(deserializer),
-        identifierResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize();
-
-  @override
-  void serialize(Serializer serializer) {
-    serializer.addInt(MessageType.executeTypesPhaseRequest.index);
-    macro.serialize(serializer);
-    target.serialize(serializer);
-    identifierResolver.serialize(serializer);
-
-    super.serialize(serializer);
-  }
+      : super.deserialize();
 }
 
-/// A request to execute a macro on a particular declaration in the definition
-/// phase.
-class ExecuteDeclarationsPhaseRequest extends Request {
-  final MacroInstanceIdentifier macro;
-  final RemoteInstance target;
-
-  final RemoteInstanceImpl identifierResolver;
-  final RemoteInstanceImpl typeDeclarationResolver;
-  final RemoteInstanceImpl typeResolver;
-  final RemoteInstanceImpl typeIntrospector;
+/// A request to execute a macro on a particular declaration in the types phase.
+class ExecuteDeclarationsPhaseRequest extends ExecutePhaseRequest {
+  @override
+  MessageType get kind => MessageType.executeDeclarationsPhaseRequest;
 
   ExecuteDeclarationsPhaseRequest(
-      this.macro,
-      this.target,
-      this.identifierResolver,
-      this.typeDeclarationResolver,
-      this.typeResolver,
-      this.typeIntrospector,
+      super.macro, super.target, super.identifierResolver,
       {required super.serializationZoneId});
 
-  /// When deserializing we have already consumed the message type, so we don't
-  /// consume it again.
   ExecuteDeclarationsPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
-      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        target = RemoteInstance.deserialize(deserializer),
-        identifierResolver = RemoteInstance.deserialize(deserializer),
-        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
-        typeResolver = RemoteInstance.deserialize(deserializer),
-        typeIntrospector = RemoteInstance.deserialize(deserializer),
-        super.deserialize();
-
-  @override
-  void serialize(Serializer serializer) {
-    serializer.addInt(MessageType.executeDeclarationsPhaseRequest.index);
-    macro.serialize(serializer);
-    target.serialize(serializer);
-    identifierResolver.serialize(serializer);
-    typeDeclarationResolver.serialize(serializer);
-    typeResolver.serialize(serializer);
-    typeIntrospector.serialize(serializer);
-
-    super.serialize(serializer);
-  }
+      : super.deserialize();
 }
 
-/// A request to execute a macro on a particular declaration in the definition
-/// phase.
-class ExecuteDefinitionsPhaseRequest extends Request {
-  final MacroInstanceIdentifier macro;
-  final RemoteInstance target;
-
-  final RemoteInstanceImpl identifierResolver;
-  final RemoteInstanceImpl typeResolver;
-  final RemoteInstanceImpl typeIntrospector;
-  final RemoteInstanceImpl typeDeclarationResolver;
-  final RemoteInstanceImpl typeInferrer;
-  final RemoteInstanceImpl libraryDeclarationsResolver;
+/// A request to execute a macro on a particular declaration in the types phase.
+class ExecuteDefinitionsPhaseRequest extends ExecutePhaseRequest {
+  @override
+  MessageType get kind => MessageType.executeDefinitionsPhaseRequest;
 
   ExecuteDefinitionsPhaseRequest(
-      this.macro,
-      this.target,
-      this.identifierResolver,
-      this.typeResolver,
-      this.typeIntrospector,
-      this.typeDeclarationResolver,
-      this.typeInferrer,
-      this.libraryDeclarationsResolver,
+      super.macro, super.target, super.identifierResolver,
       {required super.serializationZoneId});
 
-  /// When deserializing we have already consumed the message type, so we don't
-  /// consume it again.
   ExecuteDefinitionsPhaseRequest.deserialize(
       super.deserializer, super.serializationZoneId)
-      : macro = new MacroInstanceIdentifierImpl.deserialize(deserializer),
-        target = RemoteInstance.deserialize(deserializer),
-        identifierResolver = RemoteInstance.deserialize(deserializer),
-        typeResolver = RemoteInstance.deserialize(deserializer),
-        typeIntrospector = RemoteInstance.deserialize(deserializer),
-        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
-        typeInferrer = RemoteInstance.deserialize(deserializer),
-        libraryDeclarationsResolver = RemoteInstance.deserialize(deserializer),
-        super.deserialize();
-
-  @override
-  void serialize(Serializer serializer) {
-    serializer.addInt(MessageType.executeDefinitionsPhaseRequest.index);
-    macro.serialize(serializer);
-    target.serialize(serializer);
-    identifierResolver.serialize(serializer);
-    typeResolver.serialize(serializer);
-    typeIntrospector.serialize(serializer);
-    typeDeclarationResolver.serialize(serializer);
-    typeInferrer.serialize(serializer);
-    libraryDeclarationsResolver.serialize(serializer);
-
-    super.serialize(serializer);
-  }
+      : super.deserialize();
 }
 
 /// A request to destroy a remote instance zone by id.
@@ -420,23 +361,37 @@ class DestroyRemoteInstanceZoneRequest extends Request {
   }
 }
 
+class IntrospectionRequest extends Request {
+  final RemoteInstanceImpl introspector;
+
+  IntrospectionRequest(this.introspector, {required super.serializationZoneId});
+
+  IntrospectionRequest.deserialize(
+      super.deserializer, super.serializationZoneId)
+      : introspector = RemoteInstance.deserialize(deserializer),
+        super.deserialize();
+
+  @override
+  void serialize(Serializer serializer) {
+    introspector.serialize(serializer);
+    super.serialize(serializer);
+  }
+}
+
 /// A request to create a resolved identifier.
-class ResolveIdentifierRequest extends Request {
+class ResolveIdentifierRequest extends IntrospectionRequest {
   final Uri library;
   final String name;
 
-  final RemoteInstanceImpl identifierResolver;
-
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
-  ResolveIdentifierRequest(this.library, this.name, this.identifierResolver,
+  ResolveIdentifierRequest(this.library, this.name, super.introspector,
       {required super.serializationZoneId});
 
   ResolveIdentifierRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : library = Uri.parse((deserializer..moveNext()).expectString()),
         name = (deserializer..moveNext()).expectString(),
-        identifierResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
@@ -445,32 +400,28 @@ class ResolveIdentifierRequest extends Request {
       ..addInt(MessageType.resolveIdentifierRequest.index)
       ..addString(library.toString())
       ..addString(name);
-    identifierResolver.serialize(serializer);
 
     super.serialize(serializer);
   }
 }
 
 /// A request to resolve on a type annotation code object
-class ResolveTypeRequest extends Request {
+class ResolveTypeRequest extends IntrospectionRequest {
   final TypeAnnotationCode typeAnnotationCode;
-  final RemoteInstanceImpl typeResolver;
 
-  ResolveTypeRequest(this.typeAnnotationCode, this.typeResolver,
+  ResolveTypeRequest(this.typeAnnotationCode, super.introspector,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   ResolveTypeRequest.deserialize(super.deserializer, super.serializationZoneId)
       : typeAnnotationCode = (deserializer..moveNext()).expectCode(),
-        typeResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.resolveTypeRequest.index);
     typeAnnotationCode.serialize(serializer);
-    typeResolver.serialize(serializer);
     super.serialize(serializer);
   }
 }
@@ -525,14 +476,13 @@ class IsSubtypeOfRequest extends Request {
 }
 
 /// A general request class for all requests coming from methods on the
-/// [TypeIntrospector] interface.
-class TypeIntrospectorRequest extends Request {
+/// [DeclarationPhaseIntrospector] interface that are related to a single type.
+class TypeIntrospectorRequest extends IntrospectionRequest {
   final Object declaration;
-  final RemoteInstanceImpl typeIntrospector;
   final MessageType requestKind;
 
   TypeIntrospectorRequest(
-      this.declaration, this.typeIntrospector, this.requestKind,
+      this.declaration, super.introspector, this.requestKind,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
@@ -540,24 +490,21 @@ class TypeIntrospectorRequest extends Request {
   TypeIntrospectorRequest.deserialize(
       Deserializer deserializer, this.requestKind, int serializationZoneId)
       : declaration = RemoteInstance.deserialize(deserializer),
-        typeIntrospector = RemoteInstance.deserialize(deserializer),
         super.deserialize(deserializer, serializationZoneId);
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(requestKind.index);
     (declaration as Serializable).serialize(serializer);
-    typeIntrospector.serialize(serializer);
     super.serialize(serializer);
   }
 }
 
 /// A request to get a [TypeDeclaration] for a [StaticType].
-class DeclarationOfRequest extends Request {
+class DeclarationOfRequest extends IntrospectionRequest {
   final IdentifierImpl identifier;
-  final RemoteInstanceImpl typeDeclarationResolver;
 
-  DeclarationOfRequest(this.identifier, this.typeDeclarationResolver,
+  DeclarationOfRequest(this.identifier, super.introspector,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
@@ -565,49 +512,43 @@ class DeclarationOfRequest extends Request {
   DeclarationOfRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : identifier = RemoteInstance.deserialize(deserializer),
-        typeDeclarationResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.declarationOfRequest.index);
     identifier.serialize(serializer);
-    typeDeclarationResolver.serialize(serializer);
     super.serialize(serializer);
   }
 }
 
 /// A request to get an inferred [TypeAnnotation] for an
 /// [OmittedTypeAnnotation].
-class InferTypeRequest extends Request {
+class InferTypeRequest extends IntrospectionRequest {
   final OmittedTypeAnnotationImpl omittedType;
-  final RemoteInstanceImpl typeInferrer;
 
-  InferTypeRequest(this.omittedType, this.typeInferrer,
+  InferTypeRequest(this.omittedType, super.introspector,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   InferTypeRequest.deserialize(super.deserializer, super.serializationZoneId)
       : omittedType = RemoteInstance.deserialize(deserializer),
-        typeInferrer = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.inferTypeRequest.index);
     omittedType.serialize(serializer);
-    typeInferrer.serialize(serializer);
     super.serialize(serializer);
   }
 }
 
 /// A request to get all the top level [Declaration]s in a [Library].
-class DeclarationsOfRequest extends Request {
+class DeclarationsOfRequest extends IntrospectionRequest {
   final LibraryImpl library;
-  final RemoteInstanceImpl libraryDeclarationsResolver;
 
-  DeclarationsOfRequest(this.library, this.libraryDeclarationsResolver,
+  DeclarationsOfRequest(this.library, super.introspector,
       {required super.serializationZoneId});
 
   /// When deserializing we have already consumed the message type, so we don't
@@ -615,34 +556,41 @@ class DeclarationsOfRequest extends Request {
   DeclarationsOfRequest.deserialize(
       super.deserializer, super.serializationZoneId)
       : library = RemoteInstance.deserialize(deserializer),
-        libraryDeclarationsResolver = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
     serializer.addInt(MessageType.topLevelDeclarationsOfRequest.index);
     library.serialize(serializer);
-    libraryDeclarationsResolver.serialize(serializer);
     super.serialize(serializer);
   }
 }
 
-/// Client side implementation of an [IdentifierResolver], which creates a
-/// [ResolveIdentifierRequest] and passes it to a given [_sendRequest] function
-/// which can return the [Response].
-class ClientIdentifierResolver implements IdentifierResolver {
-  /// The actual remote instance of this type resolver.
+/// The base class for the client side introspectors from any phase, as well as
+/// client side [StaticType]s.
+///
+/// These convert all method calls into RPCs, sent via [_sendRequest].
+base class ClientIntrospector {
+  /// The actual remote instance to call methods on.
   final RemoteInstanceImpl remoteInstance;
 
-  /// The ID of the zone in which to find the original type resolver.
+  /// The ID of the zone in which to find the original builder.
   final int serializationZoneId;
 
   /// A function that can send a request and return a response using an
   /// arbitrary communication channel.
   final Future<Response> Function(Request request) _sendRequest;
 
-  ClientIdentifierResolver(this._sendRequest,
+  ClientIntrospector(this._sendRequest,
       {required this.remoteInstance, required this.serializationZoneId});
+}
+
+/// Client side implementation of an [TypeBuilder], which creates converts all
+/// method calls to remote procedure calls and sends them using [_sendRequest].
+final class ClientTypePhaseIntrospector extends ClientIntrospector
+    implements TypePhaseIntrospector {
+  ClientTypePhaseIntrospector(super._sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String name) async {
@@ -653,22 +601,12 @@ class ClientIdentifierResolver implements IdentifierResolver {
   }
 }
 
-/// Client side implementation of a [TypeResolver], which creates a
-/// [ResolveTypeRequest] and passes it to a given [sendRequest] function which
-/// can return the [Response].
-class ClientTypeResolver implements TypeResolver {
-  /// The actual remote instance of this type resolver.
-  final RemoteInstanceImpl remoteInstance;
-
-  /// The ID of the zone in which to find the original type resolver.
-  final int serializationZoneId;
-
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) _sendRequest;
-
-  ClientTypeResolver(this._sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
+/// Client side implementation of a [DeclarationBuilder].
+final class ClientDeclarationPhaseIntrospector
+    extends ClientTypePhaseIntrospector
+    implements DeclarationPhaseIntrospector {
+  ClientDeclarationPhaseIntrospector(super._sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
 
   @override
   Future<StaticType> resolve(TypeAnnotationCode typeAnnotation) async {
@@ -689,60 +627,6 @@ class ClientTypeResolver implements TypeResolver {
           '${remoteType.kind}'),
     };
   }
-}
-
-class ClientStaticTypeImpl implements StaticType {
-  /// The actual remote instance of this static type.
-  final RemoteInstanceImpl remoteInstance;
-
-  final int serializationZoneId;
-
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) sendRequest;
-
-  ClientStaticTypeImpl(this.sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
-
-  @override
-  Future<bool> isExactly(ClientStaticTypeImpl other) async {
-    IsExactlyTypeRequest request = new IsExactlyTypeRequest(
-        this.remoteInstance, other.remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<BooleanValue>(await sendRequest(request)).value;
-  }
-
-  @override
-  Future<bool> isSubtypeOf(ClientStaticTypeImpl other) async {
-    IsSubtypeOfRequest request = new IsSubtypeOfRequest(
-        remoteInstance, other.remoteInstance,
-        serializationZoneId: serializationZoneId);
-    return _handleResponse<BooleanValue>(await sendRequest(request)).value;
-  }
-}
-
-/// Named variant of the [ClientStaticTypeImpl].
-class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
-    implements NamedStaticType {
-  ClientNamedStaticTypeImpl(super.sendRequest,
-      {required super.remoteInstance, required super.serializationZoneId});
-}
-
-/// Client side implementation of the [ClientTypeIntrospector], converts
-/// all invocations into remote RPC calls.
-class ClientTypeIntrospector implements TypeIntrospector {
-  /// The actual remote instance of this class introspector.
-  final RemoteInstanceImpl remoteInstance;
-
-  /// The ID of the zone in which to find the original type resolver.
-  final int serializationZoneId;
-
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) sendRequest;
-
-  ClientTypeIntrospector(this.sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
@@ -750,7 +634,7 @@ class ClientTypeIntrospector implements TypeIntrospector {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.constructorsOfRequest,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast
         .cast();
@@ -762,7 +646,7 @@ class ClientTypeIntrospector implements TypeIntrospector {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         enumType, remoteInstance, MessageType.valuesOfRequest,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast
         .cast();
@@ -773,7 +657,7 @@ class ClientTypeIntrospector implements TypeIntrospector {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.fieldsOfRequest,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast
         .cast();
@@ -784,7 +668,7 @@ class ClientTypeIntrospector implements TypeIntrospector {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         type, remoteInstance, MessageType.methodsOfRequest,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast
         .cast();
@@ -795,85 +679,72 @@ class ClientTypeIntrospector implements TypeIntrospector {
     TypeIntrospectorRequest request = new TypeIntrospectorRequest(
         library, remoteInstance, MessageType.typesOfRequest,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations
         // TODO: Refactor so we can remove this cast.
         .cast();
   }
-}
-
-/// Client side implementation of a [TypeDeclarationResolver], converts all
-/// invocations into remote procedure calls.
-class ClientTypeDeclarationResolver implements TypeDeclarationResolver {
-  /// The actual remote instance of this type resolver.
-  final RemoteInstanceImpl remoteInstance;
-
-  /// The ID of the zone in which to find the original type resolver.
-  final int serializationZoneId;
-
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) sendRequest;
-
-  ClientTypeDeclarationResolver(this.sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
 
   @override
   Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) async {
     DeclarationOfRequest request = new DeclarationOfRequest(
         identifier, remoteInstance,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeDeclaration>(await sendRequest(request));
+    return _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
 }
 
-/// Client side implementation of a [TypeInferrer], converts all
-/// invocations into remote procedure calls.
-class ClientTypeInferrer implements TypeInferrer {
-  /// The actual remote instance of this type resolver.
-  final RemoteInstanceImpl remoteInstance;
+/// Client side implementation of a [StaticType].
+base class ClientStaticTypeImpl extends ClientIntrospector
+    implements StaticType {
+  ClientStaticTypeImpl(super._sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
 
-  /// The ID of the zone in which to find the original type resolver.
-  final int serializationZoneId;
+  @override
+  Future<bool> isExactly(ClientStaticTypeImpl other) async {
+    IsExactlyTypeRequest request = new IsExactlyTypeRequest(
+        this.remoteInstance, other.remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<BooleanValue>(await _sendRequest(request)).value;
+  }
 
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) sendRequest;
+  @override
+  Future<bool> isSubtypeOf(ClientStaticTypeImpl other) async {
+    IsSubtypeOfRequest request = new IsSubtypeOfRequest(
+        remoteInstance, other.remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<BooleanValue>(await _sendRequest(request)).value;
+  }
+}
 
-  ClientTypeInferrer(this.sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
+/// Named variant of the [ClientStaticTypeImpl].
+final class ClientNamedStaticTypeImpl extends ClientStaticTypeImpl
+    implements NamedStaticType {
+  ClientNamedStaticTypeImpl(super.sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
+}
+
+/// Client side implementation of a [DeclarationBuilder].
+final class ClientDefinitionPhaseIntrospector
+    extends ClientDeclarationPhaseIntrospector
+    implements DefinitionPhaseIntrospector {
+  ClientDefinitionPhaseIntrospector(super._sendRequest,
+      {required super.remoteInstance, required super.serializationZoneId});
 
   @override
   Future<TypeAnnotation> inferType(
       OmittedTypeAnnotationImpl omittedType) async {
     InferTypeRequest request = new InferTypeRequest(omittedType, remoteInstance,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<TypeAnnotation>(await sendRequest(request));
+    return _handleResponse<TypeAnnotation>(await _sendRequest(request));
   }
-}
-
-/// Client side implementation of a [LibraryDeclarationsResolver], converts all
-/// invocations into remote procedure calls.
-class ClientLibraryDeclarationsResolver implements LibraryDeclarationsResolver {
-  /// The actual remote instance of this library declarations resolver.
-  final RemoteInstanceImpl remoteInstance;
-
-  /// The ID of the zone in which to find the original type resolver.
-  final int serializationZoneId;
-
-  /// A function that can send a request and return a response using an
-  /// arbitrary communication channel.
-  final Future<Response> Function(Request request) sendRequest;
-
-  ClientLibraryDeclarationsResolver(this.sendRequest,
-      {required this.remoteInstance, required this.serializationZoneId});
 
   @override
   Future<List<Declaration>> topLevelDeclarationsOf(LibraryImpl library) async {
     DeclarationsOfRequest request = new DeclarationsOfRequest(
         library, remoteInstance,
         serializationZoneId: serializationZoneId);
-    return _handleResponse<DeclarationList>(await sendRequest(request))
+    return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations;
   }
 }

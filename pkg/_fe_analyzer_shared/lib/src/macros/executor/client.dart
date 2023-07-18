@@ -212,13 +212,13 @@ final class MacroExpansionClient {
       Macro instance = _macroInstances[request.macro] ??
           (throw new StateError('Unrecognized macro instance ${request.macro}\n'
               'Known instances: $_macroInstances)'));
-      ClientIdentifierResolver identifierResolver =
-          new ClientIdentifierResolver(sendRequest,
-              remoteInstance: request.identifierResolver,
-              serializationZoneId: request.serializationZoneId);
+      TypePhaseIntrospector introspector = new ClientTypePhaseIntrospector(
+          sendRequest,
+          remoteInstance: request.introspector,
+          serializationZoneId: request.serializationZoneId);
 
       MacroExecutionResult result =
-          await executeTypesMacro(instance, request.target, identifierResolver);
+          await executeTypesMacro(instance, request.target, introspector);
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,
@@ -242,29 +242,13 @@ final class MacroExpansionClient {
           (throw new StateError('Unrecognized macro instance ${request.macro}\n'
               'Known instances: $_macroInstances)'));
 
-      ClientIdentifierResolver identifierResolver =
-          new ClientIdentifierResolver(sendRequest,
-              remoteInstance: request.identifierResolver,
+      DeclarationPhaseIntrospector introspector =
+          new ClientDeclarationPhaseIntrospector(sendRequest,
+              remoteInstance: request.introspector,
               serializationZoneId: request.serializationZoneId);
-      ClientTypeIntrospector typeIntrospector = new ClientTypeIntrospector(
-          sendRequest,
-          remoteInstance: request.typeIntrospector,
-          serializationZoneId: request.serializationZoneId);
-      ClientTypeDeclarationResolver typeDeclarationResolver =
-          new ClientTypeDeclarationResolver(sendRequest,
-              remoteInstance: request.typeDeclarationResolver,
-              serializationZoneId: request.serializationZoneId);
-      ClientTypeResolver typeResolver = new ClientTypeResolver(sendRequest,
-          remoteInstance: request.typeResolver,
-          serializationZoneId: request.serializationZoneId);
 
       MacroExecutionResult result = await executeDeclarationsMacro(
-          instance,
-          request.target,
-          identifierResolver,
-          typeIntrospector,
-          typeDeclarationResolver,
-          typeResolver);
+          instance, request.target, introspector);
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,
@@ -287,38 +271,13 @@ final class MacroExpansionClient {
       Macro instance = _macroInstances[request.macro] ??
           (throw new StateError('Unrecognized macro instance ${request.macro}\n'
               'Known instances: $_macroInstances)'));
-      ClientIdentifierResolver identifierResolver =
-          new ClientIdentifierResolver(sendRequest,
-              remoteInstance: request.identifierResolver,
-              serializationZoneId: request.serializationZoneId);
-      ClientTypeResolver typeResolver = new ClientTypeResolver(sendRequest,
-          remoteInstance: request.typeResolver,
-          serializationZoneId: request.serializationZoneId);
-      ClientTypeDeclarationResolver typeDeclarationResolver =
-          new ClientTypeDeclarationResolver(sendRequest,
-              remoteInstance: request.typeDeclarationResolver,
-              serializationZoneId: request.serializationZoneId);
-      ClientTypeIntrospector typeIntrospector = new ClientTypeIntrospector(
-          sendRequest,
-          remoteInstance: request.typeIntrospector,
-          serializationZoneId: request.serializationZoneId);
-      ClientTypeInferrer typeInferrer = new ClientTypeInferrer(sendRequest,
-          remoteInstance: request.typeInferrer,
-          serializationZoneId: request.serializationZoneId);
-      ClientLibraryDeclarationsResolver libraryDeclarationsResolver =
-          new ClientLibraryDeclarationsResolver(sendRequest,
-              remoteInstance: request.libraryDeclarationsResolver,
+      DefinitionPhaseIntrospector introspector =
+          new ClientDefinitionPhaseIntrospector(sendRequest,
+              remoteInstance: request.introspector,
               serializationZoneId: request.serializationZoneId);
 
-      MacroExecutionResult result = await executeDefinitionMacro(
-          instance,
-          request.target,
-          identifierResolver,
-          typeIntrospector,
-          typeResolver,
-          typeDeclarationResolver,
-          typeInferrer,
-          libraryDeclarationsResolver);
+      MacroExecutionResult result =
+          await executeDefinitionMacro(instance, request.target, introspector);
       return new SerializableResponse(
           responseType: MessageType.macroExecutionResult,
           response: result,

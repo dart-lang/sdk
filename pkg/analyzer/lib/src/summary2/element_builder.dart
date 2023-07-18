@@ -48,12 +48,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _visitPropertyFirst<TopLevelVariableDeclaration>(unit.declarations);
     _unitElement.accessors = _enclosingContext.propertyAccessors;
     _unitElement.classes = _enclosingContext.classes;
-    _unitElement.classAugmentations = _enclosingContext.classAugmentations;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
-    _unitElement.mixinAugmentations = _enclosingContext.mixinAugmentations;
     _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
     _unitElement.typeAliases = _enclosingContext.typeAliases;
   }
@@ -85,72 +83,13 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitClassAugmentationDeclaration(
-    covariant ClassAugmentationDeclarationImpl node,
-  ) {
-    final nameToken = node.name;
-    final name = nameToken.lexeme;
-
-    final element = ClassAugmentationElementImpl(name, nameToken.offset);
-    element.isAbstract = node.abstractKeyword != null;
-    element.isBase = node.baseKeyword != null;
-    element.isFinal = node.finalKeyword != null;
-    element.isInterface = node.interfaceKeyword != null;
-    element.isMacro = node.macroKeyword != null;
-    element.isMixinClass = node.mixinKeyword != null;
-    if (node.sealedKeyword != null) {
-      element.isAbstract = true;
-      element.isSealed = true;
-    }
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
-    _setDocumentation(element, node);
-
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
-
-    final reference = _enclosingContext.addClassAugmentation(name, element);
-    _libraryBuilder.declare(name, reference);
-
-    final holder = _EnclosingContext(reference, element);
-    _withEnclosing(holder, () {
-      final typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
-    });
-
-    node.withClause?.accept(this);
-    node.implementsClause?.accept(this);
-
-    _withEnclosing(holder, () {
-      _visitPropertyFirst<FieldDeclaration>(node.members);
-    });
-
-    element.accessors = holder.propertyAccessors;
-    element.constructors = holder.constructors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-
-    switch (_libraryBuilder.getAugmentedBuilder(name)) {
-      case AugmentedClassDeclarationBuilder builder:
-        builder.augment(element);
-    }
-
-    // TODO(scheglov) We cannot do this anymore.
-    // Not for class augmentations, not for classes.
-    // At the time when we build, we don't know all fields yet.
-    // _resolveConstructorFieldFormals(element);
-  }
-
-  @override
   void visitClassDeclaration(covariant ClassDeclarationImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = ClassElementImpl(name, nameToken.offset);
     element.isAbstract = node.abstractKeyword != null;
+    element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.isFinal = node.finalKeyword != null;
     element.isInline = node.inlineKeyword != null;
@@ -185,12 +124,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     _buildClass(node);
 
-    _libraryBuilder.putAugmentedBuilder(
-      name,
-      AugmentedClassDeclarationBuilder(
-        declaration: element,
-      ),
-    );
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+      }
+    });
+
+    if (element.isAugmentation) {
+      switch (_libraryBuilder.getAugmentedBuilder(name)) {
+        case AugmentedClassDeclarationBuilder builder:
+          builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedClassDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override
@@ -896,6 +849,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
 
       var element = MethodElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isStatic = node.isStatic;
 
       reference = _enclosingContext.addMethod(name, element);
@@ -925,56 +879,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitMixinAugmentationDeclaration(
-    covariant MixinAugmentationDeclarationImpl node,
-  ) {
-    final nameToken = node.name;
-    final name = nameToken.lexeme;
-
-    final element = MixinAugmentationElementImpl(name, nameToken.offset);
-    element.isBase = node.baseKeyword != null;
-    element.metadata = _buildAnnotations(node.metadata);
-    _setCodeRange(element, node);
-    _setDocumentation(element, node);
-
-    node.declaredElement = element;
-    _linker.elementNodes[element] = node;
-
-    final reference = _enclosingContext.addMixinAugmentation(name, element);
-    _libraryBuilder.declare(name, reference);
-
-    final holder = _EnclosingContext(reference, element);
-    _withEnclosing(holder, () {
-      final typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        element.typeParameters = holder.typeParameters;
-      }
-    });
-
-    node.onClause?.accept(this);
-    node.implementsClause?.accept(this);
-
-    _withEnclosing(holder, () {
-      _visitPropertyFirst<FieldDeclaration>(node.members);
-    });
-
-    element.accessors = holder.propertyAccessors;
-    element.fields = holder.fields;
-    element.methods = holder.methods;
-
-    switch (_libraryBuilder.getAugmentedBuilder(name)) {
-      case AugmentedMixinDeclarationBuilder builder:
-        builder.augment(element);
-    }
-  }
-
-  @override
   void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     var nameToken = node.name;
     var name = nameToken.lexeme;
 
     var element = MixinElementImpl(name, nameToken.offset);
+    element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.metadata = _buildAnnotations(node.metadata);
     _setCodeRange(element, node);
@@ -999,12 +909,26 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node.implementsClause?.accept(this);
     _buildMixin(node);
 
-    _libraryBuilder.putAugmentedBuilder(
-      name,
-      AugmentedMixinDeclarationBuilder(
-        declaration: element,
-      ),
-    );
+    _libraryBuilder.updateAugmentationTarget(name, element, (target) {
+      if (element.isAugmentation) {
+        target.augmentation = element;
+        element.augmentationTarget = target;
+      }
+    });
+
+    if (element.isAugmentation) {
+      switch (_libraryBuilder.getAugmentedBuilder(name)) {
+        case AugmentedMixinDeclarationBuilder builder:
+          builder.augment(element);
+      }
+    } else {
+      _libraryBuilder.putAugmentedBuilder(
+        name,
+        AugmentedMixinDeclarationBuilder(
+          declaration: element,
+        ),
+      );
+    }
   }
 
   @override
@@ -1256,7 +1180,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
       _visitPropertyFirst<FieldDeclaration>(node.members);
     });
 
-    if (!holder.hasConstructors) {
+    // TODO(scheglov) To it after all augmentations
+    if (!element.isAugmentation && !holder.hasConstructors) {
       holder.addConstructor(
         ConstructorElementImpl('', -1)..isSynthetic = true,
       );
@@ -1267,6 +1192,8 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.fields = holder.fields;
     element.methods = holder.methods;
 
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
     _resolveConstructorFieldFormals(element);
   }
 
@@ -1456,7 +1383,6 @@ class _EnclosingContext {
   final Reference reference;
   final ElementImpl element;
   final List<ClassElementImpl> _classes = [];
-  final List<ClassAugmentationElementImpl> _classAugmentations = [];
   final List<ConstructorElementImpl> _constructors = [];
   final List<EnumElementImpl> _enums = [];
   final List<ExtensionElementImpl> _extensions = [];
@@ -1464,7 +1390,6 @@ class _EnclosingContext {
   final List<FunctionElementImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
   final List<MixinElementImpl> _mixins = [];
-  final List<MixinAugmentationElementImpl> _mixinAugmentations = [];
   final List<ParameterElementImpl> _parameters = [];
   final List<PropertyAccessorElementImpl> _propertyAccessors = [];
   final List<TopLevelVariableElementImpl> _topLevelVariables = [];
@@ -1484,10 +1409,6 @@ class _EnclosingContext {
     this.hasConstConstructor = false,
     this.hasDefaultFormalParameters = false,
   });
-
-  List<ClassAugmentationElementImpl> get classAugmentations {
-    return _classAugmentations.toFixedList();
-  }
 
   List<ClassElementImpl> get classes {
     return _classes.toFixedList();
@@ -1524,10 +1445,6 @@ class _EnclosingContext {
     return _methods.toFixedList();
   }
 
-  List<MixinAugmentationElementImpl> get mixinAugmentations {
-    return _mixinAugmentations.toFixedList();
-  }
-
   List<MixinElementImpl> get mixins {
     return _mixins.toFixedList();
   }
@@ -1555,14 +1472,6 @@ class _EnclosingContext {
   Reference addClass(String name, ClassElementImpl element) {
     _classes.add(element);
     return _bindReference('@class', name, element);
-  }
-
-  Reference addClassAugmentation(
-    String name,
-    ClassAugmentationElementImpl element,
-  ) {
-    _classAugmentations.add(element);
-    return _bindReference('@classAugmentation', name, element);
   }
 
   Reference addConstructor(ConstructorElementImpl element) {
@@ -1605,14 +1514,6 @@ class _EnclosingContext {
   Reference addMixin(String name, MixinElementImpl element) {
     _mixins.add(element);
     return _bindReference('@mixin', name, element);
-  }
-
-  Reference addMixinAugmentation(
-    String name,
-    MixinAugmentationElementImpl element,
-  ) {
-    _mixinAugmentations.add(element);
-    return _bindReference('@mixinAugmentation', name, element);
   }
 
   void addNonSyntheticField(FieldElementImpl element) {

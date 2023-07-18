@@ -97,40 +97,23 @@ class MultiMacroExecutor extends MacroExecutor with AugmentationLibraryBuilder {
   Future<MacroExecutionResult> executeDeclarationsPhase(
           MacroInstanceIdentifier macro,
           MacroTarget target,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector) =>
+          DeclarationPhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeDeclarationsPhase(macro, target, identifierResolver,
-              typeDeclarationResolver, typeResolver, typeIntrospector));
+          executor.executeDeclarationsPhase(macro, target, introspector));
 
   @override
   Future<MacroExecutionResult> executeDefinitionsPhase(
           MacroInstanceIdentifier macro,
           MacroTarget target,
-          IdentifierResolver identifierResolver,
-          TypeDeclarationResolver typeDeclarationResolver,
-          TypeResolver typeResolver,
-          TypeIntrospector typeIntrospector,
-          TypeInferrer typeInferrer,
-          LibraryDeclarationsResolver libraryDeclarationsResolver) =>
+          DefinitionPhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeDefinitionsPhase(
-              macro,
-              target,
-              identifierResolver,
-              typeDeclarationResolver,
-              typeResolver,
-              typeIntrospector,
-              typeInferrer,
-              libraryDeclarationsResolver));
+          executor.executeDefinitionsPhase(macro, target, introspector));
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-          MacroTarget target, IdentifierResolver identifierResolver) =>
+          MacroTarget target, TypePhaseIntrospector introspector) =>
       _instanceExecutors[macro]!._withInstance((executor) =>
-          executor.executeTypesPhase(macro, target, identifierResolver));
+          executor.executeTypesPhase(macro, target, introspector));
 
   @override
   Future<MacroInstanceIdentifier> instantiateMacro(

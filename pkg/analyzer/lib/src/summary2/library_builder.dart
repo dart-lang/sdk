@@ -32,18 +32,14 @@ import 'package:analyzer/src/utilities/extensions/collection.dart';
 class AugmentedClassDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
   final ClassElementImpl declaration;
-  ClassOrAugmentationElementMixin target;
 
   AugmentedClassDeclarationBuilder({
     required this.declaration,
-  }) : target = declaration {
+  }) {
     addMethods(declaration.methods);
   }
 
-  void augment(ClassAugmentationElementImpl element) {
-    element.augmentationTarget = target;
-    target.augmentation = element;
-    target = element;
+  void augment(ClassElementImpl element) {
     addMethods(element.methods);
   }
 }
@@ -57,9 +53,7 @@ abstract class AugmentedInstanceDeclarationBuilder {
       final existing = methods[name];
       if (existing != null) {
         existing.augmentation = element;
-        element.maybeAugmentation = AugmentationMethodElementImpl(
-          augmentationTarget: existing,
-        );
+        element.augmentationTarget = existing;
       }
       methods[name] = element;
     }
@@ -69,18 +63,14 @@ abstract class AugmentedInstanceDeclarationBuilder {
 class AugmentedMixinDeclarationBuilder
     extends AugmentedInstanceDeclarationBuilder {
   final MixinElementImpl declaration;
-  MixinOrAugmentationElementMixin target;
 
   AugmentedMixinDeclarationBuilder({
     required this.declaration,
-  }) : target = declaration {
+  }) {
     addMethods(declaration.methods);
   }
 
-  void augment(MixinAugmentationElementImpl element) {
-    element.augmentationTarget = target;
-    target.augmentation = element;
-    target = element;
+  void augment(MixinElementImpl element) {
     addMethods(element.methods);
   }
 }
@@ -119,6 +109,9 @@ class LibraryBuilder {
   /// The top-level elements that can be augmented.
   final Map<String, AugmentedInstanceDeclarationBuilder> _augmentedBuilders =
       {};
+
+  /// The top-level elements that can be augmented.
+  final Map<String, ElementImpl> _augmentationTargets = {};
 
   /// Local declarations.
   final Map<String, Reference> _declaredReferences = {};
@@ -519,6 +512,18 @@ class LibraryBuilder {
     if (entryPoint is FunctionElement) {
       element.entryPoint = entryPoint;
     }
+  }
+
+  void updateAugmentationTarget<T extends ElementImpl>(
+    String name,
+    T augmentation,
+    void Function(T target) update,
+  ) {
+    final target = _augmentationTargets[name];
+    if (target is T) {
+      update(target);
+    }
+    _augmentationTargets[name] = augmentation;
   }
 
   AugmentationImportElementImpl _buildAugmentationImport(

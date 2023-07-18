@@ -601,27 +601,6 @@ ClassTypeAlias
 ''');
   }
 
-  void test_classAugmentation() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-augment class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.singleClassAugmentationDeclaration;
-    assertParsedNodeText(node, r'''
-ClassAugmentationDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  augmentKeyword: augment
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_classTypeAlias_base() {
     var parseResult = parseStringWithErrors(r'''
 mixin M {}

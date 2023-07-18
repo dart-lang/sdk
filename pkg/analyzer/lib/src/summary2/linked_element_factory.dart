@@ -197,7 +197,7 @@ class LinkedElementFactory {
     var parent = reference.parent!.parent!;
     var parentElement = elementOfReference(parent);
 
-    if (parentElement is InstanceOrAugmentationElementMixin) {
+    if (parentElement is InstanceElementImpl) {
       parentElement.linkedData?.readMembers(parentElement);
     }
 

@@ -303,10 +303,7 @@ class TestMacroExecutor extends MultiMacroExecutor {
   Future<MacroExecutionResult> executeDeclarationsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector) async {
+      DeclarationPhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 
@@ -314,18 +311,13 @@ class TestMacroExecutor extends MultiMacroExecutor {
   Future<MacroExecutionResult> executeDefinitionsPhase(
       MacroInstanceIdentifier macro,
       MacroTarget target,
-      IdentifierResolver identifierResolver,
-      TypeDeclarationResolver typeDeclarationResolver,
-      TypeResolver typeResolver,
-      TypeIntrospector typeIntrospector,
-      TypeInferrer typeInferrer,
-      LibraryDeclarationsResolver libraryDeclarationsResolver) async {
+      DefinitionPhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 
   @override
   Future<MacroExecutionResult> executeTypesPhase(MacroInstanceIdentifier macro,
-      MacroTarget target, IdentifierResolver identifierResolver) async {
+      MacroTarget target, TypePhaseIntrospector introspector) async {
     return new _MacroExecutionResult();
   }
 

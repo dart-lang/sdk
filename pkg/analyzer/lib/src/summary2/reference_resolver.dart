@@ -49,31 +49,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   void visitBlockFunctionBody(BlockFunctionBody node) {}
 
   @override
-  void visitClassAugmentationDeclaration(
-    covariant ClassAugmentationDeclarationImpl node,
-  ) {
-    var outerScope = scope;
-
-    var element = node.declaredElement!;
-
-    scope = TypeParameterScope(scope, element.typeParameters);
-
-    node.typeParameters?.accept(this);
-    node.withClause?.accept(this);
-    node.implementsClause?.accept(this);
-
-    final declaration = element.augmentedDeclaration;
-    if (declaration != null) {
-      scope = InterfaceScope(scope, declaration);
-      LinkingNodeContext(node, scope);
-      node.members.accept(this);
-    }
-
-    nodesToBuildType.addDeclaration(node);
-    scope = outerScope;
-  }
-
-  @override
   void visitClassDeclaration(ClassDeclaration node) {
     var outerScope = scope;
 
@@ -329,31 +304,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     node.parameters?.accept(this);
     nodesToBuildType.addDeclaration(node);
 
-    scope = outerScope;
-  }
-
-  @override
-  void visitMixinAugmentationDeclaration(
-    covariant MixinAugmentationDeclarationImpl node,
-  ) {
-    var outerScope = scope;
-
-    var element = node.declaredElement!;
-
-    scope = TypeParameterScope(scope, element.typeParameters);
-
-    node.typeParameters?.accept(this);
-    node.onClause?.accept(this);
-    node.implementsClause?.accept(this);
-
-    final declaration = element.augmentedDeclaration;
-    if (declaration != null) {
-      scope = InterfaceScope(scope, declaration);
-      LinkingNodeContext(node, scope);
-      node.members.accept(this);
-    }
-
-    nodesToBuildType.addDeclaration(node);
     scope = outerScope;
   }
 

@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/resolver/variance.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
+import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
   InterfaceType get boolNone {
@@ -164,6 +165,7 @@ mixin ElementsTypesMixin {
   ClassElementImpl class_({
     required String name,
     bool isAbstract = false,
+    bool isAugmentation = false,
     bool isSealed = false,
     InterfaceType? superType,
     List<TypeParameterElement> typeParameters = const [],
@@ -173,6 +175,7 @@ mixin ElementsTypesMixin {
   }) {
     var element = ClassElementImpl(name, 0);
     element.isAbstract = isAbstract;
+    element.isAugmentation = isAugmentation;
     element.isSealed = isSealed;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
@@ -476,11 +479,13 @@ mixin ElementsTypesMixin {
 
   MixinElementImpl mixin_({
     required String name,
+    bool isAugmentation = false,
     List<TypeParameterElement> typeParameters = const [],
     List<InterfaceType>? constraints,
     List<InterfaceType> interfaces = const [],
   }) {
     var element = MixinElementImpl(name, 0);
+    element.isAugmentation = isAugmentation;
     element.enclosingElement = testLibrary.definingCompilationUnit;
     element.typeParameters = typeParameters;
     element.superclassConstraints = constraints ?? [typeProvider.objectType];
@@ -734,4 +739,49 @@ class _MockSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+extension ClassElementImplExtension on ClassElementImpl {
+  void addAugmentations(List<ClassElementImpl> augmentations) {
+    expect(this.augmented, TypeMatcher<NotAugmentedClassElementImpl>());
+
+    final augmented = AugmentedClassElementImpl(this);
+    augmentedInternal = augmented;
+
+    var augmentationTarget = this;
+    for (final augmentation in augmentations) {
+      expect(augmentation.isAugmentation, isTrue);
+      augmentationTarget.augmentation = augmentation;
+      augmentation.augmentationTarget = augmentationTarget;
+      augmentationTarget = augmentation;
+
+      expect(augmentation.typeParameters, isEmpty,
+          reason: 'Not supported in tests');
+      augmented.interfaces.addAll(augmentation.interfaces);
+      augmented.mixins.addAll(augmentation.mixins);
+    }
+  }
+}
+
+extension MixinElementImplExtension on MixinElementImpl {
+  void addAugmentations(List<MixinElementImpl> augmentations) {
+    expect(this.augmented, TypeMatcher<NotAugmentedMixinElementImpl>());
+
+    final augmented = AugmentedMixinElementImpl(this);
+    augmentedInternal = augmented;
+
+    var augmentationTarget = this;
+    for (final augmentation in augmentations) {
+      expect(augmentation.isAugmentation, isTrue);
+      augmentationTarget.augmentation = augmentation;
+      augmentation.augmentationTarget = augmentationTarget;
+      augmentationTarget = augmentation;
+
+      expect(augmentation.typeParameters, isEmpty,
+          reason: 'Not supported in tests');
+      augmented.superclassConstraints
+          .addAll(augmentation.superclassConstraints);
+      augmented.interfaces.addAll(augmentation.interfaces);
+    }
+  }
 }

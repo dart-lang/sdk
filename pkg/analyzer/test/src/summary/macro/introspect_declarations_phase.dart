@@ -23,10 +23,7 @@ import 'introspect_shared.dart';
   ) async {
     final printer = _DeclarationPrinter(
       withDetailsFor: withDetailsFor.cast(),
-      typeIntrospector: builder,
-      identifierResolver: builder,
-      typeDeclarationResolver: builder,
-      typeResolver: builder,
+      declarationPhaseIntrospector: builder,
     );
     await printer.writeClassDeclaration(declaration);
     final text = printer._sink.toString();
@@ -42,10 +39,7 @@ import 'introspect_shared.dart';
 
 class _DeclarationPrinter {
   final Set<String> withDetailsFor;
-  final TypeIntrospector typeIntrospector;
-  final IdentifierResolver identifierResolver;
-  final TypeDeclarationResolver typeDeclarationResolver;
-  final TypeResolver typeResolver;
+  final DeclarationPhaseIntrospector declarationPhaseIntrospector;
 
   final StringBuffer _sink = StringBuffer();
   String _indent = '';
@@ -54,10 +48,7 @@ class _DeclarationPrinter {
 
   _DeclarationPrinter({
     required this.withDetailsFor,
-    required this.typeIntrospector,
-    required this.identifierResolver,
-    required this.typeDeclarationResolver,
-    required this.typeResolver,
+    required this.declarationPhaseIntrospector,
   });
 
   Future<void> writeClassDeclaration(IntrospectableClassDeclaration e) async {
@@ -77,7 +68,7 @@ class _DeclarationPrinter {
         final superIdentifier = superAnnotation.identifier;
         _writelnWithIndent('superclass');
         try {
-          final superDeclaration = await typeDeclarationResolver
+          final superDeclaration = await declarationPhaseIntrospector
               .declarationOf(superIdentifier) as IntrospectableClassDeclaration;
           await _withIndent(() => writeClassDeclaration(superDeclaration));
         } on ArgumentError {
@@ -94,7 +85,7 @@ class _DeclarationPrinter {
       _enclosingDeclarationIdentifier = e.identifier;
       await _writeElements<FieldDeclaration>(
         'fields',
-        await typeIntrospector.fieldsOf(e),
+        await declarationPhaseIntrospector.fieldsOf(e),
         _writeField,
       );
     });

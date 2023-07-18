@@ -336,18 +336,6 @@ void f() {
     _assertSource(code, findNode.catchClause(code));
   }
 
-  void test_visitClassAugmentationDeclaration_abstract() {
-    final code = 'augment abstract class C {}';
-    final findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.singleClassAugmentationDeclaration);
-  }
-
-  void test_visitClassAugmentationDeclaration_augment() {
-    final code = 'augment class A {}';
-    final findNode = _parseStringToFindNode(code);
-    _assertSource(code, findNode.singleClassAugmentationDeclaration);
-  }
-
   void test_visitClassDeclaration_abstract() {
     final code = 'abstract class C {}';
     final findNode = _parseStringToFindNode(code);
@@ -358,6 +346,18 @@ void f() {
     final code = 'abstract macro class C {}';
     final findNode = _parseStringToFindNode(code);
     _assertSource(code, findNode.classDeclaration(code));
+  }
+
+  void test_visitClassDeclaration_augment() {
+    final code = 'augment class A {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassDeclaration);
+  }
+
+  void test_visitClassDeclaration_augment_abstract() {
+    final code = 'augment abstract class C {}';
+    final findNode = _parseStringToFindNode(code);
+    _assertSource(code, findNode.singleClassDeclaration);
   }
 
   void test_visitClassDeclaration_base() {
@@ -2664,21 +2664,21 @@ void f() {
     _assertSource(code, findNode.methodInvocation(code));
   }
 
-  void test_visitMixinAugmentationDeclaration() {
+  void test_visitMixinDeclaration_augment() {
     final code = 'augment mixin M {}';
     var findNode = _parseStringToFindNode(code);
     _assertSource(
       code,
-      findNode.singleMixinAugmentationDeclaration,
+      findNode.singleMixinDeclaration,
     );
   }
 
-  void test_visitMixinAugmentationDeclaration_base() {
+  void test_visitMixinDeclaration_augment_base() {
     final code = 'augment base mixin M {}';
     var findNode = _parseStringToFindNode(code);
     _assertSource(
       code,
-      findNode.singleMixinAugmentationDeclaration,
+      findNode.singleMixinDeclaration,
     );
   }
 

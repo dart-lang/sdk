@@ -33,9 +33,13 @@ class ConstructorMember extends ExecutableMember
             const <TypeParameterElement>[]);
 
   @override
-  ConstructorAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  ConstructorElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  ConstructorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -49,7 +53,7 @@ class ConstructorMember extends ExecutableMember
   InterfaceElement get enclosingElement => declaration.enclosingElement;
 
   @override
-  NamedInstanceOrAugmentationElement get enclosingElement2 {
+  NamedInstanceElement get enclosingElement2 {
     return declaration.enclosingElement2;
   }
 
@@ -61,11 +65,6 @@ class ConstructorMember extends ExecutableMember
 
   @override
   bool get isFactory => declaration.isFactory;
-
-  @override
-  AugmentationExecutableElement? get maybeAugmentation {
-    return declaration.maybeAugmentation;
-  }
 
   @override
   String get name => declaration.name;
@@ -187,6 +186,9 @@ abstract class ExecutableMember extends Member implements ExecutableElement {
 
   @override
   bool get isAsynchronous => declaration.isAsynchronous;
+
+  @override
+  bool get isAugmentation => declaration.isAugmentation;
 
   @override
   bool get isExternal => declaration.isExternal;
@@ -363,12 +365,6 @@ class FieldMember extends VariableMember implements FieldElement {
   );
 
   @override
-  FieldAugmentationElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
   FieldElement get declaration => super.declaration as FieldElement;
 
   @override
@@ -472,6 +468,16 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
         );
 
   @override
+  FunctionElement? get augmentation {
+    return declaration.augmentationTarget;
+  }
+
+  @override
+  FunctionElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
+
+  @override
   FunctionElement get declaration => super.declaration as FunctionElement;
 
   @Deprecated('Use enclosingElement2 instead')
@@ -486,11 +492,6 @@ class FunctionMember extends ExecutableMember implements FunctionElement {
 
   @override
   bool get isEntryPoint => declaration.isEntryPoint;
-
-  @override
-  AugmentationExecutableElement? get maybeAugmentation {
-    return declaration.maybeAugmentation;
-  }
 
   @override
   String get name => declaration.name;
@@ -837,6 +838,11 @@ class MethodMember extends ExecutableMember implements MethodElement {
   }
 
   @override
+  MethodElement? get augmentationTarget {
+    return declaration.augmentationTarget;
+  }
+
+  @override
   MethodElement get declaration => super.declaration as MethodElement;
 
   @Deprecated('Use enclosingElement2 instead')
@@ -845,11 +851,6 @@ class MethodMember extends ExecutableMember implements MethodElement {
 
   @override
   Element get enclosingElement2 => declaration.enclosingElement2;
-
-  @override
-  AugmentationMethodElement? get maybeAugmentation {
-    return declaration.maybeAugmentation;
-  }
 
   @override
   String get name => declaration.name;
@@ -1051,9 +1052,14 @@ class PropertyAccessorMember extends ExecutableMember
   );
 
   @override
-  PropertyAccessorAugmentationElement? get augmentation {
+  PropertyAccessorElement? get augmentation {
     // TODO(scheglov) implement
     throw UnimplementedError();
+  }
+
+  @override
+  PropertyAccessorElement? get augmentationTarget {
+    return declaration.augmentationTarget;
   }
 
   @override
@@ -1092,11 +1098,6 @@ class PropertyAccessorMember extends ExecutableMember
 
   @override
   bool get isSetter => declaration.isSetter;
-
-  @override
-  AugmentationExecutableElement? get maybeAugmentation {
-    return declaration.maybeAugmentation;
-  }
 
   @override
   String get name => declaration.name;

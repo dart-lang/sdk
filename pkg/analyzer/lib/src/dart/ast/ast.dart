@@ -1287,8 +1287,6 @@ abstract class AstVisitor<R> {
 
   R? visitCatchClauseParameter(CatchClauseParameter node);
 
-  R? visitClassAugmentationDeclaration(ClassAugmentationDeclaration node);
-
   R? visitClassDeclaration(ClassDeclaration node);
 
   R? visitClassTypeAlias(ClassTypeAlias node);
@@ -1446,8 +1444,6 @@ abstract class AstVisitor<R> {
   R? visitMethodDeclaration(MethodDeclaration node);
 
   R? visitMethodInvocation(MethodInvocation node);
-
-  R? visitMixinAugmentationDeclaration(MixinAugmentationDeclaration node);
 
   R? visitMixinDeclaration(MixinDeclaration node);
 
@@ -2684,60 +2680,6 @@ class ChildEntity {
   ChildEntity(this.name, this.value);
 }
 
-/// The declaration of a class augmentation.
-///
-///    classAugmentationDeclaration ::=
-///        'augment' 'class' name [TypeParameterList]?
-///        [ExtendsClause]? [WithClause]? [ImplementsClause]?
-///        '{' [ClassMember]* '}'
-@experimental
-abstract final class ClassAugmentationDeclaration
-    implements ClassOrAugmentationDeclaration {
-  /// The token representing the 'augment' keyword.
-  Token get augmentKeyword;
-
-  @override
-  ClassAugmentationElement? get declaredElement;
-}
-
-final class ClassAugmentationDeclarationImpl
-    extends ClassOrAugmentationDeclarationImpl
-    implements ClassAugmentationDeclaration {
-  @override
-  final Token augmentKeyword;
-
-  @override
-  ClassAugmentationElementImpl? declaredElement;
-
-  ClassAugmentationDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required super.abstractKeyword,
-    required super.macroKeyword,
-    required super.inlineKeyword,
-    required super.sealedKeyword,
-    required super.baseKeyword,
-    required super.interfaceKeyword,
-    required super.finalKeyword,
-    required super.mixinKeyword,
-    required super.classKeyword,
-    required super.name,
-    required super.typeParameters,
-    required super.withClause,
-    required super.implementsClause,
-    required super.nativeClause,
-    required super.leftBracket,
-    required super.members,
-    required super.rightBracket,
-  });
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) {
-    return visitor.visitClassAugmentationDeclaration(this);
-  }
-}
-
 /// The declaration of a class.
 ///
 ///    classDeclaration ::=
@@ -2748,85 +2690,14 @@ final class ClassAugmentationDeclarationImpl
 ///    classModifiers ::= 'sealed'
 ///      | 'abstract'? ('base' | 'interface' | 'final')?
 ///      | 'abstract'? 'base'? 'mixin'
-abstract final class ClassDeclaration
-    implements ClassOrAugmentationDeclaration {
-  @override
-  ClassElement? get declaredElement;
-
-  /// Returns the `extends` clause for this class, or `null` if the class
-  /// does not extend any other class.
-  ExtendsClause? get extendsClause;
-
-  /// Return the 'inline' keyword, or `null` if the keyword was absent.
-  @experimental
-  Token? get inlineKeyword;
-
-  /// Return the native clause for this class, or `null` if the class does not
-  /// have a native clause.
-  NativeClause? get nativeClause;
-}
-
-final class ClassDeclarationImpl extends ClassOrAugmentationDeclarationImpl
-    implements ClassDeclaration {
-  @override
-  ExtendsClauseImpl? extendsClause;
-
-  @override
-  ClassElementImpl? declaredElement;
-
-  ClassDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required super.abstractKeyword,
-    required super.macroKeyword,
-    required super.inlineKeyword,
-    required super.sealedKeyword,
-    required super.baseKeyword,
-    required super.interfaceKeyword,
-    required super.finalKeyword,
-    required super.mixinKeyword,
-    required super.classKeyword,
-    required super.name,
-    required super.typeParameters,
-    required this.extendsClause,
-    required super.withClause,
-    required super.implementsClause,
-    required super.nativeClause,
-    required super.leftBracket,
-    required super.members,
-    required super.rightBracket,
-  });
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
-}
-
-/// A node that declares a name within the scope of a class declarations.
-///
-/// When the 'extension-methods' experiment is enabled, these nodes can also be
-/// located inside extension declarations.
-sealed class ClassMember implements Declaration {}
-
-/// A node that declares a name within the scope of a class.
-sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
-  /// Initialize a newly created member of a class. Either or both of the
-  /// [comment] and [metadata] can be `null` if the member does not have the
-  /// corresponding attribute.
-  ClassMemberImpl({
-    required super.comment,
-    required super.metadata,
-  });
-}
-
-/// Shared interface between [ClassDeclaration] and
-/// [ClassAugmentationDeclaration].
-@experimental
-abstract final class ClassOrAugmentationDeclaration
-    implements NamedCompilationUnitMember {
+abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   /// Return the 'abstract' keyword, or `null` if the keyword was absent.
   ///
   /// In valid code only [ClassDeclaration] can specify it.
   Token? get abstractKeyword;
+
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
 
   /// Return the 'base' keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
@@ -2835,7 +2706,11 @@ abstract final class ClassOrAugmentationDeclaration
   Token get classKeyword;
 
   @override
-  ClassOrAugmentationElement? get declaredElement;
+  ClassElement? get declaredElement;
+
+  /// Returns the `extends` clause for this class, or `null` if the class
+  /// does not extend any other class.
+  ExtendsClause? get extendsClause;
 
   /// Return the 'final' keyword, or `null` if the keyword was absent.
   Token? get finalKeyword;
@@ -2843,6 +2718,10 @@ abstract final class ClassOrAugmentationDeclaration
   /// Returns the `implements` clause for the class, or `null` if the class
   /// does not implement any interfaces.
   ImplementsClause? get implementsClause;
+
+  /// Return the 'inline' keyword, or `null` if the keyword was absent.
+  @experimental
+  Token? get inlineKeyword;
 
   /// Return the 'interface' keyword, or `null` if the keyword was absent.
   Token? get interfaceKeyword;
@@ -2855,6 +2734,10 @@ abstract final class ClassOrAugmentationDeclaration
 
   /// Return the 'mixin' keyword, or `null` if the keyword was absent.
   Token? get mixinKeyword;
+
+  /// Return the native clause for this class, or `null` if the class does not
+  /// have a native clause.
+  NativeClause? get nativeClause;
 
   /// Returns the right curly bracket.
   Token get rightBracket;
@@ -2871,9 +2754,11 @@ abstract final class ClassOrAugmentationDeclaration
   WithClause? get withClause;
 }
 
-sealed class ClassOrAugmentationDeclarationImpl
-    extends NamedCompilationUnitMemberImpl
-    implements ClassOrAugmentationDeclaration {
+final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
+    implements ClassDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token? abstractKeyword;
 
@@ -2895,7 +2780,7 @@ sealed class ClassOrAugmentationDeclarationImpl
   @override
   final Token? mixinKeyword;
 
-  /// The 'inline' keyword, or `null` if the keyword was absent.
+  @override
   final Token? inlineKeyword;
 
   @override
@@ -2905,11 +2790,15 @@ sealed class ClassOrAugmentationDeclarationImpl
   TypeParameterListImpl? typeParameters;
 
   @override
+  ExtendsClauseImpl? extendsClause;
+
+  @override
   WithClauseImpl? withClause;
 
   @override
   ImplementsClauseImpl? implementsClause;
 
+  @override
   final NativeClauseImpl? nativeClause;
 
   @override
@@ -2921,9 +2810,13 @@ sealed class ClassOrAugmentationDeclarationImpl
   @override
   final Token rightBracket;
 
-  ClassOrAugmentationDeclarationImpl({
+  @override
+  ClassElementImpl? declaredElement;
+
+  ClassDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.abstractKeyword,
     required this.macroKeyword,
     required this.sealedKeyword,
@@ -2935,6 +2828,7 @@ sealed class ClassOrAugmentationDeclarationImpl
     required this.classKeyword,
     required super.name,
     required this.typeParameters,
+    required this.extendsClause,
     required this.withClause,
     required this.implementsClause,
     required this.nativeClause,
@@ -2950,12 +2844,8 @@ sealed class ClassOrAugmentationDeclarationImpl
     this.members._initialize(this, members);
   }
 
-  Token? get augmentKeyword => null;
-
   @override
   Token get endToken => rightBracket;
-
-  ExtendsClauseImpl? get extendsClause => null;
 
   @override
   Token get firstTokenAfterCommentAndMetadata {
@@ -2992,6 +2882,9 @@ sealed class ClassOrAugmentationDeclarationImpl
     ..addToken('rightBracket', rightBracket);
 
   @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitClassDeclaration(this);
+
+  @override
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
@@ -3001,6 +2894,23 @@ sealed class ClassOrAugmentationDeclarationImpl
     nativeClause?.accept(visitor);
     members.accept(visitor);
   }
+}
+
+/// A node that declares a name within the scope of a class declarations.
+///
+/// When the 'extension-methods' experiment is enabled, these nodes can also be
+/// located inside extension declarations.
+sealed class ClassMember implements Declaration {}
+
+/// A node that declares a name within the scope of a class.
+sealed class ClassMemberImpl extends DeclarationImpl implements ClassMember {
+  /// Initialize a newly created member of a class. Either or both of the
+  /// [comment] and [metadata] can be `null` if the member does not have the
+  /// corresponding attribute.
+  ClassMemberImpl({
+    required super.comment,
+    required super.metadata,
+  });
 }
 
 /// A class type alias.
@@ -12296,94 +12206,20 @@ abstract final class MethodReferenceExpression implements Expression {
   MethodElement? get staticElement;
 }
 
-/// The declaration of a mixin augmentation.
-///
-///    mixinAugmentationDeclaration ::=
-///        'augment' 'mixin' name [TypeParameterList]?
-///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-@experimental
-abstract final class MixinAugmentationDeclaration
-    implements MixinOrAugmentationDeclaration {
-  /// The token representing the 'augment' keyword.
-  Token get augmentKeyword;
-
-  @override
-  MixinAugmentationElement? get declaredElement;
-}
-
-final class MixinAugmentationDeclarationImpl
-    extends MixinOrAugmentationDeclarationImpl
-    implements MixinAugmentationDeclaration {
-  @override
-  MixinAugmentationElementImpl? declaredElement;
-
-  @override
-  final Token augmentKeyword;
-
-  MixinAugmentationDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required this.augmentKeyword,
-    required super.baseKeyword,
-    required super.mixinKeyword,
-    required super.name,
-    required super.typeParameters,
-    required super.onClause,
-    required super.implementsClause,
-    required super.leftBracket,
-    required super.members,
-    required super.rightBracket,
-  });
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitMixinAugmentationDeclaration(this);
-}
-
 /// The declaration of a mixin.
 ///
 ///    mixinDeclaration ::=
 ///        'base'? 'mixin' name [TypeParameterList]?
 ///        [OnClause]? [ImplementsClause]? '{' [ClassMember]* '}'
-abstract final class MixinDeclaration
-    implements MixinOrAugmentationDeclaration {
-  @override
-  MixinElement? get declaredElement;
-}
+abstract final class MixinDeclaration implements NamedCompilationUnitMember {
+  /// Return the 'augment' keyword, or `null` if the keyword was absent.
+  Token? get augmentKeyword;
 
-final class MixinDeclarationImpl extends MixinOrAugmentationDeclarationImpl
-    implements MixinDeclaration {
-  @override
-  MixinElementImpl? declaredElement;
-
-  MixinDeclarationImpl({
-    required super.comment,
-    required super.metadata,
-    required super.baseKeyword,
-    required super.mixinKeyword,
-    required super.name,
-    required super.typeParameters,
-    required super.onClause,
-    required super.implementsClause,
-    required super.leftBracket,
-    required super.members,
-    required super.rightBracket,
-  });
-
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
-}
-
-/// Shared interface between [MixinDeclaration] and
-/// [MixinAugmentationDeclaration].
-@experimental
-abstract final class MixinOrAugmentationDeclaration
-    implements NamedCompilationUnitMember {
   /// Return the 'base' keyword, or `null` if the keyword was absent.
   Token? get baseKeyword;
 
   @override
-  MixinOrAugmentationElement? get declaredElement;
+  MixinElement? get declaredElement;
 
   /// Returns the `implements` clause for the mixin, or `null` if the mixin
   /// does not implement any interfaces.
@@ -12410,9 +12246,11 @@ abstract final class MixinOrAugmentationDeclaration
   TypeParameterList? get typeParameters;
 }
 
-sealed class MixinOrAugmentationDeclarationImpl
-    extends NamedCompilationUnitMemberImpl
-    implements MixinOrAugmentationDeclaration {
+final class MixinDeclarationImpl extends NamedCompilationUnitMemberImpl
+    implements MixinDeclaration {
+  @override
+  final Token? augmentKeyword;
+
   @override
   final Token? baseKeyword;
 
@@ -12437,9 +12275,13 @@ sealed class MixinOrAugmentationDeclarationImpl
   @override
   final Token rightBracket;
 
-  MixinOrAugmentationDeclarationImpl({
+  @override
+  MixinElementImpl? declaredElement;
+
+  MixinDeclarationImpl({
     required super.comment,
     required super.metadata,
+    required this.augmentKeyword,
     required this.baseKeyword,
     required this.mixinKeyword,
     required super.name,
@@ -12455,8 +12297,6 @@ sealed class MixinOrAugmentationDeclarationImpl
     _becomeParentOf(implementsClause);
     this.members._initialize(this, members);
   }
-
-  Token? get augmentKeyword => null;
 
   @override
   Token get endToken => rightBracket;
@@ -12478,6 +12318,9 @@ sealed class MixinOrAugmentationDeclarationImpl
     ..addToken('leftBracket', leftBracket)
     ..addNodeList('members', members)
     ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitMixinDeclaration(this);
 
   @override
   void visitChildren(AstVisitor visitor) {

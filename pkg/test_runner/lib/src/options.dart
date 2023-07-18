@@ -850,8 +850,10 @@ has been specified on the command line.''')
         var suitePath = Path(configuration['suite-dir'] as String);
         selectors.add(suitePath.filename);
       } else if (configuration['test-list-contents'] != null) {
-        selectors.addAll((configuration['test-list-contents'] as List<String>)
-            .map((t) => t.split('/').first));
+        selectors = (configuration['test-list-contents'] as List<String>)
+            .map((t) => t.split('/').first)
+            .toSet()
+            .toList();
       } else {
         if (nnbdMode == NnbdMode.legacy) {
           selectors.addAll(_legacyTestSelectors);
