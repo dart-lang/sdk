@@ -1,0 +1,43 @@
+Errors: {
+}
+method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr() → dynamic
+  return block {
+    #lib1::Color #t1;
+    final synthesized #lib1::_Type #0#0 = this.{#lib1::Class::_type}{#lib1::_Type};
+    #L1:
+    {
+      {
+        if(#C3 =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+          #t1 = this.{#lib1::Class::theme}{#lib1::Theme}.{#lib1::Theme::primary}{#lib1::Color};
+          break #L1;
+        }
+      }
+      {
+        if(#C6 =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+          #t1 = this.{#lib1::Class::theme}{#lib1::Theme}.{#lib1::Theme::white}{#lib1::Color};
+          break #L1;
+        }
+      }
+      {
+        if(#C9 =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} #0#0 || #C12 =={dart.core::Object::==}{(dart.core::Object) → dart.core::bool} #0#0) {
+          #t1 = this.{#lib1::Class::theme}{#lib1::Theme}.{#lib1::Theme::transparent}{#lib1::Color};
+          break #L1;
+        }
+      }
+      throw new dart._internal::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
+    }
+  } =>#t1;
+constants  {
+  #C1 = 0
+  #C2 = "primary"
+  #C3 = #lib1::_Type {index:#C1, _name:#C2}
+  #C4 = 1
+  #C5 = "background"
+  #C6 = #lib1::_Type {index:#C4, _name:#C5}
+  #C7 = 2
+  #C8 = "outline"
+  #C9 = #lib1::_Type {index:#C7, _name:#C8}
+  #C10 = 3
+  #C11 = "text"
+  #C12 = #lib1::_Type {index:#C10, _name:#C11}
+}

@@ -141,7 +141,7 @@ void transformProcedure(
       typeEnvironment,
       errorReporter,
       evaluationMode);
-  constantsTransformer.visitProcedure(procedure, null);
+  constantsTransformer.convertProcedure(procedure);
 }
 
 enum EvaluationMode {
@@ -441,6 +441,14 @@ class ConstantsTransformer extends RemovingTransformer {
     }
     _staticTypeContext = null;
     _exhaustivenessCache = null;
+  }
+
+  Procedure convertProcedure(Procedure node) {
+    _exhaustivenessCache =
+        new CfeExhaustivenessCache(constantEvaluator, node.enclosingLibrary);
+    Procedure result = visitProcedure(node, null);
+    _exhaustivenessCache = null;
+    return result;
   }
 
   @override

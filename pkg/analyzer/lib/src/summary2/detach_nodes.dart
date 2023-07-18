@@ -61,6 +61,14 @@ class _Visitor extends GeneralizingElementVisitor<void> {
   }
 
   @override
+  void visitEnumElement(EnumElement element) {
+    if (element is EnumElementImpl) {
+      element.mixinInferenceCallback = null;
+    }
+    super.visitEnumElement(element);
+  }
+
+  @override
   void visitMixinElement(MixinElement element) {
     if (element is MixinElementImpl) {
       element.mixinInferenceCallback = null;

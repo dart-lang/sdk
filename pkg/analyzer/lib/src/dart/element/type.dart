@@ -477,6 +477,11 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
     required this.nullabilitySuffix,
     super.alias,
   }) {
+    if (element.isAugmentation) {
+      throw ArgumentError(
+        'InterfaceType(s) can only be created for declarations',
+      );
+    }
     var typeParameters = element.typeParameters;
     if (typeArguments.length != typeParameters.length) {
       throw ArgumentError(

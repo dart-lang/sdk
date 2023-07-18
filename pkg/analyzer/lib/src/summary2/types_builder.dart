@@ -67,6 +67,7 @@ class NodesToBuildType {
 
 class TypesBuilder {
   final Linker _linker;
+  final Map<InstanceElementImpl, _ToInferMixins> _toInferMixins = {};
 
   TypesBuilder(this._linker);
 
@@ -97,7 +98,7 @@ class TypesBuilder {
       _declaration(declaration);
     }
 
-    _MixinsInference(_linker).perform(nodes.declarations);
+    _MixinsInference(_toInferMixins).perform();
   }
 
   FunctionType _buildFunctionType(
@@ -135,16 +136,12 @@ class TypesBuilder {
       element.supertype = _objectType(element);
     }
 
-    element.mixins = _toInterfaceTypeList(
-      node.withClause?.mixinTypes,
-    );
-
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
 
     if (element.isAugmentation) {
-      _updatedAugmented(element);
+      _updatedAugmented(node.withClause, element);
     } else {
       if (element.augmentation != null) {
         final augmented = AugmentedClassElementImpl(element);
@@ -153,6 +150,7 @@ class TypesBuilder {
         augmented.interfaces.addAll(element.interfaces);
         augmented.methods.addAll(element.methods.notAugmented);
       }
+      _toInferMixins[element] = _ToInferMixins(element, node.withClause);
     }
   }
 
@@ -173,6 +171,8 @@ class TypesBuilder {
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
+
+    _toInferMixins[element] = _ToInferMixins(element, node.withClause);
   }
 
   void _declaration(AstNode node) {
@@ -245,6 +245,8 @@ class TypesBuilder {
     element.interfaces = _toInterfaceTypeList(
       node.implementsClause?.interfaces,
     );
+
+    _toInferMixins[element] = _ToInferMixins(element, node.withClause);
   }
 
   void _extensionDeclaration(ExtensionDeclaration node) {
@@ -327,7 +329,7 @@ class TypesBuilder {
     );
 
     if (element.isAugmentation) {
-      _updatedAugmented(element);
+      _updatedAugmented(null, element);
     } else {
       if (element.augmentation != null) {
         final augmented = AugmentedMixinElementImpl(element);
@@ -377,55 +379,65 @@ class TypesBuilder {
         .toFixedList();
   }
 
-  void _updatedAugmented<Declaration extends InstanceElementImpl>(
-    InstanceElementImpl element,
-  ) {
+  void _updatedAugmented(WithClause? withClause, InstanceElementImpl element) {
     final augmented = element.augmented;
     if (augmented == null) {
       return;
     }
 
     final declaration = augmented.declaration;
+    final declarationTypeParameters = declaration.typeParameters;
 
     final elementTypeParameters = element.typeParameters;
-    final declarationTypeParameters = declaration.typeParameters;
     if (elementTypeParameters.length != declarationTypeParameters.length) {
       return;
     }
 
-    final substitution = Substitution.fromPairs(
+    final toDeclaration = Substitution.fromPairs(
       elementTypeParameters,
-      declarationTypeParameters.map((e) {
-        return e.instantiate(
-          nullabilitySuffix: NullabilitySuffix.none,
-        );
-      }).toList(),
+      declarationTypeParameters.instantiateNone(),
     );
+
+    final fromDeclaration = Substitution.fromPairs(
+      declarationTypeParameters,
+      elementTypeParameters.instantiateNone(),
+    );
+
+    if (element is InterfaceElementImpl && withClause != null) {
+      final toInferMixins = _toInferMixins[declaration];
+      if (toInferMixins != null) {
+        toInferMixins.augmentations.add(
+          _ToInferMixinsAugmentation(
+            element: element,
+            withClause: withClause,
+            toDeclaration: toDeclaration,
+            fromDeclaration: fromDeclaration,
+          ),
+        );
+      }
+    }
 
     final typeProvider = element.library.typeProvider;
 
     if (element is InterfaceElementImpl &&
         augmented is AugmentedInterfaceElementImpl) {
-      augmented.mixins.addAll(
-        substitution.mapInterfaceTypes(element.mixins),
-      );
       augmented.interfaces.addAll(
-        substitution.mapInterfaceTypes(element.interfaces),
+        toDeclaration.mapInterfaceTypes(element.interfaces),
       );
     }
 
     if (element is MixinElementImpl && augmented is AugmentedMixinElementImpl) {
       augmented.superclassConstraints.addAll(
-        substitution.mapInterfaceTypes(element.superclassConstraints),
+        toDeclaration.mapInterfaceTypes(element.superclassConstraints),
       );
     }
 
     if (augmented is AugmentedInstanceElementImpl) {
       MethodElement mapMethodElement(MethodElement element) {
-        if (substitution.map.isEmpty) {
+        if (toDeclaration.map.isEmpty) {
           return element;
         }
-        return MethodMember(typeProvider, element, substitution, false);
+        return MethodMember(typeProvider, element, toDeclaration, false);
       }
 
       augmented.methods.addAll(
@@ -466,13 +478,22 @@ class _MixinInference {
     interfacesMerger.addWithSupertypes(element.supertype);
   }
 
-  void perform(WithClause? withClause) {
-    if (withClause == null) return;
+  void addTypes(Iterable<InterfaceType> types) {
+    for (final type in types) {
+      interfacesMerger.addWithSupertypes(type);
+    }
+  }
 
+  List<InterfaceType> perform(WithClause withClause) {
+    final result = <InterfaceType>[];
     for (var mixinNode in withClause.mixinTypes) {
       var mixinType = _inferSingle(mixinNode as NamedTypeImpl);
-      interfacesMerger.addWithSupertypes(mixinType);
+      if (mixinType != null && _isInterfaceTypeInterface(mixinType)) {
+        result.add(mixinType);
+        interfacesMerger.addWithSupertypes(mixinType);
+      }
     }
+    return result;
   }
 
   InterfaceType? _findInterfaceTypeForElement(
@@ -506,8 +527,11 @@ class _MixinInference {
     return result;
   }
 
-  InterfaceType _inferSingle(NamedTypeImpl mixinNode) {
+  InterfaceType? _inferSingle(NamedTypeImpl mixinNode) {
     var mixinType = _interfaceType(mixinNode.typeOrThrow);
+    if (mixinType == null) {
+      return null;
+    }
 
     if (mixinNode.typeArguments != null) {
       return mixinType;
@@ -579,38 +603,36 @@ class _MixinInference {
       return mixinType;
     }
 
-    final inferredType = instantiate(inferredTypeArguments);
-    mixinNode.type = inferredType;
-    return inferredType;
+    return instantiate(inferredTypeArguments);
   }
 
-  InterfaceType _interfaceType(DartType type) {
+  InterfaceType? _interfaceType(DartType type) {
     if (type is InterfaceType && _isInterfaceTypeInterface(type)) {
       return type;
     }
-    return typeSystem.typeProvider.objectType;
+    return null;
   }
 }
 
 /// Performs mixin inference for all declarations.
 class _MixinsInference {
-  final Linker _linker;
+  final Map<InstanceElementImpl, _ToInferMixins> _declarations;
 
-  _MixinsInference(this._linker);
+  _MixinsInference(this._declarations);
 
-  void perform(List<AstNode> declarations) {
-    for (var node in declarations) {
-      if (node is ClassDeclaration || node is ClassTypeAlias) {
-        var element = (node as Declaration).declaredElement as ClassElementImpl;
+  void perform() {
+    for (final declaration in _declarations.values) {
+      final element = declaration.element;
+      if (element is ClassElementImpl) {
         element.mixinInferenceCallback = _callbackWhenRecursion;
       }
     }
 
-    for (var declaration in declarations) {
+    for (final declaration in _declarations.values) {
       _inferDeclaration(declaration);
     }
 
-    _resetHierarchies(declarations);
+    _resetHierarchies();
   }
 
   /// This method is invoked when mixins are asked from the [element], and
@@ -625,39 +647,46 @@ class _MixinsInference {
   /// This method is invoked when mixins are asked from the [element], and
   /// we are not inferring the [element] now, i.e. there is no loop.
   List<InterfaceType>? _callbackWhenRecursion(InterfaceElementImpl element) {
-    var node = _linker.getLinkingNode(element);
-    if (node != null) {
-      _inferDeclaration(node);
+    final declaration = _declarations[element];
+    if (declaration != null) {
+      _inferDeclaration(declaration);
     }
     // The inference was successful, let the element return actual mixins.
     return null;
   }
 
-  void _infer(InterfaceElementImpl element, WithClause? withClause) {
-    if (withClause != null) {
-      element.mixinInferenceCallback = _callbackWhenLoop;
-      try {
-        var featureSet = element.library.featureSet;
-        _MixinInference(element, featureSet).perform(withClause);
-      } finally {
-        element.mixinInferenceCallback = null;
-        element.mixins = _toInterfaceTypeList(
-          withClause.mixinTypes,
+  void _inferDeclaration(_ToInferMixins declaration) {
+    final element = declaration.element;
+    element.mixinInferenceCallback = _callbackWhenLoop;
+
+    final featureSet = element.library.featureSet;
+    final declarationMixins = <InterfaceType>[];
+
+    try {
+      if (declaration.withClause case final withClause?) {
+        final inference = _MixinInference(element, featureSet);
+        final inferred = inference.perform(withClause);
+        element.mixins = inferred;
+        declarationMixins.addAll(inferred);
+      }
+
+      for (final augmentation in declaration.augmentations) {
+        final inference = _MixinInference(element, featureSet);
+        inference.addTypes(
+          augmentation.fromDeclaration.mapInterfaceTypes(declarationMixins),
+        );
+        final inferred = inference.perform(augmentation.withClause);
+        augmentation.element.mixins = inferred;
+        declarationMixins.addAll(
+          augmentation.toDeclaration.mapInterfaceTypes(inferred),
         );
       }
-    }
-  }
-
-  void _inferDeclaration(AstNode node) {
-    if (node is ClassDeclaration) {
-      var element = node.declaredElement as ClassElementImpl;
-      _infer(element, node.withClause);
-    } else if (node is ClassTypeAlias) {
-      var element = node.declaredElement as ClassElementImpl;
-      _infer(element, node.withClause);
-    } else if (node is EnumDeclaration) {
-      var element = node.declaredElement as EnumElementImpl;
-      _infer(element, node.withClause);
+    } finally {
+      element.mixinInferenceCallback = null;
+      switch (element.augmented) {
+        case AugmentedInterfaceElementImpl augmented:
+          augmented.mixins.addAll(declarationMixins);
+      }
     }
   }
 
@@ -665,21 +694,53 @@ class _MixinsInference {
   /// of mixins of the class is empty. But if this happens during building a
   /// class hierarchy, we cache such incomplete hierarchy. So, here we reset
   /// hierarchies for all classes being linked, indiscriminately.
-  void _resetHierarchies(List<AstNode> declarations) {
-    for (var declaration in declarations) {
-      if (declaration is ClassDeclaration) {
-        var element = declaration.declaredElement as ClassElementImpl;
-        element.library.session.classHierarchy.remove(element);
-      } else if (declaration is MixinDeclaration) {
-        var element = declaration.declaredElement as MixinElementImpl;
-        element.library.session.classHierarchy.remove(element);
-      }
+  void _resetHierarchies() {
+    for (final declaration in _declarations.values) {
+      final element = declaration.element;
+      element.library.session.classHierarchy.remove(element);
     }
+  }
+}
+
+/// The declaration of a class that can have mixins.
+class _ToInferMixins {
+  final InterfaceElementImpl element;
+  final WithClause? withClause;
+  final List<_ToInferMixinsAugmentation> augmentations = [];
+
+  _ToInferMixins(this.element, this.withClause) {
+    assert(!element.isAugmentation);
+  }
+}
+
+class _ToInferMixinsAugmentation {
+  final InterfaceElementImpl element;
+  final WithClause withClause;
+  final MapSubstitution toDeclaration;
+  final MapSubstitution fromDeclaration;
+
+  _ToInferMixinsAugmentation({
+    required this.element,
+    required this.withClause,
+    required this.toDeclaration,
+    required this.fromDeclaration,
+  }) {
+    assert(element.isAugmentation);
   }
 }
 
 extension on List<MethodElement> {
   Iterable<MethodElement> get notAugmented {
     return where((e) => e.augmentation == null);
+  }
+}
+
+extension on List<TypeParameterElement> {
+  List<TypeParameterType> instantiateNone() {
+    return map((e) {
+      return e.instantiate(
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }).toList();
   }
 }

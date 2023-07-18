@@ -689,6 +689,101 @@ library
 ''');
   }
 
+  test_augmented_mixins_inferredTypeArguments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment class A<T2> with M2 {}
+mixin M2<U2> on M1<U2> {}
+''');
+
+    newFile('$testPackageLibPath/b.dart', r'''
+library augment 'test.dart';
+augment class A<T3> with M3 {}
+mixin M3<U3> on M2<U3> {}
+''');
+
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+import augment 'b.dart';
+class B<S> {}
+class A<T1> extends B<T1> with M1 {}
+mixin M1<U1> on B<U1> {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @56
+        typeParameters
+          covariant S @58
+            defaultType: dynamic
+        constructors
+          synthetic @-1
+      class A @70
+        typeParameters
+          covariant T1 @72
+            defaultType: dynamic
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
+        supertype: B<T1>
+        mixins
+          M1<T1>
+        constructors
+          synthetic @-1
+            superConstructor: ConstructorMember
+              base: self::@class::B::@constructor::new
+              substitution: {S: T1}
+        augmented
+          mixins
+            M1<T1>
+            M2<T1>
+            M3<T1>
+    mixins
+      mixin M1 @107
+        typeParameters
+          covariant U1 @110
+            defaultType: dynamic
+        superclassConstraints
+          B<U1>
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        classes
+          augment class A @43
+            typeParameters
+              covariant T2 @45
+                defaultType: dynamic
+            augmentationTarget: self::@class::A
+            augmentation: self::@augmentation::package:test/b.dart::@class::A
+            mixins
+              M2<T2>
+        mixins
+          mixin M2 @66
+            typeParameters
+              covariant U2 @69
+                defaultType: dynamic
+            superclassConstraints
+              M1<U2>
+    package:test/b.dart
+      definingUnit
+        classes
+          augment class A @43
+            typeParameters
+              covariant T3 @45
+                defaultType: dynamic
+            augmentationTarget: self::@augmentation::package:test/a.dart::@class::A
+            mixins
+              M3<T3>
+        mixins
+          mixin M3 @66
+            typeParameters
+              covariant U3 @69
+                defaultType: dynamic
+            superclassConstraints
+              M2<U3>
+''');
+  }
+
   test_modifiers_abstract() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';

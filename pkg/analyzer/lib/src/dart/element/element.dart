@@ -2615,9 +2615,9 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   EnumElementImpl(super.name, super.offset);
 
   @override
-  Never get augmentation {
+  EnumElementImpl? get augmentation {
     // TODO(scheglov) implement
-    throw UnimplementedError();
+    return null;
   }
 
   @override
@@ -3522,6 +3522,9 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
   }
 
   @override
+  InterfaceElementImpl? get augmentation;
+
+  @override
   InterfaceElementImpl? get augmentationTarget;
 
   @override
@@ -3631,6 +3634,15 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
       (typeParameter as TypeParameterElementImpl).enclosingElement = this;
     }
     _typeParameterElements = typeParameters;
+  }
+
+  /// This element and all its augmentations, in order.
+  Iterable<InterfaceElementImpl> get withAugmentations sync* {
+    InterfaceElementImpl? current = this;
+    while (current != null) {
+      yield current;
+      current = current.augmentation;
+    }
   }
 
   @override
