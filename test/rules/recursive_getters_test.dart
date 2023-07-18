@@ -49,6 +49,86 @@ Set<String> get strings => const <String>{$setContents};
 ''');
   }
 
+  test_instanceGetter_blockBody_nonRecursive() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int _f = 0;
+  int get f {
+    return _f;
+  }
+}
+''');
+  }
+
+  test_instanceGetter_blockBody_recursiveWithImplicitThis() async {
+    await assertDiagnostics(r'''
+class C {
+  int get f {
+    return f;
+  }
+}
+''', [
+      lint(35, 1),
+    ]);
+  }
+
+  test_instanceGetter_expressionBody_innerRecursiveCall() async {
+    await assertDiagnostics(r'''
+class C {
+  int get f => p(f);
+}
+int p(int arg) => 0;
+''', [
+      lint(27, 1),
+    ]);
+  }
+
+  test_instanceGetter_expressionBody_nonRecursive() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int _f = 0;
+  int get f => _f;
+}
+''');
+  }
+
+  test_instanceGetter_expressionBody_recursiveWithExplicitThis() async {
+    await assertDiagnostics(r'''
+class C {
+  int get f => this.f;
+}
+''', [
+      lint(30, 1),
+    ]);
+  }
+
+  test_instanceGetter_expressionBody_recursiveWithImplicitThis() async {
+    await assertDiagnostics(r'''
+class C {
+  int get f => f;
+}
+''', [
+      lint(25, 1),
+    ]);
+  }
+
+  test_instanceGetter_recursiveCallOnOtherInstance() async {
+    await assertNoDiagnostics(r'''
+class C {
+  C? _parent;
+  C? get ancestor => _parent?.ancestor;
+}
+''');
+  }
+
+  test_method_recursive() async {
+    await assertNoDiagnostics(r'''
+class C {
+  int m() => m();
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/586
   test_nestedReference() async {
     await assertNoDiagnostics(r'''
@@ -133,5 +213,48 @@ class C {
   int get f => c.f;
 }
 ''');
+  }
+
+  test_topLevelGetter_blockBody_nonRecursive() async {
+    await assertNoDiagnostics(r'''
+int _f = 1;
+int get f {
+  return _f;
+}
+''');
+  }
+
+  test_topLevelGetter_blockBody_recursiveCall() async {
+    await assertDiagnostics(r'''
+int get f {
+  return f;
+}
+''', [
+      lint(21, 1),
+    ]);
+  }
+
+  test_topLevelGetter_expressionBody_nonRecursive() async {
+    await assertNoDiagnostics(r'''
+int _f = 1;
+int get f => _f;
+''');
+  }
+
+  test_topLevelGetter_expressionBody_recursiveCall() async {
+    await assertDiagnostics(r'''
+int get f => f;
+''', [
+      lint(13, 1),
+    ]);
+  }
+
+  test_topLevelGetter_innerRecursiveCall() async {
+    await assertDiagnostics(r'''
+int? _f = 1;
+int get f => _f == null ? 0 : f;
+''', [
+      lint(43, 1),
+    ]);
   }
 }
