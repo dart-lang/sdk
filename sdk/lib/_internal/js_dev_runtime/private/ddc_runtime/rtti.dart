@@ -167,7 +167,7 @@ getReifiedType(obj) {
         if (obj == null) return typeRep<Null>();
         if (_jsInstanceOf(obj, RecordImpl)) return getRtiForRecord(obj);
         if (_jsInstanceOf(obj, Object) ||
-            JS<bool>('!', 'Array.isArray(#)', obj)) {
+            JS('', '#[#]', obj, _extensionType) != null) {
           // The rti library can correctly extract the representation.
           return rti.instanceType(obj);
         }
