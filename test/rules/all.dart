@@ -188,6 +188,7 @@ import 'use_late_for_private_fields_and_variables_test.dart'
 import 'use_named_constants_test.dart' as use_named_constants;
 import 'use_setters_to_change_properties_test.dart'
     as use_setters_to_change_properties;
+import 'use_string_buffers_test.dart' as use_string_buffers;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
 import 'valid_regexps_test.dart' as valid_regexps;
@@ -329,6 +330,7 @@ void main() {
   use_late_for_private_fields_and_variables.main();
   use_named_constants.main();
   use_setters_to_change_properties.main();
+  use_string_buffers.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
   valid_regexps.main();
