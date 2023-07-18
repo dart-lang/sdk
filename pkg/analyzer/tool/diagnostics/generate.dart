@@ -225,6 +225,7 @@ that might work in unexpected ways.
   /// Link to the glossary.
   void _writeGlossary(StringSink sink) {
     sink.write(r'''
+
 [constant context]: /resources/glossary#constant-context
 [definite assignment]: /resources/glossary#definite-assignment
 [mixin application]: /resources/glossary#mixin-application
@@ -252,7 +253,7 @@ Update instructions: https://github.com/dart-lang/site-www/issues/1949
 This page lists diagnostic messages produced by the Dart analyzer,
 with details about what those messages mean and how you can fix your code.
 For more information about the analyzer, see
-[Customizing static analysis](/guides/language/analysis-options).
+[Customizing static analysis](/tools/analysis).
 ''');
   }
 }
