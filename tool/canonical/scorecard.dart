@@ -11,7 +11,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/config.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_imports
 import 'package:analyzer/src/lint/state.dart'; // ignore: implementation_imports
-import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
@@ -139,7 +138,6 @@ class Detail {
   static const Detail fix = Detail('fix');
   static const Detail bulk = Detail('bulk');
   static const Detail status = Detail('status');
-  static const Detail bugs = Detail('bug refs', header: Header.left);
   final String name;
   final Header header;
   const Detail(this.name, {this.header = Header.center});
@@ -161,7 +159,6 @@ class LintScore {
   State state;
 
   List<String> ruleSets;
-  List<String> bugReferences;
 
   LintScore({
     required this.name,
@@ -170,7 +167,6 @@ class LintScore {
     required this.hasBulkFix,
     required this.state,
     required this.ruleSets,
-    required this.bugReferences,
   });
 
   bool get inCore => ruleSets.contains('core');
@@ -198,8 +194,6 @@ class LintScore {
           sb.write(' $status |');
         case Detail.status:
           sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
-        case Detail.bugs:
-          sb.write(' ${bugReferences.join(", ")} |');
       }
     }
     return sb.toString();
@@ -267,9 +261,6 @@ class ScoreCard {
     var lintsWithAssists = _getLintsWithAssists();
     var lintsWithFixes = await _getLintsWithFixes();
     var lintsWithBulkFixes = await _getLintsWithBulkFixes();
-    // var issues = await _getIssues();
-    // var bugs = issues.where(_isBug).toList();
-    var bugs = <Issue>[];
 
     var coreRuleset = await _readCoreLints();
     var recommendedRuleset = await _readRecommendedLints();
@@ -292,14 +283,6 @@ class ScoreCard {
         continue;
       }
 
-      var bugReferences = <String>[];
-      for (var bug in bugs) {
-        var title = bug.title;
-        if (title.contains(lint.name)) {
-          bugReferences.add('#${bug.number}');
-        }
-      }
-
       var lintName = lint.name;
       scorecard.add(LintScore(
         name: lintName,
@@ -308,7 +291,6 @@ class ScoreCard {
         hasBulkFix: lintsWithBulkFixes.contains(lintName),
         state: lint.state,
         ruleSets: ruleSets,
-        bugReferences: bugReferences,
       ));
     }
 

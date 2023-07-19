@@ -8,14 +8,12 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/lint/state.dart';
-import 'package:github/github.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
 
 import 'crawl.dart';
-import 'github.dart';
 import 'parse.dart';
 import 'since.dart';
 
@@ -28,7 +26,6 @@ void main() async {
     Detail.flutterUser,
     Detail.flutterRepo,
     Detail.status,
-    Detail.bugs,
   ];
 
   printToConsole(scorecard.asMarkdown(details));
@@ -108,7 +105,6 @@ class Detail {
   static const Detail flutterUser = Detail('flutter user');
   static const Detail flutterRepo = Detail('flutter repo');
   static const Detail status = Detail('status');
-  static const Detail bugs = Detail('bug refs', header: Header.left);
   final String name;
   final Header header;
   const Detail(this.name, {this.header = Header.center});
@@ -130,14 +126,12 @@ class LintScore {
   SinceInfo? since;
 
   List<String> ruleSets;
-  List<String> bugReferences;
 
   LintScore(
       {required this.name,
       required this.hasFix,
       required this.state,
       required this.ruleSets,
-      required this.bugReferences,
       this.since});
 
   String get _ruleSets => ruleSets.isNotEmpty ? ' $ruleSets' : '';
@@ -160,8 +154,6 @@ class LintScore {
               '${ruleSets.contains('flutter_repo') ? " $checkMark" : ""} |');
         case Detail.status:
           sb.write('${!state.isStable ? ' **${state.label}** ' : ""} |');
-        case Detail.bugs:
-          sb.write(' ${bugReferences.join(", ")} |');
       }
     }
     return sb.toString();
@@ -211,9 +203,6 @@ class ScoreCard {
     var flutterRuleset = await flutterRules;
     var flutterRepoRuleset = await flutterRepoRules;
 
-    var issues = await getLinterIssues(auth: const Authentication.anonymous());
-    var bugs = issues.where(isBug).toList();
-
     var scorecard = ScoreCard();
     for (var lint in registeredLints!) {
       var ruleSets = <String>[];
@@ -224,22 +213,13 @@ class ScoreCard {
         ruleSets.add('flutter_repo');
       }
 
-      var bugReferences = <String>[];
-      for (var bug in bugs) {
-        var title = bug.title;
-        if (title.contains(lint.name)) {
-          bugReferences.add('#${bug.number}');
-        }
-      }
-
       scorecard.add(LintScore(
           name: lint.name,
           hasFix: lintsWithFixes.contains(lint.name) ||
               lintsWithAssists.contains(lint.name),
           state: lint.state,
           ruleSets: ruleSets,
-          since: sinceMap[lint.name],
-          bugReferences: bugReferences));
+          since: sinceMap[lint.name]));
     }
 
     return scorecard;
