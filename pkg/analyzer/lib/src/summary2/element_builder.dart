@@ -108,7 +108,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -896,7 +898,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {

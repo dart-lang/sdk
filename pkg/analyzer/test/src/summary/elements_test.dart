@@ -25692,33 +25692,38 @@ library
   test_exportScope_augmentation_class() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart';
-class A {}
+augment class A {}
+class B {}
 ''');
     var library = await buildLibrary(r'''
 import augment 'a.dart';
-class B {}
+class A {}
 ''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
   definingUnit
     classes
-      class B @31
+      class A @31
+        augmentation: self::@augmentation::package:test/a.dart::@class::A
         constructors
           synthetic @-1
+        augmented
   augmentationImports
     package:test/a.dart
       definingUnit
         classes
-          class A @35
+          augment class A @43
+            augmentationTarget: self::@class::A
+          class B @54
             constructors
               synthetic @-1
   exportedReferences
-    declared self::@augmentation::package:test/a.dart::@class::A
-    declared self::@class::B
+    declared self::@augmentation::package:test/a.dart::@class::B
+    declared self::@class::A
   exportNamespace
-    A: self::@augmentation::package:test/a.dart::@class::A
-    B: self::@class::B
+    A: self::@class::A
+    B: self::@augmentation::package:test/a.dart::@class::B
 ''');
   }
 
@@ -25858,6 +25863,46 @@ library
     A1: package:test/a.dart::@class::A1
     A3: package:test/a.dart::@class::A3
     X: self::@class::X
+''');
+  }
+
+  test_exportScope_augmentation_mixin() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+augment mixin A {}
+mixin B {}
+''');
+    var library = await buildLibrary(r'''
+import augment 'a.dart';
+mixin A {}
+''');
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    mixins
+      mixin A @31
+        augmentation: self::@augmentation::package:test/a.dart::@mixin::A
+        superclassConstraints
+          Object
+        augmented
+          superclassConstraints
+            Object
+  augmentationImports
+    package:test/a.dart
+      definingUnit
+        mixins
+          augment mixin A @43
+            augmentationTarget: self::@mixin::A
+          mixin B @54
+            superclassConstraints
+              Object
+  exportedReferences
+    declared self::@augmentation::package:test/a.dart::@mixin::B
+    declared self::@mixin::A
+  exportNamespace
+    A: self::@mixin::A
+    B: self::@augmentation::package:test/a.dart::@mixin::B
 ''');
   }
 
