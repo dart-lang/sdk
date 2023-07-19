@@ -2691,16 +2691,14 @@ severity: $severity
     ticker.logMs("Checked redirecting factories");
   }
 
-  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] based on all the
-  /// classes in [sourceClasses].
-  void computeFieldPromotability(List<SourceClassBuilder> sourceClasses) {
-    for (SourceClassBuilder builder in sourceClasses) {
-      SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
-      if (!libraryBuilder.isInferenceUpdate2Enabled) continue;
-      Set<String> unpromotablePrivateFieldNames =
-          libraryBuilder.unpromotablePrivateFieldNames ??= {};
-      if (libraryBuilder.loader == this && !builder.isPatch) {
-        builder.addUnpromotablePrivateFieldNames(unpromotablePrivateFieldNames);
+  /// Sets [SourceLibraryBuilder.unpromotablePrivateFieldNames] for any
+  /// libraries in which field promotion is enabled.
+  void computeFieldPromotability() {
+    for (SourceLibraryBuilder library in sourceLibraryBuilders) {
+      if (!library.isInferenceUpdate2Enabled) continue;
+      // TODO(paulberry): what should we do for augmentation libraries?
+      if (library.loader == this && !library.isPatch) {
+        library.computeFieldPromotability();
       }
     }
     ticker.logMs("Computed unpromotable private field names");

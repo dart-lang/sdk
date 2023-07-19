@@ -515,6 +515,10 @@ class KernelTarget extends TargetImplementation {
       benchmarker?.enterPhase(BenchmarkPhases.outline_installTypedefTearOffs);
       loader.installTypedefTearOffs();
 
+      benchmarker
+          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
+      loader.computeFieldPromotability();
+
       benchmarker?.enterPhase(BenchmarkPhases.outline_performTopLevelInference);
       loader.performTopLevelInference(sortedSourceClassBuilders);
 
@@ -523,10 +527,6 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkAbstractMembers);
       loader.checkAbstractMembers(sortedSourceClassBuilders);
-
-      benchmarker
-          ?.enterPhase(BenchmarkPhases.outline_computeFieldPromotability);
-      loader.computeFieldPromotability(sortedSourceClassBuilders);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkMixins);
       loader.checkMixins(sortedSourceClassBuilders);
