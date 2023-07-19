@@ -288,7 +288,6 @@ class Types {
       } else {
         // Masqueraded class
         assert(cls.enclosingLibrary.importUri.scheme == "dart");
-        assert(cls.name.startsWith('_'));
         assert(masquerade.classId >= TypeCategory.minMasqueradeClassId);
         assert(masquerade.classId <= TypeCategory.maxMasqueradeClassId);
         category = masquerade.classId;

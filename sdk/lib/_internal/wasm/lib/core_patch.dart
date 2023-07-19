@@ -62,7 +62,6 @@ part "double.dart";
 part "errors_patch.dart";
 part "growable_list.dart";
 part "identical_patch.dart";
-part "int.dart";
 part "list.dart";
 part "named_parameters.dart";
 part "object_patch.dart";

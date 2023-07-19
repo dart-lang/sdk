@@ -205,6 +205,15 @@
   },
   "wasm_common": {
     "libraries": {
+      "_boxed_double": {
+        "uri": "_internal/wasm/lib/boxed_double.dart"
+      },
+      "_boxed_int": {
+        "uri": "_internal/wasm/lib/boxed_int.dart"
+      },
+      "_double_helper": {
+        "uri": "_internal/wasm/lib/double_helper.dart"
+      },
       "_http": {
         "uri": "_http/http.dart"
       },
@@ -213,6 +222,9 @@
         "patches": [
           "_internal/wasm/lib/internal_patch.dart"
         ]
+      },
+      "_int_helper": {
+        "uri": "_internal/wasm/lib/int_helper.dart"
       },
       "_js_annotations": {
         "uri": "js/_js_annotations.dart"

@@ -46,12 +46,6 @@ class Intrinsifier {
         '<=': (b) => b.i64_le_s(),
         '>': (b) => b.i64_gt_s(),
         '>=': (b) => b.i64_ge_s(),
-        '_div_s': (b) => b.i64_div_s(),
-        '_shl': (b) => b.i64_shl(),
-        '_shr_s': (b) => b.i64_shr_s(),
-        '_shr_u': (b) => b.i64_shr_u(),
-        '_le_u': (b) => b.i64_le_u(),
-        '_lt_u': (b) => b.i64_lt_u(),
       }
     },
     doubleType: {
@@ -64,10 +58,31 @@ class Intrinsifier {
         '<=': (b) => b.f64_le(),
         '>': (b) => b.f64_gt(),
         '>=': (b) => b.f64_ge(),
-        '_copysign': (b) => b.f64_copysign(),
       }
     },
   };
+
+  /// Some Wasm intrinsics have no equivalent public member. Thus, these
+  /// intrinsics must be top level static members.
+  static final Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
+      privateBinaryOperatorMap = {
+    intType: {
+      intType: {
+        'div_s': (b) => b.i64_div_s(),
+        'shl': (b) => b.i64_shl(),
+        'shr_s': (b) => b.i64_shr_s(),
+        'shr_u': (b) => b.i64_shr_u(),
+        'le_u': (b) => b.i64_le_u(),
+        'lt_u': (b) => b.i64_lt_u(),
+      }
+    },
+    doubleType: {
+      doubleType: {
+        'copysign': (b) => b.f64_copysign(),
+      }
+    },
+  };
+
   static final Map<w.ValueType, Map<String, CodeGenCallback>> unaryOperatorMap =
       {
     intType: {
@@ -96,17 +111,25 @@ class Intrinsifier {
       'truncateToDouble': (b) {
         b.f64_trunc();
       },
-      '_toInt': (b) {
+    },
+  };
+
+  /// See note on [privateBinaryOperatorMap].
+  static final Map<w.ValueType, Map<String, CodeGenCallback>>
+      privateUnaryOperatorMap = {
+    doubleType: {
+      'toInt': (b) {
         b.i64_trunc_sat_f64_s();
       },
     },
   };
+
   static final Map<String, w.ValueType> unaryResultMap = {
     'toDouble': w.NumType.f64,
     'floorToDouble': w.NumType.f64,
     'ceilToDouble': w.NumType.f64,
     'truncateToDouble': w.NumType.f64,
-    '_toInt': w.NumType.i64,
+    'toInt': w.NumType.i64,
   };
 
   Translator get translator => codeGen.translator;
@@ -123,8 +146,8 @@ class Intrinsifier {
       op == '<=' ||
       op == '>' ||
       op == '>=' ||
-      op == '_le_u' ||
-      op == '_lt_u';
+      op == 'le_u' ||
+      op == 'lt_u';
 
   Intrinsifier(this.codeGen);
 
@@ -203,6 +226,43 @@ class Intrinsifier {
       return w.NumType.i64;
     }
 
+    return null;
+  }
+
+  w.ValueType? _generateUnaryIntrinsic(
+      String name,
+      Expression operand,
+      DartType operandType,
+      Map<w.ValueType, Map<String, CodeGenCallback>> operatorMap) {
+    w.ValueType opType = translator.translateType(operandType);
+    var code = operatorMap[opType]?[name];
+    if (code != null) {
+      codeGen.wrap(operand, opType);
+      code(b);
+      return unaryResultMap[name] ?? opType;
+    }
+    return null;
+  }
+
+  w.ValueType? _generateBinaryIntrinsic(
+      String name,
+      Expression left,
+      Expression right,
+      DartType leftDartType,
+      Map<w.ValueType, Map<w.ValueType, Map<String, CodeGenCallback>>>
+          operatorMap) {
+    DartType argType = dartTypeOf(right);
+    if (argType is VoidType) return null;
+    w.ValueType leftType = translator.translateType(leftDartType);
+    w.ValueType rightType = translator.translateType(argType);
+    var code = operatorMap[leftType]?[rightType]?[name];
+    if (code != null) {
+      w.ValueType outType = isComparison(name) ? w.NumType.i32 : leftType;
+      codeGen.wrap(left, leftType);
+      codeGen.wrap(right, rightType);
+      code(b);
+      return outType;
+    }
     return null;
   }
 
@@ -533,31 +593,11 @@ class Intrinsifier {
     }
 
     if (node.arguments.positional.length == 1) {
-      // Binary operator
-      Expression left = node.receiver;
-      Expression right = node.arguments.positional.single;
-      DartType argType = dartTypeOf(right);
-      if (argType is VoidType) return null;
-      w.ValueType leftType = translator.translateType(receiverType);
-      w.ValueType rightType = translator.translateType(argType);
-      var code = binaryOperatorMap[leftType]?[rightType]?[name];
-      if (code != null) {
-        w.ValueType outType = isComparison(name) ? w.NumType.i32 : leftType;
-        codeGen.wrap(left, leftType);
-        codeGen.wrap(right, rightType);
-        code(b);
-        return outType;
-      }
+      return _generateBinaryIntrinsic(node.name.text, node.receiver,
+          node.arguments.positional.single, receiverType, binaryOperatorMap);
     } else if (node.arguments.positional.isEmpty) {
-      // Unary operator
-      Expression operand = node.receiver;
-      w.ValueType opType = translator.translateType(receiverType);
-      var code = unaryOperatorMap[opType]?[name];
-      if (code != null) {
-        codeGen.wrap(operand, opType);
-        code(b);
-        return unaryResultMap[name] ?? opType;
-      }
+      return _generateUnaryIntrinsic(
+          node.name.text, node.receiver, receiverType, unaryOperatorMap);
     }
 
     return null;
@@ -720,6 +760,24 @@ class Intrinsifier {
           return translator.types.makeTypeRulesSubstitutions(b);
         case "_getTypeNames":
           return translator.types.makeTypeNames(b);
+      }
+    }
+
+    // dart:_double_helper and dart:_int_helper static functions.
+    if (node.target.enclosingLibrary.name == 'dart._double_helper' ||
+        node.target.enclosingLibrary.name == 'dart._int_helper') {
+      if (node.arguments.positional.length == 1) {
+        final operand = node.arguments.positional.single;
+        return _generateUnaryIntrinsic(node.name.text, operand,
+            dartTypeOf(operand), privateUnaryOperatorMap);
+      } else if (node.arguments.positional.length == 2) {
+        final left = node.arguments.positional[0];
+        return _generateBinaryIntrinsic(
+            node.name.text,
+            left,
+            node.arguments.positional[1],
+            dartTypeOf(left),
+            privateBinaryOperatorMap);
       }
     }
 

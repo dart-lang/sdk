@@ -94,6 +94,8 @@ class WasmTarget extends Target {
   List<String> get extraRequiredLibraries => const <String>[
         'dart:async',
         'dart:ffi',
+        'dart:_boxed_double',
+        'dart:_boxed_int',
         'dart:_internal',
         'dart:_http',
         'dart:_js_helper',
@@ -125,6 +127,8 @@ class WasmTarget extends Target {
       uri.isScheme('dart') &&
       (uri.path == 'core' ||
           uri.path == 'typed_data' ||
+          uri.path == '_boxed_double' ||
+          uri.path == '_boxed_int' ||
           uri.path == '_js_types');
 
   @override
