@@ -906,31 +906,6 @@ void IsolateGroup::RehashConstants() {
   heap()->ResetCanonicalHashTable();
 }
 
-#if defined(DEBUG)
-void IsolateGroup::ValidateConstants() {
-  if (FLAG_precompiled_mode) {
-    // TODO(27003)
-    return;
-  }
-  // Issue(https://dartbug.com/44862): Figure out why hot-reload causes
-  // existence of non-canonical constants.
-  if (HasAttemptedReload()) {
-    return;
-  }
-
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
-  heap()->CollectAllGarbage(GCReason::kDebugging);
-  Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
-}
-#endif  // DEBUG
-
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const bool ok = SendInternalLibMessage(main_port(), msg_id, capability);
   if (!ok) UNREACHABLE();
