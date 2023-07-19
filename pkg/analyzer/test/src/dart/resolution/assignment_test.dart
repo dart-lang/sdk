@@ -1580,6 +1580,298 @@ AssignmentExpression
 ''');
   }
 
+  test_prefixedIdentifier_ofClass_getterAugmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  int get foo => 0;
+}
+''');
+
+    await assertErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f(A a) {
+  a.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 56, 3),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofClass_setterAugmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofClass_setterAugmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f(A a) {
+  a.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofClassName_getterAugmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  static int get foo => 0;
+}
+''');
+
+    await assertErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A.foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER, 53, 3),
+    ]);
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: <null>
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  writeType: InvalidType
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofClassName_setterAugmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment static set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  static set foo(int _) {}
+}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_prefixedIdentifier_ofClassName_setterAugmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  static set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      staticElement: self::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_prefixedIdentifier_static_simple() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2102,6 +2394,108 @@ AssignmentExpression
   readType: null
   writeElement: self::@class::A::@setter::x
   writeType: num
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_ofClass_setterAugmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  (a).foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
+  test_propertyAccess_ofClass_setterAugmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  set foo(int _) {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f(A a) {
+  (a).foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PropertyAccess
+    target: ParenthesizedExpression
+      leftParenthesis: (
+      expression: SimpleIdentifier
+        token: a
+        staticElement: self::@function::f::@parameter::a
+        staticType: A
+      rightParenthesis: )
+      staticType: A
+    operator: .
+    propertyName: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@augmentation::package:test/a.dart::@class::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@augmentation::package:test/a.dart::@class::A::@setter::foo
+  writeType: int
   staticElement: <null>
   staticType: int
 ''');

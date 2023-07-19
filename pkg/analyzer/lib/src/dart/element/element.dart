@@ -135,26 +135,56 @@ abstract class AugmentedInstanceElementImpl
 
   @override
   FieldElement? getField(String name) {
-    // TODO: implement getField
-    throw UnimplementedError();
+    final length = fields.length;
+    for (var i = 0; i < length; i++) {
+      final field = fields[i];
+      if (field.name == name) {
+        return field;
+      }
+    }
+    return null;
   }
 
   @override
   PropertyAccessorElement? getGetter(String name) {
-    // TODO: implement getGetter
-    throw UnimplementedError();
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == name) {
+        return accessor;
+      }
+    }
+    return null;
   }
 
   @override
   MethodElement? getMethod(String name) {
-    // TODO: implement getMethod
-    throw UnimplementedError();
+    final length = methods.length;
+    for (var i = 0; i < length; i++) {
+      final method = methods[i];
+      if (method.name == name) {
+        return method;
+      }
+    }
+    return null;
   }
 
   @override
   PropertyAccessorElement? getSetter(String name) {
-    // TODO: implement getSetter
-    throw UnimplementedError();
+    final nameLength = name.length;
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isSetter) {
+        final accessorName = accessor.name;
+        if (accessorName.length == nameLength + 1) {
+          if (accessorName.startsWith(name)) {
+            return accessor;
+          }
+        }
+      }
+    }
+    return null;
   }
 }
 
@@ -5629,7 +5659,9 @@ abstract class NotAugmentedInstanceElementImpl
 
   @override
   FieldElement? getField(String name) {
-    for (final field in fields) {
+    final length = fields.length;
+    for (var i = 0; i < length; i++) {
+      final field = fields[i];
       if (field.name == name) {
         return field;
       }
@@ -5639,9 +5671,11 @@ abstract class NotAugmentedInstanceElementImpl
 
   @override
   PropertyAccessorElement? getGetter(String name) {
-    for (final getter in accessors) {
-      if (getter.isGetter && getter.name == name) {
-        return getter;
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isGetter && accessor.name == name) {
+        return accessor;
       }
     }
     return null;
@@ -5649,7 +5683,9 @@ abstract class NotAugmentedInstanceElementImpl
 
   @override
   MethodElement? getMethod(String name) {
-    for (final method in methods) {
+    final length = methods.length;
+    for (var i = 0; i < length; i++) {
+      final method = methods[i];
       if (method.name == name) {
         return method;
       }
@@ -5659,9 +5695,17 @@ abstract class NotAugmentedInstanceElementImpl
 
   @override
   PropertyAccessorElement? getSetter(String name) {
-    for (final setter in accessors) {
-      if (setter.isSetter && setter.name == name) {
-        return setter;
+    final nameLength = name.length;
+    final length = accessors.length;
+    for (var i = 0; i < length; i++) {
+      final accessor = accessors[i];
+      if (accessor.isSetter) {
+        final accessorName = accessor.name;
+        if (accessorName.length == nameLength + 1) {
+          if (accessorName.startsWith(name)) {
+            return accessor;
+          }
+        }
       }
     }
     return null;

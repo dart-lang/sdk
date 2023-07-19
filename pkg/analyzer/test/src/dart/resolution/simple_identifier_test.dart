@@ -163,6 +163,35 @@ int Function() foo(A? a) {
     assertType(identifier, 'A?');
   }
 
+  test_inClass_inDeclaration_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+int get foo => 0;
+
+class A {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
   test_inExtension_onFunctionType_call() async {
     await assertNoErrorsInCode('''
 extension E on int Function(double) {
@@ -368,6 +397,35 @@ SimpleIdentifier
   token: $3
   staticElement: <null>
   staticType: InvalidType
+''');
+  }
+
+  test_inMixin_inDeclaration_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+int get foo => 0;
+
+mixin A {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticType: int
 ''');
   }
 }
