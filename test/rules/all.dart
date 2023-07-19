@@ -192,6 +192,7 @@ import 'use_setters_to_change_properties_test.dart'
 import 'use_string_buffers_test.dart' as use_string_buffers;
 import 'use_super_parameters_test.dart' as use_super_parameters;
 import 'use_test_throws_matchers_test.dart' as use_test_throws_matchers;
+import 'use_to_and_as_if_applicable_test.dart' as use_to_and_as_if_applicable;
 import 'valid_regexps_test.dart' as valid_regexps;
 import 'void_checks_test.dart' as void_checks;
 
@@ -335,6 +336,7 @@ void main() {
   use_string_buffers.main();
   use_super_parameters.main();
   use_test_throws_matchers.main();
+  use_to_and_as_if_applicable.main();
   valid_regexps.main();
   void_checks.main();
 }
