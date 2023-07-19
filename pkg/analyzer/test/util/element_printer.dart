@@ -116,6 +116,14 @@ class ElementPrinter {
       var typeStr = _typeStr(type);
       _sink.writeln(typeStr);
 
+      if (type is InterfaceType) {
+        if (_configuration.withInterfaceTypeElements) {
+          _sink.withIndent(() {
+            writeNamedElement('element', type.element);
+          });
+        }
+      }
+
       var alias = type.alias;
       if (alias != null) {
         _sink.withIndent(() {
@@ -270,5 +278,6 @@ class ElementPrinter {
 }
 
 class ElementPrinterConfiguration {
+  bool withInterfaceTypeElements = false;
   bool withRedirectedConstructors = false;
 }
