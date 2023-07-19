@@ -93,8 +93,6 @@ class Options {
           defaultsTo: "${getDefaultThreads()}")
       ..addOption("shards", help: "Number of shards", defaultsTo: "1")
       ..addOption("shard", help: "Which shard to run", defaultsTo: "1")
-      ..addOption("previous-results",
-          help: "An earlier results.json for balancing tests across shards.")
       ..addFlag("skipTestsThatRequireGit",
           help: "Whether to skip tests that require git to run",
           defaultsTo: false)

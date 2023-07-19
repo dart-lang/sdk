@@ -150,11 +150,10 @@ abstract class TestSuite {
       return false;
     }
 
-    // Route tests to their allocated shard and fall back on hashing the test
-    // test for new tests without timing data.
+    // Handle sharding based on the original test path. All multitests of a
+    // given original test belong to the same shard.
     if (configuration.shardCount > 1 &&
-        (configuration.shardOfTests[displayName] ??
-                testFile.shardHash % configuration.shardCount) !=
+        testFile.shardHash % configuration.shardCount !=
             configuration.shard - 1) {
       return false;
     }
