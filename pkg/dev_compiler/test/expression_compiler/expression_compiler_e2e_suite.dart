@@ -494,6 +494,7 @@ class TestDriver {
   }
 
   Future<wip.WipScript> _loadScript() async {
+    final scriptController = StreamController<wip.ScriptParsedEvent>();
     final consoleSub =
         debugger.connection.runtime.onConsoleAPICalled.listen(print);
 
@@ -501,11 +502,11 @@ class TestDriver {
     await debugger.setPauseOnExceptions(wip.PauseState.uncaught);
     final pauseSub = debugger.onPaused.listen((wip.DebuggerPausedEvent e) {
       if (e.reason == 'exception' || e.reason == 'assert') {
-        throw Exception('Uncaught exception in JS code: ${e.data}');
+        scriptController.addError('Uncaught exception in JS code: ${e.data}');
+        throw Exception('Failed to load script.');
       }
     });
 
-    final scriptController = StreamController<wip.ScriptParsedEvent>();
     final scriptSub = debugger.onScriptParsed.listen((event) {
       if (event.script.url == '$output') {
         scriptController.add(event);
@@ -546,7 +547,8 @@ class TestDriver {
     final pauseController = StreamController<wip.DebuggerPausedEvent>();
     final pauseSub = debugger.onPaused.listen((e) {
       if (e.reason == 'exception' || e.reason == 'assert') {
-        throw Exception('Uncaught exception in JS code: ${e.data}');
+        pauseController.addError('Uncaught exception in JS code: ${e.data}');
+        throw Exception('Script failed while waiting for a breakpoint to hit.');
       }
       pauseController.add(e);
     });
