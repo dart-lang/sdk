@@ -6393,8 +6393,6 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
-
 InstancePtr Class::LookupCanonicalInstance(Zone* zone,
                                            const Instance& value) const {
   ASSERT(this->ptr() == value.clazz());
@@ -6425,34 +6423,6 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
     this->set_constants(constants.Release());
   }
   return canonical_value.ptr();
-}
-
-void Class::RehashConstants(Zone* zone) const {
-  intptr_t cid = id();
-  if ((cid == kMintCid) || (cid == kDoubleCid)) {
-    // Constants stored as a plain list or in a hashset with a stable hashcode,
-    // which only depends on the actual value of the constant.
-    return;
-  }
-
-  const Array& old_constants = Array::Handle(zone, constants());
-  if (old_constants.IsNull()) return;
-
-  set_constants(Object::null_array());
-
-  CanonicalInstancesSet set(zone, old_constants.ptr());
-  Instance& constant = Instance::Handle(zone);
-  CanonicalInstancesSet::Iterator it(&set);
-  while (it.MoveNext()) {
-    constant ^= set.GetKey(it.Current());
-    ASSERT(!constant.IsNull());
-    // Shape changes lose the canonical bit because they may result/ in merging
-    // constants. E.g., [x1, y1], [x1, y2] -> [x1].
-    DEBUG_ASSERT(constant.IsCanonical() ||
-                 IsolateGroup::Current()->HasAttemptedReload());
-    InsertCanonicalConstant(zone, constant);
-  }
-  set.Release();
 }
 
 bool Class::RequireCanonicalTypeErasureOfConstants(Zone* zone) const {

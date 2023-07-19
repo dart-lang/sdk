@@ -413,6 +413,8 @@ class CanonicalInstanceTraits {
   static ObjectPtr NewKey(const CanonicalInstanceKey& obj);
 };
 
+typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
+
 struct CanonicalFfiCallbackFunctionTraits {
   static uint32_t Hash(const Object& key) { return Function::Cast(key).Hash(); }
   static const char* Name() { return "CanonicalFfiCallbackFunctionTraits"; }

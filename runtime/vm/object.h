@@ -1690,8 +1690,6 @@ class Class : public Object {
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
 
-  void RehashConstants(Zone* zone) const;
-
   bool RequireCanonicalTypeErasureOfConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
