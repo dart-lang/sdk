@@ -1130,7 +1130,7 @@ class RetainingPath {
     void VisitCompressedPointers(uword heap_base,
                                  CompressedObjectPtr* from,
                                  CompressedObjectPtr* to) override {
-      for (ObjectPtr* ptr = from; ptr <= to; ptr++, index_++) {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++, index_++) {
         if (ptr->Decompress(heap_base) == target_) {
           break;
         }
