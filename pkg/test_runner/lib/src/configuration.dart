@@ -59,6 +59,8 @@ class TestConfiguration {
       this.taskCount = 1,
       this.shardCount = 1,
       this.shard = 1,
+      this.shardOfTests = const {},
+      this.testTimes = const {},
       this.stepName,
       this.testServerPort = 0,
       this.testServerCrossOriginPort = 0,
@@ -78,7 +80,7 @@ class TestConfiguration {
                 .resolve('.dart_tool/package_config.json')
                 .toFilePath();
 
-  final Map<String, RegExp?> selectors;
+  final Map<String, RegExp> selectors;
   final Progress progress;
   // The test configuration read from the -n option and the test matrix
   // or else computed from the test options.
@@ -143,6 +145,8 @@ class TestConfiguration {
   final int taskCount;
   final int shardCount;
   final int shard;
+  final Map<String, int> shardOfTests;
+  final Map<String, int> testTimes;
   final int repeat;
   final String? stepName;
 
