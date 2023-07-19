@@ -607,6 +607,9 @@ class _MockAnalytics implements NoOpAnalytics {
     events.add(event);
     return http.Response('', 200);
   }
+
+  @override
+  void suppressTelemetry() {}
 }
 
 class _MockPluginInfo implements PluginInfo {
