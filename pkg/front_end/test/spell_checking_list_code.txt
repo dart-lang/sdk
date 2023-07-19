@@ -173,6 +173,7 @@ buffers
 buggy
 builder`s
 bulk
+bullet
 bump
 bypassing
 c
@@ -366,6 +367,7 @@ deepest
 deeply
 def
 defaulting
+defeat
 degrades
 degree
 del
@@ -469,6 +471,7 @@ efficient
 efficiently
 eight
 eighth
+elected
 elem
 eliminating
 elt
@@ -514,6 +517,7 @@ estimation
 et
 eval
 evar
+examines
 exchanging
 execute
 executor
@@ -984,6 +988,7 @@ nnbd
 node's
 nomenclature
 nominality
+nonetheless
 nonexistent
 nonimplementation
 nonzero
@@ -1288,6 +1293,7 @@ removal
 remover
 renames
 render
+renders
 reordered
 reparse
 repeating
@@ -1528,6 +1534,7 @@ subtraction
 subtracts
 suffixed
 suffixing
+sugared
 suggests
 suite
 sum
@@ -1615,6 +1622,7 @@ tokenized
 tokenizer
 tolerate
 tolerated
+tolerates
 toplevel
 topological
 tops
@@ -1629,6 +1637,7 @@ transforming
 translation
 traversal
 traverse
+traverses
 traversing
 trees
 tricky

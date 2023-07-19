@@ -6,6 +6,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/extensions.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -31,8 +32,8 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// compilation [unit].
-  void inferCompilationUnit(CompilationUnitElement unit) {
-    typeSystem = unit.library.typeSystem as TypeSystemImpl;
+  void inferCompilationUnit(CompilationUnitElementImpl unit) {
+    typeSystem = unit.library.typeSystem;
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
@@ -301,58 +302,69 @@ class InstanceMemberInferrer {
 
   /// Infer type information for all of the instance members in the given
   /// [classElement].
-  void _inferClass(InterfaceElement classElement) {
+  void _inferClass(InterfaceElementImpl classElement) {
+    if (classElement.isAugmentation) {
+      return;
+    }
+
+    if (classElement.hasBeenInferred) {
+      return;
+    }
+
     _setInducedModifier(classElement);
-    if (classElement is InterfaceElementImpl) {
-      if (classElement.hasBeenInferred) {
-        return;
-      }
-      if (!elementsBeingInferred.add(classElement)) {
-        // We have found a circularity in the class hierarchy. For now we just
-        // stop trying to infer any type information for any classes that
-        // inherit from any class in the cycle. We could potentially limit the
-        // algorithm to only not inferring types in the classes in the cycle,
-        // but it isn't clear that the results would be significantly better.
-        throw _CycleException();
-      }
-      try {
-        //
-        // Ensure that all of instance members in the supertypes have had types
-        // inferred for them.
-        //
-        _inferType(classElement.supertype);
-        classElement.mixins.forEach(_inferType);
-        classElement.interfaces.forEach(_inferType);
-        //
-        // Then infer the types for the members.
-        //
-        currentInterfaceElement = classElement;
-        for (var field in classElement.fields) {
+
+    if (!elementsBeingInferred.add(classElement)) {
+      // We have found a circularity in the class hierarchy. For now we just
+      // stop trying to infer any type information for any classes that
+      // inherit from any class in the cycle. We could potentially limit the
+      // algorithm to only not inferring types in the classes in the cycle,
+      // but it isn't clear that the results would be significantly better.
+      throw _CycleException();
+    }
+
+    try {
+      //
+      // Ensure that all of instance members in the supertypes have had types
+      // inferred for them.
+      //
+      final augmented = classElement.augmentedOfDeclaration;
+      _inferType(classElement.supertype);
+      augmented.mixins.forEach(_inferType);
+      augmented.interfaces.forEach(_inferType);
+      //
+      // Then infer the types for the members.
+      //
+      // TODO(scheglov) get other members from the container
+      currentInterfaceElement = classElement;
+      for (final container in classElement.withAugmentations) {
+        for (final field in classElement.fields) {
           _inferAccessorOrField(
             field: field,
           );
         }
-        for (var accessor in classElement.accessors) {
+        for (final accessor in classElement.accessors) {
           _inferAccessorOrField(
             accessor: accessor,
           );
         }
-        for (var method in classElement.methods) {
+        for (final method in container.methods) {
           _inferExecutable(method);
         }
         //
         // Infer initializing formal parameter types. This must happen after
         // field types are inferred.
         //
-        classElement.constructors.forEach(_inferConstructor);
-        classElement.hasBeenInferred = true;
-      } finally {
-        elementsBeingInferred.remove(classElement);
+        for (final constructor in classElement.constructors) {
+          _inferConstructor(constructor);
+        }
       }
+      classElement.hasBeenInferred = true;
+    } finally {
+      elementsBeingInferred.remove(classElement);
     }
   }
 
-  void _inferClasses(List<InterfaceElement> elements) {
+  void _inferClasses(List<InterfaceElementImpl> elements) {
     for (final element in elements) {
       try {
         _inferClass(element);
@@ -551,7 +563,8 @@ class InstanceMemberInferrer {
   /// interface [type].
   void _inferType(InterfaceType? type) {
     if (type != null) {
-      _inferClass(type.element);
+      final element = type.element as InterfaceElementImpl;
+      _inferClass(element);
     }
   }
 

@@ -152,12 +152,12 @@ class Scavenger {
   // Collect the garbage in this scavenger.
   void Scavenge(Thread* thread, GCType type, GCReason reason);
 
-  int64_t UsedInWords() const {
+  intptr_t UsedInWords() const {
     MutexLocker ml(&space_lock_);
     return to_->used_in_words();
   }
-  int64_t CapacityInWords() const { return to_->max_capacity_in_words(); }
-  int64_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
+  intptr_t CapacityInWords() const { return to_->max_capacity_in_words(); }
+  intptr_t ExternalInWords() const { return external_size_ >> kWordSizeLog2; }
   SpaceUsage GetCurrentUsage() const {
     SpaceUsage usage;
     usage.used_in_words = UsedInWords();

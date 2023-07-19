@@ -448,6 +448,7 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceClass(InterfaceElement element) {
+    final augmented = element.augmentedOfDeclaration;
     var classLibrary = element.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
@@ -485,7 +486,7 @@ class InheritanceManager3 {
     // multiple candidates happen only when we merge super and multiple
     // interfaces. Consider using `Map<Name, ExecutableElement>` here.
     var mixinsConflicts = <List<Conflict>>[];
-    for (var mixin in element.mixins) {
+    for (var mixin in augmented.mixins) {
       var mixinElement = mixin.element;
       var substitution = Substitution.fromInterfaceType(mixin);
       var mixinInterface = getInterface(mixinElement);
@@ -573,7 +574,7 @@ class InheritanceManager3 {
       superImplemented.add(implemented);
     }
 
-    for (var interface in element.interfaces) {
+    for (var interface in augmented.interfaces) {
       _addCandidates(
         namedCandidates: namedCandidates,
         substitution: Substitution.fromInterfaceType(interface),
@@ -648,11 +649,12 @@ class InheritanceManager3 {
   }
 
   Interface _getInterfaceMixin(MixinElement element) {
+    final augmented = element.augmentedOfDeclaration;
     var classLibrary = element.library;
     var isNonNullableByDefault = classLibrary.isNonNullableByDefault;
 
     var superCandidates = <Name, List<ExecutableElement>>{};
-    for (var constraint in element.superclassConstraints) {
+    for (var constraint in augmented.superclassConstraints) {
       var substitution = Substitution.fromInterfaceType(constraint);
       var interfaceObj = getInterface(constraint.element);
       _addCandidates(
@@ -674,7 +676,7 @@ class InheritanceManager3 {
     );
 
     var interfaceCandidates = Map.of(superCandidates);
-    for (var interface in element.interfaces) {
+    for (var interface in augmented.interfaces) {
       _addCandidates(
         namedCandidates: interfaceCandidates,
         substitution: Substitution.fromInterfaceType(interface),

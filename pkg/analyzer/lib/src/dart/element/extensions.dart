@@ -132,6 +132,22 @@ extension InterfaceElementExtension on InterfaceElement {
   }
 }
 
+extension MixinElementExtension on MixinElement {
+  /// The result of applying augmentations.
+  ///
+  /// The target must be a declaration, not an augmentation.
+  /// This getter will throw, if this is not the case.
+  AugmentedMixinElement get augmentedOfDeclaration {
+    if (isAugmentation) {
+      throw StateError(
+        'The target must be a declaration, not an augmentation.',
+      );
+    }
+    // This is safe because declarations always have it.
+    return augmented!;
+  }
+}
+
 extension ParameterElementExtensions on ParameterElement {
   /// Return [ParameterElement] with the specified properties replaced.
   ParameterElement copyWith({

@@ -115,6 +115,49 @@ PropertyAccess
 ''');
   }
 
+  test_class_field_abstract() async {
+    // Even though an abstract non-final field is just syntactic sugar for an
+    // abstract getter/setter pair (and thus in principle shouldn't prevent
+    // promotion), there's no way to implement it without introducing either a
+    // getter or a non-final field (either of which would prevent promotion). So
+    // the implementation goes ahead and prevents promotion even if there's no
+    // implementation yet, to reduce churn for the user.
+    await assertNoErrorsInCode('''
+abstract class B {
+  abstract int? _foo;
+}
+
+// Suppress "unused field" warning on `B._foo`.
+int? f(B b) => b._foo;
+
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+
+void g(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''');
+    var node = findNode.prefixed('c._foo;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    staticElement: self::@function::g::@parameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    staticElement: self::@class::C::@getter::_foo
+    staticType: int?
+  staticElement: self::@class::C::@getter::_foo
+  staticType: int?
+''');
+  }
+
   test_class_field_invocation_prefixedIdentifier_nullability() async {
     await assertNoErrorsInCode('''
 class C {
@@ -669,6 +712,105 @@ PrefixedIdentifier
 ''');
   }
 
+  test_implemented_via_other_library() async {
+    // When determining the set of fields/getters in a class's implementation,
+    // it's necessary to traverse the whole class hierarchy, including classes
+    // outside the current library, because a class outside the current library
+    // may extend a class inside the current library. In the example below,
+    // `c._foo` is promotable because class E doesn't contain any `noSuchMethod`
+    // getters, due to the fact that it inherits an implementation of `_foo`
+    // from `C` via `D`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class D extends C {
+  D(super.foo);
+}
+''');
+    await assertNoErrorsInCode('''
+import 'other.dart';
+
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+class E extends D implements C {
+  E(super.foo);
+  noSuchMethod(_) => 12345;
+}
+
+void f(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''');
+    var node = findNode.prefixed('c._foo;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    staticElement: self::@class::C::@getter::_foo
+    staticType: int
+  staticElement: self::@class::C::@getter::_foo
+  staticType: int
+''');
+  }
+
+  test_interface_via_other_library() async {
+    // When determining the set of fields/getters in a class's interface, it's
+    // necessary to traverse the whole class hierarchy, including classes
+    // outside the current library, because a class outside the current library
+    // may extend or implement a class inside the current library. In the
+    // example below, `c._foo` is not promotable because class E contains a
+    // `noSuchMethod` getter for `_foo`, due to the fact that its interface
+    // inherits `_foo` from `C` via `D`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class D extends C {
+  D(super.foo);
+}
+''');
+    await assertNoErrorsInCode('''
+import 'other.dart';
+
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+class E implements D {
+  noSuchMethod(_) => 12345;
+}
+
+void f(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''');
+    var node = findNode.prefixed('c._foo;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    staticElement: self::@class::C::@getter::_foo
+    staticType: int?
+  staticElement: self::@class::C::@getter::_foo
+  staticType: int?
+''');
+  }
+
   test_language219() async {
     await assertNoErrorsInCode('''
 // @dart = 2.19
@@ -699,6 +841,45 @@ PropertyAccess
     token: _foo
     staticElement: self::@class::C::@getter::_foo
     staticType: int?
+  staticType: int?
+''');
+  }
+
+  test_mixin_on_clause() async {
+    // The type mentioned in a a mixin's "on" clause contributes to its
+    // interface. This needs to be accounted for when determining whether a
+    // `noSuchMethod` getter will be synthesized.  In the example below,
+    // `c._foo` is not promotable because class D contains a `noSuchMethod`
+    // getter for `_foo`.
+    await assertNoErrorsInCode('''
+mixin M on C {}
+class C {
+  final int? _foo;
+  C(this._foo);
+}
+class D implements M {
+  noSuchMethod(_) => 12345;
+}
+
+void f(C c) {
+  if (c._foo != null) {
+    c._foo;
+  }
+}
+''');
+    var node = findNode.prefixed('c._foo;');
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: c
+    staticElement: self::@function::f::@parameter::c
+    staticType: C
+  period: .
+  identifier: SimpleIdentifier
+    token: _foo
+    staticElement: self::@class::C::@getter::_foo
+    staticType: int?
+  staticElement: self::@class::C::@getter::_foo
   staticType: int?
 ''');
   }

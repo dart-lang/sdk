@@ -8,6 +8,7 @@
 library js_interop_test;
 
 import 'dart:_foreign_helper' as helper show JS;
+import 'dart:_interceptors' as interceptors;
 import 'dart:_runtime' as dart;
 import 'dart:js' show context;
 
@@ -329,4 +330,22 @@ void main() {
   // Non-function fields
   Expect.equals('hello js', someClass.jsNonFunctionField.stringField,
       'Does not wrap access to a field');
+
+  // No such method errors from interop calls.
+  // The current behavior is that DDC does not treat these errors from the
+  // JavaScript side as a LegacyJavaScriptObject.
+  Expect.throwsNoSuchMethodError(
+      () => context.callMethod('eval', ['self.foo()']));
+  Expect.throws<interceptors.JSNoSuchMethodError>(
+      () => context.callMethod('eval', ['self.foo()']));
+  var error = Expect.throws(() => context.callMethod('eval', ['self.foo()']));
+  Expect.notType<interceptors.LegacyJavaScriptObject>(error);
+  Expect.notEquals(interceptors.LegacyJavaScriptObject, error.runtimeType);
+  Expect.throwsNoSuchMethodError(
+      () => context.callMethod('eval', ['self.foo.bar()']));
+  Expect.throws<interceptors.JSNoSuchMethodError>(
+      () => context.callMethod('eval', ['self.foo.bar()']));
+  error = Expect.throws(() => context.callMethod('eval', ['self.foo.bar()']));
+  Expect.notType<interceptors.LegacyJavaScriptObject>(error);
+  Expect.notEquals(interceptors.LegacyJavaScriptObject, error.runtimeType);
 }

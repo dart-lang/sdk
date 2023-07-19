@@ -65,11 +65,14 @@ SDK_ARG="--dart-sdk=$SDK_DIR"
 
 # Point to built platform dill.
 PLATFORM="$BIN_DIR/dart2wasm_platform.dill"
-# Not the prettiest way to check for stringref, and it doesn't support changing
-# the default, but it will do for the experiment.
+# Not the prettiest way to check for a target, and it doesn't support changing
+# the default, but it will do for experiments.
 for arg in "$@"; do
   if [[ "$arg" == "--stringref" ]]; then
     PLATFORM="$BIN_DIR/dart2wasm_stringref_platform.dill"
+  fi
+  if [[ "$arg" == "--js-compatibility" ]]; then
+    PLATFORM="$BIN_DIR/dart2wasm_js_compatibility_platform.dill"
   fi
 done
 PLATFORM_ARG="--platform=$PLATFORM"
