@@ -69,7 +69,8 @@ class _DeclarationPrinter {
         _writelnWithIndent('superclass');
         try {
           final superDeclaration = await declarationPhaseIntrospector
-              .declarationOf(superIdentifier) as IntrospectableClassDeclaration;
+                  .typeDeclarationOf(superIdentifier)
+              as IntrospectableClassDeclaration;
           await _withIndent(() => writeClassDeclaration(superDeclaration));
         } on ArgumentError {
           await _withIndent(() async {

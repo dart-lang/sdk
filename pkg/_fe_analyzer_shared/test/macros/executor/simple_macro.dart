@@ -107,7 +107,7 @@ class SimpleMacro
   @override
   FutureOr<void> buildDeclarationsForEnumValue(
       EnumValueDeclaration value, EnumDeclarationBuilder builder) async {
-    final parent = await builder.declarationOf(value.definingEnum);
+    final parent = await builder.typeDeclarationOf(value.definingEnum);
     builder.declareInType(DeclarationCode.fromParts([
       parent.identifier,
       ' ${value.identifier.name}ToString() => ',
@@ -256,7 +256,7 @@ class SimpleMacro
   @override
   FutureOr<void> buildDefinitionForEnumValue(
       EnumValueDeclaration value, EnumValueDefinitionBuilder builder) async {
-    final parent = await builder.declarationOf(value.definingEnum)
+    final parent = await builder.typeDeclarationOf(value.definingEnum)
         as IntrospectableEnumDeclaration;
     final constructor = (await builder.constructorsOf(parent)).first;
     final parts = [
@@ -302,8 +302,7 @@ class SimpleMacro
     await buildDefinitionForFunction(method, builder);
 
     // Test the type declaration resolver
-    var parentClass =
-        await builder.declarationOf(method.definingType) as IntrospectableType;
+    var parentClass = await builder.typeDeclarationOf(method.definingType);
     // Should be able to find ourself in the methods of the parent class.
     (await builder.methodsOf(parentClass))
         .singleWhere((m) => m.identifier == method.identifier);
@@ -315,22 +314,22 @@ class SimpleMacro
     // Test the class introspector
     if (parentClass is IntrospectableClassDeclaration) {
       superClass =
-          (await builder.declarationOf(parentClass.superclass!.identifier));
-      interfaces.addAll(await Future.wait(parentClass.interfaces
-          .map((interface) => builder.declarationOf(interface.identifier))));
+          (await builder.typeDeclarationOf(parentClass.superclass!.identifier));
+      interfaces.addAll(await Future.wait(parentClass.interfaces.map(
+          (interface) => builder.typeDeclarationOf(interface.identifier))));
       mixins.addAll(await Future.wait(parentClass.mixins
-          .map((mixins) => builder.declarationOf(mixins.identifier))));
+          .map((mixins) => builder.typeDeclarationOf(mixins.identifier))));
     } else if (parentClass is IntrospectableMixinDeclaration) {
-      superclassConstraints.addAll(await Future.wait(parentClass
-          .superclassConstraints
-          .map((interface) => builder.declarationOf(interface.identifier))));
-      interfaces.addAll(await Future.wait(parentClass.interfaces
-          .map((interface) => builder.declarationOf(interface.identifier))));
+      superclassConstraints.addAll(await Future.wait(
+          parentClass.superclassConstraints.map(
+              (interface) => builder.typeDeclarationOf(interface.identifier))));
+      interfaces.addAll(await Future.wait(parentClass.interfaces.map(
+          (interface) => builder.typeDeclarationOf(interface.identifier))));
     } else if (parentClass is IntrospectableEnumDeclaration) {
-      interfaces.addAll(await Future.wait(parentClass.interfaces
-          .map((interface) => builder.declarationOf(interface.identifier))));
+      interfaces.addAll(await Future.wait(parentClass.interfaces.map(
+          (interface) => builder.typeDeclarationOf(interface.identifier))));
       mixins.addAll(await Future.wait(parentClass.mixins
-          .map((mixins) => builder.declarationOf(mixins.identifier))));
+          .map((mixins) => builder.typeDeclarationOf(mixins.identifier))));
     }
     var fields = (await builder.fieldsOf(parentClass));
     var methods = (await builder.methodsOf(parentClass));
