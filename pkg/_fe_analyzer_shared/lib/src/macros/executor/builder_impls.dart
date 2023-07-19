@@ -73,8 +73,8 @@ abstract class DeclarationBuilderBase extends TypeBuilderBase
       super.parentLibraryAugmentations});
 
   @override
-  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) =>
-      introspector.declarationOf(identifier);
+  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) =>
+      introspector.typeDeclarationOf(identifier);
 
   @override
   Future<List<ConstructorDeclaration>> constructorsOf(
@@ -161,12 +161,20 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
   });
 
   @override
+  Future<Declaration> declarationOf(Identifier identifier) =>
+      introspector.declarationOf(identifier);
+
+  @override
   Future<TypeAnnotation> inferType(OmittedTypeAnnotationImpl omittedType) =>
       introspector.inferType(omittedType);
 
   @override
   Future<List<Declaration>> topLevelDeclarationsOf(Library library) =>
       introspector.topLevelDeclarationsOf(library);
+
+  @override
+  Future<IntrospectableType> typeDeclarationOf(Identifier identifier) =>
+      introspector.typeDeclarationOf(identifier);
 }
 
 class TypeDefinitionBuilderImpl extends DefinitionBuilderBase

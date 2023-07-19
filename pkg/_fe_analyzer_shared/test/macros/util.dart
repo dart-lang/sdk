@@ -29,7 +29,7 @@ class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
   final Map<IntrospectableType, List<MethodDeclaration>> methods;
   final Map<Library, List<TypeDeclaration>> libraryTypes;
   final Map<Identifier, StaticType> staticTypes;
-  final Map<Identifier, TypeDeclaration> typeDeclarations;
+  final Map<Identifier, Declaration> identifierDeclarations;
 
   TestDeclarationPhaseIntrospector(
       {required this.constructors,
@@ -38,12 +38,13 @@ class TestDeclarationPhaseIntrospector extends TestTypePhaseIntrospector
       required this.methods,
       required this.libraryTypes,
       required this.staticTypes,
-      required this.typeDeclarations});
+      required this.identifierDeclarations});
 
   @override
-  Future<TypeDeclaration> declarationOf(covariant Identifier identifier) async {
-    var declaration = typeDeclarations[identifier];
-    if (declaration != null) return declaration;
+  Future<TypeDeclaration> typeDeclarationOf(
+      covariant Identifier identifier) async {
+    var declaration = identifierDeclarations[identifier];
+    if (declaration != null) return declaration as TypeDeclaration;
     throw 'No declaration found for ${identifier.name}';
   }
 
@@ -113,7 +114,10 @@ class TestDefinitionsPhaseIntrospector extends TestDeclarationPhaseIntrospector
       required super.methods,
       required super.libraryTypes,
       required super.staticTypes,
-      required super.typeDeclarations});
+      required super.identifierDeclarations});
+  @override
+  Future<Declaration> declarationOf(Identifier identifier) async =>
+      identifierDeclarations[identifier]!;
 
   @override
   Future<TypeAnnotation> inferType(
@@ -121,9 +125,12 @@ class TestDefinitionsPhaseIntrospector extends TestDeclarationPhaseIntrospector
       omittedType.inferredType!;
 
   @override
-  Future<List<Declaration>> topLevelDeclarationsOf(
-          covariant Library library) async =>
+  Future<List<Declaration>> topLevelDeclarationsOf(Library library) async =>
       libraryDeclarations[library]!;
+
+  @override
+  Future<IntrospectableType> typeDeclarationOf(Identifier identifier) async =>
+      (await super.typeDeclarationOf(identifier)) as IntrospectableType;
 }
 
 /// Knows its inferred type ahead of time.
@@ -493,7 +500,7 @@ class Fixtures {
       type: stringType,
       definingType: myClassType.identifier,
       isStatic: false);
-  static final myInterface = ClassDeclarationImpl(
+  static final myInterface = IntrospectableClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: myInterfaceType.identifier,
       library: Fixtures.library,
@@ -525,7 +532,7 @@ class Fixtures {
       typeParameters: [],
       definingType: myClassType.identifier,
       isStatic: false);
-  static final mySuperclass = ClassDeclarationImpl(
+  static final mySuperclass = IntrospectableClassDeclarationImpl(
       id: RemoteInstance.uniqueId,
       identifier: mySuperclassType.identifier,
       library: Fixtures.library,
@@ -648,12 +655,18 @@ class Fixtures {
     stringType.identifier:
         TestNamedStaticType(stringType.identifier, 'dart:core', []),
     myClass.identifier: myClassStaticType,
-  }, typeDeclarations: {
+  }, identifierDeclarations: {
     myClass.identifier: myClass,
     myEnum.identifier: myEnum,
     mySuperclass.identifier: mySuperclass,
     myInterface.identifier: myInterface,
-    myMixin.identifier: myMixin
+    myMixin.identifier: myMixin,
+    myConstructor.identifier: myConstructor,
+    myEnumConstructor.identifier: myEnumConstructor,
+    for (EnumValueDeclaration value in myEnumValues) value.identifier: value,
+    myField.identifier: myField,
+    myMixinMethod.identifier: myMixinMethod,
+    myMethod.identifier: myMethod,
   });
 
   static final testDefinitionPhaseIntrospector =
@@ -674,5 +687,6 @@ class Fixtures {
           },
           libraryTypes: testDeclarationPhaseIntrospector.libraryTypes,
           staticTypes: testDeclarationPhaseIntrospector.staticTypes,
-          typeDeclarations: testDeclarationPhaseIntrospector.typeDeclarations);
+          identifierDeclarations:
+              testDeclarationPhaseIntrospector.identifierDeclarations);
 }

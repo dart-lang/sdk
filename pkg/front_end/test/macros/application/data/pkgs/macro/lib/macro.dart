@@ -365,21 +365,21 @@ class SequenceMacro
       if (cls.superclass != null) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(cls.superclass!.identifier)
+          await builder.typeDeclarationOf(cls.superclass!.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation mixin in cls.mixins) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(mixin.identifier)
+          await builder.typeDeclarationOf(mixin.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(interface.identifier)
+          await builder.typeDeclarationOf(interface.identifier)
               as IntrospectableType,
           methods);
       }
@@ -388,14 +388,14 @@ class SequenceMacro
       for (NamedTypeAnnotation interface in cls.interfaces) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(interface.identifier)
+          await builder.typeDeclarationOf(interface.identifier)
               as IntrospectableType,
           methods);
       }
       for (NamedTypeAnnotation superclass in cls.superclassConstraints) {
         await _findAllMethods(
           builder,
-          await builder.declarationOf(superclass.identifier)
+          await builder.typeDeclarationOf(superclass.identifier)
               as IntrospectableType,
           methods);
       }
@@ -443,7 +443,7 @@ class SupertypesMacro implements ClassDefinitionMacro, MixinDefinitionMacro {
   FutureOr<void> _build(IntrospectableType type, TypeDefinitionBuilder builder) async {
     ParameterizedTypeDeclaration? superClass;
     if (type is IntrospectableClassDeclaration && type.superclass != null) {
-      superClass =  await builder.declarationOf(type.superclass!.identifier)
+      superClass =  await builder.typeDeclarationOf(type.superclass!.identifier)
           as ParameterizedTypeDeclaration?;
     }
     FunctionDefinitionBuilder getSuperClassBuilder = await builder.buildMethod(

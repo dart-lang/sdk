@@ -4,6 +4,7 @@
   ],
   "filesets": {
     "analyzer_unit_tests": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "pkg/",
       "third_party/pkg/",
@@ -12,6 +13,7 @@
       "xcodebuild/ReleaseX64/dart-sdk/"
     ],
     "js_platform_2": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -41,6 +43,7 @@
       "tools/"
     ],
     "js_platform": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/ddc_outline_unsound.dill",
@@ -68,6 +71,7 @@
       "xcodebuild/ReleaseARM64/gen/utils/dartdevc/"
     ],
     "js_platform_hostasserts_2": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -93,6 +97,7 @@
       "tools/"
     ],
     "js_platform_hostasserts": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart2js_platform.dill",
@@ -117,6 +122,7 @@
       "tools/"
     ],
     "dart2wasm_hostasserts": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart",
       "out/ReleaseX64/dart_precompiled_runtime",
@@ -155,6 +161,7 @@
       "tools/"
     ],
     "front-end": [
+      "LATEST/results.json",
       ".dart_tool/package_config.json",
       "out/ReleaseIA32/",
       "out/ReleaseX64/",
@@ -199,6 +206,7 @@
       "xcodebuild/ReleaseX64/"
     ],
     "fuzzer": [
+      "LATEST/results.json",
       "runtime/tools/dartfuzz/",
       "out/",
       "third_party/pkg/",
@@ -218,6 +226,7 @@
       ".dart_tool/package_config.json"
     ],
     "vm": [
+      "LATEST/results.json",
       "benchmarks/",
       "out/",
       "xcodebuild/",

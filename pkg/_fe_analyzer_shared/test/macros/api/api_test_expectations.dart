@@ -127,20 +127,20 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
       TypeDeclaration? superclass = declaration.superclass == null
           ? null
           : await introspector
-              .declarationOf(declaration.superclass!.identifier);
+              .typeDeclarationOf(declaration.superclass!.identifier);
       expect(
           expected.superclass, superclass?.identifier.name, '$name.superclass');
       if (superclass is ClassDeclaration) {
         TypeDeclaration? superSuperclass = superclass.superclass == null
             ? null
             : await introspector
-                .declarationOf(superclass.superclass!.identifier);
+                .typeDeclarationOf(superclass.superclass!.identifier);
         expect(expected.superSuperclass, superSuperclass?.identifier.name,
             '$name.superSuperclass');
       }
       List<TypeDeclaration> mixins = [
         for (NamedTypeAnnotation mixin in declaration.mixins)
-          await introspector.declarationOf(mixin.identifier),
+          await introspector.typeDeclarationOf(mixin.identifier),
       ];
       expect(expected.mixins.length, mixins.length, '$name.mixins.length');
       for (int i = 0; i < mixins.length; i++) {
@@ -150,7 +150,7 @@ Future<void> checkClassDeclaration(ClassDeclaration declaration,
 
       List<TypeDeclaration> interfaces = [
         for (NamedTypeAnnotation interface in declaration.interfaces)
-          await introspector.declarationOf(interface.identifier),
+          await introspector.typeDeclarationOf(interface.identifier),
       ];
       expect(expected.interfaces.length, interfaces.length,
           '$name.interfaces.length');
@@ -263,13 +263,13 @@ Future<void> checkTypeDeclarationResolver(
       {bool expectThrows = false}) async {
     if (expectThrows) {
       await throws(() async {
-        await introspector.declarationOf(identifier);
+        await introspector.typeDeclarationOf(identifier);
       }, '$name from $identifier',
           expectedError: (e) => e is! ArgumentError
               ? 'Expected ArgumentError, got ${e.runtimeType}: $e'
               : null);
     } else {
-      TypeDeclaration result = await introspector.declarationOf(identifier);
+      TypeDeclaration result = await introspector.typeDeclarationOf(identifier);
       expect(name, result.identifier.name, '$name from $identifier');
     }
   }

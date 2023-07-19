@@ -7,6 +7,7 @@ library fasta.source_library_builder;
 import 'dart:collection';
 import 'dart:convert' show jsonEncode;
 
+import 'package:_fe_analyzer_shared/src/field_promotability.dart';
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
@@ -1593,6 +1594,40 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       count += builder.resolveConstructors(this);
     }
     return count;
+  }
+
+  /// Sets [unpromotablePrivateFieldNames] based on the contents of this
+  /// library.
+  void computeFieldPromotability() {
+    _FieldPromotability fieldPromotability = new _FieldPromotability();
+
+    // Iterate through all the classes, enums, and mixins in the library,
+    // recording the non-synthetic instance fields and getters of each.
+    Iterator<SourceClassBuilder> iterator = localMembersIteratorOfType();
+    while (iterator.moveNext()) {
+      SourceClassBuilder class_ = iterator.current;
+      ClassInfo<Class> classInfo = fieldPromotability.addClass(class_.actualCls,
+          isAbstract: class_.isAbstract);
+      Iterator<SourceMemberBuilder> memberIterator =
+          class_.fullMemberIterator<SourceMemberBuilder>();
+      while (memberIterator.moveNext()) {
+        SourceMemberBuilder member = memberIterator.current;
+        if (member.isStatic) continue;
+        if (member is SourceFieldBuilder) {
+          if (member.isSynthesized) continue;
+          fieldPromotability.addField(classInfo, member.name,
+              isFinal: member.isFinal, isAbstract: member.isAbstract);
+        } else if (member is SourceProcedureBuilder && member.isGetter) {
+          if (member.isSynthetic) continue;
+          fieldPromotability.addGetter(classInfo, member.name,
+              isAbstract: member.isAbstract);
+        }
+      }
+    }
+
+    // Compute the set of field names that are not promotable.
+    unpromotablePrivateFieldNames =
+        fieldPromotability.computeUnpromotablePrivateFieldNames();
   }
 
   @override
@@ -5156,6 +5191,35 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
       });
     }
+  }
+}
+
+/// This class examines all the [Class]es in a library and determines which
+/// fields are promotable within that library.
+class _FieldPromotability extends FieldPromotability<Class> {
+  @override
+  Iterable<Class> getSuperclasses(Class class_,
+      {required bool ignoreImplements}) {
+    List<Class> result = [];
+    Class? superclass = class_.superclass;
+    if (superclass != null) {
+      result.add(superclass);
+    }
+    Class? mixedInClass = class_.mixedInClass;
+    if (mixedInClass != null) {
+      result.add(mixedInClass);
+    }
+    if (!ignoreImplements) {
+      for (Supertype interface in class_.implementedTypes) {
+        result.add(interface.classNode);
+      }
+      if (class_.isMixinDeclaration) {
+        for (Supertype supertype in class_.onClause) {
+          result.add(supertype.classNode);
+        }
+      }
+    }
+    return result;
   }
 }
 

@@ -90,7 +90,7 @@ abstract interface class DeclarationPhaseIntrospector
   ///
   /// In the definition phase, this will return [IntrospectableType] instances
   /// for all type definitions which can have members (ie: not type aliases).
-  Future<TypeDeclaration> declarationOf(covariant Identifier identifier);
+  Future<TypeDeclaration> typeDeclarationOf(covariant Identifier identifier);
 }
 
 /// The API used by [Macro]s to contribute new (non-type)
@@ -123,6 +123,16 @@ abstract interface class EnumDeclarationBuilder
 /// phase (and later).
 abstract interface class DefinitionPhaseIntrospector
     implements DeclarationPhaseIntrospector {
+  /// Resolves any [identifier] to its [Declaration].
+  ///
+  /// This will return [IntrospectableType] instances for type declarations.
+  Future<Declaration> declarationOf(covariant Identifier identifier);
+
+  /// Resolves an [identifier] referring to a type to its [IntrospectableType]
+  /// declaration.
+  @override
+  Future<IntrospectableType> typeDeclarationOf(covariant Identifier identifier);
+
   /// Infers a real type annotation for [omittedType].
   ///
   /// If no type could be inferred, then a type annotation representing the

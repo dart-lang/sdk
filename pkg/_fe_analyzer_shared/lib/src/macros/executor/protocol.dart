@@ -500,23 +500,32 @@ class TypeIntrospectorRequest extends IntrospectionRequest {
   }
 }
 
-/// A request to get a [TypeDeclaration] for a [StaticType].
+/// A request to get a [Declaration] for an [identifier].
+///
+/// Used for both the `typeDeclarationOf` and `declarationOf` requests. A cast
+/// is done on the client side to ensure only [TypeDeclaration]s are returned
+/// from `typeDeclarationOf`.
 class DeclarationOfRequest extends IntrospectionRequest {
   final IdentifierImpl identifier;
+  final MessageType kind;
 
-  DeclarationOfRequest(this.identifier, super.introspector,
-      {required super.serializationZoneId});
+  DeclarationOfRequest(this.identifier, this.kind, super.introspector,
+      {required super.serializationZoneId})
+      : assert(kind == MessageType.typeDeclarationOfRequest ||
+            kind == MessageType.declarationOfRequest);
 
   /// When deserializing we have already consumed the message type, so we don't
   /// consume it again.
   DeclarationOfRequest.deserialize(
-      super.deserializer, super.serializationZoneId)
-      : identifier = RemoteInstance.deserialize(deserializer),
+      super.deserializer, super.serializationZoneId, this.kind)
+      : assert(kind == MessageType.typeDeclarationOfRequest ||
+            kind == MessageType.declarationOfRequest),
+        identifier = RemoteInstance.deserialize(deserializer),
         super.deserialize();
 
   @override
   void serialize(Serializer serializer) {
-    serializer.addInt(MessageType.declarationOfRequest.index);
+    serializer.addInt(kind.index);
     identifier.serialize(serializer);
     super.serialize(serializer);
   }
@@ -686,9 +695,9 @@ final class ClientDeclarationPhaseIntrospector
   }
 
   @override
-  Future<TypeDeclaration> declarationOf(IdentifierImpl identifier) async {
+  Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) async {
     DeclarationOfRequest request = new DeclarationOfRequest(
-        identifier, remoteInstance,
+        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
         serializationZoneId: serializationZoneId);
     return _handleResponse<TypeDeclaration>(await _sendRequest(request));
   }
@@ -732,6 +741,14 @@ final class ClientDefinitionPhaseIntrospector
       {required super.remoteInstance, required super.serializationZoneId});
 
   @override
+  Future<Declaration> declarationOf(IdentifierImpl identifier) async {
+    DeclarationOfRequest request = new DeclarationOfRequest(
+        identifier, MessageType.declarationOfRequest, remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<Declaration>(await _sendRequest(request));
+  }
+
+  @override
   Future<TypeAnnotation> inferType(
       OmittedTypeAnnotationImpl omittedType) async {
     InferTypeRequest request = new InferTypeRequest(omittedType, remoteInstance,
@@ -746,6 +763,15 @@ final class ClientDefinitionPhaseIntrospector
         serializationZoneId: serializationZoneId);
     return _handleResponse<DeclarationList>(await _sendRequest(request))
         .declarations;
+  }
+
+  @override
+  Future<IntrospectableType> typeDeclarationOf(
+      IdentifierImpl identifier) async {
+    DeclarationOfRequest request = new DeclarationOfRequest(
+        identifier, MessageType.typeDeclarationOfRequest, remoteInstance,
+        serializationZoneId: serializationZoneId);
+    return _handleResponse<IntrospectableType>(await _sendRequest(request));
   }
 }
 
@@ -803,5 +829,6 @@ enum MessageType {
   response,
   staticType,
   topLevelDeclarationsOfRequest,
+  typeDeclarationOfRequest,
   typesOfRequest,
 }

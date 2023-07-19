@@ -499,18 +499,6 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   }
 
   @override
-  Future<macro.TypeDeclaration> declarationOf(
-    covariant IdentifierImpl identifier,
-  ) async {
-    final element = identifier.element;
-    if (element is ClassElementImpl) {
-      return declarationBuilder.fromElement.classElement(element);
-    } else {
-      throw ArgumentError('element: $element');
-    }
-  }
-
-  @override
   Future<List<macro.FieldDeclaration>> fieldsOf(
     covariant macro.IntrospectableType type,
   ) async {
@@ -534,6 +522,18 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
   Future<macro.StaticType> resolve(macro.TypeAnnotationCode type) async {
     var dartType = _resolve(type);
     return _StaticTypeImpl(typeSystem, dartType);
+  }
+
+  @override
+  Future<macro.TypeDeclaration> typeDeclarationOf(
+    covariant IdentifierImpl identifier,
+  ) async {
+    final element = identifier.element;
+    if (element is ClassElementImpl) {
+      return declarationBuilder.fromElement.classElement(element);
+    } else {
+      throw ArgumentError('element: $element');
+    }
   }
 
   @override

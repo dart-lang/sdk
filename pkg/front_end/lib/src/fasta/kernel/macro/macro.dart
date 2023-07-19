@@ -1277,7 +1277,7 @@ class _DeclarationPhaseIntrospector extends _TypePhaseIntrospector
       this.macroApplications, this.classHierarchy, super.sourceLoader);
 
   @override
-  Future<macro.TypeDeclaration> declarationOf(macro.Identifier identifier) {
+  Future<macro.TypeDeclaration> typeDeclarationOf(macro.Identifier identifier) {
     if (identifier is IdentifierImpl) {
       return identifier.resolveTypeDeclaration(macroApplications);
     }
@@ -1370,13 +1370,26 @@ class _DefinitionPhaseIntrospector extends _DeclarationPhaseIntrospector
       super.macroApplications, super.classHierarchy, super.sourceLoader);
 
   @override
+  Future<macro.IntrospectableType> typeDeclarationOf(
+          macro.Identifier identifier) async =>
+      (await super.typeDeclarationOf(identifier)) as macro.IntrospectableType;
+
+  @override
   Future<macro.TypeAnnotation> inferType(
           macro.OmittedTypeAnnotation omittedType) =>
       new Future.value(macroApplications._inferOmittedType(omittedType));
+
   @override
   Future<List<macro.Declaration>> topLevelDeclarationsOf(
       macro.Library library) {
     // TODO: implement topLevelDeclarationsOf
+    throw new UnimplementedError();
+  }
+
+  @override
+  Future<macro.Declaration> declarationOf(
+      covariant macro.Identifier identifier) {
+    // TODO: implement declarationOf
     throw new UnimplementedError();
   }
 }
