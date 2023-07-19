@@ -8,13 +8,13 @@ set-core:
   - lib/**/await_only_futures.dart
   - lib/**/camel_case_extensions.dart
   - lib/**/camel_case_types.dart
+  - lib/**/collection_methods_unrelated_type.dart
   - lib/**/curly_braces_in_flow_control_structures.dart
   - lib/**/depend_on_referenced_packages.dart
   - lib/**/empty_catches.dart
   - lib/**/file_names.dart
   - lib/**/hash_and_equals.dart
-  - lib/**/iterable_contains_unrelated_type.dart
-  - lib/**/list_remove_unrelated_type.dart
+  - lib/**/implicit_call_tearoffs.dart
   - lib/**/no_duplicate_case_values.dart
   - lib/**/non_constant_identifier_names.dart
   - lib/**/null_check_on_nullable_type_parameter.dart
@@ -27,11 +27,11 @@ set-core:
   - lib/**/provide_deprecation_message.dart
   - lib/**/unnecessary_overrides.dart
   - lib/**/unrelated_type_equality_checks.dart
+  - lib/**/use_string_in_part_of_directives.dart
   - lib/**/valid_regexps.dart
   - lib/**/void_checks.dart
 
 set-recommended:
-  - lib/**/always_require_non_null_named_parameters.dart
   - lib/**/annotate_overrides.dart
   - lib/**/avoid_function_literals_in_foreach_calls.dart
   - lib/**/avoid_init_to_null.dart
