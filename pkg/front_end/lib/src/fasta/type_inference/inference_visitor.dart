@@ -7674,15 +7674,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         isThisReceiver: node.receiver is ThisExpression, propertyGetNode: node);
     ExpressionInferenceResult readResult =
         propertyGetInferenceResult.expressionInferenceResult;
-    // TODO(johnniwinther,paulberry): Should the we pass the resulting node
-    // as the "whole-expression" instead of [node] ? (We do this for field
-    // invocation).
-    flowAnalysis.propertyGet(
-        node,
-        computePropertyTarget(node.receiver),
-        node.name.text,
-        propertyGetInferenceResult.member,
-        readResult.inferredType);
     ExpressionInferenceResult expressionInferenceResult =
         createNullAwareExpressionInferenceResult(
             readResult.inferredType, readResult.expression, nullAwareGuards);
