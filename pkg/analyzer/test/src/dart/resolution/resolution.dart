@@ -550,6 +550,8 @@ mixin ResolutionTest implements ResourceProviderMixin {
     final elementPrinter = ElementPrinter(
       sink: sink,
       configuration: ElementPrinterConfiguration()
+        ..withInterfaceTypeElements =
+            nodeTextConfiguration.withInterfaceTypeElements
         ..withRedirectedConstructors =
             nodeTextConfiguration.withRedirectedConstructors,
       selfUriStr: '${result.libraryElement.source.uri}',

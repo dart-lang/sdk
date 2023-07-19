@@ -8830,7 +8830,6 @@ FullSnapshotWriter::FullSnapshotWriter(
 
 #if defined(DEBUG)
   isolate_group()->ValidateClassTable();
-  isolate_group()->ValidateConstants();
 #endif  // DEBUG
 
 #if defined(DART_PRECOMPILER)

@@ -38,6 +38,10 @@ class InheritanceOverrideVerifier {
     for (var declaration in unit.declarations) {
       _ClassVerifier verifier;
       if (declaration is ClassDeclaration) {
+        final element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -46,7 +50,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           superclass: declaration.extendsClause?.superclass,
@@ -81,6 +85,10 @@ class InheritanceOverrideVerifier {
           withClause: declaration.withClause,
         );
       } else if (declaration is MixinDeclaration) {
+        final element = declaration.declaredElement!;
+        if (element.isAugmentation) {
+          continue;
+        }
         verifier = _ClassVerifier(
           typeSystem: _typeSystem,
           typeProvider: _typeProvider,
@@ -89,7 +97,7 @@ class InheritanceOverrideVerifier {
           featureSet: unit.featureSet,
           library: library,
           classNameToken: declaration.name,
-          classElement: declaration.declaredElement!,
+          classElement: element,
           implementsClause: declaration.implementsClause,
           members: declaration.members,
           onClause: declaration.onClause,

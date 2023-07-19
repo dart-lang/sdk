@@ -89,7 +89,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/generated/variable_type_provider.dart';
 import 'package:analyzer/src/task/inference_error.dart';
 import 'package:analyzer/src/util/ast_data_extractor.dart';
-import 'package:meta/meta.dart';
 
 typedef SharedMatchContext = shared.MatchContext<AstNode, Expression,
     DartPattern, DartType, PromotableElement>;
@@ -1750,11 +1749,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       parent.readElement = element;
       parent.readType = readType;
     }
-  }
-
-  @visibleForTesting
-  void setThisInterfaceType(InterfaceType thisType) {
-    _thisType = thisType;
   }
 
   @override
@@ -3841,7 +3835,12 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   void _setupThisType() {
     var enclosingClass = this.enclosingClass;
     if (enclosingClass != null) {
-      _thisType = enclosingClass.thisType;
+      final augmented = enclosingClass.augmented;
+      if (augmented != null) {
+        _thisType = augmented.declaration.thisType;
+      } else {
+        _thisType = InvalidTypeImpl.instance;
+      }
     } else {
       var enclosingExtension = this.enclosingExtension;
       if (enclosingExtension != null) {

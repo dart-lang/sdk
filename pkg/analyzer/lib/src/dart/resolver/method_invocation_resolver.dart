@@ -593,12 +593,8 @@ class MethodInvocationResolver with ScopeHelpers {
           contextType: contextType);
     }
 
-    DartType receiverType;
-    if (_resolver.enclosingClass != null) {
-      receiverType = _resolver.enclosingClass!.thisType;
-    } else if (_resolver.enclosingExtension != null) {
-      receiverType = _resolver.enclosingExtension!.extendedType;
-    } else {
+    final receiverType = _resolver.thisType;
+    if (receiverType == null) {
       return _reportUndefinedFunction(
         node,
         prefix: null,

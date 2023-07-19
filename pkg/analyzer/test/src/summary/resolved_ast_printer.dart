@@ -1886,6 +1886,9 @@ class ResolvedNodeTextConfiguration {
   /// TODO(scheglov) Remove after https://github.com/dart-lang/sdk/issues/48380
   bool withCheckingLinking = false;
 
+  /// If `true`, elements of [InterfaceType] should be printed.
+  bool withInterfaceTypeElements = false;
+
   /// If `true`, [Expression.staticParameterElement] should be printed.
   bool withParameterElements = true;
 

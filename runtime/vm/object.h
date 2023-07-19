@@ -1690,8 +1690,6 @@ class Class : public Object {
   InstancePtr InsertCanonicalConstant(Zone* zone,
                                       const Instance& constant) const;
 
-  void RehashConstants(Zone* zone) const;
-
   bool RequireCanonicalTypeErasureOfConstants(Zone* zone) const;
 
   static intptr_t InstanceSize() {
@@ -8130,11 +8128,6 @@ class Instance : public Object {
 
   InstancePtr CopyShallowToOldSpace(Thread* thread) const;
 
-#if defined(DEBUG)
-  // Check if instance is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
-
   ObjectPtr GetField(const Field& field) const;
 
   void SetField(const Field& field, const Object& value) const;
@@ -9029,14 +9022,6 @@ class AbstractType : public Instance {
   // Return the canonical version of this type.
   virtual AbstractTypePtr Canonicalize(Thread* thread) const;
 
-#if defined(DEBUG)
-  // Check if abstract type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const {
-    UNREACHABLE();
-    return false;
-  }
-#endif  // DEBUG
-
   // Add the pair <name, uri> to the list, if not already present.
   static void AddURI(URIs* uris, const String& name, const String& uri);
 
@@ -9310,10 +9295,6 @@ class Type : public AbstractType {
       FunctionTypeMapping* function_type_mapping) const;
 
   virtual AbstractTypePtr Canonicalize(Thread* thread) const;
-#if defined(DEBUG)
-  // Check if type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
@@ -9450,10 +9431,6 @@ class FunctionType : public AbstractType {
       FunctionTypeMapping* function_type_mapping) const;
 
   virtual AbstractTypePtr Canonicalize(Thread* thread) const;
-#if defined(DEBUG)
-  // Check if type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
@@ -9756,10 +9733,6 @@ class TypeParameter : public AbstractType {
       FunctionTypeMapping* function_type_mapping) const;
 
   virtual AbstractTypePtr Canonicalize(Thread* thread) const;
-#if defined(DEBUG)
-  // Check if type parameter is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const { return; }
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;
@@ -10212,11 +10185,6 @@ class String : public Instance {
   // Strings are canonicalized using the symbol table.
   // Caller must hold IsolateGroup::constant_canonicalization_mutex_.
   virtual InstancePtr CanonicalizeLocked(Thread* thread) const;
-
-#if defined(DEBUG)
-  // Check if string is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
 
   bool IsSymbol() const { return ptr()->untag()->IsCanonical(); }
 
@@ -11469,10 +11437,6 @@ class RecordType : public AbstractType {
       FunctionTypeMapping* function_type_mapping) const;
 
   virtual AbstractTypePtr Canonicalize(Thread* thread) const;
-#if defined(DEBUG)
-  // Check if type is canonical.
-  virtual bool CheckIsCanonical(Thread* thread) const;
-#endif  // DEBUG
   virtual void EnumerateURIs(URIs* uris) const;
   virtual void PrintName(NameVisibility visibility,
                          BaseTextBuffer* printer) const;

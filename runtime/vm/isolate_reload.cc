@@ -1849,10 +1849,6 @@ void ProgramReloadContext::CommitAfterInstanceMorphing() {
     IG->RehashConstants();
   }
 
-#ifdef DEBUG
-  IG->ValidateConstants();
-#endif
-
   if (FLAG_identity_reload) {
     const auto& saved_libs = GrowableObjectArray::Handle(saved_libraries_);
     const GrowableObjectArray& libs =

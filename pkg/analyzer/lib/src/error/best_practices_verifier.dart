@@ -198,8 +198,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    var element = node.declaredElement as ClassElementImpl;
+  void visitClassDeclaration(covariant ClassDeclarationImpl node) {
+    var element = node.declaredElement!;
+    if (element.isAugmentation) {
+      return;
+    }
+
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = element;
 
@@ -611,8 +615,12 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
-    var element = node.declaredElement as MixinElementImpl;
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
+    var element = node.declaredElement!;
+    if (element.isAugmentation) {
+      return;
+    }
+
     _enclosingClass = element;
     _invalidAccessVerifier._enclosingClass = _enclosingClass;
 

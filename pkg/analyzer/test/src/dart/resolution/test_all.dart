@@ -104,6 +104,7 @@ import 'super_constructor_invocation_test.dart' as super_constructor_invocation;
 import 'super_formal_parameter_test.dart' as super_formal_parameter;
 import 'switch_expression_test.dart' as switch_expression;
 import 'switch_statement_test.dart' as switch_statement;
+import 'this_expression_test.dart' as this_expression;
 import 'top_level_variable_test.dart' as top_level_variable;
 import 'top_type_inference_test.dart' as top_type_inference;
 import 'try_statement_test.dart' as try_statement;
@@ -209,6 +210,7 @@ main() {
     super_formal_parameter.main();
     switch_expression.main();
     switch_statement.main();
+    this_expression.main();
     top_level_variable.main();
     top_type_inference.main();
     try_statement.main();

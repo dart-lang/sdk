@@ -11,6 +11,7 @@
 #include "platform/assert.h"
 #include "platform/atomic.h"
 #include "platform/text_buffer.h"
+#include "vm/canonical_tables.h"
 #include "vm/class_finalizer.h"
 #include "vm/code_observers.h"
 #include "vm/compiler/jit/compiler.h"
@@ -837,15 +838,24 @@ void IsolateGroup::ExitTemporaryIsolate() {
 }
 
 void IsolateGroup::RehashConstants() {
+  // Even though no individual constant contains a cycle, there can be "cycles"
+  // between the canonical tables if some const instances of A have fields that
+  // are const instance of B and vice versa. So set all the old tables to the
+  // side and clear all the tables attached to the classes before rehashing
+  // instead of resetting and rehash one class at a time.
+
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
 
-  thread->heap()->ResetCanonicalHashTable();
+  intptr_t num_cids = class_table()->NumCids();
+  Array** old_constant_tables = zone->Alloc<Array*>(num_cids);
+  for (intptr_t i = 0; i < num_cids; i++) {
+    old_constant_tables[i] = nullptr;
+  }
 
   Class& cls = Class::Handle(zone);
-  intptr_t top = class_table()->NumCids();
-  for (intptr_t cid = kInstanceCid; cid < top; cid++) {
+  for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     if (!class_table()->IsValidIndex(cid) ||
         !class_table()->HasValidClassAt(cid)) {
       continue;
@@ -855,35 +865,46 @@ void IsolateGroup::RehashConstants() {
       // that aren't based on address.
       continue;
     }
+    if ((cid == kMintCid) || (cid == kDoubleCid)) {
+      // Constants stored as a plain list or in a hashset with a stable
+      // hashcode, which only depends on the actual value of the constant.
+      continue;
+    }
+
     cls = class_table()->At(cid);
-    cls.RehashConstants(zone);
-  }
-}
 
-#if defined(DEBUG)
-void IsolateGroup::ValidateConstants() {
-  if (FLAG_precompiled_mode) {
-    // TODO(27003)
-    return;
-  }
-  // Issue(https://dartbug.com/44862): Figure out why hot-reload causes
-  // existence of non-canonical constants.
-  if (HasAttemptedReload()) {
-    return;
+    if (cls.constants() == Array::null()) continue;
+
+    old_constant_tables[cid] = &Array::Handle(zone, cls.constants());
+    cls.set_constants(Object::null_array());
   }
 
-  // Verify that all canonical instances are correctly setup in the
-  // corresponding canonical tables.
-  NoBackgroundCompilerScope no_bg_compiler(Thread::Current());
-  heap()->CollectAllGarbage(GCReason::kDebugging);
-  Thread* thread = Thread::Current();
-  SafepointMutexLocker ml(
-      thread->isolate_group()->constant_canonicalization_mutex());
-  HeapIterationScope iteration(thread);
-  VerifyCanonicalVisitor check_canonical(thread);
-  iteration.IterateObjects(&check_canonical);
+  // Clear invalid hashes.
+  heap()->ResetCanonicalHashTable();
+
+  Instance& constant = Instance::Handle(zone);
+  for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
+    Array* old_constants = old_constant_tables[cid];
+    if (old_constants == nullptr) continue;
+
+    cls = class_table()->At(cid);
+    CanonicalInstancesSet set(zone, old_constants->ptr());
+    CanonicalInstancesSet::Iterator it(&set);
+    while (it.MoveNext()) {
+      constant ^= set.GetKey(it.Current());
+      ASSERT(!constant.IsNull());
+      // Shape changes lose the canonical bit because they may result/ in
+      // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
+      DEBUG_ASSERT(constant.IsCanonical() ||
+                   IsolateGroup::Current()->HasAttemptedReload());
+      cls.InsertCanonicalConstant(zone, constant);
+    }
+    set.Release();
+  }
+
+  // Save memory.
+  heap()->ResetCanonicalHashTable();
 }
-#endif  // DEBUG
 
 void Isolate::SendInternalLibMessage(LibMsgId msg_id, uint64_t capability) {
   const bool ok = SendInternalLibMessage(main_port(), msg_id, capability);

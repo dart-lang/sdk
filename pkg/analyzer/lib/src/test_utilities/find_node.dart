@@ -146,6 +146,8 @@ class FindNode {
 
   SwitchPatternCase get singleSwitchPatternCase => _single();
 
+  ThisExpression get singleThisExpression => _single();
+
   TopLevelVariableDeclaration get singleTopLevelVariableDeclaration =>
       _single();
 

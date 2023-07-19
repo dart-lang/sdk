@@ -287,7 +287,6 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
 
   void RehashConstants();
 #if defined(DEBUG)
-  void ValidateConstants();
   void ValidateClassTable();
 #endif
 

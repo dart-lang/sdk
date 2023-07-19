@@ -172,6 +172,7 @@ positive_token_pos_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28443_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_28980_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_34841_test: SkipByDesign # Debugger is disabled in AOT mode.
+regress_45684_test: SkipByDesign # Debugger is disabled in AOT mode.
 regress_46419_test: SkipByDesign # Debugger is disabled in AOT mode.
 reload_sources_test: SkipByDesign # Hot reload is disabled in AOT mode.
 rewind_optimized_out_test: SkipByDesign # Debugger is disabled in AOT mode.

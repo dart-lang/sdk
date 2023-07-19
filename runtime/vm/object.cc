@@ -6393,8 +6393,6 @@ static uword Hash64To32(uint64_t v) {
   return static_cast<uint32_t>(v);
 }
 
-typedef UnorderedHashSet<CanonicalInstanceTraits> CanonicalInstancesSet;
-
 InstancePtr Class::LookupCanonicalInstance(Zone* zone,
                                            const Instance& value) const {
   ASSERT(this->ptr() == value.clazz());
@@ -6425,34 +6423,6 @@ InstancePtr Class::InsertCanonicalConstant(Zone* zone,
     this->set_constants(constants.Release());
   }
   return canonical_value.ptr();
-}
-
-void Class::RehashConstants(Zone* zone) const {
-  intptr_t cid = id();
-  if ((cid == kMintCid) || (cid == kDoubleCid)) {
-    // Constants stored as a plain list or in a hashset with a stable hashcode,
-    // which only depends on the actual value of the constant.
-    return;
-  }
-
-  const Array& old_constants = Array::Handle(zone, constants());
-  if (old_constants.IsNull()) return;
-
-  set_constants(Object::null_array());
-
-  CanonicalInstancesSet set(zone, old_constants.ptr());
-  Instance& constant = Instance::Handle(zone);
-  CanonicalInstancesSet::Iterator it(&set);
-  while (it.MoveNext()) {
-    constant ^= set.GetKey(it.Current());
-    ASSERT(!constant.IsNull());
-    // Shape changes lose the canonical bit because they may result/ in merging
-    // constants. E.g., [x1, y1], [x1, y2] -> [x1].
-    DEBUG_ASSERT(constant.IsCanonical() ||
-                 IsolateGroup::Current()->HasAttemptedReload());
-    InsertCanonicalConstant(zone, constant);
-  }
-  set.Release();
 }
 
 bool Class::RequireCanonicalTypeErasureOfConstants(Zone* zone) const {
@@ -20654,19 +20624,6 @@ InstancePtr Instance::CanonicalizeLocked(Thread* thread) const {
   return cls.InsertCanonicalConstant(zone, result);
 }
 
-#if defined(DEBUG)
-bool Instance::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  Instance& result = Instance::Handle(zone);
-  const Class& cls = Class::Handle(zone, this->clazz());
-  ASSERT(thread->isolate_group()
-             ->constant_canonicalization_mutex()
-             ->IsOwnedByCurrentThread());
-  result ^= cls.LookupCanonicalInstance(zone, *this);
-  return (result.ptr() == this->ptr());
-}
-#endif  // DEBUG
-
 ObjectPtr Instance::GetField(const Field& field) const {
   if (field.is_unboxed()) {
     switch (field.guarded_cid()) {
@@ -22556,40 +22513,6 @@ AbstractTypePtr Type::Canonicalize(Thread* thread) const {
   return type.ptr();
 }
 
-#if defined(DEBUG)
-bool Type::CheckIsCanonical(Thread* thread) const {
-  const classid_t cid = type_class_id();
-  if (cid == kDynamicCid) {
-    return (ptr() == Object::dynamic_type().ptr());
-  }
-  if (cid == kVoidCid) {
-    return (ptr() == Object::void_type().ptr());
-  }
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  Type& type = Type::Handle(zone);
-  const Class& cls = Class::Handle(zone, type_class());
-
-  // Fast canonical lookup/registry for simple types.
-  if (IsDeclarationTypeOf(cls)) {
-    type = cls.declaration_type();
-    ASSERT(type.IsCanonical());
-    return (ptr() == type.ptr());
-  }
-
-  ObjectStore* object_store = isolate_group->object_store();
-  {
-    ASSERT(thread->isolate_group()
-               ->constant_canonicalization_mutex()
-               ->IsOwnedByCurrentThread());
-    CanonicalTypeSet table(zone, object_store->canonical_types());
-    type ^= table.GetOrNull(CanonicalTypeKey(*this));
-    object_store->set_canonical_types(table.Release());
-  }
-  return (ptr() == type.ptr());
-}
-#endif  // DEBUG
-
 void Type::EnumerateURIs(URIs* uris) const {
   if (IsDynamicType() || IsVoidType() || IsNeverType()) {
     return;
@@ -22916,25 +22839,6 @@ AbstractTypePtr FunctionType::Canonicalize(Thread* thread) const {
   return sig.ptr();
 }
 
-#if defined(DEBUG)
-bool FunctionType::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  FunctionType& type = FunctionType::Handle(zone);
-  ObjectStore* object_store = isolate_group->object_store();
-  {
-    ASSERT(thread->isolate_group()
-               ->constant_canonicalization_mutex()
-               ->IsOwnedByCurrentThread());
-    CanonicalFunctionTypeSet table(zone,
-                                   object_store->canonical_function_types());
-    type ^= table.GetOrNull(CanonicalFunctionTypeKey(*this));
-    object_store->set_canonical_function_types(table.Release());
-  }
-  return ptr() == type.ptr();
-}
-#endif  // DEBUG
-
 void FunctionType::EnumerateURIs(URIs* uris) const {
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
@@ -23255,26 +23159,6 @@ AbstractTypePtr TypeParameter::Canonicalize(Thread* thread) const {
   }
   return type_parameter.ptr();
 }
-
-#if defined(DEBUG)
-bool TypeParameter::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-
-  TypeParameter& type_parameter = TypeParameter::Handle(zone);
-  ObjectStore* object_store = isolate_group->object_store();
-  {
-    ASSERT(thread->isolate_group()
-               ->constant_canonicalization_mutex()
-               ->IsOwnedByCurrentThread());
-    CanonicalTypeParameterSet table(zone,
-                                    object_store->canonical_type_parameters());
-    type_parameter ^= table.GetOrNull(CanonicalTypeParameterKey(*this));
-    object_store->set_canonical_type_parameters(table.Release());
-  }
-  return (ptr() == type_parameter.ptr());
-}
-#endif  // DEBUG
 
 void TypeParameter::PrintName(NameVisibility name_visibility,
                               BaseTextBuffer* printer) const {
@@ -24114,14 +23998,6 @@ InstancePtr String::CanonicalizeLocked(Thread* thread) const {
   }
   return Symbols::New(Thread::Current(), *this);
 }
-
-#if defined(DEBUG)
-bool String::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  const String& str = String::Handle(zone, Symbols::Lookup(thread, *this));
-  return (str.ptr() == this->ptr());
-}
-#endif  // DEBUG
 
 StringPtr String::New(const char* cstr, Heap::Space space) {
   ASSERT(cstr != nullptr);
@@ -28043,24 +27919,6 @@ AbstractTypePtr RecordType::Canonicalize(Thread* thread) const {
   }
   return rec.ptr();
 }
-
-#if defined(DEBUG)
-bool RecordType::CheckIsCanonical(Thread* thread) const {
-  Zone* zone = thread->zone();
-  auto isolate_group = thread->isolate_group();
-  RecordType& type = RecordType::Handle(zone);
-  ObjectStore* object_store = isolate_group->object_store();
-  {
-    ASSERT(thread->isolate_group()
-               ->constant_canonicalization_mutex()
-               ->IsOwnedByCurrentThread());
-    CanonicalRecordTypeSet table(zone, object_store->canonical_record_types());
-    type ^= table.GetOrNull(CanonicalRecordTypeKey(*this));
-    object_store->set_canonical_record_types(table.Release());
-  }
-  return ptr() == type.ptr();
-}
-#endif  // DEBUG
 
 void RecordType::EnumerateURIs(URIs* uris) const {
   AbstractType& type = AbstractType::Handle();

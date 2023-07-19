@@ -24,9 +24,10 @@ class MakeClassAbstract extends ResolvedCorrectionProducer {
       return;
     }
     _className = enclosingClass.name.lexeme;
+
     await builder.addDartFileEdit(file, (builder) {
       builder.addSimpleInsertion(
-          enclosingClass.classKeyword.offset, 'abstract ');
+          enclosingClass.firstTokenAfterCommentAndMetadata.offset, 'abstract ');
     });
   }
 }
