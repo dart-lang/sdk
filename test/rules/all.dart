@@ -160,6 +160,7 @@ import 'unnecessary_nullable_for_final_variable_declarations_test.dart'
     as unnecessary_nullable_for_final_variable_declarations;
 import 'unnecessary_overrides_test.dart' as unnecessary_overrides;
 import 'unnecessary_parenthesis_test.dart' as unnecessary_parenthesis;
+import 'unnecessary_raw_strings_test.dart' as unnecessary_raw_strings;
 import 'unnecessary_statements_test.dart' as unnecessary_statements;
 import 'unnecessary_string_escapes_test.dart' as unnecessary_string_escapes;
 import 'unnecessary_string_interpolations_test.dart'
@@ -313,6 +314,7 @@ void main() {
   unnecessary_nullable_for_final_variable_declarations.main();
   unnecessary_overrides.main();
   unnecessary_parenthesis.main();
+  unnecessary_raw_strings.main();
   unnecessary_statements.main();
   unnecessary_string_escapes.main();
   unnecessary_string_interpolations.main();
