@@ -35,6 +35,10 @@ cd packages
 (cd script/tool; dart analyze --suppress-analytics --fatal-infos)
 
 # Invoke the repo's analysis script.
+# Use --downgrade to avoid potential breakage from transitive
+# dependency publishing. See
+# https://github.com/flutter/flutter/issues/129633
 dart run script/tool/bin/flutter_plugin_tools.dart analyze \
+  --downgrade \
   --analysis-sdk $sdk \
   --custom-analysis=script/configs/custom_analysis.yaml
