@@ -132,6 +132,8 @@ class ClassElementLinkedData extends ElementLinkedData<ClassElementImpl> {
         element.augmentedInternal = augmented;
         augmented.mixins = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
         augmented.methods = reader.readElementList();
       }
     }
@@ -554,6 +556,8 @@ class LibraryReader {
       _reader.readUInt30List(),
     );
 
+    final accessorAugmentationsOffset = _reader.readUInt30();
+
     libraryElement.linkedData = LibraryElementLinkedData(
       reference: _reference,
       libraryReader: this,
@@ -565,6 +569,8 @@ class LibraryReader {
 
     InformativeDataApplier(_elementFactory, _unitsInformativeBytes)
         .applyTo(libraryElement);
+
+    _readPropertyAccessorAugmentations(accessorAugmentationsOffset);
 
     return libraryElement;
   }
@@ -1276,6 +1282,20 @@ class LibraryReader {
     );
   }
 
+  /// Read resolution information for property accessor augmentations,
+  /// during which we update `getter` and `setter` of augmented variables.
+  void _readPropertyAccessorAugmentations(int offset) {
+    final reader = ResolutionReader(
+      _elementFactory,
+      _referenceReader,
+      _reader.fork(_baseResolutionOffset + offset),
+    );
+    final elements = reader.readElementList<PropertyAccessorElementImpl>();
+    for (final element in elements) {
+      element.variable;
+    }
+  }
+
   PropertyAccessorElementImpl _readPropertyAccessorElement(
     CompilationUnitElementImpl unitElement,
     ElementImpl classElement,
@@ -1322,6 +1342,10 @@ class LibraryReader {
       );
       accessors.add(accessor);
 
+      if (accessor.isAugmentation) {
+        continue;
+      }
+
       var name = accessor.displayName;
       var isGetter = accessor.isGetter;
 
@@ -1340,6 +1364,7 @@ class LibraryReader {
         } else {
           property = TopLevelVariableElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..reference = reference
             ..isSynthetic = true;
           reference.element ??= property;
           properties.add(property);
@@ -1350,6 +1375,7 @@ class LibraryReader {
         } else {
           property = FieldElementImpl(name, -1)
             ..enclosingElement = enclosingElement
+            ..reference = reference
             ..isStatic = accessor.isStatic
             ..isSynthetic = true;
           reference.element ??= property;
@@ -1604,6 +1630,8 @@ class MixinElementLinkedData extends ElementLinkedData<MixinElementImpl> {
         element.augmentedInternal = augmented;
         augmented.superclassConstraints = reader._readInterfaceTypeList();
         augmented.interfaces = reader._readInterfaceTypeList();
+        augmented.fields = reader.readElementList();
+        augmented.accessors = reader.readElementList();
         augmented.methods = reader.readElementList();
       }
     }
@@ -1633,6 +1661,21 @@ class PropertyAccessorElementLinkedData
 
     element.returnType = reader.readRequiredType();
     _readFormalParameters(reader, element.parameters);
+
+    // If augmentation...
+    if (reader.readBool()) {
+      element.augmentationTarget =
+          reader.readElement() as PropertyAccessorElementImpl?;
+      final variable = reader.readElement() as PropertyInducingElementImpl;
+      element.variable = variable;
+      if (element.isGetter) {
+        variable.getter?.augmentation = element;
+        variable.getter = element;
+      } else {
+        variable.setter?.augmentation = element;
+        variable.setter = element;
+      }
+    }
 
     applyConstantOffsets?.perform();
   }
@@ -1687,12 +1730,16 @@ class ResolutionReader {
 
     if (memberFlags == Tag.MemberLegacyWithTypeArguments ||
         memberFlags == Tag.MemberWithTypeArguments) {
-      element as ExecutableElement;
       var enclosing = element.enclosingElement2 as TypeParameterizedElement;
       var typeParameters = enclosing.typeParameters;
       var typeArguments = _readTypeList();
       var substitution = Substitution.fromPairs(typeParameters, typeArguments);
-      element = ExecutableMember.from2(element, substitution);
+      if (element is ExecutableElement) {
+        element = ExecutableMember.from2(element, substitution);
+      } else {
+        element as FieldElement;
+        element = FieldMember.from2(element, substitution);
+      }
     }
 
     if (memberFlags == Tag.MemberLegacyWithoutTypeArguments ||

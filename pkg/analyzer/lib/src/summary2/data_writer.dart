@@ -121,6 +121,18 @@ class BufferedSink {
     addByte(byte);
   }
 
+  void writeIf<T extends Object>(
+    bool condition,
+    void Function() ifTrue,
+  ) {
+    if (condition) {
+      writeBool(true);
+      ifTrue();
+    } else {
+      writeBool(false);
+    }
+  }
+
   void writeIfType<T extends Object>(
     Object? object,
     void Function(T t) ifTrue,

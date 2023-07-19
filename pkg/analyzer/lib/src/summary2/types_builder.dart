@@ -148,6 +148,8 @@ class TypesBuilder {
         element.augmentedInternal = augmented;
         augmented.mixins.addAll(element.mixins);
         augmented.interfaces.addAll(element.interfaces);
+        augmented.fields.addAll(element.fields);
+        augmented.accessors.addAll(element.accessors.notAugmented);
         augmented.methods.addAll(element.methods.notAugmented);
       }
       _toInferMixins[element] = _ToInferMixins(element, node.withClause);
@@ -336,6 +338,8 @@ class TypesBuilder {
         element.augmentedInternal = augmented;
         augmented.superclassConstraints.addAll(element.superclassConstraints);
         augmented.interfaces.addAll(element.interfaces);
+        augmented.fields.addAll(element.fields);
+        augmented.accessors.addAll(element.accessors.notAugmented);
         augmented.methods.addAll(element.methods.notAugmented);
       }
     }
@@ -433,15 +437,32 @@ class TypesBuilder {
     }
 
     if (augmented is AugmentedInstanceElementImpl) {
-      MethodElement mapMethodElement(MethodElement element) {
-        if (toDeclaration.map.isEmpty) {
-          return element;
-        }
-        return MethodMember(typeProvider, element, toDeclaration, false);
-      }
+      augmented.fields.addAll(
+        element.fields.map((element) {
+          if (toDeclaration.map.isEmpty) {
+            return element;
+          }
+          return FieldMember(typeProvider, element, toDeclaration, false);
+        }),
+      );
+
+      augmented.accessors.addAll(
+        element.accessors.notAugmented.map((element) {
+          if (toDeclaration.map.isEmpty) {
+            return element;
+          }
+          return PropertyAccessorMember(
+              typeProvider, element, toDeclaration, false);
+        }),
+      );
 
       augmented.methods.addAll(
-        element.methods.notAugmented.map(mapMethodElement),
+        element.methods.notAugmented.map((element) {
+          if (toDeclaration.map.isEmpty) {
+            return element;
+          }
+          return MethodMember(typeProvider, element, toDeclaration, false);
+        }),
       );
     }
   }
@@ -729,8 +750,8 @@ class _ToInferMixinsAugmentation {
   }
 }
 
-extension on List<MethodElement> {
-  Iterable<MethodElement> get notAugmented {
+extension<T extends ExecutableElement> on List<T> {
+  Iterable<T> get notAugmented {
     return where((e) => e.augmentation == null);
   }
 }

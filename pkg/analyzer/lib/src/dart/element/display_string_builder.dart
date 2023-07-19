@@ -95,6 +95,10 @@ class ElementDisplayStringBuilder {
   }
 
   void writeExecutableElement(ExecutableElement element, String name) {
+    if (element.isAugmentation) {
+      _write('augment ');
+    }
+
     _writeType(element.returnType2);
     _write(' ');
 

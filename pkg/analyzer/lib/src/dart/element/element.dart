@@ -117,19 +117,17 @@ class AugmentedInlineClassElementImpl extends AugmentedNamedInstanceElementImpl
 abstract class AugmentedInstanceElementImpl
     implements AugmentedInstanceElement {
   @override
-  List<MethodElement> methods = [];
+  List<FieldElement> fields = [];
 
   @override
-  // TODO: implement accessors
-  List<PropertyAccessorElement> get accessors => throw UnimplementedError();
+  List<PropertyAccessorElement> accessors = [];
+
+  @override
+  List<MethodElement> methods = [];
 
   @override
   // TODO: implement declaration
   InstanceElement get declaration => throw UnimplementedError();
-
-  @override
-  // TODO: implement fields
-  List<FieldElement> get fields => throw UnimplementedError();
 
   @override
   // TODO: implement metadata
@@ -6063,17 +6061,16 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
     implements PropertyAccessorElement {
-  /// The variable associated with this accessor.
-  @override
-  late PropertyInducingElementImpl variable;
+  late PropertyInducingElementImpl _variable;
 
   /// If this method is a synthetic element which is based on another method
   /// with some modifications (such as making some parameters covariant),
   /// this field contains the base method.
   PropertyAccessorElement? prototype;
 
-  @override
-  PropertyAccessorElementImpl? augmentationTarget;
+  PropertyAccessorElementImpl? _augmentation;
+
+  PropertyAccessorElementImpl? _augmentationTarget;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -6081,8 +6078,9 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
 
   /// Initialize a newly created synthetic property accessor element to be
   /// associated with the given [variable].
-  PropertyAccessorElementImpl.forVariable(this.variable, {Reference? reference})
-      : super(variable.name, -1, reference: reference) {
+  PropertyAccessorElementImpl.forVariable(this._variable,
+      {Reference? reference})
+      : super(_variable.name, -1, reference: reference) {
     isAbstract = variable is FieldElementImpl &&
         (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
@@ -6090,9 +6088,23 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   }
 
   @override
-  PropertyAccessorElement? get augmentation {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+  PropertyAccessorElementImpl? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(PropertyAccessorElementImpl? value) {
+    _augmentation = value;
+  }
+
+  @override
+  PropertyAccessorElementImpl? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(PropertyAccessorElementImpl? value) {
+    _augmentationTarget = value;
   }
 
   @override
@@ -6166,6 +6178,16 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
       return considerCanonicalizeString("${super.name}=");
     }
     return super.name;
+  }
+
+  @override
+  PropertyInducingElementImpl get variable {
+    linkedData?.read(this);
+    return _variable;
+  }
+
+  set variable(PropertyInducingElementImpl value) {
+    _variable = value;
   }
 
   @override
