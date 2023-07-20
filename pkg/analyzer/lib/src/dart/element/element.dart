@@ -247,11 +247,9 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
 }
 
 /// An [InterfaceElementImpl] which is a class.
-class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
-  ClassElementImpl? _augmentationTarget;
-
-  ClassElementImpl? _augmentation;
-
+class ClassElementImpl extends ClassOrMixinElementImpl
+    with _HasAugmentation<ClassElementImpl>
+    implements ClassElement {
   late AugmentedClassElement augmentedInternal =
       NotAugmentedClassElementImpl(this);
 
@@ -303,26 +301,6 @@ class ClassElementImpl extends ClassOrMixinElementImpl implements ClassElement {
     }
 
     return null;
-  }
-
-  @override
-  ClassElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(ClassElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  ClassElementImpl? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(ClassElementImpl? value) {
-    _augmentationTarget = value;
   }
 
   @override
@@ -4870,7 +4848,9 @@ mixin MacroTargetElement {
 class MacroTargetElementContainer {}
 
 /// A concrete implementation of a [MethodElement].
-class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
+class MethodElementImpl extends ExecutableElementImpl
+    with _HasAugmentation<MethodElementImpl>
+    implements MethodElement {
   /// Is `true` if this method is `operator==`, and there is no explicit
   /// type specified for its formal parameter, in this method or in any
   /// overridden methods other than the one declared in `Object`.
@@ -4885,33 +4865,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
   /// this field contains the base method.
   MethodElement? prototype;
 
-  MethodElementImpl? _augmentation;
-
-  MethodElementImpl? _augmentationTarget;
-
   /// Initialize a newly created method element to have the given [name] at the
   /// given [offset].
   MethodElementImpl(super.name, super.offset);
-
-  @override
-  MethodElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(MethodElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  MethodElementImpl? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(MethodElementImpl? value) {
-    _augmentationTarget = value;
-  }
 
   @override
   MethodElement get declaration => prototype ?? this;
@@ -4968,10 +4924,9 @@ class MethodElementImpl extends ExecutableElementImpl implements MethodElement {
 }
 
 /// A [ClassElementImpl] representing a mixin declaration.
-class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
-  MixinElementImpl? _augmentationTarget;
-
-  MixinElementImpl? _augmentation;
+class MixinElementImpl extends ClassOrMixinElementImpl
+    with _HasAugmentation<MixinElementImpl>
+    implements MixinElement {
   List<InterfaceType> _superclassConstraints = const [];
 
   /// Names of methods, getters, setters, and operators that this mixin
@@ -4985,26 +4940,6 @@ class MixinElementImpl extends ClassOrMixinElementImpl implements MixinElement {
   /// Initialize a newly created class element to have the given [name] at the
   /// given [offset] in the file that contains the declaration of this element.
   MixinElementImpl(super.name, super.offset);
-
-  @override
-  MixinElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(MixinElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  MixinElementImpl? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(MixinElementImpl? value) {
-    _augmentationTarget = value;
-  }
 
   @override
   AugmentedMixinElement? get augmented {
@@ -6104,6 +6039,7 @@ class PrefixElementImpl extends _ExistingElementImpl implements PrefixElement {
 
 /// A concrete implementation of a [PropertyAccessorElement].
 class PropertyAccessorElementImpl extends ExecutableElementImpl
+    with _HasAugmentation<PropertyAccessorElementImpl>
     implements PropertyAccessorElement {
   late PropertyInducingElementImpl _variable;
 
@@ -6111,10 +6047,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
   /// with some modifications (such as making some parameters covariant),
   /// this field contains the base method.
   PropertyAccessorElement? prototype;
-
-  PropertyAccessorElementImpl? _augmentation;
-
-  PropertyAccessorElementImpl? _augmentationTarget;
 
   /// Initialize a newly created property accessor element to have the given
   /// [name] and [offset].
@@ -6129,26 +6061,6 @@ class PropertyAccessorElementImpl extends ExecutableElementImpl
         (variable as FieldElementImpl).isAbstract;
     isStatic = variable.isStatic;
     isSynthetic = true;
-  }
-
-  @override
-  PropertyAccessorElementImpl? get augmentation {
-    linkedData?.read(this);
-    return _augmentation;
-  }
-
-  set augmentation(PropertyAccessorElementImpl? value) {
-    _augmentation = value;
-  }
-
-  @override
-  PropertyAccessorElementImpl? get augmentationTarget {
-    linkedData?.read(this);
-    return _augmentationTarget;
-  }
-
-  set augmentationTarget(PropertyAccessorElementImpl? value) {
-    _augmentationTarget = value;
   }
 
   @override
@@ -7179,6 +7091,32 @@ abstract class VariableElementImpl extends ElementImpl
 
 abstract class _ExistingElementImpl extends ElementImpl with _HasLibraryMixin {
   _ExistingElementImpl(super.name, super.offset, {super.reference});
+}
+
+/// Shared implementation of `augmentation` and `augmentationTarget`.
+mixin _HasAugmentation<T> on ElementImpl {
+  T? _augmentation;
+  T? _augmentationTarget;
+
+  T? get augmentation {
+    linkedData?.read(this);
+    return _augmentation;
+  }
+
+  set augmentation(T? value) {
+    _augmentation = value;
+  }
+
+  T? get augmentationTarget {
+    linkedData?.read(this);
+    return _augmentationTarget;
+  }
+
+  set augmentationTarget(T? value) {
+    _augmentationTarget = value;
+  }
+
+  ElementLinkedData? get linkedData;
 }
 
 mixin _HasLibraryMixin on ElementImpl {
