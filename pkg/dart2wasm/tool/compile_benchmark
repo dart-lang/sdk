@@ -45,7 +45,7 @@ if [[ "$3" == "--omit-checks" ]]; then
 fi
 
 "$DART2WASM" "$1" "$TEMPFILE" $COMPILE_FLAGS
-"$BINARYEN" -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
+"$BINARYEN" -g -all --closed-world -tnh -O3 --type-ssa --gufa -O3 --type-merging "$TEMPFILE" -o "$2"
 
 # Locate JS runtime and copy it to the same directory as "$2". We also rename it
 # using the basename of "$2".

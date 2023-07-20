@@ -47,13 +47,6 @@ class FieldIndex {
   static const functionTypeNamedParameters = 9;
   static const recordTypeNames = 3;
   static const recordTypeFieldTypes = 4;
-  static const typedListBaseLength = 2;
-  static const typedListArray = 3;
-  static const typedListViewTypedData = 3;
-  static const typedListViewOffsetInBytes = 4;
-  static const byteDataViewLength = 2;
-  static const byteDataViewTypedData = 3;
-  static const byteDataViewOffsetInBytes = 4;
   static const suspendStateIterator = 4;
   static const suspendStateContext = 5;
   static const suspendStateTargetIndex = 6;
@@ -215,16 +208,20 @@ class ClassInfoCollector {
 
   /// Masquerades for implementation classes. For each entry of the map, all
   /// subtypes of the key masquerade as the value.
-  late final Map<Class, Class> _masquerades = {
-    translator.coreTypes.boolClass: translator.coreTypes.boolClass,
-    translator.coreTypes.intClass: translator.coreTypes.intClass,
-    translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
-    translator.coreTypes.stringClass: translator.coreTypes.stringClass,
-    translator.index.getClass("dart:core", "_Type"):
-        translator.coreTypes.typeClass,
-    translator.index.getClass("dart:core", "_ListBase"):
-        translator.coreTypes.listClass,
-    for (Class cls in const <String>[
+  late final Map<Class, Class> _masquerades = _computeMasquerades();
+
+  Map<Class, Class> _computeMasquerades() {
+    final map = {
+      translator.coreTypes.boolClass: translator.coreTypes.boolClass,
+      translator.coreTypes.intClass: translator.coreTypes.intClass,
+      translator.coreTypes.doubleClass: translator.coreTypes.doubleClass,
+      translator.coreTypes.stringClass: translator.coreTypes.stringClass,
+      translator.index.getClass("dart:core", "_Type"):
+          translator.coreTypes.typeClass,
+      translator.index.getClass("dart:core", "_ListBase"):
+          translator.coreTypes.listClass
+    };
+    for (String name in const <String>[
       "Int8List",
       "Uint8List",
       "Uint8ClampedList",
@@ -239,9 +236,14 @@ class ClassInfoCollector {
       "Int32x4List",
       "Float32x4List",
       "Float64x2List",
-    ].map((name) => translator.index.getClass("dart:typed_data", name)))
-      cls: cls
-  };
+    ]) {
+      final Class? cls = translator.index.tryGetClass("dart:typed_data", name);
+      if (cls != null) {
+        map[cls] = cls;
+      }
+    }
+    return map;
+  }
 
   late final Set<Class> _neverMasquerades = _computeNeverMasquerades();
 
@@ -357,11 +359,7 @@ class ClassInfoCollector {
       //   3. The class is not a special class that contains hidden fields.
       bool canReuseSuperStruct =
           typeParameterMatch.length == cls.typeParameters.length &&
-              cls.fields.where((f) => f.isInstanceMember).isEmpty &&
-              cls != translator.typedListBaseClass &&
-              cls != translator.typedListClass &&
-              cls != translator.typedListViewClass &&
-              cls != translator.byteDataViewClass;
+              cls.fields.where((f) => f.isInstanceMember).isEmpty;
       w.StructType struct = canReuseSuperStruct
           ? superInfo.struct
           : m.addStructType(cls.name, superType: superInfo.struct);
@@ -547,47 +545,7 @@ class ClassInfoCollector {
       }
     }
 
-    // Add hidden fields of typed_data classes.
-    _addTypedDataFields();
-
     // Validate that all internally used fields have the expected indices.
     FieldIndex.validate(translator);
-  }
-
-  void _addTypedDataFields() {
-    ClassInfo typedListBaseInfo =
-        translator.classInfo[translator.typedListBaseClass]!;
-    typedListBaseInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-
-    ClassInfo typedListInfo = translator.classInfo[translator.typedListClass]!;
-    typedListInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-    w.RefType bytesArrayType = w.RefType.def(
-        translator.wasmArrayType(w.PackedType.i8, "i8"),
-        nullable: false);
-    typedListInfo._addField(
-        w.FieldType(bytesArrayType, mutable: false), FieldIndex.typedListArray);
-
-    w.RefType typedListType =
-        w.RefType.def(typedListInfo.struct, nullable: false);
-
-    ClassInfo typedListViewInfo =
-        translator.classInfo[translator.typedListViewClass]!;
-    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListBaseLength);
-    typedListViewInfo._addField(w.FieldType(typedListType, mutable: false),
-        FieldIndex.typedListViewTypedData);
-    typedListViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.typedListViewOffsetInBytes);
-
-    ClassInfo byteDataViewInfo =
-        translator.classInfo[translator.byteDataViewClass]!;
-    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.byteDataViewLength);
-    byteDataViewInfo._addField(w.FieldType(typedListType, mutable: false),
-        FieldIndex.byteDataViewTypedData);
-    byteDataViewInfo._addField(w.FieldType(w.NumType.i32, mutable: false),
-        FieldIndex.byteDataViewOffsetInBytes);
   }
 }
