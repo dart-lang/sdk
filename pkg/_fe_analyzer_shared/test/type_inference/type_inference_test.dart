@@ -18,38 +18,38 @@ main() {
     group('If:', () {
       test('Condition context', () {
         h.run([
-          ifElement(
-            expr('dynamic').checkContext('bool'),
-            expr('Object').asCollectionElement,
-          )
-              .checkIR('if(expr(dynamic), celt(expr(Object)), noop)')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifElement(
+              expr('dynamic').checkContext('bool'),
+              expr('Object'),
+            ).checkIR('if(expr(dynamic), celt(expr(Object)), noop)'),
+          ]),
         ]);
       });
 
       test('With else', () {
         h.run([
-          ifElement(
-            expr('bool'),
-            expr('Object').asCollectionElement,
-            expr('Object').asCollectionElement,
-          )
-              .checkIR('if(expr(bool), celt(expr(Object)), celt(expr(Object)))')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifElement(
+              expr('bool'),
+              expr('Object'),
+              expr('Object'),
+            ).checkIR('if(expr(bool), celt(expr(Object)), celt(expr(Object)))'),
+          ]),
         ]);
       });
 
       group('Context:', () {
         test('Element type', () {
           h.run([
-            ifElement(
-              expr('bool'),
-              expr('Object').checkContext('int').asCollectionElement,
-              expr('Object').checkContext('int').asCollectionElement,
-            )
-                .checkIR(
-                    'if(expr(bool), celt(expr(Object)), celt(expr(Object)))')
-                .inContextElementType('int'),
+            listLiteral(elementType: 'int', [
+              ifElement(
+                expr('bool'),
+                expr('Object').checkContext('int'),
+                expr('Object').checkContext('int'),
+              ).checkIR(
+                  'if(expr(bool), celt(expr(Object)), celt(expr(Object)))'),
+            ]),
           ]);
         });
       });
@@ -58,60 +58,60 @@ main() {
     group('If-case:', () {
       test('Expression context', () {
         h.run([
-          ifCaseElement(
-            expr('Object').checkContext('?'),
-            intLiteral(0).pattern,
-            intLiteral(1).checkContext('int').asCollectionElement,
-          )
-              .checkIR('if(expression: expr(Object), pattern: '
-                  'const(0, matchedType: Object), guard: true, '
-                  'ifTrue: celt(1), ifFalse: noop)')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifCaseElement(
+              expr('Object').checkContext('?'),
+              intLiteral(0).pattern,
+              intLiteral(1).checkContext('int'),
+            ).checkIR('if(expression: expr(Object), pattern: '
+                'const(0, matchedType: Object), guard: true, '
+                'ifTrue: celt(1), ifFalse: noop)'),
+          ]),
         ]);
       });
 
       test('With else', () {
         h.run([
-          ifCaseElement(
-            expr('Object'),
-            intLiteral(0).pattern,
-            intLiteral(1).checkContext('int').asCollectionElement,
-            intLiteral(2).checkContext('int').asCollectionElement,
-          )
-              .checkIR('if(expression: expr(Object), pattern: '
-                  'const(0, matchedType: Object), guard: true, '
-                  'ifTrue: celt(1), ifFalse: celt(2))')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifCaseElement(
+              expr('Object'),
+              intLiteral(0).pattern,
+              intLiteral(1).checkContext('int'),
+              intLiteral(2).checkContext('int'),
+            ).checkIR('if(expression: expr(Object), pattern: '
+                'const(0, matchedType: Object), guard: true, '
+                'ifTrue: celt(1), ifFalse: celt(2))'),
+          ]),
         ]);
       });
 
       test('With guard', () {
         var x = Var('x');
         h.run([
-          ifCaseElement(
-            expr('Object'),
-            x.pattern().when(x.expr.eq(intLiteral(0))),
-            intLiteral(1).checkContext('int').asCollectionElement,
-          )
-              .checkIR('if(expression: expr(Object), pattern: '
-                  'varPattern(x, matchedType: Object, staticType: Object), '
-                  'guard: ==(x, 0), ifTrue: celt(1), ifFalse: noop)')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifCaseElement(
+              expr('Object'),
+              x.pattern().when(x.expr.eq(intLiteral(0))),
+              intLiteral(1).checkContext('int'),
+            ).checkIR('if(expression: expr(Object), pattern: '
+                'varPattern(x, matchedType: Object, staticType: Object), '
+                'guard: ==(x, 0), ifTrue: celt(1), ifFalse: noop)'),
+          ]),
         ]);
       });
 
       test('Allows refutable patterns', () {
         var x = Var('x');
         h.run([
-          ifCaseElement(
-            expr('Object'),
-            x.pattern(type: 'int'), // has type, refutable
-            intLiteral(1).checkContext('int').asCollectionElement,
-          )
-              .checkIR('if(expression: expr(Object), pattern: varPattern(x, '
-                  'matchedType: Object, staticType: int), guard: true, '
-                  'ifTrue: celt(1), ifFalse: noop)')
-              .inContextElementType('int'),
+          listLiteral(elementType: 'int', [
+            ifCaseElement(
+              expr('Object'),
+              x.pattern(type: 'int'), // has type, refutable
+              intLiteral(1).checkContext('int'),
+            ).checkIR('if(expression: expr(Object), pattern: varPattern(x, '
+                'matchedType: Object, staticType: int), guard: true, '
+                'ifTrue: celt(1), ifFalse: noop)'),
+          ]),
         ]);
       });
 
@@ -119,11 +119,13 @@ main() {
         test('int', () {
           var x = Var('x');
           h.run([
-            ifCaseElement(
-              expr('Object'),
-              x.pattern().when(expr('int')..errorId = 'GUARD'),
-              intLiteral(0).checkContext('int').asCollectionElement,
-            ).inContextElementType('int'),
+            listLiteral(elementType: 'int', [
+              ifCaseElement(
+                expr('Object'),
+                x.pattern().when(expr('int')..errorId = 'GUARD'),
+                intLiteral(0).checkContext('int'),
+              ),
+            ]),
           ], expectedErrors: {
             'nonBooleanCondition(node: GUARD)'
           });
@@ -132,22 +134,26 @@ main() {
         test('bool', () {
           var x = Var('x');
           h.run([
-            ifCaseElement(
-              expr('Object'),
-              x.pattern().when(expr('bool')),
-              intLiteral(0).checkContext('int').asCollectionElement,
-            ).inContextElementType('int'),
+            listLiteral(elementType: 'int', [
+              ifCaseElement(
+                expr('Object'),
+                x.pattern().when(expr('bool')),
+                intLiteral(0).checkContext('int'),
+              ),
+            ]),
           ], expectedErrors: {});
         });
 
         test('dynamic', () {
           var x = Var('x');
           h.run([
-            ifCaseElement(
-              expr('Object'),
-              x.pattern().when(expr('dynamic')),
-              intLiteral(0).checkContext('int').asCollectionElement,
-            ).inContextElementType('int'),
+            listLiteral(elementType: 'int', [
+              ifCaseElement(
+                expr('Object'),
+                x.pattern().when(expr('dynamic')),
+                intLiteral(0).checkContext('int'),
+              ),
+            ]),
           ], expectedErrors: {});
         });
       });
@@ -158,42 +164,43 @@ main() {
         test('Iterable', () {
           var x = Var('x');
           h.run([
-            patternForInElement(
-              x.pattern(),
-              expr('Iterable<int>'),
-              expr('Object').asCollectionElement,
-            )
-                .checkIR('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: int), celt(expr(Object)))')
-                .inContextElementType('Object'),
+            listLiteral(elementType: 'Object', [
+              patternForInElement(
+                x.pattern(),
+                expr('Iterable<int>'),
+                expr('Object'),
+              ).checkIR('forEach(expr(Iterable<int>), varPattern(x, '
+                  'matchedType: int, staticType: int), celt(expr(Object)))'),
+            ]),
           ]);
         });
         test('dynamic', () {
           var x = Var('x');
           h.run([
-            patternForInElement(
-              x.pattern(),
-              expr('dynamic'),
-              expr('Object').asCollectionElement,
-            )
-                .checkIR('forEach(expr(dynamic), varPattern(x, '
-                    'matchedType: dynamic, staticType: dynamic), '
-                    'celt(expr(Object)))')
-                .inContextElementType('Object'),
+            listLiteral(elementType: 'Object', [
+              patternForInElement(
+                x.pattern(),
+                expr('dynamic'),
+                expr('Object'),
+              ).checkIR('forEach(expr(dynamic), varPattern(x, '
+                  'matchedType: dynamic, staticType: dynamic), '
+                  'celt(expr(Object)))'),
+            ]),
           ]);
         });
         test('Object', () {
           var x = Var('x');
           h.run([
-            (patternForInElement(
-              x.pattern(),
-              expr('Object')..errorId = 'EXPRESSION',
-              expr('Object').asCollectionElement,
-            )..errorId = 'FOR')
-                .checkIR('forEach(expr(Object), varPattern(x, '
-                    'matchedType: error, staticType: error), '
-                    'celt(expr(Object)))')
-                .inContextElementType('Object'),
+            listLiteral(elementType: 'Object', [
+              (patternForInElement(
+                x.pattern(),
+                expr('Object')..errorId = 'EXPRESSION',
+                expr('Object'),
+              )..errorId = 'FOR')
+                  .checkIR('forEach(expr(Object), varPattern(x, '
+                      'matchedType: error, staticType: error), '
+                      'celt(expr(Object)))'),
+            ]),
           ], expectedErrors: {
             'patternForInExpressionIsNotIterable(node: FOR, '
                 'expression: EXPRESSION, expressionType: Object)'
@@ -205,15 +212,16 @@ main() {
         test('When a refutable pattern', () {
           var x = Var('x');
           h.run([
-            (patternForInElement(
-              x.pattern().nullCheck..errorId = 'PATTERN',
-              expr('Iterable<int?>'),
-              expr('Object').asCollectionElement,
-            )..errorId = 'FOR')
-                .checkIR('forEach(expr(Iterable<int?>), nullCheckPattern('
-                    'varPattern(x, matchedType: int, staticType: int), '
-                    'matchedType: int?), celt(expr(Object)))')
-                .inContextElementType('Object'),
+            listLiteral(elementType: 'Object', [
+              (patternForInElement(
+                x.pattern().nullCheck..errorId = 'PATTERN',
+                expr('Iterable<int?>'),
+                expr('Object'),
+              )..errorId = 'FOR')
+                  .checkIR('forEach(expr(Iterable<int?>), nullCheckPattern('
+                      'varPattern(x, matchedType: int, staticType: int), '
+                      'matchedType: int?), celt(expr(Object)))'),
+            ]),
           ], expectedErrors: {
             'refutablePatternInIrrefutableContext(pattern: PATTERN, '
                 'context: FOR)',
@@ -222,15 +230,16 @@ main() {
         test('When the variable type is not a subtype of the matched type', () {
           var x = Var('x');
           h.run([
-            (patternForInElement(
-              x.pattern(type: 'String')..errorId = 'PATTERN',
-              expr('Iterable<int>'),
-              expr('Object').asCollectionElement,
-            )..errorId = 'FOR')
-                .checkIR('forEach(expr(Iterable<int>), varPattern(x, '
-                    'matchedType: int, staticType: String), '
-                    'celt(expr(Object)))')
-                .inContextElementType('Object'),
+            listLiteral(elementType: 'Object', [
+              (patternForInElement(
+                x.pattern(type: 'String')..errorId = 'PATTERN',
+                expr('Iterable<int>'),
+                expr('Object'),
+              )..errorId = 'FOR')
+                  .checkIR('forEach(expr(Iterable<int>), varPattern(x, '
+                      'matchedType: int, staticType: String), '
+                      'celt(expr(Object)))'),
+            ]),
           ], expectedErrors: {
             'patternTypeMismatchInIrrefutableContext(pattern: PATTERN, '
                 'context: FOR, matchedType: int, requiredType: String)',
