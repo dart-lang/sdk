@@ -12,7 +12,6 @@ import 'package:path/path.dart' as path;
 import 'configuration.dart';
 import 'path.dart';
 import 'repository.dart';
-import 'shard.dart';
 import 'test_configurations.dart';
 import 'utils.dart';
 
@@ -227,9 +226,6 @@ compact, color, line, verbose, silent, status, buildbot''')
         defaultsTo: '1',
         hide: true,
         help: 'The index of this instance when running in sharded mode.')
-    ..addOption('previous-results',
-        hide: true,
-        help: '''An earlier results.json for balancing tests across shards.''')
     ..addFlag('help', abbr: 'h', help: 'Print list of options.')
     ..addIntegerOption('repeat',
         defaultsTo: '1', help: 'How many times each test is run')
@@ -660,30 +656,10 @@ has been specified on the command line.''')
 
     void addConfiguration(Configuration innerConfiguration,
         [String? namedConfiguration]) {
-      final selectors = _expandSelectors(data, innerConfiguration.nnbdMode);
-      final shard = int.parse(data["shard"] as String);
-      final shardCount = int.parse(data["shards"] as String);
-      final tasks = int.parse(data["tasks"] as String);
-      var shardOfTests = <String, int>{};
-      var testTimes = <String, int>{};
-      if (namedConfiguration != null &&
-          data["previous-results"] != null &&
-          1 < shardCount) {
-        final previousResults = data["previous-results"] as String;
-        testTimes =
-            loadTestTimes(previousResults, namedConfiguration, selectors);
-        final stopwatch = Stopwatch()..start();
-        List<Duration> shardDurations;
-        (shardOfTests, shardDurations) =
-            balanceShards(testTimes, shardCount, tasks);
-        print("Balancing ${testTimes.length} tests across $shardCount shards "
-            "with $tasks tasks took ${stopwatch.elapsed}");
-        print("Shard $shard has workload ${shardDurations[shard - 1]}");
-      }
       var configuration = TestConfiguration(
           configuration: innerConfiguration,
           progress: progress,
-          selectors: selectors,
+          selectors: _expandSelectors(data, innerConfiguration.nnbdMode),
           build: data["build"] as bool,
           testList: data["test-list-contents"] as List<String>?,
           repeat: int.parse(data["repeat"] as String),
@@ -711,11 +687,9 @@ has been specified on the command line.''')
           dartPrecompiledPath: data["dart-precompiled"] as String?,
           genSnapshotPath: data["gen-snapshot"] as String?,
           keepGeneratedFiles: data["keep-generated-files"] as bool,
-          taskCount: tasks,
-          shardCount: shardCount,
-          shard: shard,
-          shardOfTests: shardOfTests,
-          testTimes: testTimes,
+          taskCount: int.parse(data["tasks"] as String),
+          shardCount: int.parse(data["shards"] as String),
+          shard: int.parse(data["shard"] as String),
           stepName: data["step-name"] as String?,
           testServerPort: int.parse(data['test-server-port'] as String),
           testServerCrossOriginPort:

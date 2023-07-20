@@ -364,6 +364,290 @@ PrefixedIdentifier
 ''');
   }
 
+  test_ofClass_augmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClass_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClassName_augmentationAugments() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  augment static int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {
+  static int get foo => 0;
+}
+
+void f() {
+  A.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClassName_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  static int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofClassName_augmentationDeclares_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment class A {
+  static void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+class A {}
+
+void f() {
+  A.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@class::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+    staticType: void Function()
+  staticElement: self::@augmentation::package:test/a.dart::@class::A::@method::foo
+  staticType: void Function()
+''');
+  }
+
+  test_ofMixin_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+mixin A {}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofMixinName_augmentationDeclares() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  static int get foo => 0;
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+mixin A {}
+
+void f() {
+  A.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+    staticType: int
+  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofMixinName_augmentationDeclares_method() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart'
+
+augment mixin A {
+  static void foo() {}
+}
+''');
+    await assertNoErrorsInCode(r'''
+import augment 'a.dart';
+
+mixin A {}
+
+void f() {
+  A.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: A
+    staticElement: self::@mixin::A
+    staticType: null
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+    staticType: void Function()
+  staticElement: self::@augmentation::package:test/a.dart::@mixin::A::@method::foo
+  staticType: void Function()
+''');
+  }
+
   test_read_dynamicIdentifier_hashCode() async {
     await assertNoErrorsInCode('''
 void f(dynamic a) {

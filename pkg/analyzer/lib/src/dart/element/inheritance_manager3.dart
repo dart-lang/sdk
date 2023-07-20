@@ -354,7 +354,7 @@ class InheritanceManager3 {
     }
 
     augmented.methods.forEach(addMember);
-    element.accessors.forEach(addMember);
+    augmented.accessors.forEach(addMember);
   }
 
   void _addMixinMembers({
@@ -901,7 +901,7 @@ class InheritanceManager3 {
       }
     }
 
-    var accessors = element.accessors;
+    var accessors = augmented.accessors;
     for (var i = 0; i < accessors.length; i++) {
       var accessor = accessors[i];
       if (!accessor.isStatic) {

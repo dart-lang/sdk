@@ -1337,7 +1337,7 @@ class SpecParserCompilerConfiguration extends CompilerConfiguration {
   }
 }
 
-mixin VMKernelCompilerMixin {
+abstract class VMKernelCompilerMixin {
   TestConfiguration get _configuration;
 
   bool get _useSdk;

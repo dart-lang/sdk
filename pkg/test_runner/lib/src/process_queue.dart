@@ -229,18 +229,9 @@ class TestCaseEnqueuer {
     // configurations there is no need to repeatedly search the file
     // system, generate tests, and search test files for options.
     var testCache = <String, List<TestFile>>{};
-    var testCases = <TestCase>[];
 
     for (var suite in testSuites) {
-      suite.findTestCases(
-          (TestCase testCase) => testCases.add(testCase), testCache);
-    }
-
-    testCases.sort((a, b) => (b.configuration.testTimes[b.displayName] ?? 0)
-        .compareTo(a.configuration.testTimes[a.displayName] ?? 0));
-
-    for (final testCase in testCases) {
-      _add(testCase);
+      suite.findTestCases(_add, testCache);
     }
 
     // We're finished with building the dependency graph.
