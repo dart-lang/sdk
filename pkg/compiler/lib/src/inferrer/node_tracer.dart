@@ -353,18 +353,21 @@ abstract class TracerVisitor implements TypeInformationVisitor {
 
   void analyzeStoredIntoRecord(RecordTypeInformation record) {
     inferrer.analyzeRecordAndEnqueue(record);
-
-    record.flowsInto.forEach((TypeInformation flow) {
-      flow.users.forEach((TypeInformation user) {
-        if (user is RecordFieldAccessTypeInformation) {
-          final getterIndex =
-              record.recordShape.indexOfGetterName(user.getterName);
-          if (user.receiver != flow ||
-              record.fieldTypes.indexOf(currentUser!) != getterIndex) return;
-          addNewEscapeInformation(user);
-        }
+    if (record.bailedOut) {
+      bailout('Stored in a record that bailed out');
+    } else {
+      record.flowsInto.forEach((TypeInformation flow) {
+        flow.users.forEach((TypeInformation user) {
+          if (user is RecordFieldAccessTypeInformation) {
+            final getterIndex =
+                record.recordShape.indexOfGetterName(user.getterName);
+            if (user.receiver != flow ||
+                record.fieldTypes.indexOf(currentUser!) != getterIndex) return;
+            addNewEscapeInformation(user);
+          }
+        });
       });
-    });
+    }
   }
 
   /// Checks whether this is a call to a list adding method. The definition of

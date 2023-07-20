@@ -1,3 +1,12 @@
+## 3.0.7
+
+This is a patch release that:
+
+- Fixes a bug in dart2js which would cause certain uses of records to lead to
+  bad codegen causing TypeErrors/NoSuchMethodErrors at runtime (issue [#53001]).
+
+[#53001]: https://github.com/dart-lang/sdk/issues/53001
+
 ## 3.0.6 - 2023-07-12
 
 This is a patch release that:
