@@ -94,46 +94,56 @@ abstract class IOOverrides {
       Stdin Function()? stdin,
       Stdout Function()? stdout,
       Stdout Function()? stderr}) {
+    // Avoid building chains of override scopes. Just copy outer scope's
+    // functions and `_previous`.
+    var current = IOOverrides.current;
+    _IOOverridesScope? currentScope;
+    if (current is _IOOverridesScope) {
+      currentScope = current;
+      current = currentScope._previous;
+    }
     IOOverrides overrides = new _IOOverridesScope(
+      current,
       // Directory
-      createDirectory,
-      getCurrentDirectory,
-      setCurrentDirectory,
-      getSystemTempDirectory,
+      createDirectory ?? currentScope?._createDirectory,
+      getCurrentDirectory ?? currentScope?._getCurrentDirectory,
+      setCurrentDirectory ?? currentScope?._setCurrentDirectory,
+      getSystemTempDirectory ?? currentScope?._getSystemTempDirectory,
 
       // File
-      createFile,
+      createFile ?? currentScope?._createFile,
 
       // FileStat
-      stat,
-      statSync,
+      stat ?? currentScope?._stat,
+      statSync ?? currentScope?._statSync,
 
       // FileSystemEntity
-      fseIdentical,
-      fseIdenticalSync,
-      fseGetType,
-      fseGetTypeSync,
+      fseIdentical ?? currentScope?._fseIdentical,
+      fseIdenticalSync ?? currentScope?._fseIdenticalSync,
+      fseGetType ?? currentScope?._fseGetType,
+      fseGetTypeSync ?? currentScope?._fseGetTypeSync,
 
       // _FileSystemWatcher
-      fsWatch,
-      fsWatchIsSupported,
+      fsWatch ?? currentScope?._fsWatch,
+      fsWatchIsSupported ?? currentScope?._fsWatchIsSupported,
 
       // Link
-      createLink,
+      createLink ?? currentScope?._createLink,
 
       // Socket
-      socketConnect,
-      socketStartConnect,
+      socketConnect ?? currentScope?._socketConnect,
+      socketStartConnect ?? currentScope?._socketStartConnect,
 
       // ServerSocket
-      serverSocketBind,
+      serverSocketBind ?? currentScope?._serverSocketBind,
 
       // Standard streams
-      stdin,
-      stdout,
-      stderr,
+      stdin ?? currentScope?._stdin,
+      stdout ?? currentScope?._stdout,
+      stderr ?? currentScope?._stderr,
     );
-    return dart_async.runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async
+        .runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   /// Runs [body] in a fresh [Zone] using the overrides found in [overrides].
@@ -141,7 +151,8 @@ abstract class IOOverrides {
   /// Note that [overrides] should be an instance of a class that extends
   /// [IOOverrides].
   static R runWithIOOverrides<R>(R body(), IOOverrides overrides) {
-    return dart_async.runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
+    return dart_async
+        .runZoned<R>(body, zoneValues: {_ioOverridesToken: overrides});
   }
 
   // Directory
@@ -324,52 +335,54 @@ abstract class IOOverrides {
 }
 
 class _IOOverridesScope extends IOOverrides {
-  final IOOverrides? _previous = IOOverrides.current;
+  final IOOverrides? _previous;
 
   // Directory
-  Directory Function(String)? _createDirectory;
-  Directory Function()? _getCurrentDirectory;
-  void Function(String)? _setCurrentDirectory;
-  Directory Function()? _getSystemTempDirectory;
+  final Directory Function(String)? _createDirectory;
+  final Directory Function()? _getCurrentDirectory;
+  final void Function(String)? _setCurrentDirectory;
+  final Directory Function()? _getSystemTempDirectory;
 
   // File
-  File Function(String)? _createFile;
+  final File Function(String)? _createFile;
 
   // FileStat
-  Future<FileStat> Function(String)? _stat;
-  FileStat Function(String)? _statSync;
+  final Future<FileStat> Function(String)? _stat;
+  final FileStat Function(String)? _statSync;
 
   // FileSystemEntity
-  Future<bool> Function(String, String)? _fseIdentical;
-  bool Function(String, String)? _fseIdenticalSync;
-  Future<FileSystemEntityType> Function(String, bool)? _fseGetType;
-  FileSystemEntityType Function(String, bool)? _fseGetTypeSync;
+  final Future<bool> Function(String, String)? _fseIdentical;
+  final bool Function(String, String)? _fseIdenticalSync;
+  final Future<FileSystemEntityType> Function(String, bool)? _fseGetType;
+  final FileSystemEntityType Function(String, bool)? _fseGetTypeSync;
 
   // _FileSystemWatcher
-  Stream<FileSystemEvent> Function(String, int, bool)? _fsWatch;
-  bool Function()? _fsWatchIsSupported;
+  final Stream<FileSystemEvent> Function(String, int, bool)? _fsWatch;
+  final bool Function()? _fsWatchIsSupported;
 
   // Link
-  Link Function(String)? _createLink;
+  final Link Function(String)? _createLink;
 
   // Socket
-  Future<Socket> Function(dynamic, int,
+  final Future<Socket> Function(dynamic, int,
       {dynamic sourceAddress,
       int sourcePort,
       Duration? timeout})? _socketConnect;
-  Future<ConnectionTask<Socket>> Function(dynamic, int,
+  final Future<ConnectionTask<Socket>> Function(dynamic, int,
       {dynamic sourceAddress, int sourcePort})? _socketStartConnect;
 
   // ServerSocket
-  Future<ServerSocket> Function(dynamic, int,
+  final Future<ServerSocket> Function(dynamic, int,
       {int backlog, bool v6Only, bool shared})? _serverSocketBind;
 
   // Standard streams
-  Stdin Function()? _stdin;
-  Stdout Function()? _stdout;
-  Stdout Function()? _stderr;
+  final Stdin Function()? _stdin;
+  final Stdout Function()? _stdout;
+  final Stdout Function()? _stderr;
 
   _IOOverridesScope(
+    this._previous,
+
     // Directory
     this._createDirectory,
     this._getCurrentDirectory,
@@ -411,175 +424,141 @@ class _IOOverridesScope extends IOOverrides {
 
   // Directory
   @override
-  Directory createDirectory(String path) {
-    if (_createDirectory != null) return _createDirectory!(path);
-    if (_previous != null) return _previous!.createDirectory(path);
-    return super.createDirectory(path);
-  }
+  Directory createDirectory(String path) =>
+      _createDirectory?.call(path) ??
+      _previous?.createDirectory(path) ??
+      super.createDirectory(path);
 
   @override
-  Directory getCurrentDirectory() {
-    if (_getCurrentDirectory != null) return _getCurrentDirectory!();
-    if (_previous != null) return _previous!.getCurrentDirectory();
-    return super.getCurrentDirectory();
-  }
+  Directory getCurrentDirectory() =>
+      _getCurrentDirectory?.call() ??
+      _previous?.getCurrentDirectory() ??
+      super.getCurrentDirectory();
 
   @override
   void setCurrentDirectory(String path) {
-    if (_setCurrentDirectory != null)
-      _setCurrentDirectory!(path);
-    else if (_previous != null)
-      _previous!.setCurrentDirectory(path);
-    else
+    var setter = _setCurrentDirectory;
+    if (setter != null) {
+      setter(path);
+    } else {
       super.setCurrentDirectory(path);
+    }
   }
 
   @override
-  Directory getSystemTempDirectory() {
-    if (_getSystemTempDirectory != null) return _getSystemTempDirectory!();
-    if (_previous != null) return _previous!.getSystemTempDirectory();
-    return super.getSystemTempDirectory();
-  }
+  Directory getSystemTempDirectory() =>
+      _getSystemTempDirectory?.call() ??
+      _previous?.getSystemTempDirectory() ??
+      super.getSystemTempDirectory();
 
   // File
   @override
-  File createFile(String path) {
-    if (_createFile != null) return _createFile!(path);
-    if (_previous != null) return _previous!.createFile(path);
-    return super.createFile(path);
-  }
+  File createFile(String path) =>
+      _createFile?.call(path) ??
+      _previous?.createFile(path) ??
+      super.createFile(path);
 
   // FileStat
   @override
-  Future<FileStat> stat(String path) {
-    if (_stat != null) return _stat!(path);
-    if (_previous != null) return _previous!.stat(path);
-    return super.stat(path);
-  }
+  Future<FileStat> stat(String path) =>
+      _stat?.call(path) ?? _previous?.stat(path) ?? super.stat(path);
 
   @override
-  FileStat statSync(String path) {
-    if (_stat != null) return _statSync!(path);
-    if (_previous != null) return _previous!.statSync(path);
-    return super.statSync(path);
-  }
+  FileStat statSync(String path) =>
+      _statSync?.call(path) ??
+      _previous?.statSync(path) ??
+      super.statSync(path);
 
   // FileSystemEntity
   @override
-  Future<bool> fseIdentical(String path1, String path2) {
-    if (_fseIdentical != null) return _fseIdentical!(path1, path2);
-    if (_previous != null) return _previous!.fseIdentical(path1, path2);
-    return super.fseIdentical(path1, path2);
-  }
+  Future<bool> fseIdentical(String path1, String path2) =>
+      _fseIdentical?.call(path1, path2) ??
+      _previous?.fseIdentical(path1, path2) ??
+      super.fseIdentical(path1, path2);
 
   @override
-  bool fseIdenticalSync(String path1, String path2) {
-    if (_fseIdenticalSync != null) return _fseIdenticalSync!(path1, path2);
-    if (_previous != null) return _previous!.fseIdenticalSync(path1, path2);
-    return super.fseIdenticalSync(path1, path2);
-  }
+  bool fseIdenticalSync(String path1, String path2) =>
+      _fseIdenticalSync?.call(path1, path2) ??
+      _previous?.fseIdenticalSync(path1, path2) ??
+      super.fseIdenticalSync(path1, path2);
 
   @override
-  Future<FileSystemEntityType> fseGetType(String path, bool followLinks) {
-    if (_fseGetType != null) return _fseGetType!(path, followLinks);
-    if (_previous != null) return _previous!.fseGetType(path, followLinks);
-    return super.fseGetType(path, followLinks);
-  }
+  Future<FileSystemEntityType> fseGetType(String path, bool followLinks) =>
+      _fseGetType?.call(path, followLinks) ??
+      _previous?.fseGetType(path, followLinks) ??
+      super.fseGetType(path, followLinks);
 
   @override
-  FileSystemEntityType fseGetTypeSync(String path, bool followLinks) {
-    if (_fseGetTypeSync != null) return _fseGetTypeSync!(path, followLinks);
-    if (_previous != null) return _previous!.fseGetTypeSync(path, followLinks);
-    return super.fseGetTypeSync(path, followLinks);
-  }
+  FileSystemEntityType fseGetTypeSync(String path, bool followLinks) =>
+      _fseGetTypeSync?.call(path, followLinks) ??
+      _previous?.fseGetTypeSync(path, followLinks) ??
+      super.fseGetTypeSync(path, followLinks);
 
   // _FileSystemWatcher
   @override
-  Stream<FileSystemEvent> fsWatch(String path, int events, bool recursive) {
-    if (_fsWatch != null) return _fsWatch!(path, events, recursive);
-    if (_previous != null) return _previous!.fsWatch(path, events, recursive);
-    return super.fsWatch(path, events, recursive);
-  }
+  Stream<FileSystemEvent> fsWatch(String path, int events, bool recursive) =>
+      _fsWatch?.call(path, events, recursive) ??
+      _previous?.fsWatch(path, events, recursive) ??
+      super.fsWatch(path, events, recursive);
 
   @override
-  bool fsWatchIsSupported() {
-    if (_fsWatchIsSupported != null) return _fsWatchIsSupported!();
-    if (_previous != null) return _previous!.fsWatchIsSupported();
-    return super.fsWatchIsSupported();
-  }
+  bool fsWatchIsSupported() =>
+      _fsWatchIsSupported?.call() ??
+      _previous?.fsWatchIsSupported() ??
+      super.fsWatchIsSupported();
 
   // Link
   @override
-  Link createLink(String path) {
-    if (_createLink != null) return _createLink!(path);
-    if (_previous != null) return _previous!.createLink(path);
-    return super.createLink(path);
-  }
+  Link createLink(String path) =>
+      _createLink?.call(path) ??
+      _previous?.createLink(path) ??
+      super.createLink(path);
 
   // Socket
   @override
   Future<Socket> socketConnect(host, int port,
-      {sourceAddress, int sourcePort = 0, Duration? timeout}) {
-    if (_socketConnect != null) {
-      return _socketConnect!(host, port,
-          sourceAddress: sourceAddress, timeout: timeout);
-    }
-    if (_previous != null) {
-      return _previous!.socketConnect(host, port,
+          {sourceAddress, int sourcePort = 0, Duration? timeout}) =>
+      _socketConnect?.call(host, port,
+          sourceAddress: sourceAddress,
+          sourcePort: sourcePort,
+          timeout: timeout) ??
+      _previous?.socketConnect(host, port,
+          sourceAddress: sourceAddress,
+          sourcePort: sourcePort,
+          timeout: timeout) ??
+      super.socketConnect(host, port,
           sourceAddress: sourceAddress,
           sourcePort: sourcePort,
           timeout: timeout);
-    }
-    return super.socketConnect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort, timeout: timeout);
-  }
 
   @override
   Future<ConnectionTask<Socket>> socketStartConnect(host, int port,
-      {sourceAddress, int sourcePort = 0}) {
-    if (_socketStartConnect != null) {
-      return _socketStartConnect!(host, port,
+          {sourceAddress, int sourcePort = 0}) =>
+      _socketStartConnect?.call(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort) ??
+      _previous?.socketStartConnect(host, port,
+          sourceAddress: sourceAddress, sourcePort: sourcePort) ??
+      super.socketStartConnect(host, port,
           sourceAddress: sourceAddress, sourcePort: sourcePort);
-    }
-    if (_previous != null) {
-      return _previous!.socketStartConnect(host, port,
-          sourceAddress: sourceAddress, sourcePort: sourcePort);
-    }
-    return super.socketStartConnect(host, port,
-        sourceAddress: sourceAddress, sourcePort: sourcePort);
-  }
 
   // ServerSocket
-
   @override
   Future<ServerSocket> serverSocketBind(address, int port,
-      {int backlog = 0, bool v6Only = false, bool shared = false}) {
-    if (_serverSocketBind != null) {
-      return _serverSocketBind!(address, port,
+          {int backlog = 0, bool v6Only = false, bool shared = false}) =>
+      _serverSocketBind?.call(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared) ??
+      _previous?.serverSocketBind(address, port,
+          backlog: backlog, v6Only: v6Only, shared: shared) ??
+      super.serverSocketBind(address, port,
           backlog: backlog, v6Only: v6Only, shared: shared);
-    }
-    if (_previous != null) {
-      return _previous!.serverSocketBind(address, port,
-          backlog: backlog, v6Only: v6Only, shared: shared);
-    }
-    return super.serverSocketBind(address, port,
-        backlog: backlog, v6Only: v6Only, shared: shared);
-  }
 
   // Standard streams
+  @override
+  Stdin get stdin => _stdin?.call() ?? _previous?.stdin ?? super.stdin;
 
   @override
-  Stdin get stdin {
-    return _stdin?.call() ?? _previous?.stdin ?? super.stdin;
-  }
+  Stdout get stdout => _stdout?.call() ?? _previous?.stdout ?? super.stdout;
 
   @override
-  Stdout get stdout {
-    return _stdout?.call() ?? _previous?.stdout ?? super.stdout;
-  }
-
-  @override
-  Stdout get stderr {
-    return _stderr?.call() ?? _previous?.stderr ?? super.stderr;
-  }
+  Stdout get stderr => _stderr?.call() ?? _previous?.stderr ?? super.stderr;
 }
