@@ -37,7 +37,7 @@ main() async {
       'NativeClass',
       'Baz',
       'Fu',
-      'Closure',
+      'closure',
     ]));
 
     final msg = e.toString();

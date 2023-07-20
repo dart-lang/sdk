@@ -1113,16 +1113,63 @@ class RetainingPath {
   const Object& to_;
   TraversalRules traversal_rules_;
 
+  class FindObjectVisitor : public ObjectPointerVisitor {
+   public:
+    FindObjectVisitor(IsolateGroup* isolate_group, ObjectPtr target)
+        : ObjectPointerVisitor(isolate_group), target_(target), index_(0) {}
+
+    void VisitPointers(ObjectPtr* from, ObjectPtr* to) override {
+      for (ObjectPtr* ptr = from; ptr <= to; ptr++, index_++) {
+        if (*ptr == target_) {
+          break;
+        }
+      }
+    }
+
+#if defined(DART_COMPRESSED_POINTERS)
+    void VisitCompressedPointers(uword heap_base,
+                                 CompressedObjectPtr* from,
+                                 CompressedObjectPtr* to) override {
+      for (CompressedObjectPtr* ptr = from; ptr <= to; ptr++, index_++) {
+        if (ptr->Decompress(heap_base) == target_) {
+          break;
+        }
+      }
+    }
+#endif
+
+    intptr_t index() { return index_; }
+
+   private:
+    ObjectPtr target_;
+    intptr_t index_;
+  };
+
   const char* CollectPath(MallocGrowableArray<ObjectPtr>* const working_list) {
+    Object& previous_object = Object::Handle(zone_);
     Object& object = Object::Handle(zone_);
+    Field& field = Field::Handle(zone_);
     Class& klass = Class::Handle(zone_);
     Library& library = Library::Handle(zone_);
     String& library_url = String::Handle(zone_);
+    Context& context = Context::Handle(zone_);
+    Closure& closure = Closure::Handle(zone_);
+    Function& function = Function::Handle(zone_);
+#if !defined(DART_PRECOMPILED_RUNTIME)
+    Code& code = Code::Handle(zone_);
+    LocalVarDescriptors& var_descriptors = LocalVarDescriptors::Handle(zone_);
+    String& name = String::Handle(zone_);
+#endif
+
+    const char* saved_context_location = nullptr;
+    intptr_t saved_context_object_index = -1;
+    intptr_t saved_context_depth = 0;
     const char* retaining_path = "";
 
     ObjectPtr raw = to_.ptr();
-    // Skip all remaining children until null-separator, so we get the parent
     do {
+      previous_object = raw;
+      // Skip all remaining children until null-separator, so we get the parent
       do {
         raw = working_list->RemoveLast();
       } while (raw != Object::null() && raw != from_.ptr());
@@ -1130,15 +1177,107 @@ class RetainingPath {
         raw = working_list->RemoveLast();
         object = raw;
         klass = object.clazz();
-        library = klass.library();
-        if (library.IsNull()) {
-          retaining_path = OS::SCreate(zone_, "%s <- %s\n", retaining_path,
-                                       object.ToCString());
+
+        const char* location = object.ToCString();
+
+        if (object.IsContext()) {
+          context ^= raw;
+          if (saved_context_object_index == -1) {
+            // If this is the first context, remember index of the
+            // [previous_object] in the Context.
+            // We will need it later if get to see the Closure next.
+            saved_context_depth = 0;
+            for (intptr_t i = 0; i < context.num_variables(); i++) {
+              if (context.At(i) == previous_object.ptr()) {
+                saved_context_object_index = i;
+                break;
+              }
+            }
+          } else {
+            // Keep track of context depths in case of nested contexts;
+            saved_context_depth++;
+          }
         } else {
+          if (object.IsInstance()) {
+            if (object.IsClosure()) {
+              closure ^= raw;
+              function ^= closure.function();
+              // Use function's class when looking for a library information.
+              klass ^= function.Owner();
+#if defined(DART_PRECOMPILED_RUNTIME)
+              // Use function's name instead of closure's.
+              location = function.QualifiedUserVisibleNameCString();
+#else   // defined(DART_PRECOMPILED_RUNTIME)                                   \
+        // Attempt to convert "instance <- Context+ <- Closure" into           \
+        // "instance <- local var name in Closure".
+              if (!function.ForceOptimize()) {
+                function.EnsureHasCompiledUnoptimizedCode();
+              }
+              code ^= function.unoptimized_code();
+              ASSERT(!code.IsNull());
+              var_descriptors ^= code.GetLocalVarDescriptors();
+              for (intptr_t i = 0; i < var_descriptors.Length(); i++) {
+                UntaggedLocalVarDescriptors::VarInfo info;
+                var_descriptors.GetInfo(i, &info);
+                if (info.scope_id == -saved_context_depth &&
+                    info.kind() ==
+                        UntaggedLocalVarDescriptors::VarInfoKind::kContextVar &&
+                    info.index() == saved_context_object_index) {
+                  name ^= var_descriptors.GetName(i);
+                  location =
+                      OS::SCreate(zone_, "field %s in %s", name.ToCString(),
+                                  function.QualifiedUserVisibleNameCString());
+                  // Won't need saved context location after all.
+                  saved_context_location = nullptr;
+                  break;
+                }
+              }
+#endif  // defined(DART_PRECOMPILED_RUNTIME)
+            } else {
+              // Attempt to find field name for the field that holds the
+              // [previous_object] instance.
+              FindObjectVisitor visitor(isolate_->group(),
+                                        previous_object.ptr());
+              raw->untag()->VisitPointers(&visitor);
+              field ^= klass.FieldFromIndex(visitor.index());
+              if (!field.IsNull()) {
+                location =
+                    OS::SCreate(zone_, "%s in %s",
+                                field.UserVisibleNameCString(), location);
+              }
+            }
+          }
+          // Saved context object index stays up for only one cycle - just to
+          // accommodate short chains Closure -> Context -> instance.
+          saved_context_object_index = -1;
+          saved_context_depth = -1;
+        }
+        // Add library url to the location if library is available.
+        library = klass.library();
+        if (!library.IsNull()) {
           library_url = library.url();
+          location = OS::SCreate(zone_, "%s (from %s)", location,
+                                 library_url.ToCString());
+        }
+
+        if (object.IsContext()) {
+          // Save context string placeholder in case we don't find closure next
+          if (saved_context_location == nullptr) {
+            saved_context_location = location;
+          } else {
+            // Append saved contexts
+            saved_context_location = OS::SCreate(
+                zone_, "%s <- %s\n", saved_context_location, location);
+          }
+        } else {
+          if (saved_context_location != nullptr) {
+            // Could not use saved context, insert it into retaining path now.
+            retaining_path = OS::SCreate(zone_, "%s <- %s", retaining_path,
+                                         saved_context_location);
+            saved_context_location = nullptr;
+          }
           retaining_path =
-              OS::SCreate(zone_, "%s <- %s (from %s)\n", retaining_path,
-                          object.ToCString(), library_url.ToCString());
+              OS::SCreate(zone_, "%s <- %s\n", retaining_path, location);
         }
       }
     } while (raw != from_.ptr());

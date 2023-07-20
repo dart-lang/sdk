@@ -108,7 +108,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addClass(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -814,6 +816,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     if (node.isGetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isGetter = true;
       element.isStatic = node.isStatic;
 
@@ -832,6 +835,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     } else if (node.isSetter) {
       var element = PropertyAccessorElementImpl(name, nameOffset);
       element.isAbstract = node.isAbstract;
+      element.isAugmentation = node.augmentKeyword != null;
       element.isSetter = true;
       element.isStatic = node.isStatic;
 
@@ -894,7 +898,9 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[element] = node;
 
     var reference = _enclosingContext.addMixin(name, element);
-    _libraryBuilder.declare(name, reference);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
 
     var holder = _EnclosingContext(reference, element);
     _withEnclosing(holder, () {
@@ -1244,6 +1250,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     required String name,
     required PropertyAccessorElementImpl accessorElement,
   }) {
+    if (accessorElement.isAugmentation) {
+      return;
+    }
+
     var enclosingRef = _enclosingContext.reference;
     var enclosingElement = _enclosingContext.element;
 

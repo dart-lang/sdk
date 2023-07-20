@@ -36,24 +36,51 @@ class AugmentedClassDeclarationBuilder
   AugmentedClassDeclarationBuilder({
     required this.declaration,
   }) {
+    addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
 
   void augment(ClassElementImpl element) {
+    addAccessors(element.accessors);
     addMethods(element.methods);
   }
 }
 
 abstract class AugmentedInstanceDeclarationBuilder {
+  final Map<String, PropertyAccessorElementImpl> accessors = {};
   final Map<String, MethodElementImpl> methods = {};
+
+  void addAccessors(List<PropertyAccessorElementImpl> elements) {
+    for (final element in elements) {
+      final name = element.name;
+      if (element.isAugmentation) {
+        final existing = accessors[name];
+        if (existing != null) {
+          existing.augmentation = element;
+          element.augmentationTarget = existing;
+          // Link the accessor to the variable.
+          final variable = existing.variable;
+          element.variable = variable;
+          if (element.isGetter) {
+            variable.getter = element;
+          } else {
+            variable.setter = element;
+          }
+        }
+      }
+      accessors[name] = element;
+    }
+  }
 
   void addMethods(List<MethodElementImpl> elements) {
     for (final element in elements) {
       final name = element.name;
-      final existing = methods[name];
-      if (existing != null) {
-        existing.augmentation = element;
-        element.augmentationTarget = existing;
+      if (element.isAugmentation) {
+        final existing = methods[name];
+        if (existing != null) {
+          existing.augmentation = element;
+          element.augmentationTarget = existing;
+        }
       }
       methods[name] = element;
     }
@@ -67,10 +94,12 @@ class AugmentedMixinDeclarationBuilder
   AugmentedMixinDeclarationBuilder({
     required this.declaration,
   }) {
+    addAccessors(declaration.accessors);
     addMethods(declaration.methods);
   }
 
   void augment(MixinElementImpl element) {
+    addAccessors(element.accessors);
     addMethods(element.methods);
   }
 }

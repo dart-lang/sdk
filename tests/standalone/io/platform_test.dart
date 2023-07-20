@@ -30,12 +30,13 @@ test() {
   Expect.equals(Platform.isMacOS, Platform.operatingSystem == "macos");
   Expect.equals(Platform.isWindows, Platform.operatingSystem == "windows");
   Expect.equals(Platform.isAndroid, Platform.operatingSystem == "android");
-  var sep = Platform.pathSeparator;
-  Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
-  final eol = Platform.lineTerminator;
-  Expect.isTrue(
-      (eol == '\n' && os != 'windows') || (eol == '\r\n' && os == 'windows'),
-      "unexpected line ending ${utf8.encode(eol)} on $os");
+  if (Platform.isWindows) {
+    Expect.equals("\r\n", Platform.lineTerminator, "windows lineTerminator");
+    Expect.equals("\\", Platform.pathSeparator, "$os path-seperator");
+  } else {
+    Expect.equals("\n", Platform.lineTerminator, "$os lineTerminator");
+    Expect.equals("/", Platform.pathSeparator, "$os path-seperator");
+  }
   var hostname = Platform.localHostname;
   Expect.isTrue(hostname is String && hostname != "");
   var environment = Platform.environment;

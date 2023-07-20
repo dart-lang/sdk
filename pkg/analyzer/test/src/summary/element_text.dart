@@ -113,33 +113,6 @@ class _ElementWriter {
     expect(element.nonSynthetic, same(element));
   }
 
-  /// Assert that the [accessor] of the [property] is correctly linked to
-  /// the same enclosing element as the [property].
-  void _assertSyntheticAccessorEnclosing(
-      PropertyInducingElement property, PropertyAccessorElement accessor) {
-    if (accessor.isSynthetic) {
-      // Usually we have a non-synthetic property, and a synthetic accessor.
-    } else {
-      // But it is possible to have a non-synthetic setter.
-      // class A {
-      //   final int foo;
-      //   set foo(int newValue) {}
-      // }
-      expect(accessor.isSetter, isTrue);
-    }
-
-    expect(accessor.variable, same(property));
-
-    var propertyEnclosing = property.enclosingElement2;
-    expect(accessor.enclosingElement2, same(propertyEnclosing));
-
-    if (propertyEnclosing is CompilationUnitElement) {
-      expect(propertyEnclosing.accessors, contains(accessor));
-    } else if (propertyEnclosing is InterfaceElement) {
-      expect(propertyEnclosing.accessors, contains(accessor));
-    }
-  }
-
   ResolvedAstPrinter _createAstPrinter() {
     return ResolvedAstPrinter(
       sink: _sink,
@@ -172,7 +145,7 @@ class _ElementWriter {
     expect(augmented, same(endOfAugmentations.augmented));
   }
 
-  void _writeAugmentation(InterfaceElementImpl e) {
+  void _writeAugmentation(ElementImpl e) {
     switch (e) {
       case ClassElementImpl e:
         final augmentation = e.augmentation;
@@ -180,6 +153,11 @@ class _ElementWriter {
           _elementPrinter.writeNamedElement('augmentation', augmentation);
         }
       case MixinElementImpl e:
+        final augmentation = e.augmentation;
+        if (augmentation != null) {
+          _elementPrinter.writeNamedElement('augmentation', augmentation);
+        }
+      case PropertyAccessorElementImpl e:
         final augmentation = e.augmentation;
         if (augmentation != null) {
           _elementPrinter.writeNamedElement('augmentation', augmentation);
@@ -205,12 +183,22 @@ class _ElementWriter {
     });
   }
 
-  void _writeAugmentationTarget(InterfaceElementImpl e) {
-    if (e.isAugmentation) {
-      _elementPrinter.writeNamedElement(
-        'augmentationTarget',
-        e.augmentationTarget,
-      );
+  void _writeAugmentationTarget(ElementImpl e) {
+    switch (e) {
+      case InterfaceElementImpl e:
+        if (e.isAugmentation) {
+          _elementPrinter.writeNamedElement(
+            'augmentationTarget',
+            e.augmentationTarget,
+          );
+        }
+      case PropertyAccessorElementImpl e:
+        if (e.isAugmentation) {
+          _elementPrinter.writeNamedElement(
+            'augmentationTarget',
+            e.augmentationTarget,
+          );
+        }
     }
   }
 
@@ -237,6 +225,16 @@ class _ElementWriter {
       return;
     }
 
+    void writeFields() {
+      final sorted = augmented.fields.sortedBy((e) => e.name);
+      _elementPrinter.writeElementList('fields', sorted);
+    }
+
+    void writeAccessors() {
+      final sorted = augmented.accessors.sortedBy((e) => e.name);
+      _elementPrinter.writeElementList('accessors', sorted);
+    }
+
     void writeMethods() {
       final sorted = augmented.methods.sortedBy((e) => e.name);
       _elementPrinter.writeElementList('methods', sorted);
@@ -248,6 +246,8 @@ class _ElementWriter {
         case AugmentedClassElement():
           _elementPrinter.writeTypeList('mixins', augmented.mixins);
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeFields();
+          writeAccessors();
           writeMethods();
         case AugmentedMixinElement():
           _elementPrinter.writeTypeList(
@@ -255,6 +255,8 @@ class _ElementWriter {
             augmented.superclassConstraints,
           );
           _elementPrinter.writeTypeList('interfaces', augmented.interfaces);
+          writeFields();
+          writeAccessors();
           writeMethods();
       }
       // TODO(scheglov) Add other types and properties
@@ -697,6 +699,7 @@ class _ElementWriter {
 
   void _writeMethodElement(MethodElement e) {
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
@@ -864,18 +867,6 @@ class _ElementWriter {
       expect(variableEnclosing.fields, contains(variable));
     }
 
-    if (e.isGetter) {
-      expect(variable.getter, same(e));
-      if (variable.setter != null) {
-        expect(variable.setter!.variable, same(variable));
-      }
-    } else {
-      expect(variable.setter, same(e));
-      if (variable.getter != null) {
-        expect(variable.getter!.variable, same(variable));
-      }
-    }
-
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
     } else {
@@ -886,6 +877,7 @@ class _ElementWriter {
     }
 
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.isAugmentation, 'augment ');
       _sink.writeIf(e.isSynthetic, 'synthetic ');
       _sink.writeIf(e.isStatic, 'static ');
       _sink.writeIf(e.isAbstract, 'abstract ');
@@ -919,6 +911,8 @@ class _ElementWriter {
       _writeType('returnType', e.returnType2);
       _writeNonSyntheticElement(e);
       writeLinking();
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
   }
 
@@ -932,11 +926,6 @@ class _ElementWriter {
       expect(e.nameOffset, -1);
     } else {
       expect(e.getter, isNotNull);
-      _assertSyntheticAccessorEnclosing(e, e.getter!);
-
-      if (e.setter != null) {
-        _assertSyntheticAccessorEnclosing(e, e.setter!);
-      }
 
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -988,6 +977,8 @@ class _ElementWriter {
       _writeConstantInitializer(e);
       _writeNonSyntheticElement(e);
       writeLinking();
+      _writeAugmentationTarget(e);
+      _writeAugmentation(e);
     });
   }
 
