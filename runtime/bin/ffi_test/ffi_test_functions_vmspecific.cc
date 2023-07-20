@@ -1356,4 +1356,9 @@ DART_EXPORT void DecreaseRefcount(void* peer) {
   ref_counted_resource_mutex.unlock();
 }
 
+DART_EXPORT void TestDeprecatedSymbols() {
+  Dart_UpdateExternalSize_DL(nullptr, 0);
+  Dart_UpdateFinalizableExternalSize_DL(nullptr, Dart_Null(), 0);
+}
+
 }  // namespace dart

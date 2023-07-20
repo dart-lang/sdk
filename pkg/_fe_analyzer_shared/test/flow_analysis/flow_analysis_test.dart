@@ -2129,7 +2129,7 @@ main() {
           ])),
           [
             switchStatementMember([
-              intLiteral(0).pattern.switchCase,
+              intLiteral(0).pattern,
             ], [
               checkNotPromoted(x),
               getSsaNodes((nodes) => expect(nodes[x], isNot(ssaBeforeSwitch))),
@@ -2150,7 +2150,7 @@ main() {
           expr('int'),
           [
             switchStatementMember([
-              intLiteral(0).pattern.switchCase,
+              intLiteral(0).pattern,
             ], [
               x.expr.as_('int'),
               checkNotPromoted(x),
@@ -2249,14 +2249,8 @@ main() {
           expr('num'),
           [
             switchStatementMember([
-              x1
-                  .pattern()
-                  .when(x1.expr.is_('int').and(y.expr.is_('int')))
-                  .switchCase,
-              x2
-                  .pattern()
-                  .when(y.expr.is_('int').and(z.expr.is_('int')))
-                  .switchCase,
+              x1.pattern().when(x1.expr.is_('int').and(y.expr.is_('int'))),
+              x2.pattern().when(y.expr.is_('int').and(z.expr.is_('int'))),
             ], [
               checkNotPromoted(x2),
               checkPromoted(y, 'int'),
@@ -8826,7 +8820,7 @@ main() {
           declare(x, type: 'int?'),
           switch_(expr('Object'), [
             switchStatementMember([
-              wildcard().when(x.expr.notEq(nullLiteral)).switchCase
+              wildcard().when(x.expr.notEq(nullLiteral))
             ], [
               checkReachable(true),
               checkPromoted(x, 'int'),
@@ -8883,7 +8877,7 @@ main() {
           declare(x, type: 'num'),
           switch_(x.expr, [
             switchStatementMember([
-              y.pattern(type: 'int').switchCase
+              y.pattern(type: 'int')
             ], [
               checkReachable(true),
               checkPromoted(x, 'int'),
@@ -8904,7 +8898,7 @@ main() {
           declare(x, type: 'Object'),
           switch_(expr('Object'), [
             switchStatementMember([
-              wildcard(type: 'int').switchCase
+              wildcard(type: 'int')
             ], [
               x.expr.as_('int'),
             ]),
@@ -8921,7 +8915,7 @@ main() {
           h.run([
             switch_(expr('E'), [
               switchStatementMember([
-                expr('E').pattern.switchCase,
+                expr('E').pattern,
               ], [
                 return_(),
               ])
@@ -8934,7 +8928,7 @@ main() {
           h.run([
             switch_(expr('int'), [
               switchStatementMember([
-                intLiteral(0).pattern.switchCase,
+                intLiteral(0).pattern,
               ], [
                 return_(),
               ])
@@ -8952,7 +8946,7 @@ main() {
                 expr('E'),
                 [
                   switchStatementMember([
-                    expr('E').pattern.switchCase,
+                    expr('E').pattern,
                   ], [
                     return_(),
                   ])
@@ -8969,7 +8963,7 @@ main() {
                 expr('E'),
                 [
                   switchStatementMember([
-                    expr('E').pattern.switchCase,
+                    expr('E').pattern,
                   ], [
                     return_(),
                   ])
@@ -9148,9 +9142,8 @@ main() {
             switch_(x.expr, [
               switchStatementMember([
                 objectPattern(requiredType: 'num', fields: [])
-                    .and(objectPattern(requiredType: 'int', fields: []))
-                    .switchCase,
-                objectPattern(requiredType: 'num', fields: []).switchCase
+                    .and(objectPattern(requiredType: 'int', fields: [])),
+                objectPattern(requiredType: 'num', fields: [])
               ], [
                 checkPromoted(x, 'num'),
               ])
@@ -9165,10 +9158,9 @@ main() {
             declare(x, initializer: expr('Object')),
             switch_(x.expr, [
               switchStatementMember([
-                objectPattern(requiredType: 'num', fields: []).switchCase,
+                objectPattern(requiredType: 'num', fields: []),
                 objectPattern(requiredType: 'num', fields: [])
                     .and(objectPattern(requiredType: 'int', fields: []))
-                    .switchCase
               ], [
                 checkPromoted(x, 'num'),
               ])
@@ -9188,11 +9180,11 @@ main() {
                 recordPattern([
                   intLiteral(0).pattern.recordField(),
                   x1.pattern(type: 'int?').nullCheck.recordField()
-                ]).switchCase,
+                ]),
                 recordPattern([
                   intLiteral(1).pattern.recordField(),
                   x2.pattern(type: 'int?').recordField()
-                ]).switchCase
+                ])
               ], [
                 checkNotPromoted(x),
               ])
@@ -9210,11 +9202,11 @@ main() {
                 recordPattern([
                   intLiteral(0).pattern.recordField(),
                   x1.pattern(type: 'int?').recordField()
-                ]).switchCase,
+                ]),
                 recordPattern([
                   intLiteral(1).pattern.recordField(),
                   x2.pattern(type: 'int?').nullCheck.recordField()
-                ]).switchCase
+                ])
               ], [
                 checkNotPromoted(x),
               ])
@@ -9229,8 +9221,8 @@ main() {
           h.run([
             switch_(expr('int?'), [
               switchStatementMember([
-                x1.pattern(type: 'int?').nullCheck.switchCase,
-                x2.pattern(type: 'int?').nullCheck.switchCase
+                x1.pattern(type: 'int?').nullCheck,
+                x2.pattern(type: 'int?').nullCheck
               ], [
                 checkPromoted(x, 'int'),
               ])
@@ -9254,11 +9246,11 @@ main() {
                 recordPattern([
                   intLiteral(0).pattern.recordField(),
                   x1.pattern(type: 'int?').nullCheck.recordField()
-                ]).switchCase,
+                ]),
                 recordPattern([
                   intLiteral(1).pattern.recordField(),
                   x2.pattern(type: 'int?').recordField()
-                ]).when(x2.expr.notEq(nullLiteral)).switchCase,
+                ]).when(x2.expr.notEq(nullLiteral)),
               ], [
                 checkPromoted(x, 'int'),
               ])
@@ -9280,17 +9272,12 @@ main() {
                 a1
                     .pattern(type: 'String?')
                     .nullCheck
-                    .when(a1.expr.is_('Never'))
-                    .switchCase,
-                a2
-                    .pattern(type: 'String?')
-                    .when(a2.expr.notEq(nullLiteral))
-                    .switchCase,
+                    .when(a1.expr.is_('Never')),
+                a2.pattern(type: 'String?').when(a2.expr.notEq(nullLiteral)),
                 a3
                     .pattern(type: 'String?')
                     .nullAssert
-                    .when(a3.expr.eq(intLiteral(1)))
-                    .switchCase,
+                    .when(a3.expr.eq(intLiteral(1))),
               ], [
                 checkPromoted(a, 'String'),
               ]),
@@ -9311,8 +9298,8 @@ main() {
           h.run([
             switch_(expr('int?'), [
               switchStatementMember([
-                x1.pattern().nullCheck.switchCase,
-                wildcard().switchCase
+                x1.pattern().nullCheck,
+                wildcard()
               ], [
                 checkAssigned(x, true),
               ])
@@ -9329,8 +9316,8 @@ main() {
           h.run([
             switch_(expr('int?'), [
               switchStatementMember([
-                wildcard().nullCheck.switchCase,
-                x1.pattern().switchCase
+                wildcard().nullCheck,
+                x1.pattern()
               ], [
                 checkAssigned(x, true),
               ])
@@ -9351,7 +9338,7 @@ main() {
         test('exhaustive', () {
           h.run([
             switch_(expr('Object'), [
-              wildcard().switchCase.then([
+              wildcard().then([
                 return_(),
               ]),
             ]),
@@ -9365,10 +9352,10 @@ main() {
           // switch cases completes normally.
           h.run([
             switch_(expr('Object'), [
-              wildcard(type: 'int').switchCase.then([
+              wildcard(type: 'int').then([
                 checkReachable(true),
               ]),
-              wildcard().switchCase.then([
+              wildcard().then([
                 return_(),
               ]),
             ]),
@@ -9381,10 +9368,10 @@ main() {
           // case is unreachable, so the code after the switch is unreachable.
           h.run([
             switch_(expr('Object'), [
-              wildcard().switchCase.then([
+              wildcard().then([
                 return_(),
               ]),
-              wildcard(type: 'int').switchCase.then([
+              wildcard(type: 'int').then([
                 checkReachable(false),
               ]),
             ]),
@@ -9398,11 +9385,11 @@ main() {
           // switch cases ends in a break.
           h.run([
             switch_(expr('Object'), [
-              wildcard(type: 'int').switchCase.then([
+              wildcard(type: 'int').then([
                 checkReachable(true),
                 break_(),
               ]),
-              wildcard().switchCase.then([
+              wildcard().then([
                 return_(),
               ]),
             ]),
@@ -9415,10 +9402,10 @@ main() {
           // unreachable, so the code after the switch is unreachable.
           h.run([
             switch_(expr('Object'), [
-              wildcard().switchCase.then([
+              wildcard().then([
                 return_(),
               ]),
-              wildcard(type: 'int').switchCase.then([
+              wildcard(type: 'int').then([
                 checkReachable(false),
                 break_(),
               ]),
@@ -9430,7 +9417,7 @@ main() {
         test('not exhaustive', () {
           h.run([
             switch_(expr('Object'), [
-              wildcard(type: 'int').switchCase.then([
+              wildcard(type: 'int').then([
                 return_(),
               ]),
             ]),

@@ -37,7 +37,7 @@ final RegExp _locationRegExp =
     RegExp('(file:)?[a-zA-Z0-9_./]+.dart:[0-9]+:[0-9]+');
 
 SwitchHeadDefault get default_ =>
-    SwitchHeadDefault(location: computeLocation());
+    SwitchHeadDefault._(location: computeLocation());
 
 Expression get nullLiteral => new NullLiteral._(location: computeLocation());
 
@@ -404,13 +404,13 @@ Expression switchExpr(Expression expression, List<ExpressionCase> cases) =>
     new SwitchExpression._(expression, cases, location: computeLocation());
 
 SwitchStatementMember switchStatementMember(
-  List<SwitchHead> cases,
+  List<ProtoSwitchHead> cases,
   List<ProtoStatement> body, {
   bool hasLabels = false,
 }) {
   var location = computeLocation();
   return SwitchStatementMember._(
-    cases,
+    [for (var case_ in cases) case_.asSwitchHead],
     Block._(body, location: location),
     hasLabels: hasLabels,
     location: computeLocation(),
@@ -3413,13 +3413,12 @@ class PlaceholderExpression extends Expression {
 /// Mixin containing logic shared by [Pattern] and [GuardedPattern].  Both of
 /// these types can be used in a case where a pattern with an optional guard is
 /// expected.
-mixin PossiblyGuardedPattern on Node {
-  SwitchHead get switchCase {
-    return SwitchHeadCase._(
-      _asGuardedPattern,
-      location: location,
-    );
-  }
+mixin PossiblyGuardedPattern on Node implements ProtoSwitchHead {
+  @override
+  SwitchHead get asSwitchHead => SwitchHeadCase._(
+        _asGuardedPattern,
+        location: location,
+      );
 
   /// Converts `this` to a [GuardedPattern], including a `null` guard if
   /// necessary.
@@ -3568,6 +3567,21 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// visited.
   Expression thenExpr(Expression expr) =>
       WrappedExpression._(asStatement, expr, null, location: computeLocation());
+}
+
+/// Common interface shared by constructs that can be used where a switch head
+/// (pattern with optional guard, or `default`) is expected, in the pseudo-Dart
+/// language used for flow analysis testing.
+abstract class ProtoSwitchHead {
+  /// Converts `this` to a [SwitchHead]. If it's already a [SwitchHead], it is
+  /// returned unchanged. If it's a [PossiblyGuardedPattern], it's converted
+  /// into a [SwitchHeadCase]
+  ///
+  /// In general, tests shouldn't need to call this getter directly; instead
+  /// they should simply be able to use a [Pattern], [GuardedPattern], or
+  /// [default_] in a context where a switch head is expected, and the test
+  /// infrastructure will call this getter as needed.
+  SwitchHead get asSwitchHead;
 }
 
 class RecordPattern extends Pattern {
@@ -3762,8 +3776,11 @@ class SwitchExpression extends Expression {
   }
 }
 
-abstract class SwitchHead extends Node {
+abstract class SwitchHead extends Node implements ProtoSwitchHead {
   SwitchHead._({required super.location}) : super._();
+
+  @override
+  SwitchHead get asSwitchHead => this;
 
   SwitchStatementMember then(List<ProtoStatement> body) {
     return SwitchStatementMember._(
@@ -3785,7 +3802,7 @@ class SwitchHeadCase extends SwitchHead {
 }
 
 class SwitchHeadDefault extends SwitchHead {
-  SwitchHeadDefault({required super.location}) : super._();
+  SwitchHeadDefault._({required super.location}) : super._();
 }
 
 class SwitchStatement extends Statement {

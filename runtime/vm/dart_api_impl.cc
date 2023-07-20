@@ -1117,34 +1117,6 @@ Dart_NewFinalizableHandle(Dart_Handle object,
                                    callback);
 }
 
-DART_EXPORT void Dart_UpdateExternalSize(Dart_WeakPersistentHandle object,
-                                         intptr_t external_size) {
-  Thread* T = Thread::Current();
-  IsolateGroup* isolate_group = T->isolate_group();
-  CHECK_ISOLATE_GROUP(isolate_group);
-  TransitionToVM transition(T);
-  ApiState* state = isolate_group->api_state();
-  ASSERT(state != nullptr);
-  ASSERT(state->IsActiveWeakPersistentHandle(object));
-  auto weak_ref = FinalizablePersistentHandle::Cast(object);
-  weak_ref->UpdateExternalSize(external_size, isolate_group);
-}
-
-DART_EXPORT void Dart_UpdateFinalizableExternalSize(
-    Dart_FinalizableHandle object,
-    Dart_Handle strong_ref_to_object,
-    intptr_t external_allocation_size) {
-  if (!::Dart_IdentityEquals(strong_ref_to_object,
-                             HandleFromFinalizable(object))) {
-    FATAL(
-        "%s expects arguments 'object' and 'strong_ref_to_object' to point to "
-        "the same object.",
-        CURRENT_FUNC);
-  }
-  auto wph_object = reinterpret_cast<Dart_WeakPersistentHandle>(object);
-  ::Dart_UpdateExternalSize(wph_object, external_allocation_size);
-}
-
 DART_EXPORT void Dart_DeletePersistentHandle(Dart_PersistentHandle object) {
   Thread* T = Thread::Current();
   IsolateGroup* isolate_group = T->isolate_group();

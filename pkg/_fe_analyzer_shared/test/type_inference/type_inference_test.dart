@@ -858,8 +858,8 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      x1.pattern().switchCase,
-                      x2.pattern().switchCase,
+                      x1.pattern(),
+                      x2.pattern(),
                     ], [
                       break_(),
                     ]),
@@ -883,8 +883,8 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      x1.pattern().or(x2.pattern()).switchCase,
-                      x3.pattern().switchCase,
+                      x1.pattern().or(x2.pattern()),
+                      x3.pattern(),
                     ], [
                       break_(),
                     ]),
@@ -908,8 +908,8 @@ main() {
                     expr('int'),
                     [
                       switchStatementMember([
-                        x1.pattern(type: 'num').switchCase,
-                        x2.pattern(type: 'int').switchCase,
+                        x1.pattern(type: 'num'),
+                        x2.pattern(type: 'int'),
                       ], [
                         break_(),
                       ]),
@@ -931,8 +931,8 @@ main() {
                     expr('int'),
                     [
                       switchStatementMember([
-                        x1.pattern(type: 'num').switchCase,
-                        x2.pattern().switchCase,
+                        x1.pattern(type: 'num'),
+                        x2.pattern(),
                       ], [
                         break_(),
                       ]),
@@ -954,8 +954,8 @@ main() {
                     expr('List<int>'),
                     [
                       switchStatementMember([
-                        x1.pattern().switchCase,
-                        listPattern([x2.pattern()]).switchCase,
+                        x1.pattern(),
+                        listPattern([x2.pattern()]),
                       ], [
                         break_(),
                       ]),
@@ -981,8 +981,8 @@ main() {
                   expr('int'),
                   [
                     switchStatementMember([
-                      x1.pattern().switchCase,
-                      x2.pattern().switchCase,
+                      x1.pattern(),
+                      x2.pattern(),
                     ], [
                       break_(),
                     ]),
@@ -1004,8 +1004,8 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().switchCase,
-                    intLiteral(0).pattern.switchCase,
+                    x1.pattern(),
+                    intLiteral(0).pattern,
                   ], [
                     break_(),
                   ]),
@@ -1025,8 +1025,8 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    intLiteral(0).pattern.switchCase,
-                    x1.pattern().switchCase,
+                    intLiteral(0).pattern,
+                    x1.pattern(),
                   ], [
                     break_(),
                   ]),
@@ -1046,7 +1046,7 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().switchCase,
+                    x1.pattern(),
                     default_,
                   ], [
                     break_(),
@@ -1066,7 +1066,7 @@ main() {
                 expr('int'),
                 [
                   switchStatementMember([
-                    x1.pattern().switchCase,
+                    x1.pattern(),
                   ], [
                     break_(),
                   ], hasLabels: true),
@@ -1108,9 +1108,9 @@ main() {
               expr('int'),
               [
                 switchStatementMember([
-                  intLiteral(0).pattern.switchCase,
-                  intLiteral(1).pattern.switchCase,
-                  intLiteral(2).pattern.switchCase,
+                  intLiteral(0).pattern,
+                  intLiteral(1).pattern,
+                  intLiteral(2).pattern,
                 ], [
                   expr('int'),
                 ]),
@@ -1463,8 +1463,8 @@ main() {
               expr('int'),
               [
                 switchStatementMember([
-                  intLiteral(0).pattern.switchCase,
-                  intLiteral(1).pattern.switchCase,
+                  intLiteral(0).pattern,
+                  intLiteral(1).pattern,
                 ], [
                   break_(),
                 ]),

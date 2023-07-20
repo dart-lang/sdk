@@ -227,6 +227,7 @@ class UseResultVerifier {
         parent is FunctionExpressionInvocation ||
         parent is IfStatement ||
         parent is IndexExpression ||
+        parent is InterpolationExpression ||
         parent is ListLiteral ||
         parent is MapLiteralEntry ||
         parent is MethodInvocation ||
