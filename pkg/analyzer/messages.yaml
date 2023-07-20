@@ -20003,8 +20003,6 @@ HintCode:
       kinds of declarations are analyzed:
       - Private top-level declarations and all of their members
       - Private members of public declarations
-      - Optional parameters of private functions for which a value is never
-        passed
 
       Not all references to an element will mark it as "used":
       - Assigning a value to a top-level variable (with a standard `=`
@@ -20024,15 +20022,12 @@ HintCode:
       class [!_C!] {}
       ```
 
-      Assuming that no code in the library passes a value for `y` in any
-      invocation of `_m`, the following code produces this diagnostic:
+      Assuming that no code in the library references `C._m`, the following code
+      produces this diagnostic:
 
       ```dart
-      %language=2.9
       class C {
-        void _m(int x, [int [!y!]]) {}
-
-        void n() => _m(0);
+        void [!_m!](int x) {}
       }
       ```
 
@@ -20041,20 +20036,13 @@ HintCode:
       If the declaration isn't needed, then remove it:
 
       ```dart
-      class C {
-        void _m(int x) {}
-
-        void n() => _m(0);
-      }
+      class C {}
       ```
 
       If the declaration is intended to be used, then add the code to use it.
   UNUSED_ELEMENT_PARAMETER:
-    sharedName: UNUSED_ELEMENT
     problemMessage: "A value for optional parameter '{0}' isn't ever given."
     correctionMessage: Try removing the unused parameter.
-    deprecatedMessage: Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.
-    hasPublishedDocs: true
     comment: |-
       Parameters:
       0: the name of the parameter that is declared but not used
@@ -25335,9 +25323,6 @@ WarningCode:
   UNUSED_ELEMENT:
     aliasFor: HintCode.UNUSED_ELEMENT
     comment: This is the new replacement for [HintCode.UNUSED_ELEMENT].
-  UNUSED_ELEMENT_PARAMETER:
-    aliasFor: HintCode.UNUSED_ELEMENT_PARAMETER
-    comment: This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
   UNUSED_FIELD:
     problemMessage: "The value of the field '{0}' isn't used."
     correctionMessage: Try removing the field, or using it.

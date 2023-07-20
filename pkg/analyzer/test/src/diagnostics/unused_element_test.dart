@@ -184,7 +184,7 @@ enum E {
   const E({int? a});
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
     ]);
   }
 
@@ -204,7 +204,7 @@ enum E {
   const E([int? a]);
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 37, 1),
     ]);
   }
 
@@ -387,7 +387,7 @@ class _A {
 }
 f() => _A();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
     ]);
   }
 
@@ -400,7 +400,7 @@ class _A {
 }
 f() => _A.named();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
     ]);
   }
 
@@ -459,7 +459,7 @@ class _A {
 }
 f() => _A();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
     ]);
   }
 
@@ -472,7 +472,7 @@ class _A {
 }
 f() => _A.named();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 38, 1),
     ]);
   }
 
@@ -598,7 +598,7 @@ void f() {
   _E.v._foo();
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
     ]);
   }
 
@@ -626,7 +626,7 @@ void f() {
   _E.v._foo();
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 33, 1),
     ]);
   }
 
@@ -2221,7 +2221,7 @@ f() {
   B()._m(0);
 }
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
     ]);
   }
 
@@ -2304,7 +2304,7 @@ class A {
 }
 f() => A._();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
     ]);
   }
 
@@ -2315,7 +2315,7 @@ class _A {
 }
 f() => _A();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 21, 1),
     ]);
   }
 
@@ -2326,7 +2326,7 @@ extension E on String {
 }
 f() => "hello"._m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
     ]);
   }
 
@@ -2337,7 +2337,7 @@ class A {
 }
 f() => A()._m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
     ]);
   }
 
@@ -2351,7 +2351,7 @@ class B implements A {
 }
 f() => A()._m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 65, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 65, 1),
     ]);
   }
 
@@ -2362,7 +2362,7 @@ class A {
 }
 f() => A()._m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 25, 1),
     ]);
   }
 
@@ -2373,7 +2373,7 @@ extension _E on String {
 }
 f() => "hello".m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 39, 1),
     ]);
   }
 
@@ -2384,7 +2384,7 @@ extension on String {
 }
 f() => "hello".m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 36, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 36, 1),
     ]);
   }
 
@@ -2395,7 +2395,7 @@ class A {
 }
 f() => A._m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
     ]);
   }
 
@@ -2406,7 +2406,7 @@ class _A {
 }
 f() => _A.m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 32, 1),
     ]);
   }
 
@@ -2422,7 +2422,7 @@ f() => _m(1);
 void _m([int a]) {}
 f() => _m();
 ''', [
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 13, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 13, 1),
     ]);
   }
 

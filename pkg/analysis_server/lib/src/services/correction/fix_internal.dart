@@ -1438,6 +1438,9 @@ class FixProcessor extends BaseProcessor {
     HintCode.UNNECESSARY_IMPORT: [
       RemoveUnusedImport.new,
     ],
+    HintCode.UNUSED_ELEMENT_PARAMETER: [
+      RemoveUnusedParameter.new,
+    ],
     ParserErrorCode.ABSTRACT_CLASS_MEMBER: [
       RemoveAbstract.bulkFixable,
     ],
@@ -1714,9 +1717,6 @@ class FixProcessor extends BaseProcessor {
     ],
     WarningCode.UNUSED_ELEMENT: [
       RemoveUnusedElement.new,
-    ],
-    WarningCode.UNUSED_ELEMENT_PARAMETER: [
-      RemoveUnusedParameter.new,
     ],
     WarningCode.UNUSED_FIELD: [
       RemoveUnusedField.new,

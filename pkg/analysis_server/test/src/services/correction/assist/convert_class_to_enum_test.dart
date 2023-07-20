@@ -259,7 +259,7 @@ base class E {
 class _E {
   static const _E c = _E();
 
-  // ignore: unused_element
+  // ignore: unused_element_parameter
   const _E({_E e = const _E()});
 }
 ''');

@@ -7219,10 +7219,6 @@ class WarningCode extends AnalyzerErrorCode {
   ///  This is the new replacement for [HintCode.UNUSED_ELEMENT].
   static const HintCode UNUSED_ELEMENT = HintCode.UNUSED_ELEMENT;
 
-  ///  This is the new replacement for [HintCode.UNUSED_ELEMENT_PARAMETER].
-  static const HintCode UNUSED_ELEMENT_PARAMETER =
-      HintCode.UNUSED_ELEMENT_PARAMETER;
-
   ///  Parameters:
   ///  0: the name of the unused field
   static const WarningCode UNUSED_FIELD = WarningCode(
