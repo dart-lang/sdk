@@ -114,18 +114,6 @@ mixin KernelNodes {
   late final Class ffiCompoundClass = index.getClass("dart:ffi", "_Compound");
   late final Class ffiPointerClass = index.getClass("dart:ffi", "Pointer");
 
-  // dart:typed_data classes
-  late final Class typedListBaseClass =
-      index.getClass("dart:typed_data", "_TypedListBase");
-  late final Class typedListClass =
-      index.getClass("dart:typed_data", "_TypedList");
-  late final Class typedListViewClass =
-      index.getClass("dart:typed_data", "_TypedListView");
-  late final Class byteDataViewClass =
-      index.getClass("dart:typed_data", "_ByteDataView");
-  late final Class unmodifiableByteDataViewClass =
-      index.getClass("dart:typed_data", "_UnmodifiableByteDataView");
-
   // dart:_wasm classes
   late final Class wasmTypesBaseClass =
       index.getClass("dart:_wasm", "_WasmBase");

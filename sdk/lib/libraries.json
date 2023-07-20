@@ -217,6 +217,12 @@
       "_http": {
         "uri": "_http/http.dart"
       },
+      "_simd": {
+        "uri": "_internal/wasm/lib/simd.dart"
+      },
+      "_typed_data": {
+        "uri": "_internal/wasm/lib/typed_data.dart"
+      },
       "_internal": {
         "uri": "internal/internal.dart",
         "patches": [
@@ -315,7 +321,6 @@
       "typed_data": {
         "uri": "typed_data/typed_data.dart",
         "patches": [
-          "_internal/vm/lib/typed_data_patch.dart",
           "_internal/wasm/lib/typed_data_patch.dart",
           "_internal/wasm/lib/simd_patch.dart"
         ]
