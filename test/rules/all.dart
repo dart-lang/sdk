@@ -115,6 +115,8 @@ import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
 import 'prefer_mixin_test.dart' as prefer_mixin;
+import 'prefer_null_aware_method_calls_test.dart'
+    as prefer_null_aware_method_calls;
 import 'prefer_relative_imports_test.dart' as prefer_relative_imports;
 import 'prefer_single_quotes_test.dart' as prefer_single_quotes;
 import 'prefer_spread_collections_test.dart' as prefer_spread_collections;
@@ -279,6 +281,7 @@ void main() {
   prefer_inlined_adds.main();
   prefer_interpolation_to_compose_strings.main();
   prefer_mixin.main();
+  prefer_null_aware_method_calls.main();
   prefer_relative_imports.main();
   prefer_single_quotes.main();
   prefer_spread_collections.main();
