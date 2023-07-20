@@ -655,6 +655,17 @@ bool f() {
 ''');
   }
 
+  test_interpolationExpression() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+String get f => '';
+
+String g() => '$f';
+''');
+  }
+
   test_method_result_assertInitializer() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
