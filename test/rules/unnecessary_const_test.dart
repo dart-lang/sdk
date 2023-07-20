@@ -102,6 +102,176 @@ class UnnecessaryConstRecordsTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_const';
 
+  test_constCall_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+var x = const A({});
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_constVariable_constCall() async {
+    await assertDiagnostics(r'''
+const x = const A();
+class A {
+  const A();
+}
+''', [
+      lint(10, 9),
+    ]);
+  }
+
+  test_constVariable_constCall_newName_noArgument() async {
+    await assertDiagnostics(r'''
+const x = const A.new();
+class A {
+  const A();
+}
+''', [
+      lint(10, 13),
+    ]);
+  }
+
+  test_constVariable_constCall_nonConstArgument() async {
+    await assertDiagnostics(r'''
+const x = const A([]);
+class A {
+  const A(Object o);
+}
+''', [
+      lint(10, 11),
+    ]);
+  }
+
+  test_constVariable_nonConstCall() async {
+    await assertNoDiagnostics(r'''
+const x = A();
+class A {
+  const A();
+}
+''');
+  }
+
+  test_constVariable_nonConstCall_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+const x = A([]);
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_noContext_constCall() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const A();
+}
+class A {
+  const A();
+}
+''');
+  }
+
+  test_noContext_constCall_newName() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const A.new();
+}
+class A {
+  const A();
+}
+''');
+  }
+
+  test_noContext_constCall_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const A(A());
+}
+class A {
+  const A([o]);
+}
+''');
+  }
+
+  test_noContext_constCall_nonConstListArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  const A([]);
+}
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_noContext_newName_nonConstCall() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A.new();
+}
+class A {
+  const A();
+}
+''');
+  }
+
+  test_noContext_nonConstCall() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A();
+}
+class A {
+  const A();
+}
+''');
+  }
+
+  test_noContext_nonConstCall_constListArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A(const []);
+}
+class A {
+  const A([o]);
+}
+''');
+  }
+
+  test_noContext_nonConstCall_constObjectArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A(const A());
+}
+class A {
+  const A([o]);
+}
+''');
+  }
+
+  test_noContext_nonConstCall_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A([]);
+}
+class A {
+  const A([o]);
+}
+''');
+  }
+
+  test_noContext_nonConstCall_nonConstObjectArgument() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A(A());
+}
+class A {
+  const A([o]);
+}
+''');
+  }
+
   test_recordLiteral() async {
     await assertDiagnostics(r'''
 const r = const (a: 1);
@@ -113,6 +283,84 @@ const r = const (a: 1);
   test_recordLiteral_ok() async {
     await assertNoDiagnostics(r'''
 const r = (a: 1);
+''');
+  }
+
+  test_variable_constCall_constListArgument() async {
+    await assertDiagnostics(r'''
+var x = const A(const []);
+class A {
+  const A(Object o);
+}
+''', [
+      lint(16, 8),
+    ]);
+  }
+
+  test_variable_constCall_constSetArgument() async {
+    await assertDiagnostics(r'''
+var x = const A(const {});
+class A {
+  const A(Object o);
+}
+''', [
+      lint(16, 8),
+    ]);
+  }
+
+  test_variable_constCall_newName_constArgument() async {
+    await assertDiagnostics(r'''
+var x = const A.new(const []);
+class A {
+  const A(Object o);
+}
+''', [
+      lint(20, 8),
+    ]);
+  }
+
+  test_variable_constCall_nonConstArgument() async {
+    await assertNoDiagnostics(r'''
+final x = const A([]);
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_variable_constCall_nonConstListArgument() async {
+    await assertNoDiagnostics(r'''
+var x = const A([]);
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_variable_nonConstCall() async {
+    await assertNoDiagnostics(r'''
+var a = A();
+class A {
+  const A();
+}
+''');
+  }
+
+  test_variable_nonConstCall_constListArgument() async {
+    await assertNoDiagnostics(r'''
+var x = A(const []);
+class A {
+  const A(Object o);
+}
+''');
+  }
+
+  test_variable_nonConstCall_newName_constArgument() async {
+    await assertNoDiagnostics(r'''
+var x = A.new(const []);
+class A {
+  const A(Object o);
+}
 ''');
   }
 }
