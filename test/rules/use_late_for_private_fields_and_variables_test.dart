@@ -25,6 +25,25 @@ class C {
 ''', [lint(17, 2)]);
   }
 
+  /// https://github.com/dart-lang/linter/issues/3823
+  test_instanceField_private_enum() async {
+    await assertDiagnostics('''
+enum E {
+  a('a'),
+  b('b', 'c');
+
+  const E(this._v, [this._v2]);
+
+  final String _v;
+  final String? _v2;
+}
+''', [
+      // No lint.
+      error(WarningCode.UNUSED_FIELD, 83, 2),
+      error(WarningCode.UNUSED_FIELD, 103, 3),
+    ]);
+  }
+
   test_instanceField_private_inClassWithConstConstructor() async {
     await assertNoDiagnostics('''
 class C {
