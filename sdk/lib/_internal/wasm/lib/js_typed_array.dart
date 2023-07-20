@@ -46,7 +46,7 @@ final class JSArrayBufferImpl implements ByteBuffer {
     _offsetAlignmentCheck(offsetInBytes, Int32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Int32x4List.bytesPerElement;
     final storage = JSInt32ArrayImpl.view(this, offsetInBytes, length * 4);
-    return JSInt32x4ArrayImpl._externalStorage(storage);
+    return JSInt32x4ArrayImpl.externalStorage(storage);
   }
 
   Float32List asFloat32List([int offsetInBytes = 0, int? length]) =>
@@ -59,14 +59,14 @@ final class JSArrayBufferImpl implements ByteBuffer {
     _offsetAlignmentCheck(offsetInBytes, Float32x4List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float32x4List.bytesPerElement;
     final storage = JSFloat32ArrayImpl.view(this, offsetInBytes, length * 4);
-    return JSFloat32x4ArrayImpl._externalStorage(storage);
+    return JSFloat32x4ArrayImpl.externalStorage(storage);
   }
 
   Float64x2List asFloat64x2List([int offsetInBytes = 0, int? length]) {
     _offsetAlignmentCheck(offsetInBytes, Float64x2List.bytesPerElement);
     length ??= (lengthInBytes - offsetInBytes) ~/ Float64x2List.bytesPerElement;
     final storage = JSFloat64ArrayImpl.view(this, offsetInBytes, length * 2);
-    return JSFloat64x2ArrayImpl._externalStorage(storage);
+    return JSFloat64x2ArrayImpl.externalStorage(storage);
   }
 
   ByteData asByteData([int offsetInBytes = 0, int? length]) =>
@@ -485,7 +485,7 @@ final class JSInt32x4ArrayImpl
     implements Int32x4List {
   final JSInt32ArrayImpl _storage;
 
-  JSInt32x4ArrayImpl._externalStorage(JSInt32ArrayImpl storage)
+  JSInt32x4ArrayImpl.externalStorage(JSInt32ArrayImpl storage)
       : _storage = storage;
 
   @override
@@ -525,7 +525,7 @@ final class JSInt32x4ArrayImpl
   @override
   Int32x4List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    return JSInt32x4ArrayImpl._externalStorage(
+    return JSInt32x4ArrayImpl.externalStorage(
         _storage.sublist(start * 4, stop * 4) as JSInt32ArrayImpl);
   }
 }
@@ -719,7 +719,7 @@ final class JSFloat32x4ArrayImpl
     implements Float32x4List {
   final JSFloat32ArrayImpl _storage;
 
-  JSFloat32x4ArrayImpl._externalStorage(JSFloat32ArrayImpl storage)
+  JSFloat32x4ArrayImpl.externalStorage(JSFloat32ArrayImpl storage)
       : _storage = storage;
 
   @override
@@ -759,7 +759,7 @@ final class JSFloat32x4ArrayImpl
   @override
   Float32x4List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    return JSFloat32x4ArrayImpl._externalStorage(
+    return JSFloat32x4ArrayImpl.externalStorage(
         _storage.sublist(start * 4, stop * 4) as JSFloat32ArrayImpl);
   }
 }
@@ -769,7 +769,7 @@ final class JSFloat64x2ArrayImpl
     implements Float64x2List {
   final JSFloat64ArrayImpl _storage;
 
-  JSFloat64x2ArrayImpl._externalStorage(JSFloat64ArrayImpl storage)
+  JSFloat64x2ArrayImpl.externalStorage(JSFloat64ArrayImpl storage)
       : _storage = storage;
 
   @override
@@ -805,7 +805,7 @@ final class JSFloat64x2ArrayImpl
   @override
   Float64x2List sublist(int start, [int? end]) {
     final stop = RangeError.checkValidRange(start, end, length);
-    return JSFloat64x2ArrayImpl._externalStorage(
+    return JSFloat64x2ArrayImpl.externalStorage(
         _storage.sublist(start * 2, stop * 2) as JSFloat64ArrayImpl);
   }
 }

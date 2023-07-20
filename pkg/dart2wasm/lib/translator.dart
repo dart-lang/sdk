@@ -42,6 +42,7 @@ class TranslatorOptions {
   // If the default value for [useStringref] is changed, also update the
   // `sdk/bin/dart2wasm` script.
   bool useStringref = false;
+  bool jsCompatibility = false;
   int inliningLimit = 0;
   int? sharedMemoryMaxPages;
   List<int>? watchPoints = null;

@@ -221,7 +221,7 @@ class ClassInfoCollector {
       translator.index.getClass("dart:core", "_ListBase"):
           translator.coreTypes.listClass
     };
-    for (String name in const <String>[
+    for (final name in const <String>[
       "Int8List",
       "Uint8List",
       "Uint8ClampedList",
@@ -247,30 +247,36 @@ class ClassInfoCollector {
 
   late final Set<Class> _neverMasquerades = _computeNeverMasquerades();
 
+  /// These types switch from properly reified non-masquerading types in regular
+  /// Dart2Wasm mode to masquerading types in js compatibility mode.
+  final Set<String> jsCompatibilityTypes = {
+    "JSArrayBufferImpl",
+    "JSArrayBufferViewImpl",
+    "JSDataViewImpl",
+    "JSInt8ArrayImpl",
+    "JSUint8ArrayImpl",
+    "JSUint8ClampedArrayImpl",
+    "JSInt16ArrayImpl",
+    "JSUint16ArrayImpl",
+    "JSInt32ArrayImpl",
+    "JSInt32x4ArrayImpl",
+    "JSUint32ArrayImpl",
+    "JSBigUint64ArrayImpl",
+    "JSBigInt64ArrayImpl",
+    "JSFloat32ArrayImpl",
+    "JSFloat32x4ArrayImpl",
+    "JSFloat64ArrayImpl",
+    "JSFloat64x2ArrayImpl",
+  };
+
   Set<Class> _computeNeverMasquerades() {
-    // The JS types do not masquerade, but they aren't always used so we have to
-    // construct this set programmatically.
+    // The JS types do not masquerade in regular Dart2Wasm, but they aren't
+    // always used so we have to construct this set programmatically.
     final jsTypesLibraryIndex =
         LibraryIndex(translator.component, ["dart:_js_types"]);
     final neverMasquerades = [
-      "JSArrayBufferImpl",
-      "JSArrayBufferViewImpl",
-      "JSDataViewImpl",
       "JSStringImpl",
-      "JSInt8ArrayImpl",
-      "JSUint8ArrayImpl",
-      "JSUint8ClampedArrayImpl",
-      "JSInt16ArrayImpl",
-      "JSUint16ArrayImpl",
-      "JSInt32ArrayImpl",
-      "JSInt32x4ArrayImpl",
-      "JSUint32ArrayImpl",
-      "JSBigUint64ArrayImpl",
-      "JSBigInt64ArrayImpl",
-      "JSFloat32ArrayImpl",
-      "JSFloat32x4ArrayImpl",
-      "JSFloat64ArrayImpl",
-      "JSFloat64x2ArrayImpl",
+      if (!translator.options.jsCompatibility) ...jsCompatibilityTypes,
     ]
         .map((name) => jsTypesLibraryIndex.tryGetClass("dart:_js_types", name))
         .toSet();
