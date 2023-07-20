@@ -179,17 +179,6 @@ void defineRuleUnitTests() {
   });
 }
 
-/// Handy for debugging.
-void defineSoloRuleTest(String ruleToTest) {
-  for (var entry in Directory(ruleTestDataDir).listSync()) {
-    if (entry is! File || !isDartFile(entry)) continue;
-    var ruleName = p.basenameWithoutExtension(entry.path);
-    if (ruleName == ruleToTest) {
-      testRule(ruleName, entry);
-    }
-  }
-}
-
 void testRule(String ruleName, File file,
     {bool debug = true,
     bool failOnErrors = true,

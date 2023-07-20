@@ -193,10 +193,6 @@ class ScoreCard {
     scores.forEach(f);
   }
 
-  void removeWhere(bool Function(LintScore element) test) {
-    scores.removeWhere(test);
-  }
-
   static Future<ScoreCard> calculate() async {
     var lintsWithFixes = await _getLintsWithFixes();
     var lintsWithAssists = await _getLintsWithAssists();
