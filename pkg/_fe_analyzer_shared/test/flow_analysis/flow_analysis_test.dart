@@ -6951,11 +6951,13 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, initializer: expr('List<dynamic>')),
-          patternForInElement(
-            wildcard(type: 'int'),
-            x.expr,
-            expr('Object').asCollectionElement,
-          ).inContextElementType('Object'),
+          listLiteral(elementType: 'Object', [
+            patternForInElement(
+              wildcard(type: 'int'),
+              x.expr,
+              expr('Object'),
+            ),
+          ]),
           checkNotPromoted(x),
         ]);
       });
@@ -6966,18 +6968,19 @@ main() {
         var x = Var('x');
         h.run([
           declare(x, type: 'int?'),
-          ifCaseElement(
-                  expr('Object'),
-                  wildcard().when(x.expr.notEq(nullLiteral)),
-                  block([
-                    checkReachable(true),
-                    checkPromoted(x, 'int'),
-                  ]).thenExpr(expr('String')).asCollectionElement,
-                  block([
-                    checkReachable(true),
-                    checkNotPromoted(x),
-                  ]).thenExpr(expr('String')).asCollectionElement)
-              .inContextElementType('String'),
+          listLiteral(elementType: 'String', [
+            ifCaseElement(
+                expr('Object'),
+                wildcard().when(x.expr.notEq(nullLiteral)),
+                block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String')),
+                block([
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                ]).thenExpr(expr('String'))),
+          ]),
         ]);
       });
 
@@ -6986,18 +6989,19 @@ main() {
         var y = Var('y');
         h.run([
           declare(x, type: 'num'),
-          ifCaseElement(
-                  x.expr,
-                  y.pattern(type: 'int'),
-                  block([
-                    checkReachable(true),
-                    checkPromoted(x, 'int'),
-                  ]).thenExpr(expr('String')).asCollectionElement,
-                  block([
-                    checkReachable(true),
-                    checkNotPromoted(x),
-                  ]).thenExpr(expr('String')).asCollectionElement)
-              .inContextElementType('String'),
+          listLiteral(elementType: 'String', [
+            ifCaseElement(
+                x.expr,
+                y.pattern(type: 'int'),
+                block([
+                  checkReachable(true),
+                  checkPromoted(x, 'int'),
+                ]).thenExpr(expr('String')),
+                block([
+                  checkReachable(true),
+                  checkNotPromoted(x),
+                ]).thenExpr(expr('String'))),
+          ]),
         ]);
       });
     });
