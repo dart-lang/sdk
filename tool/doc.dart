@@ -7,13 +7,11 @@ import 'dart:io';
 
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
-import 'package:analyzer/src/lint/state.dart';
 import 'package:args/args.dart';
 import 'package:http/http.dart' as http;
 import 'package:linter/src/analyzer.dart';
 import 'package:linter/src/rules.dart';
 import 'package:linter/src/utils.dart';
-import 'package:markdown/markdown.dart';
 import 'package:yaml/yaml.dart';
 
 import 'machine.dart';
@@ -40,36 +38,6 @@ void main(List<String> args) async {
 
   await generateDocs(outDir, createDirectories: createDirectories);
 }
-
-const ruleFootMatter = '''
-In addition, rules can be further distinguished by *maturity*.  Unqualified
-rules are considered stable, while others may be marked **experimental**
-to indicate that they are under review.  Lints that are marked as **deprecated**
-should not be used and are subject to removal in future Linter releases.
-
-Rules can be selectively enabled in the analyzer using
-[analysis options](https://pub.dev/packages/analyzer)
-or through an
-[analysis options file](https://dart.dev/guides/language/analysis-options#the-analysis-options-file).
-
-* **An auto-generated list enabling all options is provided [here](options/options.html).**
-
-As some lints may contradict each other, only a subset of these will be
-enabled in practice, but this list should provide a convenient jumping-off point.
-
-Many lints are included in various predefined rulesets:
-
-* [core](https://github.com/dart-lang/lints) for official "core" Dart team lint rules.
-* [recommended](https://github.com/dart-lang/lints) for additional lint rules "recommended" by the Dart team.
-* [flutter](https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml) for rules recommended for Flutter projects (`flutter create` enables these by default).
-
-Rules included in these rulesets are badged in the documentation below.
-
-These rules are under active development.  Feedback is
-[welcome](https://github.com/dart-lang/linter/issues)!
-''';
-
-const ruleLeadMatter = 'Rules are organized into familiar rule groups.';
 
 final coreRules = <String?>[];
 final flutterRules = <String?>[];
@@ -173,54 +141,17 @@ Future<void> generateDocs(String? dir, {bool createDirectories = false}) async {
 
   // Generate rule files.
   for (var rule in rules) {
-    var fixStatus = getFixStatus(rule, fixStatusMap);
-    RuleHtmlGenerator(rule, fixStatus).generate(outDir);
+    RuleHtmlGenerator(rule).generate(outDir);
   }
 
   // Generate index.
-  HtmlIndexer(rules, fixStatusMap).generate(outDir);
+  HtmlIndexer().generate(outDir);
 
   // Generate options samples.
-  OptionsSample(rules).generate(outDir);
+  OptionsSample().generate(outDir);
 
   // Generate a machine-readable summary of rules.
   MachineSummaryGenerator(Registry.ruleRegistry, fixStatusMap).generate(outDir);
-}
-
-String getBadges(String rule, [String? fixStatus]) {
-  var sb = StringBuffer();
-  if (coreRules.contains(rule)) {
-    sb.write(
-        '<a class="style-type" href="https://github.com/dart-lang/lints/blob/main/lib/core.yaml">'
-        '<!--suppress HtmlUnknownTarget --><img alt="core" src="style-core.svg"></a>');
-  }
-  if (recommendedRules.contains(rule)) {
-    sb.write(
-        '<a class="style-type" href="https://github.com/dart-lang/lints/blob/main/lib/recommended.yaml">'
-        '<!--suppress HtmlUnknownTarget --><img alt="recommended" src="style-recommended.svg"></a>');
-  }
-  if (flutterRules.contains(rule)) {
-    sb.write(
-        '<a class="style-type" href="https://github.com/flutter/packages/blob/main/packages/flutter_lints/lib/flutter.yaml">'
-        '<!--suppress HtmlUnknownTarget --><img alt="flutter" src="style-flutter.svg"></a>');
-  }
-  if (fixStatus == 'hasFix') {
-    sb.write(
-        '<a class="style-type" href="https://medium.com/dartlang/quick-fixes-for-analysis-issues-c10df084971a">'
-        '<!--suppress HtmlUnknownTarget --><img alt="has-fix" src="has-fix.svg"></a>');
-  }
-  return sb.toString();
-}
-
-String getFixStatus(LintRule rule, Map<String, String> fixStatusMap) {
-  var fallback = 'unregistered';
-  for (var code in rule.lintCodes) {
-    var status = fixStatusMap[code.uniqueName.substring(9)];
-    if (status == null) continue;
-    if (status == 'hasFix') return status;
-    fallback = status;
-  }
-  return fallback;
 }
 
 void printUsage(ArgParser parser, [String? error]) {
@@ -252,27 +183,7 @@ class CountBadger {
 }
 
 class HtmlIndexer {
-  final Iterable<LintRule> rules;
-  final Map<String, String> fixStatusMap;
-  HtmlIndexer(this.rules, this.fixStatusMap);
-
-  String get enumerateErrorRules => rules
-      .where((r) => r.group == Group.errors)
-      .map(toDescription)
-      .join('\n\n');
-
-  String get enumerateGroups => Group.builtin
-      .map((Group g) =>
-          '<li><strong>${g.name} -</strong> ${markdownToHtml(g.description)}</li>')
-      .join('\n');
-
-  String get enumeratePubRules =>
-      rules.where((r) => r.group == Group.pub).map(toDescription).join('\n\n');
-
-  String get enumerateStyleRules => rules
-      .where((r) => r.group == Group.style)
-      .map(toDescription)
-      .join('\n\n');
+  HtmlIndexer();
 
   void generate(String? filePath) {
     var generated = _generate();
@@ -284,9 +195,6 @@ class HtmlIndexer {
       printToConsole(generated);
     }
   }
-
-  String toDescription(LintRule r) =>
-      '<!--suppress HtmlUnknownTarget --><strong><a href = "${r.name}.html">${r.qualifiedName}</a></strong><br/> ${getBadges(r.name, fixStatusMap[r.name])} ${markdownToHtml(r.description)}';
 
   String _generate() => '''
 <!DOCTYPE html>
@@ -305,45 +213,16 @@ class HtmlIndexer {
    <body>
       <div class="wrapper">
          <header>
-            <a href="../index.html">
-               <h1>Linter for Dart</h1>
-            </a>
-            <p>Lint Rules</p>
-            <ul>
-              <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
-            </ul>
-            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
+            <a href="https://dart.dev/lints"><h1>Linter for Dart</h1></a>
          </header>
          <section>
-
-            <h1>Supported Lint Rules</h1>
+            <h2>Linter documentation has moved!</h2>
             <p>
-               This list is auto-generated from our sources.
+              Find up-to-date linter and lint rule documentation at
+              <a href="https://dart.dev/lints">https://dart.dev/lints</a>.
             </p>
-            ${markdownToHtml(ruleLeadMatter)}
-            <ul>
-               $enumerateGroups
-            </ul>
-            ${markdownToHtml(ruleFootMatter)}
-
-            <h2>Error Rules</h2>
-
-               $enumerateErrorRules
-
-            <h2>Style Rules</h2>
-
-               $enumerateStyleRules
-
-            <h2>Pub Rules</h2>
-
-               $enumeratePubRules
-
          </section>
       </div>
-      <footer>
-         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
-      </footer>
    </body>
 </html>
 ''';
@@ -369,9 +248,7 @@ class MachineSummaryGenerator {
 }
 
 class OptionsSample {
-  Iterable<LintRule> rules;
-
-  OptionsSample(this.rules);
+  OptionsSample();
 
   void generate(String? filePath) {
     var generated = _generate();
@@ -382,26 +259,6 @@ class OptionsSample {
     } else {
       printToConsole(generated);
     }
-  }
-
-  String generateOptions() {
-    var sb = StringBuffer('''
-```
-linter:
-  rules:
-''');
-
-    var sortedRules = rules
-        .where((r) => !r.state.isDeprecated && !r.state.isRemoved)
-        .map((r) => r.name)
-        .toList()
-      ..sort();
-    for (var rule in sortedRules) {
-      sb.write('    - $rule\n');
-    }
-    sb.write('```');
-
-    return sb.toString();
   }
 
   String _generate() => '''
@@ -421,35 +278,16 @@ linter:
   <body>
       <div class="wrapper">
          <header>
-            <a href="../../index.html">
-               <h1>Linter for Dart</h1>
-            </a>
-            <p>Analysis Options</p>
-            <ul>
-              <li><a href="../index.html">View all <strong>Lint Rules</strong></a></li>
-              <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
-            </ul>
-            <p><a class="overflow-link" href="../index.html">View all <strong>Lint Rules</strong></a></p>
-            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
+           <a href="https://dart.dev/lints/all"><h1>All linter rules enabled</h1></a>
          </header>
          <section>
-
-            <h1 id="analysis-options">Analysis Options</h1>
+            <h2>Linter documentation has moved!</h2>
             <p>
-               Auto-generated options enabling all lints.
-               Add these to your
-               <a href="https://dart.dev/guides/language/analysis-options#the-analysis-options-file">analysis_options.yaml file</a>
-               and tailor to fit!
+              Find an auto-generated list of all linter rules at
+              <a href="https://dart.dev/lints/all">https://dart.dev/lints/all</a>.
             </p>
-
-            ${markdownToHtml(generateOptions())}
-
          </section>
       </div>
-      <footer>
-         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
-      </footer>
    </body>
 </html>
 ''';
@@ -457,83 +295,10 @@ linter:
 
 class RuleHtmlGenerator {
   final LintRule rule;
-  final String fixStatus;
 
-  RuleHtmlGenerator(this.rule, this.fixStatus);
-
-  String get details => rule.details;
-
-  String get group => rule.group.name;
-
-  String get humanReadableName => rule.name;
+  RuleHtmlGenerator(this.rule);
 
   String get name => rule.name;
-
-  State get state => rule.state;
-
-  String get usageMarkdown => '''
-## Usage
-
-To enable the `$name` lint,
-add `$name` under **linter > rules** in your
-[`analysis_options.yaml`](https://dart.dev/guides/language/analysis-options)
-file:
-
-```yaml
-linter:
-  rules:
-    - $name
-```
-  ''';
-
-  String get detailsHeader {
-    if (state.isRemoved) {
-      var version = state.since;
-      var sinceDetail =
-          version != null ? ' since Dart language version $version.' : '';
-      return '<p style="font-size:30px"><strong>Unsupported$sinceDetail</strong></p>';
-    }
-    return '';
-  }
-
-  String get incompatibleRuleDetails {
-    var sb = StringBuffer();
-    var incompatibleRules = rule.incompatibleRules;
-    if (incompatibleRules.isNotEmpty) {
-      sb.writeln('<p>');
-      sb.write('Incompatible with: ');
-      var rule = incompatibleRules.first;
-      sb.write(
-          '<!--suppress HtmlUnknownTarget --><a href = "$rule.html" >$rule</a>');
-      for (var i = 1; i < incompatibleRules.length; ++i) {
-        rule = incompatibleRules[i];
-        sb.write(', <a href = "$rule.html" >$rule</a>');
-      }
-      sb.writeln('.');
-      sb.writeln('</p>');
-    }
-    return sb.toString();
-  }
-
-  String get since {
-    var info = sinceMap[name]!;
-    var sdkVersion = info.sinceDartSdk != null
-        ? '>= ${info.sinceDartSdk}'
-        : '<strong>Unreleased</strong>';
-    return 'Dart SDK: $sdkVersion';
-  }
-
-  String get stateString {
-    if (state.isDeprecated) {
-      return '<span style="color:orangered;font-weight:bold;" >${state.label}</span>';
-    } else if (state.isRemoved) {
-      return '<span style="color:darkgray;font-weight:bold;" >${state.label}</span>';
-    } else if (state.isExperimental) {
-      return '<span style="color:hotpink;font-weight:bold;" >${state.label}</span>';
-    } else {
-      return state.label;
-    }
-  }
 
   void generate([String? filePath]) {
     var generated = _generate();
@@ -563,44 +328,18 @@ linter:
    <body>
       <div class="wrapper">
          <header>
-            <h1>$humanReadableName</h1>
-            <p>Group: $group</p>
-            <p>Maturity: $stateString</p>
-            <div class="tooltip">
-               <p>$since</p>
-               <span class="tooltip-content">Since info is static, may be stale</span>
-            </div>
-            ${getBadges(name, fixStatus)}
-            <ul>
-               <li><a href="index.html">View all <strong>Lint Rules</strong></a></li>
-               <li><a href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></li>
-            </ul>
-            <p><a class="overflow-link" href="index.html">View all <strong>Lint Rules</strong></a></p>
-            <p><a class="overflow-link" href="https://dart.dev/guides/language/analysis-options#enabling-linter-rules">Using the <strong>Linter</strong></a></p>
+            <a href="https://dart.dev/lints/$name"><h1>$name</h1></a>
          </header>
          <section>
-            $detailsHeader
-            ${markdownToHtml(details)}
-            $incompatibleRuleDetails
-            ${markdownToHtml(usageMarkdown)}
+            <h2>Lint documentation has moved!</h2>
+            <p>
+              Find up-to-date documentation for the
+              <code>$name</code> linter rule at 
+              <a href="https://dart.dev/lints/$name">https://dart.dev/lints/$name</a>.
+            </p>
          </section>
       </div>
-      <footer>
-         <p>Maintained by the <a href="https://dart.dev/">Dart Team</a></p>
-         <p>Visit us on <a href="https://github.com/dart-lang/linter">GitHub</a></p>
-      </footer>
    </body>
 </html>
 ''';
-}
-
-extension on State {
-  String get describe => isStable ? '' : ' ($label)';
-}
-
-extension on LintRule {
-  String get qualifiedName {
-    var label = state.isRemoved ? '<s>$name</s>' : name;
-    return label + state.describe;
-  }
 }
