@@ -43,11 +43,6 @@ final coreRules = <String?>[];
 final flutterRules = <String?>[];
 final recommendedRules = <String?>[];
 
-/// Sorted list of contributed lint rules.
-final List<LintRule> rules =
-    List<LintRule>.of(Registry.ruleRegistry, growable: false)
-      ..sort((a, b) => a.name.compareTo(b.name));
-
 final Map<String, String> _fixStatusMap = <String, String>{};
 
 Future<void> fetchBadgeInfo() async {
@@ -124,7 +119,6 @@ Future<void> generateDocs(String? dir, {bool createDirectories = false}) async {
     }
 
     if (createDirectories) {
-      Directory('$outDir/options').createSync();
       Directory('$outDir/machine').createSync();
     }
   }
@@ -138,17 +132,6 @@ Future<void> generateDocs(String? dir, {bool createDirectories = false}) async {
   await fetchBadgeInfo();
 
   var fixStatusMap = await fetchFixStatusMap();
-
-  // Generate rule files.
-  for (var rule in rules) {
-    RuleHtmlGenerator(rule).generate(outDir);
-  }
-
-  // Generate index.
-  HtmlIndexer().generate(outDir);
-
-  // Generate options samples.
-  OptionsSample().generate(outDir);
 
   // Generate a machine-readable summary of rules.
   MachineSummaryGenerator(Registry.ruleRegistry, fixStatusMap).generate(outDir);
@@ -182,52 +165,6 @@ class CountBadger {
   }
 }
 
-class HtmlIndexer {
-  HtmlIndexer();
-
-  void generate(String? filePath) {
-    var generated = _generate();
-    if (filePath != null) {
-      var outPath = '$filePath/index.html';
-      printToConsole('Writing to $outPath');
-      File(outPath).writeAsStringSync(generated);
-    } else {
-      printToConsole(generated);
-    }
-  }
-
-  String _generate() => '''
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <link rel="shortcut icon" href="../dart-192.png">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-      <meta name="mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints">
-      <link rel="canonical" href="https://dart.dev/lints">
-      <link rel="stylesheet" href="../styles.css">
-      <title>Linter for Dart</title>
-   </head>
-   <body>
-      <div class="wrapper">
-         <header>
-            <a href="https://dart.dev/lints"><h1>Linter for Dart</h1></a>
-         </header>
-         <section>
-            <h2>Linter documentation has moved!</h2>
-            <p>
-              Find up-to-date linter and lint rule documentation at
-              <a href="https://dart.dev/lints">https://dart.dev/lints</a>.
-            </p>
-         </section>
-      </div>
-   </body>
-</html>
-''';
-}
-
 class MachineSummaryGenerator {
   final Iterable<LintRule> rules;
   final Map<String, String> fixStatusMap;
@@ -245,101 +182,4 @@ class MachineSummaryGenerator {
       printToConsole(generated);
     }
   }
-}
-
-class OptionsSample {
-  OptionsSample();
-
-  void generate(String? filePath) {
-    var generated = _generate();
-    if (filePath != null) {
-      var outPath = '$filePath/options/options.html';
-      printToConsole('Writing to $outPath');
-      File(outPath).writeAsStringSync(generated);
-    } else {
-      printToConsole(generated);
-    }
-  }
-
-  String _generate() => '''
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <link rel="shortcut icon" href="../../dart-192.png">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-      <meta name="mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints/all">
-      <link rel="canonical" href="https://dart.dev/lints/all">
-      <link rel="stylesheet" href="../../styles.css">
-      <title>Analysis Options</title>
-   </head>
-  <body>
-      <div class="wrapper">
-         <header>
-           <a href="https://dart.dev/lints/all"><h1>All linter rules enabled</h1></a>
-         </header>
-         <section>
-            <h2>Linter documentation has moved!</h2>
-            <p>
-              Find an auto-generated list of all linter rules at
-              <a href="https://dart.dev/lints/all">https://dart.dev/lints/all</a>.
-            </p>
-         </section>
-      </div>
-   </body>
-</html>
-''';
-}
-
-class RuleHtmlGenerator {
-  final LintRule rule;
-
-  RuleHtmlGenerator(this.rule);
-
-  String get name => rule.name;
-
-  void generate([String? filePath]) {
-    var generated = _generate();
-    if (filePath != null) {
-      var outPath = '$filePath/$name.html';
-      printToConsole('Writing to $outPath');
-      File(outPath).writeAsStringSync(generated);
-    } else {
-      printToConsole(generated);
-    }
-  }
-
-  String _generate() => '''
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <meta charset="utf-8">
-      <link rel="shortcut icon" href="../dart-192.png">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-      <meta name="mobile-web-app-capable" content="yes">
-      <meta name="apple-mobile-web-app-capable" content="yes">
-      <meta http-equiv="refresh" content="0; url=https://dart.dev/lints/$name">
-      <link rel="canonical" href="https://dart.dev/lints/$name">
-      <title>$name</title>
-      <link rel="stylesheet" href="../styles.css">
-   </head>
-   <body>
-      <div class="wrapper">
-         <header>
-            <a href="https://dart.dev/lints/$name"><h1>$name</h1></a>
-         </header>
-         <section>
-            <h2>Lint documentation has moved!</h2>
-            <p>
-              Find up-to-date documentation for the
-              <code>$name</code> linter rule at 
-              <a href="https://dart.dev/lints/$name">https://dart.dev/lints/$name</a>.
-            </p>
-         </section>
-      </div>
-   </body>
-</html>
-''';
 }
