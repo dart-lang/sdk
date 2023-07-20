@@ -185,7 +185,7 @@ abstract class AbstractLspAnalysisServerTest
   String? getCurrentFileContent(Uri uri) {
     try {
       return server.resourceProvider
-          .getFile(pathContext.fromUri(uri))
+          .getFile(uri.toFilePath())
           .readAsStringSync();
     } catch (_) {
       return null;
@@ -1413,8 +1413,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         return configurationParams.items.map(
           (requestedConfig) {
             final uri = requestedConfig.scopeUri;
-            final path =
-                uri != null ? pathContext.fromUri(Uri.parse(uri)) : null;
+            final path = uri != null ? Uri.parse(uri).toFilePath() : null;
             // Use the config the test provided for this path, or fall back to
             // global.
             return (folders != null ? folders[path] : null) ?? global;
@@ -1519,7 +1518,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   /// Formats a path relative to the project root always using forward slashes.
   ///
   /// This is used in the text format for comparing edits.
-  String relativeUri(Uri uri) => relativePath(pathContext.fromUri(uri));
+  String relativeUri(Uri uri) => relativePath(uri.toFilePath());
 
   Future<WorkspaceEdit?> rename(
     Uri uri,
@@ -1621,8 +1620,7 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
         .map((notification) => PublishDiagnosticsParams.fromJson(
             notification.params as Map<String, Object?>))
         .listen((diagnostics) {
-      latestDiagnostics[pathContext.fromUri(diagnostics.uri)] =
-          diagnostics.diagnostics;
+      latestDiagnostics[diagnostics.uri.toFilePath()] = diagnostics.diagnostics;
     });
   }
 
