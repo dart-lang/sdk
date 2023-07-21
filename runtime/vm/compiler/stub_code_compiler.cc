@@ -321,10 +321,10 @@ void StubCodeCompiler::GenerateInstantiateTypeArgumentsStub() {
   };
 
   // Lookup cache before calling runtime.
-  __ LoadCompressed(
+  __ LoadAcquireCompressed(
       InstantiationABI::kScratchReg,
-      compiler::FieldAddress(InstantiationABI::kUninstantiatedTypeArgumentsReg,
-                             target::TypeArguments::instantiations_offset()));
+      InstantiationABI::kUninstantiatedTypeArgumentsReg,
+      target::TypeArguments::instantiations_offset() - kHeapObjectTag);
   // Go ahead and load the backing array data address into kEntryReg.
   __ LoadFieldAddressForOffset(kEntryReg, InstantiationABI::kScratchReg,
                                target::Array::data_offset());
