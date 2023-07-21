@@ -5,7 +5,6 @@
 import 'dart:convert';
 
 import 'package:analysis_server/src/status/tree_writer.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/visitor.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 

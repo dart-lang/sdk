@@ -13,7 +13,6 @@ import 'package:analyzer/dart/ast/ast.dart'
         Expression,
         InvocationExpression,
         SimpleIdentifier;
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart' show ErrorReporter;
 import 'package:analyzer/src/dart/ast/extensions.dart';
