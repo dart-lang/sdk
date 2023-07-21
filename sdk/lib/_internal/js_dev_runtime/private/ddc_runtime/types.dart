@@ -492,6 +492,11 @@ class _Type extends Type {
   Type get runtimeType => Type;
 }
 
+Object _typeImpl(Type type) => (type as _Type)._type;
+
+bool isRecordType(Type type) => _typeImpl(type) is RecordType;
+RecordType recordTypeImpl(Type type) => _typeImpl(type) as RecordType;
+
 /// Given an internal runtime type object [type], wraps it in a `_Type` object
 /// that implements the dart:core Type interface.
 ///

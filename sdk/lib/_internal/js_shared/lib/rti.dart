@@ -1051,6 +1051,34 @@ class _Type implements Type {
   String toString() => _rtiToString(_rti, null);
 }
 
+Rti _getTypeRti(Type type) => _Utils.as_Type(type)._rti;
+
+bool isRecordType(Type type) =>
+    Rti._getKind(_getTypeRti(type)) == Rti.kindRecord;
+
+List<Type> getRecordTypeElementTypes(Type type) {
+  final typeRti = _getTypeRti(type);
+  assert(Rti._getKind(typeRti) == Rti.kindRecord);
+
+  final fieldRtis = Rti._getRecordFields(typeRti);
+  final fieldTypes = <Type>[];
+  for (var fieldRti in fieldRtis) {
+    fieldTypes.add(createRuntimeType(_Utils.asRti(fieldRti)));
+  }
+  return fieldTypes;
+}
+
+String getRecordTypeShapeKey(Type type) {
+  final typeRti = _getTypeRti(type);
+  assert(Rti._getKind(typeRti) == Rti.kindRecord);
+
+  final partialShapeTag = Rti._getRecordPartialShapeTag(typeRti);
+  final fieldRtis = Rti._getRecordFields(typeRti);
+  final length = fieldRtis.length;
+
+  return '$length;$partialShapeTag';
+}
+
 /// Called from generated code.
 ///
 /// The first time the default `_is` method is called, it replaces itself with a

@@ -379,12 +379,6 @@ getSetterType(type, name) {
   return null;
 }
 
-finalFieldType(type, metadata) =>
-    JS('', '{ type: #, isFinal: true, metadata: # }', type, metadata);
-
-fieldType(type, metadata) =>
-    JS('', '{ type: #, isFinal: false, metadata: # }', type, metadata);
-
 /// Get the type of a constructor from a class using the stored signature
 /// If name is undefined, returns the type of the default constructor
 /// Returns undefined if the constructor is not found.

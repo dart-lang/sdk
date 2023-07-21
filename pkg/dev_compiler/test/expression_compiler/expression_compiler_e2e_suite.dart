@@ -74,6 +74,7 @@ class SetupCompilerOptions {
   final ModuleFormat moduleFormat;
   final fe.CompilerOptions options;
   final bool soundNullSafety;
+  final bool canaryFeatures;
 
   static fe.CompilerOptions _getOptions(
       {required bool enableAsserts, required bool soundNullSafety}) {
@@ -95,12 +96,13 @@ class SetupCompilerOptions {
     return options;
   }
 
-  SetupCompilerOptions(
-      {bool enableAsserts = true,
-      this.soundNullSafety = true,
-      this.legacyCode = false,
-      this.moduleFormat = ModuleFormat.amd})
-      : options = _getOptions(
+  SetupCompilerOptions({
+    bool enableAsserts = true,
+    this.soundNullSafety = true,
+    this.legacyCode = false,
+    this.moduleFormat = ModuleFormat.amd,
+    this.canaryFeatures = false,
+  }) : options = _getOptions(
             soundNullSafety: soundNullSafety, enableAsserts: enableAsserts) {
     options.onDiagnostic = (fe.DiagnosticMessage m) {
       diagnosticMessages.addAll(m.plainTextFormatted);
@@ -154,7 +156,7 @@ class TestCompiler {
       experiments: experiments,
       soundNullSafety: setup.soundNullSafety,
       emitDebugMetadata: true,
-      canaryFeatures: false,
+      canaryFeatures: setup.canaryFeatures,
     );
     var coreTypes = compilerResult.coreTypes;
 
@@ -599,6 +601,68 @@ class TestDriver {
     });
   }
 
+  /// Evaluates a dart [expression] on a breakpoint.
+  ///
+  /// [breakpointId] is the ID of the breakpoint from the source.
+  Future<String> evaluateDartExpression({
+    required String breakpointId,
+    required String expression,
+  }) async {
+    var dartLine = _findBreakpointLine(breakpointId);
+    return await _onBreakpoint(breakpointId, onPause: (event) async {
+      var result = await _evaluateDartExpression(
+        event,
+        expression,
+        dartLine,
+      );
+      return await stringifyRemoteObject(result);
+    });
+  }
+
+  /// Evaluates a js [expression] on a breakpoint.
+  ///
+  /// [breakpointId] is the ID of the breakpoint from the source.
+  Future<String> evaluateJsExpression({
+    required String breakpointId,
+    required String expression,
+  }) async {
+    return await _onBreakpoint(breakpointId, onPause: (event) async {
+      var result = await _evaluateJsExpression(
+        event,
+        expression,
+      );
+      return await stringifyRemoteObject(result);
+    });
+  }
+
+  /// Evaluates a JavaScript [expression] on a breakpoint and validates result.
+  ///
+  /// [breakpointId] is the ID of the breakpoint from the source.
+  /// [expression] is a dart runtime method call, i.e.
+  /// `dart.getLibraryMetadata(uri)`;
+  /// [expectedResult] is the JSON for the returned remote object.
+  ///
+  /// Nested objects are not included in the result (they appear as `{}`),
+  /// only primitive values, lists or maps, etc.
+  ///
+  /// TODO(annagrin): Add recursive check for nested objects.
+  Future<void> checkRuntime({
+    required String breakpointId,
+    required String expression,
+    required dynamic expectedResult,
+  }) async {
+    return await _onBreakpoint(breakpointId, onPause: (event) async {
+      var actual = await _evaluateJsExpression(event, expression);
+      expect(actual.json, expectedResult);
+    });
+  }
+
+  /// Evaluates a dart [expression] on a breakpoint and validates result.
+  ///
+  /// [breakpointId] is the ID of the breakpoint from the source.
+  /// [expression] is a dart expression.
+  /// [expectedResult] is the JSON for the returned remote object.
+  /// [expectedError] is the error string if the error is expected.
   Future<void> check(
       {required String breakpointId,
       required String expression,
@@ -609,45 +673,89 @@ class TestDriver {
 
     var dartLine = _findBreakpointLine(breakpointId);
     return await _onBreakpoint(breakpointId, onPause: (event) async {
-      // Retrieve the call frame and its scope variables.
-      var frame = event.getCallFrames().first;
-      var scope = await _collectScopeVariables(frame);
+      var evalResult = await _evaluateDartExpression(
+        event,
+        expression,
+        dartLine,
+      );
 
-      // Perform an incremental compile.
-      var result = await compiler.compileExpression(
-          input: input,
-          line: dartLine,
-          column: 1,
-          scope: scope,
-          expression: expression);
-
-      if (expectedError != null) {
+      var error = evalResult.json['error'];
+      if (error != null) {
         expect(
-            result,
-            const TypeMatcher<TestCompilationResult>().having(
-                (_) => result.result, 'result', _matches(expectedError)));
-        setup.diagnosticMessages.clear();
-        setup.errors.clear();
-        return;
+          expectedError,
+          isNotNull,
+          reason: 'Unexpected expression evaluation failure:\n$error',
+        );
+        expect(error, _matches(expectedError!));
+      } else {
+        var actual = await stringifyRemoteObject(evalResult);
+        expect(actual, _matches(expectedResult!));
       }
-
-      if (!result.isSuccess) {
-        throw Exception(
-            'Unexpected expression evaluation failure:\n${result.result}');
-      }
-
-      // Evaluate the compiled expression.
-      var evalResult = await debugger.evaluateOnCallFrame(
-          frame.callFrameId, result.result!,
-          returnByValue: false);
-
-      var value = await stringifyRemoteObject(evalResult);
-
-      expect(
-          result,
-          const TypeMatcher<TestCompilationResult>()
-              .having((_) => value, 'result', _matches(expectedResult!)));
     });
+  }
+
+  Future<wip.RemoteObject> _evaluateJsExpression(
+    wip.DebuggerPausedEvent event,
+    String expression, {
+    bool returnByValue = true,
+  }) async {
+    var frame = event.getCallFrames().first;
+
+    var loadModule = setup.moduleFormat == ModuleFormat.amd
+        ? 'require'
+        : 'dart_library.import';
+
+    var jsExpression = '''
+        (function () {
+          try {
+            var sdk = $loadModule('dart_sdk');
+            var dart = sdk.dart;
+            var interceptors = sdk._interceptors;
+            return $expression;
+          } catch (error) {
+            return "Runtime API call failed: " + error.name +
+              ": " + error.message + ": " + error.stack;
+          }
+        })()
+      ''';
+
+    return await debugger.evaluateOnCallFrame(
+      frame.callFrameId,
+      jsExpression,
+      returnByValue: returnByValue,
+    );
+  }
+
+  Future<wip.RemoteObject> _evaluateDartExpression(
+    wip.DebuggerPausedEvent event,
+    String expression,
+    int dartLine, {
+    bool returnByValue = false,
+  }) async {
+    // Retrieve the call frame and its scope variables.
+    var frame = event.getCallFrames().first;
+    var scope = await _collectScopeVariables(frame);
+
+    // Perform an incremental compile.
+    var result = await compiler.compileExpression(
+        input: input,
+        line: dartLine,
+        column: 1,
+        scope: scope,
+        expression: expression);
+
+    if (!result.isSuccess) {
+      setup.diagnosticMessages.clear();
+      setup.errors.clear();
+      return wip.RemoteObject({'error': result.result});
+    }
+
+    // Evaluate the compiled expression.
+    return await debugger.evaluateOnCallFrame(
+      frame.callFrameId,
+      result.result!,
+      returnByValue: returnByValue,
+    );
   }
 
   /// Generate simple string representation of a RemoteObject that closely
