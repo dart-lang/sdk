@@ -63,6 +63,21 @@ enum E {
 ''');
   }
 
+  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/2921')
+  test_instanceField_private_partOf() async {
+    newFile('$testPackageLibPath/part.dart', r'''
+part 'test.dart';
+
+class C {
+  final String? _s;
+  C(this._s);
+}
+''');
+    await assertNoDiagnostics('''
+part of 'part.dart';
+''');
+  }
+
   test_instanceField_public() async {
     await assertNoDiagnostics('''
 class C {
