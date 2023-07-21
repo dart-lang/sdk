@@ -1565,12 +1565,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
   }
 
-  void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
-      List<SourceInlineClassBuilder>? inlineClasses) {
+  void collectSourceClassesAndExtensionTypes(
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceInlineClassBuilder> sourceExtensionTypes) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
-        patchLibrary.collectSourceClasses(sourceClasses, inlineClasses);
+        patchLibrary.collectSourceClassesAndExtensionTypes(
+            sourceClasses, sourceExtensionTypes);
       }
     }
 
@@ -1579,10 +1581,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = iterator.current;
       if (member is SourceClassBuilder && !member.isPatch) {
         sourceClasses.add(member);
-      } else if (inlineClasses != null &&
-          member is SourceInlineClassBuilder &&
-          !member.isPatch) {
-        inlineClasses.add(member);
+      } else if (member is SourceInlineClassBuilder && !member.isPatch) {
+        sourceExtensionTypes.add(member);
       }
     }
   }
