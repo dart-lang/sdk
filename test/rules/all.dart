@@ -155,6 +155,8 @@ import 'unnecessary_library_directive_test.dart'
 import 'unnecessary_new_test.dart' as unnecessary_new;
 import 'unnecessary_null_aware_assignments_test.dart'
     as unnecessary_null_aware_assignments;
+import 'unnecessary_null_aware_operator_on_extension_on_nullable_test.dart'
+    as unnecessary_null_aware_operator_on_extension_on_nullable;
 import 'unnecessary_null_checks_test.dart' as unnecessary_null_checks;
 import 'unnecessary_null_in_if_null_operators_test.dart'
     as unnecessary_null_in_if_null_operators;
@@ -313,6 +315,7 @@ void main() {
   unnecessary_library_directive.main();
   unnecessary_new.main();
   unnecessary_null_aware_assignments.main();
+  unnecessary_null_aware_operator_on_extension_on_nullable.main();
   unnecessary_null_checks.main();
   unnecessary_null_in_if_null_operators.main();
   unnecessary_nullable_for_final_variable_declarations.main();
