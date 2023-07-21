@@ -55,9 +55,9 @@ Expression booleanLiteral(bool value) =>
 Statement break_([Label? target]) =>
     new Break(target, location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [variable]'s assigned state to be [expectedAssignedState].
-Statement checkAssigned(Var variable, bool expectedAssignedState) =>
+Expression checkAssigned(Var variable, bool expectedAssignedState) =>
     new CheckAssigned._(variable, expectedAssignedState,
         location: computeLocation());
 
@@ -78,9 +78,9 @@ Expression checkPromoted(Promotable promotable, String? expectedTypeStr) =>
 Expression checkReachable(bool expectedReachable) =>
     new CheckReachable(expectedReachable, location: computeLocation());
 
-/// Creates a pseudo-statement whose function is to verify that flow analysis
+/// Creates a pseudo-expression whose function is to verify that flow analysis
 /// considers [variable]'s unassigned state to be [expectedUnassignedState].
-Statement checkUnassigned(Var variable, bool expectedUnassignedState) =>
+Expression checkUnassigned(Var variable, bool expectedUnassignedState) =>
     new CheckUnassigned._(variable, expectedUnassignedState,
         location: computeLocation());
 
@@ -771,7 +771,7 @@ class CatchClause {
   }
 }
 
-class CheckAssigned extends Statement {
+class CheckAssigned extends Expression {
   final Var variable;
   final bool expectedAssignedState;
 
@@ -788,10 +788,11 @@ class CheckAssigned extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     expect(h.flow.isAssigned(variable), expectedAssignedState,
         reason: 'at $location');
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 
@@ -960,7 +961,7 @@ class CheckStatementIR extends Statement {
   }
 }
 
-class CheckUnassigned extends Statement {
+class CheckUnassigned extends Expression {
   final Var variable;
   final bool expectedUnassignedState;
 
@@ -977,10 +978,11 @@ class CheckUnassigned extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     expect(h.flow.isUnassigned(variable), expectedUnassignedState,
         reason: 'at $location');
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 
