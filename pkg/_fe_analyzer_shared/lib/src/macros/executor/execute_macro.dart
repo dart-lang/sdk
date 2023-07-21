@@ -10,28 +10,42 @@ import 'package:_fe_analyzer_shared/src/macros/api.dart';
 /// Runs [macro] in the types phase and returns a  [MacroExecutionResult].
 Future<MacroExecutionResult> executeTypesMacro(
     Macro macro, Object target, TypePhaseIntrospector introspector) async {
-  TypeBuilderImpl builder = new TypeBuilderImpl(introspector);
+  // This must be assigned by the end.
+  late final TypeBuilderImpl builder;
+
+  // Shared code for most branches. If we do create it, assign it to `builder`.
+  late final TypeBuilderImpl typeBuilder =
+      builder = new TypeBuilderImpl(introspector);
   switch ((target, macro)) {
     case (Library target, LibraryTypesMacro macro):
-      await macro.buildTypesForLibrary(target, builder);
+      await macro.buildTypesForLibrary(target, typeBuilder);
     case (ConstructorDeclaration target, ConstructorTypesMacro macro):
-      await macro.buildTypesForConstructor(target, builder);
+      await macro.buildTypesForConstructor(target, typeBuilder);
     case (MethodDeclaration target, MethodTypesMacro macro):
-      await macro.buildTypesForMethod(target, builder);
+      await macro.buildTypesForMethod(target, typeBuilder);
     case (FunctionDeclaration target, FunctionTypesMacro macro):
-      await macro.buildTypesForFunction(target, builder);
+      await macro.buildTypesForFunction(target, typeBuilder);
     case (FieldDeclaration target, FieldTypesMacro macro):
-      await macro.buildTypesForField(target, builder);
+      await macro.buildTypesForField(target, typeBuilder);
     case (VariableDeclaration target, VariableTypesMacro macro):
-      await macro.buildTypesForVariable(target, builder);
+      await macro.buildTypesForVariable(target, typeBuilder);
     case (ClassDeclaration target, ClassTypesMacro macro):
-      await macro.buildTypesForClass(target, builder);
+      await macro.buildTypesForClass(
+          target,
+          builder = new ClassTypeBuilderImpl(
+              target.identifier as IdentifierImpl, introspector));
     case (EnumDeclaration target, EnumTypesMacro macro):
-      await macro.buildTypesForEnum(target, builder);
+      await macro.buildTypesForEnum(
+          target,
+          builder = new EnumTypeBuilderImpl(
+              target.identifier as IdentifierImpl, introspector));
     case (MixinDeclaration target, MixinTypesMacro macro):
-      await macro.buildTypesForMixin(target, builder);
+      await macro.buildTypesForMixin(
+          target,
+          builder = new MixinTypeBuilderImpl(
+              target.identifier as IdentifierImpl, introspector));
     case (EnumValueDeclaration target, EnumValueTypesMacro macro):
-      await macro.buildTypesForEnumValue(target, builder);
+      await macro.buildTypesForEnumValue(target, typeBuilder);
     default:
       throw new UnsupportedError('Unsupported macro type or invalid target:\n'
           'macro: $macro\ntarget: $target');

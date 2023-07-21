@@ -1,0 +1,1 @@
+extension type Missing() {} extension type Multiple(bool instanceField1, int instanceField2) {} extension type Duplicate(bool instanceField, int instanceField) {}

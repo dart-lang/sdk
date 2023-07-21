@@ -1,0 +1,3 @@
+extension type I<X, Y>(X value) {}
+void f(I<int, String> i) {}
+void main() {}

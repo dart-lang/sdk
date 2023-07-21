@@ -29,51 +29,6 @@ def is_dart_file(path):
     return path.endswith('.dart')
 
 
-def _CheckNnbdTestSync(input_api, output_api):
-    """Make sure that any forked SDK tests are kept in sync. If a CL touches
-    a test, the test's counterpart (if it exists at all) should be in the CL
-    too.
-    """
-    DIRS = [
-        "tests/co19", "tests/corelib", "tests/ffi", "tests/language",
-        "tests/lib", "tests/standalone", "runtime/tests/vm/dart"
-    ]
-
-    files = [git_file.LocalPath() for git_file in input_api.AffectedTextFiles()]
-    unsynchronized = []
-    for file in files:
-        if file.endswith('.status'): continue
-
-        for dir in DIRS:
-            legacy_dir = "{}_2/".format(dir)
-            nnbd_dir = "{}/".format(dir)
-
-            counterpart = None
-            if file.startswith(legacy_dir):
-                counterpart = file.replace(legacy_dir, nnbd_dir)
-            elif file.startswith(nnbd_dir):
-                counterpart = file.replace(nnbd_dir, legacy_dir)
-
-            if counterpart:
-                # Changed one file with a potential counterpart.
-                if counterpart not in files:
-                    missing = '' if os.path.exists(
-                        counterpart) else ' (missing)'
-                    unsynchronized.append("- {} -> {}{}".format(
-                        file, counterpart, missing))
-                break
-
-    if unsynchronized:
-        return [
-            output_api.PresubmitPromptWarning(
-                'Make sure to keep the forked legacy and NNBD tests in sync.\n'
-                'You may need to synchronize these files:\n' +
-                '\n'.join(unsynchronized))
-        ]
-
-    return []
-
-
 def _CheckFormat(input_api,
                  identification,
                  extension,
@@ -384,7 +339,6 @@ def _CheckCopyrightYear(input_api, output_api):
 
 def _CommonChecks(input_api, output_api):
     results = []
-    results.extend(_CheckNnbdTestSync(input_api, output_api))
     results.extend(_CheckValidHostsInDEPS(input_api, output_api))
     results.extend(_CheckDartFormat(input_api, output_api))
     results.extend(_CheckStatusFiles(input_api, output_api))

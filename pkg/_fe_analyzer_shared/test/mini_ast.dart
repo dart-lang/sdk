@@ -39,7 +39,8 @@ final RegExp _locationRegExp =
 SwitchHeadDefault get default_ =>
     SwitchHeadDefault._(location: computeLocation());
 
-Expression get nullLiteral => new NullLiteral._(location: computeLocation());
+ConstExpression get nullLiteral =>
+    new NullLiteral._(location: computeLocation());
 
 Expression get this_ => new This._(location: computeLocation());
 
@@ -141,7 +142,7 @@ Statement do_(List<ProtoStatement> body, Expression condition) {
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
-Expression expr(String typeStr) =>
+ConstExpression expr(String typeStr) =>
     new PlaceholderExpression._(new Type(typeStr), location: computeLocation());
 
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
@@ -249,7 +250,7 @@ CollectionElement ifElement(Expression condition, ProtoCollectionElement ifTrue,
       location: location);
 }
 
-Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
+ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
     new IntLiteral(value,
         expectConversionToDouble: expectConversionToDouble,
         location: computeLocation());
@@ -380,6 +381,17 @@ Pattern relationalPattern(String operator, Expression operand,
 }
 
 Statement return_() => new Return._(location: computeLocation());
+
+/// Models a call to a generic Dart function that takes two arguments and
+/// returns the second argument; in other words, a function defined this way:
+///
+///     T second(dynamic x, T y) => y;
+///
+/// This can be useful in situations where a test needs to verify certain
+/// properties, or establish certain preconditions, before the analysis reaches
+/// a certain subexpression.
+Expression second(Expression first, Expression second) =>
+    Second._(first, second, location: computeLocation());
 
 PromotableLValue superProperty(String name) => new ThisOrSuperProperty._(name,
     location: computeLocation(), isSuperAccess: true);
@@ -1106,6 +1118,15 @@ class ConstantPattern extends Pattern {
   _debugString({required bool needsKeywordOrType}) => constant.toString();
 }
 
+/// Common interface shared by constructs that represent constant expressions,
+/// in the pseudo-Dart language used for flow analysis testing.
+abstract class ConstExpression extends Expression {
+  ConstExpression._({required super.location});
+
+  /// Converts this expression into a constant pattern.
+  Pattern get pattern => ConstantPattern(this, location: computeLocation());
+}
+
 class Continue extends Statement {
   final Label? target;
 
@@ -1313,8 +1334,6 @@ abstract class Expression extends Node
   /// If `this` is an expression `x`, creates the expression `(x)`.
   Expression get parenthesized =>
       new ParenthesizedExpression._(this, location: computeLocation());
-
-  Pattern get pattern => ConstantPattern(this, location: computeLocation());
 
   /// If `this` is an expression `x`, creates the expression `x && other`.
   Expression and(Expression other) =>
@@ -2124,7 +2143,7 @@ class IfNull extends Expression {
   }
 }
 
-class IntLiteral extends Expression {
+class IntLiteral extends ConstExpression {
   final int value;
 
   /// `true` or `false` if we should assert that int->double conversion either
@@ -2132,7 +2151,8 @@ class IntLiteral extends Expression {
   final bool? expectConversionToDouble;
 
   IntLiteral(this.value,
-      {this.expectConversionToDouble, required super.location});
+      {this.expectConversionToDouble, required super.location})
+      : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3037,8 +3057,8 @@ class NullCheckOrAssertPattern extends Pattern {
       '${inner._debugString(needsKeywordOrType: needsKeywordOrType)}?';
 }
 
-class NullLiteral extends Expression {
-  NullLiteral._({required super.location});
+class NullLiteral extends ConstExpression {
+  NullLiteral._({required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3393,10 +3413,10 @@ class PatternVariableJoin extends Var {
   }
 }
 
-class PlaceholderExpression extends Expression {
+class PlaceholderExpression extends ConstExpression {
   final Type type;
 
-  PlaceholderExpression._(this.type, {required super.location});
+  PlaceholderExpression._(this.type, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3562,13 +3582,6 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   Self checkIR(String expectedIR);
-
-  /// If `this` is a statement `x`, creates a pseudo-expression that models
-  /// execution of `x` followed by evaluation of [expr].  This can be used to
-  /// test that flow analysis is in the correct state before an expression is
-  /// visited.
-  Expression thenExpr(Expression expr) =>
-      WrappedExpression._(asStatement, expr, null, location: computeLocation());
 }
 
 /// Common interface shared by constructs that can be used where a switch head
@@ -3718,6 +3731,35 @@ class Return extends Statement {
   void visit(Harness h) {
     h.typeAnalyzer.analyzeReturnStatement();
     h.irBuilder.apply('return', [], Kind.statement, location: location);
+  }
+}
+
+/// Representation of an invocation of a function `Second`, defined as follows:
+///
+///     T second(dynamic x, T y) => y;
+class Second extends Expression {
+  final Expression first;
+  final Expression second;
+
+  Second._(this.first, this.second, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    first.preVisit(visitor);
+    second.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'second($first, $second)';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    h.typeAnalyzer.analyzeExpression(first, h.typeAnalyzer.dynamicType);
+    var type = h.typeAnalyzer.analyzeExpression(second, context);
+    h.irBuilder.apply(
+        'second', [Kind.expression, Kind.expression], Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(type: type);
   }
 }
 

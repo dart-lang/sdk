@@ -159,9 +159,17 @@ abstract class MacroExecutionResult implements Serializable {
   /// result of executing a macro, indexed by the identifier of the enum.
   Map<Identifier, Iterable<DeclarationCode>> get enumValueAugmentations;
 
+  /// Any interfaces that should be added to types as a result of executing a
+  /// macro, indexed by the identifier of the augmented type declaration.
+  Map<Identifier, Iterable<TypeAnnotationCode>> get interfaceAugmentations;
+
   /// Any augmentations that should be applied to the library as a result of
   /// executing a macro.
   Iterable<DeclarationCode> get libraryAugmentations;
+
+  /// Any mixins that should be added to types as a result of executing a macro,
+  /// indexed by the identifier of the augmented type declaration.
+  Map<Identifier, Iterable<TypeAnnotationCode>> get mixinAugmentations;
 
   /// The names of any new types declared in [augmentations].
   Iterable<String> get newTypeNames;

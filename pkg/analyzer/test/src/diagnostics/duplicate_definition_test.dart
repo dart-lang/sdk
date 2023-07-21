@@ -16,6 +16,7 @@ main() {
     defineReflectiveTests(DuplicateDefinitionEnumTest);
     defineReflectiveTests(DuplicateDefinitionExtensionTest);
     defineReflectiveTests(DuplicateDefinitionMixinTest);
+    defineReflectiveTests(DuplicateDefinitionUnitTest);
   });
 }
 
@@ -147,6 +148,57 @@ class C {
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 33, 3,
           contextMessages: [message('/home/test/lib/test.dart', 17, 3)]),
+    ]);
+  }
+
+  test_instance_method_method_augment() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  augment void foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+  }
+
+  test_instance_method_method_inAugmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {
+  void foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {
+  void foo() {}
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 43, 3)]),
     ]);
   }
 
@@ -1214,6 +1266,57 @@ mixin M {
     ]);
   }
 
+  test_instance_method_method_augment() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment mixin A {
+  augment void foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+mixin A {
+  void foo() {}
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+  }
+
+  test_instance_method_method_inAugmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment mixin A {
+  void foo() {}
+}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+mixin A {
+  void foo() {}
+}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertErrorsInResult([
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 55, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 43, 3)]),
+    ]);
+  }
+
   test_instance_method_setter() async {
     await assertErrorsInCode(r'''
 mixin M {
@@ -1711,8 +1814,11 @@ void f<T, T>() {}
           contextMessages: [message('/home/test/lib/test.dart', 7, 1)]),
     ]);
   }
+}
 
-  test_unitMembers_class() async {
+@reflectiveTest
+class DuplicateDefinitionUnitTest extends PubPackageResolutionTest {
+  test_class() async {
     await assertErrorsInCode('''
 class A {}
 class B {}
@@ -1723,7 +1829,47 @@ class A {}
     ]);
   }
 
-  test_unitMembers_part_library() async {
+  test_class_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment class A {}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+class A {}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+  }
+
+  test_mixin_augmentation() async {
+    final a = newFile('$testPackageLibPath/a.dart', r'''
+library augment 'test.dart';
+
+augment mixin A {}
+''');
+
+    newFile(testFile.path, r'''
+import augment 'a.dart';
+
+mixin A {}
+''');
+
+    await resolveTestFile();
+    assertNoErrorsInResult();
+
+    await resolveFile2(a.path);
+    assertNoErrorsInResult();
+  }
+
+  test_part_library() async {
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var aPath = convertPath('$testPackageLibPath/a.dart');
     newFile(libPath, '''
@@ -1748,7 +1894,7 @@ class A {}
       ]);
   }
 
-  test_unitMembers_part_part() async {
+  test_part_part() async {
     var libPath = convertPath('$testPackageLibPath/lib.dart');
     var aPath = convertPath('$testPackageLibPath/a.dart');
     var bPath = convertPath('$testPackageLibPath/b.dart');
@@ -1783,7 +1929,7 @@ class A {}
       ]);
   }
 
-  test_unitMembers_typedef_interfaceType() async {
+  test_typedef_interfaceType() async {
     await assertErrorsInCode('''
 typedef A = List<int>;
 typedef A = List<int>;

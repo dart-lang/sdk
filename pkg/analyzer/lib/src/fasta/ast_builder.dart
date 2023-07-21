@@ -47,6 +47,8 @@ import 'package:_fe_analyzer_shared/src/parser/parser.dart'
 import 'package:_fe_analyzer_shared/src/parser/quote.dart';
 import 'package:_fe_analyzer_shared/src/parser/stack_listener.dart'
     show NullValues, StackListener;
+import 'package:_fe_analyzer_shared/src/parser/util.dart'
+    show isLetter, isLetterOrDigit, isWhitespace, optional;
 import 'package:_fe_analyzer_shared/src/scanner/errors.dart'
     show translateErrorToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
@@ -5443,28 +5445,63 @@ class AstBuilder extends StackListener {
     throw UnsupportedError(message.problemMessage);
   }
 
+  /// Given that we have just found bracketed text within the given [comment],
+  /// look to see whether that text is (a) followed by a parenthesized link
+  /// address, (b) followed by a colon, or (c) followed by optional whitespace
+  /// and another square bracket.
+  ///
+  /// [rightIndex] is the index of the right bracket. Return `true` if the
+  /// bracketed text is followed by a link address.
+  ///
+  /// This method uses the syntax described by the
+  /// <a href="http://daringfireball.net/projects/markdown/syntax">markdown</a>
+  /// project.
+  bool isLinkText(String comment, int rightIndex) {
+    var length = comment.length;
+    var index = rightIndex + 1;
+    if (index >= length) {
+      return false;
+    }
+    var ch = comment.codeUnitAt(index);
+    if (ch == 0x28 || ch == 0x3A) {
+      return true;
+    }
+    while (isWhitespace(ch)) {
+      index = index + 1;
+      if (index >= length) {
+        return false;
+      }
+      ch = comment.codeUnitAt(index);
+    }
+    return ch == 0x5B;
+  }
+
   /// Return `true` if [token] is either `null` or is the symbol or keyword
   /// [value].
   bool optionalOrNull(String value, Token? token) {
     return token == null || identical(value, token.stringValue);
   }
 
+  /// Parse the comment references in a sequence of comment tokens where
+  /// [dartdoc] is the first token in the sequence.
   List<CommentReferenceImpl> parseCommentReferences(Token dartdoc) {
-    // Parse dartdoc into potential comment reference source/offset pairs
-    int count = parser.parseCommentReferences(dartdoc);
-    List sourcesAndOffsets = List.filled(count * 2, null);
+    // Parse dartdoc into potential comment reference source/offset pairs.
+    var count = dartdoc.lexeme.startsWith('///')
+        ? _parseReferencesInSingleLineComments(dartdoc)
+        : _parseReferencesInMultiLineComment(dartdoc);
+    var sourcesAndOffsets = List<Object?>.filled(count * 2, null);
     popList(count * 2, sourcesAndOffsets);
 
-    // Parse each of the source/offset pairs into actual comment references
+    // Parse each of the source/offset pairs into actual comment references.
     count = 0;
-    int index = 0;
+    var index = 0;
     while (index < sourcesAndOffsets.length) {
       var referenceSource = sourcesAndOffsets[index++] as String;
       var referenceOffset = sourcesAndOffsets[index++] as int;
-      ScannerResult result = scanString(referenceSource);
+      var result = scanString(referenceSource);
       if (!result.hasErrors) {
-        Token token = result.tokens;
-        if (parser.parseOneCommentReference(token, referenceOffset)) {
+        var token = result.tokens;
+        if (_parseOneCommentReference(token, referenceOffset)) {
           ++count;
         }
       }
@@ -5698,7 +5735,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    // Build and return the comment
+    // Build and return the comment.
     var references = parseCommentReferences(dartdoc);
     List<Token> tokens = <Token>[dartdoc];
     if (dartdoc.lexeme.startsWith('///')) {
@@ -5715,6 +5752,34 @@ class AstBuilder extends StackListener {
       type: CommentType.DOCUMENTATION,
       references: references,
     );
+  }
+
+  /// Given a comment reference without a closing `]`, search for a possible
+  /// place where `]` should be.
+  int _findCommentReferenceEnd(String comment, int index, int end) {
+    // Find the end of the identifier if there is one.
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+
+    // Check for a trailing `.`.
+    if (index >= end || comment.codeUnitAt(index) != 0x2E /* `.` */) {
+      return index;
+    }
+    ++index;
+
+    // Find end of the identifier after the `.`.
+    if (index >= end || !isLetter(comment.codeUnitAt(index))) {
+      return index;
+    }
+    ++index;
+    while (index < end && isLetterOrDigit(comment.codeUnitAt(index))) {
+      ++index;
+    }
+    return index;
   }
 
   void _handleInstanceCreation(Token? token) {
@@ -5736,6 +5801,224 @@ class AstBuilder extends StackListener {
         typeArguments: typeArguments,
       ),
     );
+  }
+
+  /// Parse the comment references in the text between [start] inclusive
+  /// and [end] exclusive.
+  ///
+  /// Return the number of comment references that were parsed.
+  int _parseCommentReferencesInText(Token commentToken, int start, int end) {
+    var comment = commentToken.lexeme;
+    var count = 0;
+    var index = start;
+    while (index < end) {
+      var ch = comment.codeUnitAt(index);
+      if (ch == 0x5B /* `[` */) {
+        ++index;
+        if (index < end && comment.codeUnitAt(index) == 0x3A /* `:` */) {
+          // Skip old-style code block.
+          index = comment.indexOf(':]', index + 1) + 1;
+          if (index == 0 || index > end) {
+            break;
+          }
+        } else {
+          var referenceStart = index;
+          index = comment.indexOf(']', index);
+          if (index == -1 || index >= end) {
+            // Recovery: terminating ']' is not typed yet.
+            index = _findCommentReferenceEnd(comment, referenceStart, end);
+          }
+          if (ch != 0x27 /* `'` */ && ch != 0x22 /* `"` */) {
+            if (isLinkText(comment, index)) {
+              // TODO(brianwilkerson) Handle the case where there's a library
+              // URI in the link text.
+            } else {
+              /*listener.*/ handleCommentReferenceText(
+                  comment.substring(referenceStart, index),
+                  commentToken.charOffset + referenceStart);
+              ++count;
+            }
+          }
+        }
+      } else if (ch == 0x60 /* '`' */) {
+        // Skip inline code block if there is both starting '`' and ending '`'.
+        var endCodeBlock = comment.indexOf('`', index + 1);
+        if (endCodeBlock != -1 && endCodeBlock < end) {
+          index = endCodeBlock;
+        }
+      }
+      ++index;
+    }
+    return count;
+  }
+
+  /// Parse the tokens in a single comment reference and generate either a
+  /// [_handleCommentReference] or [_handleNoCommentReference] event.
+  /// Return `true` if a comment reference was successfully parsed.
+  bool _parseOneCommentReference(Token token, int referenceOffset) {
+    var begin = token;
+    Token? newKeyword;
+    if (optional('new', token)) {
+      newKeyword = token;
+      token = token.next!;
+    }
+    Token? firstToken, firstPeriod, secondToken, secondPeriod;
+    if (token.isIdentifier && optional('.', token.next!)) {
+      secondToken = token;
+      secondPeriod = token.next!;
+      if (secondPeriod.next!.isIdentifier &&
+          optional('.', secondPeriod.next!.next!)) {
+        firstToken = secondToken;
+        firstPeriod = secondPeriod;
+        secondToken = secondPeriod.next!;
+        secondPeriod = secondToken.next!;
+      }
+      var identifier = secondPeriod.next!;
+      if (identifier.kind == KEYWORD_TOKEN && optional('new', identifier)) {
+        // Treat `new` after `.` is as an identifier so that it can represent an
+        // unnamed constructor. This support is separate from the
+        // constructor-tearoffs feature.
+        parser.rewriter.replaceTokenFollowing(
+            secondPeriod,
+            StringToken(TokenType.IDENTIFIER, identifier.lexeme,
+                identifier.charOffset));
+      }
+      token = secondPeriod.next!;
+    }
+    if (token.isEof) {
+      // Recovery: Insert a synthetic identifier for code completion
+      token = parser.rewriter.insertSyntheticIdentifier(
+          secondPeriod ?? newKeyword ?? parser.syntheticPreviousToken(token));
+      if (begin == token.next!) {
+        begin = token;
+      }
+    }
+    Token? operatorKeyword;
+    if (optional('operator', token)) {
+      operatorKeyword = token;
+      token = token.next!;
+    }
+    if (token.isUserDefinableOperator) {
+      if (token.next!.isEof) {
+        _parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
+            firstToken, firstPeriod, secondToken, secondPeriod, token);
+        return true;
+      }
+    } else {
+      token = operatorKeyword ?? token;
+      if (token.next!.isEof) {
+        if (token.isIdentifier) {
+          _parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
+              firstToken, firstPeriod, secondToken, secondPeriod, token);
+          return true;
+        }
+        var keyword = token.keyword;
+        if (newKeyword == null &&
+            secondToken == null &&
+            (keyword == Keyword.THIS ||
+                keyword == Keyword.NULL ||
+                keyword == Keyword.TRUE ||
+                keyword == Keyword.FALSE)) {
+          // TODO(brianwilkerson) If we want to support this we will need to
+          // extend the definition of CommentReference to take an expression
+          // rather than an identifier. For now we just ignore it to reduce the
+          // number of errors produced, but that's probably not a valid long
+          // term approach.
+        }
+      }
+    }
+    handleNoCommentReference();
+    return false;
+  }
+
+  void _parseOneCommentReferenceRest(
+      Token begin,
+      int referenceOffset,
+      Token? newKeyword,
+      Token? firstToken,
+      Token? firstPeriod,
+      Token? secondToken,
+      Token? secondPeriod,
+      Token identifierOrOperator) {
+    // Adjust the token offsets to match the enclosing comment token.
+    var token = begin;
+    do {
+      token.offset += referenceOffset;
+      token = token.next!;
+    } while (!token.isEof);
+
+    handleCommentReference(newKeyword, firstToken, firstPeriod, secondToken,
+        secondPeriod, identifierOrOperator);
+  }
+
+  /// Parse the comment references in a multi-line comment token.
+  /// Return the number of comment references parsed.
+  int _parseReferencesInMultiLineComment(Token multiLineDoc) {
+    var comment = multiLineDoc.lexeme;
+    assert(comment.startsWith('/**'));
+    var count = 0;
+    var length = comment.length;
+    var start = 3;
+    var inCodeBlock = false;
+    var codeBlock = comment.indexOf('```', /* start = */ 3);
+    if (codeBlock == -1) {
+      codeBlock = length;
+    }
+    while (start < length) {
+      if (isWhitespace(comment.codeUnitAt(start))) {
+        ++start;
+        continue;
+      }
+      var end = comment.indexOf('\n', start);
+      if (end == -1) {
+        end = length;
+      }
+      if (codeBlock < end) {
+        inCodeBlock = !inCodeBlock;
+        codeBlock = comment.indexOf('```', end);
+        if (codeBlock == -1) {
+          codeBlock = length;
+        }
+      }
+      if (!inCodeBlock && !comment.startsWith('*     ', start)) {
+        count += _parseCommentReferencesInText(multiLineDoc, start, end);
+      }
+      start = end + 1;
+    }
+    return count;
+  }
+
+  /// Parse the comment references in a sequence of single line comment tokens
+  /// where [token] is the first comment token in the sequence.
+  /// Return the number of comment references parsed.
+  int _parseReferencesInSingleLineComments(Token? token) {
+    var count = 0;
+    var inCodeBlock = false;
+    while (token != null && !token.isEof) {
+      var comment = token.lexeme;
+      if (comment.startsWith('///')) {
+        if (comment.indexOf('```', /* start = */ 3) != -1) {
+          inCodeBlock = !inCodeBlock;
+        }
+        if (!inCodeBlock) {
+          bool parseReferences;
+          if (comment.startsWith('///    ')) {
+            var previousComment = token.previous?.lexeme;
+            parseReferences = previousComment != null &&
+                previousComment.startsWith('///') &&
+                previousComment.trim().length > 3;
+          } else {
+            parseReferences = true;
+          }
+          if (parseReferences) {
+            count += _parseCommentReferencesInText(
+                token, /* start = */ 3, comment.length);
+          }
+        }
+      }
+      token = token.next;
+    }
+    return count;
   }
 
   List<NamedTypeImpl> _popNamedTypeList({

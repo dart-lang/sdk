@@ -241,7 +241,14 @@ enum DeclarationContext {
 
   /// In an extension declaration before the extension body.
   ///
-  /// This includes type parameters declared on the class declaration but
+  /// This includes type parameters declared on the extension declaration but
+  /// excludes annotations on the extension declaration itself, which are seen
+  /// in the [Library] context.
+  ExtensionOrExtensionType,
+
+  /// In an extension declaration before the extension body.
+  ///
+  /// This includes type parameters declared on the extension declaration but
   /// excludes annotations on the extension declaration itself, which are seen
   /// in the [Library] context.
   Extension,
@@ -402,6 +409,7 @@ extension on DeclarationContext {
       case DeclarationContext.Mixin:
       case DeclarationContext.MixinInstanceMethod:
       case DeclarationContext.MixinInstanceField:
+      case DeclarationContext.ExtensionOrExtensionType:
       case DeclarationContext.Extension:
       case DeclarationContext.ExtensionInstanceMethod:
       case DeclarationContext.ExtensionExternalInstanceField:
@@ -445,12 +453,12 @@ extension on DeclarationContext {
       case DeclarationContext.Mixin:
       case DeclarationContext.NamedMixinApplication:
         return TypeVariableKind.classMixinOrEnum;
+      case DeclarationContext.ExtensionOrExtensionType:
       case DeclarationContext.Extension:
       case DeclarationContext.ExtensionBody:
-        return TypeVariableKind.extension;
       case DeclarationContext.ExtensionType:
       case DeclarationContext.ExtensionTypeBody:
-        return TypeVariableKind.extensionType;
+        return TypeVariableKind.extensionOrExtensionType;
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassConstructor:
       case DeclarationContext.ClassFactory:
@@ -1551,9 +1559,10 @@ class OutlineBuilder extends StackListenerImpl {
   void beginExtensionDeclarationPrelude(Token extensionKeyword) {
     assert(checkState(extensionKeyword, [ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
-    pushDeclarationContext(DeclarationContext.Extension);
+    pushDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
     libraryBuilder.beginNestedDeclaration(
-        TypeParameterScopeKind.extensionDeclaration, "extension");
+        TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
+        "extension");
   }
 
   @override
@@ -1561,6 +1570,8 @@ class OutlineBuilder extends StackListenerImpl {
     assert(checkState(extensionKeyword,
         [ValueKinds.TypeVariableListOrNull, ValueKinds.MetadataListOrNull]));
     debugEvent("beginExtensionDeclaration");
+    popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
+    pushDeclarationContext(DeclarationContext.Extension);
     List<TypeVariableBuilder>? typeVariables =
         pop() as List<TypeVariableBuilder>?;
     int offset = nameToken?.charOffset ?? extensionKeyword.charOffset;
@@ -1659,6 +1670,116 @@ class OutlineBuilder extends StackListenerImpl {
         nameOffset,
         endToken.charOffset);
     popDeclarationContext(DeclarationContext.Extension);
+  }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token nameToken) {
+    assert(checkState(extensionKeyword,
+        [ValueKinds.TypeVariableListOrNull, ValueKinds.MetadataListOrNull]));
+    debugEvent("beginExtensionTypeDeclaration");
+    popDeclarationContext(DeclarationContext.ExtensionOrExtensionType);
+    pushDeclarationContext(DeclarationContext.ExtensionType);
+    List<TypeVariableBuilder>? typeVariables =
+        pop() as List<TypeVariableBuilder>?;
+    int offset = nameToken.charOffset;
+    push(nameToken.lexeme);
+    push(offset);
+    push(typeVariables ?? NullValues.TypeVariables);
+    libraryBuilder.currentTypeParameterScopeBuilder
+        .markAsExtensionTypeDeclaration(
+            nameToken.lexeme, offset, typeVariables);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    assert(checkState(extensionKeyword, [
+      ValueKinds.TypeBuilderListOrNull,
+      ValueKinds.TypeVariableListOrNull,
+      ValueKinds.Integer,
+      ValueKinds.Name,
+      ValueKinds.MetadataListOrNull,
+    ]));
+    reportIfNotEnabled(libraryFeatures.inlineClass, typeKeyword.charOffset,
+        typeKeyword.length);
+
+    List<TypeBuilder>? interfaces =
+        pop(NullValues.TypeBuilderList) as List<TypeBuilder>?;
+    List<TypeVariableBuilder>? typeVariables =
+        pop(NullValues.TypeVariables) as List<TypeVariableBuilder>?;
+    int nameOffset = popCharOffset();
+    String name = pop() as String;
+    List<MetadataBuilder>? metadata =
+        pop(NullValues.Metadata) as List<MetadataBuilder>?;
+    checkEmpty(extensionKeyword.charOffset);
+
+    reportIfNotEnabled(libraryFeatures.inlineClass,
+        extensionKeyword.next!.charOffset, extensionKeyword.next!.length);
+    int startOffset = metadata == null
+        ? extensionKeyword.charOffset
+        : metadata.first.charOffset;
+    libraryBuilder.addExtensionTypeDeclaration(
+        metadata,
+        // TODO(johnniwinther): Support modifiers on extension types?
+        0,
+        name,
+        typeVariables,
+        interfaces,
+        startOffset,
+        nameOffset,
+        endToken.charOffset);
+
+    popDeclarationContext(DeclarationContext.ExtensionType);
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {}
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+    assert(checkState(beginToken, [
+      ValueKinds.FormalListOrNull,
+      ValueKinds.Integer,
+      if (hasConstructorName) ValueKinds.Integer,
+      if (hasConstructorName) ValueKinds.Name,
+    ]));
+    List<FormalParameterBuilder>? formals =
+        pop(NullValues.FormalParameters) as List<FormalParameterBuilder>?;
+    int charOffset = pop() as int; // Pop formals char offset
+    String constructorName = '';
+    if (hasConstructorName) {
+      charOffset = pop() as int; // Pop name offset
+      constructorName = pop() as String; // Pop name
+    }
+    if (formals != null) {
+      for (int i = 0; i < formals.length; i++) {
+        FormalParameterBuilder formal = formals[i];
+        libraryBuilder.addPrimaryConstructorField(
+            metadata: formal.metadata,
+            type: formal.type,
+            name: formal.name,
+            charOffset: formal.charOffset);
+        formals[i] = formal.forPrimaryConstructor();
+      }
+    }
+
+    libraryBuilder.beginNestedDeclaration(
+        TypeParameterScopeKind.constructor, "#method",
+        hasMembers: false);
+    TypeParameterScopeBuilder scopeBuilder = libraryBuilder
+        .endNestedDeclaration(TypeParameterScopeKind.constructor, "#method");
+    var (
+      List<TypeVariableBuilder>? typeVariables,
+      _
+    ) = _createSyntheticTypeVariables(
+        libraryBuilder.currentTypeParameterScopeBuilder, scopeBuilder, null);
+    scopeBuilder.resolveNamedTypes(typeVariables, libraryBuilder);
+
+    libraryBuilder.addPrimaryConstructor(
+        constructorName: constructorName == "new" ? "" : constructorName,
+        charOffset: charOffset,
+        formals: formals,
+        typeVariables: typeVariables);
   }
 
   ProcedureKind computeProcedureKind(Token? token) {
@@ -1955,6 +2076,38 @@ class OutlineBuilder extends StackListenerImpl {
         endToken, _MethodKind.extensionConstructor);
   }
 
+  (List<TypeVariableBuilder>?, Map<TypeVariableBuilder, TypeBuilder>?)
+      _createSyntheticTypeVariables(
+          TypeParameterScopeBuilder enclosingDeclarationScopeBuilder,
+          TypeParameterScopeBuilder memberScopeBuilder,
+          List<TypeVariableBuilder>? typeVariables) {
+    Map<TypeVariableBuilder, TypeBuilder>? substitution;
+    if (enclosingDeclarationScopeBuilder.typeVariables != null) {
+      // We synthesize the names of the generated [TypeParameter]s, i.e.
+      // rename 'T' to '#T'. We cannot do it on the builders because their
+      // names are used to create the scope.
+      List<TypeVariableBuilder> synthesizedTypeVariables =
+          libraryBuilder.copyTypeVariables(
+              enclosingDeclarationScopeBuilder.typeVariables!,
+              memberScopeBuilder,
+              kind: TypeVariableKind.extensionSynthesized);
+      substitution = {};
+      for (int i = 0; i < synthesizedTypeVariables.length; i++) {
+        substitution[enclosingDeclarationScopeBuilder.typeVariables![i]] =
+            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                synthesizedTypeVariables[i], const NullabilityBuilder.omitted(),
+                instanceTypeVariableAccess:
+                    declarationContext.instanceTypeVariableAccessState);
+      }
+      if (typeVariables != null) {
+        typeVariables = synthesizedTypeVariables..addAll(typeVariables);
+      } else {
+        typeVariables = synthesizedTypeVariables;
+      }
+    }
+    return (typeVariables, substitution);
+  }
+
   void _endClassMethod(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken, _MethodKind methodKind) {
     assert(checkState(beginToken, [ValueKinds.MethodBody]));
@@ -2115,32 +2268,14 @@ class OutlineBuilder extends StackListenerImpl {
           (libraryBuilder.currentTypeParameterScopeBuilder.kind ==
                   TypeParameterScopeKind.extensionDeclaration ||
               libraryBuilder.currentTypeParameterScopeBuilder.kind ==
-                  TypeParameterScopeKind.inlineClassDeclaration)) {
+                  TypeParameterScopeKind.inlineClassDeclaration ||
+              libraryBuilder.currentTypeParameterScopeBuilder.kind ==
+                  TypeParameterScopeKind.extensionTypeDeclaration)) {
         TypeParameterScopeBuilder declaration =
             libraryBuilder.currentTypeParameterScopeBuilder;
         Map<TypeVariableBuilder, TypeBuilder>? substitution;
-        if (declaration.typeVariables != null) {
-          // We synthesize the names of the generated [TypeParameter]s, i.e.
-          // rename 'T' to '#T'. We cannot do it on the builders because their
-          // names are used to create the scope.
-          List<TypeVariableBuilder> synthesizedTypeVariables = libraryBuilder
-              .copyTypeVariables(declaration.typeVariables!, declarationBuilder,
-                  kind: TypeVariableKind.extensionSynthesized);
-          substitution = {};
-          for (int i = 0; i < synthesizedTypeVariables.length; i++) {
-            substitution[declaration.typeVariables![i]] =
-                new NamedTypeBuilder.fromTypeDeclarationBuilder(
-                    synthesizedTypeVariables[i],
-                    const NullabilityBuilder.omitted(),
-                    instanceTypeVariableAccess:
-                        declarationContext.instanceTypeVariableAccessState);
-          }
-          if (typeVariables != null) {
-            typeVariables = synthesizedTypeVariables..addAll(typeVariables);
-          } else {
-            typeVariables = synthesizedTypeVariables;
-          }
-        }
+        (typeVariables, substitution) = _createSyntheticTypeVariables(
+            declaration, declarationBuilder, typeVariables);
         if (!isConstructor) {
           List<FormalParameterBuilder> synthesizedFormals = [];
           TypeBuilder thisType;

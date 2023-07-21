@@ -323,21 +323,6 @@ class KernelTarget extends TargetImplementation {
     return entryPoint;
   }
 
-  /// The class [cls] is involved in a cyclic definition. This method should
-  /// ensure that the cycle is broken, for example, by removing superclass and
-  /// implemented interfaces.
-  void breakCycle(ClassBuilder builder) {
-    Class cls = builder.cls;
-    cls.implementedTypes.clear();
-    cls.supertype = null;
-    cls.mixedInType = null;
-    builder.supertypeBuilder = new NamedTypeBuilder.fromTypeDeclarationBuilder(
-        objectClassBuilder, const NullabilityBuilder.omitted(),
-        instanceTypeVariableAccess: InstanceTypeVariableAccessState.Unexpected);
-    builder.interfaceBuilders = null;
-    builder.mixedInTypeBuilder = null;
-  }
-
   bool _hasComputedNeededPrecompilations = false;
 
   Future<NeededPrecompilations?> computeNeededPrecompilations() async {
@@ -446,7 +431,10 @@ class KernelTarget extends TargetImplementation {
       }
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
-      List<SourceClassBuilder>? sortedSourceClassBuilders =
+      List<SourceClassBuilder>? sortedSourceClassBuilders;
+      // ignore: unused_local_variable
+      List<SourceInlineClassBuilder>? sortedSourceExtensionTypeBuilders;
+      (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_finishTypeVariables);

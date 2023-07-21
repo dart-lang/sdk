@@ -14,7 +14,10 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
 import '../builder/name_iterator.dart';
+import '../builder/named_type_builder.dart';
+import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
+import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
 import '../fasta_codes.dart'
     show
@@ -34,7 +37,7 @@ import 'source_member_builder.dart';
 
 class SourceInlineClassBuilder extends InlineClassBuilderImpl
     with SourceDeclarationBuilderMixin, ClassDeclarationMixin
-    implements ClassDeclaration {
+    implements Comparable<SourceInlineClassBuilder>, ClassDeclaration {
   @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
@@ -94,6 +97,13 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   @override
   Annotatable get annotatable => inlineClass;
+
+  @override
+  int compareTo(SourceInlineClassBuilder other) {
+    int result = "$fileUri".compareTo("${other.fileUri}");
+    if (result != 0) return result;
+    return charOffset.compareTo(other.charOffset);
+  }
 
   /// Builds the [InlineClass] for this inline class builder and inserts the
   /// members into the [Library] of [libraryBuilder].
@@ -297,6 +307,35 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   @override
   BodyBuilderContext get bodyBuilderContext =>
       new InlineClassBodyBuilderContext(this);
+
+  /// Return a map whose keys are the supertypes of this
+  /// [SourceInlineClassBuilder] after expansion of type aliases, if any.
+  /// For each supertype key, the corresponding value is the type alias which
+  /// was unaliased in order to find the supertype, or null if the supertype was
+  /// not aliased.
+  Map<TypeDeclarationBuilder?, TypeAliasBuilder?> computeDirectSupertypes() {
+    final Map<TypeDeclarationBuilder?, TypeAliasBuilder?> result = {};
+    final List<TypeBuilder>? interfaces = this.interfaceBuilders;
+    if (interfaces != null) {
+      for (int i = 0; i < interfaces.length; i++) {
+        TypeBuilder interface = interfaces[i];
+        TypeDeclarationBuilder? declarationBuilder = interface.declaration;
+        if (declarationBuilder is TypeAliasBuilder) {
+          TypeAliasBuilder aliasBuilder = declarationBuilder;
+          NamedTypeBuilder namedBuilder = interface as NamedTypeBuilder;
+          declarationBuilder = aliasBuilder.unaliasDeclaration(
+              namedBuilder.arguments,
+              isUsedAsClass: true,
+              usedAsClassCharOffset: namedBuilder.charOffset,
+              usedAsClassFileUri: namedBuilder.fileUri);
+          result[declarationBuilder] = aliasBuilder;
+        } else {
+          result[declarationBuilder] = null;
+        }
+      }
+    }
+    return result;
+  }
 }
 
 class _SourceInlineClassBuilderAugmentationAccess

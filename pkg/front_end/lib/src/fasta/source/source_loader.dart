@@ -50,6 +50,7 @@ import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/name_iterator.dart';
 import '../builder/named_type_builder.dart';
+import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/prefix_builder.dart';
 import '../builder/type_alias_builder.dart';
@@ -1906,21 +1907,23 @@ severity: $severity
     }
   }
 
-  /// Add classes (and inline classes) defined in libraries in this
-  /// [SourceLoader] to [sourceClasses], and [inlineClasses], if provided.
+  /// Add classes and extension types defined in libraries in this
+  /// [SourceLoader] to [sourceClasses] and [sourceExtensionTypes].
   void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
-      [List<SourceInlineClassBuilder>? inlineClasses]) {
+      List<SourceInlineClassBuilder> sourceExtensionTypes) {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
-      library.collectSourceClasses(sourceClasses, inlineClasses);
+      library.collectSourceClassesAndExtensionTypes(
+          sourceClasses, sourceExtensionTypes);
     }
   }
 
-  /// Returns a list of all class builders declared in this loader.  As the
-  /// classes are sorted, any cycles in the hierarchy are reported as
-  /// errors. Recover by breaking the cycles. This means that the rest of the
-  /// pipeline (including backends) can assume that there are no hierarchy
-  /// cycles.
-  List<SourceClassBuilder> handleHierarchyCycles(ClassBuilder objectClass) {
+  /// Returns lists of all class builders and of all extension type builders
+  /// declared in this loader. The classes and extension type are sorted
+  /// topologically, any cycles in the hierarchy are reported as errors, cycles
+  /// are broken. This means that the rest of the pipeline (including backends)
+  /// can assume that there are no hierarchy cycles.
+  (List<SourceClassBuilder>, List<SourceInlineClassBuilder>)
+      handleHierarchyCycles(ClassBuilder objectClass) {
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
       denyListedClasses.add(coreLibrary.lookupLocalMember(
@@ -1940,12 +1943,15 @@ severity: $severity
 
     // Sort the classes topologically.
     List<SourceClassBuilder> sourceClasses = [];
-    collectSourceClasses(sourceClasses);
+    List<SourceInlineClassBuilder> sourceExtensionTypes = [];
+    collectSourceClasses(sourceClasses, sourceExtensionTypes);
+
     _SourceClassGraph classGraph =
         new _SourceClassGraph(sourceClasses, objectClass);
-    TopologicalSortResult<SourceClassBuilder> result =
+    TopologicalSortResult<SourceClassBuilder> classResult =
         topologicalSort(classGraph);
-    List<SourceClassBuilder> classes = result.sortedVertices;
+    List<SourceClassBuilder> classes = classResult.sortedVertices;
+
     Map<ClassBuilder, ClassBuilder> classToBaseOrFinalSuperClass = {};
     for (SourceClassBuilder cls in classes) {
       checkClassSupertypes(cls, classGraph.directSupertypeMap[cls]!,
@@ -1953,25 +1959,71 @@ severity: $severity
       checkSupertypeClassModifiers(cls, classToBaseOrFinalSuperClass);
     }
 
-    List<SourceClassBuilder> classesWithCycles = result.cyclicVertices;
+    List<SourceClassBuilder> classesWithCycles = classResult.cyclicVertices;
+    if (classesWithCycles.isNotEmpty) {
+      // Sort the classes to ensure consistent output.
+      classesWithCycles.sort();
+      for (int i = 0; i < classesWithCycles.length; i++) {
+        SourceClassBuilder classBuilder = classesWithCycles[i];
 
-    // Once the work list doesn't change in size, it's either empty, or
-    // contains all classes with cycles.
+        // Ensure that the cycle is broken by removing superclass and
+        // implemented interfaces.
+        Class cls = classBuilder.cls;
+        cls.implementedTypes.clear();
+        cls.supertype = null;
+        cls.mixedInType = null;
+        classBuilder.supertypeBuilder =
+            new NamedTypeBuilder.fromTypeDeclarationBuilder(
+                objectClass, const NullabilityBuilder.omitted(),
+                instanceTypeVariableAccess:
+                    InstanceTypeVariableAccessState.Unexpected);
+        classBuilder.interfaceBuilders = null;
+        classBuilder.mixedInTypeBuilder = null;
 
-    // Sort the classes to ensure consistent output.
-    classesWithCycles.sort();
-    for (int i = 0; i < classesWithCycles.length; i++) {
-      SourceClassBuilder cls = classesWithCycles[i];
-      target.breakCycle(cls);
-      classes.add(cls);
-      cls.addProblem(
-          templateCyclicClassHierarchy.withArguments(cls.fullNameForErrors),
-          cls.charOffset,
-          noLength);
+        classes.add(classBuilder);
+        // TODO(johnniwinther): Update the message for when a class depends on
+        // a cycle but does not depend on itself.
+        classBuilder.addProblem(
+            templateCyclicClassHierarchy
+                .withArguments(classBuilder.fullNameForErrors),
+            classBuilder.charOffset,
+            noLength);
+      }
+    }
+
+    _SourceExtensionTypeGraph extensionTypeGraph =
+        new _SourceExtensionTypeGraph(sourceExtensionTypes);
+    TopologicalSortResult<SourceInlineClassBuilder> extensionTypeResult =
+        topologicalSort(extensionTypeGraph);
+    List<SourceInlineClassBuilder> extensionsTypes =
+        extensionTypeResult.sortedVertices;
+
+    List<SourceInlineClassBuilder> extensionTypesWithCycles =
+        extensionTypeResult.cyclicVertices;
+    if (extensionTypesWithCycles.isNotEmpty) {
+      // Sort the classes to ensure consistent output.
+      extensionTypesWithCycles.sort();
+      for (int i = 0; i < extensionTypesWithCycles.length; i++) {
+        SourceInlineClassBuilder extensionTypeBuilder =
+            extensionTypesWithCycles[i];
+
+        /// Ensure that the cycle is broken by removing implemented interfaces.
+        InlineClass extensionType = extensionTypeBuilder.inlineClass;
+        extensionType.implements.clear();
+        extensionTypeBuilder.interfaceBuilders = null;
+        extensionsTypes.add(extensionTypeBuilder);
+        // TODO(johnniwinther): Update the message for when an extension type
+        //  depends on a cycle but does not depend on itself.
+        extensionTypeBuilder.addProblem(
+            templateCyclicClassHierarchy
+                .withArguments(extensionTypeBuilder.fullNameForErrors),
+            extensionTypeBuilder.charOffset,
+            noLength);
+      }
     }
 
     ticker.logMs("Checked class hierarchy");
-    return classes;
+    return (classes, extensionsTypes);
   }
 
   void _checkConstructorsForMixin(
@@ -2106,8 +2158,10 @@ severity: $severity
   /// Checks that there are no cycles in the class hierarchy, and if so break
   /// these cycles by removing supertypes.
   ///
-  /// Returns a list of all source classes in topological order.
-  List<SourceClassBuilder> checkClassCycles(ClassBuilder objectClass) {
+  /// Returns list of all source classes and extension types in topological
+  /// order.
+  (List<SourceClassBuilder>, List<SourceInlineClassBuilder>) checkClassCycles(
+      ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
     return handleHierarchyCycles(objectClass);
   }
@@ -3161,6 +3215,10 @@ class num {
 class Function {}
 
 class Record {}
+
+class StateError {
+  StateError(String message);
+}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an
@@ -3312,6 +3370,37 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
 
   @override
   Iterable<SourceClassBuilder> neighborsOf(SourceClassBuilder vertex) {
+    return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
+  }
+}
+
+class _SourceExtensionTypeGraph implements Graph<SourceInlineClassBuilder> {
+  @override
+  final List<SourceInlineClassBuilder> vertices;
+  final Map<SourceInlineClassBuilder,
+      Map<TypeDeclarationBuilder?, TypeAliasBuilder?>> directSupertypeMap = {};
+  final Map<SourceInlineClassBuilder, List<SourceInlineClassBuilder>>
+      _supertypeMap = {};
+
+  _SourceExtensionTypeGraph(this.vertices);
+
+  List<SourceInlineClassBuilder> computeSuperClasses(
+      SourceInlineClassBuilder extensionTypeBuilder) {
+    Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
+        directSupertypeMap[extensionTypeBuilder] =
+            extensionTypeBuilder.computeDirectSupertypes();
+    List<SourceInlineClassBuilder> superClasses = [];
+    for (TypeDeclarationBuilder? directSupertype in directSupertypes.keys) {
+      if (directSupertype is SourceInlineClassBuilder) {
+        superClasses.add(directSupertype);
+      }
+    }
+    return superClasses;
+  }
+
+  @override
+  Iterable<SourceInlineClassBuilder> neighborsOf(
+      SourceInlineClassBuilder vertex) {
     return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
   }
 }

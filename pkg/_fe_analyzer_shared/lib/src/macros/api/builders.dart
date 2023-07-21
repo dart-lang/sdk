@@ -30,6 +30,34 @@ abstract interface class TypeBuilder implements Builder, TypePhaseIntrospector {
   void declareType(String name, DeclarationCode typeDeclaration);
 }
 
+/// The API used by macros in the type phase to add interfaces to an existing
+/// type.
+abstract interface class InterfaceTypesBuilder implements TypeBuilder {
+  /// Appends [interfaces] to the list of interfaces for this type.
+  void appendInterfaces(Iterable<TypeAnnotationCode> interfaces);
+}
+
+/// The API used by macros in the type phase to add mixins to an existing
+/// type.
+abstract interface class MixinTypesBuilder implements TypeBuilder {
+  /// Appends [mixins] to the list of mixins for this type.
+  void appendMixins(Iterable<TypeAnnotationCode> mixins);
+}
+
+/// The API used by macros in the type phase to augment classes.
+abstract interface class ClassTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder, MixinTypesBuilder {}
+
+/// The API used by macros in the type phase to augment enums.
+abstract interface class EnumTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder, MixinTypesBuilder {}
+
+/// The API used by macros in the type phase to augment mixins.
+///
+/// Note that mixins don't support mixins, only interfaces.
+abstract interface class MixinTypeBuilder
+    implements TypeBuilder, InterfaceTypesBuilder {}
+
 /// The interface for all introspection that is allowed during the declaration
 /// phase (and later).
 abstract interface class DeclarationPhaseIntrospector

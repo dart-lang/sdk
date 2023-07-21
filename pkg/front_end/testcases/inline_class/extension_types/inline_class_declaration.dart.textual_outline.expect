@@ -1,0 +1,3 @@
+mixin Mixin {}
+extension type Class1(int it) {} extension type Class3<T>(List<T> it) {}
+method(Class1 c1, Class3<int> c3) {}

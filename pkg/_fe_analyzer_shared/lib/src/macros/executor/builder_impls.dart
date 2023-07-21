@@ -11,16 +11,26 @@ import '../api.dart';
 import 'response_impls.dart';
 
 abstract class TypeBuilderBase implements TypePhaseIntrospector {
-  /// The final result, will be built up over `augment` calls.
+  /// All the enum values to be added, indexed by the identifier for the
+  /// augmented enum declaration.
   final Map<IdentifierImpl, List<DeclarationCode>> _enumValueAugmentations;
 
-  /// The final result, will be built up over `augment` calls.
+  /// All the interfaces to be added, indexed by the identifier for the
+  /// augmented type declaration.
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> _interfaceAugmentations;
+
+  /// All the top level declarations to add to the current library.
   final List<DeclarationCode> _libraryAugmentations;
+
+  /// All the mixins to be added, indexed by the identifier for the
+  /// augmented type declaration.
+  final Map<IdentifierImpl, List<TypeAnnotationCode>> _mixinAugmentations;
 
   /// The names of any new types added in [_libraryAugmentations].
   final List<String> _newTypeNames = [];
 
-  /// The final result, will be built up over `augment` calls.
+  /// All the declarations to be added to types, indexed by the identifier for
+  /// the augmented type.
   final Map<IdentifierImpl, List<DeclarationCode>> _typeAugmentations;
 
   TypePhaseIntrospector get introspector;
@@ -29,18 +39,24 @@ abstract class TypeBuilderBase implements TypePhaseIntrospector {
   /// created by this builder.
   MacroExecutionResult get result => new MacroExecutionResultImpl(
         enumValueAugmentations: _enumValueAugmentations,
+        interfaceAugmentations: _interfaceAugmentations,
         libraryAugmentations: _libraryAugmentations,
+        mixinAugmentations: _mixinAugmentations,
         newTypeNames: _newTypeNames,
         typeAugmentations: _typeAugmentations,
       );
 
-  TypeBuilderBase(
-      {Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
-      Map<IdentifierImpl, List<DeclarationCode>>? parentEnumValueAugmentations,
-      List<DeclarationCode>? parentLibraryAugmentations})
-      : _typeAugmentations = parentTypeAugmentations ?? {},
-        _enumValueAugmentations = parentEnumValueAugmentations ?? {},
-        _libraryAugmentations = parentLibraryAugmentations ?? [];
+  TypeBuilderBase({
+    Map<IdentifierImpl, List<DeclarationCode>>? parentEnumValueAugmentations,
+    Map<IdentifierImpl, List<TypeAnnotationCode>>? parentInterfaceAugmentations,
+    List<DeclarationCode>? parentLibraryAugmentations,
+    Map<IdentifierImpl, List<TypeAnnotationCode>>? parentMixinAugmentations,
+    Map<IdentifierImpl, List<DeclarationCode>>? parentTypeAugmentations,
+  })  : _enumValueAugmentations = parentEnumValueAugmentations ?? {},
+        _interfaceAugmentations = parentInterfaceAugmentations ?? {},
+        _libraryAugmentations = parentLibraryAugmentations ?? [],
+        _mixinAugmentations = parentMixinAugmentations ?? {},
+        _typeAugmentations = parentTypeAugmentations ?? {};
 
   @override
   Future<Identifier> resolveIdentifier(Uri library, String identifier) =>
@@ -61,16 +77,71 @@ class TypeBuilderImpl extends TypeBuilderBase implements TypeBuilder {
   }
 }
 
+mixin InterfaceTypesBuilderImpl on TypeBuilderImpl
+    implements InterfaceTypesBuilder {
+  /// The type that we are going to be adding interfaces to.
+  IdentifierImpl get originalType;
+
+  /// Appends [interfaces] to the list of interfaces for this type.
+  @override
+  void appendInterfaces(Iterable<TypeAnnotationCode> interfaces) {
+    _interfaceAugmentations
+        .putIfAbsent(originalType, () => [])
+        .addAll(interfaces);
+  }
+}
+
+mixin MixinTypesBuilderImpl on TypeBuilderImpl implements MixinTypesBuilder {
+  /// The type that we are going to be adding mixins to.
+  IdentifierImpl get originalType;
+
+  /// Appends [mixins] to the list of mixins for this type.
+  @override
+  void appendMixins(Iterable<TypeAnnotationCode> mixins) {
+    (_mixinAugmentations[originalType] ??= []).addAll(mixins);
+  }
+}
+
+class ClassTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl, MixinTypesBuilderImpl
+    implements ClassTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  ClassTypeBuilderImpl(this.originalType, super.introspector);
+}
+
+class EnumTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl, MixinTypesBuilderImpl
+    implements EnumTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  EnumTypeBuilderImpl(this.originalType, super.introspector);
+}
+
+class MixinTypeBuilderImpl extends TypeBuilderImpl
+    with InterfaceTypesBuilderImpl
+    implements MixinTypeBuilder {
+  @override
+  final IdentifierImpl originalType;
+
+  MixinTypeBuilderImpl(this.originalType, super.introspector);
+}
+
 /// Base class for all [DeclarationBuilder]s.
 abstract class DeclarationBuilderBase extends TypeBuilderBase
     implements DeclarationPhaseIntrospector {
   @override
   DeclarationPhaseIntrospector get introspector;
 
-  DeclarationBuilderBase(
-      {super.parentTypeAugmentations,
-      super.parentEnumValueAugmentations,
-      super.parentLibraryAugmentations});
+  DeclarationBuilderBase({
+    super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
+    super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
+  });
 
   @override
   Future<TypeDeclaration> typeDeclarationOf(IdentifierImpl identifier) =>
@@ -155,9 +226,11 @@ class DefinitionBuilderBase extends DeclarationBuilderBase
 
   DefinitionBuilderBase(
     this.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
@@ -185,9 +258,11 @@ class TypeDefinitionBuilderImpl extends DefinitionBuilderBase
   TypeDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
@@ -231,9 +306,11 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
   EnumDefinitionBuilderImpl(
     IntrospectableEnumDeclaration super.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentTypeAugmentations,
+    super.parentMixinAugmentations,
   });
 
   @override
@@ -242,10 +319,15 @@ class EnumDefinitionBuilderImpl extends TypeDefinitionBuilderImpl
     EnumValueDeclarationImpl entry = (await introspector.valuesOf(declaration))
             .firstWhere((entry) => entry.identifier == identifier)
         as EnumValueDeclarationImpl;
-    return new EnumValueDefinitionBuilderImpl(entry, introspector,
-        parentTypeAugmentations: _typeAugmentations,
-        parentEnumValueAugmentations: _enumValueAugmentations,
-        parentLibraryAugmentations: _libraryAugmentations);
+    return new EnumValueDefinitionBuilderImpl(
+      entry,
+      introspector,
+      parentEnumValueAugmentations: _enumValueAugmentations,
+      parentInterfaceAugmentations: _interfaceAugmentations,
+      parentLibraryAugmentations: _libraryAugmentations,
+      parentMixinAugmentations: _mixinAugmentations,
+      parentTypeAugmentations: _typeAugmentations,
+    );
   }
 }
 
@@ -256,9 +338,11 @@ class EnumValueDefinitionBuilderImpl extends DefinitionBuilderBase
   EnumValueDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -277,9 +361,11 @@ class FunctionDefinitionBuilderImpl extends DefinitionBuilderBase
   FunctionDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -304,9 +390,11 @@ class ConstructorDefinitionBuilderImpl extends DefinitionBuilderBase
   ConstructorDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -332,9 +420,11 @@ class VariableDefinitionBuilderImpl extends DefinitionBuilderBase
   VariableDefinitionBuilderImpl(
     this.declaration,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override
@@ -367,9 +457,11 @@ class LibraryDefinitionBuilderImpl extends DefinitionBuilderBase
   LibraryDefinitionBuilderImpl(
     this.library,
     super.introspector, {
-    super.parentTypeAugmentations,
     super.parentEnumValueAugmentations,
+    super.parentInterfaceAugmentations,
     super.parentLibraryAugmentations,
+    super.parentMixinAugmentations,
+    super.parentTypeAugmentations,
   });
 
   @override

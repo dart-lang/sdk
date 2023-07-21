@@ -739,7 +739,7 @@ class Translator with KernelNodes {
 
     w.DefinedFunction makeDynamicCallEntry() {
       final w.DefinedFunction function = m.addFunction(
-          dynamicCallVtableEntryFunctionType, "dynamic call entry");
+          dynamicCallVtableEntryFunctionType, "$name dynamic call entry");
 
       // Defer generation of the trampoline body to avoid cyclic dependency
       // when a tear-off constant is used as default value in the torn-off

@@ -149,7 +149,7 @@ class TestIdentifier extends IdentifierImpl {
     required super.id,
     required super.name,
     required IdentifierKind kind,
-    required Uri uri,
+    required Uri? uri,
     required String? staticScope,
   }) : resolved = ResolvedIdentifier(
             kind: kind, name: name, staticScope: staticScope, uri: uri);
@@ -176,6 +176,18 @@ extension DebugCodeString on Code {
     }
     return buffer;
   }
+}
+
+extension IterableToDebugCodeString on Iterable<Code> {
+  Iterable<String> mapToDebugCodeString() =>
+      map((a) => a.debugString().toString())
+          // Avoid doing this repeatedly when used in unorderedEquals etc.
+          .toList();
+}
+
+extension MapValuesToDebugCodeString<K> on Map<K, Iterable<Code>> {
+  Map<K, Iterable<String>> mapValuesToDebugCodeString() =>
+      map((key, values) => MapEntry(key, values.mapToDebugCodeString()));
 }
 
 /// Checks if two [Code] objects are of the same type and all their fields are

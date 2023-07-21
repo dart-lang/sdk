@@ -1,0 +1,11 @@
+extension type Foo._(int i) {
+Foo(int i) : this._(i + 2);
+Foo.redirectNamed1(int a, int b) : this.named(a, subtract: b);
+Foo.redirectNamed2(int a, int b) : this.named(subtract: b, a);
+Foo.named(int value, {required int subtract}) : i = value - subtract;
+Foo.erroneous() : this.unresolved();
+} extension type Bar<T>._(this.i) {
+Bar(T i) : this._(i);
+}
+main() {}
+expect(expected, actual) {}

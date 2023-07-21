@@ -34,6 +34,7 @@ class Module with SerializerMixin {
   bool dataReferencedFromGlobalInitializer = false;
 
   int functionNameCount = 0;
+  int typeNameCount = 0;
 
   static const int memoryBlockSize = 0x10000;
 
@@ -103,6 +104,7 @@ class Module with SerializerMixin {
     final type = StructType(name, fields: fields, superType: superType)
       ..index = defTypes.length;
     defTypes.add(type);
+    typeNameCount += 1;
     return type;
   }
 
@@ -115,6 +117,7 @@ class Module with SerializerMixin {
     final type = ArrayType(name, elementType: elementType, superType: superType)
       ..index = defTypes.length;
     defTypes.add(type);
+    typeNameCount += 1;
     return type;
   }
 
@@ -1029,12 +1032,14 @@ class NameSection extends CustomSection {
   NameSection(super.module);
 
   @override
-  bool get isNotEmpty => module.functionNameCount > 0;
+  bool get isNotEmpty =>
+      module.functionNameCount > 0 || module.typeNameCount > 0;
 
   @override
   void serializeContents() {
     writeName("name");
-    var functionNameSubsection = _NameSubsection();
+
+    final functionNameSubsection = _NameSubsection();
     functionNameSubsection.writeUnsigned(module.functionNameCount);
     for (int i = 0; i < module.functions.length; i++) {
       String? functionName = module.functions[i].functionName;
@@ -1043,9 +1048,23 @@ class NameSection extends CustomSection {
         functionNameSubsection.writeName(functionName);
       }
     }
+
+    final typeNameSubsection = _NameSubsection();
+    typeNameSubsection.writeUnsigned(module.typeNameCount);
+    for (int i = 0; i < module.defTypes.length; i++) {
+      final ty = module.defTypes[i];
+      if (ty is DataType) {
+        typeNameSubsection.writeUnsigned(i);
+        typeNameSubsection.writeName(ty.name);
+      }
+    }
+
     writeByte(1); // Function names subsection
     writeUnsigned(functionNameSubsection.data.length);
     writeData(functionNameSubsection);
+    writeByte(4); // Type names subsection
+    writeUnsigned(typeNameSubsection.data.length);
+    writeData(typeNameSubsection);
   }
 }
 

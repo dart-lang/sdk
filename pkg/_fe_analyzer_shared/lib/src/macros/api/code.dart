@@ -24,7 +24,7 @@ sealed class Code {
 
 /// An arbitrary chunk of code, which does not have to be syntactically valid
 /// on its own. Useful to construct other types of code from several parts.
-base class RawCode extends Code {
+final class RawCode extends Code {
   @override
   CodeKind get kind => CodeKind.raw;
 
@@ -34,7 +34,7 @@ base class RawCode extends Code {
 }
 
 /// A piece of code representing a syntactically valid declaration.
-base class DeclarationCode extends Code {
+final class DeclarationCode extends Code {
   @override
   CodeKind get kind => CodeKind.declaration;
 
@@ -45,7 +45,7 @@ base class DeclarationCode extends Code {
 
 /// A piece of code representing a code comment. This may contain identifier
 /// references inside of `[]` brackets if the comments are doc comments.
-base class CommentCode extends Code {
+final class CommentCode extends Code {
   @override
   CodeKind get kind => CodeKind.comment;
 
@@ -55,7 +55,7 @@ base class CommentCode extends Code {
 }
 
 /// A piece of code representing a syntactically valid expression.
-base class ExpressionCode extends Code {
+final class ExpressionCode extends Code {
   @override
   CodeKind get kind => CodeKind.expression;
 
@@ -70,7 +70,7 @@ base class ExpressionCode extends Code {
 /// including modifiers like `async`.
 ///
 /// Both arrow and block function bodies are allowed.
-base class FunctionBodyCode extends Code {
+final class FunctionBodyCode extends Code {
   @override
   CodeKind get kind => CodeKind.functionBody;
 
@@ -90,7 +90,7 @@ base class FunctionBodyCode extends Code {
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid parameter lists.
-base class ParameterCode implements Code {
+final class ParameterCode implements Code {
   final Code? defaultValue;
   final List<String> keywords;
   final String? name;
@@ -125,7 +125,7 @@ base class ParameterCode implements Code {
 }
 
 /// A piece of code representing a type annotation.
-abstract class TypeAnnotationCode implements Code, TypeAnnotation {
+sealed class TypeAnnotationCode implements Code, TypeAnnotation {
   @override
   TypeAnnotationCode get code => this;
 
@@ -148,7 +148,7 @@ abstract class TypeAnnotationCode implements Code, TypeAnnotation {
 }
 
 /// The nullable version of an underlying type annotation.
-base class NullableTypeAnnotationCode implements TypeAnnotationCode {
+final class NullableTypeAnnotationCode implements TypeAnnotationCode {
   /// The underlying type that is being made nullable.
   TypeAnnotationCode underlyingType;
 
@@ -178,7 +178,7 @@ base class NullableTypeAnnotationCode implements TypeAnnotationCode {
 }
 
 /// A piece of code representing a reference to a named type.
-base class NamedTypeAnnotationCode extends TypeAnnotationCode {
+final class NamedTypeAnnotationCode extends TypeAnnotationCode {
   final Identifier name;
 
   final List<TypeAnnotationCode> typeArguments;
@@ -200,7 +200,7 @@ base class NamedTypeAnnotationCode extends TypeAnnotationCode {
 }
 
 /// A piece of code representing a function type annotation.
-base class FunctionTypeAnnotationCode extends TypeAnnotationCode {
+final class FunctionTypeAnnotationCode extends TypeAnnotationCode {
   final List<ParameterCode> namedParameters;
 
   final List<ParameterCode> positionalParameters;
@@ -254,7 +254,7 @@ base class FunctionTypeAnnotationCode extends TypeAnnotationCode {
 ///
 /// It is the job of the user to construct and combine these together in a way
 /// that creates valid record type annotations.
-base class RecordFieldCode implements Code {
+final class RecordFieldCode implements Code {
   final String? name;
   final TypeAnnotationCode type;
 
@@ -274,7 +274,7 @@ base class RecordFieldCode implements Code {
 }
 
 /// A piece of code representing a syntactically valid record type annotation.
-base class RecordTypeAnnotationCode extends TypeAnnotationCode {
+final class RecordTypeAnnotationCode extends TypeAnnotationCode {
   final List<RecordFieldCode> namedFields;
 
   final List<RecordFieldCode> positionalFields;
@@ -308,7 +308,7 @@ base class RecordTypeAnnotationCode extends TypeAnnotationCode {
   });
 }
 
-base class OmittedTypeAnnotationCode extends TypeAnnotationCode {
+final class OmittedTypeAnnotationCode extends TypeAnnotationCode {
   final OmittedTypeAnnotation typeAnnotation;
 
   OmittedTypeAnnotationCode(this.typeAnnotation);
@@ -320,8 +320,102 @@ base class OmittedTypeAnnotationCode extends TypeAnnotationCode {
   List<Object> get parts => [typeAnnotation];
 }
 
+/// Raw type annotations are typically used to refer to a local type which you
+/// do not have an [Identifier] for (possibly you just created it).
+///
+/// Whenever possible, use a more specific [TypeAnnotationCode] subtype.
+final class RawTypeAnnotationCode extends RawCode
+    implements TypeAnnotationCode {
+  @override
+  CodeKind get kind => CodeKind.rawTypeAnnotation;
+
+  /// Returns a [TypeAnnotationCode] object which is a non-nullable version
+  /// of this one.
+  ///
+  /// Returns the current instance if it is already non-nullable.
+  @override
+  TypeAnnotationCode get asNonNullable => this;
+
+  /// Returns a [TypeAnnotationCode] object which is a non-nullable version
+  /// of this one.
+  ///
+  /// Returns the current instance if it is already nullable.
+  @override
+  NullableTypeAnnotationCode get asNullable =>
+      new NullableTypeAnnotationCode(this);
+
+  RawTypeAnnotationCode._(super.parts) : super.fromParts();
+
+  /// Creates a [TypeAnnotationCode] from a raw [String].
+  ///
+  /// The [code] object must not have trailing whitespace.
+  static TypeAnnotationCode fromString(String code) => fromParts([code]);
+
+  /// Creates a [TypeAnnotationCode] from a raw code [parts].
+  ///
+  /// Must not end in trailing whitespace.
+  static TypeAnnotationCode fromParts(List<Object> parts) {
+    bool wasNullable;
+    (wasNullable, parts) = _makeNonNullable(parts);
+    TypeAnnotationCode code = new RawTypeAnnotationCode._(parts);
+    if (wasNullable) code = code.asNullable;
+    return code;
+  }
+
+  @override
+  TypeAnnotationCode get code => this;
+
+  @override
+  bool get isNullable => false;
+
+  /// Checks if [parts] ends with a ?, and if so then it is removed.
+  ///
+  /// Returns a record which indicates if [parts] was nullable originally, as
+  /// well as the potentially new list of parts.
+  ///
+  /// Throws if [parts] ends with whitespace because we don't allow type
+  /// annotations to do that.
+  static (bool wasNullable, List<Object> parts) _makeNonNullable(
+      List<Object> parts) {
+    final Iterator<Object> iterator = parts.reversed.iterator;
+    while (iterator.moveNext()) {
+      final Object current = iterator.current;
+      switch (current) {
+        case String():
+          if (current.trimRight() != current) {
+            throw new ArgumentError(
+                'Invalid type annotation, type annotations should not end with '
+                'whitespace but got `$current`.');
+          } else if (current.isEmpty) {
+            continue;
+          } else if (current.endsWith('?')) {
+            // It was nullable, trim the `?` and return a copy.
+            return (
+              true,
+              // We are iterating backwards, and need to reverse it after.
+              [
+                // Strip the '?'.
+                current.substring(0, current.length - 1),
+                for (bool hasNext = iterator.moveNext();
+                    hasNext;
+                    hasNext = iterator.moveNext())
+                  iterator.current,
+              ].reversed.toList(),
+            );
+          } else {
+            return (false, parts);
+          }
+        case Identifier():
+          // Identifiers never contain a `?`.
+          return (false, parts);
+      }
+    }
+    throw new ArgumentError('The empty string is not a valid type annotation.');
+  }
+}
+
 /// A piece of code representing a valid named type parameter.
-base class TypeParameterCode implements Code {
+final class TypeParameterCode implements Code {
   final TypeAnnotationCode? bound;
   final String name;
 
@@ -341,8 +435,10 @@ base class TypeParameterCode implements Code {
 }
 
 extension Join<T extends Object> on List<T> {
-  /// Joins all the items in [this] with [separator], and returns
-  /// a new list.
+  /// Joins all the items in [this] with [separator], and returns a new list.
+  ///
+  /// Works on any kind of non-nullable list which accepts String entries, and
+  /// does not convert the individual items to strings.
   List<Object> joinAsCode(String separator) => [
         for (int i = 0; i < length - 1; i++) ...[
           this[i],
@@ -363,6 +459,7 @@ enum CodeKind {
   omittedTypeAnnotation,
   parameter,
   raw,
+  rawTypeAnnotation,
   recordField,
   recordTypeAnnotation,
   typeParameter,

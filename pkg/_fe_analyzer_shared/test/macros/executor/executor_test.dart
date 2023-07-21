@@ -152,6 +152,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myFunction, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -162,6 +164,8 @@ void main() {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myMethod, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -172,6 +176,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myVariableGetter, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -183,6 +189,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myVariableSetter, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -194,6 +202,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myVariable, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -205,6 +215,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myConstructor, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -216,6 +228,8 @@ void main() {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myField, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -226,17 +240,39 @@ void main() {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myClass, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(
+                    result.interfaceAugmentations.mapValuesToDebugCodeString(),
+                    equals({
+                      Fixtures.myClass.identifier: ['HasX'],
+                    }));
+                expect(
+                    result.mixinAugmentations.mapValuesToDebugCodeString(),
+                    equals({
+                      Fixtures.myClass.identifier: ['GetX'],
+                    }));
                 expect(result.typeAugmentations, isEmpty);
                 expect(
-                    result.libraryAugmentations.single.debugString().toString(),
-                    equalsIgnoringWhitespace(
-                        'class MyClassBuilder implements Builder<MyClass> {}'));
+                    result.libraryAugmentations.mapToDebugCodeString(),
+                    unorderedEquals([
+                      equalsIgnoringWhitespace(
+                          'class MyClassBuilder implements Builder<MyClass> '
+                          '{}'),
+                      equalsIgnoringWhitespace('''mixin GetX implements HasX {
+                              int get x => 1;
+                            }'''),
+                      equalsIgnoringWhitespace(
+                          '''abstract interface class HasX {
+                              int get x;
+                            }'''),
+                    ]));
               });
 
               test('on enums', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myEnum, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -247,6 +283,8 @@ void main() {
                 var result = await executor.executeTypesPhase(instanceId,
                     Fixtures.myEnumValues.first, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -257,6 +295,8 @@ void main() {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myMixin, TestTypePhaseIntrospector());
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -271,6 +311,8 @@ void main() {
                   TestTypePhaseIntrospector(),
                 );
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                   result.libraryAugmentations.single.debugString().toString(),
@@ -293,6 +335,8 @@ class LibraryInfo {
                     Fixtures.myFunction,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -306,6 +350,8 @@ class LibraryInfo {
                     Fixtures.myMethod,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -320,6 +366,8 @@ class LibraryInfo {
                     Fixtures.myConstructor,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result
@@ -339,6 +387,8 @@ class LibraryInfo {
                     Fixtures.myVariableGetter,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -352,6 +402,8 @@ class LibraryInfo {
                     Fixtures.myVariableSetter,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -365,6 +417,8 @@ class LibraryInfo {
                     Fixtures.myVariable,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -378,6 +432,8 @@ class LibraryInfo {
                     Fixtures.myField,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result.typeAugmentations[Fixtures.myField.definingType]!
@@ -396,6 +452,8 @@ class LibraryInfo {
                     Fixtures.myClass,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result
@@ -411,6 +469,8 @@ class LibraryInfo {
                 var result = await executor.executeDeclarationsPhase(instanceId,
                     Fixtures.myEnum, Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result.typeAugmentations[Fixtures.myEnum.identifier]!.single
@@ -428,6 +488,8 @@ class LibraryInfo {
                     Fixtures.myEnumValues.first,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result.typeAugmentations[Fixtures.myEnum.identifier]!.single
@@ -445,6 +507,8 @@ class LibraryInfo {
                     Fixtures.myMixin,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, hasLength(1));
                 expect(
                     result
@@ -463,6 +527,8 @@ class LibraryInfo {
                     Fixtures.library,
                     Fixtures.testDeclarationPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                   result.libraryAugmentations.single.debugString().toString(),
@@ -478,6 +544,8 @@ class LibraryInfo {
                     Fixtures.myFunction,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -498,11 +566,12 @@ class LibraryInfo {
                     Fixtures.myMethod,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .typeAugmentations[Fixtures.myMethod.definingType]!
-                    .map((a) => a.debugString().toString())
-                    .toList();
+                    .mapToDebugCodeString();
                 expect(augmentationStrings,
                     unorderedEquals(methodDefinitionMatchers));
                 expect(definitionResult.libraryAugmentations, isEmpty);
@@ -514,6 +583,8 @@ class LibraryInfo {
                     Fixtures.myConstructor,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 expect(
                     definitionResult
@@ -531,6 +602,8 @@ class LibraryInfo {
                     Fixtures.myVariableGetter,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -551,6 +624,8 @@ class LibraryInfo {
                     Fixtures.myVariableSetter,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
@@ -572,10 +647,11 @@ class LibraryInfo {
                     Fixtures.myVariable,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
-                    result.libraryAugmentations
-                        .map((a) => a.debugString().toString()),
+                    result.libraryAugmentations.mapToDebugCodeString(),
                     unorderedEquals([
                       equalsIgnoringWhitespace('''
                 augment /*inferred*/String get _myVariable {
@@ -601,11 +677,13 @@ class LibraryInfo {
                     Fixtures.myField,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 expect(
                     definitionResult
                         .typeAugmentations[Fixtures.myField.definingType]!
-                        .map((a) => a.debugString().toString()),
+                        .mapToDebugCodeString(),
                     unorderedEquals(fieldDefinitionMatchers));
                 expect(definitionResult.libraryAugmentations, isEmpty);
               });
@@ -616,11 +694,12 @@ class LibraryInfo {
                     Fixtures.myClass,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .typeAugmentations[Fixtures.myClass.identifier]!
-                    .map((a) => a.debugString().toString())
-                    .toList();
+                    .mapToDebugCodeString();
                 expect(
                     augmentationStrings,
                     unorderedEquals([
@@ -638,15 +717,16 @@ class LibraryInfo {
                 expect(definitionResult.enumValueAugmentations, hasLength(1));
                 var entryAugmentationStrings = definitionResult
                     .enumValueAugmentations[Fixtures.myEnum.identifier]!
-                    .map((a) => a.debugString().toString())
+                    .mapToDebugCodeString()
                     .toList();
                 expect(entryAugmentationStrings,
                     unorderedEquals(["a('myField', ),"]));
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var typeAugmentationStrings = definitionResult
                     .typeAugmentations[Fixtures.myEnum.identifier]!
-                    .map((a) => a.debugString().toString())
-                    .toList();
+                    .mapToDebugCodeString();
                 expect(
                     typeAugmentationStrings,
                     unorderedEquals([
@@ -671,10 +751,11 @@ class LibraryInfo {
                     Fixtures.myEnumValues.first,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, hasLength(1));
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 var augmentationStrings = definitionResult
                     .enumValueAugmentations[Fixtures.myEnum.identifier]!
-                    .map((a) => a.debugString().toString())
-                    .toList();
+                    .mapToDebugCodeString();
                 expect(
                     augmentationStrings, unorderedEquals(["a('myField', ),"]));
                 expect(definitionResult.typeAugmentations, isEmpty);
@@ -686,11 +767,12 @@ class LibraryInfo {
                     Fixtures.myMixin,
                     Fixtures.testDefinitionPhaseIntrospector);
                 expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.interfaceAugmentations, isEmpty);
+                expect(definitionResult.mixinAugmentations, isEmpty);
                 expect(definitionResult.typeAugmentations, hasLength(1));
                 var augmentationStrings = definitionResult
                     .typeAugmentations[Fixtures.myMixin.identifier]!
-                    .map((a) => a.debugString().toString())
-                    .toList();
+                    .mapToDebugCodeString();
                 expect(
                     augmentationStrings,
                     unorderedEquals(
@@ -702,6 +784,8 @@ class LibraryInfo {
                 var result = await executor.executeDefinitionsPhase(instanceId,
                     Fixtures.library, Fixtures.testDefinitionPhaseIntrospector);
                 expect(result.enumValueAugmentations, isEmpty);
+                expect(result.interfaceAugmentations, isEmpty);
+                expect(result.mixinAugmentations, isEmpty);
                 expect(result.typeAugmentations, isEmpty);
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),

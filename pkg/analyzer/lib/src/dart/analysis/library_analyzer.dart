@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/context/source.dart';
@@ -76,6 +75,8 @@ class LibraryAnalyzer {
   final Map<FileState, IgnoreInfo> _fileToIgnoreInfo = {};
   final Map<FileState, RecordingErrorListener> _errorListeners = {};
   final Map<FileState, ErrorReporter> _errorReporters = {};
+  final LibraryVerificationContext _libraryVerificationContext =
+      LibraryVerificationContext();
   final TestingData? _testingData;
 
   LibraryAnalyzer(this._analysisOptions, this._declaredVariables,
@@ -392,8 +393,8 @@ class LibraryAnalyzer {
     //
     // Use the ErrorVerifier to compute errors.
     //
-    ErrorVerifier errorVerifier = ErrorVerifier(
-        errorReporter, _libraryElement, _typeProvider, _inheritance);
+    ErrorVerifier errorVerifier = ErrorVerifier(errorReporter, _libraryElement,
+        _typeProvider, _inheritance, _libraryVerificationContext);
     unit.accept(errorVerifier);
 
     // Verify constraints on FFI uses. The CFE enforces these constraints as
