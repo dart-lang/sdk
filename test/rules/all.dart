@@ -109,6 +109,9 @@ import 'prefer_final_fields_test.dart' as prefer_final_fields;
 import 'prefer_final_in_for_each_test.dart' as prefer_final_in_for_each;
 import 'prefer_final_locals_test.dart' as prefer_final_locals;
 import 'prefer_final_parameters_test.dart' as prefer_final_parameters;
+import 'prefer_for_elements_to_map_fromIterable_test.dart'
+// ignore: library_prefixes
+    as prefer_for_elements_to_map_fromIterable;
 import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
@@ -279,6 +282,7 @@ void main() {
   prefer_final_in_for_each.main();
   prefer_final_locals.main();
   prefer_final_parameters.main();
+  prefer_for_elements_to_map_fromIterable.main();
   prefer_generic_function_type_aliases.main();
   prefer_inlined_adds.main();
   prefer_interpolation_to_compose_strings.main();

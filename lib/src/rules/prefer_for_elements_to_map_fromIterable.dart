@@ -99,50 +99,52 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    // TODO(srawlins): Handle named arguments anywhere.
     var secondArg = arguments[1];
     var thirdArg = arguments[2];
 
-    Expression? extractBody(FunctionExpression expression) {
-      var body = expression.body;
-      if (body is ExpressionFunctionBody) {
-        return body.expression;
-      } else if (body is BlockFunctionBody) {
-        var statements = body.block.statements;
-        if (statements.length == 1) {
-          var statement = statements.first;
-          if (statement is ReturnStatement) {
-            return statement.expression;
-          }
-        }
-      }
-      return null;
-    }
-
-    FunctionExpression? extractClosure(String name, Expression argument) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        var expression = argument.expression.unParenthesized;
-        if (expression is FunctionExpression) {
-          var parameters = expression.parameters?.parameters;
-          if (parameters != null &&
-              parameters.length == 1 &&
-              parameters.first.isRequired) {
-            if (extractBody(expression) != null) {
-              return expression;
-            }
-          }
-        }
-      }
-      return null;
-    }
-
     var keyClosure =
-        extractClosure('key', secondArg) ?? extractClosure('key', thirdArg);
-    var valueClosure =
-        extractClosure('value', thirdArg) ?? extractClosure('value', secondArg);
+        _extractClosure('key', secondArg) ?? _extractClosure('key', thirdArg);
+    var valueClosure = _extractClosure('value', thirdArg) ??
+        _extractClosure('value', secondArg);
     if (keyClosure == null || valueClosure == null) {
       return;
     }
 
     rule.reportLint(creation);
+  }
+
+  FunctionExpression? _extractClosure(String name, Expression argument) {
+    if (argument is NamedExpression && argument.name.label.name == name) {
+      var expression = argument.expression.unParenthesized;
+      if (expression is FunctionExpression) {
+        var parameters = expression.parameters?.parameters;
+        if (parameters != null &&
+            parameters.length == 1 &&
+            parameters.first.isRequired) {
+          if (expression.hasSingleExpressionBody) {
+            return expression;
+          }
+        }
+      }
+    }
+    return null;
+  }
+}
+
+extension on FunctionExpression {
+  /// Whether this has a single expression body, which could be a single
+  /// return statement in a block function body.
+  bool get hasSingleExpressionBody {
+    var body = this.body;
+    if (body is ExpressionFunctionBody) {
+      return true;
+    } else if (body is BlockFunctionBody) {
+      var statements = body.block.statements;
+      if (statements.length == 1) {
+        return statements.first is ReturnStatement;
+      }
+    }
+    return false;
   }
 }
