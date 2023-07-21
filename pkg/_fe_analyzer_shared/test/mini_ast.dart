@@ -381,6 +381,17 @@ Pattern relationalPattern(String operator, Expression operand,
 
 Statement return_() => new Return._(location: computeLocation());
 
+/// Models a call to a generic Dart function that takes two arguments and
+/// returns the second argument; in other words, a function defined this way:
+///
+///     T second(dynamic x, T y) => y;
+///
+/// This can be useful in situations where a test needs to verify certain
+/// properties, or establish certain preconditions, before the analysis reaches
+/// a certain subexpression.
+Expression second(Expression first, Expression second) =>
+    Second._(first, second, location: computeLocation());
+
 PromotableLValue superProperty(String name) => new ThisOrSuperProperty._(name,
     location: computeLocation(), isSuperAccess: true);
 
@@ -3562,13 +3573,6 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   Self checkIR(String expectedIR);
-
-  /// If `this` is a statement `x`, creates a pseudo-expression that models
-  /// execution of `x` followed by evaluation of [expr].  This can be used to
-  /// test that flow analysis is in the correct state before an expression is
-  /// visited.
-  Expression thenExpr(Expression expr) =>
-      WrappedExpression._(asStatement, expr, null, location: computeLocation());
 }
 
 /// Common interface shared by constructs that can be used where a switch head
@@ -3718,6 +3722,35 @@ class Return extends Statement {
   void visit(Harness h) {
     h.typeAnalyzer.analyzeReturnStatement();
     h.irBuilder.apply('return', [], Kind.statement, location: location);
+  }
+}
+
+/// Representation of an invocation of a function `Second`, defined as follows:
+///
+///     T second(dynamic x, T y) => y;
+class Second extends Expression {
+  final Expression first;
+  final Expression second;
+
+  Second._(this.first, this.second, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    first.preVisit(visitor);
+    second.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'second($first, $second)';
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    h.typeAnalyzer.analyzeExpression(first, h.typeAnalyzer.dynamicType);
+    var type = h.typeAnalyzer.analyzeExpression(second, context);
+    h.irBuilder.apply(
+        'second', [Kind.expression, Kind.expression], Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(type: type);
   }
 }
 
