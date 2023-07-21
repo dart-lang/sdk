@@ -1111,6 +1111,7 @@ class Instructions with SerializerMixin {
     if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
   }
 
+  /// Emit an `array.copy` instruction.
   void array_copy(ArrayType destArrayType, ArrayType sourceArrayType) {
     assert(_verifyTypes([
       RefType.def(destArrayType, nullable: true), // dest
@@ -1126,6 +1127,21 @@ class Instructions with SerializerMixin {
     writeBytes(const [0xFB, 0x18]);
     writeUnsigned(destArrayType.index);
     writeUnsigned(sourceArrayType.index);
+  }
+
+  /// Emit an `array.fill` instruction.
+  void array_fill(ArrayType arrayType) {
+    assert(_verifyTypes([
+      RefType.def(arrayType, nullable: true),
+      NumType.i32, // offset
+      arrayType.elementType.type.unpacked, // fill value
+      NumType.i32 // size
+    ], [], trace: [
+      'array.copy',
+      arrayType,
+    ]));
+    writeBytes(const [0xFB, 0x0F]);
+    writeUnsigned(arrayType.index);
   }
 
   /// Emit an `i31.new` instruction.

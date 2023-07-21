@@ -276,9 +276,6 @@ final class JSIntArrayImpl extends JSArrayBufferViewImpl
         otherList = iterable.skip(skipCount).toList(growable: false);
         otherStart = 0;
       }
-      if (otherStart + count > otherList.length) {
-        throw IterableElementError.tooFew();
-      }
       Lists.copy(otherList, otherStart, this, start, count);
     }
   }
@@ -649,9 +646,6 @@ final class JSFloatArrayImpl extends JSArrayBufferViewImpl
       } else {
         otherList = iterable.skip(skipCount).toList(growable: false);
         otherStart = 0;
-      }
-      if (otherStart + count > otherList.length) {
-        throw IterableElementError.tooFew();
       }
       Lists.copy(otherList, otherStart, this, start, count);
     }

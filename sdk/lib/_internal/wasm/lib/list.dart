@@ -10,6 +10,7 @@ const int _maxWasmArrayLength = 2147483647; // max i32
 abstract class _ListBase<E> extends ListBase<E> {
   @pragma("wasm:entry-point")
   int _length;
+
   @pragma("wasm:entry-point")
   WasmObjectArray<Object?> _data;
 
@@ -38,7 +39,7 @@ abstract class _ListBase<E> extends ListBase<E> {
   void forEach(f(E element)) {
     final initialLength = length;
     for (int i = 0; i < initialLength; i++) {
-      f(this[i]);
+      f(unsafeCast<E>(_data.read(i)));
       if (length != initialLength) throw ConcurrentModificationError(this);
     }
   }
@@ -67,7 +68,7 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
     if (length == 0) return;
     RangeError.checkNotNegative(skipCount, "skipCount");
     if (identical(this, iterable)) {
-      Lists.copy(this, skipCount, this, start, length);
+      _data.copy(start, _data, skipCount, length);
     } else if (iterable is List<E>) {
       Lists.copy(iterable, skipCount, this, start, length);
     } else {
@@ -78,14 +79,14 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
       }
       for (int i = start; i < end; i++) {
         if (!it.moveNext()) return;
-        this[i] = it.current;
+        _data.write(i, it.current);
       }
     }
   }
 
   void setAll(int index, Iterable<E> iterable) {
     if (index < 0 || index > this.length) {
-      throw new RangeError.range(index, 0, this.length, "index");
+      throw RangeError.range(index, 0, this.length, "index");
     }
     List<E> iterableAsList;
     if (identical(this, iterable)) {
@@ -100,7 +101,7 @@ abstract class _ModifiableList<E> extends _ListBase<E> {
     }
     int length = iterableAsList.length;
     if (index + length > this.length) {
-      throw new RangeError.range(index + length, 0, this.length);
+      throw RangeError.range(index + length, 0, this.length);
     }
     Lists.copy(iterableAsList, 0, this, index, length);
   }
@@ -121,9 +122,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   factory _List.filled(int length, E fill) {
     final result = _List<E>(length);
     if (fill != null) {
-      for (int i = 0; i < result.length; i++) {
-        result[i] = fill;
-      }
+      result._data.fill(0, fill, length);
     }
     return result;
   }
@@ -133,7 +132,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   factory _List.generate(int length, E generator(int index)) {
     final result = _List<E>(length);
     for (int i = 0; i < result.length; ++i) {
-      result[i] = generator(i);
+      result._data.write(i, generator(i));
     }
     return result;
   }
@@ -152,9 +151,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
   factory _List._ofListBase(_ListBase<E> elements) {
     final int length = elements.length;
     final list = _List<E>(length);
-    for (int i = 0; i < length; i++) {
-      list[i] = elements[i];
-    }
+    list._data.copy(0, elements._data, 0, length);
     return list;
   }
 
@@ -188,7 +185,7 @@ class _List<E> extends _ModifiableList<E> with FixedLengthListMixin<E> {
 @pragma("wasm:entry-point")
 class _ImmutableList<E> extends _ListBase<E> with UnmodifiableListMixin<E> {
   factory _ImmutableList._uninstantiable() {
-    throw new UnsupportedError(
+    throw UnsupportedError(
         "_ImmutableList can only be allocated by the runtime");
   }
 
