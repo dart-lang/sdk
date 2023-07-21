@@ -2376,6 +2376,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleScript(Token token) {
     debugEvent("Script");
+    libraryBuilder.addScriptToken(token.charOffset);
   }
 
   @override

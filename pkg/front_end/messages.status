@@ -903,6 +903,8 @@ ReturnTypeFunctionExpression/example: Fail
 ReturnWithoutExpressionAsync/analyzerCode: Fail
 ReturnWithoutExpressionSync/analyzerCode: Fail
 ReturnWithoutExpressionSync/part_wrapped_script: Fail
+ScriptTagInPartFile/analyzerCode: Fail
+ScriptTagInPartFile/example: Fail
 SdkRootNotFound/analyzerCode: Fail
 SdkRootNotFound/example: Fail
 SdkSpecificationNotFound/analyzerCode: Fail

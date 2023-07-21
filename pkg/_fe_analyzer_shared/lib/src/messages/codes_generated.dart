@@ -11846,6 +11846,16 @@ const MessageCode messageReturnWithoutExpressionSync = const MessageCode(
         r"""A value must be explicitly returned from a non-void function.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeScriptTagInPartFile = messageScriptTagInPartFile;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageScriptTagInPartFile = const MessageCode(
+    "ScriptTagInPartFile",
+    problemMessage: r"""A part file cannot have script tag.""",
+    correctionMessage:
+        r"""Try removing the script tag or the 'part of' directive.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(Uri uri_)> templateSdkRootNotFound =
     const Template<Message Function(Uri uri_)>(
         problemMessageTemplate: r"""SDK root directory not found: #uri.""",
