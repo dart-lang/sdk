@@ -3779,11 +3779,6 @@ void f() {
   }
 
   Future<void> test_snippets_testBlock() async {
-    // This test fails when running on macOS using Windows style paths. This
-    // is because DartSnippetProducer.isInTestDirectory compares a path using
-    // the tests PathContext (eg. backslashes when running as Windows-on-macOS)
-    // to `LinterContextImpl.testDirectories` which are always using native
-    // paths.
     mainFilePath = join(projectFolderPath, 'test', 'foo_test.dart');
     mainFileUri = pathContext.toUri(mainFilePath);
     final content = '''

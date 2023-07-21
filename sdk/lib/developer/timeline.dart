@@ -246,7 +246,9 @@ final class TimelineTask {
         map[key] = arguments[key];
       }
     }
-    if (_parent != null) map['parentId'] = _parent!._taskId.toRadixString(16);
+    // TODO(#52982): Make use of field promotion of `_parent`.
+    var parent = _parent;
+    if (parent != null) map['parentId'] = parent._taskId.toRadixString(16);
     if (_filterKey != null) map[_kFilterKey] = _filterKey;
     block._start(map);
   }

@@ -703,10 +703,12 @@ class _HttpClientResponse extends _HttpInboundMessageListInt
           .transform(gzip.decoder)
           .transform(const _ToUint8List());
     }
-    if (_profileData != null) {
+    // TODO(#52982): Make use of field promotion of `_profileData`.
+    var profileData = _profileData;
+    if (profileData != null) {
       // If _timeline is not set up, don't add unnecessary map() to the stream.
       stream = stream.map((data) {
-        _profileData?.appendResponseData(data);
+        profileData.appendResponseData(data);
         return data;
       });
     }
@@ -1150,11 +1152,13 @@ abstract class _HttpOutboundMessage<T> extends _IOSinkImpl {
   }
 
   Future addStream(Stream<List<int>> s) {
-    if (_profileData == null) {
+    // TODO(#52982): Make use of field promotion of `_profileData`.
+    var profileData = _profileData;
+    if (profileData == null) {
       return super.addStream(s);
     }
     return super.addStream(s.map((data) {
-      _profileData?.appendRequestData(Uint8List.fromList(data));
+      profileData.appendRequestData(Uint8List.fromList(data));
       return data;
     }));
   }

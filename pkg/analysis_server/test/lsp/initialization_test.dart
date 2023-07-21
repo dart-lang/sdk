@@ -855,6 +855,11 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 
+  Future<void> test_initialize_rootUri_encodedDriveLetterColon() async {
+    await initialize(rootUri: withEncodedDriveLetterColon(projectFolderUri));
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
   Future<void> test_initialize_rootUri_trailingSlash() async {
     await initialize(rootUri: withTrailingSlashUri(projectFolderUri));
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
@@ -862,6 +867,13 @@ class InitializationTest extends AbstractLspAnalysisServerTest {
 
   Future<void> test_initialize_workspaceFolders() async {
     await initialize(workspaceFolders: [projectFolderUri]);
+    expect(server.contextManager.includedPaths, equals([projectFolderPath]));
+  }
+
+  Future<void>
+      test_initialize_workspaceFolders_encodedDriveLetterColon() async {
+    await initialize(
+        workspaceFolders: [withEncodedDriveLetterColon(projectFolderUri)]);
     expect(server.contextManager.includedPaths, equals([projectFolderPath]));
   }
 

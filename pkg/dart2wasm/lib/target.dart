@@ -131,7 +131,8 @@ class WasmTarget extends Target {
           uri.path == '_typed_data' ||
           uri.path == '_boxed_double' ||
           uri.path == '_boxed_int' ||
-          uri.path == '_js_types');
+          uri.path == '_js_types' ||
+          uri.path == '_typed_data_helper');
 
   @override
   bool allowPlatformPrivateLibraryAccess(Uri importer, Uri imported) =>

@@ -396,7 +396,7 @@ mixin _CallHierarchyUtils on HandlerHelperMixin<AnalysisServer> {
       displayName: item.name,
       containerName: item.detail,
       kind: fromSymbolKind(item.kind),
-      file: pathContext.fromUri(item.uri),
+      file: item.uri.toFilePath(),
       nameRange: nameRange.result,
       codeRange: codeRange.result,
     );

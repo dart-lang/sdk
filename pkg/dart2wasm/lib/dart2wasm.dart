@@ -36,6 +36,9 @@ final List<Option> options = [
       defaultsTo: _d.translatorOptions.printWasm),
   Flag("stringref", (o, value) => o.translatorOptions.useStringref = value,
       defaultsTo: _d.translatorOptions.useStringref),
+  Flag("js-compatibility",
+      (o, value) => o.translatorOptions.jsCompatibility = value,
+      defaultsTo: _d.translatorOptions.jsCompatibility),
   Flag(
       "enable-asserts", (o, value) => o.translatorOptions.enableAsserts = value,
       defaultsTo: _d.translatorOptions.enableAsserts),

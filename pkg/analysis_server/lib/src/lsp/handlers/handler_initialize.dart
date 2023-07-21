@@ -44,13 +44,13 @@ class InitializeMessageHandler
           // Only file URIs are supported, but there's no way to signal this to
           // the LSP client (and certainly not before initialization).
           if (uri.isScheme('file')) {
-            workspacePaths.add(pathContext.fromUri(uri));
+            workspacePaths.add(uri.toFilePath());
           }
         }
       }
       if (rootUri != null) {
         if (rootUri.isScheme('file')) {
-          workspacePaths.add(pathContext.fromUri(rootUri));
+          workspacePaths.add(rootUri.toFilePath());
         }
       } else if (rootPath != null) {
         workspacePaths.add(rootPath);

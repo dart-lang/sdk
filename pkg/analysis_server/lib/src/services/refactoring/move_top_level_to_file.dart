@@ -68,12 +68,11 @@ class MoveTopLevelToFile extends RefactoringProducer {
       return;
     }
     _initializeFromMembers(members);
-    var pathContext = refactoringContext.server.resourceProvider.pathContext;
     var sourcePath = members.containingFile;
     // TODO(dantup): Add refactor-specific validation for incoming arguments.
     // Argument is a String URI.
     var destinationUri = Uri.parse(commandArguments[0] as String);
-    var destinationFilePath = pathContext.fromUri(destinationUri);
+    var destinationFilePath = destinationUri.toFilePath();
 
     var destinationImportUri =
         unitResult.session.uriConverter.pathToUri(destinationFilePath);

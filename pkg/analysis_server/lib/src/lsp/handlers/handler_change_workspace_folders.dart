@@ -43,6 +43,6 @@ class WorkspaceFoldersHandler
   /// Return the result of converting the list of workspace [folders] to file
   /// paths.
   List<String> _convertWorkspaceFolders(List<WorkspaceFolder> folders) {
-    return folders.map((wf) => pathContext.fromUri(wf.uri)).toList();
+    return folders.map((wf) => wf.uri.toFilePath()).toList();
   }
 }
