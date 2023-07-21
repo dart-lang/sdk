@@ -39,7 +39,8 @@ final RegExp _locationRegExp =
 SwitchHeadDefault get default_ =>
     SwitchHeadDefault._(location: computeLocation());
 
-Expression get nullLiteral => new NullLiteral._(location: computeLocation());
+ConstExpression get nullLiteral =>
+    new NullLiteral._(location: computeLocation());
 
 Expression get this_ => new This._(location: computeLocation());
 
@@ -141,7 +142,7 @@ Statement do_(List<ProtoStatement> body, Expression condition) {
 
 /// Creates a pseudo-expression having type [typeStr] that otherwise has no
 /// effect on flow analysis.
-Expression expr(String typeStr) =>
+ConstExpression expr(String typeStr) =>
     new PlaceholderExpression._(new Type(typeStr), location: computeLocation());
 
 /// Creates a conventional `for` statement.  Optional boolean [forCollection]
@@ -249,7 +250,7 @@ CollectionElement ifElement(Expression condition, ProtoCollectionElement ifTrue,
       location: location);
 }
 
-Expression intLiteral(int value, {bool? expectConversionToDouble}) =>
+ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
     new IntLiteral(value,
         expectConversionToDouble: expectConversionToDouble,
         location: computeLocation());
@@ -1117,6 +1118,15 @@ class ConstantPattern extends Pattern {
   _debugString({required bool needsKeywordOrType}) => constant.toString();
 }
 
+/// Common interface shared by constructs that represent constant expressions,
+/// in the pseudo-Dart language used for flow analysis testing.
+abstract class ConstExpression extends Expression {
+  ConstExpression._({required super.location});
+
+  /// Converts this expression into a constant pattern.
+  Pattern get pattern => ConstantPattern(this, location: computeLocation());
+}
+
 class Continue extends Statement {
   final Label? target;
 
@@ -1324,8 +1334,6 @@ abstract class Expression extends Node
   /// If `this` is an expression `x`, creates the expression `(x)`.
   Expression get parenthesized =>
       new ParenthesizedExpression._(this, location: computeLocation());
-
-  Pattern get pattern => ConstantPattern(this, location: computeLocation());
 
   /// If `this` is an expression `x`, creates the expression `x && other`.
   Expression and(Expression other) =>
@@ -2135,7 +2143,7 @@ class IfNull extends Expression {
   }
 }
 
-class IntLiteral extends Expression {
+class IntLiteral extends ConstExpression {
   final int value;
 
   /// `true` or `false` if we should assert that int->double conversion either
@@ -2143,7 +2151,8 @@ class IntLiteral extends Expression {
   final bool? expectConversionToDouble;
 
   IntLiteral(this.value,
-      {this.expectConversionToDouble, required super.location});
+      {this.expectConversionToDouble, required super.location})
+      : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3048,8 +3057,8 @@ class NullCheckOrAssertPattern extends Pattern {
       '${inner._debugString(needsKeywordOrType: needsKeywordOrType)}?';
 }
 
-class NullLiteral extends Expression {
-  NullLiteral._({required super.location});
+class NullLiteral extends ConstExpression {
+  NullLiteral._({required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -3404,10 +3413,10 @@ class PatternVariableJoin extends Var {
   }
 }
 
-class PlaceholderExpression extends Expression {
+class PlaceholderExpression extends ConstExpression {
   final Type type;
 
-  PlaceholderExpression._(this.type, {required super.location});
+  PlaceholderExpression._(this.type, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
