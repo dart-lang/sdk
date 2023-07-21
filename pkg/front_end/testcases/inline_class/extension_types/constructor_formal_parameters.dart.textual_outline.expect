@@ -1,0 +1,9 @@
+extension type I._(int it) {
+I(int x, [int? y]) : it = x + (y ?? 42);
+void m(String s, [int i = 1]) {}
+} extension type I2._(int it) {
+I2(int x, {int? y}) : it = x + (y ?? 87);
+void m(String s, {int i = 1}) {}
+}
+main() {}
+expect(expected, actual) {}

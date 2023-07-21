@@ -132,6 +132,8 @@ class ValueKinds {
       const UnionValueKind([Name, Operator]);
   static const ValueKind NameOrQualifiedNameOrOperator =
       const UnionValueKind([Name, QualifiedName, Operator]);
+  static const ValueKind NameOrQualifiedNameOrOperatorOrParserRecovery =
+      const UnionValueKind([Name, QualifiedName, Operator, ParserRecovery]);
   static const ValueKind NameOrParserRecovery =
       const UnionValueKind([Name, ParserRecovery]);
   static const ValueKind NameOrParserRecoveryOrNull =

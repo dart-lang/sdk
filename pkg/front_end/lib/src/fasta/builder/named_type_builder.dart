@@ -303,7 +303,8 @@ abstract class NamedTypeBuilder extends TypeBuilder {
       TypeVariableBuilder typeParameterBuilder =
           _declaration as TypeVariableBuilder;
       if (typeParameterBuilder.kind == TypeVariableKind.classMixinOrEnum ||
-          typeParameterBuilder.kind == TypeVariableKind.extension ||
+          typeParameterBuilder.kind ==
+              TypeVariableKind.extensionOrExtensionType ||
           typeParameterBuilder.kind == TypeVariableKind.extensionSynthesized) {
         switch (_instanceTypeVariableAccess) {
           case InstanceTypeVariableAccessState.Disallowed:

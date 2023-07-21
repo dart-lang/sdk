@@ -3161,6 +3161,10 @@ class num {
 class Function {}
 
 class Record {}
+
+class StateError {
+  StateError(String message);
+}
 """;
 
 /// A minimal implementation of dart:async that is sufficient to create an

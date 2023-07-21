@@ -2188,7 +2188,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int startOffset,
       int nameOffset,
       int endOffset) {
-    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    // Nested declaration began in
+    // `OutlineBuilder.beginExtensionDeclarationPrelude`.
     TypeParameterScopeBuilder declaration =
         endNestedDeclaration(TypeParameterScopeKind.extensionDeclaration, name)
           ..resolveNamedTypes(typeVariables, this);
@@ -2256,6 +2257,99 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
     addBuilder(extensionBuilder.name, extensionBuilder, nameOffset,
+        getterReference: referenceFrom?.reference);
+  }
+
+  void addExtensionTypeDeclaration(
+      List<MetadataBuilder>? metadata,
+      int modifiers,
+      String name,
+      List<TypeVariableBuilder>? typeVariables,
+      List<TypeBuilder>? interfaces,
+      int startOffset,
+      int nameOffset,
+      int endOffset) {
+    // Nested declaration began in `OutlineBuilder.beginExtensionDeclaration`.
+    TypeParameterScopeBuilder declaration = endNestedDeclaration(
+        TypeParameterScopeKind.extensionTypeDeclaration, name)
+      ..resolveNamedTypes(typeVariables, this);
+    assert(declaration.parent == _libraryTypeParameterScopeBuilder);
+    Map<String, Builder> members = declaration.members!;
+    Map<String, MemberBuilder> constructors = declaration.constructors!;
+    Map<String, MemberBuilder> setters = declaration.setters!;
+
+    Scope memberScope = new Scope(
+        kind: ScopeKind.declaration,
+        local: members,
+        setters: setters,
+        parent: scope.withTypeVariables(typeVariables),
+        debugName: "inline class $name",
+        isModifiable: false);
+    ConstructorScope constructorScope =
+        new ConstructorScope(name, constructors);
+
+    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
+
+    SourceFieldBuilder? representationFieldBuilder;
+    outer:
+    for (Builder? member in members.values) {
+      while (member != null) {
+        if (!member.isDuplicate &&
+            member is SourceFieldBuilder &&
+            !member.isStatic) {
+          representationFieldBuilder = member;
+          break outer;
+        }
+        member = member.next;
+      }
+    }
+
+    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
+        metadata,
+        modifiers,
+        declaration.name,
+        typeVariables,
+        interfaces,
+        memberScope,
+        constructorScope,
+        this,
+        new List<ConstructorReferenceBuilder>.of(constructorReferences),
+        startOffset,
+        nameOffset,
+        endOffset,
+        referenceFrom,
+        representationFieldBuilder);
+    constructorReferences.clear();
+    Map<String, TypeVariableBuilder>? typeVariablesByName =
+        checkTypeVariables(typeVariables, inlineClassBuilder);
+    void setParent(MemberBuilder? member) {
+      while (member != null) {
+        member.parent = inlineClassBuilder;
+        member = member.next as MemberBuilder?;
+      }
+    }
+
+    void setParentAndCheckConflicts(String name, Builder member) {
+      if (typeVariablesByName != null) {
+        TypeVariableBuilder? tv = typeVariablesByName[name];
+        if (tv != null) {
+          inlineClassBuilder.addProblem(
+              templateConflictsWithTypeVariable.withArguments(name),
+              member.charOffset,
+              name.length,
+              context: [
+                messageConflictsWithTypeVariableCause.withLocation(
+                    tv.fileUri!, tv.charOffset, name.length)
+              ]);
+        }
+      }
+      setParent(member as MemberBuilder);
+    }
+
+    members.forEach(setParentAndCheckConflicts);
+    constructors.forEach(setParentAndCheckConflicts);
+    setters.forEach(setParentAndCheckConflicts);
+    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2734,7 +2828,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     checkTypeVariables(typeVariables, supertype.declaration);
   }
 
-  void addField(
+  SourceFieldBuilder addField(
       List<MetadataBuilder>? metadata,
       int modifiers,
       bool isTopLevel,
@@ -2855,6 +2949,44 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     addBuilder(name, fieldBuilder, charOffset,
         getterReference: fieldGetterReference,
         setterReference: fieldSetterReference);
+    return fieldBuilder;
+  }
+
+  void addPrimaryConstructorField(
+      {required List<MetadataBuilder>? metadata,
+      required TypeBuilder type,
+      required String name,
+      required int charOffset}) {
+    addField(
+        metadata,
+        finalMask,
+        /* isTopLevel = */ false,
+        type,
+        name,
+        /* charOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* initializerToken = */ null,
+        /* hasInitializer = */ false);
+  }
+
+  void addPrimaryConstructor(
+      {required String constructorName,
+      required List<TypeVariableBuilder>? typeVariables,
+      required List<FormalParameterBuilder>? formals,
+      required int charOffset}) {
+    addConstructor(
+        null,
+        constMask,
+        null,
+        constructorName,
+        typeVariables,
+        formals,
+        /* startCharOffset = */ charOffset,
+        charOffset,
+        /* charOpenParenOffset = */ charOffset,
+        /* charEndOffset = */ charOffset,
+        /* nativeMethodName = */ null,
+        forAbstractClass: false);
   }
 
   void addConstructor(
@@ -2896,7 +3028,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             ? new LibraryName(referencesFrom!.reference)
             : libraryName);
     if (currentTypeParameterScopeBuilder.kind ==
-        TypeParameterScopeKind.inlineClassDeclaration) {
+            TypeParameterScopeKind.inlineClassDeclaration ||
+        currentTypeParameterScopeBuilder.kind ==
+            TypeParameterScopeKind.extensionTypeDeclaration) {
       constructorBuilder = new SourceInlineClassConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
@@ -5243,7 +5377,9 @@ enum TypeParameterScopeKind {
   mixinDeclaration,
   unnamedMixinApplication,
   namedMixinApplication,
+  extensionOrExtensionTypeDeclaration,
   extensionDeclaration,
+  extensionTypeDeclaration,
   inlineClassDeclaration,
   typedef,
   staticMethod,
@@ -5268,6 +5404,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.unnamedMixinApplication:
       case TypeParameterScopeKind.namedMixinApplication:
       case TypeParameterScopeKind.enumDeclaration:
+      case TypeParameterScopeKind.extensionTypeDeclaration:
       case TypeParameterScopeKind.inlineClassDeclaration:
         return new ClassName(name);
       case TypeParameterScopeKind.extensionDeclaration:
@@ -5279,6 +5416,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.topLevelMethod:
       case TypeParameterScopeKind.factoryMethod:
       case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
         throw new UnsupportedError("Unexpected field container: ${this}");
     }
   }
@@ -5297,6 +5435,7 @@ extension on TypeParameterScopeBuilder {
         return ContainerType.Class;
       case TypeParameterScopeKind.extensionDeclaration:
         return ContainerType.Extension;
+      case TypeParameterScopeKind.extensionTypeDeclaration:
       case TypeParameterScopeKind.inlineClassDeclaration:
         return ContainerType.InlineClass;
       case TypeParameterScopeKind.typedef:
@@ -5306,6 +5445,7 @@ extension on TypeParameterScopeBuilder {
       case TypeParameterScopeKind.topLevelMethod:
       case TypeParameterScopeKind.factoryMethod:
       case TypeParameterScopeKind.functionType:
+      case TypeParameterScopeKind.extensionOrExtensionTypeDeclaration:
         throw new UnsupportedError("Unexpected field container: ${this}");
     }
   }
@@ -5430,12 +5570,25 @@ class TypeParameterScopeBuilder {
   /// the given [name] and [typeVariables] located [charOffset].
   void markAsExtensionDeclaration(
       String? name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
-    assert(_kind == TypeParameterScopeKind.extensionDeclaration,
+    assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
         "Unexpected declaration kind: $_kind");
+    _kind = TypeParameterScopeKind.extensionDeclaration;
     _extensionName = name != null
         ? new FixedExtensionName(name)
         : new UnnamedExtensionName();
     _name = _extensionName!.name;
+    _charOffset = charOffset;
+    _typeVariables = typeVariables;
+  }
+
+  /// Registers that this builder is preparing for an extension type declaration
+  /// with the given [name] and [typeVariables] located [charOffset].
+  void markAsExtensionTypeDeclaration(
+      String name, int charOffset, List<TypeVariableBuilder>? typeVariables) {
+    assert(_kind == TypeParameterScopeKind.extensionOrExtensionTypeDeclaration,
+        "Unexpected declaration kind: $_kind");
+    _kind = TypeParameterScopeKind.extensionTypeDeclaration;
+    _name = name;
     _charOffset = charOffset;
     _typeVariables = typeVariables;
   }
