@@ -2112,6 +2112,74 @@ class ForwardingListener implements Listener {
     listener?.handleExperimentNotEnabled(
         experimentalFlag, startToken, endToken);
   }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    listener?.beginExtensionTypeDeclaration(extensionKeyword, name);
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeConstructor(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    listener?.endExtensionTypeDeclaration(
+        extensionKeyword, typeKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    listener?.endExtensionTypeFactoryMethod(
+        beginToken, factoryKeyword, endToken);
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    listener?.endExtensionTypeFields(
+        abstractToken,
+        augmentToken,
+        externalToken,
+        staticToken,
+        covariantToken,
+        lateToken,
+        varFinalOrConst,
+        count,
+        beginToken,
+        endToken);
+  }
+
+  @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    listener?.endExtensionTypeMethod(
+        getOrSet, beginToken, beginParam, beginInitializers, endToken);
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    listener?.beginPrimaryConstructor(beginToken);
+  }
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+    listener?.endPrimaryConstructor(beginToken, hasConstructorName);
+  }
 }
 
 class NullListener extends ForwardingListener {

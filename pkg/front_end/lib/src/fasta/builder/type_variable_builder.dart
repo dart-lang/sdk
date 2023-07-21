@@ -41,6 +41,9 @@ enum TypeVariableKind {
   /// extension type variable.
   extensionSynthesized,
 
+  /// A type variable declared on an extension type.
+  extensionType,
+
   /// A type variable builder created from a kernel node.
   fromKernel,
 }
