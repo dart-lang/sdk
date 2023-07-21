@@ -11,13 +11,12 @@ import 'package:analyzer/src/lint/registry.dart'; // ignore: implementation_impo
 import 'package:args/args.dart';
 
 import 'analyzer.dart';
-import 'extensions.dart';
 import 'formatter.dart';
 import 'rules.dart';
 
 const processFileFailedExitCode = 65;
-const unableToProcessExitCode = 64;
 
+const unableToProcessExitCode = 64;
 String? getRoot(List<String> paths) =>
     paths.length == 1 && Directory(paths.first).existsSync()
         ? paths.first
@@ -124,7 +123,9 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   }
 
   var packageConfigFile = options['packages'] as String?;
-  packageConfigFile = packageConfigFile?.toAbsoluteNormalizedPath();
+  packageConfigFile = packageConfigFile != null
+      ? _absoluteNormalizedPath(packageConfigFile)
+      : null;
 
   var stats = options['stats'] as bool;
   var benchmark = options['benchmark'] as bool;
@@ -140,7 +141,7 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
   for (var path in options.rest) {
     filesToLint.addAll(
       collectFiles(path)
-          .map((file) => file.path.toAbsoluteNormalizedPath())
+          .map((file) => _absoluteNormalizedPath(file.path))
           .map(File.new),
     );
   }
@@ -175,4 +176,11 @@ Future runLinter(List<String> args, LinterOptions initialLintOptions) async {
 $err
 $stack''');
   }
+}
+
+String _absoluteNormalizedPath(String path) {
+  var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+  return pathContext.normalize(
+    pathContext.absolute(path),
+  );
 }

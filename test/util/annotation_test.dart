@@ -6,7 +6,7 @@ import 'package:analyzer/error/error.dart';
 import 'package:linter/src/test_utilities/annotation.dart';
 import 'package:test/test.dart';
 
-import 'util/annotation_matcher.dart';
+import 'annotation_matcher.dart';
 
 void main() {
   test('extraction', () {
