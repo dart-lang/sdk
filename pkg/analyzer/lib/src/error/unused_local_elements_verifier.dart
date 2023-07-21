@@ -561,8 +561,8 @@ class UnusedLocalElementsVerifier extends RecursiveAstVisitor<void> {
   void visitFormalParameterList(FormalParameterList node) {
     for (var element in node.parameterElements) {
       if (!_isUsedElement(element!)) {
-        _reportErrorForElement(WarningCode.UNUSED_ELEMENT_PARAMETER, element,
-            [element.displayName]);
+        _reportErrorForElement(
+            HintCode.UNUSED_ELEMENT_PARAMETER, element, [element.displayName]);
       }
     }
     super.visitFormalParameterList(node);

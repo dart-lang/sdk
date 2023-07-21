@@ -83,7 +83,7 @@ enum E {
 ''', [
       error(CompileTimeErrorCode.INITIALIZING_FORMAL_FOR_NON_EXISTENT_FIELD, 25,
           6),
-      error(WarningCode.UNUSED_ELEMENT_PARAMETER, 30, 1),
+      error(HintCode.UNUSED_ELEMENT_PARAMETER, 30, 1),
     ]);
   }
 

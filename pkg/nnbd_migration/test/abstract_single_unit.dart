@@ -46,7 +46,7 @@ class AbstractSingleUnitTest extends AbstractContextTest {
             error.errorCode != WarningCode.UNUSED_CATCH_CLAUSE &&
             error.errorCode != WarningCode.UNUSED_CATCH_STACK &&
             error.errorCode != WarningCode.UNUSED_ELEMENT &&
-            error.errorCode != WarningCode.UNUSED_ELEMENT_PARAMETER &&
+            error.errorCode != HintCode.UNUSED_ELEMENT_PARAMETER &&
             error.errorCode != WarningCode.UNUSED_FIELD &&
             error.errorCode != WarningCode.UNUSED_IMPORT &&
             error.errorCode != WarningCode.UNUSED_LOCAL_VARIABLE;

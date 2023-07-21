@@ -190,13 +190,10 @@ class HintCode extends AnalyzerErrorCode {
 
   ///  Parameters:
   ///  0: the name of the parameter that is declared but not used
-  @Deprecated("Use 'WarningCode.UNUSED_ELEMENT_PARAMETER' instead.")
   static const HintCode UNUSED_ELEMENT_PARAMETER = HintCode(
-    'UNUSED_ELEMENT',
+    'UNUSED_ELEMENT_PARAMETER',
     "A value for optional parameter '{0}' isn't ever given.",
     correctionMessage: "Try removing the unused parameter.",
-    hasPublishedDocs: true,
-    uniqueName: 'UNUSED_ELEMENT_PARAMETER',
   );
 
   ///  This is the deprecated alias for [WarningCode.UNUSED_LOCAL_VARIABLE].
