@@ -258,6 +258,20 @@ _extra_builder(
     category = "vm|aot|wr",
     dimensions = windows,
 )
+_extra_builder(
+    "vm-aot-win-debug-arm64",
+    category = "vm|aot|wad",
+    channels = ["try"],
+    dimensions = [windows11, arm64, flutter_pool],
+    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+)
+_extra_builder(
+    "vm-aot-win-release-arm64",
+    category = "vm|aot|war",
+    channels = ["try"],
+    dimensions = [windows11, arm64, flutter_pool],
+    goma = False,  # no such package: infra_internal/goma/client/windows-arm64
+)
 
 # vm|aot|android
 _extra_builder(
