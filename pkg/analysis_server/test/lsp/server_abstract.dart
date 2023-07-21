@@ -339,6 +339,13 @@ analyzer:
     return verifier;
   }
 
+  /// Encodes any drive letter colon in the URI.
+  ///
+  /// file:///C:/foo -> file:///C%3A/foo
+  Uri withEncodedDriveLetterColon(Uri uri) {
+    return uri.replace(path: uri.path.replaceAll(':', '%3A'));
+  }
+
   /// Adds a trailing slash (direction based on path context) to [path].
   ///
   /// Throws if the path already has a trailing slash.

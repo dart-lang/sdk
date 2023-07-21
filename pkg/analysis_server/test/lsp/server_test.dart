@@ -209,8 +209,6 @@ class ServerTest extends AbstractLspAnalysisServerTest {
     await initialize();
     await expectLater(
       getHover(missingDriveLetterFileUri, startOfDocPos),
-      // The pathContext.toUri() above translates to a non-file:// URI of just
-      // 'a/b.dart' so will get the not-file-scheme error message.
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'URI was not an absolute file path (missing drive letter)')),
     );
