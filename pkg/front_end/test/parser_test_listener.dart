@@ -375,6 +375,41 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    seen(extensionKeyword);
+    seen(name);
+    doPrint('beginExtensionTypeDeclaration(' '$extensionKeyword, ' '$name)');
+    indent++;
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    indent--;
+    seen(extensionKeyword);
+    seen(typeKeyword);
+    seen(endToken);
+    doPrint('endExtensionTypeDeclaration('
+        '$extensionKeyword, '
+        '$typeKeyword, '
+        '$endToken)');
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    seen(beginToken);
+    doPrint('beginPrimaryConstructor(' '$beginToken)');
+    indent++;
+  }
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+    indent--;
+    seen(beginToken);
+    doPrint('endPrimaryConstructor(' '$beginToken, ' '$hasConstructorName)');
+  }
+
+  @override
   void beginCombinators(Token token) {
     seen(token);
     doPrint('beginCombinators(' '$token)');
@@ -632,6 +667,19 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    indent--;
+    seen(beginToken);
+    seen(factoryKeyword);
+    seen(endToken);
+    doPrint('endExtensionTypeFactoryMethod('
+        '$beginToken, '
+        '$factoryKeyword, '
+        '$endToken)');
+  }
+
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     seen(token);
@@ -794,6 +842,41 @@ class ParserTestListener implements Listener {
     seen(beginToken);
     seen(endToken);
     doPrint('endExtensionFields('
+        '$abstractToken, '
+        '$augmentToken, '
+        '$externalToken, '
+        '$staticToken, '
+        '$covariantToken, '
+        '$lateToken, '
+        '$varFinalOrConst, '
+        '$count, '
+        '$beginToken, '
+        '$endToken)');
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    indent--;
+    seen(abstractToken);
+    seen(augmentToken);
+    seen(externalToken);
+    seen(staticToken);
+    seen(covariantToken);
+    seen(lateToken);
+    seen(varFinalOrConst);
+    seen(beginToken);
+    seen(endToken);
+    doPrint('endExtensionTypeFields('
         '$abstractToken, '
         '$augmentToken, '
         '$externalToken, '
@@ -1611,6 +1694,23 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endExtensionTypeMethod('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     indent--;
@@ -1654,6 +1754,23 @@ class ParserTestListener implements Listener {
     seen(beginInitializers);
     seen(endToken);
     doPrint('endExtensionConstructor('
+        '$getOrSet, '
+        '$beginToken, '
+        '$beginParam, '
+        '$beginInitializers, '
+        '$endToken)');
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    indent--;
+    seen(getOrSet);
+    seen(beginToken);
+    seen(beginParam);
+    seen(beginInitializers);
+    seen(endToken);
+    doPrint('endExtensionTypeConstructor('
         '$getOrSet, '
         '$beginToken, '
         '$beginParam, '

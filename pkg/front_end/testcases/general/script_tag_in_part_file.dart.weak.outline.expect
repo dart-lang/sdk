@@ -1,0 +1,16 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/script_tag_in_part_file.dart:1:1: Error: A part file cannot have script tag.
+// Try removing the script tag or the 'part of' directive.
+// #!/usr/bin/env dart
+// ^
+//
+import self as self;
+
+part script_tag_in_part_file.dart;
+static method /* from org-dartlang-testcase:///script_tag_in_part_file.dart */ run() → void
+  ;
+static method main() → void
+  ;

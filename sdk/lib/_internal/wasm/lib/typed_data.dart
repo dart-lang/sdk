@@ -1870,9 +1870,6 @@ mixin _TypedIntListMixin<SpawnedType extends List<int>> on _IntListMixin
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
     }
-    if (otherStart + count > otherList.length) {
-      throw IterableElementError.tooFew();
-    }
     Lists.copy(otherList, otherStart, this, start, count);
   }
 
@@ -2243,9 +2240,6 @@ mixin _TypedDoubleListMixin<SpawnedType extends List<double>>
     } else {
       otherList = from.skip(skipCount).toList(growable: false);
       otherStart = 0;
-    }
-    if (otherStart + count > otherList.length) {
-      throw IterableElementError.tooFew();
     }
     Lists.copy(otherList, otherStart, this, start, count);
   }

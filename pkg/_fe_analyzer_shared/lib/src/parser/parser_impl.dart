@@ -2993,7 +2993,8 @@ class Parser {
   }
 
   /// ```
-  /// 'extension' <identifier>? <typeParameters>? 'on' <type> '?'?
+  /// 'extension' <identifier>? <typeParameters>?
+  ///     (('.' <identifier>)? <implementsClause>) | ('on' <type> '?'?)
   //   `{'
   //     <memberDeclaration>*
   //   `}'
@@ -3023,6 +3024,13 @@ class Parser {
     }
     token = computeTypeParamOrArg(token, /* inDeclaration = */ true)
         .parseVariables(token, this);
+    if (typeKeyword != null && name != null) {
+      Token next = token.next!;
+      if (optional('(', next) || optional('.', next)) {
+        return parseExtensionTypeDeclarationRest(
+            token, extensionKeyword, typeKeyword, name);
+      }
+    }
     listener.beginExtensionDeclaration(extensionKeyword, name);
     Token onKeyword = token.next!;
     if (!optional('on', onKeyword)) {
@@ -3125,6 +3133,34 @@ class Parser {
         token, DeclarationKind.Extension, name?.lexeme);
     listener.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
         showKeyword, hideKeyword, token);
+    return token;
+  }
+
+  /// Parses an extension type declaration after
+  ///
+  ///    'extension' 'type' <name> <typeParameters>?
+  ///
+  /// This parses
+  ///
+  ///    ('.' <identifier>)? <formals> '{' <memberDeclaration>* '}'
+  ///
+  Token parseExtensionTypeDeclarationRest(
+      Token token, Token extensionKeyword, Token typeKeyword, Token name) {
+    assert(optional('(', token.next!) || optional('.', token.next!));
+    listener.beginExtensionTypeDeclaration(extensionKeyword, name);
+    Token beginPrimaryConstructor = token.next!;
+    listener.beginPrimaryConstructor(beginPrimaryConstructor);
+    bool hasConstructorName = optional('.', beginPrimaryConstructor);
+    if (hasConstructorName) {
+      token = ensureIdentifier(beginPrimaryConstructor,
+          IdentifierContext.primaryConstructorDeclaration);
+    }
+    token = parseFormalParameters(token, MemberKind.PrimaryConstructor);
+    listener.endPrimaryConstructor(beginPrimaryConstructor, hasConstructorName);
+    token = parseClassOrMixinOrEnumImplementsOpt(token);
+    token = parseClassOrMixinOrExtensionBody(
+        token, DeclarationKind.ExtensionType, name.lexeme);
+    listener.endExtensionTypeDeclaration(extensionKeyword, typeKeyword, token);
     return token;
   }
 
@@ -3674,6 +3710,19 @@ class Parser {
               firstName, codes.messageExtensionDeclaresInstanceField);
         }
         listener.endExtensionFields(
+            abstractToken,
+            augmentToken,
+            externalToken,
+            staticToken,
+            covariantToken,
+            lateToken,
+            varFinalOrConst,
+            fieldCount,
+            beforeStart.next!,
+            token);
+        break;
+      case DeclarationKind.ExtensionType:
+        listener.endExtensionTypeFields(
             abstractToken,
             augmentToken,
             externalToken,
@@ -4884,6 +4933,10 @@ class Parser {
           listener.endExtensionConstructor(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;
+        case DeclarationKind.ExtensionType:
+          listener.endExtensionTypeConstructor(getOrSet, beforeStart.next!,
+              beforeParam.next!, beforeInitializers?.next, token);
+          break;
         case DeclarationKind.TopLevel:
           throw "Internal error: TopLevel constructor.";
         case DeclarationKind.Enum:
@@ -4915,6 +4968,11 @@ class Parser {
                 codes.messageExtensionDeclaresAbstractMember);
           }
           listener.endExtensionMethod(getOrSet, beforeStart.next!,
+              beforeParam.next!, beforeInitializers?.next, token);
+          break;
+        case DeclarationKind.ExtensionType:
+          // TODO(johnniwinther): Report an error on abstract methods.
+          listener.endExtensionTypeMethod(getOrSet, beforeStart.next!,
               beforeParam.next!, beforeInitializers?.next, token);
           break;
         case DeclarationKind.TopLevel:
@@ -5011,6 +5069,10 @@ class Parser {
         reportRecoverableError(
             factoryKeyword, codes.messageExtensionDeclaresConstructor);
         listener.endExtensionFactoryMethod(
+            beforeStart.next!, factoryKeyword, token);
+        break;
+      case DeclarationKind.ExtensionType:
+        listener.endExtensionTypeFactoryMethod(
             beforeStart.next!, factoryKeyword, token);
         break;
       case DeclarationKind.TopLevel:

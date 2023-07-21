@@ -191,13 +191,6 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19)),
 
-  valueClass(
-      name: 'value-class',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
-
   variance(
       name: 'variance',
       isEnabledByDefault: false,

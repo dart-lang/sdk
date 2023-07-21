@@ -169,6 +169,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   Uri? partOfUri;
 
+  /// Offset of the first script tag (`#!...`) in this library or part.
+  int? _scriptTokenOffset;
+
   List<MetadataBuilder>? metadata;
 
   /// The current declaration that is being built. When we start parsing a
@@ -855,6 +858,14 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Uri newFileUri = resolve(fileUri, uri, uriOffset);
       loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
     }
+    if (_scriptTokenOffset != null) {
+      addProblem(
+          messageScriptTagInPartFile, _scriptTokenOffset!, noLength, fileUri);
+    }
+  }
+
+  void addScriptToken(int charOffset) {
+    _scriptTokenOffset ??= charOffset;
   }
 
   void addFields(List<MetadataBuilder>? metadata, int modifiers,

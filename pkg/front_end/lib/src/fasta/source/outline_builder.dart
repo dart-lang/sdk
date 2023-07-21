@@ -298,6 +298,60 @@ enum DeclarationContext {
   /// field declaration itself, which are seen in the [ExtensionBody] context.
   ExtensionStaticField,
 
+  /// In an extension type declaration before the extension type body.
+  ///
+  /// This includes type parameters declared on the extension type declaration
+  /// but excludes annotations on the extension type declaration itself, which
+  /// are seen in the [Library] context.
+  ExtensionType,
+
+  /// In a extension type declaration body.
+  ///
+  /// This includes annotations on extension type member declarations.
+  ExtensionTypeBody,
+
+  /// In a generative constructor declaration inside an extension type
+  /// declaration.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ExtensionTypeBody] context.
+  ExtensionTypeConstructor,
+
+  /// In a factory constructor declaration inside an extension type declaration.
+  ///
+  /// This excludes annotations on the constructor declaration itself, which
+  /// are seen in the [ExtensionTypeBody] context.
+  ExtensionTypeFactory,
+
+  /// In an instance method declaration inside an extension type declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ExtensionTypeBody]
+  /// context.
+  ExtensionTypeInstanceMethod,
+
+  /// In an instance field declaration inside an extension type declaration.
+  /// This is an error case.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ExtensionTypeBody]
+  /// context.
+  ExtensionTypeInstanceField,
+
+  /// In a static method declaration inside an extension type declaration.
+  ///
+  /// This includes return type of the declaration but excludes annotations on
+  /// the method declaration itself, which are seen in the [ExtensionTypeBody]
+  /// context.
+  ExtensionTypeStaticMethod,
+
+  /// In a static field declaration inside an extension type declaration.
+  ///
+  /// This includes type of the declaration but excludes annotations on the
+  /// field declaration itself, which are seen in the [ExtensionTypeBody]
+  /// context.
+  ExtensionTypeStaticField,
+
   /// In a generative constructor declaration inside an enum declaration.
   EnumConstructor,
 
@@ -351,6 +405,11 @@ extension on DeclarationContext {
       case DeclarationContext.Extension:
       case DeclarationContext.ExtensionInstanceMethod:
       case DeclarationContext.ExtensionExternalInstanceField:
+      case DeclarationContext.ExtensionType:
+      case DeclarationContext.ExtensionTypeConstructor:
+      case DeclarationContext.ExtensionTypeFactory:
+      case DeclarationContext.ExtensionTypeInstanceMethod:
+      case DeclarationContext.ExtensionTypeInstanceField:
         return InstanceTypeVariableAccessState.Allowed;
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassStaticMethod:
@@ -364,6 +423,9 @@ extension on DeclarationContext {
       case DeclarationContext.ExtensionBody:
       case DeclarationContext.ExtensionStaticMethod:
       case DeclarationContext.ExtensionStaticField:
+      case DeclarationContext.ExtensionTypeBody:
+      case DeclarationContext.ExtensionTypeStaticMethod:
+      case DeclarationContext.ExtensionTypeStaticField:
         return InstanceTypeVariableAccessState.Disallowed;
       case DeclarationContext.MixinConstructor:
       case DeclarationContext.MixinFactory:
@@ -386,6 +448,9 @@ extension on DeclarationContext {
       case DeclarationContext.Extension:
       case DeclarationContext.ExtensionBody:
         return TypeVariableKind.extension;
+      case DeclarationContext.ExtensionType:
+      case DeclarationContext.ExtensionTypeBody:
+        return TypeVariableKind.extensionType;
       case DeclarationContext.ClassBody:
       case DeclarationContext.ClassConstructor:
       case DeclarationContext.ClassFactory:
@@ -408,6 +473,12 @@ extension on DeclarationContext {
       case DeclarationContext.ExtensionInstanceMethod:
       case DeclarationContext.ExtensionStaticField:
       case DeclarationContext.ExtensionStaticMethod:
+      case DeclarationContext.ExtensionTypeConstructor:
+      case DeclarationContext.ExtensionTypeFactory:
+      case DeclarationContext.ExtensionTypeInstanceField:
+      case DeclarationContext.ExtensionTypeInstanceMethod:
+      case DeclarationContext.ExtensionTypeStaticField:
+      case DeclarationContext.ExtensionTypeStaticMethod:
       case DeclarationContext.Library:
       case DeclarationContext.MixinBody:
       case DeclarationContext.MixinConstructor:
@@ -981,6 +1052,9 @@ class OutlineBuilder extends StackListenerImpl {
         break;
       case DeclarationKind.Extension:
         declarationContext = DeclarationContext.ExtensionBody;
+        break;
+      case DeclarationKind.ExtensionType:
+        declarationContext = DeclarationContext.ExtensionTypeBody;
         break;
       case DeclarationKind.Enum:
         declarationContext = DeclarationContext.Enum;
@@ -1774,6 +1848,15 @@ class OutlineBuilder extends StackListenerImpl {
           declarationContext = DeclarationContext.ExtensionInstanceMethod;
         }
         break;
+      case DeclarationKind.ExtensionType:
+        if (inConstructor) {
+          declarationContext = DeclarationContext.ExtensionTypeConstructor;
+        } else if (staticToken != null) {
+          declarationContext = DeclarationContext.ExtensionTypeStaticMethod;
+        } else {
+          declarationContext = DeclarationContext.ExtensionTypeInstanceMethod;
+        }
+        break;
       case DeclarationKind.Enum:
         if (inConstructor) {
           declarationContext = DeclarationContext.EnumConstructor;
@@ -2376,6 +2459,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void handleScript(Token token) {
     debugEvent("Script");
+    libraryBuilder.addScriptToken(token.charOffset);
   }
 
   @override
@@ -3098,6 +3182,13 @@ class OutlineBuilder extends StackListenerImpl {
           declarationContext = DeclarationContext.ExtensionInstanceField;
         }
         break;
+      case DeclarationKind.ExtensionType:
+        if (staticToken != null) {
+          declarationContext = DeclarationContext.ExtensionTypeStaticField;
+        } else {
+          declarationContext = DeclarationContext.ExtensionTypeInstanceField;
+        }
+        break;
       case DeclarationKind.Enum:
         if (staticToken != null) {
           declarationContext = DeclarationContext.EnumStaticMethod;
@@ -3431,6 +3522,9 @@ class OutlineBuilder extends StackListenerImpl {
         break;
       case DeclarationKind.Extension:
         declarationContext = DeclarationContext.ExtensionFactory;
+        break;
+      case DeclarationKind.ExtensionType:
+        declarationContext = DeclarationContext.ExtensionTypeFactory;
         break;
       case DeclarationKind.Enum:
         declarationContext = DeclarationContext.EnumFactory;
@@ -3818,6 +3912,7 @@ extension on MemberKind {
       case MemberKind.TopLevelMethod:
       case MemberKind.ExtensionNonStaticMethod:
       case MemberKind.ExtensionStaticMethod:
+      case MemberKind.PrimaryConstructor:
         return false;
       case MemberKind.NonStaticMethod:
       // These can be inferred but cannot hold parameters so the cases are

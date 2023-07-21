@@ -10157,6 +10157,50 @@ void f(Object? x) {
 }
 {% endprettify %}
 
+### invalid_platforms_field
+
+_The 'platforms' field must be a map with platforms as keys._
+
+#### Description
+
+The analyzer produces this diagnostic when there is a top-level
+`platforms` field and the value of this key not a map.
+See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because `platforms`
+should be a map (if specified).
+
+```yaml
+name: example
+platforms:
+  [!- android
+  - web
+  - ios!]
+```
+
+#### Common fixes
+
+Omit the top-level `platforms` key if you can rely on automatic platform
+detection.
+
+```yaml
+name: example
+```
+
+If you need to manually specify the list of supported platforms, then
+write a `platforms` field as a map with _platform names_ as keys.
+
+```yaml
+name: example
+platforms:
+  android:
+  web:
+  ios:
+```
+
 ### invalid_reference_to_generative_enum_constructor
 
 _Generative enum constructors can only be used as targets of redirection._
@@ -16172,6 +16216,40 @@ void f(int x) {
 }
 {% endprettify %}
 
+### platform_value_disallowed
+
+_A value may not be provided for keys in `platforms`._
+
+#### Description
+
+The analyzer produces this diagnostic when a key in the `platforms` map
+has a value.
+See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the key
+`web` has a value.
+
+```yaml
+name: example
+platforms:
+  web: [!"chrome"!]
+```
+
+#### Common fixes
+
+Omit the value and leave the key without a value:
+
+```yaml
+name: example
+platforms:
+  web:
+```
+
+Values for keys in the `platforms` fields are reserved for future.
+
 ### positional_field_in_object_pattern
 
 _Object patterns can only use named fields._
@@ -21041,6 +21119,52 @@ remove the `super.`.
 
 If the member isn't defined, then either add the member to one of the
 superclasses or remove the invocation.
+
+### unknown_platform
+
+_The platform '{0}' is not a recognized platform._
+
+#### Description
+
+The analyzer produces this diagnostic when an unknown _platform name_ is
+used as key in the `platforms` map.
+See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+for details.
+
+#### Example
+
+The following `pubspec.yaml` produces this diagnostic because the platform
+`browser` is unknown.
+
+```yaml
+name: example
+platforms:
+  [!browser:!]
+```
+
+#### Common fixes
+
+Omit the top-level `platforms` key if you can rely on automatic platform
+detection.
+
+```yaml
+name: example
+```
+
+If you need to manually specify the list of supported platforms, then
+write a `platforms` field as a map with _known platform names_ as keys.
+
+```yaml
+name: example
+platforms:
+  # These are the known platforms
+  android:
+  ios:
+  linux:
+  macos:
+  web:
+  windows:
+```
 
 ### unnecessary_cast
 

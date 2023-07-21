@@ -208,6 +208,10 @@ abstract class IdentifierContext {
       const ConstructorReferenceIdentifierContext
           .continuationAfterTypeArguments();
 
+  /// Identifier is the name of a primary constructor declaration.
+  static const IdentifierContext primaryConstructorDeclaration =
+      const MethodDeclarationIdentifierContext.primaryConstructor();
+
   /// Identifier is the declaration of a label (i.e. it is followed by `:` and
   /// then a statement).
   static const LabelDeclarationIdentifierContext labelDeclaration =

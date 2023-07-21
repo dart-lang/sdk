@@ -829,6 +829,21 @@ class TestParser extends Parser {
   }
 
   @override
+  Token parseExtensionTypeDeclarationRest(
+      Token token, Token extensionKeyword, Token typeKeyword, Token name) {
+    doPrint('parseExtensionTypeDeclarationRest('
+        '$token, '
+        '$extensionKeyword, '
+        '$typeKeyword, '
+        '$name)');
+    indent++;
+    var result = super.parseExtensionTypeDeclarationRest(
+        token, extensionKeyword, typeKeyword, name);
+    indent--;
+    return result;
+  }
+
+  @override
   Token parseStringPart(Token token) {
     doPrint('parseStringPart(' '$token)');
     indent++;

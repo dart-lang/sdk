@@ -10,13 +10,13 @@ import '../mini_ast.dart';
 import '../mini_ir.dart';
 import '../mini_types.dart';
 
-/// Creates a [Statement] that, when analyzed, will cause [callback] to be
+/// Creates an [Expression] that, when analyzed, will cause [callback] to be
 /// passed an [SsaNodeHarness] allowing the test to examine the values of
 /// variables' SSA nodes.
-Statement getSsaNodes(void Function(SsaNodeHarness) callback) =>
+Expression getSsaNodes(void Function(SsaNodeHarness) callback) =>
     new _GetSsaNodes(callback, location: computeLocation());
 
-Statement implicitThis_whyNotPromoted(String staticType,
+Expression implicitThis_whyNotPromoted(String staticType,
         void Function(Map<Type, NonPromotionReason>) callback) =>
     new _WhyNotPromoted_ImplicitThis(Type(staticType), callback,
         location: computeLocation());
@@ -68,7 +68,7 @@ class _GetExpressionInfo extends Expression {
   }
 }
 
-class _GetSsaNodes extends Statement {
+class _GetSsaNodes extends Expression {
   final void Function(SsaNodeHarness) callback;
 
   _GetSsaNodes(this.callback, {required super.location});
@@ -77,9 +77,10 @@ class _GetSsaNodes extends Statement {
   void preVisit(PreVisitor visitor) {}
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     callback(SsaNodeHarness(h.flow));
-    h.irBuilder.atom('null', Kind.statement, location: location);
+    h.irBuilder.atom('null', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 
@@ -110,7 +111,7 @@ class _WhyNotPromoted extends Expression {
   }
 }
 
-class _WhyNotPromoted_ImplicitThis extends Statement {
+class _WhyNotPromoted_ImplicitThis extends Expression {
   final Type staticType;
 
   final void Function(Map<Type, NonPromotionReason>) callback;
@@ -125,11 +126,12 @@ class _WhyNotPromoted_ImplicitThis extends Statement {
   String toString() => 'implicit this (whyNotPromoted)';
 
   @override
-  void visit(Harness h) {
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
     Type.withComparisonsAllowed(() {
       callback(h.flow.whyNotPromotedImplicitThis(staticType)());
     });
-    h.irBuilder.atom('noop', Kind.statement, location: location);
+    h.irBuilder.atom('noop', Kind.expression, location: location);
+    return SimpleTypeAnalysisResult(type: h.typeAnalyzer.nullType);
   }
 }
 

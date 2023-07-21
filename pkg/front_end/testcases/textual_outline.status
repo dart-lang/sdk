@@ -117,6 +117,7 @@ general/null_safety_invalid_experiment: FormatterCrash
 general/null_safety_invalid_experiment_and_language_version: FormatterCrash
 general/records_opt_out: FormatterCrash
 general/sealed_class_declaration: FormatterCrash
+general/script_tag_in_part_file: FormatterCrash
 general/type_parameters_on_void: FormatterCrash
 general/type_variable_in_static_context: FormatterCrash
 general/var_as_type_name: FormatterCrash

@@ -7029,3 +7029,7 @@ JointPatternVariableWithLabelDefault:
 
 UnsupportedMacroApplication:
   problemMessage: "This macro application didn't apply correctly."
+
+ScriptTagInPartFile:
+  problemMessage: "A part file cannot have script tag."
+  correctionMessage: "Try removing the script tag or the 'part of' directive."

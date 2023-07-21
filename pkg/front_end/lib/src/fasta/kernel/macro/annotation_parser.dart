@@ -2323,4 +2323,58 @@ class _MacroListener implements Listener {
       ExperimentalFlag experimentalFlag, Token startToken, Token endToken) {
     _unsupported();
   }
+
+  @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token? typeKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    _unsupported();
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    _unsupported();
+  }
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasName) {
+    _unsupported();
+  }
 }

@@ -329,6 +329,41 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    ExtensionTypeDeclarationBegin data = new ExtensionTypeDeclarationBegin(
+        ParserAstType.BEGIN,
+        extensionKeyword: extensionKeyword,
+        name: name);
+    seen(data);
+  }
+
+  @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    ExtensionTypeDeclarationEnd data = new ExtensionTypeDeclarationEnd(
+        ParserAstType.END,
+        extensionKeyword: extensionKeyword,
+        typeKeyword: typeKeyword,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    PrimaryConstructorBegin data = new PrimaryConstructorBegin(
+        ParserAstType.BEGIN,
+        beginToken: beginToken);
+    seen(data);
+  }
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+    PrimaryConstructorEnd data = new PrimaryConstructorEnd(ParserAstType.END,
+        beginToken: beginToken, hasConstructorName: hasConstructorName);
+    seen(data);
+  }
+
+  @override
   void beginCombinators(Token token) {
     CombinatorsBegin data =
         new CombinatorsBegin(ParserAstType.BEGIN, token: token);
@@ -567,6 +602,17 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void endExtensionTypeFactoryMethod(
+      Token beginToken, Token factoryKeyword, Token endToken) {
+    ExtensionTypeFactoryMethodEnd data = new ExtensionTypeFactoryMethodEnd(
+        ParserAstType.END,
+        beginToken: beginToken,
+        factoryKeyword: factoryKeyword,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void beginFormalParameter(Token token, MemberKind kind, Token? requiredToken,
       Token? covariantToken, Token? varFinalOrConst) {
     FormalParameterBegin data = new FormalParameterBegin(ParserAstType.BEGIN,
@@ -689,6 +735,32 @@ abstract class AbstractParserAstListener implements Listener {
       Token beginToken,
       Token endToken) {
     ExtensionFieldsEnd data = new ExtensionFieldsEnd(ParserAstType.END,
+        abstractToken: abstractToken,
+        augmentToken: augmentToken,
+        externalToken: externalToken,
+        staticToken: staticToken,
+        covariantToken: covariantToken,
+        lateToken: lateToken,
+        varFinalOrConst: varFinalOrConst,
+        count: count,
+        beginToken: beginToken,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void endExtensionTypeFields(
+      Token? abstractToken,
+      Token? augmentToken,
+      Token? externalToken,
+      Token? staticToken,
+      Token? covariantToken,
+      Token? lateToken,
+      Token? varFinalOrConst,
+      int count,
+      Token beginToken,
+      Token endToken) {
+    ExtensionTypeFieldsEnd data = new ExtensionTypeFieldsEnd(ParserAstType.END,
         abstractToken: abstractToken,
         augmentToken: augmentToken,
         externalToken: externalToken,
@@ -1468,6 +1540,18 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
+  void endExtensionTypeMethod(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    ExtensionTypeMethodEnd data = new ExtensionTypeMethodEnd(ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
   void endClassConstructor(Token? getOrSet, Token beginToken, Token beginParam,
       Token? beginInitializers, Token endToken) {
     ClassConstructorEnd data = new ClassConstructorEnd(ParserAstType.END,
@@ -1495,6 +1579,19 @@ abstract class AbstractParserAstListener implements Listener {
   void endExtensionConstructor(Token? getOrSet, Token beginToken,
       Token beginParam, Token? beginInitializers, Token endToken) {
     ExtensionConstructorEnd data = new ExtensionConstructorEnd(
+        ParserAstType.END,
+        getOrSet: getOrSet,
+        beginToken: beginToken,
+        beginParam: beginParam,
+        beginInitializers: beginInitializers,
+        endToken: endToken);
+    seen(data);
+  }
+
+  @override
+  void endExtensionTypeConstructor(Token? getOrSet, Token beginToken,
+      Token beginParam, Token? beginInitializers, Token endToken) {
+    ExtensionTypeConstructorEnd data = new ExtensionTypeConstructorEnd(
         ParserAstType.END,
         getOrSet: getOrSet,
         beginToken: beginToken,
@@ -3575,6 +3672,67 @@ class ExtensionDeclarationEnd extends ParserAstNode {
       };
 }
 
+class ExtensionTypeDeclarationBegin extends ParserAstNode {
+  final Token extensionKeyword;
+  final Token name;
+
+  ExtensionTypeDeclarationBegin(ParserAstType type,
+      {required this.extensionKeyword, required this.name})
+      : super("ExtensionTypeDeclaration", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "extensionKeyword": extensionKeyword,
+        "name": name,
+      };
+}
+
+class ExtensionTypeDeclarationEnd extends ParserAstNode {
+  final Token extensionKeyword;
+  final Token typeKeyword;
+  final Token endToken;
+
+  ExtensionTypeDeclarationEnd(ParserAstType type,
+      {required this.extensionKeyword,
+      required this.typeKeyword,
+      required this.endToken})
+      : super("ExtensionTypeDeclaration", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "extensionKeyword": extensionKeyword,
+        "typeKeyword": typeKeyword,
+        "endToken": endToken,
+      };
+}
+
+class PrimaryConstructorBegin extends ParserAstNode {
+  final Token beginToken;
+
+  PrimaryConstructorBegin(ParserAstType type, {required this.beginToken})
+      : super("PrimaryConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
+      };
+}
+
+class PrimaryConstructorEnd extends ParserAstNode {
+  final Token beginToken;
+  final bool hasConstructorName;
+
+  PrimaryConstructorEnd(ParserAstType type,
+      {required this.beginToken, required this.hasConstructorName})
+      : super("PrimaryConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
+        "hasConstructorName": hasConstructorName,
+      };
+}
+
 class CombinatorsBegin extends ParserAstNode {
   final Token token;
 
@@ -4020,6 +4178,25 @@ class ExtensionFactoryMethodEnd extends ParserAstNode {
       };
 }
 
+class ExtensionTypeFactoryMethodEnd extends ParserAstNode {
+  final Token beginToken;
+  final Token factoryKeyword;
+  final Token endToken;
+
+  ExtensionTypeFactoryMethodEnd(ParserAstType type,
+      {required this.beginToken,
+      required this.factoryKeyword,
+      required this.endToken})
+      : super("ExtensionTypeFactoryMethod", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "beginToken": beginToken,
+        "factoryKeyword": factoryKeyword,
+        "endToken": endToken,
+      };
+}
+
 class FormalParameterBegin extends ParserAstNode {
   final Token token;
   final MemberKind kind;
@@ -4235,6 +4412,46 @@ class ExtensionFieldsEnd extends ParserAstNode {
       required this.beginToken,
       required this.endToken})
       : super("ExtensionFields", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "abstractToken": abstractToken,
+        "augmentToken": augmentToken,
+        "externalToken": externalToken,
+        "staticToken": staticToken,
+        "covariantToken": covariantToken,
+        "lateToken": lateToken,
+        "varFinalOrConst": varFinalOrConst,
+        "count": count,
+        "beginToken": beginToken,
+        "endToken": endToken,
+      };
+}
+
+class ExtensionTypeFieldsEnd extends ParserAstNode {
+  final Token? abstractToken;
+  final Token? augmentToken;
+  final Token? externalToken;
+  final Token? staticToken;
+  final Token? covariantToken;
+  final Token? lateToken;
+  final Token? varFinalOrConst;
+  final int count;
+  final Token beginToken;
+  final Token endToken;
+
+  ExtensionTypeFieldsEnd(ParserAstType type,
+      {this.abstractToken,
+      this.augmentToken,
+      this.externalToken,
+      this.staticToken,
+      this.covariantToken,
+      this.lateToken,
+      this.varFinalOrConst,
+      required this.count,
+      required this.beginToken,
+      required this.endToken})
+      : super("ExtensionTypeFields", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
@@ -5623,6 +5840,31 @@ class ExtensionMethodEnd extends ParserAstNode {
       };
 }
 
+class ExtensionTypeMethodEnd extends ParserAstNode {
+  final Token? getOrSet;
+  final Token beginToken;
+  final Token beginParam;
+  final Token? beginInitializers;
+  final Token endToken;
+
+  ExtensionTypeMethodEnd(ParserAstType type,
+      {this.getOrSet,
+      required this.beginToken,
+      required this.beginParam,
+      this.beginInitializers,
+      required this.endToken})
+      : super("ExtensionTypeMethod", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "getOrSet": getOrSet,
+        "beginToken": beginToken,
+        "beginParam": beginParam,
+        "beginInitializers": beginInitializers,
+        "endToken": endToken,
+      };
+}
+
 class ClassConstructorEnd extends ParserAstNode {
   final Token? getOrSet;
   final Token beginToken;
@@ -5687,6 +5929,31 @@ class ExtensionConstructorEnd extends ParserAstNode {
       this.beginInitializers,
       required this.endToken})
       : super("ExtensionConstructor", type);
+
+  @override
+  Map<String, Object?> get deprecatedArguments => {
+        "getOrSet": getOrSet,
+        "beginToken": beginToken,
+        "beginParam": beginParam,
+        "beginInitializers": beginInitializers,
+        "endToken": endToken,
+      };
+}
+
+class ExtensionTypeConstructorEnd extends ParserAstNode {
+  final Token? getOrSet;
+  final Token beginToken;
+  final Token beginParam;
+  final Token? beginInitializers;
+  final Token endToken;
+
+  ExtensionTypeConstructorEnd(ParserAstType type,
+      {this.getOrSet,
+      required this.beginToken,
+      required this.beginParam,
+      this.beginInitializers,
+      required this.endToken})
+      : super("ExtensionTypeConstructor", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
