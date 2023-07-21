@@ -434,7 +434,7 @@ class SimpleMacro
 
   @override
   FutureOr<void> buildTypesForClass(
-      ClassDeclaration clazz, TypeBuilder builder) {
+      ClassDeclaration clazz, ClassTypeBuilder builder) {
     List<Object> _buildTypeParam(
         TypeParameterDeclaration typeParam, bool isFirst) {
       return [
@@ -470,6 +470,21 @@ class SimpleMacro
           ],
           '> {}'
         ]));
+
+    final interfaceName = 'HasX';
+    builder.declareType(interfaceName, DeclarationCode.fromString('''
+abstract interface class $interfaceName {
+  int get x;
+}'''));
+
+    final mixinName = 'GetX';
+    builder.declareType(mixinName, DeclarationCode.fromString('''
+mixin $mixinName implements $interfaceName {
+  int get x => 1;
+}'''));
+
+    builder.appendInterfaces([RawTypeAnnotationCode.fromString(interfaceName)]);
+    builder.appendMixins([RawTypeAnnotationCode.fromString(mixinName)]);
   }
 
   @override

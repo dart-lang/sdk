@@ -358,6 +358,13 @@ class _MacroExecutionResult implements MacroExecutionResult {
   Map<Identifier, Iterable<DeclarationCode>> enumValueAugmentations = const {};
 
   @override
+  Map<Identifier, Iterable<TypeAnnotationCode>> interfaceAugmentations =
+      const {};
+
+  @override
+  Map<Identifier, Iterable<TypeAnnotationCode>> mixinAugmentations = const {};
+
+  @override
   Map<Identifier, Iterable<DeclarationCode>> typeAugmentations = const {};
 
   @override

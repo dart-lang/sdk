@@ -428,6 +428,8 @@ extension DeserializerExtensions on Deserializer {
 
     return switch (kind) {
       CodeKind.raw => new RawCode.fromParts(_readParts()) as T,
+      CodeKind.rawTypeAnnotation =>
+        RawTypeAnnotationCode.fromParts(_readParts()) as T,
       CodeKind.comment => new CommentCode.fromParts(_readParts()) as T,
       CodeKind.declaration => new DeclarationCode.fromParts(_readParts()) as T,
       CodeKind.expression => new ExpressionCode.fromParts(_readParts()) as T,
@@ -573,6 +575,7 @@ extension SerializeCode on Code {
       case CodeKind.declaration:
       case CodeKind.expression:
       case CodeKind.raw:
+      case CodeKind.rawTypeAnnotation:
       case CodeKind.functionBody:
         serializer.startList();
         for (Object part in parts) {

@@ -262,18 +262,14 @@ abstract base class _IterableArgument<T extends Iterable<Object?>>
       ..moveNext()
       ..expectList();
     final List<ArgumentKind> typeArguments = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         ArgumentKind.values[deserializer.expectInt()],
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final List<Argument> values = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true),
     ];
     return switch (kind) {
@@ -361,18 +357,14 @@ final class MapArgument extends _CollectionArgument {
       ..moveNext()
       ..expectList();
     final List<ArgumentKind> typeArguments = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         ArgumentKind.values[deserializer.expectInt()],
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final Map<Argument, Argument> arguments = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true):
             new Argument.deserialize(deserializer),
     };
@@ -407,18 +399,14 @@ class Arguments implements Serializable {
       ..moveNext()
       ..expectList();
     final List<Argument> positionalArgs = [
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         new Argument.deserialize(deserializer, alreadyMoved: true),
     ];
     deserializer
       ..moveNext()
       ..expectList();
     final Map<String, Argument> namedArgs = {
-      for (bool hasNext = deserializer.moveNext();
-          hasNext;
-          hasNext = deserializer.moveNext())
+      for (; deserializer.moveNext();)
         deserializer.expectString(): new Argument.deserialize(deserializer),
     };
     return new Arguments(positionalArgs, namedArgs);

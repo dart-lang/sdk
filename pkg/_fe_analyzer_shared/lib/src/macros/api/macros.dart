@@ -78,7 +78,7 @@ abstract interface class VariableDefinitionMacro implements Macro {
 /// contribute new type declarations to the program.
 abstract interface class ClassTypesMacro implements Macro {
   FutureOr<void> buildTypesForClass(
-      ClassDeclaration clazz, TypeBuilder builder);
+      ClassDeclaration clazz, ClassTypeBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any class, and want to
@@ -98,7 +98,8 @@ abstract interface class ClassDefinitionMacro implements Macro {
 /// The interface for [Macro]s that can be applied to any enum, and want to
 /// contribute new type declarations to the program.
 abstract interface class EnumTypesMacro implements Macro {
-  FutureOr<void> buildTypesForEnum(EnumDeclaration enuum, TypeBuilder builder);
+  FutureOr<void> buildTypesForEnum(
+      EnumDeclaration enuum, EnumTypeBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any enum, and want to
@@ -203,7 +204,7 @@ abstract interface class ConstructorDefinitionMacro implements Macro {
 /// want to contribute new type declarations to the program.
 abstract interface class MixinTypesMacro implements Macro {
   FutureOr<void> buildTypesForMixin(
-      MixinDeclaration mixin, TypeBuilder builder);
+      MixinDeclaration mixin, MixinTypeBuilder builder);
 }
 
 /// The interface for [Macro]s that can be applied to any mixin declaration, and

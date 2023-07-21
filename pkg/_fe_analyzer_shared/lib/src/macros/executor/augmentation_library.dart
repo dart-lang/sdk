@@ -99,27 +99,39 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
 
     Map<Identifier, List<DeclarationCode>> mergedTypeResults = {};
     Map<Identifier, List<DeclarationCode>> mergedEntryResults = {};
+    Map<Identifier, List<TypeAnnotationCode>> mergedInterfaceResults = {};
+    Map<Identifier, List<TypeAnnotationCode>> mergedMixinResults = {};
     for (MacroExecutionResult result in macroResults) {
       for (DeclarationCode augmentation in result.libraryAugmentations) {
         buildCode(augmentation);
         writeDirectiveStringPart('\n');
       }
-      for (MapEntry<Identifier, Iterable<DeclarationCode>> entry
-          in result.enumValueAugmentations.entries) {
+      result.enumValueAugmentations.forEach((key, value) {
         mergedEntryResults.update(
-            entry.key, (value) => value..addAll(entry.value),
-            ifAbsent: () => entry.value.toList());
-      }
-      for (MapEntry<Identifier, Iterable<DeclarationCode>> entry
-          in result.typeAugmentations.entries) {
+            key, (enumValues) => enumValues..addAll(value),
+            ifAbsent: () => value.toList());
+      });
+      result.interfaceAugmentations.forEach((key, value) {
+        mergedInterfaceResults.update(
+            key, (declarations) => declarations..addAll(value),
+            ifAbsent: () => value.toList());
+      });
+      result.mixinAugmentations.forEach((key, value) {
+        mergedMixinResults.update(
+            key, (declarations) => declarations..addAll(value),
+            ifAbsent: () => value.toList());
+      });
+      result.typeAugmentations.forEach((key, value) {
         mergedTypeResults.update(
-            entry.key, (value) => value..addAll(entry.value),
-            ifAbsent: () => entry.value.toList());
-      }
+            key, (declarations) => declarations..addAll(value),
+            ifAbsent: () => value.toList());
+      });
     }
     final Set<Identifier> mergedAugmentedTypes = {
+      ...mergedEntryResults.keys,
+      ...mergedInterfaceResults.keys,
+      ...mergedMixinResults.keys,
       ...mergedTypeResults.keys,
-      ...mergedEntryResults.keys
     };
     for (Identifier type in mergedAugmentedTypes) {
       final TypeDeclaration typeDeclaration = resolveDeclaration(type);
@@ -147,7 +159,29 @@ mixin AugmentationLibraryBuilder on MacroExecutor {
       // Has the effect of adding a space after the keywords
       if (keywords.isNotEmpty) keywords.add('');
       writeDirectiveStringPart(
-          'augment ${keywords.join(' ')}$declarationKind ${type.name} {\n');
+          'augment ${keywords.join(' ')}$declarationKind ${type.name} ');
+
+      if (mergedMixinResults[type] case var mixins? when mixins.isNotEmpty) {
+        buildCode(new RawCode.fromParts([
+          'with ',
+          ...[
+            for (TypeAnnotationCode mixin in mixins) mixin,
+          ].joinAsCode(', '),
+          ' '
+        ]));
+      }
+
+      if (mergedInterfaceResults[type] case var interfaces?
+          when interfaces.isNotEmpty) {
+        buildCode(new RawCode.fromParts([
+          'implements ',
+          ...[
+            for (TypeAnnotationCode interface in interfaces) interface,
+          ].joinAsCode(', '),
+          ' '
+        ]));
+      }
+      writeDirectiveStringPart('{\n');
       if (typeDeclaration is EnumDeclaration) {
         for (DeclarationCode entryAugmentation
             in mergedEntryResults[type] ?? []) {
