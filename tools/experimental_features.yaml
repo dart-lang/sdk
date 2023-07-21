@@ -115,9 +115,6 @@ features:
   variance:
     help: "Sound variance"
 
-  value-class:
-    help: "Value class"
-
   extension-types:
     help: "Extension Types"
 

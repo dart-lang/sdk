@@ -267,14 +267,6 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 19),
       experimentReleasedVersion: const Version(2, 19));
 
-  static const ExperimentalFlag valueClass = const ExperimentalFlag(
-      name: 'value-class',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: const Version(3, 1),
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1));
-
   static const ExperimentalFlag variance = const ExperimentalFlag(
       name: 'variance',
       isEnabledByDefault: false,
@@ -438,10 +430,6 @@ class GlobalFeatures {
   GlobalFeature get unnamedLibraries => _unnamedLibraries ??=
       _computeGlobalFeature(ExperimentalFlag.unnamedLibraries);
 
-  GlobalFeature? _valueClass;
-  GlobalFeature get valueClass =>
-      _valueClass ??= _computeGlobalFeature(ExperimentalFlag.valueClass);
-
   GlobalFeature? _variance;
   GlobalFeature get variance =>
       _variance ??= _computeGlobalFeature(ExperimentalFlag.variance);
@@ -600,11 +588,6 @@ class LibraryFeatures {
       _unnamedLibraries ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.unnamedLibraries, canonicalUri, libraryVersion);
 
-  LibraryFeature? _valueClass;
-  LibraryFeature get valueClass =>
-      _valueClass ??= globalFeatures._computeLibraryFeature(
-          ExperimentalFlag.valueClass, canonicalUri, libraryVersion);
-
   LibraryFeature? _variance;
   LibraryFeature get variance =>
       _variance ??= globalFeatures._computeLibraryFeature(
@@ -666,8 +649,6 @@ class LibraryFeatures {
         return tripleShift;
       case shared.ExperimentalFlag.unnamedLibraries:
         return unnamedLibraries;
-      case shared.ExperimentalFlag.valueClass:
-        return valueClass;
       case shared.ExperimentalFlag.variance:
         return variance;
       default:
@@ -733,8 +714,6 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.tripleShift;
     case "unnamed-libraries":
       return ExperimentalFlag.unnamedLibraries;
-    case "value-class":
-      return ExperimentalFlag.valueClass;
     case "variance":
       return ExperimentalFlag.variance;
   }
@@ -788,7 +767,6 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
   ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
   ExperimentalFlag.unnamedLibraries:
       ExperimentalFlag.unnamedLibraries.isEnabledByDefault,
-  ExperimentalFlag.valueClass: ExperimentalFlag.valueClass.isEnabledByDefault,
   ExperimentalFlag.variance: ExperimentalFlag.variance.isEnabledByDefault,
 };
 const AllowedExperimentalFlags defaultAllowedExperimentalFlags =
@@ -1010,6 +988,5 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
   shared.ExperimentalFlag.testExperiment: ExperimentalFlag.testExperiment,
   shared.ExperimentalFlag.tripleShift: ExperimentalFlag.tripleShift,
   shared.ExperimentalFlag.unnamedLibraries: ExperimentalFlag.unnamedLibraries,
-  shared.ExperimentalFlag.valueClass: ExperimentalFlag.valueClass,
   shared.ExperimentalFlag.variance: ExperimentalFlag.variance,
 };

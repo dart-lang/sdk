@@ -12,7 +12,6 @@ import 'package:kernel/reference_from_index.dart' show IndexedClass;
 import 'package:kernel/target/changed_structure_notifier.dart'
     show ChangedStructureNotifier;
 import 'package:kernel/target/targets.dart' show DiagnosticReporter, Target;
-import 'package:kernel/transformations/value_class.dart' as valueClass;
 import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
@@ -1562,12 +1561,6 @@ class KernelTarget extends TargetImplementation {
       }
     });
     ticker.logMs("Added constant coverage");
-
-    if (loader.target.context.options.globalFeatures.valueClass.isEnabled) {
-      valueClass.transformComponent(component!, loader.coreTypes,
-          loader.hierarchy, loader.referenceFromIndex, environment);
-      ticker.logMs("Lowered value classes");
-    }
 
     backendTarget.performModularTransformationsOnLibraries(
         component!,
