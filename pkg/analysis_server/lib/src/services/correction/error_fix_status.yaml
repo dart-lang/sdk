@@ -3312,6 +3312,8 @@ PubspecWarningCode.FLUTTER_FIELD_NOT_MAP:
   since: ~2.15
 PubspecWarningCode.INVALID_DEPENDENCY:
   status: noFix
+PubspecWarningCode.INVALID_PLATFORMS_FIELD:
+  status: needsEvaluation
 PubspecWarningCode.MISSING_NAME:
   status: noFix
   since: ~2.15
@@ -3327,6 +3329,10 @@ PubspecWarningCode.PATH_NOT_POSIX:
     If the path is a windows path, then we should be able to convert it.
 PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST:
   status: noFix
+PubspecWarningCode.PLATFORM_VALUE_DISALLOWED:
+  status: needsEvaluation
+PubspecWarningCode.UNKNOWN_PLATFORM:
+  status: needsEvaluation
 PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY:
   status: needsFix
   since: ~2.15

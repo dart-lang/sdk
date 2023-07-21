@@ -20774,6 +20774,144 @@ PubspecWarningCode:
             url: http://your-package-server.com
           version: ^1.4.0
       ```
+  INVALID_PLATFORMS_FIELD:
+    problemMessage: "The 'platforms' field must be a map with platforms as keys."
+    correctionMessage: "Try changing the 'platforms' field to a map with plaforms as keys."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a top-level `platforms`
+      field is specified, but its value is not a map with keys.
+      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+      for details.
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because `platforms`
+      should be a map.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        [!- android
+        - web
+        - ios!]
+      ```
+
+      #### Common fixes
+
+      If you can rely on automatic platform detection, then omit the
+      top-level `platforms` field. 
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      ```
+
+      If you need to manually specify the list of supported platforms, then
+      write the `platforms` field as a map with platform names as keys.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        android:
+        web:
+        ios:
+      ```
+  UNKNOWN_PLATFORM:
+    problemMessage: "The platform '{0}' is not a recognized platform."
+    correctionMessage: "Try correcting the platform name or removing it."
+    hasPublishedDocs: false
+    comment: |-
+      Parameters:
+      0: the unknown platform.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an unknown platform name is
+      used as a key in the `platforms` map.
+      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+      for details.
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because the platform
+      `browser` is unknown.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        [!browser:!]
+      ```
+
+      #### Common fixes
+
+      If you can rely on automatic platform detection, then omit the
+      top-level `platforms` key.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      ```
+
+      If you need to manually specify the list of supported platforms, then
+      write the `platforms` field as a map with known platform names as keys.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        # These are the known platforms
+        android:
+        ios:
+        linux:
+        macos:
+        web:
+        windows:
+      ```
+  PLATFORM_VALUE_DISALLOWED:
+    problemMessage: "Keys in the `platforms` field can't have values."
+    correctionMessage: "Try removing the value, while keeping the key."
+    hasPublishedDocs: false
+    comment: No parameters.
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a key in the `platforms` map
+      has a value.
+      See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+      for details.
+
+      #### Example
+
+      The following `pubspec.yaml` produces this diagnostic because the key
+      `web` has a value.
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        web: [!"chrome"!]
+      ```
+
+      #### Common fixes
+
+      Omit the value and leave the key without a value:
+
+      ```yaml
+      %uri="pubspec.yaml"
+      name: example
+      platforms:
+        web:
+      ```
+
+      Values for keys in the `platforms` field are currently reserved for
+      potential future behavior.
   MISSING_NAME:
     problemMessage: "The 'name' field is required but missing."
     correctionMessage: "Try adding a field named 'name'."
