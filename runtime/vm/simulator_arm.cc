@@ -3478,42 +3478,51 @@ void Simulator::InstructionDecode(Instr* instr) {
 }
 
 void Simulator::Execute() {
+  if (LIKELY(FLAG_stop_sim_at == ULLONG_MAX &&
+             FLAG_trace_sim_after == ULLONG_MAX)) {
+    ExecuteNoTrace();
+  } else {
+    ExecuteTrace();
+  }
+}
+
+void Simulator::ExecuteNoTrace() {
   // Get the PC to simulate. Cannot use the accessor here as we need the
   // raw PC value and not the one used as input to arithmetic instructions.
   uword program_counter = get_pc();
 
-  if (FLAG_stop_sim_at == ULLONG_MAX && FLAG_trace_sim_after == ULLONG_MAX) {
-    // Fast version of the dispatch loop without checking whether the simulator
-    // should be stopping at a particular executed instruction.
-    while (program_counter != kEndSimulatingPC) {
-      Instr* instr = reinterpret_cast<Instr*>(program_counter);
-      icount_++;
-      if (IsIllegalAddress(program_counter)) {
-        HandleIllegalAccess(program_counter, instr);
-      } else {
-        InstructionDecodeImpl(instr);
-      }
-      program_counter = get_pc();
+  // Fast version of the dispatch loop without checking whether the simulator
+  // should be stopping at a particular executed instruction.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    InstructionDecodeImpl(instr);
+    program_counter = get_pc();
+  }
+}
+
+void Simulator::ExecuteTrace() {
+  // Get the PC to simulate. Cannot use the accessor here as we need the
+  // raw PC value and not the one used as input to arithmetic instructions.
+  uword program_counter = get_pc();
+
+  // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
+  // we reach the particular instruction count or address.
+  while (program_counter != kEndSimulatingPC) {
+    Instr* instr = reinterpret_cast<Instr*>(program_counter);
+    icount_++;
+    if (icount_ == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction count reached");
+    } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
+      SimulatorDebugger dbg(this);
+      dbg.Stop(instr, "Instruction address reached");
+    } else if (IsIllegalAddress(program_counter)) {
+      HandleIllegalAccess(program_counter, instr);
+    } else {
+      InstructionDecode(instr);
     }
-  } else {
-    // FLAG_stop_sim_at is at the non-default value. Stop in the debugger when
-    // we reach the particular instruction count or address.
-    while (program_counter != kEndSimulatingPC) {
-      Instr* instr = reinterpret_cast<Instr*>(program_counter);
-      icount_++;
-      if (icount_ == FLAG_stop_sim_at) {
-        SimulatorDebugger dbg(this);
-        dbg.Stop(instr, "Instruction count reached");
-      } else if (reinterpret_cast<uint64_t>(instr) == FLAG_stop_sim_at) {
-        SimulatorDebugger dbg(this);
-        dbg.Stop(instr, "Instruction address reached");
-      } else if (IsIllegalAddress(program_counter)) {
-        HandleIllegalAccess(program_counter, instr);
-      } else {
-        InstructionDecode(instr);
-      }
-      program_counter = get_pc();
-    }
+    program_counter = get_pc();
   }
 }
 
