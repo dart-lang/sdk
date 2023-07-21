@@ -55,4 +55,69 @@ void f(A a) {
       lint(155, 4),
     ]);
   }
+
+  test_duplicate_inDefinition() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A(int value);
+  static const zero = A(0);
+  static const zeroAgain = A(0);
+}
+''');
+  }
+
+  test_reconstructed_sameAsPrivateName() async {
+    await assertDiagnostics(r'''
+void f() {
+  const A(1);
+}
+class A {
+  const A(int value);
+  // ignore: unused_field
+  static const _zero = A(0);
+}
+''', [
+      lint(13, 10),
+    ]);
+  }
+
+  test_reconstructed_sameAsPublicName_explicitConst() async {
+    await assertDiagnostics(r'''
+void f() {
+  const A(0);
+}
+class A {
+  const A(int value);
+  static const zero = A(0);
+}
+''', [
+      lint(13, 10),
+    ]);
+  }
+
+  test_reconstructed_sameAsPublicName_implicitConst() async {
+    await assertDiagnostics(r'''
+void f() {
+  const a = A(0);
+}
+class A {
+  const A(int value);
+  static const zero = A(0);
+}
+''', [
+      lint(23, 4),
+    ]);
+  }
+
+  test_usesNamed() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  A.zero;
+}
+class A {
+  const A(int value);
+  static const zero = A(0);
+}
+''');
+  }
 }
