@@ -169,8 +169,7 @@ class AugmentedInlineClassElementImpl extends AugmentedNamedInstanceElementImpl
 abstract class AugmentedInstanceElement {
   /// The accessors (getters and setters) declared in this element.
   ///
-  /// [PropertyAccessorElement]s replace corresponding elements,
-  /// other [PropertyAccessorElement]s are appended.
+  /// Declarations are appended, augmentations replace declarations.
   List<PropertyAccessorElement> get accessors;
 
   /// The declaration (not augmentation) that owns this result.
@@ -178,8 +177,7 @@ abstract class AugmentedInstanceElement {
 
   /// The fields declared in this element.
   ///
-  /// [FieldAugmentationElement]s replace corresponding elements, other
-  /// [FieldElement]s are appended.
+  /// Declarations are appended, augmentations replace declarations.
   List<FieldElement> get fields;
 
   /// The metadata associated with this element.
@@ -190,8 +188,7 @@ abstract class AugmentedInstanceElement {
 
   /// The methods declared in this element.
   ///
-  /// [MethodAugmentationElement]s replace corresponding elements, other
-  /// [MethodElement]s are appended.
+  /// Declarations are appended, augmentations replace declarations.
   List<MethodElement> get methods;
 
   /// Returns the field from [fields] that has the given [name].
@@ -345,8 +342,7 @@ abstract class AugmentedNamedInstanceElement
     implements AugmentedInstanceElement {
   /// The constructors declared in this element.
   ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
+  /// Declarations are appended, augmentations replace declarations.
   List<ConstructorElement> get constructors;
 
   @override
@@ -397,9 +393,9 @@ class BindPatternVariableElementImpl extends PatternVariableElementImpl
   BindPatternVariableElementImpl(this.node, super.name, super.offset);
 }
 
-/// An element that represents a class or a mixin. The class can be defined by
-/// either a class declaration (with a class body), a mixin application (without
-/// a class body), a mixin declaration, or an enum declaration.
+/// An element that represents a class. The class can be defined by either a
+/// class declaration (with a class body), a mixin application (without
+/// a class body).
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class ClassElement implements InterfaceElement {
