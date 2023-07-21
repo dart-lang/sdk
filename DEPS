@@ -53,7 +53,7 @@ vars = {
 
   # co19 is a cipd package. Use update.sh in tests/co19[_2] to update these
   # hashes.
-  "co19_rev": "7e4ba229fecce1affe8284b166744329182feb3e",
+  "co19_rev": "1530f9b2408f5754c1c114f4d6475d883301f0ca",
   # This line prevents conflicts when both packages are rolled simultaneously.
   "co19_2_rev": "11de2759f391faa183b1aa47d854e8fb2c55f4ae",
 
@@ -91,7 +91,7 @@ vars = {
   ### /third_party/ dependencies
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
-  "binaryen_rev" : "b9b5f162ca8bf5b899ff0f0351491d7d403d7ed9",
+  "binaryen_rev" : "cdb7aeab40b4c522de20b242019f7e88641445d5",
   "boringssl_gen_rev": "a468ba9fec3f59edf46a7db98caaca893e1e4d96",
   "boringssl_rev": "74646566e93de7551bfdfc5f49de7462f13d1d05",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
