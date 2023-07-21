@@ -302,7 +302,6 @@ class AstBuilder extends StackListener {
       }
     }
     push(macroToken ?? NullValues.Token);
-    push(inlineToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -754,7 +753,6 @@ class AstBuilder extends StackListener {
       metadata: null,
       abstractKeyword: null,
       macroKeyword: null,
-      inlineKeyword: null,
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
@@ -3678,7 +3676,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var inlineKeyword = pop(NullValues.Token) as Token?;
     var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
@@ -3693,7 +3690,6 @@ class AstBuilder extends StackListener {
       metadata: metadata,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
@@ -6094,7 +6090,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token? abstractKeyword;
   final Token? macroKeyword;
-  final Token? inlineKeyword;
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
@@ -6116,7 +6111,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required this.augmentKeyword,
     required this.abstractKeyword,
     required this.macroKeyword,
-    required this.inlineKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -6137,7 +6131,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       augmentKeyword: augmentKeyword,
       abstractKeyword: abstractKeyword,
       macroKeyword: macroKeyword,
-      inlineKeyword: inlineKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,

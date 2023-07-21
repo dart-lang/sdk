@@ -1418,14 +1418,6 @@ f(a, b) {
     assertHasRegion(HighlightRegionType.KEYWORD, 'else');
   }
 
-  Future<void> test_KEYWORD_inline() async {
-    addTestFile('''
-inline class A {}
-''');
-    await prepareHighlights();
-    assertHasRegion(HighlightRegionType.KEYWORD, 'inline');
-  }
-
   Future<void> test_KEYWORD_late() async {
     addTestFile('''
 class C {

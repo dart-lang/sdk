@@ -91,7 +91,6 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.isAugmentation = node.augmentKeyword != null;
     element.isBase = node.baseKeyword != null;
     element.isFinal = node.finalKeyword != null;
-    element.isInline = node.inlineKeyword != null;
     element.isInterface = node.interfaceKeyword != null;
     element.isMacro = node.macroKeyword != null;
     element.isMixinClass = node.mixinKeyword != null;

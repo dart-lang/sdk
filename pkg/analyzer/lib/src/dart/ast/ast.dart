@@ -2720,6 +2720,7 @@ abstract final class ClassDeclaration implements NamedCompilationUnitMember {
   ImplementsClause? get implementsClause;
 
   /// Return the 'inline' keyword, or `null` if the keyword was absent.
+  @Deprecated('Replaced with extension types')
   @experimental
   Token? get inlineKeyword;
 
@@ -2781,9 +2782,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token? mixinKeyword;
 
   @override
-  final Token? inlineKeyword;
-
-  @override
   final Token classKeyword;
 
   @override
@@ -2824,7 +2822,6 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
     required this.interfaceKeyword,
     required this.finalKeyword,
     required this.mixinKeyword,
-    required this.inlineKeyword,
     required this.classKeyword,
     required super.name,
     required this.typeParameters,
@@ -2860,11 +2857,16 @@ final class ClassDeclarationImpl extends NamedCompilationUnitMemberImpl
         classKeyword;
   }
 
+  @Deprecated('Replaced with extension types')
+  @override
+  Token? get inlineKeyword {
+    return null;
+  }
+
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('macroKeyword', macroKeyword)
-    ..addToken('inlineKeyword', inlineKeyword)
     ..addToken('sealedKeyword', sealedKeyword)
     ..addToken('baseKeyword', baseKeyword)
     ..addToken('interfaceKeyword', interfaceKeyword)

@@ -567,7 +567,6 @@ class _ElementWriter {
           _sink.writeIf(e.isBase, 'base ');
           _sink.writeIf(e.isInterface, 'interface ');
           _sink.writeIf(e.isFinal, 'final ');
-          _sink.writeIf(e.isInline, 'inline ');
           _sink.writeIf(!e.isSimplyBounded, 'notSimplyBounded ');
           _sink.writeIf(e.isMixinClass, 'mixin ');
           _sink.write('class ');
