@@ -602,8 +602,12 @@ abstract class DefType extends HeapType {
   /// The length of the supertype chain of this heap type.
   final int depth;
 
+  bool hasAnySubtypes = false;
+
   DefType({this.superType})
-      : depth = superType != null ? superType.depth + 1 : 0;
+      : depth = superType != null ? superType.depth + 1 : 0 {
+    superType?.hasAnySubtypes = true;
+  }
 
   int get index => _index ?? (throw "$runtimeType $this not added to module");
   set index(int i) => _index = i;
@@ -630,10 +634,13 @@ abstract class DefType extends HeapType {
   // if any.
   void serializeDefinition(Serializer s) {
     if (hasSuperType) {
-      s.writeByte(0x50);
+      s.writeByte(hasAnySubtypes ? 0x50 : 0x4E);
       s.writeUnsigned(1);
       assert(isStructuralSubtypeOf(superType!));
       s.write(superType!);
+    } else if (hasAnySubtypes) {
+      s.writeByte(0x50);
+      s.writeUnsigned(0);
     }
     serializeDefinitionInner(s);
   }
