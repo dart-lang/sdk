@@ -17,6 +17,66 @@ class EmptyStatementsTest extends LintRuleTest {
   @override
   String get lintRule => 'empty_statements';
 
+  test_emptyFor() async {
+    await assertDiagnostics(r'''
+void f(bool b) {
+  for ( ; b; );
+}
+''', [
+      lint(31, 1),
+    ]);
+  }
+
+  test_emptyIf_followedByBlock() async {
+    await assertDiagnostics(r'''
+void f(bool b) {
+  if (b);
+  {
+    print(b);
+  }
+}
+''', [
+      lint(25, 1),
+    ]);
+  }
+
+  test_emptyIf_followedByStatement() async {
+    await assertDiagnostics(r'''
+void f(bool b) {
+  if (b);
+    print(b);
+}
+''', [
+      lint(25, 1),
+    ]);
+  }
+
+  test_emptyWhile() async {
+    await assertDiagnostics(r'''
+void f(bool b) {
+  while (b);
+}
+''', [
+      lint(28, 1),
+    ]);
+  }
+
+  test_nonEmptyIf_emptyBlock() async {
+    await assertNoDiagnostics(r'''
+void f(bool b) {
+  if (b) {}
+}
+''');
+  }
+
+  test_nonEmptyWhile_emptyBlock() async {
+    await assertNoDiagnostics(r'''
+void f(bool b) {
+  while (b) {}
+}
+''');
+  }
+
   /// https://github.com/dart-lang/linter/issues/4410
   test_switchPatternCase_justEmpties() async {
     await assertDiagnostics(r'''
