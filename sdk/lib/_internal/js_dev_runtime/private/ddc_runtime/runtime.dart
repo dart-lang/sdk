@@ -28,6 +28,7 @@ import 'dart:_interceptors'
         JSNumNotInt,
         JSFunction,
         LegacyJavaScriptObject,
+        JavaScriptObject,
         NativeError;
 
 import 'dart:_internal' as internal show LateError, Symbol;
@@ -64,8 +65,16 @@ import 'dart:_rti' as rti
         isGenericFunctionType,
         isSubtype,
         Rti,
+        _Type,
         substitute,
-        rtiToString;
+        rtiToString,
+        isFunctionType,
+        isObjectType,
+        isRecordInterfaceType,
+        isRecordType,
+        getRecordTypeElementTypes,
+        getRecordTypeShapeKey,
+        getLibraryUri;
 
 export 'dart:_debugger' show getDynamicStats, clearDynamicStats, trackCall;
 
@@ -76,6 +85,7 @@ part 'types.dart';
 part 'records.dart';
 part 'errors.dart';
 part 'operations.dart';
+part 'debugger.dart';
 
 // TODO(vsm): Move polyfill code to dart:html.
 // Note, native extensions are registered onto types in dart.global.

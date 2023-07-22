@@ -329,27 +329,6 @@ ClassDeclaration
         withOffsets: true);
   }
 
-  void test_class_inline() {
-    var parseResult = parseStringWithErrors(r'''
-/// text
-inline class A {}
-''');
-    parseResult.assertNoErrors();
-
-    var node = parseResult.findNode.classDeclaration('class A {}');
-    assertParsedNodeText(node, r'''
-ClassDeclaration
-  documentationComment: Comment
-    tokens
-      /// text
-  inlineKeyword: inline
-  classKeyword: class
-  name: A
-  leftBracket: {
-  rightBracket: }
-''');
-  }
-
   void test_class_interface() {
     var parseResult = parseStringWithErrors(r'''
 /// text

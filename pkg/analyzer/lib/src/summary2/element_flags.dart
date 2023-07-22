@@ -11,13 +11,12 @@ class ClassElementFlags {
   static const int _isAugmentation = 1 << 1;
   static const int _isBase = 1 << 2;
   static const int _isFinal = 1 << 3;
-  static const int _isInline = 1 << 4;
-  static const int _isInterface = 1 << 5;
-  static const int _isMacro = 1 << 6;
-  static const int _isMixinApplication = 1 << 7;
-  static const int _isMixinClass = 1 << 8;
-  static const int _isSealed = 1 << 9;
-  static const int _isSimplyBounded = 1 << 10;
+  static const int _isInterface = 1 << 4;
+  static const int _isMacro = 1 << 5;
+  static const int _isMixinApplication = 1 << 6;
+  static const int _isMixinClass = 1 << 7;
+  static const int _isSealed = 1 << 8;
+  static const int _isSimplyBounded = 1 << 9;
 
   static void read(
     SummaryDataReader reader,
@@ -28,7 +27,6 @@ class ClassElementFlags {
     element.isAugmentation = (byte & _isAugmentation) != 0;
     element.isBase = (byte & _isBase) != 0;
     element.isFinal = (byte & _isFinal) != 0;
-    element.isInline = (byte & _isInline) != 0;
     element.isInterface = (byte & _isInterface) != 0;
     element.isMacro = (byte & _isMacro) != 0;
     element.isMixinApplication = (byte & _isMixinApplication) != 0;
@@ -46,7 +44,6 @@ class ClassElementFlags {
     result |= element.isAugmentation ? _isAugmentation : 0;
     result |= element.isBase ? _isBase : 0;
     result |= element.isFinal ? _isFinal : 0;
-    result |= element.isInline ? _isInline : 0;
     result |= element.isInterface ? _isInterface : 0;
     result |= element.isMacro ? _isMacro : 0;
     result |= element.isMixinApplication ? _isMixinApplication : 0;
