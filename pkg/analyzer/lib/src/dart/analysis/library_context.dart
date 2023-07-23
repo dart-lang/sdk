@@ -8,6 +8,8 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/macros/executor/multi_executor.dart'
     as macro;
 import 'package:analyzer/dart/analysis/declared_variables.dart';
+import 'package:analyzer/dart/element/element.dart'
+    show CompilationUnitElement, LibraryElement;
 import 'package:analyzer/src/context/context.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
