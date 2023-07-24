@@ -99,10 +99,13 @@ abstract interface class DeclarationPhaseIntrospector
 
   /// [TypeDeclaration]s for all the types declared in [library].
   ///
-  /// In the declarations phase these will not be [IntrospectableType]s, since
+  /// Note that this includes [ExtensionDeclaration]s as well, even though they
+  /// do not actually introduce a new type.
+  ///
+  /// In the declarations phase these are not [IntrospectableType]s, since
   /// types are still incomplete at that point.
   ///
-  /// In the definitions phase, these will be [IntrospectableType]s where
+  /// In the definitions phase, these are [IntrospectableType]s where
   /// appropriate (but, for instance, type aliases will not be).
   Future<List<TypeDeclaration>> typesOf(covariant Library library);
 
@@ -113,8 +116,9 @@ abstract interface class DeclarationPhaseIntrospector
   ///
   /// In the declaration phase, this will return [IntrospectableType] instances
   /// only for those types that are introspectable. Specifically, types are only
-  /// introspectable if the macro is running on a class declaration, and the
-  /// type appears in the type hierarchy of that class.
+  /// introspectable if they are supertypes or "on" types of the declaration the
+  /// macro originally annotated (which guarantees no cycles, and that they are
+  /// complete).
   ///
   /// In the definition phase, this will return [IntrospectableType] instances
   /// for all type definitions which can have members (ie: not type aliases).

@@ -565,41 +565,47 @@ DeclarationCode _buildFunctionAugmentation(
       ' ',
       if (declaration.isOperator) 'operator ',
     ],
+    if (declaration.isGetter) 'get ',
     declaration.identifier.name,
-    if (declaration.typeParameters.isNotEmpty) ...[
-      '<',
-      for (TypeParameterDeclaration typeParam
-          in declaration.typeParameters) ...[
-        typeParam.identifier.name,
-        if (typeParam.bound != null) ...[' extends ', typeParam.bound!.code],
-        if (typeParam != declaration.typeParameters.last) ', ',
+    if (!declaration.isGetter) ...[
+      if (declaration.typeParameters.isNotEmpty) ...[
+        '<',
+        for (TypeParameterDeclaration typeParam
+            in declaration.typeParameters) ...[
+          typeParam.identifier.name,
+          if (typeParam.bound != null) ...[' extends ', typeParam.bound!.code],
+          if (typeParam != declaration.typeParameters.last) ', ',
+        ],
+        '>',
       ],
-      '>',
-    ],
-    '(',
-    for (ParameterDeclaration positionalRequired
-        in declaration.positionalParameters.takeWhile((p) => p.isRequired)) ...[
-      positionalRequired.code,
-      ', ',
-    ],
-    if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
-      '[',
-      for (ParameterDeclaration positionalOptional
-          in declaration.positionalParameters.where((p) => !p.isRequired)) ...[
-        positionalOptional.code,
+      '(',
+      for (ParameterDeclaration positionalRequired in declaration
+          .positionalParameters
+          .takeWhile((p) => p.isRequired)) ...[
+        positionalRequired.code,
         ', ',
       ],
-      ']',
-    ],
-    if (declaration.namedParameters.isNotEmpty) ...[
-      '{',
-      for (ParameterDeclaration named in declaration.namedParameters) ...[
-        named.code,
-        ', ',
+      if (declaration.positionalParameters.any((p) => !p.isRequired)) ...[
+        '[',
+        for (ParameterDeclaration positionalOptional in declaration
+            .positionalParameters
+            .where((p) => !p.isRequired)) ...[
+          positionalOptional.code,
+          ', ',
+        ],
+        ']',
       ],
-      '}',
+      if (declaration.namedParameters.isNotEmpty) ...[
+        '{',
+        for (ParameterDeclaration named in declaration.namedParameters) ...[
+          named.code,
+          ', ',
+        ],
+        '}',
+      ],
+      ')',
     ],
-    ') ',
+    ' ',
     if (initializers != null && initializers.isNotEmpty) ...[
       ' : ',
       initializers.first,

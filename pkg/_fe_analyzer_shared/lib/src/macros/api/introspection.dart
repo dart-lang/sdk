@@ -214,6 +214,21 @@ abstract interface class EnumValueDeclaration implements Declaration {
 abstract interface class IntrospectableEnumDeclaration
     implements EnumDeclaration, IntrospectableEnum {}
 
+/// The class for introspecting on an extension.
+///
+/// Note that extensions do not actually introduce a new type, but we model them
+/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// exactly like other type declarations, and are treated the same.
+abstract interface class ExtensionDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The type that appears on the `on` clause of this extension.
+  TypeAnnotation get onType;
+}
+
+/// An introspectable extension declaration.
+abstract interface class IntrospectableExtensionDeclaration
+    implements ExtensionDeclaration, IntrospectableType {}
+
 /// Mixin introspection information.
 ///
 /// Information about fields and methods must be retrieved from the `builder`

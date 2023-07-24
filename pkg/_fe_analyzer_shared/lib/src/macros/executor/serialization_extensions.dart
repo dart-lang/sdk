@@ -32,6 +32,8 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectEnumDeclaration(id),
       RemoteInstanceKind.enumValueDeclaration =>
         (this..moveNext())._expectEnumValueDeclaration(id),
+      RemoteInstanceKind.extensionDeclaration =>
+        (this..moveNext())._expectExtensionDeclaration(id),
       RemoteInstanceKind.mixinDeclaration =>
         (this..moveNext())._expectMixinDeclaration(id),
       RemoteInstanceKind.constructorDeclaration =>
@@ -51,6 +53,8 @@ extension DeserializerExtensions on Deserializer {
         (this..moveNext())._expectIntrospectableClassDeclaration(id),
       RemoteInstanceKind.introspectableEnumDeclaration =>
         (this..moveNext())._expectIntrospectableEnumDeclaration(id),
+      RemoteInstanceKind.introspectableExtensionDeclaration =>
+        (this..moveNext())._expectIntrospectableExtensionDeclaration(id),
       RemoteInstanceKind.introspectableMixinDeclaration =>
         (this..moveNext())._expectIntrospectableMixinDeclaration(id),
       RemoteInstanceKind.library => (this..moveNext())._expectLibrary(id),
@@ -362,6 +366,26 @@ extension DeserializerExtensions on Deserializer {
         metadata: (this..moveNext())._expectRemoteInstanceList(),
         definingEnum: RemoteInstance.deserialize(this),
       );
+
+  ExtensionDeclarationImpl _expectExtensionDeclaration(int id) =>
+      new ExtensionDeclarationImpl(
+        id: id,
+        identifier: expectRemoteInstance(),
+        library: RemoteInstance.deserialize(this),
+        metadata: (this..moveNext())._expectRemoteInstanceList(),
+        typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+        onType: RemoteInstance.deserialize(this),
+      );
+  IntrospectableExtensionDeclarationImpl
+      _expectIntrospectableExtensionDeclaration(int id) =>
+          new IntrospectableExtensionDeclarationImpl(
+            id: id,
+            identifier: expectRemoteInstance(),
+            library: RemoteInstance.deserialize(this),
+            metadata: (this..moveNext())._expectRemoteInstanceList(),
+            typeParameters: (this..moveNext())._expectRemoteInstanceList(),
+            onType: RemoteInstance.deserialize(this),
+          );
 
   TypeAliasDeclarationImpl _expectTypeAliasDeclaration(int id) =>
       new TypeAliasDeclarationImpl(

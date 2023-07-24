@@ -26,6 +26,9 @@ class SimpleMacro
         EnumValueTypesMacro,
         EnumValueDeclarationsMacro,
         EnumValueDefinitionMacro,
+        ExtensionTypesMacro,
+        ExtensionDeclarationsMacro,
+        ExtensionDefinitionMacro,
         FieldTypesMacro,
         FieldDeclarationsMacro,
         FieldDefinitionMacro,
@@ -588,6 +591,54 @@ class LibraryInfo {
   final List<Type> definedTypes;
   const LibraryInfo(this.uri, this.languageVersion, this.definedTypes);
 }'''));
+  }
+
+  @override
+  FutureOr<void> buildTypesForExtension(
+      ExtensionDeclaration extension, TypeBuilder builder) {
+    final onType = extension.onType as NamedTypeAnnotation;
+    final name = '${extension.identifier.name}On${onType.identifier.name}';
+    builder.declareType(name, DeclarationCode.fromString('class $name {}'));
+  }
+
+  @override
+  FutureOr<void> buildDeclarationsForExtension(
+      IntrospectableExtensionDeclaration extension,
+      MemberDeclarationBuilder builder) async {
+    final dartCoreList =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'List');
+    final dartCoreString =
+        // ignore: deprecated_member_use_from_same_package
+        await builder.resolveIdentifier(Uri.parse('dart:core'), 'String');
+    builder.declareInType(DeclarationCode.fromParts([
+      NamedTypeAnnotationCode(name: dartCoreList, typeArguments: [
+        NamedTypeAnnotationCode(name: dartCoreString),
+      ]),
+      ' get onTypeFieldNames;',
+    ]));
+  }
+
+  @override
+  FutureOr<void> buildDefinitionForExtension(
+      IntrospectableExtensionDeclaration extension,
+      TypeDefinitionBuilder builder) async {
+    // Get a builder for the getter we added earlier.
+    final extensionMethods = await builder.methodsOf(extension);
+    final getterBuilder = await builder.buildMethod(extensionMethods
+        .singleWhere((m) => m.identifier.name == 'onTypeFieldNames')
+        .identifier);
+
+    // Introspect on our `on` type.
+    final onType = (await builder.typeDeclarationOf(
+        (extension.onType as NamedTypeAnnotation).identifier));
+    final onTypeFields = await builder.fieldsOf(onType);
+
+    getterBuilder.augment(FunctionBodyCode.fromParts([
+      '=> [',
+      for (var field in onTypeFields) "'${field.identifier.name}',",
+      '];',
+    ]));
   }
 }
 

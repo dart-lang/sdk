@@ -39,6 +39,8 @@ Future<MacroExecutionResult> executeTypesMacro(
           target,
           builder = new EnumTypeBuilderImpl(
               target.identifier as IdentifierImpl, introspector));
+    case (ExtensionDeclaration target, ExtensionTypesMacro macro):
+      await macro.buildTypesForExtension(target, typeBuilder);
     case (MixinDeclaration target, MixinTypesMacro macro):
       await macro.buildTypesForMixin(
           target,
@@ -100,6 +102,14 @@ Future<MacroExecutionResult> executeDeclarationsMacro(Macro macro,
 
       await macro.buildDeclarationsForEnum(target, enumBuilder);
       return enumBuilder.result;
+    case (ExtensionDeclaration target, ExtensionDeclarationsMacro macro):
+      if (target is! IntrospectableExtensionDeclarationImpl) {
+        throw new ArgumentError(
+            'Extension declarations annotated with a macro should be '
+            'introspectable in the declarations phase.');
+      }
+      await macro.buildDeclarationsForExtension(target, memberBuilder);
+      return memberBuilder.result;
     case (MixinDeclaration target, MixinDeclarationsMacro macro):
       if (target is! IntrospectableMixinDeclarationImpl) {
         throw new ArgumentError(
@@ -169,6 +179,14 @@ Future<MacroExecutionResult> executeDefinitionMacro(Macro macro, Object target,
           new EnumDefinitionBuilderImpl(target, introspector);
       await macro.buildDefinitionForEnum(target, builder);
       return builder.result;
+    case (ExtensionDeclaration target, ExtensionDefinitionMacro macro):
+      if (target is! IntrospectableExtensionDeclaration) {
+        throw new ArgumentError(
+            'Extension declarations annotated with a macro should be '
+            'introspectable in the definitions phase.');
+      }
+      await macro.buildDefinitionForExtension(target, typeBuilder);
+      return typeBuilder.result;
     case (MixinDeclaration target, MixinDefinitionMacro macro):
       if (target is! IntrospectableMixinDeclaration) {
         throw new ArgumentError(

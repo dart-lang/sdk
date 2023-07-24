@@ -17,6 +17,9 @@ class TestTypePhaseIntrospector implements TypePhaseIntrospector {
     if (library == Uri.parse('dart:core') && name == 'String') {
       return Fixtures.stringType.identifier;
     }
+    if (library == Uri.parse('dart:core') && name == 'List') {
+      return Fixtures.listIdentifier;
+    }
     throw UnimplementedError('Cannot resolve the identifier $library:$name');
   }
 }
@@ -305,6 +308,8 @@ class Fixtures {
       languageVersion: LanguageVersionImpl(3, 0),
       metadata: [],
       uri: Uri.parse('package:foo/bar.dart'));
+  static final listIdentifier =
+      IdentifierImpl(id: RemoteInstance.uniqueId, name: 'List');
   static final nullableBoolType = NamedTypeAnnotationImpl(
       id: RemoteInstance.uniqueId,
       identifier: IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bool'),
@@ -642,6 +647,39 @@ class Fixtures {
       definingType: myMixinType.identifier,
       isStatic: false);
 
+  static final myExtension = IntrospectableExtensionDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'MyExtension'),
+      library: Fixtures.library,
+      metadata: [],
+      typeParameters: [],
+      onType: myClassType);
+
+  static final myGeneratedExtensionMethod = MethodDeclarationImpl(
+      id: RemoteInstance.uniqueId,
+      identifier:
+          IdentifierImpl(id: RemoteInstance.uniqueId, name: 'onTypeFieldNames'),
+      library: library,
+      metadata: [],
+      isAbstract: false,
+      isExternal: false,
+      isGetter: true,
+      isOperator: false,
+      isSetter: true,
+      namedParameters: [],
+      positionalParameters: [],
+      returnType: NamedTypeAnnotationImpl(
+          id: RemoteInstance.uniqueId,
+          isNullable: false,
+          identifier: listIdentifier,
+          typeArguments: [stringType]),
+      typeParameters: [],
+      definingType: myExtension.identifier,
+      // TODO: This is a bit weird, the method is actually static, but doesn't
+      // have the keyword because it is implicit.
+      isStatic: false);
+
   static final testDeclarationPhaseIntrospector =
       TestDeclarationPhaseIntrospector(constructors: {
     myClass: [myConstructor],
@@ -657,10 +695,12 @@ class Fixtures {
     myClass: [myMethod],
     myMixin: [myMixinMethod],
     myEnum: [],
+    myExtension: [myGeneratedExtensionMethod],
   }, libraryTypes: {
     Fixtures.library: [
       myClass,
       myEnum,
+      myExtension,
       myMixin,
     ],
   }, staticTypes: {
@@ -670,6 +710,7 @@ class Fixtures {
   }, identifierDeclarations: {
     myClass.identifier: myClass,
     myEnum.identifier: myEnum,
+    myExtension.identifier: myExtension,
     mySuperclass.identifier: mySuperclass,
     myInterface.identifier: myInterface,
     myMixin.identifier: myMixin,
