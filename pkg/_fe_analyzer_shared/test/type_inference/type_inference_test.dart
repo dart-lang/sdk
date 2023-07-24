@@ -91,7 +91,7 @@ main() {
           listLiteral(elementType: 'int', [
             ifCaseElement(
               expr('Object'),
-              x.pattern().when(x.expr.eq(intLiteral(0))),
+              x.pattern().when(x.eq(intLiteral(0))),
               intLiteral(1).checkContext('int'),
             ).checkIR('if(expression: expr(Object), pattern: '
                 'varPattern(x, matchedType: Object, staticType: Object), '
@@ -390,10 +390,7 @@ main() {
           switchExpr(expr('int'), [
             i
                 .pattern()
-                .when(i.expr
-                    .checkType('int')
-                    .eq(expr('num'))
-                    .checkContext('bool'))
+                .when(i.checkType('int').eq(expr('num')).checkContext('bool'))
                 .thenExpr(expr('String')),
           ]).checkIR('switchExpr(expr(int), case(head(varPattern(i, '
               'matchedType: int, staticType: int), ==(i, expr(num)), '
@@ -566,7 +563,7 @@ main() {
         h.run([
           ifCase(
             expr('num'),
-            x.pattern(type: 'int').when(x.expr.eq(intLiteral(0))),
+            x.pattern(type: 'int').when(x.eq(intLiteral(0))),
             [],
           ).checkIR('ifCase(expr(num), '
               'varPattern(x, matchedType: num, staticType: int), variables(x), '
@@ -811,10 +808,7 @@ main() {
             [
               i
                   .pattern()
-                  .when(i.expr
-                      .checkType('int')
-                      .eq(expr('num'))
-                      .checkContext('bool'))
+                  .when(i.checkType('int').eq(expr('num')).checkContext('bool'))
                   .then([
                 break_(),
               ]),
