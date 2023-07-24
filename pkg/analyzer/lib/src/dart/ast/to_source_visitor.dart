@@ -457,6 +457,20 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.extensionKeyword, suffix: ' ');
+    _visitToken(node.typeKeyword, suffix: ' ');
+    _visitToken(node.constKeyword, suffix: ' ');
+    _visitToken(node.name);
+    _visitNode(node.typeParameters);
+    _visitNode(node.representation, suffix: ' ');
+    _visitToken(node.leftBracket);
+    _visitNodeList(node.members, separator: ' ');
+    _visitToken(node.rightBracket);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
     _visitToken(node.abstractKeyword, suffix: ' ');
@@ -1141,6 +1155,21 @@ class ToSourceVisitor implements AstVisitor<void> {
     sink.write(node.operator.lexeme);
     sink.write(' ');
     _visitNode(node.operand);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+    _visitToken(node.period);
+    _visitToken(node.name);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    _visitNode(node.constructorName);
+    _visitToken(node.leftParenthesis);
+    _visitNode(node.fieldType, suffix: ' ');
+    _visitToken(node.fieldName);
+    _visitToken(node.rightParenthesis);
   }
 
   @override

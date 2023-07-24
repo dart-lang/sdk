@@ -20252,6 +20252,12 @@ ParserErrorCode:
     sharedName: EXPECTED_NAMED_TYPE
     problemMessage: Expected a mixin name.
     correctionMessage: Try using a mixin name, possibly with type arguments.
+  EXPECTED_REPRESENTATION_FIELD:
+    problemMessage: Expected a representation field.
+    correctionMessage: Try providing the representation field for this extension type.
+  EXPECTED_REPRESENTATION_TYPE:
+    problemMessage: Expected a representation type.
+    correctionMessage: Try providing the representation type for this extension type.
   EXPECTED_STRING_LITERAL:
     problemMessage: Expected a string literal.
   EXPECTED_TOKEN:

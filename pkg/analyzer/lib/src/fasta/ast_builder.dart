@@ -343,6 +343,23 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    final typeParameters = pop() as TypeParameterListImpl?;
+    final metadata = pop() as List<AnnotationImpl>?;
+    final comment = _findComment(metadata, extensionKeyword);
+
+    _classLikeBuilder = _ExtensionTypeDeclarationBuilder(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      leftBracket: Tokens.openCurlyBracket(),
+      rightBracket: Tokens.closeCurlyBracket(),
+    );
+  }
+
+  @override
   void beginFactoryMethod(DeclarationKind declarationKind, Token lastConsumed,
       Token? externalToken, Token? constToken) {
     push(_Modifiers()
@@ -540,6 +557,11 @@ class AstBuilder extends StackListener {
   @override
   void beginPatternGuard(Token when) {
     debugEvent("PatternGuard");
+  }
+
+  @override
+  void beginPrimaryConstructor(Token beginToken) {
+    debugEvent("PrimaryConstructor");
   }
 
   @override
@@ -1649,6 +1671,24 @@ class AstBuilder extends StackListener {
   }
 
   @override
+  void endExtensionTypeDeclaration(
+      Token extensionKeyword, Token typeKeyword, Token endToken) {
+    final implementsClause =
+        pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
+    final representation = pop() as RepresentationDeclarationImpl;
+
+    final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
+    declarations.add(
+      builder.build(
+        typeKeyword: typeKeyword,
+        constKeyword: null, // TODO(scheglov) not parsed
+        representation: representation,
+        implementsClause: implementsClause,
+      ),
+    );
+  }
+
+  @override
   void endFieldInitializer(Token equals, Token token) {
     assert(optional('=', equals));
     debugEvent("FieldInitializer");
@@ -2755,6 +2795,78 @@ class AstBuilder extends StackListener {
       WhenClauseImpl(
         whenKeyword: when,
         expression: expression,
+      ),
+    );
+  }
+
+  @override
+  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+    final formalParameterList = pop() as FormalParameterListImpl;
+    final leftParenthesis = formalParameterList.leftParenthesis;
+
+    RepresentationConstructorNameImpl? constructorName;
+    if (hasConstructorName) {
+      final nameIdentifier = pop() as SimpleIdentifierImpl;
+      constructorName = RepresentationConstructorNameImpl(
+        period: beginToken,
+        name: nameIdentifier.token,
+      );
+    }
+
+    final List<AnnotationImpl> fieldMetadata;
+    final TypeAnnotationImpl fieldType;
+    final Token fieldName;
+    final firstFormalParameter = formalParameterList.parameters.firstOrNull;
+    if (firstFormalParameter is SimpleFormalParameterImpl) {
+      fieldMetadata = firstFormalParameter.metadata;
+      switch (firstFormalParameter.type) {
+        case final formalParameterType?:
+          fieldType = formalParameterType;
+        case null:
+          errorReporter.errorReporter?.reportErrorForToken(
+            ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
+            leftParenthesis.next!,
+          );
+          final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+            leftParenthesis,
+          );
+          fieldType = NamedTypeImpl(
+            importPrefix: null,
+            name2: typeNameToken,
+            typeArguments: null,
+            question: null,
+          );
+          break;
+      }
+      fieldName = firstFormalParameter.name!;
+    } else {
+      errorReporter.errorReporter?.reportErrorForToken(
+        ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+        leftParenthesis.next!,
+      );
+      fieldMetadata = [];
+      final typeNameToken = parser.rewriter.insertSyntheticIdentifier(
+        leftParenthesis,
+      );
+      fieldType = NamedTypeImpl(
+        importPrefix: null,
+        name2: typeNameToken,
+        typeArguments: null,
+        question: null,
+      );
+      fieldName = parser.rewriter.insertSyntheticIdentifier(
+        typeNameToken,
+      );
+    }
+
+    push(
+      RepresentationDeclarationImpl(
+        constructorName: constructorName,
+        leftParenthesis: leftParenthesis,
+        fieldMetadata: fieldMetadata,
+        fieldType: fieldType,
+        fieldName: fieldName,
+        rightParenthesis: formalParameterList.rightParenthesis,
       ),
     );
   }
@@ -6242,6 +6354,43 @@ class _ExtensionDeclarationBuilder extends _ClassLikeDeclarationBuilder {
       typeParameters: typeParameters,
       onKeyword: onKeyword,
       extendedType: extendedType,
+      leftBracket: leftBracket,
+      members: members,
+      rightBracket: rightBracket,
+    );
+  }
+}
+
+class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
+  final Token extensionKeyword;
+  final Token name;
+
+  _ExtensionTypeDeclarationBuilder({
+    required super.comment,
+    required super.metadata,
+    required super.typeParameters,
+    required super.leftBracket,
+    required super.rightBracket,
+    required this.extensionKeyword,
+    required this.name,
+  });
+
+  ExtensionTypeDeclarationImpl build({
+    required Token typeKeyword,
+    required Token? constKeyword,
+    required RepresentationDeclarationImpl representation,
+    required ImplementsClauseImpl? implementsClause,
+  }) {
+    return ExtensionTypeDeclarationImpl(
+      comment: comment,
+      metadata: metadata,
+      extensionKeyword: extensionKeyword,
+      typeKeyword: typeKeyword,
+      constKeyword: constKeyword,
+      name: name,
+      typeParameters: typeParameters,
+      representation: representation,
+      implementsClause: implementsClause,
       leftBracket: leftBracket,
       members: members,
       rightBracket: rightBracket,

@@ -330,6 +330,12 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _runSubscriptions(node, registry._forExtensionTypeDeclaration);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _runSubscriptions(node, registry._forFieldDeclaration);
     node.visitChildren(this);
@@ -809,6 +815,18 @@ class LinterVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+    _runSubscriptions(node, registry._forRepresentationConstructorName);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    _runSubscriptions(node, registry._forRepresentationDeclaration);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRestPatternElement(RestPatternElement node) {
     _runSubscriptions(node, registry._forRestPatternElement);
     node.visitChildren(this);
@@ -1112,6 +1130,8 @@ class NodeLintRegistry {
   final List<_Subscription<ExpressionStatement>> _forExpressionStatement = [];
   final List<_Subscription<ExtendsClause>> _forExtendsClause = [];
   final List<_Subscription<ExtensionDeclaration>> _forExtensionDeclaration = [];
+  final List<_Subscription<ExtensionTypeDeclaration>>
+      _forExtensionTypeDeclaration = [];
   final List<_Subscription<ExtensionOverride>> _forExtensionOverride = [];
   final List<_Subscription<ObjectPattern>> _forObjectPattern = [];
   final List<_Subscription<FieldDeclaration>> _forFieldDeclaration = [];
@@ -1190,6 +1210,8 @@ class NodeLintRegistry {
   final List<_Subscription<PartDirective>> _forPartDirective = [];
   final List<_Subscription<PartOfDirective>> _forPartOfDirective = [];
   final List<_Subscription<PatternAssignment>> _forPatternAssignment = [];
+  final List<_Subscription<PatternField>> _forPatternField = [];
+  final List<_Subscription<PatternFieldName>> _forPatternFieldName = [];
   final List<_Subscription<PatternVariableDeclaration>>
       _forPatternVariableDeclaration = [];
   final List<_Subscription<PatternVariableDeclarationStatement>>
@@ -1199,8 +1221,6 @@ class NodeLintRegistry {
   final List<_Subscription<PrefixExpression>> _forPrefixExpression = [];
   final List<_Subscription<PropertyAccess>> _forPropertyAccess = [];
   final List<_Subscription<RecordLiteral>> _forRecordLiterals = [];
-  final List<_Subscription<PatternField>> _forPatternField = [];
-  final List<_Subscription<PatternFieldName>> _forPatternFieldName = [];
   final List<_Subscription<RecordPattern>> _forRecordPattern = [];
   final List<_Subscription<RecordTypeAnnotation>> _forRecordTypeAnnotation = [];
   final List<_Subscription<RecordTypeAnnotationNamedField>>
@@ -1215,6 +1235,10 @@ class NodeLintRegistry {
   final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
   final List<_Subscription<RethrowExpression>> _forRethrowExpression = [];
   final List<_Subscription<ReturnStatement>> _forReturnStatement = [];
+  final List<_Subscription<RepresentationConstructorName>>
+      _forRepresentationConstructorName = [];
+  final List<_Subscription<RepresentationDeclaration>>
+      _forRepresentationDeclaration = [];
   final List<_Subscription<ScriptTag>> _forScriptTag = [];
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
@@ -1481,6 +1505,11 @@ class NodeLintRegistry {
 
   void addExtensionOverride(LintRule linter, AstVisitor visitor) {
     _forExtensionOverride
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addExtensionTypeDeclaration(LintRule linter, AstVisitor visitor) {
+    _forExtensionTypeDeclaration
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
@@ -1824,6 +1853,16 @@ class NodeLintRegistry {
 
   void addRelationalPattern(LintRule linter, AstVisitor visitor) {
     _forRelationalPattern
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRepresentationConstructorName(LintRule linter, AstVisitor visitor) {
+    _forRepresentationConstructorName
+        .add(_Subscription(linter, visitor, _getTimer(linter)));
+  }
+
+  void addRepresentationDeclaration(LintRule linter, AstVisitor visitor) {
+    _forRepresentationDeclaration
         .add(_Subscription(linter, visitor, _getTimer(linter)));
   }
 
