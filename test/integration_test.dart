@@ -75,24 +75,6 @@ void coreTests() {
       });
     });
 
-    group('pubspec', () {
-      var currentOut = outSink;
-      var collectingOut = CollectingSink();
-      setUp(() => outSink = collectingOut);
-      tearDown(() {
-        collectingOut.buffer.clear();
-        outSink = currentOut;
-      });
-      test('bad pubspec', () async {
-        await cli.run([
-          '$integrationTestDir/p3',
-          '$integrationTestDir/p3/_pubpspec.yaml'
-        ]);
-        expect(collectingOut.trim(),
-            startsWith('1 file analyzed, 0 issues found, in'));
-      });
-    });
-
     group('canonicalization', () {
       var currentOut = outSink;
       var collectingOut = CollectingSink();

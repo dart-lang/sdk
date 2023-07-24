@@ -11,6 +11,7 @@ import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
 import 'integration_test.dart' as integration_test;
 import 'mocks.dart';
+import 'pubspec_test.dart' as pubspec_test;
 import 'rule_test.dart' as rule_test;
 import 'rules/all.dart' as reflective_rule_tests;
 import 'unmocked_sdk_rule_test.dart' as unmocked_sdk_rule_test;
@@ -37,6 +38,7 @@ void main() {
   engine_test.main();
   formatter_test.main();
   integration_test.main();
+  pubspec_test.main();
   rule_test.main();
   reflective_rule_tests.main();
   unmocked_sdk_rule_test.main();
