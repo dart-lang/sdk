@@ -1346,8 +1346,8 @@ class _SubstitutedTypeParameters {
       var newElement = newElements[i] as TypeParameterElementImpl;
       var bound = element.bound;
       if (bound != null) {
-        var newBound = substitution.substituteType(bound);
-        newBound = substitution2.substituteType(newBound);
+        var newBound = substitution2.substituteType(bound);
+        newBound = substitution.substituteType(newBound);
         newElement.bound = newBound;
       }
     }

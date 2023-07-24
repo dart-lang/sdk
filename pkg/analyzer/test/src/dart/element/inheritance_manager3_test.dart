@@ -3,6 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -54,6 +56,62 @@ abstract class B<E> {
     final T = foo.typeParameters.single;
     final returnType = foo.returnType2;
     expect(returnType.element, same(T));
+  }
+
+  test_getMember_fromGenericSuper_method_bound() async {
+    void checkTextendsFooT(TypeParameterElement t) {
+      final otherT = (t.bound as InterfaceType).typeArguments.single.element;
+      expect(otherT, same(t));
+    }
+
+    await resolveTestCode('''
+abstract class Foo<TF> {}
+class Bar implements Foo<Bar> {}
+abstract class A<XA> {
+  T foo<T extends Foo<T>>() => throw '';
+}
+abstract class B<XB> extends A<XB> {}
+''');
+    final XB = findElement.typeParameter('XB');
+    final typeXB = XB.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+    final B = findElement.classOrMixin('B');
+    final typeB = B.instantiate(
+        typeArguments: [typeXB], nullabilitySuffix: NullabilitySuffix.none);
+    final foo = manager.getMember(typeB, Name(null, 'foo'))!;
+    final foo2 = manager.getMember2(B, Name(null, 'foo'))!;
+    checkTextendsFooT(foo.type.typeFormals.single);
+    checkTextendsFooT(foo2.type.typeFormals.single);
+    checkTextendsFooT(foo2.typeParameters.single);
+    checkTextendsFooT(foo.typeParameters.single);
+  }
+
+  test_getMember_fromGenericSuper_method_bound2() async {
+    void checkTextendsFooT(TypeParameterElement t) {
+      final otherT = (t.bound as InterfaceType).typeArguments.single.element;
+      expect(otherT, same(t));
+    }
+
+    await resolveTestCode('''
+abstract class Foo<T> {}
+class Bar implements Foo<Bar> {}
+abstract class A<X> {
+  T foo<T extends Foo<T>>() => throw '';
+}
+abstract class B<X> extends A<X> {}
+typedef C<V> = B<List<V>>;
+abstract class D<XD> extends C<XD> {}
+''');
+    final XD = findElement.typeParameter('XD');
+    final typeXD = XD.instantiate(nullabilitySuffix: NullabilitySuffix.none);
+    final D = findElement.classOrMixin('D');
+    final typeD = D.instantiate(
+        typeArguments: [typeXD], nullabilitySuffix: NullabilitySuffix.none);
+    final foo = manager.getMember(typeD, Name(null, 'foo'))!;
+    final foo2 = manager.getMember2(D, Name(null, 'foo'))!;
+    checkTextendsFooT(foo.type.typeFormals.single);
+    checkTextendsFooT(foo2.type.typeFormals.single);
+    checkTextendsFooT(foo2.typeParameters.single);
+    checkTextendsFooT(foo.typeParameters.single);
   }
 
   test_getMember_fromGenericSuper_method_returnType() async {
