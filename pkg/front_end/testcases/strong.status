@@ -119,6 +119,7 @@ general/override_check_with_covariant_modifier: TypeCheckError
 general/override_setter_with_field: TypeCheckError
 general/redirecting_factory: RuntimeError
 general/spread_collection: RuntimeError
+general/supertype_conflict: TypeCheckError
 general/type_variable_as_super: RuntimeError
 general/unsound_promotion: TypeCheckError
 general/void_methods: RuntimeError
