@@ -282,6 +282,19 @@ const simpleTestBreakpointResolutionProgram = '''
   }
 ''';
 
+final simpleTestBreakpointProgramWith50ExtraLines = '''
+  import 'package:test/test.dart';
+
+  void main() {
+    group('group 1', () {
+      test('passing test', () async {
+        expect(1, equals(1)); $breakpointMarker
+        ${'await null;\n' * 50}
+      });
+    });
+  }
+''';
+
 /// A simple test that prints the numbers from 1 to 5.
 ///
 /// A breakpoint marker is on the line that prints '1' and the subsequent 4

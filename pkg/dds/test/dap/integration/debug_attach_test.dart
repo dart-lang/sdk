@@ -118,6 +118,7 @@ main() {
     });
 
     test('removes breakpoints/pause and resumes on detach', () async {
+      final client = dap.client;
       final testFile = dap.createTestFile(simpleBreakpointAndThrowProgram);
 
       final proc = await startDartProcessPaused(
@@ -130,9 +131,9 @@ main() {
       // Attach to the paused script without resuming and wait for the startup
       // pause event.
       await Future.wait([
-        dap.client.expectStop('entry'),
-        dap.client.start(
-          launch: () => dap.client.attach(
+        client.expectStop('entry'),
+        client.start(
+          launch: () => client.attach(
             vmServiceUri: vmServiceUri.toString(),
             autoResume: false,
             cwd: dap.testAppDir.path,
@@ -143,20 +144,17 @@ main() {
       // Set a breakpoint that we expect not to be hit, as detach should disable
       // it and resume.
       final breakpointLine = lineWith(testFile, breakpointMarker);
-      await dap.client.setBreakpoint(testFile, breakpointLine);
+      await client.setBreakpoint(testFile, breakpointLine);
 
       // Expect that termination is reported as 'Detached' when we explicitly
       // requested a detach.
-      expect(dap.client.outputEvents.map((output) => output.output.trim()),
+      expect(client.outputEvents.map((output) => output.output.trim()),
           emits('Detached.'));
 
       // Detach using terminateRequest. Despite the name, terminateRequest is
       // the request for a graceful detach (and disconnectRequest is the
       // forceful shutdown).
-      await Future.wait([
-        dap.client.event('terminated'),
-        dap.client.terminate(),
-      ]);
+      await client.terminate();
 
       // Expect the process terminates (and hasn't got stuck on the breakpoint
       // or exception).
