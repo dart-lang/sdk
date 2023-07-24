@@ -1,0 +1,7 @@
+extension Ext<T> on T {
+  void st<S extends E<T>>() {}
+}
+
+typedef E<T> = T Function(T);
+void foo<X>(bool test, X a, X b) {}
+void main() {}
