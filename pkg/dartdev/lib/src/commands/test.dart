@@ -46,9 +46,14 @@ Run "${runner!.executableName} help" to see global options.''');
     final args = argResults!;
 
     String? nativeAssets;
-    if (nativeAssetsExperimentEnabled) {
+    if (!nativeAssetsExperimentEnabled) {
+      if (await warnOnNativeAssets()) {
+        return DartdevCommand.errorExitCode;
+      }
+    } else {
       try {
-        nativeAssets = (await compileNativeAssetsJitYamlFile())?.toFilePath();
+        nativeAssets = (await compileNativeAssetsJitYamlFile(verbose: verbose))
+            ?.toFilePath();
       } on Exception catch (e, stacktrace) {
         log.stderr('Error: Compiling native assets failed.');
         log.stderr(e.toString());

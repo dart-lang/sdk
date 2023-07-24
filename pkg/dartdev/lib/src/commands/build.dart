@@ -105,7 +105,7 @@ class BuildCommand extends DartdevCommand {
     final target = Target.current;
     final nativeAssets = await NativeAssetsBuildRunner(
       dartExecutable: Uri.file(sdk.dart),
-      logger: logger,
+      logger: logger(verbose),
     ).build(
       workingDirectory: workingDirectory,
       target: target,
