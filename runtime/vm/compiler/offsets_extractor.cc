@@ -17,6 +17,12 @@
 #include "vm/symbols.h"
 #include "vm/timeline.h"
 
+#if defined(PRODUCT)
+#define PRODUCT_DEF "defined(PRODUCT)"
+#else
+#define PRODUCT_DEF "!defined(PRODUCT)"
+#endif
+
 #if defined(TARGET_ARCH_ARM)
 #define ARCH_DEF_CPU "defined(TARGET_ARCH_ARM)"
 #elif defined(TARGET_ARCH_X64)
@@ -34,10 +40,17 @@
 #endif
 
 #if defined(DART_COMPRESSED_POINTERS)
-#define ARCH_DEF ARCH_DEF_CPU " && defined(DART_COMPRESSED_POINTERS)"
+#define COMPRESSED_DEF "defined(DART_COMPRESSED_POINTERS)"
 #else
-#define ARCH_DEF ARCH_DEF_CPU " && !defined(DART_COMPRESSED_POINTERS)"
+#define COMPRESSED_DEF "!defined(DART_COMPRESSED_POINTERS)"
 #endif
+
+#define PREPROCESSOR_CONDITION                                                 \
+  "#if " PRODUCT_DEF " && " ARCH_DEF_CPU " && " COMPRESSED_DEF
+
+#define PREPROCESSOR_CONDITION_END                                             \
+  "#endif  // " PRODUCT_DEF " && \n        // " ARCH_DEF_CPU                   \
+  " && \n        // " COMPRESSED_DEF
 
 namespace dart {
 
@@ -177,10 +190,10 @@ class OffsetsExtractor : public AllStatic {
 }  // namespace dart
 
 int main(int argc, char* argv[]) {
-  std::cout << std::hex << "#if " << ARCH_DEF << std::endl;
+  std::cout << std::hex << PREPROCESSOR_CONDITION << std::endl;
 #if !defined(TARGET_ARCH_IA32) || !defined(DART_PRECOMPILED_RUNTIME)
   dart::OffsetsExtractor::DumpOffsets();
 #endif
-  std::cout << "#endif  // " << ARCH_DEF << std::endl;
+  std::cout << PREPROCESSOR_CONDITION_END << std::endl;
   return 0;
 }
