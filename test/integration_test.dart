@@ -14,8 +14,6 @@ import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
 import '../test_data/rules/experiments/experiments.dart';
-import 'integration/always_require_non_null_named_parameters.dart'
-    as always_require_non_null_named_parameters;
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
 import 'integration/close_sinks.dart' as close_sinks;
@@ -149,7 +147,6 @@ void ruleTests() {
     exhaustive_cases.main();
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();
-    always_require_non_null_named_parameters.main();
     public_member_api_docs.main();
     use_build_context_synchronously.main();
   });
