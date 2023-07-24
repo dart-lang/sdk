@@ -57,7 +57,7 @@ final class bool {
 
   /// Whether there is an environment declaration [name].
   ///
-  /// Returns true iff there is an environment declaration with the name [name]
+  /// Returns true if there is an environment declaration with the name [name].
   /// If there is then the value of that declaration can be accessed using
   /// `const String.fromEnvironment(name)`. Otherwise,
   /// `String.fromEnvironment(name, defaultValue: someString)`
