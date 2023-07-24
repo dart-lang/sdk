@@ -4,7 +4,7 @@
 
 library fasta.testing.suite;
 
-import 'dart:convert' show jsonDecode, utf8, Utf8Encoder;
+import 'dart:convert' show jsonDecode, utf8;
 import 'dart:io' show Directory, File, Platform;
 import 'dart:typed_data' show Uint8List;
 
@@ -1528,7 +1528,7 @@ class FuzzCompiles
         for (FuzzAstVisitorSorterChunk chunk in fuzzAstVisitorSorter.chunks) {
           sb.writeln(chunk.getSource());
         }
-        Uint8List sortedData = const Utf8Encoder().convert(sb.toString());
+        Uint8List sortedData = utf8.encode(sb.toString());
         fs.data[uri] = sortedData;
         incrementalCompiler = new IncrementalCompiler.fromComponent(
             new CompilerContext(compilationSetup.options), platform);
@@ -1695,8 +1695,7 @@ class FuzzCompiles
         sb.writeln(headerSb.toString());
         sb.writeln("import '${uri.pathSegments.last}';");
         sb.writeln(chunk.getSource());
-        fs.data[getUriForChunk(currentSubFile)] =
-            const Utf8Encoder().convert(sb.toString());
+        fs.data[getUriForChunk(currentSubFile)] = utf8.encode(sb.toString());
         print(" => Split into ${getUriForChunk(currentSubFile)}:\n"
             "${sb.toString()}\n-------------\n");
         currentSubFile++;
@@ -1711,7 +1710,7 @@ class FuzzCompiles
       }
       sb.writeln(orgFileOnlyHeaderSb.toString());
       print(" => Main file becomes:\n${sb.toString()}\n-------------\n");
-      fs.data[uri] = const Utf8Encoder().convert(sb.toString());
+      fs.data[uri] = utf8.encode(sb.toString());
     }
 
     Result<ComponentResult>? passResult = await performFileInvalidation(

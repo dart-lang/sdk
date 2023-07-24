@@ -27,17 +27,17 @@ void main() {
 
   Component component = new Component(libraries: [library1, library2])
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak);
-  component.uriToSource[uri1] = new Source(
-      [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
-  component.uriToSource[uri2] = new Source(
-      [43, 3 * 43], const Utf8Encoder().convert("source #2"), uri1, uri1);
+  component.uriToSource[uri1] =
+      new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
+  component.uriToSource[uri2] =
+      new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
   expectSource(serialize(component), true, true);
 
   Component cPartial1 = new Component(nameRoot: component.root)
     ..setMainMethodAndMode(null, false, NonNullableByDefaultCompiledMode.Weak)
     ..libraries.add(library1);
-  cPartial1.uriToSource[uri1] = new Source(
-      [42, 2 * 42], const Utf8Encoder().convert("source #1"), uri1, uri1);
+  cPartial1.uriToSource[uri1] =
+      new Source([42, 2 * 42], utf8.encode("source #1"), uri1, uri1);
   cPartial1.uriToSource[uri2] =
       new Source([43, 3 * 43], const <int>[], uri1, uri1);
   List<int> partial1Serialized = serialize(cPartial1);
@@ -48,8 +48,8 @@ void main() {
     ..libraries.add(library2);
   cPartial2.uriToSource[uri1] =
       new Source([42, 2 * 42], const <int>[], uri1, uri1);
-  cPartial2.uriToSource[uri2] = new Source(
-      [43, 3 * 43], const Utf8Encoder().convert("source #2"), uri1, uri1);
+  cPartial2.uriToSource[uri2] =
+      new Source([43, 3 * 43], utf8.encode("source #2"), uri1, uri1);
   List<int> partial2Serialized = serialize(cPartial2);
   expectSource(partial2Serialized, false, true);
 

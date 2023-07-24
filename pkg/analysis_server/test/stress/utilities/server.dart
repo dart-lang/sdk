@@ -803,7 +803,7 @@ class Server {
       command['params'] = params;
     }
     var line = json.encode(command);
-    _process!.stdin.add(utf8.encoder.convert('$line\n'));
+    _process!.stdin.add(utf8.encode('$line\n'));
     logger?.log(fromClient, line);
     return requestData;
   }

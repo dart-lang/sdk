@@ -75,7 +75,7 @@ void main() {
       // No 'id', so not a response.
       // No 'event', so not a notification.
       process.stdout = Stream.value(
-        utf8.encoder.convert(json.encode({'foo': 'bar'})),
+        utf8.encode(json.encode({'foo': 'bar'})),
       );
       process.stderr = _noMessage();
 
@@ -87,7 +87,7 @@ void main() {
 
     test('unexpected notification format', () async {
       process.stdout = Stream.value(
-        utf8.encoder.convert(json.encode({'event': 'foo', 'noParams': '42'})),
+        utf8.encode(json.encode({'event': 'foo', 'noParams': '42'})),
       );
       process.stderr = _noMessage();
 
@@ -100,7 +100,7 @@ void main() {
     test('unexpected response', () async {
       // We have no asked anything, but got a response.
       process.stdout = Stream.value(
-        utf8.encoder.convert(json.encode({'id': '0'})),
+        utf8.encode(json.encode({'id': '0'})),
       );
       process.stderr = _noMessage();
 
@@ -114,7 +114,7 @@ void main() {
       // We expect that the first request has id `0`.
       // The response is invalid - the "result" field is not an object.
       process.stdout = Stream.value(
-        utf8.encoder.convert(json.encode({'id': '0', 'result': '42'})),
+        utf8.encode(json.encode({'id': '0', 'result': '42'})),
       );
       process.stderr = _noMessage();
 
@@ -135,7 +135,7 @@ void main() {
       // ignore: unawaited_futures
       process.mockin.controller.stream.first.then((_) {
         var encoded = json.encode({'id': '0'});
-        mockout.add(utf8.encoder.convert('$encoded\n'));
+        mockout.add(utf8.encode('$encoded\n'));
       });
       process.exitCode = Future.value(0);
 
@@ -173,34 +173,34 @@ final _badErrorMessage = {
 };
 
 Stream<List<int>> _badMessage() async* {
-  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
+  yield utf8.encode('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'id': '0',
     'error': _badErrorMessage,
   };
-  yield utf8.encoder.convert(json.encode(sampleJson));
+  yield utf8.encode(json.encode(sampleJson));
 }
 
 Stream<List<int>> _eventMessage() async* {
-  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
+  yield utf8.encode('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'event': 'fooEvent',
     'params': {'foo': 'bar', 'baz': 'bang'}
   };
-  yield utf8.encoder.convert(json.encode(sampleJson));
+  yield utf8.encode(json.encode(sampleJson));
 }
 
 Stream<List<int>> _goodMessage() async* {
-  yield utf8.encoder.convert('The Dart VM service is listening on foo bar\n');
+  yield utf8.encode('The Dart VM service is listening on foo bar\n');
   final sampleJson = {
     'id': '0',
     'result': {'foo': 'bar'}
   };
-  yield utf8.encoder.convert(json.encode(sampleJson));
+  yield utf8.encode(json.encode(sampleJson));
 }
 
 Stream<List<int>> _noMessage() async* {
-  yield utf8.encoder.convert('');
+  yield utf8.encode('');
 }
 
 class MockProcess implements Process {

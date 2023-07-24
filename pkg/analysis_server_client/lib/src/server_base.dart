@@ -199,7 +199,7 @@ abstract class ServerBase {
     _pendingCommands[id] = completer;
     var line = json.encode(command);
     listener?.requestSent(line);
-    sendWith(utf8.encoder.convert('$line\n'));
+    sendWith(utf8.encode('$line\n'));
     return completer.future;
   }
 
