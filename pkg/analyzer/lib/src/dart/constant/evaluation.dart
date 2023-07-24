@@ -1919,17 +1919,6 @@ class DartObjectComputer {
     }
   }
 
-  DartObjectImpl? eagerQuestionQuestion(Expression node,
-      DartObjectImpl? leftOperand, DartObjectImpl? rightOperand) {
-    if (leftOperand != null && rightOperand != null) {
-      if (leftOperand.isNull) {
-        return rightOperand;
-      }
-      return leftOperand;
-    }
-    return null;
-  }
-
   Constant eagerXor(BinaryExpression node, DartObjectImpl leftOperand,
       DartObjectImpl rightOperand) {
     try {
@@ -2142,22 +2131,6 @@ class DartObjectComputer {
       _errorReporter.reportErrorForNode(exception.errorCode, node);
       return InvalidConstant(node, exception.errorCode);
     }
-  }
-
-  /// Return the result of invoking the 'length' getter on the
-  /// [evaluationResult]. The [node] is the node against which errors should be
-  /// reported.
-  EvaluationResultImpl? stringLength(
-      Expression node, EvaluationResultImpl evaluationResult) {
-    var value = evaluationResult.value;
-    if (value != null) {
-      try {
-        return EvaluationResultImpl(value.stringLength(_typeSystem));
-      } on EvaluationException catch (exception) {
-        _errorReporter.reportErrorForNode(exception.errorCode, node);
-      }
-    }
-    return EvaluationResultImpl(null);
   }
 
   Constant times(BinaryExpression node, DartObjectImpl leftOperand,
