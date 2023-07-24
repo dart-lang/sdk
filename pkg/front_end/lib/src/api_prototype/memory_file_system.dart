@@ -131,7 +131,7 @@ class MemoryFileSystemEntity implements FileSystemEntity {
   /// If no file exists, one is created.  If a file exists already, it is
   /// overwritten.
   void writeAsStringSync(String s) {
-    _update(uri, const Utf8Encoder().convert(s));
+    _update(uri, utf8.encode(s));
   }
 
   void _update(Uri uri, Uint8List data) {

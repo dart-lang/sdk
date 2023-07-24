@@ -872,8 +872,7 @@ class Script {
       preamble = '';
       sourceWithoutPreamble = source;
     }
-    return new Script(new Uint8List.fromList(utf8.encode(source)), preamble,
-        sourceWithoutPreamble);
+    return new Script(utf8.encode(source), preamble, sourceWithoutPreamble);
   }
 }
 

@@ -5,7 +5,7 @@
 library fasta.source_loader;
 
 import 'dart:collection' show Queue;
-import 'dart:convert' show Utf8Encoder;
+import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
@@ -960,7 +960,7 @@ severity: $severity
   }
 
   Uint8List synthesizeSourceForMissingFile(Uri uri, Message? message) {
-    return const Utf8Encoder().convert(switch ("$uri") {
+    return utf8.encode(switch ("$uri") {
       "dart:core" => defaultDartCoreSource,
       "dart:async" => defaultDartAsyncSource,
       "dart:collection" => defaultDartCollectionSource,

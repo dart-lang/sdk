@@ -46,8 +46,8 @@ Future<void> socketTest() async {
     }
   });
   var client = await io.RawDatagramSocket.bind(localhost, 0);
-  client.send(utf8.encoder.convert(udpContent), io.InternetAddress(localhost),
-      server.port);
+  client.send(
+      utf8.encode(udpContent), io.InternetAddress(localhost), server.port);
   client.send([1, 2, 3], io.InternetAddress(localhost), server.port);
 
   // Wait for datagram to arrive.
