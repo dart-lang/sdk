@@ -17,7 +17,6 @@ import '../test_data/rules/experiments/experiments.dart';
 import 'integration/avoid_web_libraries_in_flutter.dart'
     as avoid_web_libraries_in_flutter;
 import 'integration/close_sinks.dart' as close_sinks;
-import 'integration/public_member_api_docs.dart' as public_member_api_docs;
 import 'mocks.dart';
 import 'test_constants.dart';
 
@@ -125,7 +124,6 @@ void ruleTests() {
   group('rule', () {
     avoid_web_libraries_in_flutter.main();
     close_sinks.main();
-    public_member_api_docs.main();
   });
 }
 

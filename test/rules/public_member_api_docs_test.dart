@@ -9,6 +9,7 @@ import '../rule_test_support.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(PublicMemberApiDocsTest);
+    defineReflectiveTests(PublicMemberApiDocsTestDirTest);
   });
 }
 
@@ -78,6 +79,18 @@ enum A {
       lint(15, 1),
       lint(24, 1),
       lint(44, 1),
+    ]);
+  }
+
+  test_enum_privateConstant() async {
+    await assertDiagnostics(r'''
+/// Documented.
+enum A {
+  _a;
+}
+''', [
+      // No lint.
+      error(WarningCode.UNUSED_FIELD, 27, 2),
     ]);
   }
 
@@ -211,5 +224,46 @@ final class A extends S {}
       // No lint on `S()` declaration
       lint(39, 1),
     ]);
+  }
+
+  test_topLevelMembers() async {
+    await assertDiagnostics(r'''
+int g = 1;
+typedef T = void Function();
+int get z => 0;
+''', [
+      lint(4, 1),
+      lint(19, 1),
+      lint(48, 1),
+    ]);
+  }
+
+  test_topLevelMembers_private() async {
+    await assertDiagnostics(r'''
+int _h = 1;
+typedef _T = void Function();
+int get _z => 0; 
+''', [
+      // No lint
+      error(WarningCode.UNUSED_ELEMENT, 4, 2),
+      error(WarningCode.UNUSED_ELEMENT, 20, 2),
+      error(WarningCode.UNUSED_ELEMENT, 50, 2),
+    ]);
+  }
+}
+
+@reflectiveTest
+class PublicMemberApiDocsTestDirTest extends LintRuleTest {
+  @override
+  String get lintRule => 'public_member_api_docs';
+
+  @override
+  String get testPackageLibPath => '$testPackageRootPath/test';
+
+  test_inTestDir() async {
+    await assertNoDiagnostics(r'''
+String? b;
+typedef T = void Function();
+''');
   }
 }
