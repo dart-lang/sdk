@@ -130,9 +130,9 @@ class _DeclarationPrinter {
 
     _writeIndentedLine(() {
       _writeIf(e.isStatic, 'static ');
-      _writeIf(e.isExternal, 'external ');
-      _writeIf(e.isLate, 'late ');
-      _writeIf(e.isFinal, 'final ');
+      _writeIf(e.hasExternal, 'external ');
+      _writeIf(e.hasLate, 'late ');
+      _writeIf(e.hasFinal, 'final ');
       _writeName(e);
     });
 

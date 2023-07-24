@@ -530,7 +530,7 @@ List<DeclarationCode> _buildVariableAugmentations(
       if (initializerDocComments != null) initializerDocComments,
       'augment ',
       if (declaration is FieldDeclaration && declaration.isStatic) 'static ',
-      if (declaration.isFinal) 'final ',
+      if (declaration.hasFinal) 'final ',
       declaration.type.code,
       ' ',
       declaration.identifier,

@@ -388,9 +388,9 @@ void main() {
           library: Fixtures.library,
           metadata: [],
           definingType: myEnum.identifier,
-          isExternal: false,
-          isFinal: true,
-          isLate: false,
+          hasExternal: false,
+          hasFinal: true,
+          hasLate: false,
           isStatic: false,
           type: NamedTypeAnnotationImpl(
               id: RemoteInstance.uniqueId,

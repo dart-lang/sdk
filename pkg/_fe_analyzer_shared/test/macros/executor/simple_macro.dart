@@ -223,7 +223,7 @@ class SimpleMacro
       initializers: [
         for (var field in fields)
           // TODO: Compare against actual `int` type.
-          if (field.isFinal &&
+          if (field.hasFinal &&
               (field.type as NamedTypeAnnotation).identifier.name == 'int')
             RawCode.fromParts([field.identifier, ' = ${myInt!}']),
       ],
@@ -417,9 +417,9 @@ class SimpleMacro
         variable.identifier.name,
         ''' {
           print('parentClass: $definingClass');
-          print('isExternal: ${variable.isExternal}');
-          print('isFinal: ${variable.isFinal}');
-          print('isLate: ${variable.isLate}');
+          print('isExternal: ${variable.hasExternal}');
+          print('isFinal: ${variable.hasFinal}');
+          print('isLate: ${variable.hasLate}');
           return augment super;
         }''',
       ]),
@@ -660,8 +660,8 @@ Future<FunctionBodyCode> _buildFunctionAugmentation(
     if (function is ConstructorDeclaration)
       "print('isFactory: ${function.isFactory}');\n",
     '''
-      print('isAbstract: ${function.isAbstract}');
-      print('isExternal: ${function.isExternal}');
+      print('isAbstract: ${function.hasAbstract}');
+      print('isExternal: ${function.hasExternal}');
       print('isGetter: ${function.isGetter}');
       print('isSetter: ${function.isSetter}');
       print('returnType: ''',

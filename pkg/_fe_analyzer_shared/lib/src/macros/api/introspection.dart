@@ -259,10 +259,10 @@ abstract interface class TypeAliasDeclaration
 /// Function introspection information.
 abstract interface class FunctionDeclaration implements Declaration {
   /// Whether this function has an `abstract` modifier.
-  bool get isAbstract;
+  bool get hasAbstract;
 
   /// Whether this function has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this function is an operator.
   bool get isOperator;
@@ -299,13 +299,13 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
   /// Whether this field has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this field has a `final` modifier.
-  bool get isFinal;
+  bool get hasFinal;
 
   /// Whether this field has a `late` modifier.
-  bool get isLate;
+  bool get hasLate;
 
   /// The type of this field.
   TypeAnnotation get type;

@@ -463,10 +463,10 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 class FunctionDeclarationImpl extends DeclarationImpl
     implements FunctionDeclaration {
   @override
-  final bool isAbstract;
+  final bool hasAbstract;
 
   @override
-  final bool isExternal;
+  final bool hasExternal;
 
   @override
   final bool isGetter;
@@ -497,8 +497,8 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.isAbstract,
-    required this.isExternal,
+    required this.hasAbstract,
+    required this.hasExternal,
     required this.isGetter,
     required this.isOperator,
     required this.isSetter,
@@ -513,8 +513,8 @@ class FunctionDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(isAbstract)
-      ..addBool(isExternal)
+      ..addBool(hasAbstract)
+      ..addBool(hasExternal)
       ..addBool(isGetter)
       ..addBool(isOperator)
       ..addBool(isSetter)
@@ -556,8 +556,8 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasExternal,
     required super.isGetter,
     required super.isOperator,
     required super.isSetter,
@@ -594,8 +594,8 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasExternal,
     required super.isGetter,
     required super.isOperator,
     required super.isSetter,
@@ -622,13 +622,13 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  final bool isExternal;
+  final bool hasExternal;
 
   @override
-  final bool isFinal;
+  final bool hasFinal;
 
   @override
-  final bool isLate;
+  final bool hasLate;
 
   @override
   final TypeAnnotationImpl type;
@@ -641,9 +641,9 @@ class VariableDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.isExternal,
-    required this.isFinal,
-    required this.isLate,
+    required this.hasExternal,
+    required this.hasFinal,
+    required this.hasLate,
     required this.type,
   });
 
@@ -652,9 +652,9 @@ class VariableDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(isExternal)
-      ..addBool(isFinal)
-      ..addBool(isLate);
+      ..addBool(hasExternal)
+      ..addBool(hasFinal)
+      ..addBool(hasLate);
     type.serialize(serializer);
   }
 }
@@ -674,9 +674,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.library,
     required super.metadata,
     // Variable fields.
-    required super.isExternal,
-    required super.isFinal,
-    required super.isLate,
+    required super.hasExternal,
+    required super.hasFinal,
+    required super.hasLate,
     required super.type,
     // Field fields.
     required this.definingType,
