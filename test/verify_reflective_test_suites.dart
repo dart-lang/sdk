@@ -11,11 +11,13 @@ import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
+import 'test_constants.dart';
+
 void main() {
   group('check reflective test suites', () {
     group('rules', () {
-      var testDirPath = PhysicalResourceProvider.INSTANCE.pathContext
-          .absolute('test', 'rules');
+      var testDirPath =
+          PhysicalResourceProvider.INSTANCE.pathContext.absolute(ruleTestDir);
       _VerifyTests(testDirPath).build();
     });
   });

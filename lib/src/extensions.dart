@@ -7,6 +7,7 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/src/dart/element/member.dart'; // ignore: implementation_imports
 import 'package:collection/collection.dart';
 
@@ -474,6 +475,13 @@ extension NullableAstNodeExtension on AstNode? {
       }
     }
     return null;
+  }
+}
+
+extension StringExtension on String {
+  String toAbsoluteNormalizedPath() {
+    var pathContext = PhysicalResourceProvider.INSTANCE.pathContext;
+    return pathContext.normalize(pathContext.absolute(this));
   }
 }
 
