@@ -4119,11 +4119,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       FunctionNode fn, List<js_ast.Statement> Function() action) {
     var savedFunction = _currentFunction;
     _currentFunction = fn;
+    if (isDartLibrary(_currentLibrary!, '_rti') ||
+        isSdkInternalRuntime(_currentLibrary!)) {
+      _nullableInference.treatDeclaredTypesAsSound = true;
+    }
     _nullableInference.enterFunction(fn);
-
     var result = _withLetScope(action);
-
     _nullableInference.exitFunction(fn);
+    _nullableInference.treatDeclaredTypesAsSound = false;
+
     _currentFunction = savedFunction;
     return result;
   }
@@ -6638,7 +6642,15 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   ///
   /// If [localIsNullable] is not supplied, this will use the known list of
   /// [_notNullLocals].
-  bool isNullable(Expression expr) => _nullableInference.isNullable(expr);
+  bool isNullable(Expression expr) {
+    if (isDartLibrary(_currentLibrary!, '_rti') ||
+        isSdkInternalRuntime(_currentLibrary!)) {
+      _nullableInference.treatDeclaredTypesAsSound = true;
+    }
+    final result = _nullableInference.isNullable(expr);
+    _nullableInference.treatDeclaredTypesAsSound = false;
+    return result;
+  }
 
   js_ast.Expression _emitJSDoubleEq(List<js_ast.Expression> args,
       {bool negated = false}) {
