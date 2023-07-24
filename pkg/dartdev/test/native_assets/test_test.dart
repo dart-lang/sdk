@@ -57,4 +57,20 @@ void main(List<String> args) async {
       );
     });
   });
+
+  test('dart build native assets disabled', timeout: longTimeout, () async {
+    await nativeAssetsTest('dart_app', (dartAppUri) async {
+      final result = await runDart(
+        arguments: [
+          'test',
+        ],
+        workingDirectory: dartAppUri,
+        logger: logger,
+        expectExitCodeZero: false,
+      );
+      expect(result.exitCode, isNot(0));
+      expect(result.stderr, contains('Enable native assets'));
+      expect(result.stderr, contains('native_add'));
+    });
+  });
 }

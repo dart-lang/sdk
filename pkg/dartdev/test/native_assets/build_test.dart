@@ -13,33 +13,41 @@ import 'helpers.dart';
 
 void main(List<String> args) async {
   final bool fromDartdevSource = args.contains('--source');
-
-  test('dart build', timeout: longTimeout, () async {
-    await nativeAssetsTest('dart_app', (dartAppUri) async {
-      await runDart(
-        arguments: [
-          '--enable-experiment=native-assets',
-          if (fromDartdevSource)
-            Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
-          'build',
-          'bin/dart_app.dart',
-        ],
-        workingDirectory: dartAppUri,
-        logger: logger,
-      );
-
-      final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
-      final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
-      expect(await File.fromUri(absoluteExeUri).exists(), true);
-      for (final exeUri in [absoluteExeUri, relativeExeUri]) {
-        final result = await runProcess(
-          executable: exeUri,
-          arguments: [],
+  for (final verbose in [true, false]) {
+    final testModifier = ['', if (verbose) 'verbose'].join(' ');
+    test('dart build$testModifier', timeout: longTimeout, () async {
+      await nativeAssetsTest('dart_app', (dartAppUri) async {
+        final result = await runDart(
+          arguments: [
+            '--enable-experiment=native-assets',
+            if (fromDartdevSource)
+              Platform.script.resolve('../../bin/dartdev.dart').toFilePath(),
+            'build',
+            if (verbose) '-v',
+            'bin/dart_app.dart',
+          ],
           workingDirectory: dartAppUri,
           logger: logger,
         );
-        expectDartAppStdout(result.stdout);
-      }
+        if (verbose) {
+          expect(result.stdout, contains('build.dart'));
+        } else {
+          expect(result.stdout, isNot(contains('build.dart')));
+        }
+
+        final relativeExeUri = Uri.file('./bin/dart_app/dart_app.exe');
+        final absoluteExeUri = dartAppUri.resolveUri(relativeExeUri);
+        expect(await File.fromUri(absoluteExeUri).exists(), true);
+        for (final exeUri in [absoluteExeUri, relativeExeUri]) {
+          final result = await runProcess(
+            executable: exeUri,
+            arguments: [],
+            workingDirectory: dartAppUri,
+            logger: logger,
+          );
+          expectDartAppStdout(result.stdout);
+        }
+      });
     });
-  });
+  }
 }
