@@ -4,10 +4,6 @@
 
 part of "core_patch.dart";
 
-// Access hidden identity hash code field
-external int _getHash(Object obj);
-external void _setHash(Object obj, int hash);
-
 @patch
 class Object {
   @patch
@@ -17,14 +13,14 @@ class Object {
   static final _hashCodeRnd = new Random();
 
   static int _objectHashCode(Object obj) {
-    var result = _getHash(obj);
+    var result = getHash(obj);
     if (result == 0) {
       // We want the hash to be a Smi value greater than 0.
       do {
         result = _hashCodeRnd.nextInt(0x40000000);
       } while (result == 0);
 
-      _setHash(obj, result);
+      setHash(obj, result);
       return result;
     }
     return result;
@@ -59,11 +55,11 @@ class Object {
     throw new NoSuchMethodError.withInvocation(this, invocation);
   }
 
-  // Used for `null.toString` tear-offs
+  // Used for `null.toString` tear-offs.
   @pragma("wasm:entry-point")
   static String _nullToString() => "null";
 
-  // Used for `null.noSuchMethod` tear-offs
+  // Used for `null.noSuchMethod` tear-offs.
   @pragma("wasm:entry-point")
   static dynamic _nullNoSuchMethod(Invocation invocation) {
     throw new NoSuchMethodError.withInvocation(null, invocation);

@@ -52,6 +52,7 @@ import 'dart:math' show Random;
 
 import "dart:typed_data" show Uint8List, Uint16List;
 
+import 'dart:_object_helper';
 import 'dart:_string_helper';
 
 import 'dart:_wasm';

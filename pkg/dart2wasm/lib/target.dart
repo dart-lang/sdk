@@ -92,34 +92,36 @@ class WasmTarget extends Target {
 
   @override
   List<String> get extraRequiredLibraries => const <String>[
-        'dart:async',
-        'dart:ffi',
         'dart:_boxed_double',
         'dart:_boxed_int',
-        'dart:_internal',
         'dart:_http',
+        'dart:_internal',
         'dart:_js_helper',
         'dart:_js_types',
-        'dart:typed_data',
-        'dart:nativewrappers',
+        'dart:_string',
+        'dart:_wasm',
+        'dart:async',
+        'dart:developer',
+        'dart:ffi',
         'dart:io',
+        'dart:js',
         'dart:js_interop',
         'dart:js_interop_unsafe',
-        'dart:js',
         'dart:js_util',
-        'dart:_wasm',
-        'dart:developer',
+        'dart:nativewrappers',
+        'dart:typed_data',
       ];
 
   @override
   List<String> get extraIndexedLibraries => const <String>[
         'dart:_js_helper',
         'dart:_js_types',
+        'dart:_string',
+        'dart:_wasm',
         'dart:collection',
-        'dart:typed_data',
         'dart:js_interop',
         'dart:js_util',
-        'dart:_wasm',
+        'dart:typed_data',
       ];
 
   @override
@@ -127,6 +129,7 @@ class WasmTarget extends Target {
       uri.isScheme('dart') &&
       (uri.path == 'core' ||
           uri.path == '_simd' ||
+          uri.path == '_string' ||
           uri.path == 'typed_data' ||
           uri.path == '_typed_data' ||
           uri.path == '_boxed_double' ||
@@ -414,11 +417,11 @@ class WasmTarget extends Target {
     for (int i = 0; i < value.length; ++i) {
       if (value.codeUnitAt(i) > maxLatin1) {
         return _twoByteString ??=
-            coreTypes.index.getClass('dart:core', '_TwoByteString');
+            coreTypes.index.getClass('dart:_string', 'TwoByteString');
       }
     }
     return _oneByteString ??=
-        coreTypes.index.getClass('dart:core', '_OneByteString');
+        coreTypes.index.getClass('dart:_string', 'OneByteString');
   }
 
   @override
