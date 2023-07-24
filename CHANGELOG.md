@@ -1,4 +1,4 @@
-## 3.0.7
+## 3.0.7 - 2023-07-26
 
 This is a patch release that:
 
