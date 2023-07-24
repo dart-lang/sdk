@@ -165,6 +165,35 @@ void okParenthesized(E e) {
 ''');
   }
 
+  test_enumLike_prefixed() async {
+    newFile('$testPackageLibPath/e.dart', '''
+class E {
+  final int i;
+  const E._(this.i);
+
+  static const e = E._(1);
+  static const f = E._(2);
+  static const g = E._(3);
+}    
+''');
+
+    await assertDiagnostics(r'''
+import 'e.dart' as prefixed;
+
+void e(prefixed.E e) {
+  switch(e) {
+    case prefixed.E.e :
+      print('e');
+      break;
+    case prefixed.E.f :
+      print('e');
+  }
+}
+''', [
+      lint(55, 9),
+    ]);
+  }
+
   test_notEnumLike_ok() async {
     await assertNoDiagnostics(r'''
 class TooFew {
