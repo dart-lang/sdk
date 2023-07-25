@@ -285,7 +285,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
                Dart_IsolateFlags api_flags);
   ~IsolateGroup();
 
-  void RehashConstants();
+  void RehashConstants(Become* become);
 #if defined(DEBUG)
   void ValidateClassTable();
 #endif

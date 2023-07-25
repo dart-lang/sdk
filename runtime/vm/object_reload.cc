@@ -227,11 +227,6 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
 }
 
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
-  if (is_enum_class()) {
-    // We do not copy enum classes's canonical constants because we explicitly
-    // become the old enum values to the new enum values.
-    return;
-  }
 #if defined(DEBUG)
   {
     // Class has no canonical constants allocated.
