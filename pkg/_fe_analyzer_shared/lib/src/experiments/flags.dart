@@ -20,8 +20,8 @@ enum ExperimentalFlag {
       name: 'const-functions',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   constantUpdate2018(
       name: 'constant-update-2018',
@@ -62,8 +62,8 @@ enum ExperimentalFlag {
       name: 'extension-types',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   genericMetadata(
       name: 'generic-metadata',
@@ -83,22 +83,22 @@ enum ExperimentalFlag {
       name: 'inference-update-2',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   inlineClass(
       name: 'inline-class',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   macros(
       name: 'macros',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   namedArgumentsAnywhere(
       name: 'named-arguments-anywhere',
@@ -111,8 +111,8 @@ enum ExperimentalFlag {
       name: 'native-assets',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   nonNullable(
       name: 'non-nullable',
@@ -174,8 +174,8 @@ enum ExperimentalFlag {
       name: 'test-experiment',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
 
   tripleShift(
       name: 'triple-shift',
@@ -195,8 +195,8 @@ enum ExperimentalFlag {
       name: 'variance',
       isEnabledByDefault: false,
       isExpired: false,
-      experimentEnabledVersion: const Version(3, 1),
-      experimentReleasedVersion: const Version(3, 1)),
+      experimentEnabledVersion: const Version(3, 2),
+      experimentReleasedVersion: const Version(3, 2)),
   ;
 
   final String name;

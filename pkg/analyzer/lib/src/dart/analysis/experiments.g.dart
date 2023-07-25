@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.1.0';
+const _currentVersion = '3.2.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -45,7 +45,6 @@ final _knownFeatures = <String, ExperimentalFeature>{
   EnableString.test_experiment: ExperimentalFeatures.test_experiment,
   EnableString.triple_shift: ExperimentalFeatures.triple_shift,
   EnableString.unnamed_libraries: ExperimentalFeatures.unnamed_libraries,
-  EnableString.value_class: ExperimentalFeatures.value_class,
   EnableString.variance: ExperimentalFeatures.variance,
 };
 
@@ -129,9 +128,6 @@ class EnableString {
 
   /// String to enable the experiment "unnamed-libraries"
   static const String unnamed_libraries = 'unnamed-libraries';
-
-  /// String to enable the experiment "value-class"
-  static const String value_class = 'value-class';
 
   /// String to enable the experiment "variance"
   static const String variance = 'variance';
@@ -403,18 +399,8 @@ class ExperimentalFeatures {
     releaseVersion: Version.parse('2.19.0'),
   );
 
-  static final value_class = ExperimentalFeature(
-    index: 26,
-    enableString: EnableString.value_class,
-    isEnabledByDefault: IsEnabledByDefault.value_class,
-    isExpired: IsExpired.value_class,
-    documentation: 'Value class',
-    experimentalReleaseVersion: null,
-    releaseVersion: null,
-  );
-
   static final variance = ExperimentalFeature(
-    index: 27,
+    index: 26,
     enableString: EnableString.variance,
     isEnabledByDefault: IsEnabledByDefault.variance,
     isExpired: IsExpired.variance,
@@ -505,9 +491,6 @@ class IsEnabledByDefault {
   /// Default state of the experiment "unnamed-libraries"
   static const bool unnamed_libraries = true;
 
-  /// Default state of the experiment "value-class"
-  static const bool value_class = false;
-
   /// Default state of the experiment "variance"
   static const bool variance = false;
 }
@@ -593,9 +576,6 @@ class IsExpired {
 
   /// Expiration status of the experiment "unnamed-libraries"
   static const bool unnamed_libraries = true;
-
-  /// Expiration status of the experiment "value-class"
-  static const bool value_class = false;
 
   /// Expiration status of the experiment "variance"
   static const bool variance = false;
@@ -689,9 +669,6 @@ mixin _CurrentState {
   /// Current state for the flag "unnamed-libraries"
   bool get unnamed_libraries =>
       isEnabled(ExperimentalFeatures.unnamed_libraries);
-
-  /// Current state for the flag "value-class"
-  bool get value_class => isEnabled(ExperimentalFeatures.value_class);
 
   /// Current state for the flag "variance"
   bool get variance => isEnabled(ExperimentalFeatures.variance);
