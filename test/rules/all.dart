@@ -139,6 +139,7 @@ import 'test_types_in_equals_test.dart' as test_types_in_equals;
 import 'throw_in_finally_test.dart' as throw_in_finally;
 import 'tighten_type_of_initializing_formals_test.dart'
     as tighten_type_of_initializing_formals;
+import 'type_annotate_public_apis_test.dart' as type_annotate_public_apis;
 import 'type_init_formals_test.dart' as type_init_formals;
 import 'type_literal_in_constant_pattern_test.dart'
     as type_literal_in_constant_pattern;
@@ -304,6 +305,7 @@ void main() {
   test_types_in_equals.main();
   throw_in_finally.main();
   tighten_type_of_initializing_formals.main();
+  type_annotate_public_apis.main();
   type_init_formals.main();
   type_literal_in_constant_pattern.main();
   unawaited_futures.main();
