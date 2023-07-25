@@ -27,28 +27,31 @@ Future<void> main(List<String> args) async {
     for (final testName in testNames) ...await _testGetConfigurations(testName),
   });
   final configurationBuilders = await _configurationBuilders();
-  final builders = [
+  final builders = {
     for (final config in configurations) configurationBuilders[config]
-  ]..sort();
+  }.toList()
+    ..sort();
 
   print('Cq-Include-Trybots: luci.dart.try:${builders.join(',')}');
 }
 
 Future<List<String>> _testGetConfigurations(String testName) async {
-  final requestUrl = Uri.parse(
-      'https://current-results-qvyo5rktwa-uc.a.run.app/v1/results?filter=$testName');
+  final requestUrl = Uri(
+    scheme: 'https',
+    host: 'current-results-qvyo5rktwa-uc.a.run.app',
+    path: 'v1/results',
+    queryParameters: {'filter': testName},
+  );
   final response = await _get(requestUrl);
-  final object = jsonDecode(response) as Map<String, dynamic>;
-  final results = (object['results'] as List).cast<Map<String, dynamic>>();
-  return [for (final result in results) result['configuration'] as String];
+  final object = jsonDecode(response);
+  return [for (final result in object['results']) result['configuration']];
 }
 
 Future<String> _get(Uri requestUrl) async {
   final client = HttpClient();
   final request = await client.getUrl(requestUrl);
   final response = await request.close();
-  final responseString =
-      await response.cast<List<int>>().transform(const Utf8Decoder()).join();
+  final responseString = await response.transform(const Utf8Decoder()).join();
   client.close();
   return responseString;
 }
@@ -83,14 +86,11 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
       },
     );
     final response = await _get(requestUrl);
-    final object = jsonDecode(response) as Map<String, dynamic>;
-    final documents =
-        (object['documents'] as List).cast<Map<String, dynamic>>();
-    for (final d in documents) {
-      yield d;
-    }
+    final object = jsonDecode(response);
+    yield* Stream.fromIterable(
+        object['documents'].cast<Map<String, dynamic>>());
 
-    nextPageToken = object['nextPageToken'] as String?;
+    nextPageToken = object['nextPageToken'];
     if (nextPageToken == null) {
       break;
     }
@@ -98,16 +98,15 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
 }
 
 Future<Map<String, String>> _configurationBuilders() async {
-  final result = <String, String>{};
-  await for (final document in _configurationDocuments()) {
-    final fullName = document['name'] as String;
-    final name = fullName.split('/').last;
-    final builder = document['fields']['builder']['stringValue'] as String?;
-    if (builder != null) {
-      result[name] = builder;
-    }
-  }
-  return result;
+  return {
+    await for (final document in _configurationDocuments())
+      if (document
+          case {
+            'name': String fullName,
+            'fields': {'builder': {'stringValue': String builder}}
+          })
+        fullName.split('/').last: builder
+  };
 }
 
 void printHelp() {
