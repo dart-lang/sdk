@@ -71,21 +71,6 @@ void coreTests() {
       });
     });
 
-    group('canonicalization', () {
-      var currentOut = outSink;
-      var collectingOut = CollectingSink();
-      setUp(() => outSink = collectingOut);
-      tearDown(() {
-        collectingOut.buffer.clear();
-        outSink = currentOut;
-      });
-      test('no warnings due to bad canonicalization', () async {
-        await cli.runLinter(['$integrationTestDir/p4'], LinterOptions([]));
-        expect(collectingOut.trim(),
-            startsWith('3 files analyzed, 0 issues found, in'));
-      });
-    });
-
     group('examples', () {
       test('all.yaml', () {
         var src = readFile('example/all.yaml');

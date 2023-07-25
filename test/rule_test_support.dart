@@ -141,8 +141,6 @@ mixin LanguageVersion219Mixin on PubPackageResolutionTest {
 }
 
 abstract class LintRuleTest extends PubPackageResolutionTest {
-  bool get dumpAstOnFailures => true;
-
   String get lintRule;
 
   @override
@@ -153,6 +151,44 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     }
     return [ruleName];
   }
+
+  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
+      ExpectedLint(lintRule, offset, length, messageContains: messageContains);
+}
+
+class PubPackageResolutionTest extends _ContextResolutionTest {
+  final List<String> _lintRules = const [];
+
+  bool get addFlutterPackageDep => false;
+
+  bool get addJsPackageDep => false;
+
+  bool get addMetaPackageDep => false;
+
+  @override
+  List<String> get collectionIncludedPaths => [workspaceRootPath];
+
+  bool get dumpAstOnFailures => true;
+
+  List<String> get experiments => [];
+
+  /// The path that is not in [workspaceRootPath], contains external packages.
+  String get packagesRootPath => '/packages';
+
+  String get testFileName => 'test.dart';
+
+  @override
+  String get testFilePath => '$testPackageLibPath/$testFileName';
+
+  String? get testPackageLanguageVersion => null;
+
+  String get testPackageLibPath => '$testPackageRootPath/lib';
+
+  String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
+
+  String get testPackageRootPath => '$workspaceRootPath/test';
+
+  String get workspaceRootPath => '/home';
 
   /// Assert that the number of diagnostics that have been gathered matches the
   /// number of [expectedDiagnostics] and that they have the expected error
@@ -298,73 +334,6 @@ abstract class LintRuleTest extends PubPackageResolutionTest {
     await assertDiagnosticsIn(errors, expectedDiagnostics);
   }
 
-  ExpectedLint lint(int offset, int length, {Pattern? messageContains}) =>
-      ExpectedLint(lintRule, offset, length, messageContains: messageContains);
-
-  Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
-    var path = convertPath(testPackagePubspecPath);
-    var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
-    for (var rule in Registry.ruleRegistry
-        .where((rule) => _lintRules.contains(rule.name))) {
-      var visitor = rule.getPubspecVisitor();
-      if (visitor != null) {
-        pubspecRules[rule] = visitor;
-      }
-    }
-
-    if (pubspecRules.isEmpty) {
-      throw UnsupportedError(
-          'Resolving pubspec files only supported with rules with '
-          'PubspecVisitors.');
-    }
-
-    var sourceUri = resourceProvider.pathContext.toUri(path);
-    var pubspecAst = Pubspec.parse(content,
-        sourceUrl: sourceUri, resourceProvider: resourceProvider);
-    var listener = RecordingErrorListener();
-    var reporter = ErrorReporter(
-        listener, resourceProvider.getFile(path).createSource(sourceUri),
-        isNonNullableByDefault: false);
-    for (var entry in pubspecRules.entries) {
-      entry.key.reporter = reporter;
-      pubspecAst.accept(entry.value);
-    }
-    return [...listener.errors];
-  }
-}
-
-class PubPackageResolutionTest extends _ContextResolutionTest {
-  final List<String> _lintRules = const [];
-
-  bool get addFlutterPackageDep => false;
-
-  bool get addJsPackageDep => false;
-
-  bool get addMetaPackageDep => false;
-
-  @override
-  List<String> get collectionIncludedPaths => [workspaceRootPath];
-
-  List<String> get experiments => [];
-
-  /// The path that is not in [workspaceRootPath], contains external packages.
-  String get packagesRootPath => '/packages';
-
-  String get testFileName => 'test.dart';
-
-  @override
-  String get testFilePath => '$testPackageLibPath/$testFileName';
-
-  String? get testPackageLanguageVersion => null;
-
-  String get testPackageLibPath => '$testPackageRootPath/lib';
-
-  String get testPackagePubspecPath => '$testPackageRootPath/pubspec.yaml';
-
-  String get testPackageRootPath => '$workspaceRootPath/test';
-
-  String get workspaceRootPath => '/home';
-
   @override
   @mustCallSuper
   void setUp() {
@@ -445,6 +414,37 @@ class PubPackageResolutionTest extends _ContextResolutionTest {
 
   void writeTestPackagePubspecYamlFile(PubspecYamlFileConfig config) {
     newPubspecYamlFile(testPackageRootPath, config.toContent());
+  }
+
+  Future<List<AnalysisError>> _resolvePubspecFile(String content) async {
+    var path = convertPath(testPackagePubspecPath);
+    var pubspecRules = <LintRule, PubspecVisitor<Object?>>{};
+    for (var rule in Registry.ruleRegistry
+        .where((rule) => _lintRules.contains(rule.name))) {
+      var visitor = rule.getPubspecVisitor();
+      if (visitor != null) {
+        pubspecRules[rule] = visitor;
+      }
+    }
+
+    if (pubspecRules.isEmpty) {
+      throw UnsupportedError(
+          'Resolving pubspec files only supported with rules with '
+          'PubspecVisitors.');
+    }
+
+    var sourceUri = resourceProvider.pathContext.toUri(path);
+    var pubspecAst = Pubspec.parse(content,
+        sourceUrl: sourceUri, resourceProvider: resourceProvider);
+    var listener = RecordingErrorListener();
+    var reporter = ErrorReporter(
+        listener, resourceProvider.getFile(path).createSource(sourceUri),
+        isNonNullableByDefault: false);
+    for (var entry in pubspecRules.entries) {
+      entry.key.reporter = reporter;
+      pubspecAst.accept(entry.value);
+    }
+    return [...listener.errors];
   }
 
   /// Create a fake 'flutter' package that can be used by tests.

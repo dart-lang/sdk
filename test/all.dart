@@ -6,6 +6,7 @@ import 'package:analyzer/src/lint/io.dart';
 
 import 'annotation_test.dart' as annotation_test;
 import 'ascii_utils_test.dart' as ascii_utils_test;
+import 'canonicalization_test.dart' as canonicalization_test;
 import 'doc_test.dart' as doc_test;
 import 'engine_test.dart' as engine_test;
 import 'formatter_test.dart' as formatter_test;
@@ -34,6 +35,7 @@ void main() {
 
   annotation_test.main();
   ascii_utils_test.main();
+  canonicalization_test.main();
   doc_test.main();
   engine_test.main();
   formatter_test.main();
