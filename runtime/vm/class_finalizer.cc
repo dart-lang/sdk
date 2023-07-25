@@ -994,8 +994,10 @@ void ClassFinalizer::SortClasses() {
   }
   ASSERT(next_new_cid == num_cids);
   RemapClassIds(old_to_new_cid.get());
-  RehashTypes();          // Types use cid's as part of their hashes.
-  IG->RehashConstants();  // Const objects use cid's as part of their hashes.
+  // Types use cid's as part of their hashes.
+  RehashTypes();
+  // Const objects use cid's as part of their hashes.
+  IG->RehashConstants(nullptr);
 }
 
 class CidRewriteVisitor : public ObjectVisitor {
@@ -1242,7 +1244,7 @@ void ClassFinalizer::RehashTypes() {
 
   // The canonical constant tables use canonical hashcodes which can change
   // due to cid-renumbering.
-  IG->RehashConstants();
+  IG->RehashConstants(nullptr);
 
   dict_size = Utils::RoundUpToPowerOfTwo(typeargs.Length() * 4 / 3);
   CanonicalTypeArgumentsSet typeargs_table(
