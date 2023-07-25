@@ -961,9 +961,9 @@ ISOLATE_UNIT_TEST_CASE(WeakProperty_Generations) {
   WeakProperty_Generations(kNew, kImm, kNew, false, false, false);
   WeakProperty_Generations(kNew, kImm, kOld, false, false, false);
   WeakProperty_Generations(kNew, kImm, kImm, false, false, false);
-  WeakProperty_Generations(kOld, kNew, kNew, false, false, true);
-  WeakProperty_Generations(kOld, kNew, kOld, false, false, true);
-  WeakProperty_Generations(kOld, kNew, kImm, false, false, true);
+  WeakProperty_Generations(kOld, kNew, kNew, true, true, true);
+  WeakProperty_Generations(kOld, kNew, kOld, true, true, true);
+  WeakProperty_Generations(kOld, kNew, kImm, true, true, true);
   WeakProperty_Generations(kOld, kOld, kNew, false, true, true);
   WeakProperty_Generations(kOld, kOld, kOld, false, true, true);
   WeakProperty_Generations(kOld, kOld, kImm, false, true, true);
@@ -1038,7 +1038,7 @@ ISOLATE_UNIT_TEST_CASE(WeakReference_Generations) {
   WeakReference_Generations(kNew, kNew, true, true, true);
   WeakReference_Generations(kNew, kOld, false, false, true);
   WeakReference_Generations(kNew, kImm, false, false, false);
-  WeakReference_Generations(kOld, kNew, false, false, true);
+  WeakReference_Generations(kOld, kNew, true, true, true);
   WeakReference_Generations(kOld, kOld, false, true, true);
   WeakReference_Generations(kOld, kImm, false, false, false);
 }
@@ -1109,7 +1109,7 @@ ISOLATE_UNIT_TEST_CASE(WeakArray_Generations) {
   WeakArray_Generations(kNew, kNew, true, true, true);
   WeakArray_Generations(kNew, kOld, false, false, true);
   WeakArray_Generations(kNew, kImm, false, false, false);
-  WeakArray_Generations(kOld, kNew, false, false, true);
+  WeakArray_Generations(kOld, kNew, true, true, true);
   WeakArray_Generations(kOld, kOld, false, true, true);
   WeakArray_Generations(kOld, kImm, false, false, false);
 }
@@ -1180,7 +1180,7 @@ ISOLATE_UNIT_TEST_CASE(FinalizerEntry_Generations) {
   FinalizerEntry_Generations(kNew, kNew, true, true, true);
   FinalizerEntry_Generations(kNew, kOld, false, false, true);
   FinalizerEntry_Generations(kNew, kImm, false, false, false);
-  FinalizerEntry_Generations(kOld, kNew, false, false, true);
+  FinalizerEntry_Generations(kOld, kNew, true, true, true);
   FinalizerEntry_Generations(kOld, kOld, false, true, true);
   FinalizerEntry_Generations(kOld, kImm, false, false, false);
 }
