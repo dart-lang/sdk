@@ -148,6 +148,8 @@ inline_class/extension_types/member_not_found: FormatterCrash
 inline_class/extension_types/method_access: FormatterCrash
 inline_class/extension_types/procedures: FormatterCrash
 inline_class/extension_types/representation: FormatterCrash
+inline_class/extension_types/supertype_conflict: FormatterCrash
+inline_class/extension_types/super_extension_type_conflict: FormatterCrash
 late_lowering/later: FormatterCrash
 macros/augment_class: FormatterCrash
 macros/augment_concrete: FormatterCrash

@@ -25,6 +25,10 @@ abstract class InlineClassBuilder implements DeclarationBuilder {
   /// Return the [InlineClass] built by this builder.
   InlineClass get inlineClass;
 
+  /// Returns a list of the classes and extension types implemented by this
+  /// extension type.
+  List<TypeBuilder>? get interfaceBuilders;
+
   /// Looks up inline class member by [name] taking privacy into account.
   ///
   /// If [setter] is `true` the sought member is a setter or assignable field.
@@ -40,6 +44,9 @@ abstract class InlineClassBuilder implements DeclarationBuilder {
 
   /// Calls [f] for each member declared in this extension.
   void forEach(void f(String name, Builder builder));
+
+  @override
+  Uri get fileUri;
 }
 
 abstract class InlineClassBuilderImpl extends DeclarationBuilderImpl

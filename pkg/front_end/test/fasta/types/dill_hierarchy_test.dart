@@ -106,6 +106,6 @@ class F implements D<int, bool>;""",
           hierarchy.getNodeFromClass(cls);
         }
         Expect.stringEquals(
-            expectedHierarchy, hierarchy.nodes.values.join("\n"));
+            expectedHierarchy, hierarchy.classNodes.values.join("\n"));
       }));
 }
