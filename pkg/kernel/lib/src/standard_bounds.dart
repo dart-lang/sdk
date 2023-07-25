@@ -1559,7 +1559,7 @@ mixin StandardBounds {
     }
     if (isSubtypeOf(type2, demoted, SubtypeCheckMode.withNullabilities)) {
       return demoted.withDeclaredNullability(uniteNullabilities(
-          type1.declaredNullability, type2.declaredNullability));
+          demoted.declaredNullability, type2.declaredNullability));
     }
     NullabilityAwareTypeVariableEliminator eliminator =
         new NullabilityAwareTypeVariableEliminator(

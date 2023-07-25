@@ -834,10 +834,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
   }
 
   void addPart(List<MetadataBuilder>? metadata, String uri, int charOffset) {
-    Uri resolvedUri;
-    Uri newFileUri;
-    resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
-    newFileUri = resolve(fileUri, uri, charOffset);
+    Uri resolvedUri = resolve(this.importUri, uri, charOffset, isPart: true);
+    // To support absolute paths from within packages in the part uri, we try to
+    // translate the file uri from the resolved import uri before resolving
+    // through the file uri of this library. See issue #52964.
+    Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+        resolve(fileUri, uri, charOffset);
     // TODO(johnniwinther): Add a LibraryPartBuilder instead of using
     // [LibraryBuilder] to represent both libraries and parts.
     parts.add(loader.read(resolvedUri, charOffset,
@@ -854,8 +856,12 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int uriOffset) {
     partOfName = name;
     if (uri != null) {
-      partOfUri = resolve(this.importUri, uri, uriOffset);
-      Uri newFileUri = resolve(fileUri, uri, uriOffset);
+      Uri resolvedUri = partOfUri = resolve(this.importUri, uri, uriOffset);
+      // To support absolute paths from within packages in the part of uri, we
+      // try to translate the file uri from the resolved import uri before
+      // resolving through the file uri of this library. See issue #52964.
+      Uri newFileUri = loader.target.uriTranslator.translate(resolvedUri) ??
+          resolve(fileUri, uri, uriOffset);
       loader.read(partOfUri!, uriOffset, fileUri: newFileUri, accessor: this);
     }
     if (_scriptTokenOffset != null) {

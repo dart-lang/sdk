@@ -330,6 +330,16 @@ class WorldProperties {
   static const Property<bool> checkConstantCoverageReferences =
       Property.optional('checkConstantCoverageReferences', BoolValue(),
           defaultValue: true);
+
+  /// If `true`, the compilation is allowed to report an error twice.
+  static const Property<bool> allowDuplicateErrors = Property.optional(
+      'allowDuplicateErrors', BoolValue(),
+      defaultValue: false);
+
+  /// If `true`, the compilation is allowed to report a warning twice.
+  static const Property<bool> allowDuplicateWarnings = Property.optional(
+      'allowDuplicateWarnings', BoolValue(),
+      defaultValue: true);
 }
 
 /// Yaml properties for an [ExpressionCompilation] with a [World].
@@ -847,6 +857,8 @@ class World {
   final List<String>? neededDillLibraries;
   final Map<String, List<String>>? expectedContent;
   final bool incrementalSerializationDoesWork;
+  final bool allowDuplicateErrors;
+  final bool allowDuplicateWarnings;
 
   /// The expected result of the advanced invalidation.
   final AdvancedInvalidationResult advancedInvalidation;
@@ -908,6 +920,8 @@ class World {
     required this.incrementalSerializationDoesWork,
     required this.serializationShouldNotInclude,
     required this.checkConstantCoverageReferences,
+    required this.allowDuplicateErrors,
+    required this.allowDuplicateWarnings,
   });
 
   static World create(Map world) {
@@ -1017,6 +1031,12 @@ class World {
     bool checkConstantCoverageReferences =
         WorldProperties.checkConstantCoverageReferences.read(world, keys);
 
+    bool allowDuplicateErrors =
+        WorldProperties.allowDuplicateErrors.read(world, keys);
+
+    bool allowDuplicateWarnings =
+        WorldProperties.allowDuplicateWarnings.read(world, keys);
+
     if (keys.isNotEmpty) {
       throw "Unknown key(s) for World: $keys";
     }
@@ -1062,6 +1082,8 @@ class World {
       incrementalSerializationDoesWork: incrementalSerializationDoesWork,
       serializationShouldNotInclude: serializationShouldNotInclude,
       checkConstantCoverageReferences: checkConstantCoverageReferences,
+      allowDuplicateErrors: allowDuplicateErrors,
+      allowDuplicateWarnings: allowDuplicateWarnings,
     );
   }
 }
@@ -1288,12 +1310,13 @@ class NewWorldTest {
         }
         if (message.severity == Severity.error) {
           gotError = true;
-          if (!formattedErrors.add(stringId)) {
+          if (!formattedErrors.add(stringId) && !world.allowDuplicateErrors) {
             Expect.fail("Got the same message twice: ${stringId}");
           }
         } else if (message.severity == Severity.warning) {
           gotWarning = true;
-          if (!formattedWarnings.add(stringId)) {
+          if (!formattedWarnings.add(stringId) &&
+              !world.allowDuplicateWarnings) {
             Expect.fail("Got the same message twice: ${stringId}");
           }
         }

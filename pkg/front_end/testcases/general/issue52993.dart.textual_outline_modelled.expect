@@ -1,0 +1,20 @@
+class A {}
+
+class B implements A {}
+
+class C implements A {}
+
+class D implements B, C {}
+
+class Rt<T> {
+  Rt(T t);
+  void rt<T2 extends E<T>>() {}
+}
+
+extension St<T> on T {
+  void st<T2 extends E<T>>() {}
+}
+
+typedef E<T> = T Function(T);
+void foo<X>(bool not, X b, X c) {}
+void main() {}
