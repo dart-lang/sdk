@@ -502,6 +502,32 @@ main() {
         });
       });
     });
+
+    group('Map:', () {
+      test('downward inference', () {
+        h.run([
+          mapLiteral(keyType: 'num', valueType: 'Object', [
+            mapEntry(expr('int').checkContext('num'),
+                expr('int').checkContext('Object'))
+          ]),
+        ]);
+      });
+
+      test('upward inference', () {
+        h.run([
+          mapLiteral(keyType: 'int', valueType: 'String', [])
+              .checkType('Map<int, String>'),
+        ]);
+      });
+
+      test('IR', () {
+        h.run([
+          mapLiteral(keyType: 'int', valueType: 'String?', [
+            mapEntry(intLiteral(0), nullLiteral)
+          ]).checkIR('map(mapEntry(0, null))'),
+        ]);
+      });
+    });
   });
 
   group('Statements:', () {

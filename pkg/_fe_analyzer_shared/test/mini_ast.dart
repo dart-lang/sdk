@@ -298,6 +298,27 @@ Expression localFunction(List<ProtoStatement> body) {
   return LocalFunction._(Block._(body, location: location), location: location);
 }
 
+/// Creates a map entry containing the given [key] and [value] subexpressions.
+CollectionElement mapEntry(ProtoExpression key, ProtoExpression value) {
+  var location = computeLocation();
+  return MapEntry._(key.asExpression(location: location),
+      value.asExpression(location: location),
+      location: location);
+}
+
+/// Creates a map literal containing the given [elements].
+///
+/// [keyType] and [valueType] are the explicit type arguments of the map
+/// literal. TODO(paulberry): support map literals with inferred type arguments.
+Expression mapLiteral(List<ProtoCollectionElement> elements,
+    {required String keyType, required String valueType}) {
+  var location = computeLocation();
+  return MapLiteral._([
+    for (var element in elements)
+      element.asCollectionElement(location: location)
+  ], Type(keyType), Type(valueType), location: location);
+}
+
 Pattern mapPattern(List<MapPatternElement> elements,
     {String? keyType, String? valueType}) {
   var location = computeLocation();
@@ -1074,40 +1095,13 @@ class CollectionElementContextMapEntry extends CollectionElementContext {
   final Type keyType;
   final Type valueType;
 
-  CollectionElementContextMapEntry._(String keyType, String valueType)
-      : keyType = Type(keyType),
-        valueType = Type(valueType);
+  CollectionElementContextMapEntry._(this.keyType, this.valueType);
 }
 
 class CollectionElementContextType extends CollectionElementContext {
   final Type elementType;
 
   CollectionElementContextType._(this.elementType);
-}
-
-/// TODO(scheglov) This is a weird statement. We need `ListLiteral`, etc.
-class CollectionElementInContext extends Statement {
-  final CollectionElement element;
-
-  final CollectionElementContext context;
-
-  CollectionElementInContext(this.element, this.context,
-      {required super.location});
-
-  @override
-  void preVisit(PreVisitor visitor) {
-    element.preVisit(visitor);
-  }
-
-  @override
-  String toString() => '$element (in context $context);';
-
-  @override
-  void visit(Harness h) {
-    h.typeAnalyzer.dispatchCollectionElement(element, context);
-    h.irBuilder.apply('stmt', [Kind.collectionElement], Kind.statement,
-        location: location);
-  }
 }
 
 class Conditional extends Expression {
@@ -2431,6 +2425,73 @@ abstract class LValue extends Expression {
       Expression? rhs);
 }
 
+/// Representation of a map entry in the pseudo-Dart language used for flow
+/// analysis testing.
+class MapEntry extends CollectionElement {
+  final Expression key;
+  final Expression value;
+
+  MapEntry._(this.key, this.value, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    key.preVisit(visitor);
+    value.preVisit(visitor);
+  }
+
+  @override
+  String toString() => '$key: $value';
+
+  @override
+  void visit(Harness h, CollectionElementContext context) {
+    Type keyContext;
+    Type valueContext;
+    switch (context) {
+      case CollectionElementContextMapEntry(:var keyType, :var valueType):
+        keyContext = keyType;
+        valueContext = valueType;
+      default:
+        keyContext = valueContext = h.typeAnalyzer.unknownType;
+    }
+    h.typeAnalyzer.analyzeExpression(key, keyContext);
+    h.typeAnalyzer.analyzeExpression(value, valueContext);
+    h.irBuilder.apply(
+        'mapEntry', [Kind.expression, Kind.expression], Kind.collectionElement,
+        location: location);
+  }
+}
+
+/// Representation of a list literal in the pseudo-Dart language used for flow
+/// analysis testing.
+class MapLiteral extends Expression {
+  final List<CollectionElement> elements;
+  final Type keyType;
+  final Type valueType;
+
+  MapLiteral._(this.elements, this.keyType, this.valueType,
+      {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    for (var element in elements) {
+      element.preVisit(visitor);
+    }
+  }
+
+  @override
+  ExpressionTypeAnalysisResult<Type> visit(Harness h, Type context) {
+    var context = CollectionElementContextMapEntry._(keyType, valueType);
+    for (var element in elements) {
+      element.visit(h, context);
+    }
+    h.irBuilder.apply('map', [for (var _ in elements) Kind.collectionElement],
+        Kind.expression,
+        location: location);
+    return SimpleTypeAnalysisResult(
+        type: h.typeAnalyzer.mapType(keyType: keyType, valueType: valueType));
+  }
+}
+
 class MapPattern extends Pattern {
   final shared.MapPatternTypeArguments<Type>? typeArguments;
 
@@ -3489,15 +3550,6 @@ mixin ProtoCollectionElement<Self extends ProtoCollectionElement<dynamic>> {
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   Self checkIR(String expectedIR);
-
-  /// Creates a [Statement] that, when analyzed, will analyze `this`, supplying
-  /// [keyType] and [valueType] as the context (for `Map` literals).
-  Statement inContextMapEntry(String keyType, String valueType) {
-    var location = computeLocation();
-    return CollectionElementInContext(asCollectionElement(location: location),
-        CollectionElementContextMapEntry._(keyType, valueType),
-        location: location);
-  }
 }
 
 /// Common functionality shared by constructs that can be used where an
