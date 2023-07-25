@@ -8,6 +8,14 @@ import 'module.dart';
 import 'serialize.dart';
 import 'types.dart';
 
+part 'instruction.dart';
+
+// TODO(joshualitt): Suggested further optimizations:
+//   1) Add size estimates to `_Instruction`, and then remove logic where we
+//      need to serialize instructions to get their size.
+//   2) Emit binary directly to a filestream, instead of buffering with a
+//      Uint8List.
+
 /// Thrown when Wasm bytecode validation fails.
 class ValidationError {
   final String trace;
@@ -97,7 +105,7 @@ class Try extends Label {
 ///
 /// If asserts are enabled, the instruction methods will perform on-the-fly
 /// validation and throw a [ValidationError] if validation fails.
-class Instructions with SerializerMixin {
+class Instructions implements Serializable {
   /// The module containing these instructions.
   final Module module;
 
@@ -113,12 +121,6 @@ class Instructions with SerializerMixin {
   /// This trace can be accessed via the [trace] property and will be part of
   /// the exception text if a validation error occurs.
   bool traceEnabled = true;
-
-  /// Whether to print a byte offset for each instruction in the textual trace.
-  bool byteOffsetEnabled = false;
-
-  /// Column width for the instruction byte offset.
-  int byteOffsetWidth = 7;
 
   /// Column width for the instructions.
   int instructionColumnWidth = 50;
@@ -142,10 +144,21 @@ class Instructions with SerializerMixin {
   /// Stack of currently initialized non-defaultable locals.
   final List<int> _localInitializationStack = [];
 
+  /// List of instructions.
+  final List<_Instruction> _instructions = [];
+
   /// Create a new instruction sequence.
   Instructions(this.module, List<ValueType> outputs,
       {this.isGlobalInitializer = false}) {
     _labelStack.add(Expression(const [], outputs));
+  }
+
+  /// Serialize these instructions to the provided [Serializer].
+  @override
+  void serialize(Serializer s) {
+    for (final i in _instructions) {
+      i.serialize(s);
+    }
   }
 
   /// Whether the current point in the instruction stream is reachable.
@@ -156,6 +169,8 @@ class Instructions with SerializerMixin {
 
   /// Textual trace of the instructions.
   String get trace => _traceLines.join();
+
+  void _add(_Instruction i) => _instructions.add(i);
 
   Local addLocal(ValueType type, {required bool isParameter}) {
     Local local = Local(locals.length, type);
@@ -189,8 +204,6 @@ class Instructions with SerializerMixin {
       int indentAfter = 0}) {
     if (traceEnabled && trace != null) {
       _indent += indentBefore;
-      String byteOffset =
-          byteOffsetEnabled ? "${data.length}".padLeft(byteOffsetWidth) : "";
       String instr = "${"  " * _indent} ${trace.join(" ")}";
       instr = instr.length > instructionColumnWidth - 2
           ? "${instr.substring(0, instructionColumnWidth - 4)}... "
@@ -205,7 +218,7 @@ class Instructions with SerializerMixin {
                   ..._stackTypes.sublist(stackHeight - (maxStackShown + 1) ~/ 2)
                 ].join(', ')
           : "-";
-      final String line = "$byteOffset$instr$stack\n";
+      final String line = "$instr$stack\n";
       _indent += indentAfter;
 
       _traceLines.add(line);
@@ -215,8 +228,7 @@ class Instructions with SerializerMixin {
 
   bool _comment(String text) {
     if (traceEnabled) {
-      final String line = "${" " * (byteOffsetEnabled ? byteOffsetWidth : 0)}"
-          "${"  " * _indent} ;; $text\n";
+      final String line = "${"  " * _indent} ;; $text\n";
       _traceLines.add(line);
     }
     return true;
@@ -353,16 +365,16 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(const [], const [],
         trace: const ['unreachable'], reachableAfter: false));
     _reachable = false;
-    writeByte(0x00);
+    _add(const _Unreachable());
   }
 
   /// Emit a `nop` instruction.
   void nop() {
     assert(_verifyTypes(const [], const [], trace: const ['nop']));
-    writeByte(0x01);
+    _add(const _Nop());
   }
 
-  Label _beginBlock(int encoding, Label label, {required List<Object> trace}) {
+  Label _pushLabel(Label label, {required List<Object> trace}) {
     assert(_verifyTypes(label.inputs, label.inputs));
     label.ordinal = ++_labelCount;
     label.depth = _labelStack.length;
@@ -371,14 +383,20 @@ class Instructions with SerializerMixin {
     label.localInitializationStackHeight = _localInitializationStack.length;
     _labelStack.add(label);
     assert(_verifyStartOfBlock(label, trace: trace));
-    writeByte(encoding);
+    return label;
+  }
+
+  Label _beginBlock(
+      Label label,
+      _Instruction Function() noEffect,
+      _Instruction Function(ValueType type) oneOutput,
+      _Instruction Function(FunctionType type) function) {
     if (label.inputs.isEmpty && label.outputs.isEmpty) {
-      writeByte(0x40);
+      _add(noEffect());
     } else if (label.inputs.isEmpty && label.outputs.length == 1) {
-      write(label.outputs.single);
+      _add(oneOutput(label.outputs.single));
     } else {
-      final type = module.addFunctionType(label.inputs, label.outputs);
-      writeSigned(type.index);
+      _add(function(module.addFunctionType(label.inputs, label.outputs)));
     }
     return label;
   }
@@ -386,23 +404,32 @@ class Instructions with SerializerMixin {
   /// Emit a `block` instruction.
   /// Branching to the returned label will branch to the matching `end`.
   Label block(
-      [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
-    return _beginBlock(0x02, Block(inputs, outputs), trace: const ['block']);
-  }
+          [List<ValueType> inputs = const [],
+          List<ValueType> outputs = const []]) =>
+      _beginBlock(
+          _pushLabel(Block(inputs, outputs), trace: const ['block']),
+          _BeginNoEffectBlock.new,
+          _BeginOneOutputBlock.new,
+          _BeginFunctionBlock.new);
 
   /// Emit a `loop` instruction.
   /// Branching to the returned label will branch to the `loop`.
   Label loop(
-      [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
-    return _beginBlock(0x03, Loop(inputs, outputs), trace: const ['loop']);
-  }
+          [List<ValueType> inputs = const [],
+          List<ValueType> outputs = const []]) =>
+      _beginBlock(
+          _pushLabel(Loop(inputs, outputs), trace: const ['loop']),
+          _BeginNoEffectLoop.new,
+          _BeginOneOutputLoop.new,
+          _BeginFunctionLoop.new);
 
   /// Emit an `if` instruction.
   /// Branching to the returned label will branch to the matching `end`.
   Label if_(
       [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
     assert(_verifyTypes(const [NumType.i32], const []));
-    return _beginBlock(0x04, If(inputs, outputs), trace: const ['if']);
+    return _beginBlock(_pushLabel(If(inputs, outputs), trace: const ['if']),
+        _BeginNoEffectIf.new, _BeginOneOutputIf.new, _BeginFunctionIf.new);
   }
 
   /// Emit an `else` instruction.
@@ -417,14 +444,15 @@ class Instructions with SerializerMixin {
         reindent: true));
     label.hasElse = true;
     _reachable = _topOfLabelStack.reachable;
-    writeByte(0x05);
+    _add(const _Else());
   }
 
   /// Emit a `try` instruction.
   Label try_(
-      [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
-    return _beginBlock(0x06, Try(inputs, outputs), trace: const ['try']);
-  }
+          [List<ValueType> inputs = const [],
+          List<ValueType> outputs = const []]) =>
+      _beginBlock(_pushLabel(Try(inputs, outputs), trace: const ['try']),
+          _BeginNoEffectTry.new, _BeginOneOutputTry.new, _BeginFunctionTry.new);
 
   /// Emit a `catch` instruction.
   void catch_(Tag tag) {
@@ -435,8 +463,7 @@ class Instructions with SerializerMixin {
         trace: ['catch', tag], reachableAfter: try_.reachable, reindent: true));
     try_.hasCatch = true;
     _reachable = try_.reachable;
-    writeByte(0x07);
-    _writeTag(tag);
+    _add(_Catch(tag));
   }
 
   void catch_all() {
@@ -447,15 +474,14 @@ class Instructions with SerializerMixin {
         trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
     try_.hasCatch = true;
     _reachable = try_.reachable;
-    writeByte(0x19);
+    _add(const _CatchAll());
   }
 
   /// Emit a `throw` instruction.
   void throw_(Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
     _reachable = false;
-    writeByte(0x08);
-    writeUnsigned(tag.index);
+    _add(_Throw(tag));
   }
 
   /// Emit a `rethrow` instruction.
@@ -463,8 +489,7 @@ class Instructions with SerializerMixin {
     assert(label is Try && label.hasCatch);
     assert(_verifyTypes(const [], const [], trace: ['rethrow', label]));
     _reachable = false;
-    writeByte(0x09);
-    _writeLabel(label);
+    _add(_Rethrow(_labelIndex(label)));
   }
 
   /// Emit an `end` instruction.
@@ -475,7 +500,7 @@ class Instructions with SerializerMixin {
         reindent: false));
     _reachable = _topOfLabelStack.reachable;
     _labelStack.removeLast();
-    writeByte(0x0B);
+    _add(const _End());
   }
 
   int _labelIndex(Label label) {
@@ -484,22 +509,13 @@ class Instructions with SerializerMixin {
     return index;
   }
 
-  void _writeLabel(Label label) {
-    writeUnsigned(_labelIndex(label));
-  }
-
-  void _writeTag(Tag tag) {
-    writeUnsigned(tag.index);
-  }
-
   /// Emit a `br` instruction.
   void br(Label label) {
     assert(_verifyTypes(const [], const [],
         trace: ['br', label], reachableAfter: false));
     assert(_verifyBranchTypes(label));
     _reachable = false;
-    writeByte(0x0C);
-    _writeLabel(label);
+    _add(_Br(_labelIndex(label)));
   }
 
   /// Emit a `br_if` instruction.
@@ -507,8 +523,7 @@ class Instructions with SerializerMixin {
     assert(
         _verifyTypes(const [NumType.i32], const [], trace: ['br_if', label]));
     assert(_verifyBranchTypes(label));
-    writeByte(0x0D);
-    _writeLabel(label);
+    _add(_BrIf(_labelIndex(label)));
   }
 
   /// Emit a `br_table` instruction.
@@ -520,12 +535,7 @@ class Instructions with SerializerMixin {
     }
     assert(_verifyBranchTypes(defaultLabel));
     _reachable = false;
-    writeByte(0x0E);
-    writeUnsigned(labels.length);
-    for (Label label in labels) {
-      _writeLabel(label);
-    }
-    _writeLabel(defaultLabel);
+    _add(_BrTable(labels.map(_labelIndex).toList(), _labelIndex(defaultLabel)));
   }
 
   /// Emit a `return` instruction.
@@ -533,24 +543,21 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(_labelStack[0].outputs, const [],
         trace: const ['return'], reachableAfter: false));
     _reachable = false;
-    writeByte(0x0F);
+    _add(const _Return());
   }
 
   /// Emit a `call` instruction.
   void call(BaseFunction function) {
     assert(_verifyTypes(function.type.inputs, function.type.outputs,
         trace: ['call', function]));
-    writeByte(0x10);
-    writeUnsigned(function.index);
+    _add(_Call(function));
   }
 
   /// Emit a `call_indirect` instruction.
   void call_indirect(FunctionType type, [Table? table]) {
     assert(_verifyTypes([...type.inputs, NumType.i32], type.outputs,
         trace: ['call_indirect', type, if (table != null) table.index]));
-    writeByte(0x11);
-    writeUnsigned(type.index);
-    writeUnsigned(table?.index ?? 0);
+    _add(_CallIndirect(type, table));
   }
 
   /// Emit a `call_ref` instruction.
@@ -558,8 +565,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         [...type.inputs, RefType.def(type, nullable: true)], type.outputs,
         trace: ['call_ref', type]));
-    writeByte(0x14);
-    writeUnsigned(type.index);
+    _add(_CallRef(type));
   }
 
   // Parametric instructions
@@ -567,20 +573,14 @@ class Instructions with SerializerMixin {
   /// Emit a `drop` instruction.
   void drop() {
     assert(_verifyTypes([_topOfStack], const [], trace: const ['drop']));
-    writeByte(0x1A);
+    _add(const _Drop());
   }
 
   /// Emit a `select` instruction.
   void select(ValueType type) {
     assert(_verifyTypes([type, type, NumType.i32], [type],
         trace: ['select', type]));
-    if (type is NumType) {
-      writeByte(0x1B);
-    } else {
-      writeByte(0x1C);
-      writeUnsigned(1);
-      write(type);
-    }
+    _add(_Select(type));
   }
 
   // Variable instructions
@@ -591,8 +591,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(const [], [local.type], trace: ['local.get', local]));
     assert(_localIsInitialized(local) ||
         _reportError("Uninitialized local with non-defaultable type"));
-    writeByte(0x20);
-    writeUnsigned(local.index);
+    _add(_LocalGet(local));
   }
 
   /// Emit a `local.set` instruction.
@@ -600,8 +599,7 @@ class Instructions with SerializerMixin {
     assert(locals[local.index] == local);
     assert(_verifyTypes([local.type], const [], trace: ['local.set', local]));
     assert(_initializeLocal(local));
-    writeByte(0x21);
-    writeUnsigned(local.index);
+    _add(_LocalSet(local));
   }
 
   /// Emit a `local.tee` instruction.
@@ -610,16 +608,14 @@ class Instructions with SerializerMixin {
     assert(
         _verifyTypes([local.type], [local.type], trace: ['local.tee', local]));
     assert(_initializeLocal(local));
-    writeByte(0x22);
-    writeUnsigned(local.index);
+    _add(_LocalTee(local));
   }
 
   /// Emit a `global.get` instruction.
   void global_get(Global global) {
     assert(_verifyTypes(const [], [global.type.type],
         trace: ['global.get', global]));
-    writeByte(0x23);
-    writeUnsigned(global.index);
+    _add(_GlobalGet(global));
   }
 
   /// Emit a `global.set` instruction.
@@ -627,8 +623,7 @@ class Instructions with SerializerMixin {
     assert(global.type.mutable);
     assert(_verifyTypes([global.type.type], const [],
         trace: ['global.set', global]));
-    writeByte(0x24);
-    writeUnsigned(global.index);
+    _add(_GlobalSet(global));
   }
 
   // Table instructions
@@ -637,47 +632,35 @@ class Instructions with SerializerMixin {
   void table_get(Table table) {
     assert(_verifyTypes(const [NumType.i32], [table.type],
         trace: ['table.get', table.index]));
-    writeByte(0x25);
-    writeUnsigned(table.index);
+    _add(_TableSet(table));
   }
 
   /// Emit a `table.set` instruction.
   void table_set(Table table) {
     assert(_verifyTypes([NumType.i32, table.type], const [],
         trace: ['table.set', table.index]));
-    writeByte(0x26);
-    writeUnsigned(table.index);
+    _add(_TableGet(table));
   }
 
   /// Emit a `table.size` instruction.
   void table_size(Table table) {
     assert(_verifyTypes(const [], const [NumType.i32],
         trace: ['table.size', table.index]));
-    writeBytes([0xFC, 0x10]);
-    writeUnsigned(table.index);
+    _add(_TableSize(table));
   }
 
   // Memory instructions
-
-  void _writeMemArg(Memory memory, int offset, int align) {
-    assert(align >= 0 && align < 64);
-    if (memory.index == 0) {
-      writeByte(align);
-      writeUnsigned(offset);
-    } else {
-      writeByte(64 + align);
-      writeUnsigned(offset);
-      writeUnsigned(memory.index);
-    }
-  }
+  void _addMemoryInstruction(
+          _Instruction Function(_Memory memory) create, Memory memory,
+          {required int offset, required int align}) =>
+      _add(create(_Memory(memory, offset: offset, align: align)));
 
   /// Emit an `i32.load` instruction.
   void i32_load(Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: ['i32.load', memory.index, offset, align]));
-    writeByte(0x28);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.load` instruction.
@@ -685,8 +668,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load', memory.index, offset, align]));
-    writeByte(0x29);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f32.load` instruction.
@@ -694,8 +676,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
         trace: ['f32.load', memory.index, offset, align]));
-    writeByte(0x2A);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_F32Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f64.load` instruction.
@@ -703,8 +684,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
         trace: ['f64.load', memory.index, offset, align]));
-    writeByte(0x2B);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_F64Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.load8_s` instruction.
@@ -712,8 +692,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: ['i32.load8_s', memory.index, offset, align]));
-    writeByte(0x2C);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Load8S.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.load8_u` instruction.
@@ -721,8 +700,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: ['i32.load8_u', memory.index, offset, align]));
-    writeByte(0x2D);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Load8U.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.load16_s` instruction.
@@ -730,8 +708,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: ['i32.load16_s', memory.index, offset, align]));
-    writeByte(0x2E);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Load16S.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.load16_u` instruction.
@@ -739,8 +717,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: ['i32.load16_u', memory.index, offset, align]));
-    writeByte(0x2F);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Load16U.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load8_s` instruction.
@@ -748,8 +726,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load8_s', memory.index, offset, align]));
-    writeByte(0x30);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load8S.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.load8_u` instruction.
@@ -757,8 +734,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load8_u', memory.index, offset, align]));
-    writeByte(0x31);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load8U.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.load16_s` instruction.
@@ -766,8 +742,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load16_s', memory.index, offset, align]));
-    writeByte(0x32);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load16S.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load16_u` instruction.
@@ -775,8 +751,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load16_u', memory.index, offset, align]));
-    writeByte(0x33);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load16U.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load32_s` instruction.
@@ -784,8 +760,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load32_s', memory.index, offset, align]));
-    writeByte(0x34);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load32S.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load32_u` instruction.
@@ -793,8 +769,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: ['i64.load32_u', memory.index, offset, align]));
-    writeByte(0x35);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Load32U.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.store` instruction.
@@ -802,8 +778,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
         trace: ['i32.store', memory.index, offset, align]));
-    writeByte(0x36);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Store.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.store` instruction.
@@ -811,8 +786,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
         trace: ['i64.store', memory.index, offset, align]));
-    writeByte(0x37);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Store.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f32.store` instruction.
@@ -820,8 +794,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32, NumType.f32], const [],
         trace: ['f32.store', memory.index, offset, align]));
-    writeByte(0x38);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_F32Store.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f64.store` instruction.
@@ -829,8 +802,7 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [NumType.i32, NumType.f64], const [],
         trace: ['f64.store', memory.index, offset, align]));
-    writeByte(0x39);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_F64Store.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.store8` instruction.
@@ -838,8 +810,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
         trace: ['i32.store8', memory.index, offset, align]));
-    writeByte(0x3A);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Store8.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.store16` instruction.
@@ -847,8 +818,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
         trace: ['i32.store16', memory.index, offset, align]));
-    writeByte(0x3B);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I32Store16.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.store8` instruction.
@@ -856,8 +827,7 @@ class Instructions with SerializerMixin {
     assert(align == 0);
     assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
         trace: ['i64.store8', memory.index, offset, align]));
-    writeByte(0x3C);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Store8.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.store16` instruction.
@@ -865,8 +835,8 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
         trace: ['i64.store16', memory.index, offset, align]));
-    writeByte(0x3D);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Store16.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.store32` instruction.
@@ -874,22 +844,20 @@ class Instructions with SerializerMixin {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
         trace: ['i64.store32', memory.index, offset, align]));
-    writeByte(0x3E);
-    _writeMemArg(memory, offset, align);
+    _addMemoryInstruction(_I64Store32.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit a `memory.size` instruction.
   void memory_size(Memory memory) {
     assert(_verifyTypes(const [], const [NumType.i32]));
-    writeByte(0x3F);
-    writeUnsigned(memory.index);
+    _add(_MemorySize(memory));
   }
 
   /// Emit a `memory.grow` instruction.
   void memory_grow(Memory memory) {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32]));
-    writeByte(0x40);
-    writeUnsigned(memory.index);
+    _add(_MemoryGrow(memory));
   }
 
   // Reference instructions
@@ -898,8 +866,7 @@ class Instructions with SerializerMixin {
   void ref_null(HeapType heapType) {
     assert(_verifyTypes(const [], [RefType(heapType, nullable: true)],
         trace: ['ref.null', heapType]));
-    writeByte(0xD0);
-    write(heapType);
+    _add(_RefNull(heapType));
   }
 
   /// Emit a `ref.is_null` instruction.
@@ -907,15 +874,14 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         const [RefType.common(nullable: true)], const [NumType.i32],
         trace: const ['ref.is_null']));
-    writeByte(0xD1);
+    _add(const _RefIsNull());
   }
 
   /// Emit a `ref.func` instruction.
   void ref_func(BaseFunction function) {
     assert(_verifyTypes(const [], [RefType.def(function.type, nullable: false)],
         trace: ['ref.func', function]));
-    writeByte(0xD2);
-    writeUnsigned(function.index);
+    _add(_RefFunc(function));
   }
 
   /// Emit a `ref.as_non_null` instruction.
@@ -923,7 +889,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(const [RefType.common(nullable: true)],
         [_topOfStack.withNullability(false)],
         trace: const ['ref.as_non_null']));
-    writeByte(0xD3);
+    _add(const _RefAsNonNull());
   }
 
   /// Emit a `br_on_null` instruction.
@@ -932,8 +898,7 @@ class Instructions with SerializerMixin {
         [_topOfStack.withNullability(false)],
         trace: ['br_on_null', label]));
     assert(_verifyBranchTypes(label, 1));
-    writeByte(0xD4);
-    _writeLabel(label);
+    _add(_BrOnNull(_labelIndex(label)));
   }
 
   /// Emit a `ref.eq` instruction.
@@ -942,7 +907,7 @@ class Instructions with SerializerMixin {
         const [RefType.eq(nullable: true), RefType.eq(nullable: true)],
         const [NumType.i32],
         trace: const ['ref.eq']));
-    writeByte(0xD5);
+    _add(const _RefEq());
   }
 
   /// Emit a `br_on_non_null` instruction.
@@ -950,8 +915,7 @@ class Instructions with SerializerMixin {
     assert(_verifyBranchTypes(label, 1, [_topOfStack.withNullability(false)]));
     assert(_verifyTypes(const [RefType.common(nullable: true)], const [],
         trace: ['br_on_non_null', label]));
-    writeByte(0xD6);
-    _writeLabel(label);
+    _add(_BrOnNonNull(_labelIndex(label)));
   }
 
   /// Emit a `struct.get` instruction.
@@ -960,9 +924,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get', structType, fieldIndex]));
-    writeBytes(const [0xFB, 0x03]);
-    writeUnsigned(structType.index);
-    writeUnsigned(fieldIndex);
+    _add(_StructGet(structType, fieldIndex));
   }
 
   /// Emit a `struct.get_s` instruction.
@@ -971,9 +933,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get_s', structType, fieldIndex]));
-    writeBytes(const [0xFB, 0x04]);
-    writeUnsigned(structType.index);
-    writeUnsigned(fieldIndex);
+    _add(_StructGetS(structType, fieldIndex));
   }
 
   /// Emit a `struct.get_u` instruction.
@@ -982,9 +942,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get_u', structType, fieldIndex]));
-    writeBytes(const [0xFB, 0x05]);
-    writeUnsigned(structType.index);
-    writeUnsigned(fieldIndex);
+    _add(_StructGetU(structType, fieldIndex));
   }
 
   /// Emit a `struct.set` instruction.
@@ -997,9 +955,7 @@ class Instructions with SerializerMixin {
       structType,
       fieldIndex
     ]));
-    writeBytes(const [0xFB, 0x06]);
-    writeUnsigned(structType.index);
-    writeUnsigned(fieldIndex);
+    _add(_StructSet(structType, fieldIndex));
   }
 
   /// Emit a `struct.new` instruction.
@@ -1007,16 +963,14 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([...structType.fields.map((f) => f.type.unpacked)],
         [RefType.def(structType, nullable: false)],
         trace: ['struct.new', structType]));
-    writeBytes(const [0xFB, 0x07]);
-    writeUnsigned(structType.index);
+    _add(_StructNew(structType));
   }
 
   /// Emit a `struct.new_default` instruction.
   void struct_new_default(StructType structType) {
     assert(_verifyTypes(const [], [RefType.def(structType, nullable: false)],
         trace: ['struct.new_default', structType]));
-    writeBytes(const [0xFB, 0x08]);
-    writeUnsigned(structType.index);
+    _add(_StructNewDefault(structType));
   }
 
   /// Emit an `array.get` instruction.
@@ -1025,8 +979,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get', arrayType]));
-    writeBytes(const [0xFB, 0x13]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayGet(arrayType));
   }
 
   /// Emit an `array.get_s` instruction.
@@ -1035,8 +988,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get_s', arrayType]));
-    writeBytes(const [0xFB, 0x14]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayGetS(arrayType));
   }
 
   /// Emit an `array.get_u` instruction.
@@ -1045,8 +997,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get_u', arrayType]));
-    writeBytes(const [0xFB, 0x15]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayGetU(arrayType));
   }
 
   /// Emit an `array.set` instruction.
@@ -1059,15 +1010,14 @@ class Instructions with SerializerMixin {
       'array.set',
       arrayType
     ]));
-    writeBytes(const [0xFB, 0x16]);
-    writeUnsigned(arrayType.index);
+    _add(_ArraySet(arrayType));
   }
 
   /// Emit an `array.len` instruction.
   void array_len() {
     assert(_verifyTypes([RefType.array(nullable: true)], const [NumType.i32],
         trace: ['array.len']));
-    writeBytes(const [0xFB, 0x19]);
+    _add(const _ArrayLen());
   }
 
   /// Emit an `array.new_fixed` instruction.
@@ -1076,9 +1026,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([...List.filled(length, elementType)],
         [RefType.def(arrayType, nullable: false)],
         trace: ['array.new_fixed', arrayType, length]));
-    writeBytes(const [0xFB, 0x1a]);
-    writeUnsigned(arrayType.index);
-    writeUnsigned(length);
+    _add(_ArrayNewFixed(arrayType, length));
   }
 
   /// Emit an `array.new` instruction.
@@ -1086,8 +1034,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes([arrayType.elementType.type.unpacked, NumType.i32],
         [RefType.def(arrayType, nullable: false)],
         trace: ['array.new', arrayType]));
-    writeBytes(const [0xFB, 0x1b]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayNew(arrayType));
   }
 
   /// Emit an `array.new_default` instruction.
@@ -1095,8 +1042,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         [NumType.i32], [RefType.def(arrayType, nullable: false)],
         trace: ['array.new_default', arrayType]));
-    writeBytes(const [0xFB, 0x1c]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayNewDefault(arrayType));
   }
 
   /// Emit an `array.new_data` instruction.
@@ -1105,9 +1051,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         [NumType.i32, NumType.i32], [RefType.def(arrayType, nullable: false)],
         trace: ['array.new_data', arrayType, data.index]));
-    writeBytes(const [0xFB, 0x1d]);
-    writeUnsigned(arrayType.index);
-    writeUnsigned(data.index);
+    _add(_ArrayNewData(arrayType, data));
     if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
   }
 
@@ -1124,9 +1068,8 @@ class Instructions with SerializerMixin {
       destArrayType,
       sourceArrayType
     ]));
-    writeBytes(const [0xFB, 0x18]);
-    writeUnsigned(destArrayType.index);
-    writeUnsigned(sourceArrayType.index);
+    _add(_ArrayCopy(
+        destArrayType: destArrayType, sourceArrayType: sourceArrayType));
   }
 
   /// Emit an `array.fill` instruction.
@@ -1140,8 +1083,7 @@ class Instructions with SerializerMixin {
       'array.copy',
       arrayType,
     ]));
-    writeBytes(const [0xFB, 0x0F]);
-    writeUnsigned(arrayType.index);
+    _add(_ArrayFill(arrayType));
   }
 
   /// Emit an `i31.new` instruction.
@@ -1149,7 +1091,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         const [NumType.i32], const [RefType.i31(nullable: false)],
         trace: const ['i31.new']));
-    writeBytes(const [0xFB, 0x20]);
+    _add(const _I31New());
   }
 
   /// Emit an `i31.get_s` instruction.
@@ -1157,7 +1099,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         const [RefType.i31(nullable: false)], const [NumType.i32],
         trace: const ['i31.get_s']));
-    writeBytes(const [0xFB, 0x21]);
+    _add(const _I31GetS());
   }
 
   /// Emit an `i31.get_u` instruction.
@@ -1165,7 +1107,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(
         const [RefType.i31(nullable: false)], const [NumType.i32],
         trace: const ['i31.get_u']));
-    writeBytes(const [0xFB, 0x22]);
+    _add(const _I31GetU());
   }
 
   bool _verifyCast(RefType targetType, ValueType outputType,
@@ -1189,8 +1131,7 @@ class Instructions with SerializerMixin {
       if (targetType.nullable) 'null',
       targetType.heapType
     ]));
-    writeBytes(targetType.nullable ? const [0xFB, 0x48] : const [0xFB, 0x40]);
-    write(targetType.heapType);
+    _add(_RefTest(targetType));
   }
 
   /// Emit a `ref.cast` instruction.
@@ -1200,8 +1141,7 @@ class Instructions with SerializerMixin {
       if (targetType.nullable) 'null',
       targetType.heapType
     ]));
-    writeBytes(targetType.nullable ? const [0xFB, 0x49] : const [0xFB, 0x41]);
-    write(targetType.heapType);
+    _add(_RefCast(targetType));
   }
 
   /// Emit a `br_on_cast` instruction.
@@ -1213,9 +1153,7 @@ class Instructions with SerializerMixin {
       label
     ]));
     assert(_verifyBranchTypes(label, 1, [targetType]));
-    writeBytes(targetType.nullable ? const [0xFB, 0x4A] : const [0xFB, 0x42]);
-    _writeLabel(label);
-    write(targetType.heapType);
+    _add(_BrOnCast(targetType, _labelIndex(label)));
   }
 
   /// Emit a `br_on_cast_fail` instruction.
@@ -1227,9 +1165,7 @@ class Instructions with SerializerMixin {
       label
     ]));
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    writeBytes(targetType.nullable ? const [0xFB, 0x4B] : const [0xFB, 0x43]);
-    _writeLabel(label);
-    write(targetType.heapType);
+    _add(_BrOnCastFail(targetType, _labelIndex(label)));
   }
 
   /// Emit an `extern.internalize` instruction.
@@ -1237,7 +1173,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypesFun(const [RefType.extern(nullable: true)],
         (inputs) => [RefType.any(nullable: inputs.single.nullable)],
         trace: ['extern.internalize']));
-    writeBytes(const [0xFB, 0x70]);
+    _add(const _ExternInternalize());
   }
 
   /// Emit an `extern.externalize` instruction.
@@ -1245,7 +1181,7 @@ class Instructions with SerializerMixin {
     assert(_verifyTypesFun(const [RefType.any(nullable: true)],
         (inputs) => [RefType.extern(nullable: inputs.single.nullable)],
         trace: ['extern.externalize']));
-    writeBytes(const [0xFB, 0x71]);
+    _add(const _ExternExternalize());
   }
 
   // Numeric instructions
@@ -1255,983 +1191,979 @@ class Instructions with SerializerMixin {
     assert(_verifyTypes(const [], const [NumType.i32],
         trace: ['i32.const', value]));
     assert(-1 << 31 <= value && value < 1 << 31);
-    writeByte(0x41);
-    writeSigned(value);
+    _add(_I32Const(value));
   }
 
   /// Emit an `i64.const` instruction.
   void i64_const(int value) {
     assert(_verifyTypes(const [], const [NumType.i64],
         trace: ['i64.const', value]));
-    writeByte(0x42);
-    writeSigned(value);
+    _add(_I64Const(value));
   }
 
   /// Emit an `f32.const` instruction.
   void f32_const(double value) {
     assert(_verifyTypes(const [], const [NumType.f32],
         trace: ['f32.const', value]));
-    writeByte(0x43);
-    writeF32(value);
+    _add(_F32Const(value));
   }
 
   /// Emit an `f64.const` instruction.
   void f64_const(double value) {
     assert(_verifyTypes(const [], const [NumType.f64],
         trace: ['f64.const', value]));
-    writeByte(0x44);
-    writeF64(value);
+    _add(_F64Const(value));
   }
 
   /// Emit an `i32.eqz` instruction.
   void i32_eqz() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.eqz']));
-    writeByte(0x45);
+    _add(const _I32Eqz());
   }
 
   /// Emit an `i32.eq` instruction.
   void i32_eq() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.eq']));
-    writeByte(0x46);
+    _add(const _I32Eq());
   }
 
   /// Emit an `i32.ne` instruction.
   void i32_ne() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.ne']));
-    writeByte(0x47);
+    _add(const _I32Ne());
   }
 
   /// Emit an `i32.lt_s` instruction.
   void i32_lt_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.lt_s']));
-    writeByte(0x48);
+    _add(const _I32LtS());
   }
 
   /// Emit an `i32.lt_u` instruction.
   void i32_lt_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.lt_u']));
-    writeByte(0x49);
+    _add(const _I32LtU());
   }
 
   /// Emit an `i32.gt_s` instruction.
   void i32_gt_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.gt_s']));
-    writeByte(0x4A);
+    _add(const _I32GtS());
   }
 
   /// Emit an `i32.gt_u` instruction.
   void i32_gt_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.gt_u']));
-    writeByte(0x4B);
+    _add(const _I32GtU());
   }
 
   /// Emit an `i32.le_s` instruction.
   void i32_le_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.le_s']));
-    writeByte(0x4C);
+    _add(const _I32LeS());
   }
 
   /// Emit an `i32.le_u` instruction.
   void i32_le_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.le_u']));
-    writeByte(0x4D);
+    _add(const _I32LeU());
   }
 
   /// Emit an `i32.ge_s` instruction.
   void i32_ge_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.ge_s']));
-    writeByte(0x4E);
+    _add(const _I32GeS());
   }
 
   /// Emit an `i32.ge_u` instruction.
   void i32_ge_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.ge_u']));
-    writeByte(0x4F);
+    _add(const _I32GeU());
   }
 
   /// Emit an `i64.eqz` instruction.
   void i64_eqz() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i32],
         trace: const ['i64.eqz']));
-    writeByte(0x50);
+    _add(const _I64Eqz());
   }
 
   /// Emit an `i64.eq` instruction.
   void i64_eq() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.eq']));
-    writeByte(0x51);
+    _add(const _I64Eq());
   }
 
   /// Emit an `i64.ne` instruction.
   void i64_ne() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.ne']));
-    writeByte(0x52);
+    _add(const _I64Ne());
   }
 
   /// Emit an `i64.lt_s` instruction.
   void i64_lt_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.lt_s']));
-    writeByte(0x53);
+    _add(const _I64LtS());
   }
 
   /// Emit an `i64.lt_u` instruction.
   void i64_lt_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.lt_u']));
-    writeByte(0x54);
+    _add(const _I64LtU());
   }
 
   /// Emit an `i64.gt_s` instruction.
   void i64_gt_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.gt_s']));
-    writeByte(0x55);
+    _add(const _I64GtS());
   }
 
   /// Emit an `i64.gt_u` instruction.
   void i64_gt_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.gt_u']));
-    writeByte(0x56);
+    _add(const _I64GtU());
   }
 
   /// Emit an `i64.le_s` instruction.
   void i64_le_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.le_s']));
-    writeByte(0x57);
+    _add(const _I64LeS());
   }
 
   /// Emit an `i64.le_u` instruction.
   void i64_le_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.le_u']));
-    writeByte(0x58);
+    _add(const _I64LeU());
   }
 
   /// Emit an `i64.ge_s` instruction.
   void i64_ge_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.ge_s']));
-    writeByte(0x59);
+    _add(const _I64GeS());
   }
 
   /// Emit an `i64.ge_u` instruction.
   void i64_ge_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
         trace: const ['i64.ge_u']));
-    writeByte(0x5A);
+    _add(const _I64GeU());
   }
 
   /// Emit an `f32.eq` instruction.
   void f32_eq() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.eq']));
-    writeByte(0x5B);
+    _add(const _F32Eq());
   }
 
   /// Emit an `f32.ne` instruction.
   void f32_ne() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.ne']));
-    writeByte(0x5C);
+    _add(const _F32Ne());
   }
 
   /// Emit an `f32.lt` instruction.
   void f32_lt() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.lt']));
-    writeByte(0x5D);
+    _add(const _F32Lt());
   }
 
   /// Emit an `f32.gt` instruction.
   void f32_gt() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.gt']));
-    writeByte(0x5E);
+    _add(const _F32Gt());
   }
 
   /// Emit an `f32.le` instruction.
   void f32_le() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.le']));
-    writeByte(0x5F);
+    _add(const _F32Le());
   }
 
   /// Emit an `f32.ge` instruction.
   void f32_ge() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
         trace: const ['f32.ge']));
-    writeByte(0x60);
+    _add(const _F32Ge());
   }
 
   /// Emit an `f64.eq` instruction.
   void f64_eq() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.eq']));
-    writeByte(0x61);
+    _add(const _F64Eq());
   }
 
   /// Emit an `f64.ne` instruction.
   void f64_ne() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.ne']));
-    writeByte(0x62);
+    _add(const _F64Ne());
   }
 
   /// Emit an `f64.lt` instruction.
   void f64_lt() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.lt']));
-    writeByte(0x63);
+    _add(const _F64Lt());
   }
 
   /// Emit an `f64.gt` instruction.
   void f64_gt() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.gt']));
-    writeByte(0x64);
+    _add(const _F64Gt());
   }
 
   /// Emit an `f64.le` instruction.
   void f64_le() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.le']));
-    writeByte(0x65);
+    _add(const _F64Le());
   }
 
   /// Emit an `f64.ge` instruction.
   void f64_ge() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
         trace: const ['f64.ge']));
-    writeByte(0x66);
+    _add(const _F64Ge());
   }
 
   /// Emit an `i32.clz` instruction.
   void i32_clz() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.clz']));
-    writeByte(0x67);
+    _add(const _I32Clz());
   }
 
   /// Emit an `i32.ctz` instruction.
   void i32_ctz() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.ctz']));
-    writeByte(0x68);
+    _add(const _I32Ctz());
   }
 
   /// Emit an `i32.popcnt` instruction.
   void i32_popcnt() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.popcnt']));
-    writeByte(0x69);
+    _add(const _I32Popcnt());
   }
 
   /// Emit an `i32.add` instruction.
   void i32_add() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.add']));
-    writeByte(0x6A);
+    _add(const _I32Add());
   }
 
   /// Emit an `i32.sub` instruction.
   void i32_sub() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.sub']));
-    writeByte(0x6B);
+    _add(const _I32Sub());
   }
 
   /// Emit an `i32.mul` instruction.
   void i32_mul() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.mul']));
-    writeByte(0x6C);
+    _add(const _I32Mul());
   }
 
   /// Emit an `i32.div_s` instruction.
   void i32_div_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.div_s']));
-    writeByte(0x6D);
+    _add(const _I32DivS());
   }
 
   /// Emit an `i32.div_u` instruction.
   void i32_div_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.div_u']));
-    writeByte(0x6E);
+    _add(const _I32DivU());
   }
 
   /// Emit an `i32.rem_s` instruction.
   void i32_rem_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.rem_s']));
-    writeByte(0x6F);
+    _add(const _I32RemS());
   }
 
   /// Emit an `i32.rem_u` instruction.
   void i32_rem_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.rem_u']));
-    writeByte(0x70);
+    _add(const _I32RemU());
   }
 
   /// Emit an `i32.and` instruction.
   void i32_and() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.and']));
-    writeByte(0x71);
+    _add(const _I32And());
   }
 
   /// Emit an `i32.or` instruction.
   void i32_or() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.or']));
-    writeByte(0x72);
+    _add(const _I32Or());
   }
 
   /// Emit an `i32.xor` instruction.
   void i32_xor() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.xor']));
-    writeByte(0x73);
+    _add(const _I32Xor());
   }
 
   /// Emit an `i32.shl` instruction.
   void i32_shl() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.shl']));
-    writeByte(0x74);
+    _add(const _I32Shl());
   }
 
   /// Emit an `i32.shr_s` instruction.
   void i32_shr_s() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.shr_s']));
-    writeByte(0x75);
+    _add(const _I32ShrS());
   }
 
   /// Emit an `i32.shr_u` instruction.
   void i32_shr_u() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.shr_u']));
-    writeByte(0x76);
+    _add(const _I32ShrU());
   }
 
   /// Emit an `i32.rotl` instruction.
   void i32_rotl() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.rotl']));
-    writeByte(0x77);
+    _add(const _I32Rotl());
   }
 
   /// Emit an `i32.rotr` instruction.
   void i32_rotr() {
     assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
         trace: const ['i32.rotr']));
-    writeByte(0x78);
+    _add(const _I32Rotr());
   }
 
   /// Emit an `i64.clz` instruction.
   void i64_clz() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.clz']));
-    writeByte(0x79);
+    _add(const _I64Clz());
   }
 
   /// Emit an `i64.ctz` instruction.
   void i64_ctz() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.ctz']));
-    writeByte(0x7A);
+    _add(const _I64Ctz());
   }
 
   /// Emit an `i64.popcnt` instruction.
   void i64_popcnt() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.popcnt']));
-    writeByte(0x7B);
+    _add(const _I64Popcnt());
   }
 
   /// Emit an `i64.add` instruction.
   void i64_add() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.add']));
-    writeByte(0x7C);
+    _add(const _I64Add());
   }
 
   /// Emit an `i64.sub` instruction.
   void i64_sub() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.sub']));
-    writeByte(0x7D);
+    _add(const _I64Sub());
   }
 
   /// Emit an `i64.mul` instruction.
   void i64_mul() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.mul']));
-    writeByte(0x7E);
+    _add(const _I64Mul());
   }
 
   /// Emit an `i64.div_s` instruction.
   void i64_div_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.div_s']));
-    writeByte(0x7F);
+    _add(const _I64DivS());
   }
 
   /// Emit an `i64.div_u` instruction.
   void i64_div_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.div_u']));
-    writeByte(0x80);
+    _add(const _I64DivU());
   }
 
   /// Emit an `i64.rem_s` instruction.
   void i64_rem_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.rem_s']));
-    writeByte(0x81);
+    _add(const _I64RemS());
   }
 
   /// Emit an `i64.rem_u` instruction.
   void i64_rem_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.rem_u']));
-    writeByte(0x82);
+    _add(const _I64RemU());
   }
 
   /// Emit an `i64.and` instruction.
   void i64_and() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.and']));
-    writeByte(0x83);
+    _add(const _I64And());
   }
 
   /// Emit an `i64.or` instruction.
   void i64_or() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.or']));
-    writeByte(0x84);
+    _add(const _I64Or());
   }
 
   /// Emit an `i64.xor` instruction.
   void i64_xor() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.xor']));
-    writeByte(0x85);
+    _add(const _I64Xor());
   }
 
   /// Emit an `i64.shl` instruction.
   void i64_shl() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.shl']));
-    writeByte(0x86);
+    _add(const _I64Shl());
   }
 
   /// Emit an `i64.shr_s` instruction.
   void i64_shr_s() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.shr_s']));
-    writeByte(0x87);
+    _add(const _I64ShrS());
   }
 
   /// Emit an `i64.shr_u` instruction.
   void i64_shr_u() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.shr_u']));
-    writeByte(0x88);
+    _add(const _I64ShrU());
   }
 
   /// Emit an `i64.rotl` instruction.
   void i64_rotl() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.rotl']));
-    writeByte(0x89);
+    _add(const _I64Rotl());
   }
 
   /// Emit an `i64.rotr` instruction.
   void i64_rotr() {
     assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
         trace: const ['i64.rotr']));
-    writeByte(0x8A);
+    _add(const _I64Rotr());
   }
 
   /// Emit an `f32.abs` instruction.
   void f32_abs() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.abs']));
-    writeByte(0x8B);
+    _add(const _F32Abs());
   }
 
   /// Emit an `f32.neg` instruction.
   void f32_neg() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.neg']));
-    writeByte(0x8C);
+    _add(const _F32Neg());
   }
 
   /// Emit an `f32.ceil` instruction.
   void f32_ceil() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.ceil']));
-    writeByte(0x8D);
+    _add(const _F32Ceil());
   }
 
   /// Emit an `f32.floor` instruction.
   void f32_floor() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.floor']));
-    writeByte(0x8E);
+    _add(const _F32Floor());
   }
 
   /// Emit an `f32.trunc` instruction.
   void f32_trunc() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.trunc']));
-    writeByte(0x8F);
+    _add(const _F32Trunc());
   }
 
   /// Emit an `f32.nearest` instruction.
   void f32_nearest() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.nearest']));
-    writeByte(0x90);
+    _add(const _F32Nearest());
   }
 
   /// Emit an `f32.sqrt` instruction.
   void f32_sqrt() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
         trace: const ['f32.sqrt']));
-    writeByte(0x91);
+    _add(const _F32Sqrt());
   }
 
   /// Emit an `f32.add` instruction.
   void f32_add() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.add']));
-    writeByte(0x92);
+    _add(const _F32Add());
   }
 
   /// Emit an `f32.sub` instruction.
   void f32_sub() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.sub']));
-    writeByte(0x93);
+    _add(const _F32Sub());
   }
 
   /// Emit an `f32.mul` instruction.
   void f32_mul() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.mul']));
-    writeByte(0x94);
+    _add(const _F32Mul());
   }
 
   /// Emit an `f32.div` instruction.
   void f32_div() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.div']));
-    writeByte(0x95);
+    _add(const _F32Div());
   }
 
   /// Emit an `f32.min` instruction.
   void f32_min() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.min']));
-    writeByte(0x96);
+    _add(const _F32Min());
   }
 
   /// Emit an `f32.max` instruction.
   void f32_max() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.max']));
-    writeByte(0x97);
+    _add(const _F32Max());
   }
 
   /// Emit an `f32.copysign` instruction.
   void f32_copysign() {
     assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
         trace: const ['f32.copysign']));
-    writeByte(0x98);
+    _add(const _F32Copysign());
   }
 
   /// Emit an `f64.abs` instruction.
   void f64_abs() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.abs']));
-    writeByte(0x99);
+    _add(const _F64Abs());
   }
 
   /// Emit an `f64.neg` instruction.
   void f64_neg() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.neg']));
-    writeByte(0x9A);
+    _add(const _F64Neg());
   }
 
   /// Emit an `f64.ceil` instruction.
   void f64_ceil() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.ceil']));
-    writeByte(0x9B);
+    _add(const _F64Ceil());
   }
 
   /// Emit an `f64.floor` instruction.
   void f64_floor() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.floor']));
-    writeByte(0x9C);
+    _add(const _F64Floor());
   }
 
   /// Emit an `f64.trunc` instruction.
   void f64_trunc() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.trunc']));
-    writeByte(0x9D);
+    _add(const _F64Trunc());
   }
 
   /// Emit an `f64.nearest` instruction.
   void f64_nearest() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.nearest']));
-    writeByte(0x9E);
+    _add(const _F64Nearest());
   }
 
   /// Emit an `f64.sqrt` instruction.
   void f64_sqrt() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
         trace: const ['f64.sqrt']));
-    writeByte(0x9F);
+    _add(const _F64Sqrt());
   }
 
   /// Emit an `f64.add` instruction.
   void f64_add() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.add']));
-    writeByte(0xA0);
+    _add(const _F64Add());
   }
 
   /// Emit an `f64.sub` instruction.
   void f64_sub() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.sub']));
-    writeByte(0xA1);
+    _add(const _F64Sub());
   }
 
   /// Emit an `f64.mul` instruction.
   void f64_mul() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.mul']));
-    writeByte(0xA2);
+    _add(const _F64Mul());
   }
 
   /// Emit an `f64.div` instruction.
   void f64_div() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.div']));
-    writeByte(0xA3);
+    _add(const _F64Div());
   }
 
   /// Emit an `f64.min` instruction.
   void f64_min() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.min']));
-    writeByte(0xA4);
+    _add(const _F64Min());
   }
 
   /// Emit an `f64.max` instruction.
   void f64_max() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.max']));
-    writeByte(0xA5);
+    _add(const _F64Max());
   }
 
   /// Emit an `f64.copysign` instruction.
   void f64_copysign() {
     assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
         trace: const ['f64.copysign']));
-    writeByte(0xA6);
+    _add(const _F64Copysign());
   }
 
   /// Emit an `i32.wrap_i64` instruction.
   void i32_wrap_i64() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i32],
         trace: const ['i32.wrap_i64']));
-    writeByte(0xA7);
+    _add(const _I32WrapI64());
   }
 
   /// Emit an `i32.trunc_f32_s` instruction.
   void i32_trunc_f32_s() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
         trace: const ['i32.trunc_f32_s']));
-    writeByte(0xA8);
+    _add(const _I32TruncF32S());
   }
 
   /// Emit an `i32.trunc_f32_u` instruction.
   void i32_trunc_f32_u() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
         trace: const ['i32.trunc_f32_u']));
-    writeByte(0xA9);
+    _add(const _I32TruncF32U());
   }
 
   /// Emit an `i32.trunc_f64_s` instruction.
   void i32_trunc_f64_s() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
         trace: const ['i32.trunc_f64_s']));
-    writeByte(0xAA);
+    _add(const _I32TruncF64S());
   }
 
   /// Emit an `i32.trunc_f64_u` instruction.
   void i32_trunc_f64_u() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
         trace: const ['i32.trunc_f64_u']));
-    writeByte(0xAB);
+    _add(const _I32TruncF64U());
   }
 
   /// Emit an `i64.extend_i32_s` instruction.
   void i64_extend_i32_s() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: const ['i64.extend_i32_s']));
-    writeByte(0xAC);
+    _add(const _I64ExtendI32S());
   }
 
   /// Emit an `i64.extend_i32_u` instruction.
   void i64_extend_i32_u() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
         trace: const ['i64.extend_i32_u']));
-    writeByte(0xAD);
+    _add(const _I64ExtendI32U());
   }
 
   /// Emit an `i64.trunc_f32_s` instruction.
   void i64_trunc_f32_s() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
         trace: const ['i64.trunc_f32_s']));
-    writeByte(0xAE);
+    _add(const _I64TruncF32S());
   }
 
   /// Emit an `i64.trunc_f32_u` instruction.
   void i64_trunc_f32_u() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
         trace: const ['i64.trunc_f32_u']));
-    writeByte(0xAF);
+    _add(const _I64TruncF32U());
   }
 
   /// Emit an `i64.trunc_f64_s` instruction.
   void i64_trunc_f64_s() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
         trace: const ['i64.trunc_f64_s']));
-    writeByte(0xB0);
+    _add(const _I64TruncF64S());
   }
 
   /// Emit an `i64.trunc_f64_u` instruction.
   void i64_trunc_f64_u() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
         trace: const ['i64.trunc_f64_u']));
-    writeByte(0xB1);
+    _add(const _I64TruncF64U());
   }
 
   /// Emit an `f32.convert_i32_s` instruction.
   void f32_convert_i32_s() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
         trace: const ['f32.convert_i32_s']));
-    writeByte(0xB2);
+    _add(const _F32ConvertI32S());
   }
 
   /// Emit an `f32.convert_i32_u` instruction.
   void f32_convert_i32_u() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
         trace: const ['f32.convert_i32_u']));
-    writeByte(0xB3);
+    _add(const _F32ConvertI32U());
   }
 
   /// Emit an `f32.convert_i64_s` instruction.
   void f32_convert_i64_s() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.f32],
         trace: const ['f32.convert_i64_s']));
-    writeByte(0xB4);
+    _add(const _F32ConvertI64S());
   }
 
   /// Emit an `f32.convert_i64_u` instruction.
   void f32_convert_i64_u() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.f32],
         trace: const ['f32.convert_i64_u']));
-    writeByte(0xB5);
+    _add(const _F32ConvertI64U());
   }
 
   /// Emit an `f32.demote_f64` instruction.
   void f32_demote_f64() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.f32],
         trace: const ['f32.demote_f64']));
-    writeByte(0xB6);
+    _add(const _F32DemoteF64());
   }
 
   /// Emit an `f64.convert_i32_s` instruction.
   void f64_convert_i32_s() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
         trace: const ['f64.convert_i32_s']));
-    writeByte(0xB7);
+    _add(const _F64ConvertI32S());
   }
 
   /// Emit an `f64.convert_i32_u` instruction.
   void f64_convert_i32_u() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
         trace: const ['f64.convert_i32_u']));
-    writeByte(0xB8);
+    _add(const _F64ConvertI32U());
   }
 
   /// Emit an `f64.convert_i64_s` instruction.
   void f64_convert_i64_s() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
         trace: const ['f64.convert_i64_s']));
-    writeByte(0xB9);
+    _add(const _F64ConvertI64S());
   }
 
   /// Emit an `f64.convert_i64_u` instruction.
   void f64_convert_i64_u() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
         trace: const ['f64.convert_i64_u']));
-    writeByte(0xBA);
+    _add(const _F64ConvertI64U());
   }
 
   /// Emit an `f64.promote_f32` instruction.
   void f64_promote_f32() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.f64],
         trace: const ['f64.promote_f32']));
-    writeByte(0xBB);
+    _add(const _F64PromoteF32());
   }
 
   /// Emit an `i32.reinterpret_f32` instruction.
   void i32_reinterpret_f32() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
         trace: const ['i32.reinterpret_f32']));
-    writeByte(0xBC);
+    _add(const _I32ReinterpretF32());
   }
 
   /// Emit an `i64.reinterpret_f64` instruction.
   void i64_reinterpret_f64() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
         trace: const ['i64.reinterpret_f64']));
-    writeByte(0xBD);
+    _add(const _I64ReinterpretF64());
   }
 
   /// Emit an `f32.reinterpret_i32` instruction.
   void f32_reinterpret_i32() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
         trace: const ['f32.reinterpret_i32']));
-    writeByte(0xBE);
+    _add(const _F32ReinterpretI32());
   }
 
   /// Emit an `f64.reinterpret_i64` instruction.
   void f64_reinterpret_i64() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
         trace: const ['f64.reinterpret_i64']));
-    writeByte(0xBF);
+    _add(const _F64ReinterpretI64());
   }
 
   /// Emit an `i32.extend8_s` instruction.
   void i32_extend8_s() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.extend8_s']));
-    writeByte(0xC0);
+    _add(const _I32Extend8S());
   }
 
   /// Emit an `i32.extend16_s` instruction.
   void i32_extend16_s() {
     assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
         trace: const ['i32.extend16_s']));
-    writeByte(0xC1);
+    _add(const _I32Extend16S());
   }
 
   /// Emit an `i64.extend8_s` instruction.
   void i64_extend8_s() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.extend8_s']));
-    writeByte(0xC2);
+    _add(const _I64Extend8S());
   }
 
   /// Emit an `i64.extend16_s` instruction.
   void i64_extend16_s() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.extend16_s']));
-    writeByte(0xC3);
+    _add(const _I64Extend16S());
   }
 
   /// Emit an `i64.extend32_s` instruction.
   void i64_extend32_s() {
     assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
         trace: const ['i64.extend32_s']));
-    writeByte(0xC4);
+    _add(const _I64Extend32S());
   }
 
   /// Emit an `i32.trunc_sat_f32_s` instruction.
   void i32_trunc_sat_f32_s() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
         trace: const ['i32.trunc_sat_f32_s']));
-    writeBytes(const [0xFC, 0x00]);
+    _add(const _I32TruncSatF32S());
   }
 
   /// Emit an `i32.trunc_sat_f32_u` instruction.
   void i32_trunc_sat_f32_u() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
         trace: const ['i32.trunc_sat_f32_u']));
-    writeBytes(const [0xFC, 0x01]);
+    _add(const _I32TruncSatF32U());
   }
 
   /// Emit an `i32.trunc_sat_f64_s` instruction.
   void i32_trunc_sat_f64_s() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
         trace: const ['i32.trunc_sat_f64_s']));
-    writeBytes(const [0xFC, 0x02]);
+    _add(const _I32TruncSatF64S());
   }
 
   /// Emit an `i32.trunc_sat_f64_u` instruction.
   void i32_trunc_sat_f64_u() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
         trace: const ['i32.trunc_sat_f64_u']));
-    writeBytes(const [0xFC, 0x03]);
+    _add(const _I32TruncSatF64U());
   }
 
   /// Emit an `i64.trunc_sat_f32_s` instruction.
   void i64_trunc_sat_f32_s() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
         trace: const ['i64.trunc_sat_f32_s']));
-    writeBytes(const [0xFC, 0x04]);
+    _add(const _I64TruncSatF32S());
   }
 
   /// Emit an `i64.trunc_sat_f32_u` instruction.
   void i64_trunc_sat_f32_u() {
     assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
         trace: const ['i64.trunc_sat_f32_u']));
-    writeBytes(const [0xFC, 0x05]);
+    _add(const _I64TruncSatF32U());
   }
 
   /// Emit an `i64.trunc_sat_f64_s` instruction.
   void i64_trunc_sat_f64_s() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
         trace: const ['i64.trunc_sat_f64_s']));
-    writeBytes(const [0xFC, 0x06]);
+    _add(const _I64TruncSatF64S());
   }
 
   /// Emit an `i64.trunc_sat_f64_u` instruction.
   void i64_trunc_sat_f64_u() {
     assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
         trace: const ['i64.trunc_sat_f64_u']));
-    writeBytes(const [0xFC, 0x07]);
+    _add(const _I64TruncSatF64U());
   }
 }

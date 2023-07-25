@@ -11,7 +11,7 @@ import 'types.dart';
 /// A Wasm module.
 ///
 /// Serves as a builder for building new modules.
-class Module with SerializerMixin {
+class Module {
   final List<int>? watchPoints;
 
   final Map<_FunctionTypeKey, FunctionType> _functionTypeMap = {};
@@ -46,7 +46,7 @@ class Module with SerializerMixin {
   /// runtime errors happening at specific offsets within the module.
   Module({this.watchPoints}) {
     if (watchPoints != null) {
-      SerializerMixin.traceEnabled = true;
+      Serializer.traceEnabled = true;
     }
   }
 
@@ -296,30 +296,31 @@ class Module with SerializerMixin {
 
   /// Serialize the module to its binary representation.
   Uint8List encode({bool emitNameSection = true}) {
+    final s = Serializer();
     // Wasm module preamble: magic number, version 1.
-    writeBytes(const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]);
-    TypeSection(this).serialize(this);
-    ImportSection(this).serialize(this);
-    FunctionSection(this).serialize(this);
-    TableSection(this).serialize(this);
-    MemorySection(this).serialize(this);
-    TagSection(this).serialize(this);
+    s.writeBytes(const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]);
+    TypeSection(this).serialize(s);
+    ImportSection(this).serialize(s);
+    FunctionSection(this).serialize(s);
+    TableSection(this).serialize(s);
+    MemorySection(this).serialize(s);
+    TagSection(this).serialize(s);
     if (dataReferencedFromGlobalInitializer) {
-      DataCountSection(this).serialize(this);
+      DataCountSection(this).serialize(s);
     }
-    GlobalSection(this).serialize(this);
-    ExportSection(this).serialize(this);
-    StartSection(this).serialize(this);
-    ElementSection(this).serialize(this);
+    GlobalSection(this).serialize(s);
+    ExportSection(this).serialize(s);
+    StartSection(this).serialize(s);
+    ElementSection(this).serialize(s);
     if (!dataReferencedFromGlobalInitializer) {
-      DataCountSection(this).serialize(this);
+      DataCountSection(this).serialize(s);
     }
-    CodeSection(this).serialize(this);
-    DataSection(this).serialize(this);
+    CodeSection(this).serialize(s);
+    DataSection(this).serialize(s);
     if (emitNameSection) {
-      NameSection(this).serialize(this);
+      NameSection(this).serialize(s);
     }
-    return data;
+    return s.data;
   }
 }
 
@@ -368,9 +369,7 @@ abstract class BaseFunction {
 }
 
 /// A function defined in a module.
-class DefinedFunction extends BaseFunction
-    with SerializerMixin
-    implements Serializable {
+class DefinedFunction extends BaseFunction implements Serializable {
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
 
@@ -392,26 +391,27 @@ class DefinedFunction extends BaseFunction
   void serialize(Serializer s) {
     // Serialize locals internally first in order to compute the total size of
     // the serialized data.
+    final localS = Serializer();
     int paramCount = type.inputs.length;
     int entries = 0;
     for (int i = paramCount + 1; i <= locals.length; i++) {
       if (i == locals.length || locals[i - 1].type != locals[i].type) entries++;
     }
-    writeUnsigned(entries);
+    localS.writeUnsigned(entries);
     int start = paramCount;
     for (int i = paramCount + 1; i <= locals.length; i++) {
       if (i == locals.length || locals[i - 1].type != locals[i].type) {
-        writeUnsigned(i - start);
-        write(locals[i - 1].type);
+        localS.writeUnsigned(i - start);
+        localS.write(locals[i - 1].type);
         start = i;
       }
     }
 
     // Bundle locals and body
     assert(body.isComplete);
-    s.writeUnsigned(data.length + body.data.length);
-    s.writeData(this);
-    s.writeData(body);
+    localS.write(body);
+    s.writeUnsigned(localS.data.length);
+    s.writeData(localS);
   }
 
   @override
@@ -589,7 +589,7 @@ class DefinedGlobal extends Global implements Serializable {
   void serialize(Serializer s) {
     assert(initializer.isComplete);
     s.write(type);
-    s.writeData(initializer);
+    s.write(initializer);
   }
 }
 
@@ -735,7 +735,7 @@ class GlobalExport extends Export {
   }
 }
 
-abstract class Section with SerializerMixin implements Serializable {
+abstract class Section implements Serializable {
   final Module module;
 
   Section(this.module);
@@ -743,10 +743,11 @@ abstract class Section with SerializerMixin implements Serializable {
   @override
   void serialize(Serializer s) {
     if (isNotEmpty) {
-      serializeContents();
+      final contents = Serializer();
+      serializeContents(contents);
       s.writeByte(id);
-      s.writeUnsigned(data.length);
-      s.writeData(this, module.watchPoints);
+      s.writeUnsigned(contents.data.length);
+      s.writeData(contents, module.watchPoints);
     }
   }
 
@@ -754,7 +755,7 @@ abstract class Section with SerializerMixin implements Serializable {
 
   bool get isNotEmpty;
 
-  void serializeContents();
+  void serializeContents(Serializer s);
 }
 
 class TypeSection extends Section {
@@ -767,13 +768,13 @@ class TypeSection extends Section {
   bool get isNotEmpty => module.defTypes.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeUnsigned(module.recursionGroupSplits.length + 1);
+  void serializeContents(Serializer s) {
+    s.writeUnsigned(module.recursionGroupSplits.length + 1);
     int typeIndex = 0;
     for (int split
         in module.recursionGroupSplits.followedBy([module.defTypes.length])) {
-      writeByte(0x4F);
-      writeUnsigned(split - typeIndex);
+      s.writeByte(0x4F);
+      s.writeUnsigned(split - typeIndex);
       for (; typeIndex < split; typeIndex++) {
         DefType defType = module.defTypes[typeIndex];
         assert(defType.superType == null || defType.superType!.index < split,
@@ -785,7 +786,7 @@ class TypeSection extends Section {
                 .whereType<DefType>()
                 .every((d) => d.index < split),
             "Type '$defType' depends on a type in a later recursion group");
-        defType.serializeDefinition(this);
+        defType.serializeDefinition(s);
       }
     }
   }
@@ -801,8 +802,8 @@ class ImportSection extends Section {
   bool get isNotEmpty => module.imports.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.imports.toList());
+  void serializeContents(Serializer s) {
+    s.writeList(module.imports.toList());
   }
 }
 
@@ -816,10 +817,10 @@ class FunctionSection extends Section {
   bool get isNotEmpty => module.definedFunctions.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeUnsigned(module.definedFunctions.length);
+  void serializeContents(Serializer s) {
+    s.writeUnsigned(module.definedFunctions.length);
     for (var function in module.definedFunctions) {
-      writeUnsigned(function.type.index);
+      s.writeUnsigned(function.type.index);
     }
   }
 }
@@ -834,8 +835,8 @@ class TableSection extends Section {
   bool get isNotEmpty => module.definedTables.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.definedTables.toList());
+  void serializeContents(Serializer s) {
+    s.writeList(module.definedTables.toList());
   }
 }
 
@@ -849,8 +850,8 @@ class MemorySection extends Section {
   bool get isNotEmpty => module.definedMemories.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.definedMemories.toList());
+  void serializeContents(Serializer s) {
+    s.writeList(module.definedMemories.toList());
   }
 }
 
@@ -864,8 +865,8 @@ class TagSection extends Section {
   bool get isNotEmpty => module.tags.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.tags);
+  void serializeContents(Serializer s) {
+    s.writeList(module.tags);
   }
 }
 
@@ -879,8 +880,8 @@ class GlobalSection extends Section {
   bool get isNotEmpty => module.definedGlobals.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.definedGlobals.toList());
+  void serializeContents(Serializer s) {
+    s.writeList(module.definedGlobals.toList());
   }
 }
 
@@ -894,8 +895,8 @@ class ExportSection extends Section {
   bool get isNotEmpty => module.exports.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.exports);
+  void serializeContents(Serializer s) {
+    s.writeList(module.exports);
   }
 }
 
@@ -909,8 +910,8 @@ class StartSection extends Section {
   bool get isNotEmpty => module.startFunction != null;
 
   @override
-  void serializeContents() {
-    writeUnsigned(module.startFunction!.index);
+  void serializeContents(Serializer s) {
+    s.writeUnsigned(module.startFunction!.index);
   }
 }
 
@@ -953,7 +954,7 @@ class ElementSection extends Section {
       module.definedTables.any((table) => table.elements.any((e) => e != null));
 
   @override
-  void serializeContents() {
+  void serializeContents(Serializer s) {
     // Group nonempty element entries into contiguous stretches and serialize
     // each stretch as an element.
     List<_Element> elements = [];
@@ -972,7 +973,7 @@ class ElementSection extends Section {
         }
       }
     }
-    writeList(elements);
+    s.writeList(elements);
   }
 }
 
@@ -986,8 +987,8 @@ class DataCountSection extends Section {
   bool get isNotEmpty => module.dataSegments.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeUnsigned(module.dataSegments.length);
+  void serializeContents(Serializer s) {
+    s.writeUnsigned(module.dataSegments.length);
   }
 }
 
@@ -1001,8 +1002,8 @@ class CodeSection extends Section {
   bool get isNotEmpty => module.definedFunctions.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.definedFunctions.toList());
+  void serializeContents(Serializer s) {
+    s.writeList(module.definedFunctions.toList());
   }
 }
 
@@ -1016,8 +1017,8 @@ class DataSection extends Section {
   bool get isNotEmpty => module.dataSegments.isNotEmpty;
 
   @override
-  void serializeContents() {
-    writeList(module.dataSegments);
+  void serializeContents(Serializer s) {
+    s.writeList(module.dataSegments);
   }
 }
 
@@ -1036,10 +1037,10 @@ class NameSection extends CustomSection {
       module.functionNameCount > 0 || module.typeNameCount > 0;
 
   @override
-  void serializeContents() {
-    writeName("name");
+  void serializeContents(Serializer s) {
+    s.writeName("name");
 
-    final functionNameSubsection = _NameSubsection();
+    final functionNameSubsection = Serializer();
     functionNameSubsection.writeUnsigned(module.functionNameCount);
     for (int i = 0; i < module.functions.length; i++) {
       String? functionName = module.functions[i].functionName;
@@ -1049,7 +1050,7 @@ class NameSection extends CustomSection {
       }
     }
 
-    final typeNameSubsection = _NameSubsection();
+    final typeNameSubsection = Serializer();
     typeNameSubsection.writeUnsigned(module.typeNameCount);
     for (int i = 0; i < module.defTypes.length; i++) {
       final ty = module.defTypes[i];
@@ -1059,13 +1060,11 @@ class NameSection extends CustomSection {
       }
     }
 
-    writeByte(1); // Function names subsection
-    writeUnsigned(functionNameSubsection.data.length);
-    writeData(functionNameSubsection);
-    writeByte(4); // Type names subsection
-    writeUnsigned(typeNameSubsection.data.length);
-    writeData(typeNameSubsection);
+    s.writeByte(1); // Function names subsection
+    s.writeUnsigned(functionNameSubsection.data.length);
+    s.writeData(functionNameSubsection);
+    s.writeByte(4); // Type names subsection
+    s.writeUnsigned(typeNameSubsection.data.length);
+    s.writeData(typeNameSubsection);
   }
 }
-
-class _NameSubsection with SerializerMixin {}
