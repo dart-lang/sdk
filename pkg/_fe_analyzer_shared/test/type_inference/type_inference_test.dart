@@ -2169,7 +2169,7 @@ main() {
           h.run([
             match(
               mapPattern([
-                mapPatternRestElement()..errorId = 'REST_ELEMENT',
+                restPattern()..errorId = 'REST_ELEMENT',
                 mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
               ])
                 ..errorId = 'MAP_PATTERN',
@@ -2185,7 +2185,7 @@ main() {
             match(
               mapPattern([
                 mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
-                mapPatternRestElement()..errorId = 'REST_ELEMENT',
+                restPattern()..errorId = 'REST_ELEMENT',
               ])
                 ..errorId = 'MAP_PATTERN',
               expr('dynamic'),
@@ -2200,8 +2200,8 @@ main() {
             match(
               mapPattern([
                 mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
-                mapPatternRestElement()..errorId = 'REST_ELEMENT1',
-                mapPatternRestElement()..errorId = 'REST_ELEMENT2',
+                restPattern()..errorId = 'REST_ELEMENT1',
+                restPattern()..errorId = 'REST_ELEMENT2',
               ])
                 ..errorId = 'MAP_PATTERN',
               expr('dynamic'),
@@ -2216,8 +2216,8 @@ main() {
           h.run([
             match(
               mapPattern([
-                mapPatternRestElement()..errorId = 'REST_ELEMENT1',
-                mapPatternRestElement()..errorId = 'REST_ELEMENT2',
+                restPattern()..errorId = 'REST_ELEMENT1',
+                restPattern()..errorId = 'REST_ELEMENT2',
                 mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
               ])
                 ..errorId = 'MAP_PATTERN',
@@ -2234,7 +2234,7 @@ main() {
             match(
               mapPattern([
                 mapPatternEntry(expr('bool'), x.pattern(type: 'int')),
-                mapPatternRestElement(wildcard())..errorId = 'REST_ELEMENT',
+                restPattern(wildcard())..errorId = 'REST_ELEMENT',
               ])
                 ..errorId = 'MAP_PATTERN',
               expr('dynamic'),
@@ -2281,7 +2281,7 @@ main() {
                 h.run([
                   match(
                     listPattern([
-                      listPatternRestElement(x.pattern(type: 'Iterable<int>')),
+                      restPattern(x.pattern(type: 'Iterable<int>')),
                     ]),
                     expr('List<int>').checkContext('List<int>'),
                   ),
@@ -2292,7 +2292,7 @@ main() {
                 h.run([
                   match(
                     listPattern([
-                      listPatternRestElement(
+                      restPattern(
                         x.pattern(type: 'String')..errorId = 'VAR(x)',
                       )
                     ]),
@@ -2309,7 +2309,7 @@ main() {
               test('No other elements', () {
                 h.run([
                   match(
-                    listPattern([listPatternRestElement()]),
+                    listPattern([restPattern()]),
                     expr('dynamic').checkContext('List<?>'),
                   ),
                 ]);
@@ -2320,7 +2320,7 @@ main() {
                   match(
                     listPattern([
                       x.pattern(type: 'int'),
-                      listPatternRestElement(),
+                      restPattern(),
                     ]),
                     expr('dynamic').checkContext('List<int>'),
                   ),
@@ -2351,7 +2351,7 @@ main() {
             match(
               listPattern([
                 x.pattern(expectInferredType: 'int'),
-                listPatternRestElement(
+                restPattern(
                   y.pattern(expectInferredType: 'List<int>'),
                 ),
               ]),
@@ -2370,8 +2370,7 @@ main() {
             match(
               listPattern([
                 x.pattern(expectInferredType: 'dynamic'),
-                listPatternRestElement(
-                    y.pattern(expectInferredType: 'List<dynamic>')),
+                restPattern(y.pattern(expectInferredType: 'List<dynamic>')),
               ]),
               expr('dynamic'),
             ).checkIR('match(expr(dynamic), listPattern(varPattern(x, '
@@ -2388,8 +2387,7 @@ main() {
             match(
               listPattern([
                 x.pattern(expectInferredType: 'error'),
-                listPatternRestElement(
-                    y.pattern(expectInferredType: 'List<error>')),
+                restPattern(y.pattern(expectInferredType: 'List<error>')),
               ]),
               expr('error'),
             ).checkIR('match(expr(error), listPattern(varPattern(x, '
@@ -2407,8 +2405,7 @@ main() {
               expr('Object'),
               listPattern([
                 x.pattern(expectInferredType: 'Object?'),
-                listPatternRestElement(
-                    y.pattern(expectInferredType: 'List<Object?>')),
+                restPattern(y.pattern(expectInferredType: 'List<Object?>')),
               ]),
               [],
             ).checkIR('ifCase(expr(Object), listPattern(varPattern(x, '
@@ -2424,7 +2421,7 @@ main() {
             var x = Var('x');
             h.run([
               match(
-                listPattern([listPatternRestElement(x.pattern())]),
+                listPattern([restPattern(x.pattern())]),
                 expr('List<int>'),
               ).checkIR('match(expr(List<int>), listPattern(...(varPattern(x, '
                   'matchedType: List<int>, staticType: List<int>)), '
@@ -2434,7 +2431,7 @@ main() {
           test('Without pattern', () {
             h.run([
               match(
-                listPattern([listPatternRestElement()]),
+                listPattern([restPattern()]),
                 expr('List<int>'),
               ).checkIR('match(expr(List<int>), listPattern(..., '
                   'matchedType: List<int>, requiredType: List<int>))'),
@@ -2505,8 +2502,8 @@ main() {
             h.run([
               match(
                 listPattern([
-                  listPatternRestElement(x.pattern())..errorId = 'ORI',
-                  listPatternRestElement(y.pattern())..errorId = 'DUP',
+                  restPattern(x.pattern())..errorId = 'ORI',
+                  restPattern(y.pattern())..errorId = 'DUP',
                 ])
                   ..errorId = 'LIST_PATTERN',
                 expr('List<int>'),
@@ -2525,8 +2522,8 @@ main() {
             h.run([
               match(
                 listPattern([
-                  listPatternRestElement()..errorId = 'ORI',
-                  listPatternRestElement()..errorId = 'DUP',
+                  restPattern()..errorId = 'ORI',
+                  restPattern()..errorId = 'DUP',
                 ])
                   ..errorId = 'LIST_PATTERN',
                 expr('List<int>'),
@@ -2544,7 +2541,7 @@ main() {
           h.run([
             match(
               listPattern([
-                listPatternRestElement(),
+                restPattern(),
                 x.pattern(),
               ]),
               expr('List<int>'),
@@ -2559,7 +2556,7 @@ main() {
             match(
               listPattern([
                 x.pattern(),
-                listPatternRestElement(),
+                restPattern(),
               ]),
               expr('List<int>'),
             ).checkIR('match(expr(List<int>), listPattern(varPattern(x, '

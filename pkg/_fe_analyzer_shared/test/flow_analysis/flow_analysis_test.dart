@@ -7606,8 +7606,7 @@ main() {
         test('Rest pattern with subpattern that may fail to match', () {
           h.run([
             switch_(expr('List<Object>'), [
-              listPattern([listPatternRestElement(listPattern([]))])
-                  .then([break_()]),
+              listPattern([restPattern(listPattern([]))]).then([break_()]),
               default_.then([
                 checkReachable(true),
               ])
@@ -7620,7 +7619,7 @@ main() {
         test('Rest pattern with no subpattern', () {
           h.run([
             switch_(expr('List<Object>'), [
-              listPattern([listPatternRestElement()]).then([break_()]),
+              listPattern([restPattern()]).then([break_()]),
               default_.then([
                 checkReachable(false),
               ])
@@ -7631,8 +7630,7 @@ main() {
         test('Rest pattern with subpattern that always matches', () {
           h.run([
             switch_(expr('List<Object>'), [
-              listPattern([listPatternRestElement(wildcard())])
-                  .then([break_()]),
+              listPattern([restPattern(wildcard())]).then([break_()]),
               default_.then([
                 checkReachable(false),
               ])

@@ -290,9 +290,6 @@ Pattern listPattern(List<ListPatternElement> elements, {String? elementType}) =>
     ListPattern._(elementType == null ? null : Type(elementType), elements,
         location: computeLocation());
 
-ListPatternElement listPatternRestElement([Pattern? pattern]) =>
-    RestPatternElement._(pattern, location: computeLocation());
-
 Expression localFunction(List<ProtoStatement> body) {
   var location = computeLocation();
   return LocalFunction._(Block._(body, location: location), location: location);
@@ -336,9 +333,6 @@ MapPatternElement mapPatternEntry(ProtoExpression key, Pattern value) {
   return MapPatternEntry._(key.asExpression(location: location), value,
       location: location);
 }
-
-MapPatternElement mapPatternRestElement([Pattern? pattern]) =>
-    RestPatternElement._(pattern, location: computeLocation());
 
 Pattern mapPatternWithTypeArguments({
   required String keyType,
@@ -431,6 +425,16 @@ Pattern relationalPattern(String operator, ProtoExpression operand,
   }
   return result;
 }
+
+/// Creates a "rest" pattern with optional [subPatern], for use in a list
+/// pattern.
+///
+/// Although using a rest pattern inside a map pattern is an error, it's allowed
+/// syntactically (since this leads to better error recovery). To facilitate
+/// testing of the error recovery logic, the returned type ([RestPattern]) may
+/// be used were a [MapPatternElement] is expected.
+RestPattern restPattern([Pattern? subPattern]) =>
+    RestPattern._(subPattern, location: computeLocation());
 
 Statement return_() => new Return._(location: computeLocation());
 
@@ -3918,25 +3922,26 @@ class RelationalPattern extends Pattern {
   _debugString({required bool needsKeywordOrType}) => '$operator $operand';
 }
 
-class RestPatternElement extends Node
+class RestPattern extends Node
     implements ListPatternElement, MapPatternElement {
-  final Pattern? pattern;
+  final Pattern? subPattern;
 
-  RestPatternElement._(this.pattern, {required super.location}) : super._();
+  RestPattern._(this.subPattern, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor, VariableBinder<Node, Var> variableBinder,
       {required bool isInAssignment}) {
-    pattern?.preVisit(visitor, variableBinder, isInAssignment: isInAssignment);
+    subPattern?.preVisit(visitor, variableBinder,
+        isInAssignment: isInAssignment);
   }
 
   @override
   String _debugString({required bool needsKeywordOrType}) {
-    var pattern = this.pattern;
-    if (pattern == null) {
+    var subPattern = this.subPattern;
+    if (subPattern == null) {
       return '...';
     } else {
-      return '...${pattern._debugString(needsKeywordOrType: false)}';
+      return '...${subPattern._debugString(needsKeywordOrType: false)}';
     }
   }
 }
@@ -5468,7 +5473,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   Pattern? getRestPatternElementPattern(Node element) {
-    return element is RestPatternElement ? element.pattern : null;
+    return element is RestPattern ? element.subPattern : null;
   }
 
   @override
@@ -5597,9 +5602,9 @@ class _MiniAstTypeAnalyzer
   @override
   void handleListPatternRestElement(
     Pattern container,
-    covariant RestPatternElement restElement,
+    covariant RestPattern restElement,
   ) {
-    if (restElement.pattern != null) {
+    if (restElement.subPattern != null) {
       _irBuilder.apply('...', [Kind.pattern], Kind.pattern,
           location: restElement.location);
     } else {
@@ -5618,9 +5623,9 @@ class _MiniAstTypeAnalyzer
   @override
   void handleMapPatternRestElement(
     Pattern container,
-    covariant RestPatternElement restElement,
+    covariant RestPattern restElement,
   ) {
-    if (restElement.pattern != null) {
+    if (restElement.subPattern != null) {
       _irBuilder.apply('...', [Kind.pattern], Kind.mapPatternElement,
           location: restElement.location);
     } else {
@@ -5695,7 +5700,7 @@ class _MiniAstTypeAnalyzer
 
   @override
   bool isRestPatternElement(Node element) {
-    return element is RestPatternElement;
+    return element is RestPattern;
   }
 
   @override
