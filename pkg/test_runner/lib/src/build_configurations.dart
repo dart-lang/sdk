@@ -109,10 +109,16 @@ List<String> _selectBuildTargets(Configuration inner) {
     result.add('analyze_snapshot');
   }
 
-  if (compiler == Compiler.ddc && !inner.useSdk) {
-    result
-      ..remove('dartdevc_test')
-      ..add('dartdevc_test_local');
+  if (compiler == Compiler.ddc) {
+    if (inner.ddcOptions.contains('--canary')) {
+      result
+        ..remove('dartdevc_test')
+        ..add(inner.useSdk ? 'ddc_canary_test' : 'ddc_canary_test_local');
+    } else if (!inner.useSdk) {
+      result
+        ..remove('dartdevc_test')
+        ..add('dartdevc_test_local');
+    }
   }
 
   return result;

@@ -287,9 +287,9 @@ class Heap {
                                 JSONStream* stream) {
     old_space_.PrintHeapMapToJSONStream(isolate_group, stream);
   }
+#endif  // PRODUCT
 
   intptr_t ReachabilityBarrier() { return stats_.reachability_barrier_; }
-#endif  // PRODUCT
 
   IsolateGroup* isolate_group() const { return isolate_group_; }
   bool is_vm_isolate() const { return is_vm_isolate_; }

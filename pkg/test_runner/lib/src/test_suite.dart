@@ -967,12 +967,14 @@ class StandardTestSuite extends TestSuite {
             testFile.sharedOptions.contains('--null-assertions');
         var weakNullSafetyErrors =
             testFile.ddcOptions.contains('--weak-null-safety-errors');
+        var ddcCanary = configuration.ddcOptions.contains('--canary');
         content = ddcHtml(
             nameNoExt,
             nameFromModuleRootNoExt,
             jsDir,
             configuration.compiler,
             configuration.nnbdMode,
+            ddcCanary,
             nullAssertions,
             weakNullSafetyErrors);
       }

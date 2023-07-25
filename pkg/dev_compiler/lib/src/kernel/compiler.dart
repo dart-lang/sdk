@@ -4169,7 +4169,9 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       // non-nullable as legacy.
       _currentLibrary!.nonNullable == Nullability.nonNullable &&
       _mustBeNonNullable(type) &&
-      !_annotatedNotNull(annotations);
+      !_annotatedNotNull(annotations) &&
+      // Trust the nullability of types in the dart:_rti library.
+      !isDartLibrary(_currentLibrary!, '_rti');
 
   /// Returns a null check for [value] that if fails produces an error message
   /// containing the [location] and [name] of the original value being checked.

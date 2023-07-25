@@ -45,6 +45,7 @@
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/ddc_outline_unsound.dill",
       "out/ReleaseX64/gen/utils/dartdevc/",
+      "out/ReleaseX64/gen/utils/ddc/",
       "pkg/",
       "runtime/tests/",
       "sdk/",
@@ -65,7 +66,8 @@
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseARM64/dart-sdk/",
-      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/"
+      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/",
+      "xcodebuild/ReleaseARM64/gen/utils/ddc/"
     ],
     "js_platform_hostasserts_2": [
       ".dart_tool/package_config.json",
@@ -2136,8 +2138,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dartdevc_test",
-            "--gn-args=ddc_canary=true"
+            "ddc_canary_test"
           ]
         },
         {
