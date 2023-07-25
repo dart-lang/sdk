@@ -44,6 +44,7 @@ import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -2817,10 +2818,12 @@ severity: $severity
   }
 
   void buildClassHierarchy(
-      List<SourceClassBuilder> sourceClasses, ClassBuilder objectClass) {
+      List<SourceClassBuilder> sourceClasses,
+      List<SourceInlineClassBuilder> sourceExtensionTypes,
+      ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
         ClassHierarchyBuilder.build(
-            objectClass, sourceClasses, this, coreTypes);
+            objectClass, sourceClasses, sourceExtensionTypes, this, coreTypes);
     typeInferenceEngine.hierarchyBuilder = hierarchyBuilder;
     ticker.logMs("Built class hierarchy");
   }
@@ -3036,6 +3039,19 @@ severity: $severity
       return target.dillTarget.loader.computeClassBuilderFromTargetClass(cls);
     }
     return library.lookupLocalMember(cls.name, required: true) as ClassBuilder;
+  }
+
+  @override
+  InlineClassBuilder computeExtensionTypeBuilderFromTargetExtensionType(
+      InlineClass extensionType) {
+    Library kernelLibrary = extensionType.enclosingLibrary;
+    LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
+    if (library == null) {
+      return target.dillTarget.loader
+          .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
+    }
+    return library.lookupLocalMember(extensionType.name, required: true)
+        as InlineClassBuilder;
   }
 
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);

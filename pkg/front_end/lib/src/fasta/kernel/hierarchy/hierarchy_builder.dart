@@ -12,15 +12,19 @@ import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart' show Substitution, uniteNullabilities;
 
 import '../../builder/class_builder.dart';
-import '../../builder/type_builder.dart';
+import '../../builder/inline_class_builder.dart';
 import '../../loader.dart' show Loader;
+import '../../source/source_class_builder.dart';
+import '../../source/source_inline_class_builder.dart';
 import '../../source/source_loader.dart' show SourceLoader;
 import 'hierarchy_node.dart';
 
 class ClassHierarchyBuilder
     with ClassHierarchyInlineClassMixin
     implements ClassHierarchyBase {
-  final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
+  final Map<Class, ClassHierarchyNode> classNodes = {};
+
+  final Map<InlineClass, ExtensionTypeHierarchyNode> extensionTypeNodes = {};
 
   final ClassBuilder objectClassBuilder;
 
@@ -45,22 +49,32 @@ class ClassHierarchyBuilder
   }
 
   void clear() {
-    nodes.clear();
+    classNodes.clear();
+    extensionTypeNodes.clear();
   }
 
   ClassHierarchyNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??=
+    return classNodes[classBuilder.cls] ??=
         new ClassHierarchyNodeBuilder(this, classBuilder).build();
   }
 
-  ClassHierarchyNode? getNodeFromTypeBuilder(TypeBuilder type) {
-    ClassBuilder? cls = getClass(type);
-    return cls == null ? null : getNodeFromClassBuilder(cls);
+  ClassHierarchyNode getNodeFromClass(Class cls) {
+    return classNodes[cls] ??
+        getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
   }
 
-  ClassHierarchyNode getNodeFromClass(Class cls) {
-    return nodes[cls] ??
-        getNodeFromClassBuilder(loader.computeClassBuilderFromTargetClass(cls));
+  ExtensionTypeHierarchyNode getNodeFromExtensionTypeBuilder(
+      InlineClassBuilder extensionTypeBuilder) {
+    return extensionTypeNodes[extensionTypeBuilder.inlineClass] ??=
+        new ExtensionTypeHierarchyNodeBuilder(this, extensionTypeBuilder)
+            .build();
+  }
+
+  ExtensionTypeHierarchyNode getNodeFromExtensionType(
+      InlineClass extensionType) {
+    return extensionTypeNodes[extensionType] ??
+        getNodeFromExtensionTypeBuilder(loader
+            .computeExtensionTypeBuilderFromTargetExtensionType(extensionType));
   }
 
   Supertype? asSupertypeOf(InterfaceType subtype, Class supertype) {
@@ -183,19 +197,26 @@ class ClassHierarchyBuilder
         uniteNullabilities(type1.nullability, type2.nullability));
   }
 
-  static ClassHierarchyBuilder build(ClassBuilder objectClass,
-      List<ClassBuilder> classes, SourceLoader loader, CoreTypes coreTypes) {
+  static ClassHierarchyBuilder build(
+      ClassBuilder objectClass,
+      List<SourceClassBuilder> classes,
+      List<SourceInlineClassBuilder> extensionTypes,
+      SourceLoader loader,
+      CoreTypes coreTypes) {
     ClassHierarchyBuilder hierarchy =
         new ClassHierarchyBuilder(objectClass, loader, coreTypes);
     for (int i = 0; i < classes.length; i++) {
-      ClassBuilder classBuilder = classes[i];
-      if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] =
-            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
-      } else {
-        // TODO(ahe): Merge the injected members of patch into the hierarchy
-        // node of `cls.origin`.
-      }
+      SourceClassBuilder classBuilder = classes[i];
+      assert(!classBuilder.isPatch);
+      hierarchy.classNodes[classBuilder.cls] =
+          new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
+    }
+    for (int i = 0; i < extensionTypes.length; i++) {
+      SourceInlineClassBuilder extensionTypeBuilder = extensionTypes[i];
+      assert(!extensionTypeBuilder.isPatch);
+      hierarchy.extensionTypeNodes[extensionTypeBuilder.inlineClass] =
+          new ExtensionTypeHierarchyNodeBuilder(hierarchy, extensionTypeBuilder)
+              .build();
     }
     return hierarchy;
   }

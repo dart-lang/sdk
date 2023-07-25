@@ -432,7 +432,6 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
       List<SourceClassBuilder>? sortedSourceClassBuilders;
-      // ignore: unused_local_variable
       List<SourceInlineClassBuilder>? sortedSourceExtensionTypeBuilders;
       (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
@@ -459,7 +458,8 @@ class KernelTarget extends TargetImplementation {
       computeCoreTypes();
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_buildClassHierarchy);
-      loader.buildClassHierarchy(sortedSourceClassBuilders, objectClassBuilder);
+      loader.buildClassHierarchy(sortedSourceClassBuilders,
+          sortedSourceExtensionTypeBuilders, objectClassBuilder);
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSupertypes);
       loader.checkSupertypes(sortedSourceClassBuilders, objectClass, enumClass,

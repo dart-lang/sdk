@@ -51,6 +51,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   @override
   final List<TypeVariableBuilder>? typeParameters;
 
+  @override
   List<TypeBuilder>? interfaceBuilders;
 
   final SourceFieldBuilder? representationFieldBuilder;

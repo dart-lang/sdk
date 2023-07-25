@@ -2606,7 +2606,7 @@ class MatchHierarchy
     KernelTarget target = result.sourceTarget;
     ClassHierarchyBuilder hierarchy = target.loader.hierarchyBuilder;
     StringBuffer sb = new StringBuffer();
-    for (ClassHierarchyNode node in hierarchy.nodes.values) {
+    for (ClassHierarchyNode node in hierarchy.classNodes.values) {
       sb.writeln(node);
     }
     return context.match<ComponentResult>(
