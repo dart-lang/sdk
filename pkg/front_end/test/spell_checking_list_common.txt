@@ -872,6 +872,7 @@ devise
 dfs
 diagnostic
 diagnostics
+diamond
 did
 didn't
 diet
