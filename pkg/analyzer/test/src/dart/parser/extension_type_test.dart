@@ -65,6 +65,34 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_field_metadata() {
+    final parseResult = parseStringWithErrors(r'''
+extension type A(@foo int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldMetadata
+      Annotation
+        atSign: @
+        name: SimpleIdentifier
+          token: foo
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
   test_members_constructor() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(int it) {
@@ -290,6 +318,35 @@ ExtensionTypeDeclaration
         block: Block
           leftBracket: {
           rightBracket: }
+  rightBracket: }
+''');
+  }
+
+  test_metadata() {
+    final parseResult = parseStringWithErrors(r'''
+@foo
+extension type A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  metadata
+    Annotation
+      atSign: @
+      name: SimpleIdentifier
+        token: foo
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
   rightBracket: }
 ''');
   }
