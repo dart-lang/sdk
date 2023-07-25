@@ -1,0 +1,3 @@
+import 'package:fruits/main_lib.dart';
+
+main() {}
