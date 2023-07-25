@@ -684,9 +684,19 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       // TODO(sigmund): allow caching of shared packages in legacy mode too.
       // Link to the summaries for the available packages, so that they don't
       // get recompiled into the test's own module.
-      var packageSummaryDir = _configuration.nnbdMode == NnbdMode.strong
-          ? 'pkg_sound'
-          : 'pkg_kernel';
+      String packageSummaryDir;
+      if (_configuration.ddcOptions.contains('--canary')) {
+        // TODO(nshahan): Cleanup the differences here when migrating the stable
+        // configurations to use the new gen/utils/ddc directories.
+        var nullSafetySuffix =
+            _configuration.nnbdMode == NnbdMode.strong ? '' : '_unsound';
+        packageSummaryDir = 'gen/utils/ddc/canary$nullSafetySuffix/pkg';
+      } else {
+        var pkgDir = _configuration.nnbdMode == NnbdMode.strong
+            ? 'pkg_sound'
+            : 'pkg_kernel';
+        packageSummaryDir = 'gen/utils/dartdevc/$pkgDir';
+      }
       for (var package in testPackages) {
         args.add("-s");
 
@@ -694,7 +704,7 @@ class DevCompilerConfiguration extends CompilerConfiguration {
         // dartdevc explicit module paths for each one. When the test is run, we
         // will tell require.js where to find each package's compiled JS.
         var summary = Path(_configuration.buildDirectory)
-            .append("/gen/utils/dartdevc/$packageSummaryDir/$package.dill")
+            .append('$packageSummaryDir/$package.dill')
             .absolute
             .toNativePath();
         args.add("$summary=$package");
@@ -741,11 +751,22 @@ class DevCompilerConfiguration extends CompilerConfiguration {
       var dartLibraryPath = repositoryUri
           .resolve('pkg/dev_compiler/lib/js/legacy/dart_library.js')
           .path;
-      var sdkJsDir = Uri.directory(_configuration.buildDirectory)
-          .resolve('gen/utils/dartdevc/');
-      var sdkJsPath = soundNullSafety
-          ? 'sound/legacy/dart_sdk.js'
-          : 'kernel/legacy/dart_sdk.js';
+      Uri sdkJsDir;
+      String sdkJsPath;
+      if (_configuration.ddcOptions.contains('--canary')) {
+        // TODO(nshahan): Cleanup the differences here when migrating the stable
+        // configurations to use the new gen/utils/ddc directories.
+        var nullSafetySuffix = soundNullSafety ? '' : '_unsound';
+        sdkJsDir = sdkJsDir = Uri.directory(_configuration.buildDirectory)
+            .resolve('gen/utils/ddc/canary$nullSafetySuffix/sdk/legacy');
+        sdkJsPath = 'dart_sdk.js';
+      } else {
+        sdkJsDir = Uri.directory(_configuration.buildDirectory)
+            .resolve('gen/utils/dartdevc/');
+        sdkJsPath = soundNullSafety
+            ? 'sound/legacy/dart_sdk.js'
+            : 'kernel/legacy/dart_sdk.js';
+      }
       var libraryName = inputUri.path
           .substring(repositoryUri.path.length)
           .replaceAll("/", "__")

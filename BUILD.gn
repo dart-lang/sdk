@@ -146,6 +146,11 @@ group("dartdevc") {
   deps = [ "utils/dartdevc" ]
 }
 
+group("ddc") {
+  # TODO(nshahan): Update to the dartdevc snapshot target when it gets moved.
+  deps = [ "utils/ddc:ddc_stable_test" ]
+}
+
 group("analysis_server") {
   deps = [ "utils/analysis_server" ]
 }
