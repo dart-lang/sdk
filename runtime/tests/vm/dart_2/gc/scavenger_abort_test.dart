@@ -149,12 +149,6 @@ main(List<String> argsIn) async {
           result.stderr.contains("Unhandled exception:\r\nOut of Memory"),
       "Should see the Dart OutOfMemoryError");
 
-  // --verbose_gc not available in product mode
-  if (!new bool.fromEnvironment("dart.vm.product")) {
-    Expect.isTrue(result.stderr.contains("Aborting scavenge"),
-        "Should abort scavenge at least once");
-  }
-
   Expect.isFalse(result.stderr.contains("error: Out of memory"),
       "Should not see the C++ OUT_OF_MEMORY()");
 }

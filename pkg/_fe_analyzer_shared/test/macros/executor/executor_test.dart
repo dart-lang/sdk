@@ -291,6 +291,16 @@ void main() {
                     equalsIgnoringWhitespace('class GeneratedByMyEnum_A {}'));
               });
 
+              test('on extensions', () async {
+                var result = await executor.executeTypesPhase(instanceId,
+                    Fixtures.myExtension, TestTypePhaseIntrospector());
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, isEmpty);
+                expect(
+                    result.libraryAugmentations.single.debugString().toString(),
+                    equalsIgnoringWhitespace('class MyExtensionOnMyClass {}'));
+              });
+
               test('on mixins', () async {
                 var result = await executor.executeTypesPhase(
                     instanceId, Fixtures.myMixin, TestTypePhaseIntrospector());
@@ -501,6 +511,24 @@ class LibraryInfo {
                 expect(result.libraryAugmentations, isEmpty);
               });
 
+              test('on extensions', () async {
+                var result = await executor.executeDeclarationsPhase(
+                    instanceId,
+                    Fixtures.myExtension,
+                    Fixtures.testDeclarationPhaseIntrospector);
+                expect(result.enumValueAugmentations, isEmpty);
+                expect(result.typeAugmentations, hasLength(1));
+                expect(
+                    result.typeAugmentations[Fixtures.myExtension.identifier]!
+                        .single
+                        .debugString()
+                        .toString(),
+                    equalsIgnoringWhitespace('''
+                List<String> get onTypeFieldNames;
+              '''));
+                expect(result.libraryAugmentations, isEmpty);
+              });
+
               test('on mixins', () async {
                 var result = await executor.executeDeclarationsPhase(
                     instanceId,
@@ -608,7 +636,7 @@ class LibraryInfo {
                 expect(
                     result.libraryAugmentations.single.debugString().toString(),
                     equalsIgnoringWhitespace('''
-                augment String myVariable() {
+                augment String get myVariable {
                   print('isAbstract: false');
                   print('isExternal: false');
                   print('isGetter: true');
@@ -759,6 +787,24 @@ class LibraryInfo {
                 expect(
                     augmentationStrings, unorderedEquals(["a('myField', ),"]));
                 expect(definitionResult.typeAugmentations, isEmpty);
+              });
+
+              test('on extensions', () async {
+                var definitionResult = await executor.executeDefinitionsPhase(
+                    instanceId,
+                    Fixtures.myExtension,
+                    Fixtures.testDefinitionPhaseIntrospector);
+                expect(definitionResult.enumValueAugmentations, isEmpty);
+                expect(definitionResult.typeAugmentations, hasLength(1));
+                expect(
+                    definitionResult
+                        .typeAugmentations[Fixtures.myExtension.identifier]!
+                        .single
+                        .debugString()
+                        .toString(),
+                    equalsIgnoringWhitespace(
+                        "augment List<String> get onTypeFieldNames => "
+                        "['myField',];"));
               });
 
               test('on mixins', () async {

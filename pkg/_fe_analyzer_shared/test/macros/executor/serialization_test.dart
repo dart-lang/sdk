@@ -229,8 +229,8 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'name'),
               library: Fixtures.library,
               metadata: [],
-              isAbstract: true,
-              isExternal: false,
+              hasAbstract: true,
+              hasExternal: false,
               isGetter: true,
               isOperator: false,
               isSetter: false,
@@ -249,8 +249,8 @@ void main() {
                   IdentifierImpl(id: RemoteInstance.uniqueId, name: 'zorp'),
               library: Fixtures.library,
               metadata: [],
-              isAbstract: false,
-              isExternal: false,
+              hasAbstract: false,
+              hasExternal: false,
               isGetter: false,
               isOperator: false,
               isSetter: true,
@@ -271,8 +271,8 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'new'),
             library: Fixtures.library,
             metadata: [],
-            isAbstract: false,
-            isExternal: false,
+            hasAbstract: false,
+            hasExternal: false,
             isGetter: false,
             isOperator: true,
             isSetter: false,
@@ -294,9 +294,9 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
-            isExternal: true,
-            isFinal: false,
-            isLate: true,
+            hasExternal: true,
+            hasFinal: false,
+            hasLate: true,
             type: barType,
           );
           expectSerializationEquality<DeclarationImpl>(
@@ -310,9 +310,9 @@ void main() {
                 IdentifierImpl(id: RemoteInstance.uniqueId, name: 'bar'),
             library: Fixtures.library,
             metadata: [],
-            isExternal: false,
-            isFinal: true,
-            isLate: false,
+            hasExternal: false,
+            hasFinal: true,
+            hasLate: false,
             type: barType,
             definingType: fooType.identifier,
             isStatic: false,
@@ -387,6 +387,19 @@ void main() {
           );
           expectSerializationEquality<DeclarationImpl>(
               entry, mode, RemoteInstance.deserialize);
+        });
+
+        test('ExtensionDeclaration', () {
+          var extension = ExtensionDeclarationImpl(
+              id: RemoteInstance.uniqueId,
+              identifier: IdentifierImpl(
+                  id: RemoteInstance.uniqueId, name: 'MyExtension'),
+              library: Fixtures.library,
+              metadata: [],
+              typeParameters: [],
+              onType: Fixtures.myClassType);
+          expectSerializationEquality<DeclarationImpl>(
+              extension, mode, RemoteInstance.deserialize);
         });
 
         test('MixinDeclaration', () {

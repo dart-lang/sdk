@@ -463,10 +463,10 @@ class TypeParameterDeclarationImpl extends DeclarationImpl
 class FunctionDeclarationImpl extends DeclarationImpl
     implements FunctionDeclaration {
   @override
-  final bool isAbstract;
+  final bool hasAbstract;
 
   @override
-  final bool isExternal;
+  final bool hasExternal;
 
   @override
   final bool isGetter;
@@ -497,8 +497,8 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.isAbstract,
-    required this.isExternal,
+    required this.hasAbstract,
+    required this.hasExternal,
     required this.isGetter,
     required this.isOperator,
     required this.isSetter,
@@ -513,8 +513,8 @@ class FunctionDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(isAbstract)
-      ..addBool(isExternal)
+      ..addBool(hasAbstract)
+      ..addBool(hasExternal)
       ..addBool(isGetter)
       ..addBool(isOperator)
       ..addBool(isSetter)
@@ -556,8 +556,8 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasExternal,
     required super.isGetter,
     required super.isOperator,
     required super.isSetter,
@@ -594,8 +594,8 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.library,
     required super.metadata,
     // Function fields.
-    required super.isAbstract,
-    required super.isExternal,
+    required super.hasAbstract,
+    required super.hasExternal,
     required super.isGetter,
     required super.isOperator,
     required super.isSetter,
@@ -622,13 +622,13 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
 class VariableDeclarationImpl extends DeclarationImpl
     implements VariableDeclaration {
   @override
-  final bool isExternal;
+  final bool hasExternal;
 
   @override
-  final bool isFinal;
+  final bool hasFinal;
 
   @override
-  final bool isLate;
+  final bool hasLate;
 
   @override
   final TypeAnnotationImpl type;
@@ -641,9 +641,9 @@ class VariableDeclarationImpl extends DeclarationImpl
     required super.identifier,
     required super.library,
     required super.metadata,
-    required this.isExternal,
-    required this.isFinal,
-    required this.isLate,
+    required this.hasExternal,
+    required this.hasFinal,
+    required this.hasLate,
     required this.type,
   });
 
@@ -652,9 +652,9 @@ class VariableDeclarationImpl extends DeclarationImpl
     super.serializeUncached(serializer);
 
     serializer
-      ..addBool(isExternal)
-      ..addBool(isFinal)
-      ..addBool(isLate);
+      ..addBool(hasExternal)
+      ..addBool(hasFinal)
+      ..addBool(hasLate);
     type.serialize(serializer);
   }
 }
@@ -674,9 +674,9 @@ class FieldDeclarationImpl extends VariableDeclarationImpl
     required super.library,
     required super.metadata,
     // Variable fields.
-    required super.isExternal,
-    required super.isFinal,
-    required super.isLate,
+    required super.hasExternal,
+    required super.hasFinal,
+    required super.hasLate,
     required super.type,
     // Field fields.
     required this.definingType,
@@ -723,13 +723,15 @@ abstract class ParameterizedTypeDeclarationImpl extends DeclarationImpl
   }
 }
 
-/// TODO: remove this https://github.com/dart-lang/language/issues/3120
-mixin _IntrospectableType implements IntrospectableType {}
+mixin _IntrospectableClass on ClassDeclarationImpl
+    implements IntrospectableClassDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableClassDeclaration;
+}
 
-// ignore: missing_override_of_must_be_overridden
 class IntrospectableClassDeclarationImpl = ClassDeclarationImpl
-    with _IntrospectableType
-    implements IntrospectableClassDeclaration;
+    with _IntrospectableClass;
 
 class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements ClassDeclaration {
@@ -764,9 +766,7 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final NamedTypeAnnotationImpl? superclass;
 
   @override
-  RemoteInstanceKind get kind => this is IntrospectableClassDeclaration
-      ? RemoteInstanceKind.introspectableClassDeclaration
-      : RemoteInstanceKind.classDeclaration;
+  RemoteInstanceKind get kind => RemoteInstanceKind.classDeclaration;
 
   ClassDeclarationImpl({
     // Declaration fields.
@@ -815,13 +815,15 @@ class ClassDeclarationImpl extends ParameterizedTypeDeclarationImpl
   }
 }
 
-/// TODO: remove this https://github.com/dart-lang/language/issues/3120
-mixin _IntrospectableEnum implements IntrospectableEnum {}
+mixin _IntrospectableEnum on EnumDeclarationImpl
+    implements IntrospectableEnumDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableEnumDeclaration;
+}
 
-// ignore: missing_override_of_must_be_overridden
 class IntrospectableEnumDeclarationImpl = EnumDeclarationImpl
-    with _IntrospectableEnum
-    implements IntrospectableEnumDeclaration;
+    with _IntrospectableEnum;
 
 class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements EnumDeclaration {
@@ -832,9 +834,7 @@ class EnumDeclarationImpl extends ParameterizedTypeDeclarationImpl
   final List<NamedTypeAnnotationImpl> mixins;
 
   @override
-  RemoteInstanceKind get kind => this is IntrospectableEnumDeclaration
-      ? RemoteInstanceKind.introspectableEnumDeclaration
-      : RemoteInstanceKind.enumDeclaration;
+  RemoteInstanceKind get kind => RemoteInstanceKind.enumDeclaration;
 
   EnumDeclarationImpl({
     // Declaration fields.
@@ -891,10 +891,53 @@ class EnumValueDeclarationImpl extends DeclarationImpl
   }
 }
 
-// ignore: missing_override_of_must_be_overridden
+mixin _IntrospectableExtension on ExtensionDeclarationImpl
+    implements IntrospectableType, IntrospectableExtensionDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableExtensionDeclaration;
+}
+
+class IntrospectableExtensionDeclarationImpl = ExtensionDeclarationImpl
+    with _IntrospectableExtension;
+
+class ExtensionDeclarationImpl extends ParameterizedTypeDeclarationImpl
+    implements ExtensionDeclaration {
+  @override
+  final TypeAnnotationImpl onType;
+
+  @override
+  RemoteInstanceKind get kind => RemoteInstanceKind.extensionDeclaration;
+
+  ExtensionDeclarationImpl({
+    // Declaration fields.
+    required super.id,
+    required super.identifier,
+    required super.library,
+    required super.metadata,
+    // ParameterizedTypeDeclaration fields.
+    required super.typeParameters,
+    // ExtensionDeclaration fields.
+    required this.onType,
+  });
+
+  @override
+  void serializeUncached(Serializer serializer) {
+    super.serializeUncached(serializer);
+
+    onType.serialize(serializer);
+  }
+}
+
+mixin _IntrospectableMixin on MixinDeclarationImpl
+    implements IntrospectableMixinDeclaration {
+  @override
+  RemoteInstanceKind get kind =>
+      RemoteInstanceKind.introspectableMixinDeclaration;
+}
+
 class IntrospectableMixinDeclarationImpl = MixinDeclarationImpl
-    with _IntrospectableType
-    implements IntrospectableMixinDeclaration;
+    with _IntrospectableMixin;
 
 class MixinDeclarationImpl extends ParameterizedTypeDeclarationImpl
     implements MixinDeclaration {

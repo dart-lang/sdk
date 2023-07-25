@@ -688,6 +688,8 @@ const List<ErrorCode> errorCodeValues = [
   ParserErrorCode.EXPECTED_NAMED_TYPE_IMPLEMENTS,
   ParserErrorCode.EXPECTED_NAMED_TYPE_ON,
   ParserErrorCode.EXPECTED_NAMED_TYPE_WITH,
+  ParserErrorCode.EXPECTED_REPRESENTATION_FIELD,
+  ParserErrorCode.EXPECTED_REPRESENTATION_TYPE,
   ParserErrorCode.EXPECTED_STRING_LITERAL,
   ParserErrorCode.EXPECTED_TOKEN,
   ParserErrorCode.EXPECTED_TYPE_NAME,

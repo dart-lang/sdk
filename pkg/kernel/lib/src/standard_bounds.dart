@@ -256,7 +256,7 @@ mixin StandardBounds {
       DartType type1, DartType type2,
       {required bool isNonNullableByDefault}) {
     // DOWN(T, T) = T.
-    if (identical(type1, type2)) return type1;
+    if (type1 == type2) return type1;
 
     return getNullabilityAwareStandardLowerBoundInternal(type1, type2,
         isNonNullableByDefault: isNonNullableByDefault);
@@ -637,7 +637,7 @@ mixin StandardBounds {
       DartType type1, DartType type2,
       {required bool isNonNullableByDefault}) {
     // UP(T, T) = T
-    if (identical(type1, type2)) return type1;
+    if (type1 == type2) return type1;
 
     return getNullabilityAwareStandardUpperBoundInternal(type1, type2,
         isNonNullableByDefault: isNonNullableByDefault);

@@ -313,6 +313,40 @@
         "use-sdk": true
       }
     },
+    "web-dev-unittest-asserts-(linux|win)": {
+      "options": {
+        "builder-tag": "ddc",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
+    "web-dev-canary-unittest-asserts-linux": {
+      "options": {
+        "builder-tag": "ddc-canary",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
+    "web-dev-unittest-asserts-mac": {
+      "options": {
+        "architecture": "arm64",
+        "builder-tag": "ddc",
+        "compiler": "dartk",
+        "enable-asserts": true,
+        "mode": "release",
+        "runtime": "vm",
+        "timeout": 240,
+        "use-sdk": true
+      }
+    },
     "web-unittest-asserts-(linux|mac|win)": {
       "options": {
         "builder-tag": "web",
@@ -1897,6 +1931,13 @@
             "out/ReleaseX64/dartdevc.js",
             "pkg/dev_compiler/bin/dartdevc.dart"
           ]
+        },
+        {
+          "name": "ddc unit tests",
+          "arguments": [
+            "-nweb-dev-unittest-asserts-${system}",
+            "pkg//dev_compiler/"
+          ]
         }
       ]
     },
@@ -1976,6 +2017,13 @@
             "-o",
             "xcodebuild/ReleaseARM64/dartdevc.js",
             "pkg/dev_compiler/bin/dartdevc.dart"
+          ]
+        },
+        {
+          "name": "ddc unit tests",
+          "arguments": [
+            "-nweb-dev-unittest-asserts-mac",
+            "pkg//dev_compiler/"
           ]
         }
       ]
@@ -2145,6 +2193,13 @@
             "-nddc-canary-linux-chrome-unsound",
             "--verbose",
             "--use-sdk"
+          ]
+        },
+        {
+          "name": "ddc unit tests",
+          "arguments": [
+            "-nweb-dev-canary-unittest-asserts-linux",
+            "pkg//dev_compiler/"
           ]
         }
       ]
@@ -2948,7 +3003,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ],
           "shards": 3,
           "fileset": "vm"
@@ -2975,7 +3030,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}-arm64",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {
@@ -3019,7 +3074,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
           ]
         },
         {

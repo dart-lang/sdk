@@ -1,14 +1,11 @@
+library;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart:13:7: Error: 'Object with M0, M1' can't implement both 'I<dynamic>' and 'I<int>'
 //  - 'I' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart'.
 // class A extends Object with M0, M1<int> {}
 //       ^
-//
-library;
-//
-// Problems in library:
 //
 // pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart:13:7: Error: '_A&Object&M0' doesn't implement 'I<int>' so it can't be used with 'M1<int>'.
 //  - 'Object with M0' is from 'pkg/front_end/testcases/inference/mixin_inference_outwards_3.dart'.

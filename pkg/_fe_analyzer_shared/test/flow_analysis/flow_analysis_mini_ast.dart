@@ -135,20 +135,26 @@ class _WhyNotPromoted_ImplicitThis extends Expression {
   }
 }
 
-extension ExpressionExtensionForFlowAnalysisTesting on Expression {
+extension ExpressionExtensionForFlowAnalysisTesting on ProtoExpression {
   /// Creates an [Expression] that, when analyzed, will behave the same as
   /// `this`, but after visiting it, will cause [callback] to be passed the
   /// [ExpressionInfo] associated with it.  If the expression has no flow
   /// analysis information associated with it, `null` will be passed to
   /// [callback].
-  Expression getExpressionInfo(void Function(ExpressionInfo<Type>?) callback) =>
-      new _GetExpressionInfo(this, callback, location: computeLocation());
+  Expression getExpressionInfo(void Function(ExpressionInfo<Type>?) callback) {
+    var location = computeLocation();
+    return new _GetExpressionInfo(asExpression(location: location), callback,
+        location: location);
+  }
 
   /// Creates an [Expression] that, when analyzed, will behave the same as
   /// `this`, but after visiting it, will cause [callback] to be passed the
   /// non-promotion info associated with it.  If the expression has no
   /// non-promotion info, an empty map will be passed to [callback].
   Expression whyNotPromoted(
-          void Function(Map<Type, NonPromotionReason>) callback) =>
-      new _WhyNotPromoted(this, callback, location: computeLocation());
+      void Function(Map<Type, NonPromotionReason>) callback) {
+    var location = computeLocation();
+    return new _WhyNotPromoted(asExpression(location: location), callback,
+        location: location);
+  }
 }

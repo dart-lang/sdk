@@ -1,0 +1,17 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef E<invariant T extends core::Object? = dynamic> = (T%) → T%;
+extension Ext<T extends core::Object? = dynamic> on T% {
+  method st = self::Ext|st;
+  tearoff st = self::Ext|get#st;
+}
+static method main() → void
+  ;
+static method foo<X extends core::Object? = dynamic>(core::bool test, self::foo::X% a, self::foo::X% b) → void
+  ;
+static extension-member method Ext|st<T extends core::Object? = dynamic, S extends (self::Ext|st::T%) → self::Ext|st::T% = (dynamic) → dynamic>(lowered final self::Ext|st::T% #this) → void
+  ;
+static extension-member method Ext|get#st<T extends core::Object? = dynamic>(lowered final self::Ext|get#st::T% #this) → <S extends (self::Ext|get#st::T%) → self::Ext|get#st::T% = (dynamic) → dynamic>() → void
+  return <S extends (self::Ext|get#st::T%) → self::Ext|get#st::T% = (dynamic) → dynamic>() → void => self::Ext|st<self::Ext|get#st::T%, S>(#this);

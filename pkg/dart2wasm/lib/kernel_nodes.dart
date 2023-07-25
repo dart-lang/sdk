@@ -19,7 +19,8 @@ mixin KernelNodes {
     "dart:core",
     "dart:ffi",
     "dart:typed_data",
-    "dart:_wasm"
+    "dart:_string",
+    "dart:_wasm",
   ]);
 
   // dart:_boxed_double classes
@@ -50,11 +51,12 @@ mixin KernelNodes {
       index.getClass("dart:core", "_GrowableList");
   late final Class immutableListClass =
       index.getClass("dart:core", "_ImmutableList");
-  late final Class stringBaseClass = index.getClass("dart:core", "_StringBase");
+  late final Class stringBaseClass =
+      index.getClass("dart:_string", "StringBase");
   late final Class oneByteStringClass =
-      index.getClass("dart:core", "_OneByteString");
+      index.getClass("dart:_string", "OneByteString");
   late final Class twoByteStringClass =
-      index.getClass("dart:core", "_TwoByteString");
+      index.getClass("dart:_string", "TwoByteString");
   late final Class invocationClass = index.getClass("dart:core", 'Invocation');
   late final Class noSuchMethodErrorClass =
       index.getClass("dart:core", "NoSuchMethodError");
@@ -178,9 +180,9 @@ mixin KernelNodes {
   late final Procedure recordGetRecordRuntimeType =
       index.getProcedure("dart:core", "Record", "_getRecordRuntimeType");
   late final Procedure stringEquals =
-      index.getProcedure("dart:core", "_StringBase", "==");
+      index.getProcedure("dart:_string", "StringBase", "==");
   late final Procedure stringInterpolate =
-      index.getProcedure("dart:core", "_StringBase", "_interpolate");
+      index.getProcedure("dart:_string", "StringBase", "_interpolate");
 
   // dart:core invocation/exception procedures
   late final Procedure invocationGetterFactory =

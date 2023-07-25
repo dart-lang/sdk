@@ -55,6 +55,9 @@ class DapTestClient {
   /// All stderr OutputEvents that have occurred so far.
   final StringBuffer _stderr = StringBuffer();
 
+  /// A default cwd to use for all launches.
+  String? defaultCwd;
+
   DapTestClient._(
     this._channel,
     this._logger, {
@@ -143,11 +146,12 @@ class DapTestClient {
         ? expectStop('entry').then((event) => continue_(event.threadId!))
         : null;
 
+    cwd ??= defaultCwd;
     final attachResponse = sendRequest(
       DartAttachRequestArguments(
         vmServiceUri: vmServiceUri,
         vmServiceInfoFile: vmServiceInfoFile,
-        cwd: cwd,
+        cwd: cwd != null ? _normalizePath(cwd) : null,
         additionalProjectPaths: additionalProjectPaths,
         debugSdkLibraries: debugSdkLibraries,
         debugExternalPackageLibraries: debugExternalPackageLibraries,
@@ -299,6 +303,7 @@ class DapTestClient {
     bool? sendCustomProgressEvents,
     bool? allowAnsiColorOutput,
   }) {
+    cwd ??= defaultCwd;
     return sendRequest(
       DartLaunchRequestArguments(
         noDebug: noDebug,
@@ -444,9 +449,24 @@ class DapTestClient {
   /// Whether or not any `terminate()` request has been sent.
   bool get hasSentTerminateRequest => _hasSentTerminateRequest;
   bool _hasSentTerminateRequest = false;
-  Future<Response?> terminate() async {
+
+  /// Sends a terminate request.
+  ///
+  /// For convenience, returns a Future that completes when either this request
+  /// completes, or when a `terminated` event is received since it is not
+  /// guaranteed that this request will return a response during a shutdown.
+  Future<void> terminate() async {
     _hasSentTerminateRequest = true;
-    return sendRequest(TerminateArguments());
+    return Future.any([
+      event('terminated').then(
+        (event) => event,
+        // Ignore errors caused by this event not occurring before the stream
+        // closes as this is very possible if the application terminated just
+        // before this method was called.
+        onError: (_) => null,
+      ),
+      sendRequest(TerminateArguments()),
+    ]);
   }
 
   /// Sends a threads request to the server to request the list of active

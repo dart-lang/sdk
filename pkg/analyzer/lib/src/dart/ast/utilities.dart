@@ -561,6 +561,23 @@ class AstComparator implements AstVisitor<bool> {
   }
 
   @override
+  bool visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    final other = _other as ExtensionTypeDeclaration;
+    return isEqualNodes(
+            node.documentationComment, other.documentationComment) &&
+        _isEqualNodeLists(node.metadata, other.metadata) &&
+        isEqualTokens(node.extensionKeyword, other.extensionKeyword) &&
+        isEqualTokens(node.typeKeyword, other.typeKeyword) &&
+        isEqualTokens(node.constKeyword, other.constKeyword) &&
+        isEqualTokens(node.name, other.name) &&
+        isEqualNodes(node.typeParameters, other.typeParameters) &&
+        isEqualNodes(node.representation, other.representation) &&
+        isEqualTokens(node.leftBracket, other.leftBracket) &&
+        _isEqualNodeLists(node.members, other.members) &&
+        isEqualTokens(node.rightBracket, other.rightBracket);
+  }
+
+  @override
   bool visitFieldDeclaration(FieldDeclaration node) {
     FieldDeclaration other = _other as FieldDeclaration;
     return isEqualTokens(node.abstractKeyword, other.abstractKeyword) &&
@@ -1277,6 +1294,23 @@ class AstComparator implements AstVisitor<bool> {
     var other = _other as RelationalPattern;
     return isEqualTokens(node.operator, other.operator) &&
         isEqualNodes(node.operand, other.operand);
+  }
+
+  @override
+  bool visitRepresentationConstructorName(RepresentationConstructorName node) {
+    final other = _other as RepresentationConstructorName;
+    return isEqualTokens(node.period, other.period) &&
+        isEqualTokens(node.name, other.name);
+  }
+
+  @override
+  bool visitRepresentationDeclaration(RepresentationDeclaration node) {
+    final other = _other as RepresentationDeclaration;
+    return isEqualNodes(node.constructorName, other.constructorName) &&
+        isEqualTokens(node.leftParenthesis, other.leftParenthesis) &&
+        _isEqualNodeLists(node.fieldMetadata, other.fieldMetadata) &&
+        isEqualNodes(node.fieldType, other.fieldType) &&
+        isEqualTokens(node.rightParenthesis, other.rightParenthesis);
   }
 
   @override

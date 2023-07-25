@@ -2696,6 +2696,10 @@ ParserErrorCode.EXPECTED_NAMED_TYPE_ON:
   status: noFix
 ParserErrorCode.EXPECTED_NAMED_TYPE_WITH:
   status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_FIELD:
+  status: noFix
+ParserErrorCode.EXPECTED_REPRESENTATION_TYPE:
+  status: noFix
 ParserErrorCode.EXPECTED_STRING_LITERAL:
   status: noFix
 ParserErrorCode.EXPECTED_TOKEN:

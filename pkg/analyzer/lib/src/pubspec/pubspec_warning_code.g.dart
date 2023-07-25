@@ -153,7 +153,7 @@ class PubspecWarningCode extends ErrorCode {
   static const PubspecWarningCode PLATFORM_VALUE_DISALLOWED =
       PubspecWarningCode(
     'PLATFORM_VALUE_DISALLOWED',
-    "A value may not be provided for keys in `platforms`.",
+    "Keys in the `platforms` field can't have values.",
     correctionMessage: "Try removing the value, while keeping the key.",
   );
 

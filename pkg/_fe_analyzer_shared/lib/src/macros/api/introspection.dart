@@ -214,6 +214,21 @@ abstract interface class EnumValueDeclaration implements Declaration {
 abstract interface class IntrospectableEnumDeclaration
     implements EnumDeclaration, IntrospectableEnum {}
 
+/// The class for introspecting on an extension.
+///
+/// Note that extensions do not actually introduce a new type, but we model them
+/// as [ParameterizedTypeDeclaration]s anyways, because they generally look
+/// exactly like other type declarations, and are treated the same.
+abstract interface class ExtensionDeclaration
+    implements ParameterizedTypeDeclaration, Declaration {
+  /// The type that appears on the `on` clause of this extension.
+  TypeAnnotation get onType;
+}
+
+/// An introspectable extension declaration.
+abstract interface class IntrospectableExtensionDeclaration
+    implements ExtensionDeclaration, IntrospectableType {}
+
 /// Mixin introspection information.
 ///
 /// Information about fields and methods must be retrieved from the `builder`
@@ -244,10 +259,10 @@ abstract interface class TypeAliasDeclaration
 /// Function introspection information.
 abstract interface class FunctionDeclaration implements Declaration {
   /// Whether this function has an `abstract` modifier.
-  bool get isAbstract;
+  bool get hasAbstract;
 
   /// Whether this function has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this function is an operator.
   bool get isOperator;
@@ -284,13 +299,13 @@ abstract interface class ConstructorDeclaration implements MethodDeclaration {
 /// Variable introspection information.
 abstract interface class VariableDeclaration implements Declaration {
   /// Whether this field has an `external` modifier.
-  bool get isExternal;
+  bool get hasExternal;
 
   /// Whether this field has a `final` modifier.
-  bool get isFinal;
+  bool get hasFinal;
 
   /// Whether this field has a `late` modifier.
-  bool get isLate;
+  bool get hasLate;
 
   /// The type of this field.
   TypeAnnotation get type;

@@ -520,6 +520,15 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _sink.writeln('ExtensionTypeDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredElement(node.declaredElement);
+    });
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _sink.writeln('FieldDeclaration');
     _sink.withIndent(() {
@@ -1254,6 +1263,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
       _writeNamedChildEntities(node);
       _writeElement('element', node.element);
       _writePatternMatchedValueType(node);
+    });
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+    _sink.writeln('RepresentationConstructorName');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    _sink.writeln('RepresentationDeclaration');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+      _writeDeclaredElement(node.fieldElement);
+      _writeDeclaredElement(node.constructorElement);
     });
   }
 

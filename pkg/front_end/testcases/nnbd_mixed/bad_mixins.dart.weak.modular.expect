@@ -1,5 +1,6 @@
+library /*isLegacy*/;
 //
-// Problems in component:
+// Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:15:7: Error: 'B with MixinB' can't implement both 'B<num>' and 'B<int>'
 //  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
@@ -16,56 +17,6 @@
 //  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
 // class Class3b extends C<num, num> with MixinC<num, int> {} // error
 //       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:23:7: Error: 'B with MixinB' can't implement both 'B<int?>' and 'B<int>'
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class2b extends B<int?> with MixinB<int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:25:7: Error: 'B with MixinB' can't implement both 'B<num>' and 'B<int>'
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class2c extends B<num> with MixinB<int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:29:7: Error: 'B with MixinB' can't implement both 'B<Object>' and 'B<dynamic>'
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-//  - 'Object' is from 'dart:core'.
-// class Class2e extends B<Object> with MixinB<dynamic> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:35:7: Error: 'C with MixinC' can't implement both 'C<num, num>' and 'C<num, int>'
-//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class3b extends C<num, num> with MixinC<num, int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:37:7: Error: 'C with MixinC' can't implement both 'C<num?, int>' and 'C<num, int>'
-//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class3c extends C<num?, int> with MixinC<num, int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:49:7: Error: 'ClassBa with MixinB' can't implement both 'B<int?>' and 'B<int>'
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class4a extends ClassBa with MixinB<int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:53:7: Error: 'ClassBb with MixinB' can't implement both 'B<int>' and 'B<int?>'
-//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class4c extends ClassBb with MixinB<int?> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:57:7: Error: 'ClassCa with MixinC' can't implement both 'C<num?, int?>' and 'C<num?, int>'
-//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class5a extends ClassCa with MixinC<num?, int> {} // error
-//       ^
-//
-// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:61:7: Error: 'ClassCb with MixinC' can't implement both 'C<num?, int>' and 'C<num?, int?>'
-//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
-// class Class5c extends ClassCb with MixinC<num?, int?> {} // error
-//       ^
-//
-library /*isLegacy*/;
-//
-// Problems in library:
 //
 // pkg/front_end/testcases/nnbd_mixed/bad_mixins.dart:9:7: Error: 'Object' doesn't implement 'A' so it can't be used with 'MixinA'.
 //  - 'Object' is from 'dart:core'.
@@ -371,6 +322,52 @@ static method main() → dynamic {}
 library;
 //
 // Problems in library:
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:23:7: Error: 'B with MixinB' can't implement both 'B<int?>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2b extends B<int?> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:25:7: Error: 'B with MixinB' can't implement both 'B<num>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class2c extends B<num> with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:29:7: Error: 'B with MixinB' can't implement both 'B<Object>' and 'B<dynamic>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+//  - 'Object' is from 'dart:core'.
+// class Class2e extends B<Object> with MixinB<dynamic> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:35:7: Error: 'C with MixinC' can't implement both 'C<num, num>' and 'C<num, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3b extends C<num, num> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:37:7: Error: 'C with MixinC' can't implement both 'C<num?, int>' and 'C<num, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class3c extends C<num?, int> with MixinC<num, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:49:7: Error: 'ClassBa with MixinB' can't implement both 'B<int?>' and 'B<int>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4a extends ClassBa with MixinB<int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:53:7: Error: 'ClassBb with MixinB' can't implement both 'B<int>' and 'B<int?>'
+//  - 'B' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class4c extends ClassBb with MixinB<int?> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:57:7: Error: 'ClassCa with MixinC' can't implement both 'C<num?, int?>' and 'C<num?, int>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5a extends ClassCa with MixinC<num?, int> {} // error
+//       ^
+//
+// pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:61:7: Error: 'ClassCb with MixinC' can't implement both 'C<num?, int>' and 'C<num?, int?>'
+//  - 'C' is from 'pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart'.
+// class Class5c extends ClassCb with MixinC<num?, int?> {} // error
+//       ^
 //
 // pkg/front_end/testcases/nnbd_mixed/bad_mixins_lib.dart:17:7: Error: 'Object' doesn't implement 'A' so it can't be used with 'MixinA'.
 //  - 'Object' is from 'dart:core'.

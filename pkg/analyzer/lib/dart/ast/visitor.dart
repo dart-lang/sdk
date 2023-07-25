@@ -322,6 +322,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => visitExpression(node);
 
   @override
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
+      visitNamedCompilationUnitMember(node);
+
+  @override
   R? visitFieldDeclaration(FieldDeclaration node) => visitClassMember(node);
 
   @override
@@ -628,6 +632,14 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
+
+  @override
+  R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
+      visitNode(node);
+
+  @override
+  R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
+      visitNode(node);
 
   @override
   R? visitRestPatternElement(RestPatternElement node) => visitNode(node);
@@ -1083,6 +1095,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitExtensionOverride(ExtensionOverride node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     node.visitChildren(this);
     return null;
   }
@@ -1566,6 +1584,18 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRepresentationConstructorName(RepresentationConstructorName node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
+  R? visitRepresentationDeclaration(RepresentationDeclaration node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRestPatternElement(RestPatternElement node) {
     node.visitChildren(this);
     return null;
@@ -1952,6 +1982,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => null;
 
   @override
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) => null;
+
+  @override
   R? visitFieldDeclaration(FieldDeclaration node) => null;
 
   @override
@@ -2201,6 +2234,13 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => null;
+
+  @override
+  R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
+      null;
+
+  @override
+  R? visitRepresentationDeclaration(RepresentationDeclaration node) => null;
 
   @override
   R? visitRestPatternElement(RestPatternElement node) => null;
@@ -2482,6 +2522,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => _throw(node);
 
   @override
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
+      _throw(node);
+
+  @override
   R? visitFieldDeclaration(FieldDeclaration node) => _throw(node);
 
   @override
@@ -2736,6 +2780,14 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
+
+  @override
+  R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
+      _throw(node);
+
+  @override
+  R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
+      _throw(node);
 
   @override
   R? visitRestPatternElement(RestPatternElement node) => _throw(node);
@@ -3279,6 +3331,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitExtensionOverride(ExtensionOverride node) {
     stopwatch.start();
     T? result = _baseVisitor.visitExtensionOverride(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitExtensionTypeDeclaration(node);
     stopwatch.stop();
     return result;
   }
@@ -3920,6 +3980,22 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRepresentationConstructorName(RepresentationConstructorName node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRepresentationConstructorName(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRepresentationDeclaration(RepresentationDeclaration node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRepresentationDeclaration(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRestPatternElement(RestPatternElement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRestPatternElement(node);
@@ -4393,6 +4469,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitExtensionOverride(ExtensionOverride node) => visitNode(node);
 
   @override
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) =>
+      visitNode(node);
+
+  @override
   R? visitFieldDeclaration(FieldDeclaration node) => visitNode(node);
 
   @override
@@ -4656,6 +4736,14 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);
+
+  @override
+  R? visitRepresentationConstructorName(RepresentationConstructorName node) =>
+      visitNode(node);
+
+  @override
+  R? visitRepresentationDeclaration(RepresentationDeclaration node) =>
+      visitNode(node);
 
   @override
   R? visitRestPatternElement(RestPatternElement node) => visitNode(node);

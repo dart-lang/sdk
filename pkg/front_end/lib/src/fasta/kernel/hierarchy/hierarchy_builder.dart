@@ -22,9 +22,6 @@ class ClassHierarchyBuilder
     implements ClassHierarchyBase {
   final Map<Class, ClassHierarchyNode> nodes = <Class, ClassHierarchyNode>{};
 
-  final Map<ClassBuilder, Map<Class, Substitution>> substitutions =
-      <ClassBuilder, Map<Class, Substitution>>{};
-
   final ClassBuilder objectClassBuilder;
 
   final Loader loader;
@@ -49,13 +46,11 @@ class ClassHierarchyBuilder
 
   void clear() {
     nodes.clear();
-    substitutions.clear();
   }
 
   ClassHierarchyNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
-    return nodes[classBuilder.cls] ??= new ClassHierarchyNodeBuilder(
-            this, classBuilder, substitutions[classBuilder] ??= {})
-        .build();
+    return nodes[classBuilder.cls] ??=
+        new ClassHierarchyNodeBuilder(this, classBuilder).build();
   }
 
   ClassHierarchyNode? getNodeFromTypeBuilder(TypeBuilder type) {
@@ -195,11 +190,8 @@ class ClassHierarchyBuilder
     for (int i = 0; i < classes.length; i++) {
       ClassBuilder classBuilder = classes[i];
       if (!classBuilder.isPatch) {
-        hierarchy.nodes[classBuilder.cls] = new ClassHierarchyNodeBuilder(
-                hierarchy,
-                classBuilder,
-                hierarchy.substitutions[classBuilder] ??= {})
-            .build();
+        hierarchy.nodes[classBuilder.cls] =
+            new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy
         // node of `cls.origin`.

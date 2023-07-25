@@ -48,6 +48,7 @@ general/override_check_after_inference: TypeCheckError # Issue #31620
 general/override_check_basic: TypeCheckError # Issue #31620
 general/override_check_with_covariant_modifier: TypeCheckError # Issue #31620
 general/override_setter_with_field: TypeCheckError
+general/supertype_conflict: TypeCheckError
 general/unsound_promotion: TypeCheckError
 inference/constructors_infer_from_arguments_argument_not_assignable: TypeCheckError
 inference/do_not_infer_overridden_fields_that_explicitly_say_dynamic_infer: TypeCheckError

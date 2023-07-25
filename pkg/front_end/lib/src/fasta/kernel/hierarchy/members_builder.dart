@@ -119,9 +119,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   ClassMembersNode getNodeFromClassBuilder(ClassBuilder classBuilder) {
     return nodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
-            this,
-            hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
-            hierarchyBuilder.substitutions[classBuilder] ??= {})
+            this, hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
         .build();
   }
 
@@ -169,8 +167,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       if (!classBuilder.isPatch) {
         membersBuilder.nodes[classBuilder.cls] = new ClassMembersNodeBuilder(
                 membersBuilder,
-                hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
-                hierarchyBuilder.substitutions[classBuilder] ??= {})
+                hierarchyBuilder.getNodeFromClassBuilder(classBuilder))
             .build();
       } else {
         // TODO(ahe): Merge the injected members of patch into the hierarchy

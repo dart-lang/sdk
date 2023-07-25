@@ -21896,6 +21896,8 @@ void f() {
 
 ### unused_element
 
+_A value for optional parameter '{0}' isn't ever given._
+
 _The declaration '{0}' isn't referenced._
 
 #### Description
@@ -21905,6 +21907,8 @@ referenced in the library that contains the declaration. The following
 kinds of declarations are analyzed:
 - Private top-level declarations and all of their members
 - Private members of public declarations
+- Optional parameters of private functions for which a value is never
+  passed
 
 Not all references to an element will mark it as "used":
 - Assigning a value to a top-level variable (with a standard `=`
@@ -21924,12 +21928,14 @@ produces this diagnostic:
 class [!_C!] {}
 {% endprettify %}
 
-Assuming that no code in the library references `C._m`, the following code
-produces this diagnostic:
+Assuming that no code in the library passes a value for `y` in any
+invocation of `_m`, the following code produces this diagnostic:
 
 {% prettify dart tag=pre+code %}
 class C {
-  void [!_m!](int x) {}
+  void _m(int x, [int [!y!]]) {}
+
+  void n() => _m(0);
 }
 {% endprettify %}
 
@@ -21938,7 +21944,11 @@ class C {
 If the declaration isn't needed, then remove it:
 
 {% prettify dart tag=pre+code %}
-class C {}
+class C {
+  void _m(int x) {}
+
+  void n() => _m(0);
+}
 {% endprettify %}
 
 If the declaration is intended to be used, then add the code to use it.

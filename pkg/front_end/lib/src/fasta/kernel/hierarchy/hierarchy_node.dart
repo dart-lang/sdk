@@ -13,9 +13,12 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
+import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
 import '../../builder/type_builder.dart';
+import '../../fasta_codes.dart';
+import '../../source/source_library_builder.dart';
 import '../../type_inference/type_schema.dart' show UnknownType;
 import 'hierarchy_builder.dart';
 import 'mixin_inferrer.dart';
@@ -27,10 +30,7 @@ class ClassHierarchyNodeBuilder {
 
   bool hasNoSuchMethod = false;
 
-  final Map<Class, Substitution> substitutions;
-
-  ClassHierarchyNodeBuilder(
-      this.hierarchy, this.classBuilder, this.substitutions);
+  ClassHierarchyNodeBuilder(this.hierarchy, this.classBuilder);
 
   ClassBuilder get objectClass => hierarchy.objectClassBuilder;
 
@@ -152,38 +152,8 @@ class ClassHierarchyNodeBuilder {
       }
     }
 
-    for (Supertype superclass in superclasses) {
-      recordSupertype(superclass);
-    }
-    for (Supertype superinterface in interfacesList) {
-      recordSupertype(superinterface);
-    }
-
     return new ClassHierarchyNode(classBuilder, supernode, mixedInNode,
         interfaceNodes, superclasses, interfacesList, maxInheritancePath);
-  }
-
-  Supertype recordSupertype(Supertype supertype) {
-    debug?.log("In ${this.classBuilder.fullNameForErrors} "
-        "recordSupertype(${supertype})");
-    Class cls = supertype.classNode;
-    List<TypeParameter> supertypeTypeParameters = cls.typeParameters;
-    if (supertypeTypeParameters.isEmpty) {
-      substitutions[cls] = Substitution.empty;
-    } else {
-      List<DartType> arguments = supertype.typeArguments;
-      List<DartType> typeArguments =
-          new List<DartType>.filled(arguments.length, dummyDartType);
-      List<TypeParameter> typeParameters =
-          new List<TypeParameter>.filled(arguments.length, dummyTypeParameter);
-      for (int i = 0; i < arguments.length; i++) {
-        typeParameters[i] = supertypeTypeParameters[i];
-        typeArguments[i] = arguments[i];
-      }
-      substitutions[cls] =
-          Substitution.fromPairs(typeParameters, typeArguments);
-    }
-    return supertype;
   }
 
   List<Supertype> substSupertypes(
@@ -217,6 +187,33 @@ class ClassHierarchyNodeBuilder {
     return result ?? supertypes;
   }
 
+  Supertype _resolveSupertypeConflict(Supertype type, Supertype superclass) {
+    if (classBuilder.libraryBuilder.isNonNullableByDefault) {
+      Supertype? merge = nnbdTopMergeSupertype(
+          hierarchy.coreTypes,
+          normSupertype(hierarchy.coreTypes, superclass),
+          normSupertype(hierarchy.coreTypes, type));
+      if (merge != null) {
+        return merge;
+      }
+    } else if (type == superclass) {
+      return superclass;
+    }
+    LibraryBuilder libraryBuilder = classBuilder.libraryBuilder;
+    if (libraryBuilder is SourceLibraryBuilder) {
+      libraryBuilder.addProblem(
+          templateAmbiguousSupertypes.withArguments(
+              classBuilder.name,
+              superclass.asInterfaceType,
+              type.asInterfaceType,
+              libraryBuilder.isNonNullableByDefault),
+          classBuilder.charOffset,
+          noLength,
+          classBuilder.fileUri);
+    }
+    return superclass;
+  }
+
   void addInterface(Map<Class, Supertype> interfaces,
       List<Supertype> superclasses, Supertype type) {
     if (!classBuilder.libraryBuilder.isNonNullableByDefault) {
@@ -228,38 +225,13 @@ class ClassHierarchyNodeBuilder {
     Supertype? superclass = depth < myDepth ? superclasses[depth] : null;
     if (superclass != null && superclass.classNode == type.classNode) {
       // This is a potential conflict.
-      if (classBuilder.libraryBuilder.isNonNullableByDefault) {
-        superclass = nnbdTopMergeSupertype(
-            hierarchy.coreTypes,
-            normSupertype(hierarchy.coreTypes, superclass),
-            normSupertype(hierarchy.coreTypes, type));
-        if (superclass == null) {
-          // This is a conflict.
-          // TODO(johnniwinther): Report errors here instead of through
-          // the computation of the [ClassHierarchy].
-          superclass = superclasses[depth];
-        } else {
-          superclasses[depth] = superclass;
-        }
-      }
+      superclasses[depth] = _resolveSupertypeConflict(type, superclass);
       return;
     } else {
       Supertype? interface = interfaces[type.classNode];
       if (interface != null) {
         // This is a potential conflict.
-        if (classBuilder.libraryBuilder.isNonNullableByDefault) {
-          interface = nnbdTopMergeSupertype(
-              hierarchy.coreTypes,
-              normSupertype(hierarchy.coreTypes, interface),
-              normSupertype(hierarchy.coreTypes, type));
-          if (interface == null) {
-            // This is a conflict.
-            // TODO(johnniwinther): Report errors here instead of through
-            // the computation of the [ClassHierarchy].
-          } else {
-            interfaces[type.classNode] = interface;
-          }
-        }
+        interfaces[type.classNode] = _resolveSupertypeConflict(type, interface);
         return;
       }
     }

@@ -517,26 +517,24 @@ main() {
     });
 
     test('resolves URIs in tool events to file:///', () async {
+      final client = dap.client;
       final testFile =
           dap.createTestFile(simpleToolEventWithDartCoreUriProgram);
 
       // Capture the `dart.toolEvent` event.
-      final toolEventsFuture = dap.client.events('dart.toolEvent').first;
+      final toolEventsFuture = client.events('dart.toolEvent').first;
 
       // Run the script until we get the event (which means mapping has
       // completed).
       await Future.wait([
         toolEventsFuture,
-        dap.client.initialize(),
-        dap.client.launch(testFile.path),
+        client.initialize(),
+        client.launch(testFile.path),
       ], eagerError: true);
 
       // Terminate the app (since the test script has a delay to ensure it
       // doesn't terminate before the async mapping code completes).
-      await Future.wait([
-        dap.client.event('terminated'),
-        dap.client.terminate(),
-      ], eagerError: true);
+      await client.terminate();
 
       // Verify we got the right fileUri.
       final toolEvent = await toolEventsFuture;

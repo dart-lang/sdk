@@ -1349,6 +1349,8 @@ abstract class AstVisitor<R> {
 
   R? visitExtensionOverride(ExtensionOverride node);
 
+  R? visitExtensionTypeDeclaration(ExtensionTypeDeclaration node);
+
   R? visitFieldDeclaration(FieldDeclaration node);
 
   R? visitFieldFormalParameter(FieldFormalParameter node);
@@ -1509,6 +1511,10 @@ abstract class AstVisitor<R> {
       RedirectingConstructorInvocation node);
 
   R? visitRelationalPattern(RelationalPattern node);
+
+  R? visitRepresentationConstructorName(RepresentationConstructorName node);
+
+  R? visitRepresentationDeclaration(RepresentationDeclaration node);
 
   R? visitRestPatternElement(RestPatternElement node);
 
@@ -6686,6 +6692,134 @@ final class ExtensionOverrideImpl extends ExpressionImpl
     importPrefix?.accept(visitor);
     _typeArguments?.accept(visitor);
     _argumentList.accept(visitor);
+  }
+}
+
+/// The declaration of an extension type.
+///
+///    <extensionTypeDeclaration> ::=
+///        'extension' 'type' 'const'? <typeIdentifier> <typeParameters>?
+///        <representationDeclaration> <interfaces>?
+///        '{'
+///            (<metadata> <extensionTypeMemberDeclaration>)*
+///        '}'
+@experimental
+abstract final class ExtensionTypeDeclaration
+    implements NamedCompilationUnitMember {
+  /// The 'const' keyword.
+  Token? get constKeyword;
+
+  /// TODO(scheglov) use actual element type
+  @override
+  Element? get declaredElement;
+
+  /// The 'extension' keyword.
+  Token get extensionKeyword;
+
+  /// The 'implements' clause.
+  ImplementsClause? get implementsClause;
+
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The members.
+  NodeList<ClassMember> get members;
+
+  /// The representation declaration.
+  RepresentationDeclaration get representation;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+
+  /// The 'type' keyword.
+  Token get typeKeyword;
+
+  /// The type parameters.
+  TypeParameterList? get typeParameters;
+}
+
+final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
+    implements ExtensionTypeDeclaration {
+  @override
+  final Token extensionKeyword;
+
+  @override
+  final Token typeKeyword;
+
+  @override
+  final Token? constKeyword;
+
+  @override
+  final TypeParameterListImpl? typeParameters;
+
+  @override
+  final RepresentationDeclarationImpl representation;
+
+  @override
+  final ImplementsClauseImpl? implementsClause;
+
+  @override
+  final Token leftBracket;
+
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @override
+  final Token rightBracket;
+
+  @override
+  Element? declaredElement;
+
+  ExtensionTypeDeclarationImpl({
+    required super.comment,
+    required super.metadata,
+    required this.extensionKeyword,
+    required this.typeKeyword,
+    required this.constKeyword,
+    required super.name,
+    required this.typeParameters,
+    required this.representation,
+    required this.implementsClause,
+    required this.leftBracket,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    _becomeParentOf(typeParameters);
+    _becomeParentOf(representation);
+    _becomeParentOf(implementsClause);
+    this.members._initialize(this, members);
+  }
+
+  @override
+  Token get endToken => rightBracket;
+
+  @override
+  Token get firstTokenAfterCommentAndMetadata => extensionKeyword;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('extensionKeyword', extensionKeyword)
+    ..addToken('typeKeyword', typeKeyword)
+    ..addToken('constKeyword', constKeyword)
+    ..addToken('name', name)
+    ..addNode('typeParameters', typeParameters)
+    ..addNode('representation', representation)
+    ..addNode('implementsClause', implementsClause)
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitExtensionTypeDeclaration(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+    typeParameters?.accept(visitor);
+    representation.accept(visitor);
+    members.accept(visitor);
   }
 }
 
@@ -15197,6 +15331,150 @@ final class RelationalPatternImpl extends DartPatternImpl
   @override
   void visitChildren(AstVisitor visitor) {
     operand.accept(visitor);
+  }
+}
+
+/// The name of the primary constructor of an extension type.
+@experimental
+abstract final class RepresentationConstructorName implements AstNode {
+  /// The name of the primary constructor.
+  Token get name;
+
+  /// The period separating [name] from the previous token.
+  Token get period;
+}
+
+final class RepresentationConstructorNameImpl extends AstNodeImpl
+    implements RepresentationConstructorName {
+  @override
+  final Token period;
+
+  @override
+  final Token name;
+
+  RepresentationConstructorNameImpl({
+    required this.period,
+    required this.name,
+  });
+
+  @override
+  Token get beginToken => period;
+
+  @override
+  Token get endToken => name;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('period', period)
+    ..addToken('name', name);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitRepresentationConstructorName(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {}
+}
+
+/// The declaration an extension type representation.
+///
+/// It declares at the same time the representation field, and the primary
+/// constructor.
+///
+///    <representationDeclaration> ::=
+///        ('.' <identifierOrNew>)? '(' <metadata> <type> <identifier> ')'
+@experimental
+abstract final class RepresentationDeclaration implements AstNode {
+  /// The element of the primary constructor.
+  ConstructorElement? get constructorElement;
+
+  /// The optional name of the primary constructor.
+  RepresentationConstructorName? get constructorName;
+
+  /// The element for [fieldName] with [fieldType].
+  FieldElement? get fieldElement;
+
+  /// The annotations associated with the field.
+  NodeList<Annotation> get fieldMetadata;
+
+  /// The representation name.
+  Token get fieldName;
+
+  /// The representation type.
+  TypeAnnotation get fieldType;
+
+  /// The left parenthesis.
+  Token get leftParenthesis;
+
+  /// The right parenthesis.
+  Token get rightParenthesis;
+}
+
+final class RepresentationDeclarationImpl extends AstNodeImpl
+    implements RepresentationDeclaration {
+  @override
+  final RepresentationConstructorNameImpl? constructorName;
+
+  @override
+  ConstructorElementImpl? constructorElement;
+
+  @override
+  final Token leftParenthesis;
+
+  @override
+  final NodeListImpl<Annotation> fieldMetadata = NodeListImpl._();
+
+  @override
+  final TypeAnnotationImpl fieldType;
+
+  @override
+  final Token fieldName;
+
+  @override
+  FieldElementImpl? fieldElement;
+
+  @override
+  final Token rightParenthesis;
+
+  RepresentationDeclarationImpl({
+    required this.constructorName,
+    required this.leftParenthesis,
+    required List<AnnotationImpl> fieldMetadata,
+    required this.fieldType,
+    required this.fieldName,
+    required this.rightParenthesis,
+  }) {
+    this.fieldMetadata._initialize(this, fieldMetadata);
+    _becomeParentOf(constructorName);
+    _becomeParentOf(fieldType);
+  }
+
+  @override
+  Token get beginToken => constructorName?.beginToken ?? leftParenthesis;
+
+  @override
+  Token get endToken => rightParenthesis;
+
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addNode('constructorName', constructorName)
+    ..addToken('leftParenthesis', leftParenthesis)
+    ..addNodeList('fieldMetadata', fieldMetadata)
+    ..addNode('fieldType', fieldType)
+    ..addToken('fieldName', fieldName)
+    ..addToken('rightParenthesis', rightParenthesis);
+
+  @override
+  E? accept<E>(AstVisitor<E> visitor) {
+    return visitor.visitRepresentationDeclaration(this);
+  }
+
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constructorName?.accept(visitor);
+    fieldMetadata.accept(visitor);
+    fieldType.accept(visitor);
   }
 }
 
