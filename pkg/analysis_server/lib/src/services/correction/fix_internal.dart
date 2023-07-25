@@ -781,6 +781,9 @@ class FixProcessor extends BaseProcessor {
     LintNames.unnecessary_this: [
       RemoveThisExpression.new,
     ],
+    LintNames.unreachable_from_main: [
+      RemoveUnusedElement.new,
+    ],
     LintNames.use_decorated_box: [
       ReplaceWithDecoratedBox.new,
     ],

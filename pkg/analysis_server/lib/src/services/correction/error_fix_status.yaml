@@ -2400,10 +2400,7 @@ LintCode.unnecessary_this:
 LintCode.unnecessary_to_list_in_spreads:
   status: hasFix
 LintCode.unreachable_from_main:
-  status: noFix
-  notes: |-
-    Theoretically we could remove the unreachable declaration, but that seems
-    like a dangerous option to provide.
+  status: hasFix
 LintCode.unrelated_type_equality_checks_expression:
   status: needsEvaluation
 LintCode.unrelated_type_equality_checks_pattern:
