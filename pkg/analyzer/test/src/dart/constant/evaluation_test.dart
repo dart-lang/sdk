@@ -703,16 +703,12 @@ class A {
   const A(int _);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 63, 14),
       error(CompileTimeErrorCode.INVALID_CONSTANT, 76, 1),
       error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 76,
           1),
     ]);
     final result = _topLevelVar('x');
-    assertDartObjectText(result, r'''
-A
-  variable: self::@variable::x
-''');
+    _assertNull(result);
   }
 
   test_visitConditionalExpression_unknownCondition_undefinedIdentifier() async {
@@ -2823,7 +2819,7 @@ bool true
   }
 
   test_visitPropertyAccess_fromExtension() async {
-    await resolveTestCode('''
+    await assertErrorsInCode('''
 extension ExtObject on Object {
   int get length => 4;
 }
@@ -2834,10 +2830,8 @@ class B {
 }
 
 const b = B('');
-''');
-    _evaluateConstant('b', errorCodes: [
-      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
-      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 128, 5),
     ]);
   }
 
@@ -3343,10 +3337,7 @@ const a = const A<int>();
       error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 77, 14),
     ]);
     final result = _topLevelVar('a');
-    assertDartObjectText(result, '''
-A<int>
-  variable: self::@variable::a
-''');
+    _assertNull(result);
   }
 
   test_fieldInitializer_visitAsExpression_potentialConstType() async {

@@ -227,6 +227,10 @@ class DartObjectImpl implements DartObject, Constant {
   /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => state.isInt;
 
+  /// Return `true` if this object represents an object whose type is an invalid
+  /// type.
+  bool get isInvalid => state.isInvalid;
+
   @override
   bool get isNull => state is NullState;
 
@@ -1532,6 +1536,10 @@ abstract class InstanceState {
   /// Return `true` if this object represents an object whose type is 'int'.
   bool get isInt => false;
 
+  /// Return `true` if this object represents an object whose type is an invalid
+  /// type.
+  bool get isInvalid => false;
+
   /// Return `true` if this object represents the value 'null'.
   bool get isNull => false;
 
@@ -2339,14 +2347,20 @@ class InvalidConstant implements Constant {
   /// The error code that is reported at the location of the [node].
   final ErrorCode errorCode;
 
+  /// The arguments required to complete the message.
+  final List<Object>? arguments;
+
   /// Additional context messages for the error, including stack trace
   /// information if the error occurs within a constructor.
   final List<DiagnosticMessage> contextMessages;
 
-  InvalidConstant(this.node, this.errorCode) : contextMessages = [];
+  /// Return `true` if the constant evaluation encounters an unresolved
+  /// expression.
+  final bool isUnresolved;
 
-  InvalidConstant.withContextMessages(
-      this.node, this.errorCode, this.contextMessages);
+  InvalidConstant(this.node, this.errorCode,
+      {this.arguments, this.isUnresolved = false})
+      : contextMessages = [];
 }
 
 /// The state of an object representing a list.
@@ -2509,6 +2523,13 @@ class MapState extends InstanceState {
 class NullState extends InstanceState {
   /// An instance representing the boolean value 'null'.
   static NullState NULL_STATE = NullState();
+
+  @override
+  final bool isInvalid;
+
+  NullState({
+    this.isInvalid = false,
+  });
 
   @override
   int get hashCode => 0;
