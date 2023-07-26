@@ -2297,6 +2297,9 @@ class DeserializedCodegenResults extends CodegenResults {
 
   @override
   CodegenResult getCodegenResults(MemberEntity member) {
-    return _map[member]!;
+    // We only access these results once as it is picked up by the work queue
+    // so it is safe to remove and free up space in the map. With deferred
+    // deserialization this will also free the Deferrable holder.
+    return _map.remove(member)!;
   }
 }
