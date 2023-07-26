@@ -46,7 +46,7 @@ def sdk_builder_category():
                 console_view = console,
             )
         luci.console_view_entry(
-            builder = "dart-internal:ci/debianpackage-linux-%s" % channel,
+            builder = "dart-internal:ci/debian-x64-%s" % channel,
             short_name = "dp",
             category = "sdk",
             console_view = console,
