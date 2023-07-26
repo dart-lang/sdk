@@ -111,9 +111,3 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 constants  {
   #C1 = null
 }
-
-Extra constant evaluation status:
-Evaluated: AsExpression @ org-dartlang-testcase:///issue52119.dart:21:24 -> IntConstant(42)
-Evaluated: AsExpression @ org-dartlang-testcase:///issue52119.dart:26:22 -> IntConstant(5)
-Evaluated: AsExpression @ org-dartlang-testcase:///issue52119.dart:27:30 -> StringConstant("foo")
-Extra constant evaluation: evaluated: 76, effectively constant: 3

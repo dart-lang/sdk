@@ -42,8 +42,3 @@ static method main() → void {
     }
   }
 }
-
-
-Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52667.dart:12:13 -> IntConstant(0)
-Extra constant evaluation: evaluated: 17, effectively constant: 1

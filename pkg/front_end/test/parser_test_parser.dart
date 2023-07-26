@@ -829,16 +829,17 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExtensionTypeDeclarationRest(
-      Token token, Token extensionKeyword, Token typeKeyword, Token name) {
+  Token parseExtensionTypeDeclarationRest(Token token, Token extensionKeyword,
+      Token typeKeyword, Token? constKeyword, Token name) {
     doPrint('parseExtensionTypeDeclarationRest('
         '$token, '
         '$extensionKeyword, '
         '$typeKeyword, '
+        '$constKeyword, '
         '$name)');
     indent++;
     var result = super.parseExtensionTypeDeclarationRest(
-        token, extensionKeyword, typeKeyword, name);
+        token, extensionKeyword, typeKeyword, constKeyword, name);
     indent--;
     return result;
   }

@@ -2177,8 +2177,10 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
-    listener?.endPrimaryConstructor(beginToken, hasConstructorName);
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    listener?.endPrimaryConstructor(
+        beginToken, constKeyword, hasConstructorName);
   }
 }
 

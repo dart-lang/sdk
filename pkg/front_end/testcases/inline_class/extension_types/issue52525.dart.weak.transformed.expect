@@ -21,8 +21,3 @@ static method main() → dynamic {
   self::IC1 ic1 = self::IC1|(1);
   core::print(ic1 as{Unchecked} core::int);
 }
-
-
-Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52525.dart:10:17 -> IntConstant(1)
-Extra constant evaluation: evaluated: 10, effectively constant: 1

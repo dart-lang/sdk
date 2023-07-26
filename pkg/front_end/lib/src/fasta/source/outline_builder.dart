@@ -1736,7 +1736,8 @@ class OutlineBuilder extends StackListenerImpl {
   void beginPrimaryConstructor(Token beginToken) {}
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
     assert(checkState(beginToken, [
       ValueKinds.FormalListOrNull,
       ValueKinds.Integer,
@@ -1779,7 +1780,8 @@ class OutlineBuilder extends StackListenerImpl {
         constructorName: constructorName == "new" ? "" : constructorName,
         charOffset: charOffset,
         formals: formals,
-        typeVariables: typeVariables);
+        typeVariables: typeVariables,
+        isConst: constKeyword != null);
   }
 
   ProcedureKind computeProcedureKind(Token? token) {

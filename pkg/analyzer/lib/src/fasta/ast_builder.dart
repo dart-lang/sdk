@@ -2800,7 +2800,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
+    // TODO(scheglov): Use the [constKeyword].
     final formalParameterList = pop() as FormalParameterListImpl;
     final leftParenthesis = formalParameterList.leftParenthesis;
 

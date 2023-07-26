@@ -294,10 +294,16 @@ class Listener implements UnescapeErrorListener {
   }
 
   /// Handle the end of a primary constructor declaration, currently only
-  /// occurring in extension type declarations.  Substructures:
+  /// occurring in extension type declarations. [constKeyword] is the 'const'
+  /// keyword, if present, in
+  ///
+  ///   extension type const ExtensionType() {}
+  ///
+  /// Substructures:
   /// - constructor name (if [hasConstructorName] is `true`)
   /// - formals
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
     logEvent('PrimaryConstructor');
   }
 
