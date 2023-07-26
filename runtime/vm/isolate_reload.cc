@@ -388,8 +388,10 @@ void InstanceMorpher::CreateMorphedCopies(Become* become) {
       if (from.box_cid == kIllegalCid) {
         // Boxed to boxed field migration.
         ASSERT(to.box_cid == kIllegalCid);
-        value = before.RawGetFieldAtOffset(from.offset);
-        after.RawSetFieldAtOffset(to.offset, value);
+        // No handle: raw_value might be a ForwardingCorpse for an object
+        // processed earlier in instance morphing
+        ObjectPtr raw_value = before.RawGetFieldAtOffset(from.offset);
+        after.RawSetFieldAtOffset(to.offset, raw_value);
       } else if (to.box_cid == kIllegalCid) {
         // Unboxed to boxed field migration.
         switch (from.box_cid) {

@@ -3934,6 +3934,47 @@ TEST_CASE(IsolateReload_ChangeInstanceFormat9) {
   EXPECT_ERROR(lib, "type parameters have changed");
 }
 
+TEST_CASE(IsolateReload_ShapeChangeMutualReference) {
+  const char* kScript =
+      "class A{\n"
+      "  var x;\n"
+      "  get yourself => this;\n"
+      "}\n"
+      "var retained1;\n"
+      "var retained2;\n"
+      "main() {\n"
+      "  retained1 = new A();\n"
+      "  retained2 = new A();\n"
+      "  retained1.x = retained2;\n"
+      "  retained2.x = retained1;\n"
+      "  return '${identical(retained1.x.yourself, retained2)}'\n"
+      "         '${identical(retained2.x.yourself, retained1)}';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
+
+  const char* kReloadScript =
+      "class A{\n"
+      "  var x;\n"
+      "  var y;\n"
+      "  var z;\n"
+      "  var w;\n"
+      "  get yourself => this;\n"
+      "}\n"
+      "var retained1;\n"
+      "var retained2;\n"
+      "main() {\n"
+      "  return '${identical(retained1.x.yourself, retained2)}'\n"
+      "         '${identical(retained2.x.yourself, retained1)}';\n"
+      "}\n";
+
+  lib = TestCase::ReloadTestScript(kReloadScript);
+  EXPECT_VALID(lib);
+  EXPECT_STREQ("truetrue", SimpleInvokeStr(lib, "main"));
+}
+
 TEST_CASE(IsolateReload_ShapeChangeRetainsHash) {
   const char* kScript =
       "class A{\n"

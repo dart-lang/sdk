@@ -8294,6 +8294,9 @@ class Instance : public Object {
   void RawSetFieldAtOffset(intptr_t offset, const Object& value) const {
     StoreCompressedPointer(RawFieldAddrAtOffset(offset), value.ptr());
   }
+  void RawSetFieldAtOffset(intptr_t offset, ObjectPtr value) const {
+    StoreCompressedPointer(RawFieldAddrAtOffset(offset), value);
+  }
 
   template <typename T>
   T* RawUnboxedFieldAddrAtOffset(intptr_t offset) const {
