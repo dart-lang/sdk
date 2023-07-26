@@ -46729,6 +46729,33 @@ class ExtensionTypeKeepLinkingTest extends ElementsBaseTest
 }
 
 mixin ExtensionTypeMixin on ElementsBaseTest {
+  test_constructor_const() async {
+    var library = await buildLibrary(r'''
+extension type const A(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @21
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @27
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          const @21
+            parameters
+              requiredPositional final this.it @27
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_constructor_named() async {
     var library = await buildLibrary(r'''
 extension type A.named(int it) {}

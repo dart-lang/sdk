@@ -351,7 +351,31 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_named() {
+  test_primaryConstructor_const() {
+    final parseResult = parseStringWithErrors(r'''
+extension type const A(int it) {}
+''');
+    parseResult.assertNoErrors();
+
+    final node = parseResult.findNode.singleExtensionTypeDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  constKeyword: const
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+    fieldName: it
+    rightParenthesis: )
+  leftBracket: {
+  rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_named() {
     final parseResult = parseStringWithErrors(r'''
 extension type A.named(int it) {}
 ''');
@@ -377,7 +401,7 @@ ExtensionTypeDeclaration
 ''');
   }
 
-  test_unnamed() {
+  test_primaryConstructor_unnamed() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(int it) {}
 ''');
