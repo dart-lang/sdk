@@ -1008,12 +1008,13 @@ class _ElementWriter {
   void _writeShouldUseTypeForInitializerInference(
     PropertyInducingElementImpl e,
   ) {
-    if (!e.isSynthetic) {
-      _sink.writelnWithIndent(
-        'shouldUseTypeForInitializerInference: '
-        '${e.shouldUseTypeForInitializerInference}',
-      );
-    }
+    if (e.isSynthetic) return;
+    if (!e.hasInitializer) return;
+
+    _sink.writelnWithIndent(
+      'shouldUseTypeForInitializerInference: '
+      '${e.shouldUseTypeForInitializerInference}',
+    );
   }
 
   void _writeSinceSdkVersion(Element e) {
