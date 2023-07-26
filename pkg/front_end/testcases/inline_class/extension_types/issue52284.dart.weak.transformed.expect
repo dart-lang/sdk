@@ -39,8 +39,3 @@ static method expect(dynamic expected, dynamic actual) → dynamic {
 constants  {
   #C1 = TypeLiteralConstant(core::int*)
 }
-
-Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52284.dart:8:11 -> IntConstant(2)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue52284.dart:13:11 -> IntConstant(2)
-Extra constant evaluation: evaluated: 18, effectively constant: 2

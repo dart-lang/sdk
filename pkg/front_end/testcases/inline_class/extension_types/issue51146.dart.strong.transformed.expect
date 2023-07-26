@@ -16,8 +16,3 @@ static method f(self::I<core::int, core::String> i) → void {}
 static method main() → void {
   self::f(self::I|<core::int, core::String>(2));
 }
-
-
-Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///issue51146.dart:10:5 -> IntConstant(2)
-Extra constant evaluation: evaluated: 6, effectively constant: 1

@@ -403,10 +403,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
     indent--;
     seen(beginToken);
-    doPrint('endPrimaryConstructor(' '$beginToken, ' '$hasConstructorName)');
+    seen(constKeyword);
+    doPrint('endPrimaryConstructor('
+        '$beginToken, '
+        '$constKeyword, '
+        '$hasConstructorName)');
   }
 
   @override

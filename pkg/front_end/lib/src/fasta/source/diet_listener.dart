@@ -1024,7 +1024,8 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasConstructorName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasConstructorName) {
     assert(checkState(beginToken, [
       /* formals begin token */ ValueKinds.Token,
       if (hasConstructorName) ValueKinds.NameOrParserRecovery,

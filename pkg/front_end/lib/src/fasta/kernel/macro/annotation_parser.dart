@@ -2374,7 +2374,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endPrimaryConstructor(Token beginToken, bool hasName) {
+  void endPrimaryConstructor(
+      Token beginToken, Token? constKeyword, bool hasName) {
     _unsupported();
   }
 }

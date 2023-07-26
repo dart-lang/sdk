@@ -2979,10 +2979,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {required String constructorName,
       required List<TypeVariableBuilder>? typeVariables,
       required List<FormalParameterBuilder>? formals,
-      required int charOffset}) {
+      required int charOffset,
+      required bool isConst}) {
     addConstructor(
         null,
-        constMask,
+        isConst ? constMask : 0,
         null,
         constructorName,
         typeVariables,

@@ -98,13 +98,3 @@ constants  {
   #C4 = instantiation #C3 <core::String>
   #C5 = instantiation #C3 <core::int>
 }
-
-Extra constant evaluation status:
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:12:15 -> IntConstant(3)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:13:11 -> IntConstant(4)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:17:15 -> StringConstant("foo")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:20:11 -> StringConstant("bar")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:23:11 -> IntConstant(42)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:26:11 -> IntConstant(87)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///constructor_access.dart:28:25 -> IntConstant(123)
-Extra constant evaluation: evaluated: 129, effectively constant: 7

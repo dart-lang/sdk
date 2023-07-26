@@ -2,8 +2,8 @@ extension type ExtensionType1(int it) {}
 extension type ExtensionType2(int it) implements ExtensionType1, int {}
 extension type ExtensionType3<T extends num>(T it) {}
 extension type ExtensionType4(int it) {
-  const ExtensionType4.constructor(this.it);
-  const ExtensionType4.redirect(int it) : this(it);
+  ExtensionType4.constructor(this.it);
+  ExtensionType4.redirect(int it) : this(it);
   factory ExtensionType4.fact(int it) => ExtensionType4(it);
   factory ExtensionType4.redirectingFactory(int it) = ExtensionType4;
 

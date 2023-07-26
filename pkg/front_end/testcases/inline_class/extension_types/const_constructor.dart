@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-extension type Class(int i) {
+extension type const Class(int i) {
   Class.named(this.i);
 
   const factory Class.redirect(int i) = Class;

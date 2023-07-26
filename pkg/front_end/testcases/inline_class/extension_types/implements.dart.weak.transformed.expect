@@ -477,10 +477,4 @@ Evaluated: InstanceInvocation @ org-dartlang-testcase:///implements.dart:95:12 -
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///implements.dart:97:12 -> IntConstant(9)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///implements.dart:98:12 -> IntConstant(46)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///implements.dart:99:12 -> IntConstant(127)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:10 -> IntConstant(0)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:16 -> StringConstant("0")
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:32 -> IntConstant(1)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:43 -> IntConstant(2)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:50 -> IntConstant(3)
-Evaluated: FactoryConstructorInvocation @ org-dartlang-testcase:///implements.dart:120:57 -> IntConstant(4)
-Extra constant evaluation: evaluated: 153, effectively constant: 15
+Extra constant evaluation: evaluated: 153, effectively constant: 9

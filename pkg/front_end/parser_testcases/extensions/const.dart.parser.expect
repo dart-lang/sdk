@@ -1,0 +1,7 @@
+NOTICE: Stream was rewritten by parser!
+
+extension on*synthetic*{}const Extension on ;int (){}
+
+
+extension[KeywordToken] on[SyntheticKeywordToken][SyntheticStringToken]{[SyntheticBeginToken]}[SyntheticToken]const[KeywordToken] Extension[StringToken] on[KeywordToken] ;[SyntheticToken]int[StringToken] ([SyntheticBeginToken])[SyntheticToken]{[BeginToken]}[SimpleToken]
+[SimpleToken]
