@@ -55,6 +55,14 @@ for the path package, even though it's a commonly used variable name. In code
 where there's a conflict, we prefix the variable name with an adjective to form
 a unique name, such as `filePath`.
 
+#### Extensions
+
+Public extensions (which are intended to be accessible outside their declaring
+library) are named in a consistent style. An extension on a class `Foo` is
+named `FooExtension`. While this can lead to long names (like
+`AnalysisOptionsImplExtension`), the extension name is rarely used (only in
+explicit extension overrides), and we value consistency.
+
 ## Styles we're discussing
 
 This section documents the styles we are currently discussing. The purpose
