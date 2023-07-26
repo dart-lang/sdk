@@ -837,7 +837,7 @@ void IsolateGroup::ExitTemporaryIsolate() {
   Dart::ShutdownIsolate(thread);
 }
 
-void IsolateGroup::RehashConstants(Become* become) {
+void IsolateGroup::RehashConstants() {
   // Even though no individual constant contains a cycle, there can be "cycles"
   // between the canonical tables if some const instances of A have fields that
   // are const instance of B and vice versa. So set all the old tables to the
@@ -872,7 +872,9 @@ void IsolateGroup::RehashConstants(Become* become) {
     }
 
     cls = class_table()->At(cid);
+
     if (cls.constants() == Array::null()) continue;
+
     old_constant_tables[cid] = &Array::Handle(zone, cls.constants());
     cls.set_constants(Object::null_array());
   }
@@ -881,12 +883,6 @@ void IsolateGroup::RehashConstants(Become* become) {
   heap()->ResetCanonicalHashTable();
 
   Instance& constant = Instance::Handle(zone);
-  Field& field = Field::Handle(zone);
-  String& name = String::Handle(zone);
-  Array& new_values = Array::Handle(zone);
-  Instance& old_value = Instance::Handle(zone);
-  Instance& new_value = Instance::Handle(zone);
-  Instance& deleted = Instance::Handle(zone);
   for (intptr_t cid = kInstanceCid; cid < num_cids; cid++) {
     Array* old_constants = old_constant_tables[cid];
     if (old_constants == nullptr) continue;
@@ -894,61 +890,14 @@ void IsolateGroup::RehashConstants(Become* become) {
     cls = class_table()->At(cid);
     CanonicalInstancesSet set(zone, old_constants->ptr());
     CanonicalInstancesSet::Iterator it(&set);
-
-    if (cls.is_enum_class() && (become != nullptr)) {
-      field = cls.LookupStaticField(Symbols::_DeletedEnumSentinel());
-      deleted ^= field.StaticConstFieldValue();
-      if (deleted.IsNull()) {
-        deleted = Instance::New(cls, Heap::kOld);
-        field = object_store()->enum_name_field();
-        name = cls.ScrubbedName();
-        name = Symbols::FromConcat(thread, Symbols::_DeletedEnumPrefix(), name);
-        deleted.SetField(field, name);
-        field = object_store()->enum_index_field();
-        new_value = Smi::New(-1);
-        deleted.SetField(field, new_value);
-        // The static const field contains `Object::null()` instead of
-        // `Object::sentinel()` - so it's not considered an initializing store.
-        field.SetStaticConstFieldValue(deleted,
-                                       /*assert_initializing_store*/ false);
-      }
-
-      field = cls.LookupField(Symbols::Values());
-      new_values ^= field.StaticConstFieldValue();
-
-      field = object_store()->enum_name_field();
-      while (it.MoveNext()) {
-        old_value ^= set.GetKey(it.Current());
-        ASSERT(old_value.GetClassId() == cid);
-        bool found = false;
-        for (intptr_t j = 0; j < new_values.Length(); j++) {
-          new_value ^= new_values.At(j);
-          ASSERT(new_value.GetClassId() == cid);
-          if (old_value.GetField(field) == new_value.GetField(field)) {
-            found = true;
-            break;
-          }
-        }
-        if (!found) {
-          new_value = deleted.ptr();
-        }
-
-        if (old_value.ptr() != new_value.ptr()) {
-          become->Add(old_value, new_value);
-        }
-        if (new_value.IsCanonical()) {
-          cls.InsertCanonicalConstant(zone, new_value);
-        }
-      }
-    } else {
-      while (it.MoveNext()) {
-        constant ^= set.GetKey(it.Current());
-        ASSERT(!constant.IsNull());
-        // Shape changes lose the canonical bit because they may result/ in
-        // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
-        DEBUG_ASSERT(constant.IsCanonical() || HasAttemptedReload());
-        cls.InsertCanonicalConstant(zone, constant);
-      }
+    while (it.MoveNext()) {
+      constant ^= set.GetKey(it.Current());
+      ASSERT(!constant.IsNull());
+      // Shape changes lose the canonical bit because they may result/ in
+      // merging constants. E.g., [x1, y1], [x1, y2] -> [x1].
+      DEBUG_ASSERT(constant.IsCanonical() ||
+                   IsolateGroup::Current()->HasAttemptedReload());
+      cls.InsertCanonicalConstant(zone, constant);
     }
     set.Release();
   }

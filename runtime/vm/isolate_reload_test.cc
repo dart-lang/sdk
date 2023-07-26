@@ -2367,57 +2367,27 @@ TEST_CASE(IsolateReload_EnumShapeChangeRemove) {
                SimpleInvokeStr(lib, "main"));
 }
 
-TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
+TEST_CASE(IsolateReload_EnumShapeChangeValues) {
   const char* kScript =
-      "class Box {\n"
-      "  final x;\n"
-      "  const Box(this.x);\n"
-      "}\n"
-      "enum Fruit {\n"
-      "  Apple('Apple', const Box('A')),\n"
-      "  Banana('Banana', const Box('B')),\n"
-      "  Cherry('Cherry', const Box('C')),\n"
-      "  Durian('Durian', const Box('D')),\n"
-      "  Elderberry('Elderberry', const Box('E')),\n"
-      "  Fig('Fig', const Box('F')),\n"
-      "  Grape('Grape', const Box('G')),\n"
-      "  Huckleberry('Huckleberry', const Box('H')),\n"
-      "  Jackfruit('Jackfruit', const Box('J'));\n"
-      "  const Fruit(this.name, this.initial);\n"
-      "  final String name;\n"
-      "  final Box initial;\n"
-      "}\n"
+      "enum Fruit { Apple, Banana }\n"
       "var retained;\n"
       "main() {\n"
-      "  retained = Fruit.Apple;\n"
+      "  retained = Fruit.values;\n"
       "  return retained.toString();\n"
       "}\n";
 
   Dart_Handle lib = TestCase::LoadTestScript(kScript, nullptr);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana]", SimpleInvokeStr(lib, "main"));
 
   const char* kReloadScript =
-      "class Box {\n"
-      "  final x;\n"
-      "  final y;\n"
-      "  final z;\n"
-      "  const Box(this.x, this.y, this.z);\n"
-      "}\n"
       "enum Fruit {\n"
-      "  Apple('Apple', const Box('A', 0, 0)),\n"
-      "  Banana('Banana', const Box('B', 0, 0)),\n"
-      "  Cherry('Cherry', const Box('C', 0, 0)),\n"
-      "  Durian('Durian', const Box('D', 0, 0)),\n"
-      "  Elderberry('Elderberry', const Box('E', 0, 0)),\n"
-      "  Fig('Fig', const Box('F', 0, 0)),\n"
-      "  Grape('Grape', const Box('G', 0, 0)),\n"
-      "  Huckleberry('Huckleberry', const Box('H', 0, 0)),\n"
-      "  Jackfruit('Jackfruit', const Box('J', 0, 0)),\n"
-      "  Lemon('Lemon', const Box('L', 0, 0));\n"
+      "  Apple('Apple', 'A'),\n"
+      "  Banana('Banana', 'B'),\n"
+      "  Cherry('Cherry', 'C');\n"
       "  const Fruit(this.name, this.initial);\n"
       "  final String name;\n"
-      "  final Box initial;\n"
+      "  final String initial;\n"
       "}\n"
       "var retained;\n"
       "main() {\n"
@@ -2426,7 +2396,8 @@ TEST_CASE(IsolateReload_EnumReferentShapeChangeAdd) {
 
   lib = TestCase::ReloadTestScript(kReloadScript);
   EXPECT_VALID(lib);
-  EXPECT_STREQ("Fruit.Apple", SimpleInvokeStr(lib, "main"));
+  EXPECT_STREQ("[Fruit.Apple, Fruit.Banana, Fruit.Cherry]",
+               SimpleInvokeStr(lib, "main"));
 }
 
 TEST_CASE(IsolateReload_ConstantIdentical) {
