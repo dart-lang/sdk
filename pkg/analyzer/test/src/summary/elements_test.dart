@@ -46950,6 +46950,37 @@ library
             returnType: InvalidType
 ''');
   }
+
+  test_typeParameters() async {
+    var library = await buildLibrary(r'''
+extension type A<T extends num, U>(Map<T, U> it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        typeParameters
+          covariant T @17
+            bound: num
+          covariant U @32
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @45
+            type: Map<T, U>
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @15
+            parameters
+              requiredPositional final this.it @45
+                type: Map<T, U>
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: Map<T, U>
+''');
+  }
 }
 
 @reflectiveTest
