@@ -846,7 +846,7 @@ class FileResolver {
 
     if (optionMap != null) {
       performance.run('applyToAnalysisOptions', (_) {
-        applyToAnalysisOptions(options, optionMap!);
+        options.applyOptions(optionMap!);
       });
     }
 

@@ -16,72 +16,6 @@ import 'package:analyzer/src/task/options.dart';
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:yaml/yaml.dart';
 
-/// Apply the options in the given [optionMap] to the given analysis
-/// [options].
-void applyToAnalysisOptions(AnalysisOptionsImpl options, YamlMap? optionMap) {
-  if (optionMap == null) {
-    return;
-  }
-  var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
-  if (analyzer is YamlMap) {
-    // Process strong mode option.
-    var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
-    options.applyStrongOptions(strongMode);
-
-    // Process filters.
-    var filters = analyzer.valueAt(AnalyzerOptions.errors);
-    options.errorProcessors = ErrorConfig(filters).processors;
-
-    // Process enabled experiments.
-    var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
-    if (experimentNames is YamlList) {
-      var enabledExperiments = <String>[];
-      for (var element in experimentNames.nodes) {
-        var experimentName = element.stringValue;
-        if (experimentName != null) {
-          enabledExperiments.add(experimentName);
-        }
-      }
-      options.contextFeatures = FeatureSet.fromEnableFlags2(
-        sdkLanguageVersion: ExperimentStatus.currentVersion,
-        flags: enabledExperiments,
-      );
-    }
-
-    // Process optional checks options.
-    var optionalChecks = analyzer.valueAt(AnalyzerOptions.optionalChecks);
-    options.applyOptionalChecks(optionalChecks);
-
-    // Process language options.
-    var language = analyzer.valueAt(AnalyzerOptions.language);
-    options.applyLanguageOptions(language);
-
-    // Process excludes.
-    var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
-    options.applyExcludes(excludes);
-
-    var cannotIgnore = analyzer.valueAt(AnalyzerOptions.cannotIgnore);
-    options.applyUnignorables(cannotIgnore);
-
-    // Process plugins.
-    var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
-    options.applyPlugins(plugins);
-  }
-
-  // Process the 'code-style' option.
-  var codeStyle = optionMap.valueAt(AnalyzerOptions.codeStyle);
-  options.codeStyleOptions = options.buildCodeStyleOptions(codeStyle);
-
-  var config = parseConfig(optionMap);
-  if (config != null) {
-    var lintRules = Registry.ruleRegistry.enabled(config);
-    if (lintRules.isNotEmpty) {
-      options.lint = true;
-      options.lintRules = lintRules.toList();
-    }
-  }
-}
-
 extension on YamlNode? {
   bool? get boolValue {
     var self = this;
@@ -255,5 +189,72 @@ extension on AnalysisOptionsImpl {
       }
     }
     return CodeStyleOptionsImpl(this, useFormatter: useFormatter);
+  }
+}
+
+extension AnalysisOptionsImplExtensions on AnalysisOptionsImpl {
+  /// Applies the options in the given [optionMap] to `this` analysis options.
+  void applyOptions(YamlMap? optionMap) {
+    if (optionMap == null) {
+      return;
+    }
+    var analyzer = optionMap.valueAt(AnalyzerOptions.analyzer);
+    if (analyzer is YamlMap) {
+      // Process strong mode option.
+      var strongMode = analyzer.valueAt(AnalyzerOptions.strongMode);
+      applyStrongOptions(strongMode);
+
+      // Process filters.
+      var filters = analyzer.valueAt(AnalyzerOptions.errors);
+      errorProcessors = ErrorConfig(filters).processors;
+
+      // Process enabled experiments.
+      var experimentNames = analyzer.valueAt(AnalyzerOptions.enableExperiment);
+      if (experimentNames is YamlList) {
+        var enabledExperiments = <String>[];
+        for (var element in experimentNames.nodes) {
+          var experimentName = element.stringValue;
+          if (experimentName != null) {
+            enabledExperiments.add(experimentName);
+          }
+        }
+        contextFeatures = FeatureSet.fromEnableFlags2(
+          sdkLanguageVersion: ExperimentStatus.currentVersion,
+          flags: enabledExperiments,
+        );
+      }
+
+      // Process optional checks options.
+      var optionalChecks = analyzer.valueAt(AnalyzerOptions.optionalChecks);
+      applyOptionalChecks(optionalChecks);
+
+      // Process language options.
+      var language = analyzer.valueAt(AnalyzerOptions.language);
+      applyLanguageOptions(language);
+
+      // Process excludes.
+      var excludes = analyzer.valueAt(AnalyzerOptions.exclude);
+      applyExcludes(excludes);
+
+      var cannotIgnore = analyzer.valueAt(AnalyzerOptions.cannotIgnore);
+      applyUnignorables(cannotIgnore);
+
+      // Process plugins.
+      var plugins = analyzer.valueAt(AnalyzerOptions.plugins);
+      applyPlugins(plugins);
+    }
+
+    // Process the 'code-style' option.
+    var codeStyle = optionMap.valueAt(AnalyzerOptions.codeStyle);
+    codeStyleOptions = buildCodeStyleOptions(codeStyle);
+
+    var config = parseConfig(optionMap);
+    if (config != null) {
+      var enabledRules = Registry.ruleRegistry.enabled(config);
+      if (enabledRules.isNotEmpty) {
+        lint = true;
+        lintRules = enabledRules.toList();
+      }
+    }
   }
 }

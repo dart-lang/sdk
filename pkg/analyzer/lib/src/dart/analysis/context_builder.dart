@@ -252,7 +252,7 @@ class ContextBuilderImpl implements ContextBuilder {
       try {
         var provider = AnalysisOptionsProvider(sourceFactory);
         var optionsMap = provider.getOptionsFromFile(optionsFile);
-        applyToAnalysisOptions(options, optionsMap);
+        options.applyOptions(optionsMap);
       } catch (e) {
         // ignore
       }

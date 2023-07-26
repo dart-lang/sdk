@@ -15,7 +15,6 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/lint/io.dart';
 import 'package:analyzer/src/lint/linter.dart';
-import 'package:yaml/yaml.dart';
 
 AnalysisOptionsProvider _optionsProvider = AnalysisOptionsProvider();
 
@@ -36,9 +35,8 @@ void _updateAnalyzerOptions(
   LinterOptions options,
 ) {
   if (options.analysisOptions != null) {
-    YamlMap map =
-        _optionsProvider.getOptionsFromString(options.analysisOptions);
-    applyToAnalysisOptions(analysisOptions, map);
+    var map = _optionsProvider.getOptionsFromString(options.analysisOptions);
+    analysisOptions.applyOptions(map);
   }
 
   analysisOptions.hint = false;

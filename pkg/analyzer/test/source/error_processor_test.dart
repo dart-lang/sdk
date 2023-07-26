@@ -172,7 +172,7 @@ class _TestContext {
 
   void configureOptions(String options) {
     final optionMap = AnalysisOptionsProvider().getOptionsFromString(options);
-    applyToAnalysisOptions(analysisOptions, optionMap);
+    analysisOptions.applyOptions(optionMap);
   }
 
   ErrorProcessor? getProcessor(AnalysisError error) {

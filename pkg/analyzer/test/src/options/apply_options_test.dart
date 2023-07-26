@@ -21,22 +21,24 @@ import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(ContextConfigurationTest);
+    defineReflectiveTests(ApplyOptionsTest);
     defineReflectiveTests(OptionsProviderTest);
   });
 }
 
 @reflectiveTest
-class ContextConfigurationTest {
+class ApplyOptionsTest {
   final AnalysisOptionsImpl analysisOptions = AnalysisOptionsImpl();
 
   final AnalysisOptionsProvider optionsProvider = AnalysisOptionsProvider();
 
   void configureContext(String optionsSource) =>
-      applyToAnalysisOptions(analysisOptions, parseOptions(optionsSource));
+      analysisOptions.applyOptions(parseOptions(optionsSource));
 
-  YamlMap parseOptions(String source) =>
-      optionsProvider.getOptionsFromString(source);
+  // TODO(srawlins): Add tests that exercise
+  // `optionsProvider.getOptionsFromString` throwing an exception.
+  YamlMap parseOptions(String content) =>
+      optionsProvider.getOptionsFromString(content);
 
   test_analyzer_cannotIgnore() {
     configureContext('''
@@ -81,7 +83,7 @@ analyzer:
   optional-checks:
     chrome-os-manifest-checks
 ''');
-    expect(true, analysisOptions.chromeOsManifestChecks);
+    expect(analysisOptions.chromeOsManifestChecks, true);
   }
 
   test_analyzer_chromeos_checks_map() {
@@ -90,7 +92,7 @@ analyzer:
   optional-checks:
     chrome-os-manifest-checks : true
 ''');
-    expect(true, analysisOptions.chromeOsManifestChecks);
+    expect(analysisOptions.chromeOsManifestChecks, true);
   }
 
   test_analyzer_errors_processors() {
@@ -328,9 +330,7 @@ linter:
 
   AnalysisOptions _getOptionsObject(String posixPath) {
     final map = provider.getOptions(getFolder(posixPath));
-    final options = AnalysisOptionsImpl();
-    applyToAnalysisOptions(options, map);
-    return options;
+    return AnalysisOptionsImpl()..applyOptions(map);
   }
 }
 
