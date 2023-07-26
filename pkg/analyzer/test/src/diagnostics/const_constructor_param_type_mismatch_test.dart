@@ -356,38 +356,6 @@ class B extends A<int> {
 const b = const B();
 ''');
   }
-
-  test_unknown_conditionalExpression_unknownCondition() async {
-    await assertNoErrorsInCode(r'''
-const bool kIsWeb = identical(0, 0.0);
-
-void f() {
-  const A(kIsWeb ? 0 : 1);
-}
-
-class A {
-  const A(int _);
-}
-''');
-  }
-
-  test_unknown_conditionalExpression_unknownCondition_errorInBranch() async {
-    await assertErrorsInCode(r'''
-const bool kIsWeb = identical(0, 0.0);
-
-void f() {
-  var x = 2;
-  const A(kIsWeb ? 0 : x);
-}
-
-class A {
-  const A(int _);
-}
-''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 74, 14),
-      error(CompileTimeErrorCode.INVALID_CONSTANT, 87, 1),
-    ]);
-  }
 }
 
 @reflectiveTest

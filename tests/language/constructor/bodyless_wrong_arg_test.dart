@@ -11,14 +11,12 @@ class C extends Base {
   const C(String s)
       // Call super constructor with wrong argument count.
       : super();
+      //     ^
+      // [cfe] Too few positional arguments: 1 required, 0 given.
       //      ^
       // [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-      //     ^^
-      // [cfe] Too few positional arguments: 1 required, 0 given.
 }
 
 main() {
   const C("str");
-//^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.CONST_EVAL_THROWS_EXCEPTION
 }

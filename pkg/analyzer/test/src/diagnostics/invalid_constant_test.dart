@@ -17,6 +17,37 @@ main() {
 @reflectiveTest
 class InvalidConstantTest extends PubPackageResolutionTest
     with InvalidConstantTestCases {
+  test_conditionalExpression_unknownCondition() async {
+    await assertNoErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+
+void f() {
+  const A(kIsWeb ? 0 : 1);
+}
+
+class A {
+  const A(int _);
+}
+''');
+  }
+
+  test_conditionalExpression_unknownCondition_errorInBranch() async {
+    await assertErrorsInCode('''
+const bool kIsWeb = identical(0, 0.0);
+
+void f() {
+  var x = 2;
+  const A(kIsWeb ? 0 : x);
+}
+
+class A {
+  const A(int _);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 87, 1),
+    ]);
+  }
+
   test_in_initializer_field_as() async {
     await assertNoErrorsInCode('''
 class C<T> {
