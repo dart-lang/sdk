@@ -84,7 +84,7 @@ With the mutator and marker running concurrently, the mutator could write a poin
 The barrier is equivalent to
 
 ```c++
-StorePoint(RawObject* source, RawObject** slot, RawObject* target) {
+StorePointer(ObjectPtr source, ObjectPtr* slot, ObjectPtr target) {
   *slot = target;
   if (target->IsSmi()) return;
   if (source->IsOldObject() && !source->IsRemembered() && target->IsNewObject()) {
@@ -116,7 +116,7 @@ static constexpr intptr_t kBarrierOverlapShift = 2;
 COMPILE_ASSERT(kOldAndNotMarkedBit + kBarrierOverlapShift == kOldBit);
 COMPILE_ASSERT(kNewBit + kBarrierOverlapShift == kOldAndNotRememberedBit);
 
-StorePointer(RawObject* source, RawObject** slot, RawObject* target) {
+StorePointer(ObjectPtr source, ObjectPtr* slot, ObjectPtr target) {
   *slot = target;
   if (target->IsSmi()) return;
   if ((source->header() >> kBarrierOverlapShift) &&

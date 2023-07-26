@@ -2664,8 +2664,8 @@ class ObjectGraphCopier : public StackResource {
     Handlify(&fast_object_copy_.fast_forward_map_.raw_expandos_to_rehash_,
              &slow_object_copy_.slow_forward_map_.expandos_to_rehash_);
   }
-  template <typename RawType, typename HandleType>
-  void Handlify(GrowableArray<RawType>* from,
+  template <typename PtrType, typename HandleType>
+  void Handlify(GrowableArray<PtrType>* from,
                 GrowableArray<const HandleType*>* to) {
     const auto length = from->length();
     if (length > 0) {

@@ -26125,7 +26125,7 @@ TypedDataViewPtr TypedDataBase::ViewFromTo(intptr_t start,
 }
 
 const char* TypedDataBase::ToCString() const {
-  // There are no instances of RawTypedDataBase.
+  // There are no instances of UntaggedTypedDataBase.
   UNREACHABLE();
   return nullptr;
 }

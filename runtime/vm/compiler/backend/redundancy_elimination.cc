@@ -550,10 +550,11 @@ class Place : public ValueObject {
       const intptr_t index_value = Smi::Cast(index_constant->value()).Value();
       const ElementSize size = ElementSizeFor(class_id);
       const bool is_typed_access = (size != kNoSize);
-      // Indexing into [RawTypedDataView]/[RawExternalTypedData happens via a
-      // untagged load of the `_data` field (which points to C memory).
+      // Indexing into [UntaggedTypedDataView]/[UntaggedExternalTypedData
+      // happens via a untagged load of the `_data` field (which points to C
+      // memory).
       //
-      // Indexing into dart:ffi's [RawPointer] happens via loading of the
+      // Indexing into dart:ffi's [UntaggedPointer] happens via loading of the
       // `c_memory_address_`, converting it to an integer, doing some arithmetic
       // and finally using IntConverterInstr to convert to a untagged
       // representation.

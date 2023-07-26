@@ -760,7 +760,7 @@ class Object {
   // Start of field mutator guards.
   //
   // All writes to heap objects should ultimately pass through one of the
-  // methods below or their counterparts in RawObject, to ensure that the
+  // methods below or their counterparts in UntaggedObject, to ensure that the
   // write barrier is correctly applied.
 
   template <typename type, std::memory_order order = std::memory_order_relaxed>

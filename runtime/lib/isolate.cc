@@ -126,7 +126,7 @@ DEFINE_NATIVE_ENTRY(SendPort_sendInternal_, 0, 2) {
 class UntaggedObjectPtrSetTraits {
  public:
   static bool ReportStats() { return false; }
-  static const char* Name() { return "RawObjectPtrSetTraits"; }
+  static const char* Name() { return "UntaggedObjectPtrSetTraits"; }
 
   static bool IsMatch(const ObjectPtr a, const ObjectPtr b) { return a == b; }
 
