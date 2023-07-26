@@ -308,21 +308,7 @@ template <int Size, typename T>
 class LocalBlockWorkList : public ValueObject {
  public:
   LocalBlockWorkList() { head_ = new PointerBlock<Size>(); }
-  ~LocalBlockWorkList() { delete head_; }
-
-  template <typename Lambda>
-  DART_FORCE_INLINE void Finalize(Lambda action) {
-    auto* block = head_;
-    head_ = nullptr;
-    while (block != nullptr) {
-      while (!block->IsEmpty()) {
-        action(static_cast<T>(block->Pop()));
-      }
-      auto* next = block->next();
-      delete block;
-      block = next;
-    }
-  }
+  ~LocalBlockWorkList() { ASSERT(head_ == nullptr); }
 
   template <typename Lambda>
   DART_FORCE_INLINE void Process(Lambda action) {
@@ -347,12 +333,22 @@ class LocalBlockWorkList : public ValueObject {
     head_->Push(obj);
   }
 
+  void Finalize() {
+    ASSERT(head_ != nullptr);
+    ASSERT(head_->IsEmpty());
+    delete head_;
+    head_ = nullptr;
+  }
+
   void AbandonWork() {
-    while (head_ != nullptr) {
-      PointerBlock<Size>* next = head_->next_;
-      head_->Reset();
-      delete head_;
-      head_ = next;
+    ASSERT(head_ != nullptr);
+    auto* block = head_;
+    head_ = nullptr;
+    while (block != nullptr) {
+      auto* next = block->next_;
+      block->Reset();
+      delete block;
+      block = next;
     }
   }
 
