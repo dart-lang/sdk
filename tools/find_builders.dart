@@ -27,12 +27,13 @@ Future<void> main(List<String> args) async {
     for (final testName in testNames) ...await _testGetConfigurations(testName),
   });
   final configurationBuilders = await _configurationBuilders();
-  final builders = {
-    for (final config in configurations) configurationBuilders[config]
-  }.toList()
+  final builders = _filterBuilders(
+    {for (final config in configurations) configurationBuilders[config]!},
+  ).toList()
     ..sort();
 
-  print('Cq-Include-Trybots: luci.dart.try:${builders.join(',')}');
+  final gerritTryList = builders.map((b) => '$b-try').join(',');
+  print('Cq-Include-Trybots: luci.dart.try:$gerritTryList');
 }
 
 Future<List<String>> _testGetConfigurations(String testName) async {
@@ -73,9 +74,18 @@ Iterable<String> _filterConfigurations(Set<String> configs) {
   return result..sort();
 }
 
+Iterable<String> _filterBuilders(Iterable<String> builders) {
+  return builders.where((b) => !_ciOnlyBuilders.contains(b));
+}
+
+const _ciOnlyBuilders = {
+  'vm-aot-linux-release-arm64',
+  'vm-linux-release-arm64',
+};
+
 Stream<Map<String, dynamic>> _configurationDocuments() async* {
   String? nextPageToken;
-  while (true) {
+  do {
     final requestUrl = Uri(
       scheme: 'https',
       host: 'firestore.googleapis.com',
@@ -91,10 +101,7 @@ Stream<Map<String, dynamic>> _configurationDocuments() async* {
         object['documents'].cast<Map<String, dynamic>>());
 
     nextPageToken = object['nextPageToken'];
-    if (nextPageToken == null) {
-      break;
-    }
-  }
+  } while (nextPageToken != null);
 }
 
 Future<Map<String, String>> _configurationBuilders() async {
