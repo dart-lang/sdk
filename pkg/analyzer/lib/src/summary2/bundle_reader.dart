@@ -330,6 +330,27 @@ class ExtensionElementLinkedData
   }
 }
 
+class ExtensionTypeElementLinkedData
+    extends ElementLinkedData<ExtensionTypeElementImpl> {
+  ApplyConstantOffsets? applyConstantOffsets;
+
+  ExtensionTypeElementLinkedData({
+    required Reference reference,
+    required LibraryReader libraryReader,
+    required CompilationUnitElementImpl unitElement,
+    required int offset,
+  }) : super(reference, libraryReader, unitElement, offset);
+
+  @override
+  void _read(element, reader) {
+    element.metadata = reader._readAnnotationList(
+      unitElement: element.enclosingElement2,
+    );
+    _readTypeParameters(reader, element.typeParameters);
+    applyConstantOffsets?.perform();
+  }
+}
+
 class FieldElementLinkedData extends ElementLinkedData<FieldElementImpl> {
   ApplyConstantOffsets? applyConstantOffsets;
 
@@ -927,6 +948,51 @@ class LibraryReader {
   ) {
     unitElement.extensions = _reader.readTypedList(() {
       return _readExtensionElement(unitElement, unitReference);
+    });
+  }
+
+  ExtensionTypeElementImpl _readExtensionTypeElement(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    final resolutionOffset = _baseResolutionOffset + _reader.readUInt30();
+    final name = _reader.readStringReference();
+    final containerRef = unitReference.getChild('@extensionType');
+    final reference = containerRef.getChild(name);
+
+    final element = ExtensionTypeElementImpl(name, -1);
+    element.setLinkedData(
+      reference,
+      ExtensionTypeElementLinkedData(
+        reference: reference,
+        libraryReader: this,
+        unitElement: unitElement,
+        offset: resolutionOffset,
+      ),
+    );
+
+    element.typeParameters = _readTypeParameters();
+
+    final fields = <FieldElementImpl>[];
+    final accessors = <PropertyAccessorElementImpl>[];
+    _readFields(unitElement, element, reference, accessors, fields);
+    _readPropertyAccessors(
+        unitElement, element, reference, accessors, fields, '@field');
+    element.fields = fields;
+    element.accessors = accessors;
+
+    element.constructors = _readConstructors(unitElement, element, reference);
+    element.methods = _readMethods(unitElement, element, reference);
+
+    return element;
+  }
+
+  void _readExtensionTypes(
+    CompilationUnitElementImpl unitElement,
+    Reference unitReference,
+  ) {
+    unitElement.extensionTypes = _reader.readTypedList(() {
+      return _readExtensionTypeElement(unitElement, unitReference);
     });
   }
 
@@ -1546,6 +1612,7 @@ class LibraryReader {
     _readClasses(unitElement, unitReference);
     _readEnums(unitElement, unitReference);
     _readExtensions(unitElement, unitReference);
+    _readExtensionTypes(unitElement, unitReference);
     _readFunctions(unitElement, unitReference);
     _readMixins(unitElement, unitReference);
     _readTypeAliases(unitElement, unitReference);

@@ -117,6 +117,20 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    node.metadata.accept(this);
+    node.typeParameters?.accept(this);
+    node.representation.accept(this);
+
+    _scope = LinkingNodeContext.get(node).scope;
+    try {
+      node.members.accept(this);
+    } finally {
+      _scope = _libraryScope;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     node.metadata.accept(this);
   }
@@ -218,6 +232,11 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitPartOfDirective(PartOfDirective node) {
     node.metadata.accept(this);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    node.fieldMetadata.accept(this);
   }
 
   @override

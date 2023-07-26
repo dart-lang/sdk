@@ -498,6 +498,30 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
+  void _writeExtensionTypeElement(ExtensionTypeElement e) {
+    _sink.writeIndentedLine(() {
+      _writeName(e);
+    });
+
+    _sink.withIndent(() {
+      _writeDocumentation(e);
+      _writeMetadata(e);
+      _writeSinceSdkVersion(e);
+      _writeCodeRange(e);
+      _writeTypeParameterElements(e.typeParameters);
+    });
+
+    _sink.withIndent(() {
+      _elementPrinter.writeNamedElement('representation', e.representation);
+      _writeElements('fields', e.fields, _writePropertyInducingElement);
+      _writeElements('constructors', e.constructors, _writeConstructorElement);
+      _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
+      _writeMethods(e.methods);
+    });
+
+    _assertNonSyntheticElementSelf(e);
+  }
+
   void _writeFieldFormalParameterField(ParameterElement e) {
     if (e is FieldFormalParameterElement) {
       var field = e.field;
@@ -1115,6 +1139,11 @@ class _ElementWriter {
     _writeElements('classes', e.classes, _writeInterfaceElement);
     _writeElements('enums', e.enums, _writeInterfaceElement);
     _writeElements('extensions', e.extensions, _writeExtensionElement);
+    _writeElements(
+      'extensionTypes',
+      e.extensionTypes,
+      _writeExtensionTypeElement,
+    );
     _writeElements('mixins', e.mixins, _writeInterfaceElement);
     _writeElements('typeAliases', e.typeAliases, _writeTypeAliasElement);
     _writeElements(

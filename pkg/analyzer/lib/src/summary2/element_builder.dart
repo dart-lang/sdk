@@ -9,6 +9,7 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
@@ -50,6 +51,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _unitElement.classes = _enclosingContext.classes;
     _unitElement.enums = _enclosingContext.enums;
     _unitElement.extensions = _enclosingContext.extensions;
+    _unitElement.extensionTypes = _enclosingContext.extensionTypes;
     _unitElement.functions = _enclosingContext.functions;
     _unitElement.mixins = _enclosingContext.mixins;
     _unitElement.topLevelVariables = _enclosingContext.topLevelVariables;
@@ -469,6 +471,46 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     }
 
     node.extendedType.accept(this);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final nameToken = node.name;
+    final name = nameToken.lexeme;
+
+    final element = ExtensionTypeElementImpl(name, nameToken.offset);
+    element.metadata = _buildAnnotations(node.metadata);
+    _setCodeRange(element, node);
+    _setDocumentation(element, node);
+
+    node.declaredElement = element;
+    _linker.elementNodes[element] = node;
+
+    final reference = _enclosingContext.addExtensionType(name, element);
+    if (!element.isAugmentation) {
+      _libraryBuilder.declare(name, reference);
+    }
+
+    final holder = _EnclosingContext(reference, element);
+    _withEnclosing(holder, () {
+      node.typeParameters?.accept(this);
+      _builtRepresentationDeclaration(
+        extensionTypeNode: node,
+        extensionTypeElement: element,
+        representation: node.representation,
+      );
+      _visitPropertyFirst<FieldDeclaration>(node.members);
+    });
+
+    element.accessors = holder.propertyAccessors;
+    element.constructors = holder.constructors;
+    element.fields = holder.fields;
+    element.methods = holder.methods;
+    element.typeParameters = holder.typeParameters;
+
+    node.implementsClause?.accept(this);
   }
 
   @override
@@ -1298,6 +1340,76 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     node?.accept(this);
   }
 
+  void _builtRepresentationDeclaration({
+    required ExtensionTypeDeclarationImpl extensionTypeNode,
+    required ExtensionTypeElementImpl extensionTypeElement,
+    required RepresentationDeclarationImpl representation,
+  }) {
+    final fieldNameToken = representation.fieldName;
+    final fieldName = fieldNameToken.lexeme.ifNotEmptyOrElse('<empty>');
+    final fieldElement = FieldElementImpl(
+      fieldName,
+      fieldNameToken.offset,
+    );
+    fieldElement.isFinal = true;
+    fieldElement.metadata = _buildAnnotations(representation.fieldMetadata);
+
+    final fieldBeginToken =
+        representation.fieldMetadata.beginToken ?? representation.fieldType;
+    final fieldCodeRangeOffset = fieldBeginToken.offset;
+    final fieldCodeRangeLength = fieldNameToken.end - fieldCodeRangeOffset;
+    fieldElement.setCodeRange(fieldCodeRangeOffset, fieldCodeRangeLength);
+
+    representation.fieldElement = fieldElement;
+    _linker.elementNodes[fieldElement] = representation;
+    _enclosingContext.addNonSyntheticField(fieldElement);
+
+    final fieldFormalParameterElement = FieldFormalParameterElementImpl(
+      name: fieldName,
+      nameOffset: fieldNameToken.offset,
+      parameterKind: ParameterKind.REQUIRED,
+    );
+    fieldFormalParameterElement
+      ..field = fieldElement
+      ..hasImplicitType = true;
+    fieldFormalParameterElement.setCodeRange(
+      fieldCodeRangeOffset,
+      fieldCodeRangeLength,
+    );
+
+    final ConstructorElementImpl constructorElement;
+    {
+      final String name;
+      int? periodOffset;
+      int nameOffset;
+      int? nameEnd;
+      final constructorNameNode = representation.constructorName;
+      if (constructorNameNode != null) {
+        final nameToken = constructorNameNode.name;
+        name = nameToken.lexeme.ifEqualThen('new', '');
+        periodOffset = constructorNameNode.period.offset;
+        nameOffset = nameToken.offset;
+        nameEnd = nameToken.end;
+      } else {
+        name = '';
+        nameOffset = extensionTypeNode.name.offset;
+      }
+
+      constructorElement = ConstructorElementImpl(name, nameOffset);
+      constructorElement
+        ..nameEnd = nameEnd
+        ..parameters = [fieldFormalParameterElement]
+        ..periodOffset = periodOffset;
+      _setCodeRange(constructorElement, representation);
+
+      representation.constructorElement = constructorElement;
+      _linker.elementNodes[constructorElement] = representation;
+      _enclosingContext.addConstructor(constructorElement);
+    }
+
+    representation.fieldType.accept(this);
+  }
+
   void _resolveConstructorFieldFormals(InterfaceElementImpl element) {
     for (var constructor in element.constructors) {
       for (var parameter in constructor.parameters) {
@@ -1395,6 +1507,7 @@ class _EnclosingContext {
   final List<ConstructorElementImpl> _constructors = [];
   final List<EnumElementImpl> _enums = [];
   final List<ExtensionElementImpl> _extensions = [];
+  final List<ExtensionTypeElementImpl> _extensionTypes = [];
   final List<FieldElementImpl> _fields = [];
   final List<FunctionElementImpl> _functions = [];
   final List<MethodElementImpl> _methods = [];
@@ -1433,6 +1546,10 @@ class _EnclosingContext {
 
   List<ExtensionElementImpl> get extensions {
     return _extensions.toFixedList();
+  }
+
+  List<ExtensionTypeElementImpl> get extensionTypes {
+    return _extensionTypes.toFixedList();
   }
 
   List<FieldElementImpl> get fields {
@@ -1498,6 +1615,11 @@ class _EnclosingContext {
   Reference addExtension(String name, ExtensionElementImpl element) {
     _extensions.add(element);
     return _bindReference('@extension', name, element);
+  }
+
+  Reference addExtensionType(String name, ExtensionTypeElementImpl element) {
+    _extensionTypes.add(element);
+    return _bindReference('@extensionType', name, element);
   }
 
   Reference addField(String name, FieldElementImpl element) {

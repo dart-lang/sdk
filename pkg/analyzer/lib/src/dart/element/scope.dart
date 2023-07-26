@@ -89,7 +89,7 @@ class FormalParameterScope extends EnclosedScope {
 
 /// The scope defined by an interface element.
 class InterfaceScope extends EnclosedScope {
-  InterfaceScope(super.parent, InterfaceElement element) {
+  InterfaceScope(super.parent, InstanceElement element) {
     final augmented = element.augmented;
     if (augmented != null) {
       augmented.accessors.forEach(_addPropertyAccessor);

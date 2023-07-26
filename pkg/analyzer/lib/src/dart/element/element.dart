@@ -111,8 +111,8 @@ class AugmentedEnumElementImpl extends AugmentedInterfaceElementImpl
 class AugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
     implements AugmentedExtensionElement {}
 
-class AugmentedInlineClassElementImpl extends AugmentedNamedInstanceElementImpl
-    implements AugmentedInlineClassElement {}
+class AugmentedExtensionTypeElementImpl extends AugmentedInterfaceElementImpl
+    implements AugmentedExtensionTypeElement {}
 
 abstract class AugmentedInstanceElementImpl
     implements AugmentedInstanceElement {
@@ -740,6 +740,8 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   /// unit.
   List<ExtensionElementImpl> _extensions = const [];
 
+  List<ExtensionTypeElementImpl> _extensionTypes = const [];
+
   /// A list containing all of the top-level functions contained in this
   /// compilation unit.
   List<FunctionElementImpl> _functions = const [];
@@ -842,6 +844,18 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
       extension.enclosingElement = this;
     }
     _extensions = extensions;
+  }
+
+  @override
+  List<ExtensionTypeElementImpl> get extensionTypes {
+    return _extensionTypes;
+  }
+
+  set extensionTypes(List<ExtensionTypeElementImpl> elements) {
+    for (final element in elements) {
+      element.enclosingElement = this;
+    }
+    _extensionTypes = elements;
   }
 
   @override
@@ -3022,6 +3036,32 @@ class ExtensionElementImpl extends InstanceElementImpl
   }
 }
 
+class ExtensionTypeElementImpl extends InterfaceElementImpl
+    with _HasAugmentation<ExtensionTypeElementImpl>
+    implements ExtensionTypeElement {
+  ExtensionTypeElementImpl(super.name, super.nameOffset);
+
+  @override
+  AugmentedExtensionTypeElement? get augmented {
+    // TODO(scheglov) implement
+    return NotAugmentedExtensionTypeElementImpl(this);
+  }
+
+  @override
+  ElementKind get kind {
+    return ElementKind.EXTENSION_TYPE;
+  }
+
+  @override
+  FieldElementImpl get representation => fields.first;
+
+  @override
+  T? accept<T>(ElementVisitor<T> visitor) {
+    // TODO(scheglov) implement
+    throw UnimplementedError();
+  }
+}
+
 /// A concrete implementation of a [FieldElement].
 class FieldElementImpl extends PropertyInducingElementImpl
     with HasCompletionData
@@ -3337,59 +3377,6 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
   ImportElementPrefixImpl({
     required this.element,
   });
-}
-
-class InlineClassElementImpl extends NamedInstanceElementImpl
-    implements InlineClassElement {
-  InlineClassElementImpl(super.name, super.nameOffset);
-
-  @override
-  Never get augmentation {
-    // TODO: implement augmentation
-    throw UnimplementedError();
-  }
-
-  @override
-  // TODO: implement augmentationTarget
-  InlineClassElementImpl? get augmentationTarget => throw UnimplementedError();
-
-  @override
-  AugmentedInlineClassElement? get augmented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  List<InlineClassType> get implemented {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  ElementKind get kind {
-    return ElementKind.INLINE_CLASS;
-  }
-
-  @override
-  InlineClassType get thisType {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  T? accept<T>(ElementVisitor<T> visitor) {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  }) {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
-  }
 }
 
 abstract class InstanceElementImpl extends _ExistingElementImpl
@@ -5556,16 +5543,16 @@ class NotAugmentedExtensionElementImpl extends AugmentedInstanceElementImpl
   NotAugmentedExtensionElementImpl(this.element);
 }
 
-class NotAugmentedInlineClassElementImpl
-    extends NotAugmentedNamedInstanceElementImpl
-    implements AugmentedInlineClassElement {
+class NotAugmentedExtensionTypeElementImpl
+    extends NotAugmentedInterfaceElementImpl
+    implements AugmentedExtensionTypeElement {
   @override
-  final InlineClassElementImpl element;
+  final ExtensionTypeElementImpl element;
 
-  NotAugmentedInlineClassElementImpl(this.element);
+  NotAugmentedExtensionTypeElementImpl(this.element);
 
   @override
-  InlineClassElementImpl get declaration => element;
+  ExtensionTypeElementImpl get declaration => element;
 }
 
 abstract class NotAugmentedInstanceElementImpl

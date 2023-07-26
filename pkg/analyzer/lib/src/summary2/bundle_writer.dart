@@ -325,6 +325,29 @@ class BundleWriter {
     });
   }
 
+  void _writeExtensionTypeElement(ExtensionTypeElementImpl element) {
+    _sink.writeUInt30(_resolutionSink.offset);
+
+    _sink._writeStringReference(element.name);
+    _resolutionSink._writeAnnotationList(element.metadata);
+
+    _writeTypeParameters(element.typeParameters, () {
+      // TODO(scheglov) implement
+      // _resolutionSink._writeTypeList(element.implementedExtensionTypes);
+      // _resolutionSink._writeTypeList(element.implementedInterfaceTypes);
+      _writeList(
+        element.fields.where((e) => !e.isSynthetic).toList(),
+        _writeFieldElement,
+      );
+      _writeList(
+        element.accessors.where((e) => !e.isSynthetic).toList(),
+        _writePropertyAccessorElement,
+      );
+      _writeList(element.constructors, _writeConstructorElement);
+      _writeList(element.methods, _writeMethodElement);
+    });
+  }
+
   void _writeFeatureSet(FeatureSet featureSet) {
     var experimentStatus = featureSet as ExperimentStatus;
     var encoded = experimentStatus.toStorage();
@@ -589,6 +612,7 @@ class BundleWriter {
     _writeList(unitElement.classes, _writeClassElement);
     _writeList(unitElement.enums, _writeEnumElement);
     _writeList(unitElement.extensions, _writeExtensionElement);
+    _writeList(unitElement.extensionTypes, _writeExtensionTypeElement);
     _writeList(unitElement.functions, _writeFunctionElement);
     _writeList(unitElement.mixins, _writeMixinElement);
     _writeList(unitElement.typeAliases, _writeTypeAliasElement);
