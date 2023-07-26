@@ -484,55 +484,6 @@ abstract class ConstantEvaluationTarget extends AnalysisTarget {
   LibraryElement? get library;
 }
 
-/// Interface used by unit tests to verify correct dependency analysis during
-/// constant evaluation.
-abstract class ConstantEvaluationValidator {
-  /// This method is called just before computing the constant value associated
-  /// with [constant]. Unit tests will override this method to introduce
-  /// additional error checking.
-  void beforeComputeValue(ConstantEvaluationTarget constant);
-
-  /// This method is called just before getting the constant initializers
-  /// associated with the [constructor]. Unit tests will override this method to
-  /// introduce additional error checking.
-  void beforeGetConstantInitializers(ConstructorElement constructor);
-
-  /// This method is called just before retrieving an evaluation result from an
-  /// element. Unit tests will override it to introduce additional error
-  /// checking.
-  void beforeGetEvaluationResult(ConstantEvaluationTarget constant);
-
-  /// This method is called just before getting the constant value of a field
-  /// with an initializer.  Unit tests will override this method to introduce
-  /// additional error checking.
-  void beforeGetFieldEvaluationResult(FieldElementImpl field);
-
-  /// This method is called just before getting a parameter's default value.
-  /// Unit tests will override this method to introduce additional error
-  /// checking.
-  void beforeGetParameterDefault(ParameterElement parameter);
-}
-
-/// Implementation of [ConstantEvaluationValidator] used in production; does no
-/// validation.
-class ConstantEvaluationValidator_ForProduction
-    implements ConstantEvaluationValidator {
-  @override
-  void beforeComputeValue(ConstantEvaluationTarget constant) {}
-
-  @override
-  void beforeGetConstantInitializers(ConstructorElement constructor) {}
-
-  @override
-  void beforeGetEvaluationResult(ConstantEvaluationTarget constant) {}
-
-  @override
-  void beforeGetFieldEvaluationResult(FieldElementImpl field) {}
-
-  @override
-  void beforeGetParameterDefault(ParameterElement parameter) {}
-}
-
 /// A visitor used to evaluate constant expressions to produce their
 /// compile-time value.
 class ConstantVisitor extends UnifyingAstVisitor<Constant> {

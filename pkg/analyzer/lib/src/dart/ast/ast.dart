@@ -6709,9 +6709,8 @@ abstract final class ExtensionTypeDeclaration
   /// The 'const' keyword.
   Token? get constKeyword;
 
-  /// TODO(scheglov) use actual element type
   @override
-  Element? get declaredElement;
+  ExtensionTypeElement? get declaredElement;
 
   /// The 'extension' keyword.
   Token get extensionKeyword;
@@ -6768,7 +6767,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
   final Token rightBracket;
 
   @override
-  Element? declaredElement;
+  ExtensionTypeElementImpl? declaredElement;
 
   ExtensionTypeDeclarationImpl({
     required super.comment,

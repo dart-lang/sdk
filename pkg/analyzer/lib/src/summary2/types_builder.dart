@@ -186,6 +186,8 @@ class TypesBuilder {
       _enumDeclaration(node);
     } else if (node is ExtensionDeclaration) {
       _extensionDeclaration(node);
+    } else if (node is ExtensionTypeDeclarationImpl) {
+      _extensionTypeDeclaration(node);
     } else if (node is FieldFormalParameter) {
       _fieldFormalParameter(node);
     } else if (node is FunctionDeclaration) {
@@ -254,6 +256,17 @@ class TypesBuilder {
   void _extensionDeclaration(ExtensionDeclaration node) {
     var element = node.declaredElement as ExtensionElementImpl;
     element.extendedType = node.extendedType.typeOrThrow;
+  }
+
+  void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
+    final element = node.declaredElement!;
+    final type = node.representation.fieldType.typeOrThrow;
+    element.representation.type = type;
+
+    final primaryConstructor = element.constructors.first;
+    final primaryFormalParameter = primaryConstructor.parameters.first;
+    primaryFormalParameter as FieldFormalParameterElementImpl;
+    primaryFormalParameter.type = type;
   }
 
   void _fieldFormalParameter(FieldFormalParameter node) {

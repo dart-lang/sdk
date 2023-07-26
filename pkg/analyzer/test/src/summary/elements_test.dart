@@ -19,10 +19,12 @@ import 'elements_base.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ElementsKeepLinkingTest);
-    defineReflectiveTests(ClassAugmentationElementsKeepLinkingTest);
-    defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(ElementsFromBytesTest);
+    defineReflectiveTests(ClassAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(ClassAugmentationElementsFromBytesTest);
+    defineReflectiveTests(ExtensionTypeKeepLinkingTest);
+    defineReflectiveTests(ExtensionTypeFromBytesTest);
+    defineReflectiveTests(MixinAugmentationElementsKeepLinkingTest);
     defineReflectiveTests(MixinAugmentationElementsFromBytesTest);
     defineReflectiveTests(UpdateNodeTextExpectations);
   });
@@ -46709,6 +46711,217 @@ library
     final libraryResult = await analysisSession.getLibraryByUri(uriStr);
     libraryResult as LibraryElementResult;
     return libraryResult.element as LibraryElementImpl;
+  }
+}
+
+@reflectiveTest
+class ExtensionTypeFromBytesTest extends ElementsBaseTest
+    with ExtensionTypeMixin {
+  @override
+  bool get keepLinkingLibraries => false;
+}
+
+@reflectiveTest
+class ExtensionTypeKeepLinkingTest extends ElementsBaseTest
+    with ExtensionTypeMixin {
+  @override
+  bool get keepLinkingLibraries => true;
+}
+
+mixin ExtensionTypeMixin on ElementsBaseTest {
+  test_constructor_named() async {
+    var library = await buildLibrary(r'''
+extension type A.named(int it) {}
+''');
+
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        codeOffset: 0
+        codeLength: 33
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @27
+            codeOffset: 23
+            codeLength: 6
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          named @17
+            codeOffset: 16
+            codeLength: 14
+            periodOffset: 16
+            nameEnd: 22
+            parameters
+              requiredPositional final this.it @27
+                type: int
+                codeOffset: 23
+                codeLength: 6
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_constructor_unnamed() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {}
+''');
+
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        codeOffset: 0
+        codeLength: 27
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            codeOffset: 17
+            codeLength: 6
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @15
+            codeOffset: 16
+            codeLength: 8
+            parameters
+              requiredPositional final this.it @21
+                type: int
+                codeOffset: 17
+                codeLength: 6
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_field_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+extension type A(@foo int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    extensionTypes
+      A @32
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @43
+            metadata
+              Annotation
+                atSign: @ @34
+                name: SimpleIdentifier
+                  token: foo @35
+                  staticElement: package:test/a.dart::@getter::foo
+                  staticType: null
+                element: package:test/a.dart::@getter::foo
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @32
+            parameters
+              requiredPositional final this.it @43
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_metadata() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const foo = 0;
+''');
+
+    var library = await buildLibrary(r'''
+import 'a.dart';
+@foo
+extension type A(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  imports
+    package:test/a.dart
+  definingUnit
+    extensionTypes
+      A @37
+        metadata
+          Annotation
+            atSign: @ @17
+            name: SimpleIdentifier
+              token: foo @18
+              staticElement: package:test/a.dart::@getter::foo
+              staticType: null
+            element: package:test/a.dart::@getter::foo
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @43
+            type: int
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @37
+            parameters
+              requiredPositional final this.it @43
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_noField() async {
+    var library = await buildLibrary(r'''
+extension type A() {}
+''');
+
+    configuration.withCodeRanges = true;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        codeOffset: 0
+        codeLength: 21
+        representation: self::@extensionType::A::@field::<empty>
+        fields
+          final <empty> @17
+            codeOffset: 17
+            codeLength: 0
+            type: InvalidType
+            shouldUseTypeForInitializerInference: true
+        constructors
+          @15
+            codeOffset: 16
+            codeLength: 2
+            parameters
+              requiredPositional final this.<empty> @17
+                type: InvalidType
+                codeOffset: 17
+                codeLength: 0
+                field: self::@extensionType::A::@field::<empty>
+        accessors
+          synthetic get <empty> @-1
+            returnType: InvalidType
+''');
   }
 }
 

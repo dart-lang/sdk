@@ -101,6 +101,14 @@ class IterableOfStringExtensionTest {
 
 @reflectiveTest
 class StringExtensionTest {
+  void test_ifEqualThen_equal() {
+    expect('foo'.ifEqualThen('foo', 'bar'), 'bar');
+  }
+
+  void test_ifEqualThen_notEqual() {
+    expect('notFoo'.ifEqualThen('foo', 'bar'), 'notFoo');
+  }
+
   void test_ifNotEmptyOrElse_empty() {
     expect(''.ifNotEmptyOrElse('orElse'), 'orElse');
   }

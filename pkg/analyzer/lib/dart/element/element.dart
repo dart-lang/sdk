@@ -95,11 +95,11 @@ abstract class AugmentedEnumElement implements AugmentedInterfaceElement {}
 /// Clients may not extend, implement or mix-in this class.
 abstract class AugmentedExtensionElement implements AugmentedInstanceElement {}
 
-/// The result of applying augmentations to an [InlineClassElement].
+/// The result of applying augmentations to an [ExtensionTypeElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInlineClassElement
-    implements AugmentedNamedInstanceElement {}
+abstract class AugmentedExtensionTypeElement
+    implements AugmentedInterfaceElement {}
 
 /// The result of applying augmentations to a [InstanceElement].
 ///
@@ -361,6 +361,10 @@ abstract class CompilationUnitElement implements UriReferencedElement {
 
   /// The extensions declared in this compilation unit.
   List<ExtensionElement> get extensions;
+
+  /// The extension types declared in this compilation unit.
+  @experimental
+  List<ExtensionTypeElement> get extensionTypes;
 
   /// The top-level functions declared in this compilation unit.
   List<FunctionElement> get functions;
@@ -958,20 +962,20 @@ class ElementKind implements Comparable<ElementKind> {
 
   static const ElementKind EXTENSION = ElementKind('EXTENSION', 9, "extension");
 
-  static const ElementKind FIELD = ElementKind('FIELD', 10, "field");
+  static const ElementKind EXTENSION_TYPE =
+      ElementKind('EXTENSION_TYPE', 10, "extension type");
 
-  static const ElementKind FUNCTION = ElementKind('FUNCTION', 11, "function");
+  static const ElementKind FIELD = ElementKind('FIELD', 11, "field");
+
+  static const ElementKind FUNCTION = ElementKind('FUNCTION', 12, "function");
 
   static const ElementKind GENERIC_FUNCTION_TYPE =
-      ElementKind('GENERIC_FUNCTION_TYPE', 12, 'generic function type');
+      ElementKind('GENERIC_FUNCTION_TYPE', 13, 'generic function type');
 
-  static const ElementKind GETTER = ElementKind('GETTER', 13, "getter");
+  static const ElementKind GETTER = ElementKind('GETTER', 14, "getter");
 
   static const ElementKind IMPORT =
-      ElementKind('IMPORT', 14, "import directive");
-
-  static const ElementKind INLINE_CLASS =
-      ElementKind('INLINE_CLASS', 15, "inline class");
+      ElementKind('IMPORT', 15, "import directive");
 
   static const ElementKind LABEL = ElementKind('LABEL', 16, "label");
 
@@ -1023,12 +1027,13 @@ class ElementKind implements Comparable<ElementKind> {
     ENUM,
     ERROR,
     EXPORT,
+    EXTENSION,
+    EXTENSION_TYPE,
     FIELD,
     FUNCTION,
     GENERIC_FUNCTION_TYPE,
     GETTER,
     IMPORT,
-    INLINE_CLASS,
     LABEL,
     LIBRARY,
     LOCAL_VARIABLE,
@@ -1295,6 +1300,27 @@ abstract class ExtensionElement implements InstanceElement {
   PropertyAccessorElement? getSetter(String name);
 }
 
+/// An element that represents an extension type.
+///
+/// Clients may not extend, implement or mix-in this class.
+@experimental
+abstract class ExtensionTypeElement implements InterfaceElement {
+  @experimental
+  @override
+  ExtensionTypeElement? get augmentation;
+
+  @experimental
+  @override
+  ExtensionTypeElement? get augmentationTarget;
+
+  @experimental
+  @override
+  AugmentedExtensionTypeElement? get augmented;
+
+  /// The representation of this extension.
+  FieldElement get representation;
+}
+
 /// A field defined within a class.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -1417,27 +1443,6 @@ abstract class ImportElementPrefix {
   /// The prefix that was specified as part of the import directive, or `null`
   /// if there was no prefix specified.
   PrefixElement get element;
-}
-
-/// An element that represents an inline class.
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class InlineClassElement implements NamedInstanceElement {
-  @experimental
-  @override
-  InlineClassElement? get augmentation;
-
-  @experimental
-  @override
-  InlineClassElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedInlineClassElement? get augmented;
-
-  /// The direct [InlineClassType]s that are implemented by this inline class.
-  List<InlineClassType> get implemented;
 }
 
 /// An element that has `this`.
