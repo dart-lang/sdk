@@ -4740,15 +4740,16 @@ Fragment FlowGraphBuilder::FfiConvertPrimitiveToNative(
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiTrampoline(
     const Function& function) {
-  if (function.FfiCallbackTarget() != Function::null()) {
-    if (function.GetFfiCallbackKind() == FfiCallbackKind::kSync) {
+  switch (function.GetFfiTrampolineKind()) {
+    case FfiTrampolineKind::kSyncCallback:
       return BuildGraphOfSyncFfiCallback(function);
-    } else {
+    case FfiTrampolineKind::kAsyncCallback:
       return BuildGraphOfAsyncFfiCallback(function);
-    }
-  } else {
-    return BuildGraphOfFfiNative(function);
+    case FfiTrampolineKind::kCall:
+      return BuildGraphOfFfiNative(function);
   }
+  UNREACHABLE();
+  return nullptr;
 }
 
 FlowGraph* FlowGraphBuilder::BuildGraphOfFfiNative(const Function& function) {

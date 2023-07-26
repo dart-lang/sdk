@@ -146,8 +146,7 @@ external Pointer<NS> _pointerFromFunction<NS extends NativeFunction>(
 
 @pragma("vm:recognized", "other")
 @pragma("vm:external-name", "Ffi_nativeAsyncCallbackFunction")
-external dynamic _nativeAsyncCallbackFunction<NS extends Function>(
-    Function target);
+external dynamic _nativeAsyncCallbackFunction<NS extends Function>();
 
 @pragma("vm:external-name", "Ffi_pointerAsyncFromFunction")
 external Pointer<NS> _pointerAsyncFromFunction<NS extends NativeFunction>(

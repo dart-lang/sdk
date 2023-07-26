@@ -40,6 +40,7 @@ main(args, message) async {
   await testNativeCallableUseAfterFree();
   await testNativeCallableNestedCloseCall();
   await testNativeCallableThrowInsideCallback();
+  await testNativeCallableClosure();
 
   // Message passing tests.
   globalVar = 1000;
@@ -149,6 +150,28 @@ testNativeCallableThrowInsideCallback() async {
   await Future.delayed(Duration(milliseconds: 100));
 
   Expect.equals(1123, caughtError);
+
+  callback.close();
+}
+
+testNativeCallableClosure() async {
+  final lib = NativeLibrary();
+  int c = 70000;
+  void foo(int a, int b) {
+    print("foo");
+    simpleFunctionResult.complete(a + b + c);
+  }
+
+  final callback = NativeCallable<CallbackNativeType>.listener(foo);
+
+  simpleFunctionResult = Completer<int>();
+  lib.callFunctionOnSameThread(1000, callback.nativeFunction);
+  Expect.equals(71123, await simpleFunctionResult.future);
+
+  c = 80000;
+  simpleFunctionResult = Completer<int>();
+  lib.callFunctionOnSameThread(4000, callback.nativeFunction);
+  Expect.equals(84123, await simpleFunctionResult.future);
 
   callback.close();
 }
@@ -565,7 +588,6 @@ class IsolateA {
     instance = this;
     fnPtrsA = FnPtrs.fromCallbacks(callbacksA);
     atm.toIsoA = atm.toThis;
-    print("IsolateA fn ptr: ${fnPtrsA.addGlobalVarPtr.toRadixString(16)}");
   }
 
   Future<void> messageLoop() async {
@@ -634,7 +656,6 @@ class IsolateB {
     instance = this;
     fnPtrsB = FnPtrs.fromCallbacks(callbacksB);
     atm.toIsoB = atm.toThis;
-    print("IsolateB fn ptr: ${fnPtrsB.addGlobalVarPtr.toRadixString(16)}");
     sendPort.send(['sendPort', recvPort.sendPort]);
     sendPort.send(['testPort', atm.toThis]);
     sendPort.send(['fnPtrs', fnPtrsB.toList()]);

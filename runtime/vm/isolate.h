@@ -1246,7 +1246,7 @@ class Isolate : public BaseIsolate, public IntrusiveDListEntry<Isolate> {
       const Function& function);
   FfiCallbackMetadata::Trampoline CreateAsyncFfiCallback(
       Zone* zone,
-      const Function& function,
+      const Function& send_function,
       Dart_Port send_port);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
 

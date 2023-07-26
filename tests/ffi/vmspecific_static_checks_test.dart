@@ -41,7 +41,6 @@ void main() {
   testNativeCallableGeneric2();
   testNativeCallableWrongNativeFunctionSignature();
   testNativeCallableTypeMismatch();
-  testNativeCallableClosure();
   testNativeCallableAbstract();
   testNativeCallableMustReturnVoid();
   testLookupFunctionGeneric();
@@ -381,8 +380,9 @@ void testNativeCallableGeneric() {
     NativeCallable<NativeVoidFunc>? result;
     result = NativeCallable.listener(f);
     //                               ^
-    // [cfe] listener expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
     // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
+    //                      ^
+    // [cfe] Expected type 'T' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
     return result;
   }
 
@@ -418,14 +418,6 @@ void testNativeCallableTypeMismatch() {
   // [analyzer] COMPILE_TIME_ERROR.MUST_BE_A_SUBTYPE
   //                 ^
   // [cfe] Expected type 'void Function(int)' to be 'void Function()', which is the Dart type corresponding to 'NativeFunction<Void Function()>'.
-}
-
-void testNativeCallableClosure() {
-  VoidFunc someClosure = () => print("Closure");
-  NativeCallable<NativeVoidFunc> p;
-  p = NativeCallable.listener(someClosure);
-  //                          ^
-  // [cfe] listener expects a static function as parameter. dart:ffi only supports calling static Dart functions from native code. Closures and tear-offs are not supported because they can capture context.
 }
 
 void testNativeCallableAbstract() {

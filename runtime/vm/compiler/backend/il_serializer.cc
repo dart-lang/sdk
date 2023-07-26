@@ -835,10 +835,10 @@ void FlowGraphSerializer::WriteTrait<const Function&>::Write(
       s->Write<const Function&>(Function::Handle(zone, x.FfiCallbackTarget()));
       s->Write<const FunctionType&>(
           FunctionType::Handle(zone, x.FfiCSignature()));
-      if (x.FfiCallbackTarget() != Object::null()) {
+      if (x.GetFfiTrampolineKind() != FfiTrampolineKind::kCall) {
         s->Write<const Instance&>(
             Instance::Handle(zone, x.FfiCallbackExceptionalReturn()));
-        s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiCallbackKind()));
+        s->Write<uint8_t>(static_cast<uint8_t>(x.GetFfiTrampolineKind()));
       } else {
         s->Write<const String&>(String::Handle(zone, x.name()));
         s->Write<const FunctionType&>(
@@ -925,7 +925,8 @@ const Function& FlowGraphDeserializer::ReadTrait<const Function&>::Read(
       const FunctionType& c_signature = d->Read<const FunctionType&>();
       if (!callback_target.IsNull()) {
         const Instance& exceptional_return = d->Read<const Instance&>();
-        FfiCallbackKind kind = static_cast<FfiCallbackKind>(d->Read<uint8_t>());
+        FfiTrampolineKind kind =
+            static_cast<FfiTrampolineKind>(d->Read<uint8_t>());
         return Function::ZoneHandle(
             zone, compiler::ffi::NativeCallbackFunction(
                       c_signature, callback_target, exceptional_return, kind));

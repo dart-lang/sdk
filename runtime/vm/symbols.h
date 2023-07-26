@@ -100,6 +100,7 @@ class ObjectPointerVisitor;
   V(ExternalOneByteString, "_ExternalOneByteString")                           \
   V(ExternalTwoByteString, "_ExternalTwoByteString")                           \
   V(FfiAbiSpecificMapping, "_FfiAbiSpecificMapping")                           \
+  V(FfiAsyncCallback, "_FfiAsyncCallback")                                     \
   V(FfiBool, "Bool")                                                           \
   V(FfiCallback, "_FfiCallback")                                               \
   V(FfiDouble, "Double")                                                       \
