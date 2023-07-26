@@ -595,6 +595,8 @@ class Dart2WasmCompilerConfiguration extends CompilerConfiguration {
     return [
       '--experimental-wasm-gc',
       '--experimental-wasm-type-reflection',
+      '--wasm-final-types',
+      '--wasm-disable-deprecated',
       'pkg/dart2wasm/bin/run_wasm.js',
       '--',
       '${filename.substring(0, filename.lastIndexOf('.'))}.mjs',
