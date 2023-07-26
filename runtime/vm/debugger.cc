@@ -2528,6 +2528,15 @@ BreakpointLocation* Debugger::SetBreakpoint(
       return nullptr;  // Missing source positions?
     }
   }
+
+  TokenPosition exact_token_pos = token_pos;
+#if !defined(DART_PRECOMPILED_RUNTIME)
+  if (token_pos != last_token_pos && requested_column >= 0) {
+    exact_token_pos =
+        FindExactTokenPosition(script, token_pos, requested_column);
+  }
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
   if (!func.IsNull()) {
     // There may be more than one function object for a given function
     // in source code. There may be implicit closure functions, and
@@ -2544,13 +2553,6 @@ BreakpointLocation* Debugger::SetBreakpoint(
       // have already been compiled. We can resolve the breakpoint now.
       // If requested_column is larger than zero, [token_pos, last_token_pos]
       // governs one single line of code.
-      TokenPosition exact_token_pos = TokenPosition::kNoSource;
-      if (token_pos != last_token_pos && requested_column >= 0) {
-#if !defined(DART_PRECOMPILED_RUNTIME)
-        exact_token_pos =
-            FindExactTokenPosition(script, token_pos, requested_column);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME)
-      }
       DeoptimizeWorld();
       BreakpointLocation* loc =
           SetCodeBreakpoints(scripts, token_pos, last_token_pos, requested_line,
@@ -2566,7 +2568,7 @@ BreakpointLocation* Debugger::SetBreakpoint(
   if (FLAG_verbose_debug) {
     intptr_t line_number = -1;
     intptr_t column_number = -1;
-    script.GetTokenLocation(token_pos, &line_number, &column_number);
+    script.GetTokenLocation(exact_token_pos, &line_number, &column_number);
     if (func.IsNull()) {
       OS::PrintErr(
           "Registering pending breakpoint for "
@@ -2580,11 +2582,12 @@ BreakpointLocation* Debugger::SetBreakpoint(
     }
   }
   const String& script_url = String::Handle(script.url());
-  BreakpointLocation* loc =
-      GetBreakpointLocation(script_url, token_pos, -1, requested_column);
+  BreakpointLocation* loc = GetBreakpointLocation(
+      script_url, exact_token_pos, requested_line, requested_column);
   if (loc == nullptr) {
-    loc = new BreakpointLocation(this, scripts, token_pos, last_token_pos,
-                                 requested_line, requested_column);
+    loc =
+        new BreakpointLocation(this, scripts, exact_token_pos, exact_token_pos,
+                               requested_line, requested_column);
     RegisterBreakpointLocation(loc);
   }
   return loc;
