@@ -274,6 +274,10 @@ static void InvalidForwarding(ObjectPtr before,
 }
 
 void Become::Forward() {
+  if (pointers_.length() == 0) {
+    return;
+  }
+
   Thread* thread = Thread::Current();
   auto heap = thread->isolate_group()->heap();
 

@@ -227,11 +227,6 @@ void Class::CopyStaticFieldValues(ProgramReloadContext* reload_context,
 }
 
 void Class::CopyCanonicalConstants(const Class& old_cls) const {
-  if (is_enum_class()) {
-    // We do not copy enum classes's canonical constants because we explicitly
-    // become the old enum values to the new enum values.
-    return;
-  }
 #if defined(DEBUG)
   {
     // Class has no canonical constants allocated.
@@ -613,10 +608,6 @@ bool Class::RequiresInstanceMorphing(ClassTable* class_table,
   if (!is_allocate_finalized()) {
     // No instances of this class exists on the heap - nothing to morph.
     return false;
-  }
-
-  if (replacement.is_enum_class()) {
-    return true;
   }
 
   // Get the field maps for both classes. These field maps walk the class

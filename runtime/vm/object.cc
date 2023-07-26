@@ -12210,6 +12210,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
+  ASSERT(is_static());
   auto thread = Thread::Current();
   auto initial_field_table = thread->isolate_group()->initial_field_table();
 
