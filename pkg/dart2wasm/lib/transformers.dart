@@ -121,6 +121,7 @@ class _WasmTransformer extends Transformer {
                 Nullability.nonNullable, [_nonNullableTypeType]),
           ),
           isExternal: true,
+          isSynthetic: true,
           fileUri: cls.fileUri)
         ..isNonNullableByDefault = true;
       cls.addProcedure(getTypeArguments);
