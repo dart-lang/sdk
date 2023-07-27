@@ -260,6 +260,17 @@ class TypesBuilder {
 
   void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
     final element = node.declaredElement!;
+    final typeSystem = element.library.typeSystem;
+
+    final interfaces = node.implementsClause?.interfaces
+        .map((e) => e.type)
+        .whereType<InterfaceType>()
+        .where(typeSystem.isValidExtensionTypeSuperinterface)
+        .toFixedList();
+    if (interfaces != null) {
+      element.interfaces = interfaces;
+    }
+
     final type = node.representation.fieldType.typeOrThrow;
     element.representation.type = type;
 

@@ -134,6 +134,7 @@ class LibraryOrAugmentationScope extends EnclosedScope {
     compilationUnit.accessors.forEach(_addPropertyAccessor);
     compilationUnit.enums.forEach(_addGetter);
     compilationUnit.extensions.forEach(_addExtension);
+    compilationUnit.extensionTypes.forEach(_addGetter);
     compilationUnit.functions.forEach(_addGetter);
     compilationUnit.typeAliases.forEach(_addGetter);
     compilationUnit.mixins.forEach(_addGetter);

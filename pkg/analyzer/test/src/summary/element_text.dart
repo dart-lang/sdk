@@ -513,8 +513,15 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _elementPrinter.writeNamedElement('representation', e.representation);
+      _elementPrinter.writeTypeList('interfaces', e.interfaces);
       _writeElements('fields', e.fields, _writePropertyInducingElement);
-      _writeElements('constructors', e.constructors, _writeConstructorElement);
+      if (configuration.withConstructors) {
+        _writeElements(
+          'constructors',
+          e.constructors,
+          _writeConstructorElement,
+        );
+      }
       _writeElements('accessors', e.accessors, _writePropertyAccessorElement);
       _writeMethods(e.methods);
     });

@@ -332,9 +332,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      // TODO(scheglov) implement
-      // _resolutionSink._writeTypeList(element.implementedExtensionTypes);
-      // _resolutionSink._writeTypeList(element.implementedInterfaceTypes);
+      _resolutionSink._writeTypeList(element.interfaces);
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),
         _writeFieldElement,
