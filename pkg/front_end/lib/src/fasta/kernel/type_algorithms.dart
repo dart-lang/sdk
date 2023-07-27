@@ -1171,11 +1171,6 @@ class TypeVariableSearch implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType node) {
-    return anyTypeVariables(node.typeArguments);
-  }
-
-  @override
   bool visitInlineType(InlineType node) {
     return anyTypeVariables(node.typeArguments);
   }

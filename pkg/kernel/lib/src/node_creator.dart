@@ -45,7 +45,6 @@ class NodeCreator {
   /// [VariableDeclaration] is added to a enclosing [Block].
   List<Library> _neededLibraries = [];
   List<Class> _neededClasses = [];
-  List<Extension> _neededExtensions = [];
   List<InlineClass> _neededInlineClasses = [];
   List<Typedef> _neededTypedefs = [];
   List<TypeParameter> _neededTypeParameters = [];
@@ -398,22 +397,6 @@ class NodeCreator {
     _neededClasses.add(cls);
     _needLibrary().addClass(cls);
     return cls;
-  }
-
-  /// Returns an [Extension] node that fits the requirements.
-  ///
-  /// If no such [Extension] exists in [_neededExtensions], a new [Extension] is
-  /// created and added to [_neededExtensions].
-  // TODO(johnniwinther): Add requirements when/where needed.
-  Extension _needExtension() {
-    for (Extension extension in _neededExtensions) {
-      return extension;
-    }
-    Extension extension =
-        Extension(name: 'foo', fileUri: _uri, onType: const DynamicType());
-    _neededExtensions.add(extension);
-    _needLibrary().addExtension(extension);
-    return extension;
   }
 
   /// Returns an [InlineClass] node that fits the requirements.
@@ -1368,8 +1351,6 @@ class NodeCreator {
     switch (kind) {
       case DartTypeKind.DynamicType:
         return DynamicType();
-      case DartTypeKind.ExtensionType:
-        return ExtensionType(_needExtension(), Nullability.nonNullable);
       case DartTypeKind.FunctionType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           // TODO(johnniwinther): Create non-trivial cases.

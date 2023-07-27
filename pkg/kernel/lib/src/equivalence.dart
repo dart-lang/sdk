@@ -817,11 +817,6 @@ class EquivalenceVisitor implements Visitor1<bool, Node> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType node, Node other) {
-    return strategy.checkExtensionType(this, node, other);
-  }
-
-  @override
   bool visitInlineType(InlineType node, Node other) {
     return strategy.checkInlineType(this, node, other);
   }
@@ -1720,49 +1715,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkExtensionTypeShowHideClause(EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! ExtensionTypeShowHideClause) return false;
-    if (other is! ExtensionTypeShowHideClause) return false;
-    bool result = true;
-    if (!checkExtensionTypeShowHideClause_shownSupertypes(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_shownMethods(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_shownGetters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_shownSetters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_shownOperators(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_hiddenSupertypes(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_hiddenMethods(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_hiddenGetters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_hiddenSetters(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionTypeShowHideClause_hiddenOperators(
-        visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    return result;
-  }
-
   bool checkExtensionMemberDescriptor(EquivalenceVisitor visitor,
       ExtensionMemberDescriptor? node, Object? other) {
     if (identical(node, other)) return true;
@@ -1804,9 +1756,6 @@ class EquivalenceStrategy {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_onType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtension_showHideClause(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkExtension_members(visitor, node, other)) {
@@ -5265,29 +5214,6 @@ class EquivalenceStrategy {
     return result;
   }
 
-  bool checkExtensionType(
-      EquivalenceVisitor visitor, ExtensionType? node, Object? other) {
-    if (identical(node, other)) return true;
-    if (node is! ExtensionType) return false;
-    if (other is! ExtensionType) return false;
-    visitor.pushNodeState(node, other);
-    bool result = true;
-    if (!checkExtensionType_extensionReference(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_declaredNullability(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_typeArguments(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    if (!checkExtensionType_onType(visitor, node, other)) {
-      result = visitor.resultOnInequivalence;
-    }
-    visitor.popState();
-    return result;
-  }
-
   bool checkInlineType(
       EquivalenceVisitor visitor, InlineType? node, Object? other) {
     if (identical(node, other)) return true;
@@ -5961,87 +5887,6 @@ class EquivalenceStrategy {
   bool checkExtension_onType(
       EquivalenceVisitor visitor, Extension node, Extension other) {
     return visitor.checkNodes(node.onType, other.onType, 'onType');
-  }
-
-  bool checkExtensionTypeShowHideClause_shownSupertypes(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.shownSupertypes, other.shownSupertypes,
-        visitor.checkNodes, 'shownSupertypes');
-  }
-
-  bool checkExtensionTypeShowHideClause_shownMethods(EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.shownMethods, other.shownMethods,
-        visitor.checkReferences, 'shownMethods');
-  }
-
-  bool checkExtensionTypeShowHideClause_shownGetters(EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.shownGetters, other.shownGetters,
-        visitor.checkReferences, 'shownGetters');
-  }
-
-  bool checkExtensionTypeShowHideClause_shownSetters(EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node, ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.shownSetters, other.shownSetters,
-        visitor.checkReferences, 'shownSetters');
-  }
-
-  bool checkExtensionTypeShowHideClause_shownOperators(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.shownOperators, other.shownOperators,
-        visitor.checkReferences, 'shownOperators');
-  }
-
-  bool checkExtensionTypeShowHideClause_hiddenSupertypes(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.hiddenSupertypes, other.hiddenSupertypes,
-        visitor.checkNodes, 'hiddenSupertypes');
-  }
-
-  bool checkExtensionTypeShowHideClause_hiddenMethods(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.hiddenMethods, other.hiddenMethods,
-        visitor.checkReferences, 'hiddenMethods');
-  }
-
-  bool checkExtensionTypeShowHideClause_hiddenGetters(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.hiddenGetters, other.hiddenGetters,
-        visitor.checkReferences, 'hiddenGetters');
-  }
-
-  bool checkExtensionTypeShowHideClause_hiddenSetters(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.hiddenSetters, other.hiddenSetters,
-        visitor.checkReferences, 'hiddenSetters');
-  }
-
-  bool checkExtensionTypeShowHideClause_hiddenOperators(
-      EquivalenceVisitor visitor,
-      ExtensionTypeShowHideClause node,
-      ExtensionTypeShowHideClause other) {
-    return visitor.checkLists(node.hiddenOperators, other.hiddenOperators,
-        visitor.checkReferences, 'hiddenOperators');
-  }
-
-  bool checkExtension_showHideClause(
-      EquivalenceVisitor visitor, Extension node, Extension other) {
-    'showHideClause';
-    return checkExtensionTypeShowHideClause(
-        visitor, node.showHideClause, other.showHideClause);
   }
 
   bool checkExtensionMemberDescriptor_name(EquivalenceVisitor visitor,
@@ -9397,29 +9242,6 @@ class EquivalenceStrategy {
       EquivalenceVisitor visitor, FutureOrType node, FutureOrType other) {
     return visitor.checkValues(node.declaredNullability,
         other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_extensionReference(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkReferences(node.extensionReference,
-        other.extensionReference, 'extensionReference');
-  }
-
-  bool checkExtensionType_declaredNullability(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkValues(node.declaredNullability,
-        other.declaredNullability, 'declaredNullability');
-  }
-
-  bool checkExtensionType_typeArguments(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkLists(node.typeArguments, other.typeArguments,
-        visitor.checkNodes, 'typeArguments');
-  }
-
-  bool checkExtensionType_onType(
-      EquivalenceVisitor visitor, ExtensionType node, ExtensionType other) {
-    return visitor.checkNodes(node.onType, other.onType, 'onType');
   }
 
   bool checkInlineType_inlineClassReference(

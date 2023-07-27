@@ -376,11 +376,6 @@ class BenchMaker implements DartTypeVisitor1<void, StringBuffer> {
   }
 
   @override
-  void visitExtensionType(ExtensionType node, StringBuffer sb) {
-    throw "not implemented";
-  }
-
-  @override
   void visitInlineType(InlineType node, StringBuffer sb) {
     throw "not implemented";
   }

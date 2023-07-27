@@ -654,11 +654,6 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
-    return false;
-  }
-
-  @override
   bool visitFunctionType(FunctionType type, CoreTypes coreTypes) {
     return false;
   }

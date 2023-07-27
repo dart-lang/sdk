@@ -920,12 +920,6 @@ class CoverageVisitor implements Visitor<void> {
   }
 
   @override
-  void visitExtensionType(ExtensionType node) {
-    visited.add(DartTypeKind.ExtensionType);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitInlineType(InlineType node) {
     visited.add(DartTypeKind.InlineType);
     node.visitChildren(this);
@@ -1362,7 +1356,6 @@ enum PatternKind {
 
 enum DartTypeKind {
   DynamicType,
-  ExtensionType,
   FunctionType,
   FutureOrType,
   InlineType,

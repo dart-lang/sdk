@@ -24,11 +24,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   bool defaultDartType(DartType node, Set<TypedefType> visitedTypedefs) {
     if (node is UnknownType) {
       return false;
-    } else if (node is ExtensionType) {
-      for (DartType typeArgument in node.typeArguments) {
-        if (typeArgument.accept1(this, visitedTypedefs)) return true;
-      }
-      return false;
     } else {
       throw new StateError("Unhandled type ${node.runtimeType}.");
     }
@@ -48,15 +43,6 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   @override
   bool visitInterfaceType(
       InterfaceType node, Set<TypedefType> visitedTypedefs) {
-    for (DartType typeArgument in node.typeArguments) {
-      if (typeArgument.accept1(this, visitedTypedefs)) return true;
-    }
-    return false;
-  }
-
-  @override
-  bool visitExtensionType(
-      ExtensionType node, Set<TypedefType> visitedTypedefs) {
     for (DartType typeArgument in node.typeArguments) {
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
     }

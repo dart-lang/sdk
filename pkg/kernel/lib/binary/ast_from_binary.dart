@@ -1561,21 +1561,6 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType onType = readDartType();
 
-    if (readAndCheckOptionTag()) {
-      ExtensionTypeShowHideClause showHideClause =
-          node.showHideClause = new ExtensionTypeShowHideClause();
-      readSupertypeList(showHideClause.shownSupertypes);
-      readNonNullReferenceList(showHideClause.shownMethods);
-      readNonNullReferenceList(showHideClause.shownGetters);
-      readNonNullReferenceList(showHideClause.shownSetters);
-      readNonNullReferenceList(showHideClause.shownOperators);
-      readSupertypeList(showHideClause.hiddenSupertypes);
-      readNonNullReferenceList(showHideClause.hiddenMethods);
-      readNonNullReferenceList(showHideClause.hiddenGetters);
-      readNonNullReferenceList(showHideClause.hiddenSetters);
-      readNonNullReferenceList(showHideClause.hiddenOperators);
-    }
-
     typeParameterStack.length = 0;
 
     node.name = name;

@@ -3373,10 +3373,6 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitInterfaceType(type);
 
   @override
-  js_ast.Expression visitExtensionType(ExtensionType type) =>
-      type.onType.accept(this);
-
-  @override
   js_ast.Expression visitInlineType(InlineType type) =>
       type.instantiatedRepresentationType.accept(this);
 

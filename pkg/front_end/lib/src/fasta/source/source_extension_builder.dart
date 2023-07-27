@@ -17,7 +17,6 @@ import '../fasta_codes.dart'
         messagePatchDeclarationOrigin,
         noLength;
 import '../kernel/body_builder_context.dart';
-import '../operator.dart';
 import '../problems.dart';
 import '../scope.dart';
 import 'name_scheme.dart';
@@ -190,43 +189,5 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             fileUri, charOffset, noLength)
       ]);
     }
-  }
-}
-
-class ExtensionTypeShowHideClauseBuilder {
-  final List<TypeBuilder> shownSupertypes;
-  final List<String> shownGetters;
-  final List<String> shownSetters;
-  final List<String> shownMembersOrTypes;
-  final List<Operator> shownOperators;
-
-  final List<TypeBuilder> hiddenSupertypes;
-  final List<String> hiddenGetters;
-  final List<String> hiddenSetters;
-  final List<String> hiddenMembersOrTypes;
-  final List<Operator> hiddenOperators;
-
-  ExtensionTypeShowHideClauseBuilder(
-      {required this.shownSupertypes,
-      required this.shownGetters,
-      required this.shownSetters,
-      required this.shownMembersOrTypes,
-      required this.shownOperators,
-      required this.hiddenSupertypes,
-      required this.hiddenGetters,
-      required this.hiddenSetters,
-      required this.hiddenMembersOrTypes,
-      required this.hiddenOperators});
-
-  void buildAndStoreTypes(Extension extension, LibraryBuilder libraryBuilder) {
-    List<Supertype> builtShownSupertypes =
-        shownSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
-    List<Supertype> builtHiddenSupertypes =
-        hiddenSupertypes.map((t) => t.buildSupertype(libraryBuilder)!).toList();
-    ExtensionTypeShowHideClause showHideClause =
-        extension.showHideClause ?? new ExtensionTypeShowHideClause();
-    showHideClause.shownSupertypes.addAll(builtShownSupertypes);
-    showHideClause.hiddenSupertypes.addAll(builtHiddenSupertypes);
-    extension.showHideClause ??= showHideClause;
   }
 }

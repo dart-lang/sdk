@@ -911,7 +911,6 @@ abstract class DartTypeVisitor<R> {
   R visitTypedefType(TypedefType node) => defaultDartType(node);
   R visitNeverType(NeverType node) => defaultDartType(node);
   R visitNullType(NullType node) => defaultDartType(node);
-  R visitExtensionType(ExtensionType node) => defaultDartType(node);
   R visitInlineType(InlineType node) => defaultDartType(node);
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
   R visitRecordType(RecordType node) => defaultDartType(node);
@@ -933,7 +932,6 @@ abstract class DartTypeVisitor1<R, A> {
   R visitTypedefType(TypedefType node, A arg) => defaultDartType(node, arg);
   R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
   R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
-  R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
   R visitInlineType(InlineType node, A arg) => defaultDartType(node, arg);
   R visitIntersectionType(IntersectionType node, A arg) =>
       defaultDartType(node, arg);
@@ -1322,8 +1320,6 @@ abstract class Visitor<R> extends TreeVisitor<R>
   @override
   R visitNullType(NullType node) => defaultDartType(node);
   @override
-  R visitExtensionType(ExtensionType node) => defaultDartType(node);
-  @override
   R visitInlineType(InlineType node) => defaultDartType(node);
   @override
   R visitIntersectionType(IntersectionType node) => defaultDartType(node);
@@ -1478,8 +1474,6 @@ abstract class Visitor1<R, A> extends TreeVisitor1<R, A>
   R visitNeverType(NeverType node, A arg) => defaultDartType(node, arg);
   @override
   R visitNullType(NullType node, A arg) => defaultDartType(node, arg);
-  @override
-  R visitExtensionType(ExtensionType node, A arg) => defaultDartType(node, arg);
   @override
   R visitInlineType(InlineType node, A arg) => defaultDartType(node, arg);
 

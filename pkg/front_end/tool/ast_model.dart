@@ -182,9 +182,6 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
   },
-  'ExtensionType': {
-    '_onType': FieldRule(name: 'onType'),
-  },
   'InlineType': {
     '_instantiatedRepresentationType':
         FieldRule(name: 'instantiatedRepresentationType'),

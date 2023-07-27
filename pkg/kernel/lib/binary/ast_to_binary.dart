@@ -2437,12 +2437,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitExtensionType(ExtensionType node) {
-    // TODO(cstefantsova): Serialize ExtensionType.
-    node.onType.accept(this);
-  }
-
-  @override
   void visitInlineType(InlineType node) {
     writeByte(Tag.InlineType);
     writeByte(node.nullability.index);
@@ -2574,23 +2568,6 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     enterScope(typeParameters: node.typeParameters);
     writeNodeList(node.typeParameters);
     writeDartType(node.onType);
-
-    ExtensionTypeShowHideClause? showHideClause = node.showHideClause;
-    if (showHideClause == null) {
-      writeByte(Tag.Nothing);
-    } else {
-      writeByte(Tag.Something);
-      writeNodeList(showHideClause.shownSupertypes);
-      writeList(showHideClause.shownMethods, writeNonNullReference);
-      writeList(showHideClause.shownGetters, writeNonNullReference);
-      writeList(showHideClause.shownSetters, writeNonNullReference);
-      writeList(showHideClause.shownOperators, writeNonNullReference);
-      writeNodeList(showHideClause.hiddenSupertypes);
-      writeList(showHideClause.hiddenMethods, writeNonNullReference);
-      writeList(showHideClause.hiddenGetters, writeNonNullReference);
-      writeList(showHideClause.hiddenSetters, writeNonNullReference);
-      writeList(showHideClause.hiddenOperators, writeNonNullReference);
-    }
 
     leaveScope(typeParameters: node.typeParameters);
 
