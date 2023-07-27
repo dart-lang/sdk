@@ -1762,9 +1762,6 @@ class KnownTypes implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
-
-  @override
   bool visitFunctionType(FunctionType node) => true;
 
   @override

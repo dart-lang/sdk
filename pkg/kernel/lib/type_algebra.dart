@@ -342,13 +342,6 @@ class _AllFreeTypeVariablesVisitor implements DartTypeVisitor<void> {
   }
 
   @override
-  void visitExtensionType(ExtensionType node) {
-    for (DartType typeArgument in node.typeArguments) {
-      typeArgument.accept(this);
-    }
-  }
-
-  @override
   void visitInlineType(InlineType node) {
     for (DartType typeArgument in node.typeArguments) {
       typeArgument.accept(this);
@@ -729,15 +722,6 @@ abstract class _TypeSubstitutor implements DartTypeVisitor<DartType> {
   }
 
   @override
-  DartType visitExtensionType(ExtensionType node) {
-    if (node.typeArguments.isEmpty) return node;
-    int before = useCounter;
-    List<DartType> typeArguments = node.typeArguments.map(visit).toList();
-    if (useCounter == before) return node;
-    return new ExtensionType(node.extension, node.nullability, typeArguments);
-  }
-
-  @override
   DartType visitInlineType(InlineType node) {
     if (node.typeArguments.isEmpty) return node;
     int before = useCounter;
@@ -950,11 +934,6 @@ class _OccurrenceVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
   bool visitInlineType(InlineType node) {
     return node.typeArguments.any(visit);
   }
@@ -1028,11 +1007,6 @@ class _FreeFunctionTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1114,11 +1088,6 @@ class _FreeTypeVariableVisitor implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    return node.typeArguments.any(visit);
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
     return node.typeArguments.any(visit);
   }
 
@@ -1244,11 +1213,6 @@ class _PrimitiveTypeVerifier implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments.isEmpty;
-  }
-
-  @override
   bool visitInlineType(InlineType node) {
     return node.typeArguments.isEmpty;
   }
@@ -1325,11 +1289,6 @@ class _NullabilityConstructorUnwrapper
 
   @override
   DartType visitInterfaceType(InterfaceType node, CoreTypes coreTypes) {
-    return node.withDeclaredNullability(Nullability.nonNullable);
-  }
-
-  @override
-  DartType visitExtensionType(ExtensionType node, CoreTypes coreTypes) {
     return node.withDeclaredNullability(Nullability.nonNullable);
   }
 
@@ -1616,13 +1575,6 @@ class _NullabilityMarkerDetector implements DartTypeVisitor<bool> {
 
   @override
   bool visitInterfaceType(InterfaceType node) {
-    assert(node.declaredNullability != Nullability.undetermined);
-    return node.declaredNullability == Nullability.nullable ||
-        node.declaredNullability == Nullability.legacy;
-  }
-
-  @override
-  bool visitExtensionType(ExtensionType node) {
     assert(node.declaredNullability != Nullability.undetermined);
     return node.declaredNullability == Nullability.nullable ||
         node.declaredNullability == Nullability.legacy;

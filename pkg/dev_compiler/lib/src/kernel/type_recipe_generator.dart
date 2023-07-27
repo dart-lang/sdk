@@ -421,9 +421,6 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
       interfaceTypeRecipe(_coreTypes.deprecatedNullClass);
 
   @override
-  String visitExtensionType(ExtensionType node) => defaultDartType(node);
-
-  @override
   String visitIntersectionType(IntersectionType node) =>
       visitTypeParameterType(node.left);
 

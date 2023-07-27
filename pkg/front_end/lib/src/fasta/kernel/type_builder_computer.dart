@@ -109,11 +109,6 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
-  TypeBuilder visitExtensionType(ExtensionType node) {
-    throw "Not implemented";
-  }
-
-  @override
   TypeBuilder visitInlineType(InlineType node) {
     throw "Not implemented";
   }

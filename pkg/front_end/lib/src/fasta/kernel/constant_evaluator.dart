@@ -6206,12 +6206,6 @@ class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitExtensionType(ExtensionType node) {
-    return node.typeArguments
-        .every((DartType typeArgument) => typeArgument.accept(this));
-  }
-
-  @override
   bool visitInlineType(InlineType node) {
     return node.typeArguments
         .every((DartType typeArgument) => typeArgument.accept(this));

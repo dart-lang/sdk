@@ -79,7 +79,6 @@ export 'default_language_version.dart' show defaultLanguageVersion;
 import 'transformations/flags.dart';
 import 'text/ast_to_text.dart' as astToText;
 import 'core_types.dart';
-import 'class_hierarchy.dart';
 import 'type_algebra.dart';
 import 'type_environment.dart';
 import 'src/assumptions.dart';
@@ -1541,9 +1540,6 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
   ///   extension type B on A {}
   late DartType onType;
 
-  /// The 'show' and 'hide' clauses of an extension type declaration.
-  ExtensionTypeShowHideClause? showHideClause;
-
   /// The members declared by the extension.
   ///
   /// The members are converted into top-level members and only accessible
@@ -1624,10 +1620,6 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     visitList(annotations, v);
     visitList(typeParameters, v);
     onType.accept(v);
-    if (showHideClause != null) {
-      visitList(showHideClause!.shownSupertypes, v);
-      visitList(showHideClause!.hiddenSupertypes, v);
-    }
   }
 
   @override
@@ -1635,10 +1627,6 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     v.transformList(annotations, this);
     v.transformList(typeParameters, this);
     onType = v.visitDartType(onType);
-    if (showHideClause != null) {
-      v.transformSupertypeList(showHideClause!.shownSupertypes);
-      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
-    }
   }
 
   @override
@@ -1646,10 +1634,6 @@ class Extension extends NamedNode implements Annotatable, FileUriNode {
     v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
     onType = v.visitDartType(onType, cannotRemoveSentinel);
-    if (showHideClause != null) {
-      v.transformSupertypeList(showHideClause!.shownSupertypes);
-      v.transformSupertypeList(showHideClause!.hiddenSupertypes);
-    }
   }
 
   @override
@@ -1734,180 +1718,6 @@ class ExtensionMemberDescriptor {
   String toString() {
     return 'ExtensionMemberDescriptor($name,$kind,'
         '${member.toStringInternal()},isStatic=${isStatic})';
-  }
-}
-
-enum CallSiteAccessKind {
-  methodInvocation,
-  getterInvocation,
-  setterInvocation,
-  operatorInvocation,
-}
-
-/// Elements of the 'show' and 'hide' clauses of an extension type declaration.
-class ExtensionTypeShowHideClause {
-  /// The types in the 'show clause' of the extension type declaration.
-  ///
-  /// For instance A, B in:
-  ///
-  ///   class A {}
-  ///   class B {}
-  ///   class C extends B implements A {}
-  ///   extension type E on C show B, A {}
-  final List<Supertype> shownSupertypes = <Supertype>[];
-
-  /// The methods in the 'show clause' of the extension type declaration.
-  ///
-  /// For instance foo in
-  ///
-  ///   class A {
-  ///     void foo() {}
-  ///   }
-  ///   extension type E on A show foo {}
-  final List<Reference> shownMethods = <Reference>[];
-
-  /// The getters in the 'show clause' of the extension type declaration.
-  ///
-  /// For instance foo, bar, baz in
-  ///
-  ///   class A {
-  ///     void foo() {}
-  ///     int? bar;
-  ///     int get baz => 42;
-  ///   }
-  ///   extension type E on A show get foo, get bar, get baz {}
-  final List<Reference> shownGetters = <Reference>[];
-
-  /// The setters in the 'show clause' of the extension type declaration.
-  ///
-  /// For instance foo, bar in
-  ///
-  ///   class A {
-  ///     int? foo;
-  ///     void set bar(int value) {}
-  ///   }
-  ///   extension type E on A show set foo, set bar {}
-  final List<Reference> shownSetters = <Reference>[];
-
-  /// The operators in the 'show clause' of the extension type declaration.
-  ///
-  /// For instance +, * in
-  ///
-  ///   class A {
-  ///     A operator+(A other) => other;
-  ///     A operator*(A other) => this;
-  ///   }
-  ///   extension type E on A show operator +, operator * {}
-  final List<Reference> shownOperators = <Reference>[];
-
-  /// The types in the 'hide clause' of the extension type declaration.
-  ///
-  /// For instance A, B in:
-  ///
-  ///   class A {}
-  ///   class B {}
-  ///   class C extends B implements A {}
-  ///   extension E on C hide A, B {}
-  final List<Supertype> hiddenSupertypes = <Supertype>[];
-
-  /// The methods in the 'hide clause' of the extension type declaration.
-  ///
-  /// For instance foo in
-  ///
-  ///   class A {
-  ///     void foo() {}
-  ///   }
-  ///   extension type E on A hide foo {}
-  final List<Reference> hiddenMethods = <Reference>[];
-
-  /// The getters in the 'hide clause' of the extension type declaration.
-  ///
-  /// For instance foo, bar, baz in
-  ///
-  ///   class A {
-  ///     void foo() {}
-  ///     int? bar;
-  ///     int get baz => 42;
-  ///   }
-  ///   extension type E on A hide get foo, get bar, get baz {}
-  final List<Reference> hiddenGetters = <Reference>[];
-
-  /// The setters in the 'hide clause' of the extension type declaration.
-  ///
-  /// For instance foo, bar in
-  ///
-  ///   class A {
-  ///     int? foo;
-  ///     void set bar(int value) {}
-  ///   }
-  ///   extension type E on A hide set foo, set bar {}
-  final List<Reference> hiddenSetters = <Reference>[];
-
-  /// The operators in the 'hide clause' of the extension type declaration.
-  ///
-  /// For instance +, * in
-  ///
-  ///   class A {
-  ///     A operator+(A other) => other;
-  ///     A operator*(A other) => this;
-  ///   }
-  ///   extension type E on A hide operator +, operator * {}
-  final List<Reference> hiddenOperators = <Reference>[];
-
-  Reference? findShownReference(Name name,
-      CallSiteAccessKind callSiteAccessKind, ClassHierarchyMembers hierarchy) {
-    List<Reference> shownReferences;
-    List<Reference> hiddenReferences;
-    switch (callSiteAccessKind) {
-      case CallSiteAccessKind.getterInvocation:
-        shownReferences = shownGetters;
-        hiddenReferences = hiddenGetters;
-        break;
-      case CallSiteAccessKind.setterInvocation:
-        shownReferences = shownSetters;
-        hiddenReferences = hiddenSetters;
-        break;
-      case CallSiteAccessKind.methodInvocation:
-        shownReferences = shownMethods;
-        hiddenReferences = hiddenMethods;
-        break;
-      case CallSiteAccessKind.operatorInvocation:
-        shownReferences = shownOperators;
-        hiddenReferences = hiddenOperators;
-        break;
-    }
-
-    Reference? reference = _findMember(
-        name, shownReferences, shownSupertypes, hierarchy, callSiteAccessKind);
-    if (reference != null &&
-        _findMember(name, hiddenReferences, hiddenSupertypes, hierarchy,
-                callSiteAccessKind) ==
-            null) {
-      return reference;
-    }
-
-    return null;
-  }
-
-  Reference? _findMember(
-      Name name,
-      List<Reference> references,
-      List<Supertype> interfaces,
-      ClassHierarchyMembers hierarchy,
-      CallSiteAccessKind callSiteAccessKind) {
-    for (Reference reference in references) {
-      if (reference.asMember.name == name) {
-        return reference;
-      }
-    }
-    for (Supertype interface in interfaces) {
-      Member? member = hierarchy.getInterfaceMember(interface.classNode, name,
-          setter: callSiteAccessKind == CallSiteAccessKind.setterInvocation);
-      if (member != null) {
-        return member.reference;
-      }
-    }
-    return null;
   }
 }
 
@@ -11836,126 +11646,6 @@ class FutureOrType extends DartType {
     printer.write("FutureOr<");
     printer.writeType(typeArgument);
     printer.write(">");
-    printer.writeNullability(declaredNullability);
-  }
-}
-
-class ExtensionType extends DartType {
-  final Reference extensionReference;
-
-  @override
-  final Nullability declaredNullability;
-
-  final List<DartType> typeArguments;
-
-  DartType? _onType;
-
-  ExtensionType(Extension extensionNode, Nullability declaredNullability,
-      [List<DartType>? typeArguments])
-      : this.byReference(extensionNode.reference, declaredNullability,
-            typeArguments ?? _defaultTypeArguments(extensionNode));
-
-  ExtensionType.byReference(
-      this.extensionReference, this.declaredNullability, this.typeArguments);
-
-  Extension get extension => extensionReference.asExtension;
-
-  DartType get onType =>
-      _onType ??= _computeOnType(extensionReference, typeArguments);
-
-  @override
-  Nullability get nullability {
-    return uniteNullabilities(
-        declaredNullability, extension.onType.nullability);
-  }
-
-  @override
-  DartType get resolveTypeParameterType => onType.resolveTypeParameterType;
-
-  static List<DartType> _defaultTypeArguments(Extension extensionNode) {
-    if (extensionNode.typeParameters.length == 0) {
-      // Avoid allocating a list in this very common case.
-      return const <DartType>[];
-    } else {
-      return new List<DartType>.filled(
-          extensionNode.typeParameters.length, const DynamicType());
-    }
-  }
-
-  static DartType _computeOnType(
-      Reference extensionReference, List<DartType> typeArguments) {
-    Extension extensionNode = extensionReference.asExtension;
-    if (extensionNode.typeParameters.isEmpty) {
-      return extensionNode.onType;
-    } else {
-      assert(extensionNode.typeParameters.length == typeArguments.length);
-      return Substitution.fromPairs(extensionNode.typeParameters, typeArguments)
-          .substituteType(extensionNode.onType);
-    }
-  }
-
-  @override
-  R accept<R>(DartTypeVisitor<R> v) {
-    return v.visitExtensionType(this);
-  }
-
-  @override
-  R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg) {
-    return v.visitExtensionType(this, arg);
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    extension.acceptReference(v);
-    visitList(typeArguments, v);
-  }
-
-  @override
-  bool equals(Object other, Assumptions? assumptions) {
-    if (identical(this, other)) return true;
-    if (other is ExtensionType) {
-      if (nullability != other.nullability) return false;
-      if (extensionReference != other.extensionReference) return false;
-      if (typeArguments.length != other.typeArguments.length) return false;
-      for (int i = 0; i < typeArguments.length; ++i) {
-        if (!typeArguments[i].equals(other.typeArguments[i], assumptions)) {
-          return false;
-        }
-      }
-      return true;
-    } else {
-      return false;
-    }
-  }
-
-  @override
-  int get hashCode {
-    int hash = 0x3fffffff & extensionReference.hashCode;
-    for (int i = 0; i < typeArguments.length; ++i) {
-      hash = 0x3fffffff & (hash * 31 + (hash ^ typeArguments[i].hashCode));
-    }
-    int nullabilityHash = (0x33333333 >> nullability.index) ^ 0x33333333;
-    hash = 0x3fffffff & (hash * 31 + (hash ^ nullabilityHash));
-    return hash;
-  }
-
-  @override
-  ExtensionType withDeclaredNullability(Nullability declaredNullability) {
-    return declaredNullability == this.declaredNullability
-        ? this
-        : new ExtensionType.byReference(
-            extensionReference, declaredNullability, typeArguments);
-  }
-
-  @override
-  String toString() {
-    return "ExtensionType(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.writeExtensionName(extensionReference);
-    printer.writeTypeArguments(typeArguments);
     printer.writeNullability(declaredNullability);
   }
 }

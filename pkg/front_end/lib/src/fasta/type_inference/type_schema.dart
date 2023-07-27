@@ -109,9 +109,6 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
   bool visitDynamicType(DynamicType node) => true;
 
   @override
-  bool visitExtensionType(ExtensionType node) => true;
-
-  @override
   bool visitInvalidType(InvalidType node) => true;
 
   @override

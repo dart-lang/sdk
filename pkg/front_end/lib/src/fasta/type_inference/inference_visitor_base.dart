@@ -1202,12 +1202,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// be targeted due to, e.g., an incorrect argument count).
   ObjectAccessTarget findInterfaceMember(
       DartType receiverType, Name name, int fileOffset,
-      {required CallSiteAccessKind callSiteAccessKind,
+      {required bool isSetter,
       bool instrumented = true,
       bool includeExtensionMethods = false}) {
     assert(isKnown(receiverType));
-
-    bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
 
     DartType receiverBound = resolveTypeParameter(receiverType);
 
@@ -1227,7 +1225,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             receiverBound: receiverBound,
             isReceiverTypePotentiallyNullable:
                 isReceiverTypePotentiallyNullable,
-            callSiteAccessKind: callSiteAccessKind,
+            isSetter: isSetter,
             fileOffset: fileOffset);
 
     if (isReceiverTypePotentiallyNullable) {
@@ -3179,9 +3177,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       List<VariableDeclaration>? hoistedExpressions,
       ObjectAccessTarget? target}) {
     target ??= findInterfaceMember(receiverType, name, fileOffset,
-        instrumented: true,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.methodInvocation);
+        instrumented: true, includeExtensionMethods: true, isSetter: false);
 
     switch (target.kind) {
       case ObjectAccessTargetKind.instanceMember:
@@ -4000,9 +3996,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               ? _createInvalidInvocation(fileOffset, receiver, name, arguments!)
               : null,
           extensionAccessCandidates,
-          receiverType is ExtensionType
-              ? templateUndefinedExtensionMethod
-              : templateUndefinedMethod,
+          templateUndefinedMethod,
           templateAmbiguousExtensionMethod);
     }
   }
@@ -4021,8 +4015,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     ExpressionInferenceResult? readResult;
 
     readTarget ??= findInterfaceMember(receiverType, propertyName, fileOffset,
-        includeExtensionMethods: true,
-        callSiteAccessKind: CallSiteAccessKind.getterInvocation);
+        includeExtensionMethods: true, isSetter: false);
     readType ??= readTarget.getGetterType(this);
 
     switch (readTarget.kind) {
@@ -4199,12 +4192,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       int fileOffset, DartType receiverType, Name propertyName,
       {Expression? receiver,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (receiverType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionGetter;
-    } else {
-      templateMissing = templateUndefinedGetter;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedGetter;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         propertyName.text.length,
@@ -4222,12 +4211,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Name propertyName, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (receiverType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionSetter;
-    } else {
-      templateMissing = templateUndefinedSetter;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedSetter;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         propertyName.text.length,
@@ -4242,12 +4227,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression createMissingIndexGet(int fileOffset, Expression receiver,
       DartType receiverType, Expression index,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (receiverType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionOperator;
-    } else {
-      templateMissing = templateUndefinedOperator;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedOperator;
+
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         noLength,
@@ -4264,12 +4246,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType receiverType, Expression index, Expression value,
       {required bool forEffect,
       List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (receiverType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionOperator;
-    } else {
-      templateMissing = templateUndefinedOperator;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         noLength,
@@ -4286,12 +4264,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       DartType leftType, Name binaryName, Expression right,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
     assert(binaryName != equalsName);
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (leftType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionOperator;
-    } else {
-      templateMissing = templateUndefinedOperator;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         binaryName.text.length,
@@ -4307,12 +4281,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   Expression createMissingUnary(int fileOffset, Expression expression,
       DartType expressionType, Name unaryName,
       {List<ExtensionAccessCandidate>? extensionAccessCandidates}) {
-    Template<Message Function(String, DartType, bool)> templateMissing;
-    if (expressionType is ExtensionType) {
-      templateMissing = templateUndefinedExtensionOperator;
-    } else {
-      templateMissing = templateUndefinedOperator;
-    }
+    Template<Message Function(String, DartType, bool)> templateMissing =
+        templateUndefinedOperator;
     return _reportMissingOrAmbiguousMember(
         fileOffset,
         unaryName == unaryMinusName ? 1 : unaryName.text.length,
@@ -4595,7 +4565,7 @@ class _ObjectAccessDescriptor {
   final DartType receiverBound;
   final Class classNode;
   final bool isReceiverTypePotentiallyNullable;
-  final CallSiteAccessKind callSiteAccessKind;
+  final bool isSetter;
   final int fileOffset;
 
   _ObjectAccessDescriptor(
@@ -4604,19 +4574,17 @@ class _ObjectAccessDescriptor {
       required this.receiverBound,
       required this.classNode,
       required this.isReceiverTypePotentiallyNullable,
-      required this.callSiteAccessKind,
+      required this.isSetter,
       required this.fileOffset});
 
   /// Returns the [ObjectAccessTarget] corresponding to this descriptor.
   ObjectAccessTarget findNonExtensionTarget(InferenceVisitorBase visitor) {
-    return _findNonExtensionTargetInternal(visitor, name, callSiteAccessKind);
+    return _findNonExtensionTargetInternal(visitor, name, isSetter: isSetter);
   }
 
   ObjectAccessTarget _findNonExtensionTargetInternal(
-      InferenceVisitorBase visitor,
-      Name name,
-      CallSiteAccessKind callSiteAccessKind) {
-    bool isSetter = callSiteAccessKind == CallSiteAccessKind.setterInvocation;
+      InferenceVisitorBase visitor, Name name,
+      {required bool isSetter}) {
     final DartType receiverBound = this.receiverBound;
 
     if (receiverBound is InterfaceType) {
@@ -4633,7 +4601,7 @@ class _ObjectAccessDescriptor {
         case Nullability.legacy:
           // Never? and Never* are equivalent to Null.
           return visitor.findInterfaceMember(const NullType(), name, fileOffset,
-              callSiteAccessKind: callSiteAccessKind);
+              isSetter: isSetter);
         case Nullability.undetermined:
           return internalProblem(
               templateInternalProblemUnsupportedNullability.withArguments(
@@ -4706,45 +4674,33 @@ class _ObjectAccessDescriptor {
     return _complementaryName!;
   }
 
-  CallSiteAccessKind? _complementaryCallSiteAccessKind;
+  bool? _complementaryIsSetter;
 
   /// Returns `true` if the complementary getter/setter access corresponding to
   /// this descriptor is a setter access.
   bool get complementaryIsSetter {
     _computeComplementaryNameAndKind();
-    return _complementaryCallSiteAccessKind ==
-        CallSiteAccessKind.setterInvocation;
+    return _complementaryIsSetter!;
   }
 
   void _computeComplementaryNameAndKind() {
     if (_complementaryName == null) {
       Name otherName = name;
-      CallSiteAccessKind otherCallSiteAccessKind;
+      bool otherIsSetter;
       if (name == indexGetName) {
         // [] must be checked against []=.
         otherName = indexSetName;
-        otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
+        otherIsSetter = false;
       } else if (name == indexSetName) {
         // []= must be checked against [].
         otherName = indexGetName;
-        otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
+        otherIsSetter = false;
       } else {
         otherName = name;
-        switch (callSiteAccessKind) {
-          case CallSiteAccessKind.methodInvocation:
-          case CallSiteAccessKind.getterInvocation:
-            otherCallSiteAccessKind = CallSiteAccessKind.setterInvocation;
-            break;
-          case CallSiteAccessKind.setterInvocation:
-            otherCallSiteAccessKind = CallSiteAccessKind.getterInvocation;
-            break;
-          case CallSiteAccessKind.operatorInvocation:
-            otherCallSiteAccessKind = CallSiteAccessKind.operatorInvocation;
-            break;
-        }
+        otherIsSetter = !isSetter;
       }
       _complementaryName = otherName;
-      _complementaryCallSiteAccessKind = otherCallSiteAccessKind;
+      _complementaryIsSetter = otherIsSetter;
     }
   }
 
@@ -4753,10 +4709,10 @@ class _ObjectAccessDescriptor {
   bool hasComplementaryTarget(InferenceVisitorBase visitor) {
     _computeComplementaryNameAndKind();
     Name otherName = _complementaryName!;
-    CallSiteAccessKind otherCallSiteAccessKind =
-        _complementaryCallSiteAccessKind!;
+    bool otherIsSetter = _complementaryIsSetter!;
     ObjectAccessTarget other = _findNonExtensionTargetInternal(
-        visitor, otherName, otherCallSiteAccessKind);
+        visitor, otherName,
+        isSetter: otherIsSetter);
     switch (other.kind) {
       case ObjectAccessTargetKind.instanceMember:
       case ObjectAccessTargetKind.objectMember:
