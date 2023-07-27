@@ -3035,6 +3035,11 @@ class Parser {
       if (optional('(', next) || optional('.', next)) {
         return parseExtensionTypeDeclarationRest(
             token, extensionKeyword, typeKeyword, constKeyword, name);
+      } else {
+        // TODO(johnniwinther): Change this to recover as an extension type
+        // declaration.
+        reportRecoverableError(
+            next, codes.templateUnexpectedToken.withArguments(next));
       }
     }
     if (constKeyword != null) {
@@ -3058,62 +3063,6 @@ class Parser {
     }
     TypeInfo typeInfo = computeType(onKeyword, /* required = */ true);
     token = typeInfo.ensureTypeOrVoid(onKeyword, this);
-
-    int handleShowHideElements() {
-      int elementCount = 0;
-      do {
-        Token next = token.next!.next!;
-        if (optional('get', next)) {
-          token = IdentifierContext.extensionShowHideElementGetter
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else if (optional('operator', next)) {
-          token = IdentifierContext.extensionShowHideElementOperator
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else if (optional('set', next)) {
-          token = IdentifierContext.extensionShowHideElementSetter
-              .ensureIdentifier(next, this);
-          listener.handleShowHideIdentifier(next, token);
-        } else {
-          TypeInfo typeInfo = computeType(
-              token.next!,
-              /* required = */ true,
-              /* inDeclaration = */ true,
-              /* acceptKeywordForSimpleType = */ true);
-          final bool isUnambiguouslyType =
-              typeInfo.hasTypeArguments || typeInfo is PrefixedType;
-          if (isUnambiguouslyType) {
-            token = typeInfo.ensureTypeOrVoid(token.next!, this);
-          } else {
-            token = IdentifierContext.extensionShowHideElementMemberOrType
-                .ensureIdentifier(token.next!, this);
-            listener.handleShowHideIdentifier(/* modifier = */ null, token);
-          }
-        }
-        ++elementCount;
-      } while (optional(',', token.next!));
-      return elementCount;
-    }
-
-    Token? showKeyword = token.next!;
-    int showElementCount = 0;
-    if (optional('show', showKeyword)) {
-      showElementCount = handleShowHideElements();
-    } else {
-      showKeyword = null;
-    }
-
-    Token? hideKeyword = token.next!;
-    int hideElementCount = 0;
-    if (optional('hide', hideKeyword)) {
-      hideElementCount = handleShowHideElements();
-    } else {
-      hideKeyword = null;
-    }
-
-    listener.handleExtensionShowHide(
-        showKeyword, showElementCount, hideKeyword, hideElementCount);
 
     if (!optional('{', token.next!)) {
       // Recovery
@@ -3141,8 +3090,7 @@ class Parser {
     }
     token = parseClassOrMixinOrExtensionBody(
         token, DeclarationKind.Extension, name?.lexeme);
-    listener.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, token);
+    listener.endExtensionDeclaration(extensionKeyword, onKeyword, token);
     return token;
   }
 

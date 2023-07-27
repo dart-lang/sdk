@@ -115,14 +115,6 @@ class ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 6),
       experimentReleasedVersion: const Version(2, 6));
 
-  static const ExperimentalFlag extensionTypes = const ExperimentalFlag(
-      name: 'extension-types',
-      isEnabledByDefault: false,
-      isExpired: false,
-      enabledVersion: const Version(3, 2),
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2));
-
   static const ExperimentalFlag genericMetadata = const ExperimentalFlag(
       name: 'generic-metadata',
       isEnabledByDefault: true,
@@ -354,10 +346,6 @@ class GlobalFeatures {
   GlobalFeature get extensionMethods => _extensionMethods ??=
       _computeGlobalFeature(ExperimentalFlag.extensionMethods);
 
-  GlobalFeature? _extensionTypes;
-  GlobalFeature get extensionTypes => _extensionTypes ??=
-      _computeGlobalFeature(ExperimentalFlag.extensionTypes);
-
   GlobalFeature? _genericMetadata;
   GlobalFeature get genericMetadata => _genericMetadata ??=
       _computeGlobalFeature(ExperimentalFlag.genericMetadata);
@@ -489,11 +477,6 @@ class LibraryFeatures {
       _extensionMethods ??= globalFeatures._computeLibraryFeature(
           ExperimentalFlag.extensionMethods, canonicalUri, libraryVersion);
 
-  LibraryFeature? _extensionTypes;
-  LibraryFeature get extensionTypes =>
-      _extensionTypes ??= globalFeatures._computeLibraryFeature(
-          ExperimentalFlag.extensionTypes, canonicalUri, libraryVersion);
-
   LibraryFeature? _genericMetadata;
   LibraryFeature get genericMetadata =>
       _genericMetadata ??= globalFeatures._computeLibraryFeature(
@@ -611,8 +594,6 @@ class LibraryFeatures {
         return enhancedEnums;
       case shared.ExperimentalFlag.extensionMethods:
         return extensionMethods;
-      case shared.ExperimentalFlag.extensionTypes:
-        return extensionTypes;
       case shared.ExperimentalFlag.genericMetadata:
         return genericMetadata;
       case shared.ExperimentalFlag.inferenceUpdate1:
@@ -676,8 +657,6 @@ ExperimentalFlag? parseExperimentalFlag(String flag) {
       return ExperimentalFlag.enhancedEnums;
     case "extension-methods":
       return ExperimentalFlag.extensionMethods;
-    case "extension-types":
-      return ExperimentalFlag.extensionTypes;
     case "generic-metadata":
       return ExperimentalFlag.genericMetadata;
     case "inference-update-1":
@@ -737,8 +716,6 @@ final Map<ExperimentalFlag, bool> defaultExperimentalFlags = {
       ExperimentalFlag.enhancedEnums.isEnabledByDefault,
   ExperimentalFlag.extensionMethods:
       ExperimentalFlag.extensionMethods.isEnabledByDefault,
-  ExperimentalFlag.extensionTypes:
-      ExperimentalFlag.extensionTypes.isEnabledByDefault,
   ExperimentalFlag.genericMetadata:
       ExperimentalFlag.genericMetadata.isEnabledByDefault,
   ExperimentalFlag.inferenceUpdate1:
@@ -967,7 +944,6 @@ const Map<shared.ExperimentalFlag, ExperimentalFlag> sharedExperimentalFlags = {
       ExperimentalFlag.controlFlowCollections,
   shared.ExperimentalFlag.enhancedEnums: ExperimentalFlag.enhancedEnums,
   shared.ExperimentalFlag.extensionMethods: ExperimentalFlag.extensionMethods,
-  shared.ExperimentalFlag.extensionTypes: ExperimentalFlag.extensionTypes,
   shared.ExperimentalFlag.genericMetadata: ExperimentalFlag.genericMetadata,
   shared.ExperimentalFlag.inferenceUpdate1: ExperimentalFlag.inferenceUpdate1,
   shared.ExperimentalFlag.inferenceUpdate2: ExperimentalFlag.inferenceUpdate2,

@@ -218,18 +218,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    ExtensionShowHideHandle data = new ExtensionShowHideHandle(
-        ParserAstType.HANDLE,
-        showKeyword: showKeyword,
-        showElementCount: showElementCount,
-        hideKeyword: hideKeyword,
-        hideElementCount: hideElementCount);
-    seen(data);
-  }
-
-  @override
   void handleClassHeader(Token begin, Token classKeyword, Token? nativeToken) {
     ClassHeaderHandle data = new ClassHeaderHandle(ParserAstType.HANDLE,
         begin: begin, classKeyword: classKeyword, nativeToken: nativeToken);
@@ -315,15 +303,12 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     ExtensionDeclarationEnd data = new ExtensionDeclarationEnd(
         ParserAstType.END,
         extensionKeyword: extensionKeyword,
-        typeKeyword: typeKeyword,
         onKeyword: onKeyword,
-        showKeyword: showKeyword,
-        hideKeyword: hideKeyword,
         endToken: endToken);
     seen(data);
   }
@@ -3473,28 +3458,6 @@ class ImplementsHandle extends ParserAstNode {
       };
 }
 
-class ExtensionShowHideHandle extends ParserAstNode {
-  final Token? showKeyword;
-  final int showElementCount;
-  final Token? hideKeyword;
-  final int hideElementCount;
-
-  ExtensionShowHideHandle(ParserAstType type,
-      {this.showKeyword,
-      required this.showElementCount,
-      this.hideKeyword,
-      required this.hideElementCount})
-      : super("ExtensionShowHide", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "showKeyword": showKeyword,
-        "showElementCount": showElementCount,
-        "hideKeyword": hideKeyword,
-        "hideElementCount": hideElementCount,
-      };
-}
-
 class ClassHeaderHandle extends ParserAstNode {
   final Token begin;
   final Token classKeyword;
@@ -3649,28 +3612,19 @@ class ExtensionDeclarationBegin extends ParserAstNode {
 
 class ExtensionDeclarationEnd extends ParserAstNode {
   final Token extensionKeyword;
-  final Token? typeKeyword;
   final Token onKeyword;
-  final Token? showKeyword;
-  final Token? hideKeyword;
   final Token endToken;
 
   ExtensionDeclarationEnd(ParserAstType type,
       {required this.extensionKeyword,
-      this.typeKeyword,
       required this.onKeyword,
-      this.showKeyword,
-      this.hideKeyword,
       required this.endToken})
       : super("ExtensionDeclaration", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
         "extensionKeyword": extensionKeyword,
-        "typeKeyword": typeKeyword,
         "onKeyword": onKeyword,
-        "showKeyword": showKeyword,
-        "hideKeyword": hideKeyword,
         "endToken": endToken,
       };
 }

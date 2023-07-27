@@ -1,8 +1,0 @@
-import './non_simple_many_libs_same_name_cycle_lib.dart' as lib;
-
-class A<TypeX extends lib.A> {}
-
-extension B<TypeX extends lib.B> on int {}
-
-typedef C<TypeX extends lib.C> = int;
-main() {}

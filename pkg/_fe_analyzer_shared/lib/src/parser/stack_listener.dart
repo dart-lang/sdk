@@ -269,12 +269,6 @@ abstract class StackListener extends Listener with StackChecker {
   }
 
   @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    debugEvent("ExtensionShow");
-  }
-
-  @override
   void handleNoTypeArguments(Token token) {
     debugEvent("NoTypeArguments");
     push(NullValues.TypeArguments);

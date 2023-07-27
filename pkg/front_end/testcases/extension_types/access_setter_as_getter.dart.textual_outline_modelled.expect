@@ -1,9 +1,0 @@
-class A {}
-
-extension E on A {
-  int get bar => 42;
-  void set foo(int value) {}
-}
-
-main() {}
-test(E e) {}

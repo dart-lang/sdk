@@ -124,9 +124,6 @@ class AstBuilder extends StackListener {
   /// `true` if constructor tearoffs are enabled
   final bool enableConstructorTearoffs;
 
-  /// `true` if extension types are enabled
-  final bool enableExtensionTypes;
-
   /// `true` if named arguments anywhere are enabled
   final bool enableNamedArgumentsAnywhere;
 
@@ -169,7 +166,6 @@ class AstBuilder extends StackListener {
         enableVariance = _featureSet.isEnabled(Feature.variance),
         enableConstructorTearoffs =
             _featureSet.isEnabled(Feature.constructor_tearoffs),
-        enableExtensionTypes = _featureSet.isEnabled(Feature.extension_types),
         enableNamedArgumentsAnywhere =
             _featureSet.isEnabled(Feature.named_arguments_anywhere),
         enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
@@ -1584,24 +1580,9 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token token) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token token) {
     final builder = _classLikeBuilder as _ExtensionDeclarationBuilder;
-
-    if (typeKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: typeKeyword,
-      );
-    }
-
-    final showOrHideKeyword = showKeyword ?? hideKeyword;
-    if (showOrHideKeyword != null && !enableExtensionTypes) {
-      _reportFeatureNotEnabled(
-        feature: ExperimentalFeatures.extension_types,
-        startToken: showOrHideKeyword,
-      );
-    }
 
     final type = pop() as TypeAnnotationImpl;
 
@@ -1609,7 +1590,7 @@ class AstBuilder extends StackListener {
       builder.build(
         extendedType: type,
         onKeyword: onKeyword,
-        typeKeyword: typeKeyword,
+        typeKeyword: null,
       ),
     );
 
