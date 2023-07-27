@@ -115,9 +115,6 @@ features:
   variance:
     help: "Sound variance"
 
-  extension-types:
-    help: "Extension Types"
-
   const-functions:
     help: "Allow more of the Dart language to be executed in const expressions."
 
@@ -128,7 +125,7 @@ features:
     help: "Type promotion for fields"
 
   inline-class:
-    help: "Inline class"
+    help: "Extension Types"
 
   native-assets:
     help: "Compile and bundle native assets."

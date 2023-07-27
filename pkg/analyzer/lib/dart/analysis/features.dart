@@ -31,9 +31,6 @@ abstract class Feature {
   /// Feature information for extension methods.
   static final extension_methods = ExperimentalFeatures.extension_methods;
 
-  /// Feature information for extension types.
-  static final extension_types = ExperimentalFeatures.extension_types;
-
   /// Feature information for generic metadata.
   static final generic_metadata = ExperimentalFeatures.generic_metadata;
 

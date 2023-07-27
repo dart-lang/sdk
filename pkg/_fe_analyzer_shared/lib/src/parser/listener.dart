@@ -162,14 +162,6 @@ class Listener implements UnescapeErrorListener {
     logEvent("Implements");
   }
 
-  /// Handle a show clause in an extension declaration.
-  /// Substructures:
-  /// - shown types and instance members
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    logEvent("ExtensionShowHide");
-  }
-
   /// Handle the header of a class declaration.  Substructures:
   /// - metadata
   /// - modifiers
@@ -266,8 +258,8 @@ class Listener implements UnescapeErrorListener {
   /// - substructures from [beginExtensionDeclaration]
   /// - on type
   /// - body
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     logEvent('ExtensionDeclaration');
   }
 

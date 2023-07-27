@@ -1190,8 +1190,8 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
     _unexpected();
   }
 
@@ -1769,12 +1769,6 @@ class _MacroListener implements Listener {
   @override
   void handleExpressionStatement(Token token) {
     _unsupported();
-  }
-
-  @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    _unexpected();
   }
 
   @override

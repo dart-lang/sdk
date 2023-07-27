@@ -40,8 +40,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   @override
   final TypeBuilder onType;
 
-  final ExtensionTypeShowHideClauseBuilder extensionTypeShowHideClauseBuilder;
-
   final ExtensionName extensionName;
 
   SourceExtensionBuilder(
@@ -50,10 +48,8 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
       this.extensionName,
       this.typeParameters,
       this.onType,
-      this.extensionTypeShowHideClauseBuilder,
       Scope scope,
       SourceLibraryBuilder parent,
-      bool isExtensionTypeDeclaration,
       int startOffset,
       int nameOffset,
       int endOffset,
@@ -64,7 +60,7 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
             typeParameters:
                 TypeVariableBuilder.typeParametersFromBuilders(typeParameters),
             reference: referenceFrom?.reference)
-          ..isExtensionTypeDeclaration = isExtensionTypeDeclaration
+          ..isExtensionTypeDeclaration = false
           ..isUnnamedExtension = extensionName.isUnnamedExtension
           ..fileOffset = nameOffset,
         super(metadata, modifiers, extensionName.name, parent, nameOffset,
@@ -107,8 +103,6 @@ class SourceExtensionBuilder extends ExtensionBuilderImpl
   Extension build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     _extension.onType = onType.build(libraryBuilder, TypeUse.extensionOnType);
-    extensionTypeShowHideClauseBuilder.buildAndStoreTypes(
-        _extension, libraryBuilder);
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 

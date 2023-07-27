@@ -1,6 +1,0 @@
-extension type A<T> on Class<T> {}
-class Class<T> {
-  static A<T>? method1(A<T> arg) {}
-  static A<A<T>>? method2(A<A<T>> arg) {}
-}
-main() {}

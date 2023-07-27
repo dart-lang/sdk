@@ -58,13 +58,6 @@ enum ExperimentalFlag {
       experimentEnabledVersion: const Version(2, 6),
       experimentReleasedVersion: const Version(2, 6)),
 
-  extensionTypes(
-      name: 'extension-types',
-      isEnabledByDefault: false,
-      isExpired: false,
-      experimentEnabledVersion: const Version(3, 2),
-      experimentReleasedVersion: const Version(3, 2)),
-
   genericMetadata(
       name: 'generic-metadata',
       isEnabledByDefault: true,

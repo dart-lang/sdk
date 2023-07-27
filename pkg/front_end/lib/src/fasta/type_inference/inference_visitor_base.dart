@@ -8,7 +8,6 @@ import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
 import 'package:_fe_analyzer_shared/src/testing/id.dart';
 import 'package:_fe_analyzer_shared/src/util/link.dart';
 import 'package:kernel/ast.dart';
-import 'package:kernel/canonical_name.dart' as kernel;
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchyBase, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart' show CoreTypes;
@@ -953,26 +952,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return inferredTypes;
   }
 
-  ObjectAccessTarget _findShownExtensionTypeMember(
-      ExtensionType receiverType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget,
-      required CallSiteAccessKind callSiteAccessKind,
-      required bool isPotentiallyNullable}) {
-    Extension extension = receiverType.extension;
-    ExtensionTypeShowHideClause? showHideClause = extension.showHideClause;
-    if (showHideClause == null) return defaultTarget;
-
-    kernel.Reference? reference = showHideClause.findShownReference(
-        name, callSiteAccessKind, membersBuilder);
-    if (reference != null) {
-      return new ObjectAccessTarget.interfaceMember(
-          receiverType, reference.asMember,
-          isPotentiallyNullable: isPotentiallyNullable);
-    } else {
-      return defaultTarget;
-    }
-  }
-
   /// Returns inline class member declared immediately for [inlineType].
   ObjectAccessTarget? _findDirectInlineTypeMember(
       DartType receiverType, InlineType inlineType, Name name, int fileOffset,
@@ -1056,67 +1035,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         }
       }
       return null;
-    }
-  }
-
-  /// Returns extension member declared immediately for [receiverType].
-  ///
-  /// If none is found, [defaultTarget] is returned.
-  ObjectAccessTarget _findDirectExtensionTypeMember(
-      ExtensionType receiverType, Name name, int fileOffset,
-      {required ObjectAccessTarget defaultTarget, required bool isSetter}) {
-    Member? targetMember;
-    Member? targetTearoff;
-    ProcedureKind? targetKind;
-    for (ExtensionMemberDescriptor descriptor
-        in receiverType.extension.members) {
-      if (descriptor.name == name) {
-        switch (descriptor.kind) {
-          case ExtensionMemberKind.Method:
-            if (!isSetter) {
-              targetMember = descriptor.member.asMember;
-              targetTearoff ??= targetMember;
-              targetKind = ProcedureKind.Method;
-            }
-            break;
-          case ExtensionMemberKind.TearOff:
-            if (!isSetter) {
-              targetTearoff = descriptor.member.asMember;
-            }
-            break;
-          case ExtensionMemberKind.Getter:
-            if (!isSetter) {
-              targetMember = descriptor.member.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Getter;
-            }
-            break;
-          case ExtensionMemberKind.Setter:
-            if (isSetter) {
-              targetMember = descriptor.member.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Setter;
-            }
-            break;
-          case ExtensionMemberKind.Operator:
-            if (!isSetter) {
-              targetMember = descriptor.member.asMember;
-              targetTearoff = null;
-              targetKind = ProcedureKind.Operator;
-            }
-            break;
-          default:
-            unhandled("${descriptor.kind}", "_findDirectExtensionMember",
-                fileOffset, libraryBuilder.fileUri);
-        }
-      }
-    }
-    if (targetMember != null) {
-      assert(targetKind != null);
-      return new ObjectAccessTarget.extensionMember(receiverType, targetMember,
-          targetTearoff, targetKind!, receiverType.typeArguments);
-    } else {
-      return defaultTarget;
     }
   }
 
@@ -4773,19 +4691,6 @@ class _ObjectAccessDescriptor {
       target = isReceiverTypePotentiallyNullable
           ? new ObjectAccessTarget.nullableCallFunction(receiverType)
           : new ObjectAccessTarget.callFunction(receiverType);
-    } else if (visitor.libraryFeatures.extensionTypes.isEnabled &&
-        receiverBound is ExtensionType) {
-      target = visitor._findDirectExtensionTypeMember(
-          receiverBound, name, fileOffset,
-          isSetter: isSetter,
-          defaultTarget: const ObjectAccessTarget.missing());
-      if (target.kind == ObjectAccessTargetKind.missing) {
-        target = visitor._findShownExtensionTypeMember(
-            receiverBound, name, fileOffset,
-            callSiteAccessKind: callSiteAccessKind,
-            isPotentiallyNullable: isReceiverTypePotentiallyNullable,
-            defaultTarget: const ObjectAccessTarget.missing());
-      }
     } else {
       target = const ObjectAccessTarget.missing();
     }

@@ -1,6 +1,0 @@
-class A<TypeX extends A> {}
-
-extension B<TypeX extends B> on int {}
-
-main() {}
-typedef C<TypeX extends C> = int;

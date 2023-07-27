@@ -835,10 +835,9 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void endExtensionDeclaration(Token extensionKeyword, Token? typeKeyword,
-      Token onKeyword, Token? showKeyword, Token? hideKeyword, Token endToken) {
-    listener?.endExtensionDeclaration(extensionKeyword, typeKeyword, onKeyword,
-        showKeyword, hideKeyword, endToken);
+  void endExtensionDeclaration(
+      Token extensionKeyword, Token onKeyword, Token endToken) {
+    listener?.endExtensionDeclaration(extensionKeyword, onKeyword, endToken);
   }
 
   @override
@@ -1391,13 +1390,6 @@ class ForwardingListener implements Listener {
   @override
   void handleImplements(Token? implementsKeyword, int interfacesCount) {
     listener?.handleImplements(implementsKeyword, interfacesCount);
-  }
-
-  @override
-  void handleExtensionShowHide(Token? showKeyword, int showElementCount,
-      Token? hideKeyword, int hideElementCount) {
-    listener?.handleExtensionShowHide(
-        showKeyword, showElementCount, hideKeyword, hideElementCount);
   }
 
   @override

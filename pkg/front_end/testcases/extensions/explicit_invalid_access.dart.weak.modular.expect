@@ -11,8 +11,7 @@ library;
 //   Extension(c) = 42;
 //             ^
 //
-// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: This requires the experimental 'extension-types' language feature to be enabled.
-// Try passing the '--enable-experiment=extension-types' command line option.
+// pkg/front_end/testcases/extensions/explicit_invalid_access.dart:11:3: Error: 'Extension' isn't a type.
 //   Extension(c) = 42;
 //   ^^^^^^^^^
 //
