@@ -95,11 +95,6 @@ class FieldTable {
   static constexpr int kCapacityIncrement = 256;
 
  private:
-  friend class GCMarker;
-  friend class MarkingWeakVisitor;
-  friend class Scavenger;
-  friend class ScavengerWeakVisitor;
-
   void Grow(intptr_t new_capacity);
 
   intptr_t top_;

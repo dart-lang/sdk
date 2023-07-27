@@ -316,8 +316,6 @@ class Scavenger {
 
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class ScavengerWeakVisitor;
-  friend class ScavengerFinalizerVisitor;
 
   DISALLOW_COPY_AND_ASSIGN(Scavenger);
 };

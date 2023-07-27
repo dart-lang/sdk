@@ -135,9 +135,6 @@ enum TypedDataElementType {
   VISITOR_SUPPORT(object)                                                      \
   friend class object;                                                         \
   friend class UntaggedObject;                                                 \
-  friend class Heap;                                                           \
-  friend class Simulator;                                                      \
-  friend class SimulatorHelpers;                                               \
   friend class OffsetsTable;                                                   \
   DISALLOW_ALLOCATION();                                                       \
   DISALLOW_IMPLICIT_CONSTRUCTORS(Untagged##object)
@@ -568,8 +565,6 @@ class UntaggedObject {
     }
   }
 
-  friend class MessageDeserializer;  // bogus
-
   template <typename type,
             typename compressed_type,
             std::memory_order order = std::memory_order_relaxed>
@@ -784,10 +779,7 @@ class UntaggedObject {
   friend class GCMarker;
   friend class GCSweeper;
   friend class ExternalTypedData;
-  friend class ForwardList;
   friend class GrowableObjectArray;  // StorePointer
-  friend class Heap;
-  friend class ClassStatsVisitor;
   template <bool>
   friend class MarkingVisitorBase;
   friend class Mint;
@@ -807,8 +799,6 @@ class UntaggedObject {
   friend class Instance;                // StorePointer
   friend class StackFrame;              // GetCodeObject assertion.
   friend class CodeLookupTableBuilder;  // profiler
-  friend class Simulator;
-  friend class SimulatorHelpers;
   friend class ObjectLocator;
   friend class WriteBarrierUpdateVisitor;  // CheckHeapPointerStore
   friend class OffsetsTable;
@@ -1817,10 +1807,8 @@ class UntaggedWeakArray : public UntaggedObject {
   friend class CanonicalSetDeserializationCluster;
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
 };
@@ -3570,10 +3558,8 @@ class UntaggedWeakProperty : public UntaggedInstance {
 
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
   friend class FastObjectCopy;  // For OFFSET_OF
@@ -3604,10 +3590,8 @@ class UntaggedWeakReference : public UntaggedInstance {
 
   template <typename Type, typename PtrType>
   friend class GCLinkedList;
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ObjectGraph;
@@ -3649,10 +3633,8 @@ class UntaggedFinalizerBase : public UntaggedInstance {
 
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
   friend class ObjectGraph;
@@ -3674,10 +3656,8 @@ class UntaggedFinalizer : public UntaggedFinalizerBase {
 
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
 };
@@ -3688,10 +3668,8 @@ class UntaggedNativeFinalizer : public UntaggedFinalizerBase {
   COMPRESSED_POINTER_FIELD(PointerPtr, callback)
   VISIT_TO(callback)
 
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
 };
@@ -3725,13 +3703,10 @@ class UntaggedFinalizerEntry : public UntaggedInstance {
   friend class GCLinkedList;
   template <typename GCVisitorType>
   friend void MournFinalizerEntry(GCVisitorType*, FinalizerEntryPtr);
-  friend class GCMarker;
   template <bool>
   friend class MarkingVisitorBase;
-  friend class Scavenger;
   template <bool>
   friend class ScavengerVisitorBase;
-  friend class ScavengerFinalizerVisitor;
   friend class ObjectGraph;
 };
 
