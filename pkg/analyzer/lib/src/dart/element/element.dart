@@ -2683,6 +2683,7 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
   /// The type of function defined by this executable element.
   FunctionType? _type;
 
+  @override
   ElementLinkedData? linkedData;
 
   /// Initialize a newly created executable element to have the given [name] and
@@ -2863,15 +2864,6 @@ abstract class ExecutableElementImpl extends _ExistingElementImpl
     );
   }
 
-  /// Set the type parameters defined by this executable element to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
-  }
-
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, displayName);
@@ -2960,21 +2952,6 @@ class ExtensionElementImpl extends InstanceElementImpl
 
   @override
   DartType get thisType => extendedType;
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
-
-  /// Set the type parameters defined by this extension to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
-  }
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
@@ -3259,6 +3236,9 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
   ElementKind get kind => ElementKind.GENERIC_FUNCTION_TYPE;
 
   @override
+  ElementLinkedData<ElementImpl>? get linkedData => null;
+
+  @override
   List<ParameterElement> get parameters {
     return _parameters;
   }
@@ -3315,15 +3295,6 @@ class GenericFunctionTypeElementImpl extends _ExistingElementImpl
     );
   }
 
-  /// Set the type parameters defined by this function type element to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement parameter in typeParameters) {
-      (parameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
-  }
-
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
     return visitor.visitGenericFunctionTypeElement(this);
@@ -3372,6 +3343,7 @@ class ImportElementPrefixImpl implements ImportElementPrefix {
 abstract class InstanceElementImpl extends _ExistingElementImpl
     with TypeParameterizedElementMixin
     implements InstanceElement {
+  @override
   ElementLinkedData? linkedData;
 
   List<FieldElementImpl> _fields = _Sentinel.fieldElement;
@@ -3604,19 +3576,6 @@ abstract class InterfaceElementImpl extends NamedInstanceElementImpl
       );
     }
     return _thisType!;
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
-
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
   }
 
   /// This element and all its augmentations, in order.
@@ -6563,6 +6522,7 @@ class TypeAliasElementImpl extends _ExistingElementImpl
 
   bool isFunctionTypeAliasBased = false;
 
+  @override
   ElementLinkedData? linkedData;
 
   ElementImpl? _aliasedElement;
@@ -6676,21 +6636,6 @@ class TypeAliasElementImpl extends _ExistingElementImpl
       typeArguments: typeArguments,
       nullabilitySuffix: _noneOrStarSuffix,
     );
-  }
-
-  @override
-  List<TypeParameterElement> get typeParameters {
-    linkedData?.read(this);
-    return super.typeParameters;
-  }
-
-  /// Set the type parameters defined for this type to the given
-  /// [typeParameters].
-  set typeParameters(List<TypeParameterElement> typeParameters) {
-    for (TypeParameterElement typeParameter in typeParameters) {
-      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
-    }
-    _typeParameterElements = typeParameters;
   }
 
   @override
@@ -6882,22 +6827,30 @@ class TypeParameterElementImpl extends ElementImpl
 }
 
 /// Mixin representing an element which can have type parameters.
-mixin TypeParameterizedElementMixin
+mixin TypeParameterizedElementMixin on ElementImpl
     implements _ExistingElementImpl, TypeParameterizedElement {
-  /// The type parameters declared by this element directly. This does not
-  /// include type parameters that are declared by any enclosing elements.
-  List<TypeParameterElement> _typeParameterElements = const [];
+  List<TypeParameterElement> _typeParameters = const [];
 
   @override
   bool get isSimplyBounded => true;
 
+  ElementLinkedData? get linkedData;
+
   @override
   List<TypeParameterElement> get typeParameters {
-    return _typeParameterElements;
+    linkedData?.read(this);
+    return _typeParameters;
+  }
+
+  set typeParameters(List<TypeParameterElement> typeParameters) {
+    for (final typeParameter in typeParameters) {
+      (typeParameter as TypeParameterElementImpl).enclosingElement = this;
+    }
+    _typeParameters = typeParameters;
   }
 
   List<TypeParameterElement> get typeParameters_unresolved {
-    return _typeParameterElements;
+    return _typeParameters;
   }
 }
 
