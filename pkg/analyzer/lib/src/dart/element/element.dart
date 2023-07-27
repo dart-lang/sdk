@@ -931,9 +931,6 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
   }
 
   @override
-  TypeParameterizedElementMixin? get typeParameterContext => null;
-
-  @override
   bool operator ==(Object other) =>
       other is CompilationUnitElementImpl && source == other.source;
 
@@ -2343,13 +2340,6 @@ abstract class ElementImpl implements Element {
   @override
   Source? get source {
     return enclosingElement2?.source;
-  }
-
-  /// Return the context to resolve type parameters in, or `null` if neither
-  /// this element nor any of its ancestors is of a kind that can declare type
-  /// parameters.
-  TypeParameterizedElementMixin? get typeParameterContext {
-    return _enclosingElement?.typeParameterContext;
   }
 
   NullabilitySuffix get _noneOrStarSuffix {
