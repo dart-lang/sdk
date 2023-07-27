@@ -187,6 +187,7 @@ class FindElement extends _FindElementBase {
 
     findInClasses(unitElement.classes);
     findInClasses(unitElement.enums);
+    findInClasses(unitElement.extensionTypes);
     findInClasses(unitElement.mixins);
 
     for (var extension_ in unitElement.extensions) {
@@ -352,6 +353,12 @@ abstract class _FindElementBase {
       }
     }
 
+    for (var extensionType in unitElement.extensionTypes) {
+      if (of == null || extensionType.name == of) {
+        findIn(extensionType.constructors);
+      }
+    }
+
     if (result != null) {
       return result!;
     }
@@ -371,6 +378,15 @@ abstract class _FindElementBase {
     for (var extension_ in unitElement.extensions) {
       if (extension_.name == name) {
         return extension_;
+      }
+    }
+    throw StateError('Not found: $name');
+  }
+
+  ExtensionTypeElement extensionType(String name) {
+    for (final element in unitElement.extensionTypes) {
+      if (element.name == name) {
+        return element;
       }
     }
     throw StateError('Not found: $name');
@@ -494,6 +510,7 @@ abstract class _FindElementBase {
     var classes = [
       ...unitElement.classes,
       ...unitElement.enums,
+      ...unitElement.extensionTypes,
       ...unitElement.mixins,
     ];
 

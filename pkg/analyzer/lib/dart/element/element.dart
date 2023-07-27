@@ -1120,6 +1120,8 @@ abstract class ElementVisitor<R> {
 
   R? visitExtensionElement(ExtensionElement element);
 
+  R? visitExtensionTypeElement(ExtensionTypeElement element);
+
   R? visitFieldElement(FieldElement element);
 
   R? visitFieldFormalParameterElement(FieldFormalParameterElement element);
