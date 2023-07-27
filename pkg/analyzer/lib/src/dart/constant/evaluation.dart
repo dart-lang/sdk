@@ -2023,6 +2023,11 @@ class DartObjectComputer {
   Constant lazyQuestionQuestion(Expression node, DartObjectImpl leftOperand,
       Constant Function() rightOperandComputer) {
     if (leftOperand.isNull) {
+      // TODO(kallentu): Remove this once we have a better representation for
+      // unresolved types.
+      if (leftOperand.isInvalid) {
+        return leftOperand;
+      }
       return rightOperandComputer();
     }
     return leftOperand;
