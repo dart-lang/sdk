@@ -922,6 +922,7 @@ class CheckStoreBufferVisitor : public ObjectVisitor,
     is_card_remembered_ = raw_obj->untag()->IsCardRemembered();
     if (is_card_remembered_) {
       RELEASE_ASSERT_WITH_MSG(!is_remembered_, msg_);
+      RELEASE_ASSERT_WITH_MSG(Page::Of(raw_obj)->progress_bar_ == 0, msg_);
     }
     raw_obj->untag()->VisitPointers(this);
   }
@@ -1837,6 +1838,8 @@ void Scavenger::ReverseScavenge(SemiSpace** from) {
   // rebuilds the remembered set.
   heap_->WaitForSweeperTasksAtSafepoint(thread);
   Become::FollowForwardingPointers(thread);
+
+  heap_->old_space()->ResetProgressBars();
 
   // Don't scavenge again until the next old-space GC has occurred. Prevents
   // performing one scavenge per allocation as the heap limit is approached.

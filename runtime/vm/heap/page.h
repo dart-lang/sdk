@@ -337,11 +337,12 @@ class Page {
   // value meets the allocation top. Called "SCAN" in the original Cheney paper.
   uword resolved_top_;
 
+  friend class CheckStoreBufferVisitor;
+  friend class GCCompactor;
+  friend class PageSpace;
   template <bool>
   friend class ScavengerVisitorBase;
   friend class SemiSpace;
-  friend class PageSpace;
-  friend class GCCompactor;
   friend class UnwindingRecords;
 
   DISALLOW_ALLOCATION();
