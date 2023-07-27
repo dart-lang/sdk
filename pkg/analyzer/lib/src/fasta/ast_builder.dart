@@ -55,6 +55,7 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show KeywordToken, StringToken, SyntheticToken;
 import 'package:_fe_analyzer_shared/src/scanner/token_constants.dart';
+import 'package:_fe_analyzer_shared/src/util/null_value.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token, TokenType;
 import 'package:analyzer/error/error.dart';
@@ -1676,12 +1677,13 @@ class AstBuilder extends StackListener {
     final implementsClause =
         pop(NullValues.IdentifierList) as ImplementsClauseImpl?;
     final representation = pop() as RepresentationDeclarationImpl;
+    final constKeyword = pop() as Token?;
 
     final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
     declarations.add(
       builder.build(
         typeKeyword: typeKeyword,
-        constKeyword: null, // TODO(scheglov) not parsed
+        constKeyword: constKeyword,
         representation: representation,
         implementsClause: implementsClause,
       ),
@@ -2802,7 +2804,6 @@ class AstBuilder extends StackListener {
   @override
   void endPrimaryConstructor(
       Token beginToken, Token? constKeyword, bool hasConstructorName) {
-    // TODO(scheglov): Use the [constKeyword].
     final formalParameterList = pop() as FormalParameterListImpl;
     final leftParenthesis = formalParameterList.leftParenthesis;
 
@@ -2860,6 +2861,8 @@ class AstBuilder extends StackListener {
         typeNameToken,
       );
     }
+
+    push(constKeyword ?? const NullValue<Token>());
 
     push(
       RepresentationDeclarationImpl(

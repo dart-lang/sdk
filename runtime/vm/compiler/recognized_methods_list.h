@@ -270,7 +270,7 @@ namespace dart {
   V(::, _asFunctionInternal, FfiAsFunctionInternal, 0x630c8491)                \
   V(::, _nativeCallbackFunction, FfiNativeCallbackFunction, 0x3fe722bc)        \
   V(::, _nativeAsyncCallbackFunction, FfiNativeAsyncCallbackFunction,          \
-    0x2057e24d)                                                                \
+    0xbec4b7b9)                                                                \
   V(::, _nativeEffect, NativeEffect, 0x536f42b1)                               \
   V(::, _loadAbiSpecificInt, FfiLoadAbiSpecificInt, 0x77f95c92)                \
   V(::, _loadAbiSpecificIntAtIndex, FfiLoadAbiSpecificIntAtIndex, 0x6a963ed4)  \

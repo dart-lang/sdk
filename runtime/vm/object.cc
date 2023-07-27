@@ -8297,7 +8297,7 @@ bool Function::FfiCSignatureReturnsStruct() const {
 
 int32_t Function::FfiCallbackId() const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(FfiCallbackTarget() != Object::null());
+  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8310,7 +8310,7 @@ int32_t Function::FfiCallbackId() const {
 
 void Function::AssignFfiCallbackId(int32_t callback_id) const {
   ASSERT(IsFfiTrampoline());
-  ASSERT(FfiCallbackTarget() != Object::null());
+  ASSERT(GetFfiTrampolineKind() != FfiTrampolineKind::kCall);
 
   const auto& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
@@ -8362,18 +8362,18 @@ void Function::SetFfiCallbackExceptionalReturn(const Instance& value) const {
   FfiTrampolineData::Cast(obj).set_callback_exceptional_return(value);
 }
 
-FfiCallbackKind Function::GetFfiCallbackKind() const {
+FfiTrampolineKind Function::GetFfiTrampolineKind() const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  return FfiTrampolineData::Cast(obj).callback_kind();
+  return FfiTrampolineData::Cast(obj).trampoline_kind();
 }
 
-void Function::SetFfiCallbackKind(FfiCallbackKind value) const {
+void Function::SetFfiTrampolineKind(FfiTrampolineKind value) const {
   ASSERT(IsFfiTrampoline());
   const Object& obj = Object::Handle(data());
   ASSERT(!obj.IsNull());
-  FfiTrampolineData::Cast(obj).set_callback_kind(value);
+  FfiTrampolineData::Cast(obj).set_trampoline_kind(value);
 }
 
 const char* Function::KindToCString(UntaggedFunction::Kind kind) {
@@ -11473,8 +11473,8 @@ void FfiTrampolineData::set_callback_exceptional_return(
   untag()->set_callback_exceptional_return(value.ptr());
 }
 
-void FfiTrampolineData::set_callback_kind(FfiCallbackKind kind) const {
-  StoreNonPointer(&untag()->callback_kind_, static_cast<uint8_t>(kind));
+void FfiTrampolineData::set_trampoline_kind(FfiTrampolineKind kind) const {
+  StoreNonPointer(&untag()->trampoline_kind_, static_cast<uint8_t>(kind));
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
@@ -12210,6 +12210,7 @@ ObjectPtr Field::StaticConstFieldValue() const {
 
 void Field::SetStaticConstFieldValue(const Instance& value,
                                      bool assert_initializing_store) const {
+  ASSERT(is_static());
   auto thread = Thread::Current();
   auto initial_field_table = thread->isolate_group()->initial_field_table();
 
@@ -26124,7 +26125,7 @@ TypedDataViewPtr TypedDataBase::ViewFromTo(intptr_t start,
 }
 
 const char* TypedDataBase::ToCString() const {
-  // There are no instances of RawTypedDataBase.
+  // There are no instances of UntaggedTypedDataBase.
   UNREACHABLE();
   return nullptr;
 }

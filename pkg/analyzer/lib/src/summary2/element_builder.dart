@@ -497,8 +497,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     _withEnclosing(holder, () {
       node.typeParameters?.accept(this);
       _builtRepresentationDeclaration(
-        extensionTypeNode: node,
-        extensionTypeElement: element,
+        extensionNode: node,
         representation: node.representation,
       );
       _visitPropertyFirst<FieldDeclaration>(node.members);
@@ -1341,8 +1340,7 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
   }
 
   void _builtRepresentationDeclaration({
-    required ExtensionTypeDeclarationImpl extensionTypeNode,
-    required ExtensionTypeElementImpl extensionTypeElement,
+    required ExtensionTypeDeclarationImpl extensionNode,
     required RepresentationDeclarationImpl representation,
   }) {
     final fieldNameToken = representation.fieldName;
@@ -1392,11 +1390,12 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
         nameEnd = nameToken.end;
       } else {
         name = '';
-        nameOffset = extensionTypeNode.name.offset;
+        nameOffset = extensionNode.name.offset;
       }
 
       constructorElement = ConstructorElementImpl(name, nameOffset);
       constructorElement
+        ..isConst = extensionNode.constKeyword != null
         ..nameEnd = nameEnd
         ..parameters = [fieldFormalParameterElement]
         ..periodOffset = periodOffset;

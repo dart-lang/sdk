@@ -907,6 +907,7 @@ void IsolateGroup::RehashConstants(Become* become) {
         field = object_store()->enum_index_field();
         new_value = Smi::New(-1);
         deleted.SetField(field, new_value);
+        field = cls.LookupStaticField(Symbols::_DeletedEnumSentinel());
         // The static const field contains `Object::null()` instead of
         // `Object::sentinel()` - so it's not considered an initializing store.
         field.SetStaticConstFieldValue(deleted,
@@ -3607,10 +3608,10 @@ FfiCallbackMetadata::Trampoline Isolate::CreateSyncFfiCallback(
 
 FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(
     Zone* zone,
-    const Function& function,
+    const Function& send_function,
     Dart_Port send_port) {
   return FfiCallbackMetadata::Instance()->CreateAsyncFfiCallback(
-      this, zone, function, send_port, &ffi_callback_list_head_);
+      this, zone, send_function, send_port, &ffi_callback_list_head_);
 }
 
 void Isolate::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {

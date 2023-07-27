@@ -56,6 +56,22 @@ class C<T> {
 }
 ''');
   }
+
+  test_issue49389() async {
+    await assertErrorsInCode(r'''
+class Foo {
+  const Foo({required this.bar});
+  final Map<String, String> bar;
+}
+
+void main() {
+  final data = <String, String>{};
+  const Foo(bar: data);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+    ]);
+  }
 }
 
 mixin InvalidConstantTestCases on PubPackageResolutionTest {

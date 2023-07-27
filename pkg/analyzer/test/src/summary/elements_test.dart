@@ -284,7 +284,6 @@ library
         fields
           foo1 @44
             type: T1
-            shouldUseTypeForInitializerInference: true
             id: field_0
             getter: getter_0
             setter: setter_0
@@ -329,7 +328,6 @@ library
             fields
               foo2 @56
                 type: T2
-                shouldUseTypeForInitializerInference: true
                 id: field_1
                 getter: getter_1
                 setter: setter_1
@@ -3178,7 +3176,6 @@ library
         fields
           x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           @21
             parameters
@@ -3206,7 +3203,6 @@ library
         fields
           x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           @21
             parameters
@@ -3234,7 +3230,6 @@ library
         fields
           x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           @21
             parameters
@@ -3267,7 +3262,6 @@ library
         fields
           x @16
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @21
             parameters
@@ -3303,7 +3297,6 @@ library
         fields
           x @16
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @21
             parameters
@@ -3339,7 +3332,6 @@ library
         fields
           f @23
             type: dynamic Function()
-            shouldUseTypeForInitializerInference: true
         constructors
           @28
             parameters
@@ -3375,10 +3367,8 @@ library
         fields
           x @25
             type: int
-            shouldUseTypeForInitializerInference: true
           x @35
             type: String
-            shouldUseTypeForInitializerInference: true
         constructors
           @10
             parameters
@@ -3432,7 +3422,6 @@ library
         fields
           x @14
             type: num
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3460,7 +3449,6 @@ library
         fields
           x @14
             type: num
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3488,7 +3476,6 @@ library
         fields
           x @14
             type: num
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3516,7 +3503,6 @@ library
         fields
           x @14
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @17
             parameters
@@ -3544,7 +3530,6 @@ library
         fields
           x @14
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @17
             parameters
@@ -3572,7 +3557,6 @@ library
         fields
           x @14
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @17
             parameters
@@ -3600,7 +3584,6 @@ library
         fields
           x @14
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3628,7 +3611,6 @@ library
         fields
           x @14
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3660,7 +3642,6 @@ library
         fields
           x @14
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3688,7 +3669,6 @@ library
         fields
           x @14
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @17
             parameters
@@ -3817,7 +3797,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             constantInitializers
@@ -3853,7 +3832,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             constantInitializers
@@ -3897,7 +3875,6 @@ library
         fields
           final promotable _f @22
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           const @34
             parameters
@@ -3939,7 +3916,6 @@ library
         fields
           final x @25
             type: Object
-            shouldUseTypeForInitializerInference: true
         constructors
           const @36
             parameters
@@ -3985,7 +3961,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             parameters
@@ -6009,7 +5984,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             constantInitializers
@@ -6038,7 +6012,6 @@ library
         fields
           final x @70
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @81
             constantInitializers
@@ -6085,7 +6058,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @23
         accessors
@@ -6095,7 +6067,6 @@ library
         fields
           final x @62
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @67
         accessors
@@ -6460,7 +6431,6 @@ library
         fields
           abstract i @34
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -6534,7 +6504,6 @@ library
         fields
           covariant x @26
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -6565,7 +6534,6 @@ library
           x @38
             documentationComment: /**\n   * Docs\n   */
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -6686,7 +6654,6 @@ library
         fields
           external i @34
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -6845,7 +6812,6 @@ library
         fields
           final foo @22
             type: int
-            shouldUseTypeForInitializerInference: true
             id: field_0
             getter: getter_0
             setter: setter_0
@@ -6882,7 +6848,6 @@ library
         fields
           v @24
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @27
             parameters
@@ -6920,7 +6885,6 @@ library
         fields
           x @14
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -6944,7 +6908,6 @@ library
         fields
           late x @19
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -7018,7 +6981,6 @@ library
         fields
           v @24
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
             superConstructor: self::@class::D::@constructor::new
@@ -7191,7 +7153,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7216,7 +7177,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7245,7 +7205,6 @@ library
         fields
           final _foo @38
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7270,7 +7229,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7295,7 +7253,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7320,7 +7277,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7345,7 +7301,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7367,7 +7322,6 @@ library
         fields
           final _foo @39
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7397,7 +7351,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7434,7 +7387,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
       class B @90
         fields
           final promotable _foo @107
@@ -7483,7 +7435,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
       class B @54
         fields
           final promotable _foo @71
@@ -7520,7 +7471,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7553,7 +7503,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
       class B @54
         fields
           final _foo @71
@@ -7588,7 +7537,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7628,7 +7576,6 @@ library
         fields
           final promotable _foo @41
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7658,7 +7605,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7693,7 +7639,6 @@ library
         fields
           final _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
     mixins
       mixin M @54
         superclassConstraints
@@ -7732,7 +7677,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7752,7 +7696,6 @@ library
         fields
           _foo @17
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7772,7 +7715,6 @@ library
         fields
           field @17
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -7795,7 +7737,6 @@ library
         fields
           final promotable _foo @23
             type: int?
-            shouldUseTypeForInitializerInference: true
           final bar @37
             type: int
             shouldUseTypeForInitializerInference: false
@@ -7944,7 +7885,6 @@ library
         fields
           static i @21
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -8011,7 +7951,6 @@ library
         fields
           static late i @26
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -8246,10 +8185,8 @@ library
         fields
           i @14
             type: int
-            shouldUseTypeForInitializerInference: true
           j @21
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -8284,7 +8221,6 @@ library
         fields
           late foo @21
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -8312,7 +8248,6 @@ library
         fields
           late final foo @27
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -9918,7 +9853,6 @@ library
     topLevelVariables
       static c @13
         type: C
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -9945,7 +9879,6 @@ library
     topLevelVariables
       static c @14
         type: C?
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C?
@@ -9973,7 +9906,6 @@ library
     topLevelVariables
       static c @28
         type: C*
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C*
@@ -10267,7 +10199,6 @@ library
         fields
           t @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -10283,7 +10214,6 @@ library
         fields
           t @50
             type: double
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
             superConstructor: self::@class::A::@constructor::new
@@ -12602,7 +12532,6 @@ library
         fields
           x @105
             type: int
-            shouldUseTypeForInitializerInference: true
           synthetic a @-1
             type: int
           synthetic b @-1
@@ -13495,7 +13424,6 @@ library
             codeOffset: 33
             codeLength: 15
             type: int
-            shouldUseTypeForInitializerInference: true
           multiWithInit @57
             codeOffset: 53
             codeLength: 21
@@ -13505,7 +13433,6 @@ library
             codeOffset: 76
             codeLength: 16
             type: int
-            shouldUseTypeForInitializerInference: true
           multiWithInit2 @94
             codeOffset: 94
             codeLength: 18
@@ -13592,13 +13519,11 @@ library
             codeOffset: 12
             codeLength: 51
             type: int
-            shouldUseTypeForInitializerInference: true
           hasDocComment2 @65
             documentationComment: /// Comment 1.\n/// Comment 2.
             codeOffset: 65
             codeLength: 14
             type: int
-            shouldUseTypeForInitializerInference: true
           hasAnnotation @100
             metadata
               Annotation
@@ -13614,7 +13539,6 @@ library
             codeOffset: 84
             codeLength: 29
             type: int
-            shouldUseTypeForInitializerInference: true
           hasAnnotation2 @115
             metadata
               Annotation
@@ -13630,7 +13554,6 @@ library
             codeOffset: 115
             codeLength: 14
             type: int
-            shouldUseTypeForInitializerInference: true
           annotationThenComment @184
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
@@ -13647,7 +13570,6 @@ library
             codeOffset: 134
             codeLength: 71
             type: int
-            shouldUseTypeForInitializerInference: true
           annotationThenComment2 @207
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
@@ -13664,7 +13586,6 @@ library
             codeOffset: 207
             codeLength: 22
             type: int
-            shouldUseTypeForInitializerInference: true
           commentThenAnnotation @284
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
@@ -13681,7 +13602,6 @@ library
             codeOffset: 234
             codeLength: 71
             type: int
-            shouldUseTypeForInitializerInference: true
           commentThenAnnotation2 @307
             documentationComment: /// Comment 1.\n/// Comment 2.
             metadata
@@ -13698,7 +13618,6 @@ library
             codeOffset: 307
             codeLength: 22
             type: int
-            shouldUseTypeForInitializerInference: true
           commentAroundAnnotation @384
             documentationComment: /// Comment 2.
             metadata
@@ -13715,7 +13634,6 @@ library
             codeOffset: 351
             codeLength: 56
             type: int
-            shouldUseTypeForInitializerInference: true
           commentAroundAnnotation2 @409
             documentationComment: /// Comment 2.
             metadata
@@ -13732,7 +13650,6 @@ library
             codeOffset: 409
             codeLength: 24
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -14375,7 +14292,6 @@ library
         codeOffset: 27
         codeLength: 15
         type: int
-        shouldUseTypeForInitializerInference: true
       static multiWithInit @49
         codeOffset: 45
         codeLength: 21
@@ -14385,7 +14301,6 @@ library
         codeOffset: 68
         codeLength: 16
         type: int
-        shouldUseTypeForInitializerInference: true
       static multiWithInit2 @86
         codeOffset: 86
         codeLength: 18
@@ -14464,13 +14379,11 @@ library
         codeOffset: 0
         codeLength: 47
         type: int
-        shouldUseTypeForInitializerInference: true
       static hasDocComment2 @49
         documentationComment: /// Comment 1.\n/// Comment 2.
         codeOffset: 49
         codeLength: 14
         type: int
-        shouldUseTypeForInitializerInference: true
       static hasAnnotation @80
         metadata
           Annotation
@@ -14486,7 +14399,6 @@ library
         codeOffset: 66
         codeLength: 27
         type: int
-        shouldUseTypeForInitializerInference: true
       static hasAnnotation2 @95
         metadata
           Annotation
@@ -14502,7 +14414,6 @@ library
         codeOffset: 95
         codeLength: 14
         type: int
-        shouldUseTypeForInitializerInference: true
       static annotationThenComment @156
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -14519,7 +14430,6 @@ library
         codeOffset: 112
         codeLength: 65
         type: int
-        shouldUseTypeForInitializerInference: true
       static annotationThenComment2 @179
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -14536,7 +14446,6 @@ library
         codeOffset: 179
         codeLength: 22
         type: int
-        shouldUseTypeForInitializerInference: true
       static commentThenAnnotation @248
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -14553,7 +14462,6 @@ library
         codeOffset: 204
         codeLength: 65
         type: int
-        shouldUseTypeForInitializerInference: true
       static commentThenAnnotation2 @271
         documentationComment: /// Comment 1.\n/// Comment 2.
         metadata
@@ -14570,7 +14478,6 @@ library
         codeOffset: 271
         codeLength: 22
         type: int
-        shouldUseTypeForInitializerInference: true
       static commentAroundAnnotation @340
         documentationComment: /// Comment 2.
         metadata
@@ -14587,7 +14494,6 @@ library
         codeOffset: 311
         codeLength: 52
         type: int
-        shouldUseTypeForInitializerInference: true
       static commentAroundAnnotation2 @365
         documentationComment: /// Comment 2.
         metadata
@@ -14604,7 +14510,6 @@ library
         codeOffset: 365
         codeLength: 24
         type: int
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get hasDocComment @-1
         returnType: int
@@ -14938,7 +14843,6 @@ library
         fields
           final t @23
             type: T
-            shouldUseTypeForInitializerInference: true
         constructors
           const @34
             parameters
@@ -15442,7 +15346,6 @@ library
         fields
           final foo @26
             type: Object?
-            shouldUseTypeForInitializerInference: true
         constructors
           const @39
             constantInitializers
@@ -17673,7 +17576,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             parameters
@@ -17709,7 +17611,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             parameters
@@ -17749,7 +17650,6 @@ library
         fields
           final x @18
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @29
             parameters
@@ -21335,7 +21235,6 @@ library
               alias: self::@typeAlias::F
                 typeArguments
                   dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           const @82
             parameters
@@ -22148,7 +22047,6 @@ library
         fields
           x @27
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -22405,7 +22303,6 @@ library
         fields
           static x @63
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         accessors
           synthetic static get x @-1
             returnType: dynamic
@@ -22514,7 +22411,6 @@ library
         fields
           x @27
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         accessors
           synthetic get x @-1
             returnType: dynamic
@@ -22554,10 +22450,8 @@ library
     topLevelVariables
       static x @5
         type: bool
-        shouldUseTypeForInitializerInference: true
       static x @12
         type: dynamic
-        shouldUseTypeForInitializerInference: false
       static x @19
         type: int
         shouldUseTypeForInitializerInference: false
@@ -23006,7 +22900,6 @@ library
                 staticType: List<E>
           final x @22
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           const @33
             parameters
@@ -23071,10 +22964,8 @@ library
                 staticType: List<E>
           final x @26
             type: int
-            shouldUseTypeForInitializerInference: true
           final x @44
             type: String
-            shouldUseTypeForInitializerInference: true
         constructors
           const @55
             parameters
@@ -23192,7 +23083,6 @@ library
                 staticType: List<E>
           final x @26
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           const @37
             parameters
@@ -23265,7 +23155,6 @@ library
                 staticType: List<E>
           final x @26
             type: num
-            shouldUseTypeForInitializerInference: true
         constructors
           const @37
             parameters
@@ -23326,7 +23215,6 @@ library
                 staticType: List<E>
           final x @22
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @27
             parameters
@@ -23387,7 +23275,6 @@ library
                 staticType: List<E>
           final x @22
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @27
             parameters
@@ -23576,7 +23463,6 @@ library
                 staticType: List<E<dynamic>>
           final x @29
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           const @40
             parameters
@@ -23750,7 +23636,6 @@ library
         fields
           final promotable _foo @33
             type: int?
-            shouldUseTypeForInitializerInference: true
 ''');
   }
 
@@ -26956,7 +26841,6 @@ library
     topLevelVariables
       static x @35
         type: FutureOr<int>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get x @-1
         returnType: FutureOr<int>
@@ -27057,7 +26941,6 @@ library
     topLevelVariables
       static f @16
         type: void Function()
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: void Function()
@@ -27079,7 +26962,6 @@ library
     topLevelVariables
       static f @17
         type: void Function()?
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: void Function()?
@@ -27102,7 +26984,6 @@ library
     topLevelVariables
       static f @31
         type: void Function()*
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: void Function()*
@@ -27246,7 +27127,6 @@ library
     topLevelVariables
       static v @30
         type: int Function(int, String)
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get v @-1
         returnType: int Function(int, String)
@@ -28045,7 +27925,6 @@ library
         fields
           final x @25
             type: Object
-            shouldUseTypeForInitializerInference: true
         constructors
           const named @38
             periodOffset: 37
@@ -28358,7 +28237,6 @@ library
     topLevelVariables
       static f @51
         type: Future<dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: Future<dynamic>
@@ -28415,7 +28293,6 @@ library
     topLevelVariables
       static f @52
         type: Future<dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: Future<dynamic>
@@ -28442,7 +28319,6 @@ library
     topLevelVariables
       static c @26
         type: C
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -28497,10 +28373,8 @@ library
     topLevelVariables
       static f @48
         type: Future<dynamic>
-        shouldUseTypeForInitializerInference: true
       static s @58
         type: Stream<dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: Future<dynamic>
@@ -28552,10 +28426,8 @@ library
     topLevelVariables
       static c @36
         type: C
-        shouldUseTypeForInitializerInference: true
       static d @41
         type: D
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -28793,7 +28665,6 @@ library
         fields
           b @14
             type: B
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -28912,7 +28783,6 @@ library
         fields
           p @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -28992,7 +28862,6 @@ library
         fields
           final x @24
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @29
         accessors
@@ -29399,7 +29268,6 @@ library
           v @49
             type: int Function(String)
               alias: self::@typeAlias::F
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
             superConstructor: self::@class::D::@constructor::new
@@ -29560,7 +29428,6 @@ library
         fields
           v @37
             type: Map<T, int>
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
             superConstructor: ConstructorMember
@@ -30081,7 +29948,6 @@ library
         fields
           f @141
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
             superConstructor: self::@class::C::@constructor::new
@@ -30499,7 +30365,6 @@ library
     topLevelVariables
       static c @47
         type: C<num, C<num, dynamic>>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C<num, C<num, dynamic>>
@@ -30549,7 +30414,6 @@ library
     topLevelVariables
       static c @29
         type: C<C<dynamic>>
-        shouldUseTypeForInitializerInference: true
       static c2 @36
         type: C<C<Object?>>
         shouldUseTypeForInitializerInference: false
@@ -30610,7 +30474,6 @@ library
     topLevelVariables
       static c @44
         type: C<C<dynamic>*>*
-        shouldUseTypeForInitializerInference: true
       static c2 @51
         type: C<C<dynamic>*>*
         shouldUseTypeForInitializerInference: false
@@ -30654,7 +30517,6 @@ library
     topLevelVariables
       static c @47
         type: C<C<dynamic, num>, num>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C<C<dynamic, num>, num>
@@ -30724,7 +30586,6 @@ library
           alias: self::@typeAlias::F
             typeArguments
               num
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: dynamic Function(num)
@@ -30771,7 +30632,6 @@ library
     topLevelVariables
       static b @69
         type: B<int Function(), A<int Function()>>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get b @-1
         returnType: B<int Function(), A<int Function()>>
@@ -30811,7 +30671,6 @@ library
           alias: self::@typeAlias::F
             typeArguments
               num
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: S Function<S>(num)
@@ -30883,7 +30742,6 @@ library
     topLevelVariables
       static c @28
         type: C<num>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C<num>
@@ -30995,7 +30853,6 @@ library
         fields
           v @50
             type: List<dynamic>
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -31079,7 +30936,6 @@ library
     topLevelVariables
       static V @27
         type: dynamic
-        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get V @-1
         returnType: dynamic
@@ -31119,7 +30975,6 @@ library
         fields
           foo @16
             type: int
-            shouldUseTypeForInitializerInference: true
           synthetic bar @-1
             type: dynamic
         constructors
@@ -32006,7 +31861,6 @@ library
     topLevelVariables
       static main @4
         type: dynamic
-        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get main @-1
         returnType: dynamic
@@ -33401,7 +33255,6 @@ library
         fields
           final value @26
             type: dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           const @41
             parameters
@@ -34155,7 +34008,6 @@ library
                   staticType: null
                 element: self::@getter::a
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -34196,7 +34048,6 @@ library
         fields
           x @32
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @37
             parameters
@@ -34244,7 +34095,6 @@ library
         fields
           x @30
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           @33
             parameters
@@ -36558,7 +36408,6 @@ library
               staticType: null
             element: self::@getter::a
         type: int
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -37051,7 +36900,6 @@ library
         fields
           a @50
             type: A
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -37124,7 +36972,6 @@ library
         fields
           f @101
             type: T
-            shouldUseTypeForInitializerInference: true
           synthetic g @-1
             type: U
           synthetic s @-1
@@ -39351,7 +39198,6 @@ library
         fields
           x @16
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           positional @23
             periodOffset: 22
@@ -39487,7 +39333,6 @@ library
         fields
           final x @32
             type: (int, String)
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -39756,7 +39601,6 @@ library
     topLevelVariables
       static final x @20
         type: (int, String)
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get x @-1
         returnType: (int, String)
@@ -40617,7 +40461,6 @@ library
     topLevelVariables
       static i @13
         type: int
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get i @-1
         returnType: int
@@ -40637,7 +40480,6 @@ library
     topLevelVariables
       static m @22
         type: Map<dynamic, dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get m @-1
         returnType: Map<dynamic, dynamic>
@@ -40657,7 +40499,6 @@ library
     topLevelVariables
       static m @18
         type: Map<dynamic, int>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get m @-1
         returnType: Map<dynamic, int>
@@ -40677,7 +40518,6 @@ library
     topLevelVariables
       static m @21
         type: Map<String, dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get m @-1
         returnType: Map<String, dynamic>
@@ -40697,7 +40537,6 @@ library
     topLevelVariables
       static m @17
         type: Map<String, int>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get m @-1
         returnType: Map<String, int>
@@ -40717,7 +40556,6 @@ library
     topLevelVariables
       static m @4
         type: Map<dynamic, dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get m @-1
         returnType: Map<dynamic, dynamic>
@@ -40737,7 +40575,6 @@ library
     topLevelVariables
       static d @8
         type: dynamic
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get d @-1
         returnType: dynamic
@@ -41003,7 +40840,6 @@ library
         fields
           value @17
             type: T
-            shouldUseTypeForInitializerInference: true
         constructors
           @27
             parameters
@@ -41063,7 +40899,6 @@ library
         fields
           value @17
             type: T
-            shouldUseTypeForInitializerInference: true
         constructors
           @27
             parameters
@@ -41484,7 +41319,6 @@ library
         fields
           final f @67
             type: T
-            shouldUseTypeForInitializerInference: true
         constructors
           const @78
             parameters
@@ -41612,10 +41446,8 @@ library
     topLevelVariables
       static V @4
         type: dynamic
-        shouldUseTypeForInitializerInference: false
       static V2 @22
         type: List<dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get V @-1
         returnType: dynamic
@@ -41669,7 +41501,6 @@ library
     topLevelVariables
       static v @4
         type: InvalidType
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get v @-1
         returnType: InvalidType
@@ -41692,7 +41523,6 @@ library
     topLevelVariables
       static d @21
         type: Null*
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get d @-1
         returnType: Null*
@@ -41712,7 +41542,6 @@ library
     topLevelVariables
       static d @6
         type: Never
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get d @-1
         returnType: Never
@@ -41741,7 +41570,6 @@ library
         fields
           t @17
             type: T
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -41772,7 +41600,6 @@ library
         fields
           t @18
             type: T?
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -41804,7 +41631,6 @@ library
         fields
           t @32
             type: T*
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -41879,14 +41705,11 @@ library
     topLevelVariables
       static c @39
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @44
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @49
         type: dynamic Function()
           alias: self::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -41927,14 +41750,11 @@ library
     topLevelVariables
       static c @28
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @33
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @38
         type: dynamic Function()
           alias: self::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42072,14 +41892,11 @@ library
       topLevelVariables
         static c @13
           type: C
-          shouldUseTypeForInitializerInference: true
         static e @18
           type: E
-          shouldUseTypeForInitializerInference: true
         static f @23
           type: dynamic Function()
             alias: self::@typeAlias::F
-          shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get c @-1
           returnType: C
@@ -42171,14 +41988,11 @@ library
       topLevelVariables
         static c @13
           type: C
-          shouldUseTypeForInitializerInference: true
         static e @18
           type: E
-          shouldUseTypeForInitializerInference: true
         static f @23
           type: dynamic Function()
             alias: self::@typeAlias::F
-          shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get c @-1
           returnType: C
@@ -42267,14 +42081,11 @@ library
       topLevelVariables
         static c @50
           type: C
-          shouldUseTypeForInitializerInference: true
         static e @55
           type: E
-          shouldUseTypeForInitializerInference: true
         static f @60
           type: dynamic Function()
             alias: self::@typeAlias::F
-          shouldUseTypeForInitializerInference: true
       accessors
         synthetic static get c @-1
           returnType: C
@@ -42314,7 +42125,6 @@ library
     topLevelVariables
       static c @13
         type: C
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42343,7 +42153,6 @@ library
     topLevelVariables
       static c @32
         type: C<int, String>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C<int, String>
@@ -42372,7 +42181,6 @@ library
     topLevelVariables
       static c @19
         type: C<dynamic, dynamic>
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C<dynamic, dynamic>
@@ -42430,7 +42238,6 @@ library
     topLevelVariables
       static e @15
         type: E
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get e @-1
         returnType: E
@@ -42454,14 +42261,11 @@ library
     topLevelVariables
       static c @19
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @24
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @29
         type: dynamic Function()
           alias: package:test/a.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42502,14 +42306,11 @@ library
     topLevelVariables
       static c @19
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @24
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @29
         type: dynamic Function()
           alias: package:test/b.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42551,14 +42352,11 @@ library
     topLevelVariables
       static c @19
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @24
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @29
         type: dynamic Function()
           alias: package:test/c.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42600,14 +42398,11 @@ library
     topLevelVariables
       static c @21
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @26
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @31
         type: dynamic Function()
           alias: package:test/a/c/c.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42648,14 +42443,11 @@ library
     topLevelVariables
       static c @21
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @26
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @31
         type: dynamic Function()
           alias: package:test/a/b/b.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42696,14 +42488,11 @@ library
     topLevelVariables
       static c @19
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @24
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @29
         type: dynamic Function()
           alias: package:test/a.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42745,10 +42534,8 @@ library
     topLevelVariables
       static c1 @20
         type: C1
-        shouldUseTypeForInitializerInference: true
       static c2 @27
         type: C2
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c1 @-1
         returnType: C1
@@ -42780,14 +42567,11 @@ library
     topLevelVariables
       static c @21
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @26
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @31
         type: dynamic Function()
           alias: package:test/a/b.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42827,14 +42611,11 @@ library
     topLevelVariables
       static c @19
         type: C
-        shouldUseTypeForInitializerInference: true
       static e @24
         type: E
-        shouldUseTypeForInitializerInference: true
       static f @29
         type: dynamic Function()
           alias: package:test/a.dart::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: C
@@ -42876,7 +42657,6 @@ library
       static f @15
         type: dynamic Function()
           alias: self::@typeAlias::F
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: dynamic Function()
@@ -42916,7 +42696,6 @@ library
             typeArguments
               int
               String
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: String Function(int)
@@ -42961,7 +42740,6 @@ library
             typeArguments
               dynamic
               dynamic
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get f @-1
         returnType: dynamic Function(dynamic)
@@ -42989,7 +42767,6 @@ library
     topLevelVariables
       static c @2
         type: InvalidType
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: InvalidType
@@ -43012,7 +42789,6 @@ library
     topLevelVariables
       static c @35
         type: InvalidType
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get c @-1
         returnType: InvalidType
@@ -43573,7 +43349,6 @@ library
               alias: self::@typeAlias::Foo
                 typeArguments
                   int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -45918,7 +45693,6 @@ library
     topLevelVariables
       static c @36
         type: C<int>
-        shouldUseTypeForInitializerInference: true
       static v @43
         type: void Function()
         shouldUseTypeForInitializerInference: false
@@ -46012,7 +45786,6 @@ library
       static x @64
         documentationComment: /**\n * Docs\n */
         type: dynamic
-        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: dynamic
@@ -46163,7 +45936,6 @@ library
     topLevelVariables
       static x @4
         type: dynamic
-        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get x @-1
         returnType: dynamic
@@ -46338,7 +46110,6 @@ library
     topLevelVariables
       static late final x @15
         type: int
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get x @-1
         returnType: int
@@ -46551,7 +46322,6 @@ library
     topLevelVariables
       static a @4
         type: dynamic
-        shouldUseTypeForInitializerInference: false
     accessors
       synthetic static get a @-1
         returnType: dynamic
@@ -46643,10 +46413,8 @@ library
     topLevelVariables
       static i @4
         type: int
-        shouldUseTypeForInitializerInference: true
       static j @11
         type: int
-        shouldUseTypeForInitializerInference: true
     accessors
       synthetic static get i @-1
         returnType: int
@@ -46729,6 +46497,32 @@ class ExtensionTypeKeepLinkingTest extends ElementsBaseTest
 }
 
 mixin ExtensionTypeMixin on ElementsBaseTest {
+  test_constructor_const() async {
+    var library = await buildLibrary(r'''
+extension type const A(int it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @21
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @27
+            type: int
+        constructors
+          const @21
+            parameters
+              requiredPositional final this.it @27
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_constructor_named() async {
     var library = await buildLibrary(r'''
 extension type A.named(int it) {}
@@ -46748,7 +46542,6 @@ library
             codeOffset: 23
             codeLength: 6
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           named @17
             codeOffset: 16
@@ -46786,7 +46579,6 @@ library
             codeOffset: 17
             codeLength: 6
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @15
             codeOffset: 16
@@ -46832,7 +46624,6 @@ library
                   staticType: null
                 element: package:test/a.dart::@getter::foo
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @32
             parameters
@@ -46875,7 +46666,6 @@ library
         fields
           final it @43
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           @37
             parameters
@@ -46907,7 +46697,6 @@ library
             codeOffset: 17
             codeLength: 0
             type: InvalidType
-            shouldUseTypeForInitializerInference: true
         constructors
           @15
             codeOffset: 16
@@ -46921,6 +46710,36 @@ library
         accessors
           synthetic get <empty> @-1
             returnType: InvalidType
+''');
+  }
+
+  test_typeParameters() async {
+    var library = await buildLibrary(r'''
+extension type A<T extends num, U>(Map<T, U> it) {}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        typeParameters
+          covariant T @17
+            bound: num
+          covariant U @32
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @45
+            type: Map<T, U>
+        constructors
+          @15
+            parameters
+              requiredPositional final this.it @45
+                type: Map<T, U>
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: Map<T, U>
 ''');
   }
 }
@@ -47136,7 +46955,6 @@ library
         fields
           foo1 @44
             type: T1
-            shouldUseTypeForInitializerInference: true
             id: field_0
             getter: getter_0
             setter: setter_0
@@ -47181,7 +46999,6 @@ library
             fields
               foo2 @56
                 type: T2
-                shouldUseTypeForInitializerInference: true
                 id: field_1
                 getter: getter_1
                 setter: setter_1

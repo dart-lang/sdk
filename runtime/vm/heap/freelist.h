@@ -58,7 +58,7 @@ class FreeListElement {
   };
 
  private:
-  // This layout mirrors the layout of RawObject.
+  // This layout mirrors the layout of UntaggedObject.
   RelaxedAtomic<uword> tags_;
   RelaxedAtomic<FreeListElement*> next_;
 

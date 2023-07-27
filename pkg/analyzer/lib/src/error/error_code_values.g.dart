@@ -1015,8 +1015,6 @@ const List<ErrorCode> errorCodeValues = [
   WarningCode.SDK_VERSION_NEVER,
   WarningCode.SDK_VERSION_SET_LITERAL,
   WarningCode.SDK_VERSION_SINCE,
-  WarningCode.SDK_VERSION_UI_AS_CODE,
-  WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT,
   WarningCode.STRICT_RAW_TYPE,
   WarningCode.SUBTYPE_OF_SEALED_CLASS,
   WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT,

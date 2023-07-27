@@ -578,7 +578,6 @@ library
         fields
           f @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -642,7 +641,6 @@ library
         fields
           f @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -661,7 +659,6 @@ library
     topLevelVariables
       static c @56
         type: C
-        shouldUseTypeForInitializerInference: true
       static t1 @63
         type: int
         shouldUseTypeForInitializerInference: false
@@ -711,7 +708,6 @@ library
         fields
           f @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -882,7 +878,6 @@ library
         fields
           a @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -987,7 +982,6 @@ library
         fields
           a @39
             type: A
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1002,7 +996,6 @@ library
         fields
           b @58
             type: B
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1529,7 +1522,6 @@ library
         fields
           f @16
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1574,7 +1566,6 @@ library
         fields
           b @17
             type: bool
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1588,7 +1579,6 @@ library
     topLevelVariables
       static c @24
         type: C
-        shouldUseTypeForInitializerInference: true
       static x @31
         type: bool
         shouldUseTypeForInitializerInference: false
@@ -1627,7 +1617,6 @@ library
         fields
           b @17
             type: bool
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -1646,7 +1635,6 @@ library
     topLevelVariables
       static c @57
         type: C
-        shouldUseTypeForInitializerInference: true
       static x @64
         type: bool
         shouldUseTypeForInitializerInference: false
@@ -1685,7 +1673,6 @@ library
         fields
           b @17
             type: bool
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -2371,7 +2358,6 @@ library
     topLevelVariables
       static d @8
         type: dynamic
-        shouldUseTypeForInitializerInference: true
       static s @15
         type: String
         shouldUseTypeForInitializerInference: false
@@ -3447,7 +3433,6 @@ library
         fields
           static d @21
             type: D
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3462,7 +3447,6 @@ library
         fields
           i @42
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3510,7 +3494,6 @@ library
         fields
           i @54
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3618,7 +3601,6 @@ library
         fields
           x @25
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3700,13 +3682,10 @@ library
         fields
           x @25
             type: int
-            shouldUseTypeForInitializerInference: true
           y @34
             type: int
-            shouldUseTypeForInitializerInference: true
           z @43
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3737,7 +3716,6 @@ library
         fields
           x @77
             type: int
-            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -3779,7 +3757,6 @@ library
         fields
           x @29
             type: dynamic
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3834,13 +3811,10 @@ library
         fields
           x @26
             type: E
-            shouldUseTypeForInitializerInference: true
           y @33
             type: E
-            shouldUseTypeForInitializerInference: true
           z @40
             type: E
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -3874,7 +3848,6 @@ library
         fields
           x @80
             type: T
-            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: T
           synthetic z @-1
@@ -3916,7 +3889,6 @@ library
         fields
           x @25
             type: dynamic
-            shouldUseTypeForInitializerInference: false
         constructors
           synthetic @-1
         accessors
@@ -3964,7 +3936,6 @@ library
         fields
           x @25
             type: num
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4035,7 +4006,6 @@ library
         fields
           x @89
             type: int
-            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -4106,7 +4076,6 @@ library
         fields
           x @92
             type: T
-            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: T
           synthetic z @-1
@@ -4394,10 +4363,8 @@ library
         fields
           x @148
             type: dynamic
-            shouldUseTypeForInitializerInference: false
           final y @159
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4565,7 +4532,6 @@ library
         fields
           x @108
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors
@@ -4735,7 +4701,6 @@ library
         fields
           x @113
             type: int
-            shouldUseTypeForInitializerInference: true
           synthetic y @-1
             type: int
           synthetic z @-1
@@ -4978,7 +4943,6 @@ library
         fields
           x @94
             type: int
-            shouldUseTypeForInitializerInference: true
         constructors
           synthetic @-1
         accessors

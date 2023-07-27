@@ -503,6 +503,22 @@ bool true
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/53029
+  /// Dependencies of map patterns should be considered.
+  test_mapPattern_dependencies() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f(Object? x) {
+  if (x case {a: _}) {}
+}
+''');
+  }
+
   test_visitBinaryExpression_extensionMethod() async {
     await assertErrorsInCode('''
 extension on Object {
@@ -3355,6 +3371,22 @@ void main() {
 ''');
   }
 
+  test_issue49389() async {
+    await assertErrorsInCode('''
+class Foo {
+  const Foo({required this.bar});
+  final Map<String, String> bar;
+}
+
+void main() {
+  final data = <String, String>{};
+  const Foo(bar: data);
+}
+''', [
+      error(CompileTimeErrorCode.INVALID_CONSTANT, 148, 4),
+    ]);
+  }
+
   test_redirectingConstructor_typeParameter() async {
     await assertNoErrorsInCode('''
 class A<T> {
@@ -3529,6 +3561,37 @@ int 5
     assertDartObjectText(bResult, '''
 int 42
 ''');
+  }
+
+  test_issue47351() async {
+    await assertErrorsInCode('''
+class Foo {
+  final int bar;
+  const Foo(this.bar);
+}
+
+int bar = 2;
+const a = const Foo(bar);
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 88, 3),
+      error(CompileTimeErrorCode.CONST_INITIALIZED_WITH_NON_CONSTANT_VALUE, 88,
+          3),
+    ]);
+  }
+
+  test_issue47603() async {
+    await assertErrorsInCode('''
+class C {
+  final void Function() c;
+  const C(this.c);
+}
+
+void main() {
+  const C(() {});
+}
+''', [
+      error(CompileTimeErrorCode.CONST_WITH_NON_CONSTANT_ARGUMENT, 83, 5),
+    ]);
   }
 
   test_string_fromEnvironment() async {

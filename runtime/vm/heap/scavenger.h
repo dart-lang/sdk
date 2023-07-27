@@ -270,15 +270,15 @@ class Scavenger {
   void IterateObjectIdTable(ObjectPointerVisitor* visitor);
   template <bool parallel>
   void IterateRoots(ScavengerVisitorBase<parallel>* visitor);
+  void IterateWeak();
   void MournWeakHandles();
+  void MournWeakTables();
   void Epilogue(SemiSpace* from);
 
   void VerifyStoreBuffers(const char* msg);
 
   void UpdateMaxHeapCapacity();
   void UpdateMaxHeapUsage();
-
-  void MournWeakTables();
 
   intptr_t NewSizeInWords(intptr_t old_size_in_words, GCReason reason) const;
 
@@ -294,6 +294,7 @@ class Scavenger {
   bool scavenging_;
   bool early_tenure_ = false;
   RelaxedAtomic<intptr_t> root_slices_started_;
+  RelaxedAtomic<intptr_t> weak_slices_started_;
   StoreBufferBlock* blocks_ = nullptr;
 
   int64_t gc_time_micros_;

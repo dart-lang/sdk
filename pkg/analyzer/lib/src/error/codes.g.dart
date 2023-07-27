@@ -6958,26 +6958,6 @@ class WarningCode extends AnalyzerErrorCode {
     correctionMessage: "Try updating the SDK constraints.",
   );
 
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE = WarningCode(
-    'SDK_VERSION_UI_AS_CODE',
-    "The for, if, and spread elements weren't supported until version 2.3.0, "
-        "but this code is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT',
-    "The if and spread elements weren't supported in constant expressions "
-        "until version 2.5.0, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  When "strict-raw-types" is enabled, "raw types" must have type arguments.
   ///
   ///  A "raw type" is a type name that does not use inference to fill in missing

@@ -3386,9 +3386,9 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     case MethodRecognizer::kFfiAsFunctionInternal:
       return BuildFfiAsFunctionInternal();
     case MethodRecognizer::kFfiNativeCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kSync);
+      return BuildFfiNativeCallbackFunction(FfiTrampolineKind::kSyncCallback);
     case MethodRecognizer::kFfiNativeAsyncCallbackFunction:
-      return BuildFfiNativeCallbackFunction(FfiCallbackKind::kAsync);
+      return BuildFfiNativeCallbackFunction(FfiTrampolineKind::kAsyncCallback);
     case MethodRecognizer::kFfiLoadAbiSpecificInt:
       return BuildLoadAbiSpecificInt(/*at_index=*/false);
     case MethodRecognizer::kFfiLoadAbiSpecificIntAtIndex:
@@ -6321,19 +6321,20 @@ Fragment StreamingFlowGraphBuilder::BuildFfiAsFunctionInternal() {
 }
 
 Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
-    FfiCallbackKind kind) {
+    FfiTrampolineKind kind) {
   // The call-site must look like this (guaranteed by the FE which inserts it):
   //
-  // FfiCallbackKind::kSync:
+  // FfiTrampolineKind::kSyncCallback:
   //   _nativeCallbackFunction<NativeSignatureType>(target, exceptionalReturn)
   //
-  // FfiCallbackKind::kAsync:
-  //   _nativeAsyncCallbackFunction<NativeSignatureType>(target)
+  // FfiTrampolineKind::kAsyncCallback:
+  //   _nativeAsyncCallbackFunction<NativeSignatureType>()
   //
   // The FE also guarantees that both arguments are constants.
 
   // Target, and for kSync callbacks, the exceptional return.
-  const intptr_t expected_argc = kind == FfiCallbackKind::kSync ? 2 : 1;
+  const intptr_t expected_argc =
+      kind == FfiTrampolineKind::kSyncCallback ? 2 : 0;
 
   const intptr_t argc = ReadUInt();  // Read argument count.
   ASSERT(argc == expected_argc);
@@ -6352,19 +6353,21 @@ Fragment StreamingFlowGraphBuilder::BuildFfiNativeCallbackFunction(
   ASSERT(positional_count == expected_argc);
 
   // Read target expression and extract the target function.
-  code += BuildExpression();  // Build first positional argument (target).
-  Definition* target_def = B->Peek();
-  ASSERT(target_def->IsConstant());
-  const Closure& target_closure =
-      Closure::Cast(target_def->AsConstant()->value());
-  ASSERT(!target_closure.IsNull());
-  Function& target = Function::Handle(Z, target_closure.function());
-  ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
-  target = target.parent_function();
-  code += Drop();
-
+  Function& target = Function::Handle(Z, Function::null());
   Instance& exceptional_return = Instance::ZoneHandle(Z, Instance::null());
-  if (kind == FfiCallbackKind::kSync) {
+  if (kind == FfiTrampolineKind::kSyncCallback) {
+    // Build first positional argument (target).
+    code += BuildExpression();
+    Definition* target_def = B->Peek();
+    ASSERT(target_def->IsConstant());
+    const Closure& target_closure =
+        Closure::Cast(target_def->AsConstant()->value());
+    ASSERT(!target_closure.IsNull());
+    target = target_closure.function();
+    ASSERT(!target.IsNull() && target.IsImplicitClosureFunction());
+    target = target.parent_function();
+    code += Drop();
+
     // Build second positional argument (exceptionalReturn).
     code += BuildExpression();
     Definition* exceptional_return_def = B->Peek();

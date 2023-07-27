@@ -22,7 +22,7 @@
 
 namespace dart {
 
-FunctionPtr CreateTestFunction(FfiCallbackKind kind) {
+FunctionPtr CreateTestFunction(FfiTrampolineKind kind) {
   const auto& ffi_lib = Library::Handle(Library::FfiLibrary());
   const auto& ffi_void = Class::Handle(ffi_lib.LookupClass(Symbols::FfiVoid()));
   const auto& ffi_void_type =
@@ -92,7 +92,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
     auto* zone = thread->zone();
 
     const auto& func =
-        Function::Handle(CreateTestFunction(FfiCallbackKind::kSync));
+        Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
     const auto& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -183,7 +183,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
     auto* zone = thread->zone();
 
     const Function& func =
-        Function::Handle(CreateTestFunction(FfiCallbackKind::kAsync));
+        Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
@@ -267,7 +267,7 @@ ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
   auto* fcm = FfiCallbackMetadata::Instance();
 
   const Function& func =
-      Function::Handle(CreateTestFunction(FfiCallbackKind::kAsync));
+      Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
   const Code& code = Code::Handle(func.EnsureHasCode());
   EXPECT(!code.IsNull());
 
@@ -334,7 +334,7 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
   FfiCallbackMetadata::Metadata* list_head = nullptr;
 
   const auto& sync_func =
-      Function::Handle(CreateTestFunction(FfiCallbackKind::kSync));
+      Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 
@@ -414,11 +414,11 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
   FfiCallbackMetadata::Metadata* list_head = nullptr;
 
   const Function& async_func =
-      Function::Handle(CreateTestFunction(FfiCallbackKind::kAsync));
+      Function::Handle(CreateTestFunction(FfiTrampolineKind::kAsyncCallback));
   const Code& async_code = Code::Handle(async_func.EnsureHasCode());
   EXPECT(!async_code.IsNull());
   const Function& sync_func =
-      Function::Handle(CreateTestFunction(FfiCallbackKind::kSync));
+      Function::Handle(CreateTestFunction(FfiTrampolineKind::kSyncCallback));
   const auto& sync_code = Code::Handle(sync_func.EnsureHasCode());
   EXPECT(!sync_code.IsNull());
 

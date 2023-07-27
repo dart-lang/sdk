@@ -236,7 +236,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateSyncFfiCallback(
     Zone* zone,
     const Function& function,
     Metadata** list_head) {
-  ASSERT(function.GetFfiCallbackKind() == FfiCallbackKind::kSync);
+  ASSERT(function.GetFfiTrampolineKind() == FfiTrampolineKind::kSyncCallback);
   TrampolineType trampoline_type = TrampolineType::kSync;
 
 #if defined(TARGET_ARCH_IA32)
@@ -262,7 +262,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::CreateAsyncFfiCallback(
     const Function& function,
     Dart_Port send_port,
     Metadata** list_head) {
-  ASSERT(function.GetFfiCallbackKind() == FfiCallbackKind::kAsync);
+  ASSERT(function.GetFfiTrampolineKind() == FfiTrampolineKind::kAsyncCallback);
   return CreateMetadataEntry(isolate, TrampolineType::kAsync,
                              GetEntryPoint(zone, function), send_port,
                              list_head);

@@ -42,9 +42,6 @@ function_callbacks_structs_by_value_generated_test: Pass, Slow
 [ $mode == product ]
 regress_47594_test: Skip # Profiler is not available in Product.
 
-[ $runtime == vm ]
-callback_unwind_error_test: Fail # https://github.com/dart-lang/sdk/issues/39487
-
 [ $system == android ]
 *: Pass, Slow # https://github.com/dart-lang/sdk/issues/38489
 regress_47594_test: Skip # DartDev is not available on Android.
@@ -93,6 +90,9 @@ abi_specific_int_incomplete_jit_test: SkipByDesign # Only intended to run in JIT
 
 [ $compiler != dartkp || $arch == arm64 && $system == fuchsia ]
 abi_specific_int_incomplete_aot_test: SkipByDesign # Only intended to run in AOT mode.
+
+[ $runtime == dart_precompiled || $runtime == vm ]
+callback_unwind_error_test: Crash # https://github.com/dart-lang/sdk/issues/39487
 
 [ $sanitizer == asan || $sanitizer == msan || $sanitizer == tsan ]
 data_not_asan_test: SkipByDesign # This test tries to allocate too much memory on purpose.

@@ -54,15 +54,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// to prevent over-reporting uses of set literals.
   bool _inSetLiteral = false;
 
-  /// A cached flag indicating whether references to the ui-as-code features
-  /// need to be checked. Use [checkUiAsCode] to access this field.
-  bool? _checkUiAsCode;
-
-  /// A flag indicating whether we are visiting code inside one of the
-  /// ui-as-code features. Used to prevent over-reporting uses of these
-  /// features.
-  bool _inUiAsCode = false;
-
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
   SdkConstraintVerifier(this._errorReporter, this._containingLibrary,
@@ -118,11 +109,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// be checked.
   bool get checkTripleShift => _checkTripleShift ??=
       !before_2_14_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to the ui-as-code features (control flow and
-  /// spread collections) need to be checked.
-  bool get checkUiAsCode =>
-      _checkUiAsCode ??= !before_2_2_2.intersect(_versionConstraint).isEmpty;
 
   @override
   void visitArgumentList(ArgumentList node) {
@@ -221,16 +207,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitForElement(ForElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitForElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
-  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkSinceSdkVersion(node.staticElement, node);
     super.visitFunctionExpressionInvocation(node);
@@ -239,16 +215,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   @override
   void visitHideCombinator(HideCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
-  }
-
-  @override
-  void visitIfElement(IfElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitIfElement(node);
-    _inUiAsCode = wasInUiAsCode;
   }
 
   @override
@@ -333,16 +299,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
     _checkSinceSdkVersion(node.staticElement, node);
   }
 
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _validateUiAsCode(node);
-    _validateUiAsCodeInConstContext(node);
-    bool wasInUiAsCode = _inUiAsCode;
-    _inUiAsCode = true;
-    super.visitSpreadElement(node);
-    _inUiAsCode = wasInUiAsCode;
-  }
-
   void _checkAsyncExportedFromCode({
     required Token name,
     required Element? element,
@@ -417,28 +373,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
           );
         }
       }
-    }
-  }
-
-  /// Given that the [node] is only valid when the ui-as-code feature is
-  /// enabled, check that the code will not be executed with a version of the
-  /// SDK that does not support the feature.
-  void _validateUiAsCode(AstNode node) {
-    if (checkUiAsCode && !_inUiAsCode) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_UI_AS_CODE, node);
-    }
-  }
-
-  /// Given that the [node] is only valid when the ui-as-code feature is
-  /// enabled in a const context, check that the code will not be executed with
-  /// a version of the SDK that does not support the feature.
-  void _validateUiAsCodeInConstContext(AstNode node) {
-    if (checkConstantUpdate2018 &&
-        !_inUiAsCode &&
-        node.thisOrAncestorOfType<TypedLiteral>()!.isConst) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT, node);
     }
   }
 

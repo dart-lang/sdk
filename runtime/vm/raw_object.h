@@ -155,9 +155,9 @@ enum TypedDataElementType {
   friend class ObjectCopy;                                                     \
   friend class Pass2Visitor;
 
-// RawObject is the base class of all raw objects; even though it carries the
-// tags_ field not all raw objects are allocated in the heap and thus cannot
-// be dereferenced (e.g. RawSmi).
+// UntaggedObject is the base class of all raw objects; even though it carries
+// the tags_ field not all raw objects are allocated in the heap and thus cannot
+// be dereferenced (e.g. UntaggedSmi).
 class UntaggedObject {
  public:
   // The tags field which is a part of the object header uses the following
@@ -1516,8 +1516,8 @@ class UntaggedFfiTrampolineData : public UntaggedObject {
   // Whether this is a leaf call - i.e. one that doesn't call back into Dart.
   bool is_leaf_;
 
-  // The kind of callback this is. See FfiCallbackKind.
-  uint8_t callback_kind_;
+  // The kind of trampoline this is. See FfiTrampolineKind.
+  uint8_t trampoline_kind_;
 };
 
 class UntaggedField : public UntaggedObject {
@@ -3026,8 +3026,8 @@ class UntaggedTwoByteString : public UntaggedString {
   friend class StringSerializationCluster;
 };
 
-// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView/
-// Pointer.
+// Abstract base class for UntaggedTypedData/UntaggedExternalTypedData/
+// UntaggedTypedDataView/Pointer.
 //
 // TypedData extends this with a length field, while Pointer extends this with
 // TypeArguments field.
@@ -3038,11 +3038,11 @@ class UntaggedPointerBase : public UntaggedInstance {
  protected:
   // The contents of [data_] depends on what concrete subclass is used:
   //
-  //  - RawTypedData: Start of the payload.
-  //  - RawExternalTypedData: Start of the C-heap payload.
-  //  - RawTypedDataView: The [data_] field of the backing store for the view
-  //    plus the [offset_in_bytes_] the view has.
-  //  - RawPointer: Pointer into C memory (no length specified).
+  //  - UntaggedTypedData: Start of the payload.
+  //  - UntaggedExternalTypedData: Start of the C-heap payload.
+  //  - UntaggedTypedDataView: The [data_] field of the backing store for the
+  //    view plus the [offset_in_bytes_] the view has.
+  //  - UntaggedPointer: Pointer into C memory (no length specified).
   //
   // During allocation or snapshot reading the [data_] can be temporarily
   // nullptr (which is the case for views which just got created but haven't
@@ -3060,7 +3060,8 @@ class UntaggedPointerBase : public UntaggedInstance {
   RAW_HEAP_OBJECT_IMPLEMENTATION(PointerBase);
 };
 
-// Abstract base class for RawTypedData/RawExternalTypedData/RawTypedDataView.
+// Abstract base class for UntaggedTypedData/UntaggedExternalTypedData/
+// UntaggedTypedDataView.
 class UntaggedTypedDataBase : public UntaggedPointerBase {
  protected:
 #if defined(DART_COMPRESSED_POINTERS)
@@ -3159,13 +3160,13 @@ class UntaggedTypedDataView : public UntaggedTypedDataBase {
       // The view object must have gotten just initialized.
       if (data_ != nullptr || RawSmiValue(offset_in_bytes()) != 0 ||
           RawSmiValue(length()) != 0) {
-        FATAL("RawTypedDataView has invalid inner pointer.");
+        FATAL("TypedDataView has invalid inner pointer.");
       }
     } else {
       const intptr_t offset_in_bytes = RawSmiValue(this->offset_in_bytes());
       uint8_t* payload = typed_data()->untag()->data_;
       if ((payload + offset_in_bytes) != data_) {
-        FATAL("RawTypedDataView has invalid inner pointer.");
+        FATAL("TypedDataView has invalid inner pointer.");
       }
     }
   }

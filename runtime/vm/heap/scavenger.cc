@@ -275,6 +275,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void ProcessAll() {
+    TIMELINE_FUNCTION_GC_DURATION(thread_, "ProcessToSpace");
     LongJumpScope jump(thread_);
     if (setjmp(*jump.Set()) == 0) {
       do {
@@ -308,7 +309,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
     return promoted_list_.WaitForWork(num_busy);
   }
 
-  void Finalize() {
+  void ProcessWeak() {
     if (!scavenger_->abort_) {
       ASSERT(!HasWork());
 
@@ -321,19 +322,26 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
       MournWeakReferences();
       MournWeakArrays();
       MournFinalizerEntries();
+      scavenger_->IterateWeak();
     }
     page_space_->ReleaseLock(freelist_);
     thread_ = nullptr;
   }
 
-  void FinalizePromotion() { promoted_list_.Finalize(); }
-
-  void AbandonWork() {
-    promoted_list_.AbandonWork();
-    weak_array_list_.AbandonWork();
-    weak_property_list_.AbandonWork();
-    weak_reference_list_.AbandonWork();
-    finalizer_entry_list_.AbandonWork();
+  void Finalize() {
+    if (!scavenger_->abort_) {
+      promoted_list_.Finalize();
+      weak_array_list_.Finalize();
+      weak_property_list_.Finalize();
+      weak_reference_list_.Finalize();
+      finalizer_entry_list_.Finalize();
+    } else {
+      promoted_list_.AbandonWork();
+      weak_array_list_.AbandonWork();
+      weak_property_list_.AbandonWork();
+      weak_reference_list_.AbandonWork();
+      finalizer_entry_list_.AbandonWork();
+    }
   }
 
   Page* head() const {
@@ -550,21 +558,21 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   void ProcessWeakPropertiesScoped();
 
   void MournWeakProperties() {
-    weak_property_list_.Finalize([](WeakPropertyPtr weak_property) {
+    weak_property_list_.Process([](WeakPropertyPtr weak_property) {
       weak_property->untag()->key_ = Object::null();
       weak_property->untag()->value_ = Object::null();
     });
   }
 
   void MournWeakReferences() {
-    weak_reference_list_.Finalize([](WeakReferencePtr weak_reference) {
+    weak_reference_list_.Process([](WeakReferencePtr weak_reference) {
       ForwardOrSetNullIfCollected(weak_reference,
                                   &weak_reference->untag()->target_);
     });
   }
 
   void MournWeakArrays() {
-    weak_array_list_.Finalize([](WeakArrayPtr weak_array) {
+    weak_array_list_.Process([](WeakArrayPtr weak_array) {
       intptr_t length = Smi::Value(weak_array->untag()->length());
       for (intptr_t i = 0; i < length; i++) {
         ForwardOrSetNullIfCollected(weak_array,
@@ -574,7 +582,7 @@ class ScavengerVisitorBase : public ObjectPointerVisitor {
   }
 
   void MournFinalizerEntries() {
-    finalizer_entry_list_.Finalize([&](FinalizerEntryPtr finalizer_entry) {
+    finalizer_entry_list_.Process([&](FinalizerEntryPtr finalizer_entry) {
       MournFinalizerEntry(this, finalizer_entry);
     });
   }
@@ -711,7 +719,7 @@ class ParallelScavengerTask : public ThreadPool::Task {
     ASSERT(!visitor_->HasWork());
 
     // Phase 2: Weak processing, statistics.
-    visitor_->Finalize();
+    visitor_->ProcessWeak();
   }
 
  private:
@@ -1236,6 +1244,41 @@ void Scavenger::IterateRoots(ScavengerVisitorBase<parallel>* visitor) {
   IterateRememberedCards(visitor);
 }
 
+enum WeakSlices {
+  kWeakHandles = 0,
+  kWeakTables,
+  kProgressBars,
+  kRememberLiveTemporaries,
+  kNumWeakSlices,
+};
+
+void Scavenger::IterateWeak() {
+  for (;;) {
+    intptr_t slice = weak_slices_started_.fetch_add(1);
+    if (slice >= kNumWeakSlices) {
+      break;  // No more slices.
+    }
+
+    switch (slice) {
+      case kWeakHandles:
+        MournWeakHandles();
+        break;
+      case kWeakTables:
+        MournWeakTables();
+        break;
+      case kProgressBars:
+        heap_->old_space()->ResetProgressBars();
+        break;
+      case kRememberLiveTemporaries:
+        // Restore write-barrier assumptions.
+        heap_->isolate_group()->RememberLiveTemporaries();
+        break;
+      default:
+        UNREACHABLE();
+    }
+  }
+}
+
 void Scavenger::MournWeakHandles() {
   Thread* thread = Thread::Current();
   TIMELINE_FUNCTION_GC_DURATION(thread, "MournWeakHandles");
@@ -1611,6 +1654,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
   failed_to_promote_ = false;
   abort_ = false;
   root_slices_started_ = 0;
+  weak_slices_started_ = 0;
   intptr_t abandoned_bytes = 0;  // TODO(rmacnak): Count fragmentation?
   SpaceUsage usage_before = GetCurrentUsage();
   intptr_t promo_candidate_words = 0;
@@ -1653,13 +1697,7 @@ void Scavenger::Scavenge(Thread* thread, GCType type, GCReason reason) {
     }
   }
   ASSERT(promotion_stack_.IsEmpty());
-  MournWeakHandles();
-  MournWeakTables();
-  heap_->old_space()->ResetProgressBars();
   heap_->old_space()->ResumeConcurrentMarking();
-
-  // Restore write-barrier assumptions.
-  heap_->isolate_group()->RememberLiveTemporaries();
 
   // Scavenge finished. Run accounting.
   int64_t end = OS::GetCurrentMonotonicMicros();
@@ -1689,13 +1727,9 @@ intptr_t Scavenger::SerialScavenge(SemiSpace* from) {
   SerialScavengerVisitor visitor(heap_->isolate_group(), this, from, freelist,
                                  &promotion_stack_);
   visitor.ProcessRoots();
-  {
-    TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "ProcessToSpace");
-    visitor.ProcessAll();
-  }
+  visitor.ProcessAll();
+  visitor.ProcessWeak();
   visitor.Finalize();
-
-  visitor.FinalizePromotion();
   to_->AddList(visitor.head(), visitor.tail());
   return visitor.bytes_promoted();
 }
@@ -1731,11 +1765,7 @@ intptr_t Scavenger::ParallelScavenge(SemiSpace* from) {
 
   for (intptr_t i = 0; i < num_tasks; i++) {
     ParallelScavengerVisitor* visitor = visitors[i];
-    if (abort_) {
-      visitor->AbandonWork();
-    } else {
-      visitor->FinalizePromotion();
-    }
+    visitor->Finalize();
     to_->AddList(visitor->head(), visitor->tail());
     bytes_promoted += visitor->bytes_promoted();
     delete visitor;

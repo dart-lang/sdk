@@ -610,10 +610,6 @@ bool Class::RequiresInstanceMorphing(ClassTable* class_table,
     return false;
   }
 
-  if (replacement.is_enum_class()) {
-    return true;
-  }
-
   // Get the field maps for both classes. These field maps walk the class
   // hierarchy.
   auto isolate_group = IsolateGroup::Current();

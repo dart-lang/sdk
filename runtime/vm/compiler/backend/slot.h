@@ -230,7 +230,7 @@ class Slot : public ZoneAllocated {
     // A slot used to store type arguments.
     kTypeArguments,
 
-    // A slot at a specific [index] in a [RawTypeArgument] vector.
+    // A slot at a specific [index] in a [UntaggedTypeArgument] vector.
     kTypeArgumentsIndex,
 
     // A slot corresponding to an array element at given offset.
@@ -260,7 +260,7 @@ class Slot : public ZoneAllocated {
   // so disambiguating type arguments fields does not improve alias analysis.
   static const Slot& GetTypeArgumentsSlotFor(Thread* thread, const Class& cls);
 
-  // Returns a slot at a specific [index] in a [RawTypeArgument] vector.
+  // Returns a slot at a specific [index] in a [UntaggedTypeArgument] vector.
   static const Slot& GetTypeArgumentsIndexSlot(Thread* thread, intptr_t index);
 
   // Returns a slot corresponding to an array element at [offset_in_bytes].
