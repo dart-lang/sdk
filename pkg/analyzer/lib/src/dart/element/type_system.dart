@@ -1450,6 +1450,26 @@ class TypeSystemImpl implements TypeSystem {
     return false;
   }
 
+  /// Whether [type] is a valid superinterface for an extension type.
+  bool isValidExtensionTypeSuperinterface(DartType type) {
+    if (type is! InterfaceType) {
+      return false;
+    }
+
+    if (type.nullabilitySuffix == NullabilitySuffix.question) {
+      return false;
+    }
+
+    if (type.isDartAsyncFutureOr ||
+        type.isDartCoreFunction ||
+        type.isDartCoreNull ||
+        type.isDartCoreRecord) {
+      return false;
+    }
+
+    return true;
+  }
+
   /// See `15.2 Super-bounded types` in the language specification.
   TypeBoundedResult isWellBounded(
     DartType type, {

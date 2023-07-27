@@ -34,6 +34,7 @@ import 'type_bounded_test.dart' as type_bounded;
 import 'type_constraint_gatherer_test.dart' as type_constraint_gatherer;
 import 'type_parameter_element_test.dart' as type_parameter_element;
 import 'type_references_any_test.dart' as type_references_any;
+import 'type_system_test.dart' as type_system;
 import 'type_visitor_test.dart' as type_visitor;
 import 'upper_lower_bound_test.dart' as upper_bound;
 
@@ -70,6 +71,7 @@ main() {
     type_constraint_gatherer.main();
     type_parameter_element.main();
     type_references_any.main();
+    type_system.main();
     type_visitor.main();
     upper_bound.main();
   }, name: 'element');
