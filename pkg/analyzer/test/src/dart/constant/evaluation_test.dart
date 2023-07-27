@@ -503,6 +503,22 @@ bool true
 ''');
   }
 
+  /// https://github.com/dart-lang/sdk/issues/53029
+  /// Dependencies of map patterns should be considered.
+  test_mapPattern_dependencies() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+const a = 0;
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+
+void f(Object? x) {
+  if (x case {a: _}) {}
+}
+''');
+  }
+
   test_visitBinaryExpression_extensionMethod() async {
     await assertErrorsInCode('''
 extension on Object {

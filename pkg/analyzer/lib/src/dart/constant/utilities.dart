@@ -46,7 +46,13 @@ class ConstantExpressionsDependenciesFinder extends RecursiveAstVisitor {
   }
 
   @override
-  visitRelationalPattern(RelationalPattern node) {
+  void visitMapPatternEntry(MapPatternEntry node) {
+    _find(node.key);
+    super.visitMapPatternEntry(node);
+  }
+
+  @override
+  void visitRelationalPattern(RelationalPattern node) {
     _find(node.operand);
   }
 
