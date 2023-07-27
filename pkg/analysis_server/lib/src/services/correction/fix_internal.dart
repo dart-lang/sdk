@@ -1648,9 +1648,6 @@ class FixProcessor extends BaseProcessor {
     WarningCode.SDK_VERSION_SET_LITERAL: [
       UpdateSdkConstraints.version_2_2_0,
     ],
-    WarningCode.SDK_VERSION_UI_AS_CODE: [
-      UpdateSdkConstraints.version_2_2_2,
-    ],
     WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
       RemoveCharacter.new,
       ReplaceWithUnicodeEscape.new,

@@ -3654,11 +3654,6 @@ WarningCode.SDK_VERSION_SINCE:
     The fix would be to update the SDK constraints. The user would still need to
     run `dart pub` before the diagnostic would go away, and there's a question
     whether a fix that doesn't actually fix the problem is something we want.
-WarningCode.SDK_VERSION_UI_AS_CODE:
-  status: hasFix
-WarningCode.SDK_VERSION_UI_AS_CODE_IN_CONST_CONTEXT:
-  status: noFix
-  notes: Deprecated
 WarningCode.STRICT_RAW_TYPE:
   status: needsFix
   notes: |-
