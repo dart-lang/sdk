@@ -39,8 +39,8 @@ void _updateAnalyzerOptions(
     analysisOptions.applyOptions(map);
   }
 
-  analysisOptions.hint = false;
   analysisOptions.lint = options.enableLints;
+  analysisOptions.warning = false;
   analysisOptions.enableTiming = options.enableTiming;
   analysisOptions.lintRules = options.enabledLints.toList(growable: false);
 }

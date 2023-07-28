@@ -260,7 +260,7 @@ class LibraryAnalyzer {
       _computeVerifyErrors(file, unit);
     });
 
-    if (_analysisOptions.hint) {
+    if (_analysisOptions.warning) {
       var usedImportedElements = <UsedImportedElements>[];
       var usedLocalElements = <UsedLocalElements>[];
       for (var unit in units.values) {

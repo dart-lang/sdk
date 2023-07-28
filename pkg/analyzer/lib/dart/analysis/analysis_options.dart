@@ -37,6 +37,7 @@ abstract class AnalysisOptions {
 
   /// Return `true` if analysis is to generate hint results (e.g. best practices
   /// and analysis based on certain annotations).
+  @Deprecated("Use 'warning' instead")
   bool get hint;
 
   /// Return `true` if analysis is to generate lint warnings.
@@ -49,6 +50,10 @@ abstract class AnalysisOptions {
   /// The version range for the SDK specified in `pubspec.yaml`, or `null` if
   /// there is no `pubspec.yaml` or if it does not contain an SDK range.
   VersionConstraint? get sdkVersionConstraint;
+
+  /// Return `true` if analysis is to generate warning results (e.g. best
+  /// practices and analysis based on certain annotations).
+  bool get warning;
 
   /// Return `true` the lint with the given [name] is enabled.
   bool isLintEnabled(String name);

@@ -851,7 +851,7 @@ class FileResolver {
     }
 
     if (isThirdParty) {
-      options.hint = false;
+      options.warning = false;
     }
 
     return options;

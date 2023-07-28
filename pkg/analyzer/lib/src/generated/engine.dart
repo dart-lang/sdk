@@ -198,10 +198,10 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   List<String>? _excludePatterns;
 
   @override
-  bool hint = true;
+  bool lint = false;
 
   @override
-  bool lint = false;
+  bool warning = true;
 
   /// The lint rules that are to be run in an analysis context if [lint] returns
   /// `true`.
@@ -266,8 +266,8 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     enabledPluginNames = options.enabledPluginNames;
     errorProcessors = options.errorProcessors;
     excludePatterns = options.excludePatterns;
-    hint = options.hint;
     lint = options.lint;
+    warning = options.warning;
     lintRules = options.lintRules;
     if (options is AnalysisOptionsImpl) {
       enableTiming = options.enableTiming;
@@ -309,6 +309,13 @@ class AnalysisOptionsImpl implements AnalysisOptions {
 
   /// The set of enabled experiments.
   ExperimentStatus get experimentStatus => _contextFeatures;
+
+  @override
+  bool get hint => warning;
+
+  /// The implementation-specific setter for [hint].
+  @Deprecated("Use 'warning=' instead")
+  set hint(bool value) => warning = value;
 
   @override
   List<Linter> get lintRules => _lintRules ??= const <Linter>[];
