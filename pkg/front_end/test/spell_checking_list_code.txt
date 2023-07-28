@@ -332,6 +332,7 @@ cs
 csslib
 cstefantsova
 ctx
+curry
 customizable
 customized
 cut
@@ -832,6 +833,7 @@ kick
 kill
 klass
 kmillikin
+knowledge
 kotlin
 kotlinlang
 kustermann
@@ -1368,6 +1370,7 @@ scale
 scc
 scenarios
 scheglov
+schemas
 scoped
 scoping
 scrutinee

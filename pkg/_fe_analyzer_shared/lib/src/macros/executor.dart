@@ -3,12 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/macros/executor/serialization_extensions.dart';
-import 'package:dart_internal/extract_type_arguments.dart';
 import 'package:meta/meta.dart';
 
 import 'api.dart';
 // ignore: unused_import
 import 'bootstrap.dart'; // For doc comments only.
+import 'executor/cast.dart';
 import 'executor/introspection_impls.dart';
 import 'executor/serialization.dart';
 

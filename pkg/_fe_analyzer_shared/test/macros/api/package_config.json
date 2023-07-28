@@ -2,10 +2,6 @@
   "configVersion": 2,
   "packages": [
     {
-      "name": "dart_internal",
-      "rootUri": "../../../../dart_internal/"
-    },
-    {
       "name": "macro_api_test",
       "rootUri": "../../../../_fe_analyzer_shared/test/macros/api/"
     },
