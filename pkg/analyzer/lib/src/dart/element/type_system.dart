@@ -1303,8 +1303,13 @@ class TypeSystemImpl implements TypeSystem {
       return isNonNullable(type.promotedBound!);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return false;
-    } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
-      return isNonNullable(type.typeArguments[0]);
+    } else if (type is InterfaceTypeImpl) {
+      if (type.isDartAsyncFutureOr) {
+        return isNonNullable(type.typeArguments[0]);
+      }
+      if (type.representationType case final representationType?) {
+        return isNonNullable(representationType);
+      }
     } else if (type is TypeParameterType) {
       var bound = type.element.bound;
       return bound != null && isNonNullable(bound);
@@ -1348,8 +1353,13 @@ class TypeSystemImpl implements TypeSystem {
       return isNullable(type.promotedBound!);
     } else if (type.nullabilitySuffix == NullabilitySuffix.question) {
       return true;
-    } else if (type.isDartAsyncFutureOr) {
-      return isNullable((type as InterfaceType).typeArguments[0]);
+    } else if (type is InterfaceTypeImpl) {
+      if (type.isDartAsyncFutureOr) {
+        return isNullable(type.typeArguments[0]);
+      }
+      if (type.representationType case final representationType?) {
+        return isNullable(representationType);
+      }
     }
     return false;
   }
@@ -1392,8 +1402,13 @@ class TypeSystemImpl implements TypeSystem {
       return false;
     } else if (type.nullabilitySuffix != NullabilitySuffix.none) {
       return false;
-    } else if (type is InterfaceType && type.isDartAsyncFutureOr) {
-      return isStrictlyNonNullable(type.typeArguments[0]);
+    } else if (type is InterfaceTypeImpl) {
+      if (type.isDartAsyncFutureOr) {
+        return isStrictlyNonNullable(type.typeArguments[0]);
+      }
+      if (type.representationType case final representationType?) {
+        return isStrictlyNonNullable(representationType);
+      }
     } else if (type is TypeParameterType) {
       return isStrictlyNonNullable(type.bound);
     }

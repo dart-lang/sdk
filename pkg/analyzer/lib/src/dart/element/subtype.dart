@@ -120,6 +120,16 @@ class SubtypeHelper {
           T0_nullability == NullabilitySuffix.question) {
         return false;
       }
+      // Extension types:
+      //   If `R` is a non-nullable type then `V0` is a proper subtype
+      //   of `Object`, and a non-nullable type.
+      if (T0 is InterfaceTypeImpl && T0.element is ExtensionTypeElement) {
+        if (T0.representationType case final representationType?) {
+          if (_typeSystem.isNullable(representationType)) {
+            return false;
+          }
+        }
+      }
       // Otherwise `T0 <: T1` is true.
       return true;
     }
