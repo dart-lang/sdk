@@ -729,8 +729,9 @@ void Snapshot::GenerateKernel(const char* snapshot_filename,
     WriteSnapshotFile(snapshot_filename, kernel_buffer, kernel_buffer_size);
     free(kernel_buffer);
   } else {
-    Dart_KernelCompilationResult result = dfe.CompileScript(
-        script_name, /*incremental*/ false, package_config, /*snapshot=*/true);
+    Dart_KernelCompilationResult result =
+        dfe.CompileScript(script_name, /*incremental*/ false, package_config,
+                          /*snapshot=*/true, /*embedd_sources=*/true);
     if (result.status != Dart_KernelCompilationStatus_Ok) {
       Syslog::PrintErr("%s\n", result.error);
       Platform::Exit(kCompilationErrorExitCode);

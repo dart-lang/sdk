@@ -768,7 +768,8 @@ class KernelCompilationRequest : public ValueObject {
       int source_files_count,
       Dart_SourceFile source_files[],
       bool incremental_compile,
-      bool for_app_jit_snapshot,
+      bool for_snapshot,
+      bool embed_sources,
       const char* package_config,
       const char* multiroot_filepaths,
       const char* multiroot_scheme,
@@ -826,7 +827,11 @@ class KernelCompilationRequest : public ValueObject {
 
     Dart_CObject dart_snapshot;
     dart_snapshot.type = Dart_CObject_kBool;
-    dart_snapshot.value.as_bool = for_app_jit_snapshot;
+    dart_snapshot.value.as_bool = for_snapshot;
+
+    Dart_CObject dart_embed_sources;
+    dart_embed_sources.type = Dart_CObject_kBool;
+    dart_embed_sources.value.as_bool = embed_sources;
 
     // TODO(aam): Assert that isolate exists once we move CompileAndReadScript
     // compilation logic out of CreateIsolateAndSetupHelper and into
@@ -934,6 +939,7 @@ class KernelCompilationRequest : public ValueObject {
                                    &dart_platform_kernel,
                                    &dart_incremental,
                                    &dart_snapshot,
+                                   &dart_embed_sources,
                                    &null_safety,
                                    &isolate_id,
                                    &files,
@@ -1103,7 +1109,8 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
     int source_file_count,
     Dart_SourceFile source_files[],
     bool incremental_compile,
-    bool for_app_jit_snapshot,
+    bool for_snapshot,
+    bool embed_sources,
     const char* package_config,
     const char* multiroot_filepaths,
     const char* multiroot_scheme,
@@ -1130,7 +1137,7 @@ Dart_KernelCompilationResult KernelIsolate::CompileToKernel(
   return request.SendAndWaitForResponse(
       kCompileTag, kernel_port, script_uri, platform_kernel,
       platform_kernel_size, source_file_count, source_files,
-      incremental_compile, for_app_jit_snapshot, package_config,
+      incremental_compile, for_snapshot, embed_sources, package_config,
       multiroot_filepaths, multiroot_scheme, experimental_flags_, nullptr,
       verbosity);
 }
@@ -1147,7 +1154,7 @@ Dart_KernelCompilationResult KernelIsolate::ListDependencies() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kListDependenciesTag, kernel_port, nullptr, nullptr, 0, 0, nullptr, false,
-      false, nullptr, nullptr, nullptr, experimental_flags_, nullptr,
+      false, false, nullptr, nullptr, nullptr, experimental_flags_, nullptr,
       Dart_KernelCompilationVerbosityLevel_Error);
 }
 
@@ -1165,7 +1172,7 @@ Dart_KernelCompilationResult KernelIsolate::AcceptCompilation() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kAcceptTag, kernel_port, nullptr, nullptr, 0, 0, nullptr, true, false,
-      nullptr, nullptr, nullptr, experimental_flags_, nullptr,
+      false, nullptr, nullptr, nullptr, experimental_flags_, nullptr,
       Dart_KernelCompilationVerbosityLevel_Error);
 }
 
@@ -1183,7 +1190,7 @@ Dart_KernelCompilationResult KernelIsolate::RejectCompilation() {
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kRejectTag, kernel_port, nullptr, nullptr, 0, 0, nullptr, true, false,
-      nullptr, nullptr, nullptr, experimental_flags_, nullptr,
+      false, nullptr, nullptr, nullptr, experimental_flags_, nullptr,
       Dart_KernelCompilationVerbosityLevel_Error);
 }
 
@@ -1234,8 +1241,8 @@ Dart_KernelCompilationResult KernelIsolate::UpdateInMemorySources(
   KernelCompilationRequest request;
   return request.SendAndWaitForResponse(
       kUpdateSourcesTag, kernel_port, nullptr, nullptr, 0, source_files_count,
-      source_files, true, false, nullptr, nullptr, nullptr, experimental_flags_,
-      nullptr, Dart_KernelCompilationVerbosityLevel_Error);
+      source_files, true, false, false, nullptr, nullptr, nullptr,
+      experimental_flags_, nullptr, Dart_KernelCompilationVerbosityLevel_Error);
 }
 
 void KernelIsolate::NotifyAboutIsolateGroupShutdown(

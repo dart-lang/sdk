@@ -3788,6 +3788,9 @@ DART_EXPORT Dart_Port Dart_KernelPort(void);
  * This is used by the frontend to determine if compilation related information
  * should be printed to console (e.g., null safety mode).
  *
+ * \param embed_sources Set to `true` when sources should be embedded in the
+ * kernel file.
+ *
  * \param verbosity Specifies the logging behavior of the kernel compilation
  * service.
  *
@@ -3809,6 +3812,7 @@ Dart_CompileToKernel(const char* script_uri,
                      const intptr_t platform_kernel_size,
                      bool incremental_compile,
                      bool snapshot_compile,
+                     bool embed_sources,
                      const char* package_config,
                      Dart_KernelCompilationVerbosityLevel verbosity);
 

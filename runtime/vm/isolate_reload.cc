@@ -1161,6 +1161,7 @@ char* IsolateGroupReloadContext::CompileToKernel(bool force_reload,
         root_lib_url, nullptr, 0, modified_scripts_count, modified_scripts,
         /*incremental_compile=*/true,
         /*snapshot_compile=*/false,
+        /*embed_sources=*/true,
         /*package_config=*/nullptr,
         /*multiroot_filepaths=*/nullptr,
         /*multiroot_scheme=*/nullptr);
