@@ -94,6 +94,18 @@ class SourceClassBuilder extends ClassBuilderImpl
   final Class actualCls;
 
   @override
+  List<TypeVariableBuilder>? typeVariables;
+
+  @override
+  TypeBuilder? supertypeBuilder;
+
+  @override
+  List<TypeBuilder>? interfaceBuilders;
+
+  @override
+  List<TypeBuilder>? onTypes;
+
+  @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
   @override
@@ -147,10 +159,10 @@ class SourceClassBuilder extends ClassBuilderImpl
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
-      List<TypeVariableBuilder>? typeVariables,
-      TypeBuilder? supertype,
-      List<TypeBuilder>? interfaces,
-      List<TypeBuilder>? onTypes,
+      this.typeVariables,
+      this.supertypeBuilder,
+      this.interfaceBuilders,
+      this.onTypes,
       Scope scope,
       ConstructorScope constructors,
       SourceLibraryBuilder parent,
@@ -172,8 +184,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       : actualCls = initializeClass(cls, typeVariables, name, parent,
             startCharOffset, nameOffset, charEndOffset, referencesFromIndexed,
             isAugmentation: isAugmentation),
-        super(metadata, modifiers, name, typeVariables, supertype, interfaces,
-            onTypes, scope, constructors, parent, nameOffset) {
+        super(metadata, modifiers, name, scope, constructors, parent,
+            nameOffset) {
     actualCls.hasConstConstructor = declaresConstConstructor;
   }
 

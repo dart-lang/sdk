@@ -1,51 +1,36 @@
 import 'field_access_lib.dart';
-
 extension on dynamic {
   void set it(value) {}
 }
-
 inline class InlineClass {
   final int it;
   InlineClass(this.it);
   void test() {}
 }
-
 inline class GenericInlineClass<T> {
   final T it;
   GenericInlineClass(this.it);
   void test(T t) {}
 }
-
 inline class FunctionInlineClass<T> {
   final T Function() it;
   FunctionInlineClass(this.it);
   void test(T Function() t) {}
 }
-
 inline class GenericFunctionInlineClass {
   final T Function<T>() it;
   GenericFunctionInlineClass(this.it);
   void test() {}
 }
-
 inline class DynamicInlineClass {
   final dynamic it;
   DynamicInlineClass(this.it);
   void test() {}
 }
-
 inline class ErroneousInlineClass {
   final int a;
   final String b;
   ErroneousInlineClass(this.a, this.b);
   void test() {}
 }
-
-void test(
-    InlineClass inlineClass,
-    GenericInlineClass<String> genericInlineClass,
-    FunctionInlineClass<String> functionInlineClass,
-    GenericFunctionInlineClass genericFunctionInlineClass,
-    DynamicInlineClass dynamicInlineClass,
-    ErroneousInlineClass erroneousInlineClass,
-    PrivateInlineClass privateInlineClass) {}
+void test( InlineClass inlineClass, GenericInlineClass<String> genericInlineClass, FunctionInlineClass<String> functionInlineClass, GenericFunctionInlineClass genericFunctionInlineClass, DynamicInlineClass dynamicInlineClass, ErroneousInlineClass erroneousInlineClass, PrivateInlineClass privateInlineClass) {}

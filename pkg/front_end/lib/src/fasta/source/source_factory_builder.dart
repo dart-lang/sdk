@@ -545,7 +545,9 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
       target = redirectingFactoryTarget.target;
     }
 
-    if (target is Constructor || target is Procedure && target.isFactory) {
+    if (target is Constructor ||
+        target is Procedure &&
+            (target.isFactory || target.isInlineClassMember)) {
       typeArguments ??= [];
       if (_factoryTearOff != null) {
         delayedDefaultValueCloners.add(buildRedirectingFactoryTearOffBody(

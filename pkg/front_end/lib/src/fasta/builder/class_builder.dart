@@ -76,10 +76,10 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
   ///
   /// Currently this also holds the synthesized super class for a mixin
   /// declaration.
-  abstract TypeBuilder? supertypeBuilder;
+  TypeBuilder? get supertypeBuilder;
 
   /// The type in the `implements` clause of a class or mixin declaration.
-  abstract List<TypeBuilder>? interfaceBuilders;
+  List<TypeBuilder>? get interfaceBuilders;
 
   /// The types in the `on` clause of an extension or mixin declaration.
   List<TypeBuilder>? get onTypes;
@@ -160,18 +160,6 @@ abstract class ClassBuilder implements DeclarationBuilder, ClassMemberAccess {
 abstract class ClassBuilderImpl extends DeclarationBuilderImpl
     implements ClassBuilder {
   @override
-  List<TypeVariableBuilder>? typeVariables;
-
-  @override
-  TypeBuilder? supertypeBuilder;
-
-  @override
-  List<TypeBuilder>? interfaceBuilders;
-
-  @override
-  List<TypeBuilder>? onTypes;
-
-  @override
   bool isNullClass = false;
 
   InterfaceType? _legacyRawType;
@@ -183,10 +171,6 @@ abstract class ClassBuilderImpl extends DeclarationBuilderImpl
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
-      this.typeVariables,
-      this.supertypeBuilder,
-      this.interfaceBuilders,
-      this.onTypes,
       Scope scope,
       ConstructorScope constructorScope,
       LibraryBuilder parent,

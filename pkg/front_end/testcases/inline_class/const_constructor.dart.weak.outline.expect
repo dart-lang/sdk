@@ -24,14 +24,16 @@ static inline-class-member method Class|_#named#tearOff(core::int i) → self::C
   return self::Class|named(i);
 static inline-class-member method Class|redirect(core::int i) → self::Class /* redirection-target: self::Class| */
   return self::Class|(i);
-static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class;
+static inline-class-member method Class|_#redirect#tearOff(core::int i) → self::Class
+  return self::Class|(i);
 static inline-class-member method Class|fact(core::int i) → self::Class
   ;
 static inline-class-member method Class|_#fact#tearOff(core::int i) → self::Class
   return self::Class|fact(i);
 static inline-class-member method Class|redirect2(core::int i) → self::Class /* redirection-target: self::Class| */
   return self::Class|(i);
-static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class;
+static inline-class-member method Class|_#redirect2#tearOff(core::int i) → self::Class
+  return self::Class|(i);
 static method test() → dynamic
   ;
 static method main() → dynamic

@@ -3,11 +3,9 @@ inline class Class {
   Class(this.it);
   Class.named(int it) : this.it = it + 1;
 }
-
 inline class GenericClass<T> {
   final T it;
   GenericClass(this.it);
 }
-
 main() {}
 expect(expected, actual) {}
