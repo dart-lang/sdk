@@ -74,7 +74,7 @@ enum ExperimentalFlag {
 
   inferenceUpdate2(
       name: 'inference-update-2',
-      isEnabledByDefault: false,
+      isEnabledByDefault: true,
       isExpired: false,
       experimentEnabledVersion: const Version(3, 2),
       experimentReleasedVersion: const Version(3, 2)),

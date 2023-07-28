@@ -231,7 +231,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.inference_update_2,
     documentation: 'Type promotion for fields',
     experimentalReleaseVersion: null,
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.2.0'),
   );
 
   static final inline_class = ExperimentalFeature(
@@ -427,7 +427,7 @@ class IsEnabledByDefault {
   static const bool inference_update_1 = true;
 
   /// Default state of the experiment "inference-update-2"
-  static const bool inference_update_2 = false;
+  static const bool inference_update_2 = true;
 
   /// Default state of the experiment "inline-class"
   static const bool inline_class = false;
