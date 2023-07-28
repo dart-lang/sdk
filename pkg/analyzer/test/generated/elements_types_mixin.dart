@@ -229,6 +229,25 @@ mixin ElementsTypesMixin {
     return ConstFieldElementImpl(name, 0)..isEnumConstant = true;
   }
 
+  ExtensionTypeElementImpl extensionType(
+    String name, {
+    String representationName = 'it',
+    required DartType representationType,
+    List<TypeParameterElement> typeParameters = const [],
+    List<InterfaceType> interfaces = const [],
+  }) {
+    final element = ExtensionTypeElementImpl(name, -1);
+    element.enclosingElement = testLibrary.definingCompilationUnit;
+    element.typeParameters = typeParameters;
+    element.interfaces = interfaces;
+
+    final field = FieldElementImpl(representationName, -1);
+    field.type = representationType;
+    element.fields = [field];
+
+    return element;
+  }
+
   FunctionTypeImpl functionType({
     required List<TypeParameterElement> typeFormals,
     required List<ParameterElement> parameters,
