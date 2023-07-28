@@ -1,9 +1,3 @@
-// Copyright (c) 2021, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// @dart=2.9
-
 import 'dart:io';
 
 import 'package:benchmark_harness/benchmark_harness.dart';
@@ -14,7 +8,11 @@ class DartCLIStartup extends BenchmarkBase {
   // The benchmark code.
   @override
   void run() {
-    Process.runSync(Platform.executable, ['help']);
+    try {
+      Process.runSync(Platform.executable, ['help']);
+    } catch (e) {
+      print('Error occurred: $e');
+    }
   }
 }
 
