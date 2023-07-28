@@ -360,6 +360,10 @@ CompileTimeErrorCode.CONFLICTING_TYPE_VARIABLE_AND_MIXIN:
   status: noFix
   notes: |-
     The fix is to rename one of the two, but we can't know what name to use.
+CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+  status: needsFix
+  notes: |-
+    Remove the `deferred` keyword from the import.
 CompileTimeErrorCode.CONST_CONSTRUCTOR_FIELD_TYPE_MISMATCH:
   status: noFix
 CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:

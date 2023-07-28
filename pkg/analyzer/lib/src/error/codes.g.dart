@@ -665,6 +665,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY = CompileTimeErrorCode(
+    'COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY',
+    "Constant values from a deferred library can't be used as values in a "
+        "'const' constructor.",
+    correctionMessage:
+        "Try removing the keyword 'const' from the constructor or removing the "
+        "keyword 'deferred' from the import.",
+    uniqueName: 'CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY',
+  );
+
   ///  16.12.2 Const: It is a compile-time error if evaluation of a constant
   ///  object results in an uncaught exception being thrown.
   ///

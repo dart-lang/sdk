@@ -909,6 +909,8 @@ class _ConstantAnalysisErrorListener extends AnalysisErrorListener {
     if (errorCode is CompileTimeErrorCode) {
       switch (errorCode) {
         case CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+        case CompileTimeErrorCode
               .CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST:
         case CompileTimeErrorCode.CONST_EVAL_EXTENSION_METHOD:
         case CompileTimeErrorCode.CONST_EVAL_METHOD_INVOCATION:

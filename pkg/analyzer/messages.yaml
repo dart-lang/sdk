@@ -2264,6 +2264,11 @@ CompileTimeErrorCode:
       0: the type of the runtime value of the argument
       1: the name of the field
       2: the type of the field
+  CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY:
+    sharedName: COLLECTION_ELEMENT_FROM_DEFERRED_LIBRARY
+    problemMessage: "Constant values from a deferred library can't be used as values in a 'const' constructor."
+    correctionMessage: "Try removing the keyword 'const' from the constructor or removing the keyword 'deferred' from the import."
+    comment: No parameters.
   CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH:
     problemMessage: "A value of type '{0}' can't be assigned to a parameter of type '{1}' in a const constructor."
     correctionMessage: "Try using a subtype, or removing the keyword 'const'."
