@@ -6137,7 +6137,8 @@ Dart_CompileToKernel(const char* script_uri,
                      const uint8_t* platform_kernel,
                      intptr_t platform_kernel_size,
                      bool incremental_compile,
-                     bool for_app_jit_snapshot,
+                     bool for_snapshot,
+                     bool embed_sources,
                      const char* package_config,
                      Dart_KernelCompilationVerbosityLevel verbosity) {
   API_TIMELINE_DURATION(Thread::Current());
@@ -6149,7 +6150,7 @@ Dart_CompileToKernel(const char* script_uri,
 #else
   result = KernelIsolate::CompileToKernel(
       script_uri, platform_kernel, platform_kernel_size, 0, nullptr,
-      incremental_compile, for_app_jit_snapshot, package_config, nullptr,
+      incremental_compile, for_snapshot, embed_sources, package_config, nullptr,
       nullptr, verbosity);
   if (incremental_compile) {
     Dart_KernelCompilationResult ack_result =

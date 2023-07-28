@@ -72,7 +72,8 @@ class DFE {
   Dart_KernelCompilationResult CompileScript(const char* script_uri,
                                              bool incremental,
                                              const char* package_config,
-                                             bool snapshot);
+                                             bool for_snapshot,
+                                             bool embedd_sources);
 
   // Compiles specified script and reads the resulting kernel file.
   // If the compilation is successful, returns a valid in memory kernel
@@ -87,7 +88,8 @@ class DFE {
                             char** error,
                             int* exit_code,
                             const char* package_config,
-                            bool snapshot);
+                            bool for_snapshot,
+                            bool embed_sources);
 
   // Reads the script kernel file if specified 'script_uri' is a kernel file.
   // Returns an in memory kernel representation of the specified script is a

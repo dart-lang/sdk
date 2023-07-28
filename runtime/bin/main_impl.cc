@@ -297,10 +297,14 @@ static Dart_Isolate IsolateSetupHelper(Dart_Isolate isolate,
     // duplicate null-safety info messages from the frontend when generating
     // a kernel snapshot (this flag is instead set in
     // Snapshot::GenerateKernel()).
-    const bool for_app_jit_snapshot = Options::gen_snapshot_kind() == kAppJIT;
+    const bool for_snapshot = Options::gen_snapshot_kind() == kAppJIT;
+    // If we compile for AppJIT the sources will not be included across app-jit
+    // snapshotting, so there's no reason CFE should embed them in the kernel.
+    const bool embed_sources = Options::gen_snapshot_kind() != kAppJIT;
     dfe.CompileAndReadScript(script_uri, &application_kernel_buffer,
                              &application_kernel_buffer_size, error, exit_code,
-                             resolved_packages_config, for_app_jit_snapshot);
+                             resolved_packages_config, for_snapshot,
+                             embed_sources);
     if (application_kernel_buffer == nullptr) {
       Dart_ExitScope();
       Dart_ShutdownIsolate();

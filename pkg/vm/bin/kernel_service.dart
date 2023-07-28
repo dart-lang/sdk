@@ -772,8 +772,7 @@ Future _processLoadRequest(request) async {
   }
 
   final SendPort port = request[1];
-  final int isolateGroupId = request[7];
-
+  final int isolateGroupId = request[8];
   if (tag == kListDependenciesTag) {
     await _processListDependenciesRequest(port, isolateGroupId);
     return;
@@ -783,17 +782,18 @@ Future _processLoadRequest(request) async {
   final Uri? script =
       inputFileUri != null ? Uri.base.resolve(inputFileUri) : null;
   final bool incremental = request[4];
-  final bool forAppJitSnapshot = request[5];
-  final bool nullSafety = request[6];
-  final List sourceFiles = request[8];
-  final bool enableAsserts = request[9];
+  final bool forSnapshot = request[5];
+  final bool embedSources = request[6];
+  final bool nullSafety = request[7];
+  final List sourceFiles = request[9];
+  final bool enableAsserts = request[10];
   final List<String>? experimentalFlags =
-      request[10] != null ? request[10].cast<String>() : null;
-  final String? packageConfig = request[11];
-  final String? multirootFilepaths = request[12];
-  final String? multirootScheme = request[13];
-  final String verbosityLevel = request[15];
-  final bool enableMirrors = request[16];
+      request[11] != null ? request[11].cast<String>() : null;
+  final String? packageConfig = request[12];
+  final String? multirootFilepaths = request[13];
+  final String? multirootScheme = request[14];
+  final String verbosityLevel = request[16];
+  final bool enableMirrors = request[17];
   Uri platformKernelPath;
   List<int>? platformKernel = null;
   if (request[3] is String) {
@@ -806,7 +806,7 @@ Future _processLoadRequest(request) async {
         computePlatformBinariesLocation().resolve('vm_platform_strong.dill');
   }
 
-  final String invocationModes = forAppJitSnapshot ? 'compile' : '';
+  final String invocationModes = forSnapshot ? 'compile' : '';
 
   Compiler? compiler;
 
@@ -873,7 +873,6 @@ Future _processLoadRequest(request) async {
         enableMirrors: enableMirrors);
     fileSystem = compiler.fileSystem;
   } else {
-    final embedSources = !forAppJitSnapshot;
     fileSystem = _buildFileSystem(
         sourceFiles, platformKernel, multirootFilepaths, multirootScheme);
     compiler = new SingleShotCompilerWrapper(
@@ -1131,7 +1130,8 @@ Future trainInternal(String scriptUri, String? platformKernelPath) async {
     scriptUri,
     platformKernelPath,
     false /* incremental */,
-    false /* for_app_jit_snapshot */,
+    false /* for_snapshot */,
+    true /* embed_sources */,
     true /* null safety */,
     1 /* isolateGroupId chosen randomly */,
     [] /* source files */,

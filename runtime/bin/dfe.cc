@@ -188,7 +188,8 @@ const char* PathSanitizer::sanitized_uri() const {
 Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
                                                 bool incremental,
                                                 const char* package_config,
-                                                bool for_app_jit_snapshot) {
+                                                bool for_snapshot,
+                                                bool embed_sources) {
   // TODO(aam): When Frontend is ready, VM should be passing vm_outline.dill
   // instead of vm_platform.dill to Frontend for compilation.
   PathSanitizer path_sanitizer(script_uri);
@@ -196,7 +197,7 @@ Dart_KernelCompilationResult DFE::CompileScript(const char* script_uri,
 
   return Dart_CompileToKernel(
       sanitized_uri, platform_strong_dill, platform_strong_dill_size,
-      incremental, for_app_jit_snapshot, package_config, verbosity());
+      incremental, for_snapshot, embed_sources, package_config, verbosity());
 }
 
 void DFE::CompileAndReadScript(const char* script_uri,
@@ -205,10 +206,11 @@ void DFE::CompileAndReadScript(const char* script_uri,
                                char** error,
                                int* exit_code,
                                const char* package_config,
-                               bool for_app_jit_snapshot) {
+                               bool for_snapshot,
+                               bool embed_sources) {
   Dart_KernelCompilationResult result =
       CompileScript(script_uri, use_incremental_compiler(), package_config,
-                    for_app_jit_snapshot);
+                    for_snapshot, embed_sources);
   switch (result.status) {
     case Dart_KernelCompilationStatus_Ok:
       *kernel_buffer = result.kernel;
