@@ -557,6 +557,33 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final element = _elementWalker!.getExtensionType();
+    node.declaredElement = element;
+    _namedTypeResolver.enclosingClass = element;
+
+    _setOrCreateMetadataElements(element, node.metadata);
+
+    _withElementWalker(ElementWalker.forExtensionType(element), () {
+      _withNameScope(() {
+        _buildTypeParameterElements(node.typeParameters);
+        node.typeParameters?.accept(this);
+
+        node.representation.accept(this);
+        _resolveImplementsClause(node.implementsClause);
+
+        _defineElements(element.accessors);
+        _defineElements(element.methods);
+        node.members.accept(this);
+      });
+    });
+
+    _namedTypeResolver.enclosingClass = null;
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     FieldFormalParameterElementImpl element;
     if (node.parent is DefaultFormalParameter) {
@@ -1119,6 +1146,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     });
 
     _recordTypeResolver.resolve(node);
+  }
+
+  @override
+  void visitRepresentationDeclaration(
+    covariant RepresentationDeclarationImpl node,
+  ) {
+    node.fieldElement = _elementWalker!.getVariable() as FieldElementImpl;
+    node.constructorElement = _elementWalker!.getConstructor();
+
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

@@ -1279,8 +1279,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
     _sink.writeln('RepresentationDeclaration');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
-      _writeDeclaredElement(node.fieldElement);
-      _writeDeclaredElement(node.constructorElement);
+      _writeElement('fieldElement', node.fieldElement);
+      _writeElement('constructorElement', node.constructorElement);
     });
   }
 
