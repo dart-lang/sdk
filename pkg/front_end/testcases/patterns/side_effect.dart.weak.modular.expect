@@ -9,15 +9,15 @@ static method sideEffect<T extends core::Object? = dynamic>(core::List<self::sid
 }
 static method method() → dynamic {
   {
-    final synthesized dynamic #0#0 = self::sideEffect<dynamic>(<dynamic>[]);
+    final synthesized core::List<dynamic> #0#0 = self::sideEffect<dynamic>(<dynamic>[]);
     if(!true)
       throw new core::StateError::•("Pattern matching error");
   }
-  block {
-    final synthesized dynamic #1#0 = self::sideEffect<dynamic>(<dynamic>[]);
+  {
+    final synthesized core::List<dynamic> #1#0 = self::sideEffect<dynamic>(<dynamic>[]);
     if(!true)
       throw new core::StateError::•("Pattern matching error");
-  } =>#1#0;
+  }
   {
     final synthesized core::List<dynamic> #2#0 = self::sideEffect<dynamic>(<dynamic>[]);
     if(true) {

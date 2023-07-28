@@ -4748,6 +4748,10 @@ class EquivalenceStrategy {
     if (!checkAssignedVariablePattern_needsCast(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkAssignedVariablePattern_hasObservableEffect(
+        visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkAssignedVariablePattern_fileOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -8815,6 +8819,14 @@ class EquivalenceStrategy {
   bool checkAssignedVariablePattern_needsCast(EquivalenceVisitor visitor,
       AssignedVariablePattern node, AssignedVariablePattern other) {
     return visitor.checkValues(node.needsCast, other.needsCast, 'needsCast');
+  }
+
+  bool checkAssignedVariablePattern_hasObservableEffect(
+      EquivalenceVisitor visitor,
+      AssignedVariablePattern node,
+      AssignedVariablePattern other) {
+    return visitor.checkValues(node.hasObservableEffect,
+        other.hasObservableEffect, 'hasObservableEffect');
   }
 
   bool checkAssignedVariablePattern_fileOffset(EquivalenceVisitor visitor,

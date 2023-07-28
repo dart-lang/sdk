@@ -37,14 +37,14 @@ static method split<A extends core::Object? = dynamic>(core::Iterable<self::spli
                   hoisted core::Iterable<self::split::A%> ls;
                   hoisted core::Iterable<self::split::A%> rs;
                   {
-                    final synthesized dynamic #0#0 = #t3;
-                    if(!((let final core::Iterable<self::split::A%> #t4 = ls = #0#0{(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)}.$1{core::Iterable<self::split::A%>} in true) && (let final core::Iterable<self::split::A%> #t5 = rs = #0#0{(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>)}.$2{core::Iterable<self::split::A%>} in true)))
-                      throw new core::StateError::•("Pattern matching error");
+                    final synthesized(core::Iterable<self::split::A%>, core::Iterable<self::split::A%>) #0#0 = #t3;
+                    ls = #0#0.$1{core::Iterable<self::split::A%>};
+                    rs = #0#0.$2{core::Iterable<self::split::A%>};
                   }
                   yield( block {
-                    final core::List<self::split::A%> #t6 = core::_GrowableList::_literal1<self::split::A%>(x);
-                    #t6.{core::List::addAll}{Invariant}(ls){(core::Iterable<self::split::A%>) → void};
-                  } =>#t6, rs);
+                    final core::List<self::split::A%> #t4 = core::_GrowableList::_literal1<self::split::A%>(x);
+                    #t4.{core::List::addAll}{Invariant}(ls){(core::Iterable<self::split::A%>) → void};
+                  } =>#t4, rs);
                 }
               }
             }

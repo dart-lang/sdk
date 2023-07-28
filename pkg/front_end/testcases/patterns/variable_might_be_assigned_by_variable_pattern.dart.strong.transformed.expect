@@ -5,13 +5,12 @@ import "dart:core" as core;
 static method main() → void {
   late core::String s;
   (() → Null {
-    block {
+    {
+      final synthesized(core::String) #0#0 = ("");
       core::String #t1;
-      final synthesized dynamic #0#0 = ("");
-      if(!(let final core::String #t2 = #t1 = #0#0{(core::String)}.$1{core::String} in true))
-        throw new core::StateError::•("Pattern matching error");
+      #t1 = #0#0.$1{core::String};
       s = #t1;
-    } =>#0#0;
+    }
   })(){() → Null};
   s;
 }
@@ -19,4 +18,4 @@ static method main() → void {
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///variable_might_be_assigned_by_variable_pattern.dart:8:12 -> RecordConstant(const (""))
-Extra constant evaluation: evaluated: 15, effectively constant: 1
+Extra constant evaluation: evaluated: 9, effectively constant: 1

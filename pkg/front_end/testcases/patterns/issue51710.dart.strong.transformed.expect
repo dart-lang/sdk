@@ -17,24 +17,24 @@ static method test() → void {
   final hoisted has-declared-initializer core::String a;
   final hoisted has-declared-initializer core::String b;
   {
-    final synthesized dynamic #0#0 = ("left", "right");
-    if(!((let final core::String #t1 = a = #0#0{(core::String, core::String)}.$1{core::String} in true) && (let final core::String #t2 = b = #0#0{(core::String, core::String)}.$2{core::String} in true)))
-      throw new core::StateError::•("Pattern matching error");
+    final synthesized(core::String, core::String) #0#0 = ("left", "right");
+    a = #0#0.$1{core::String};
+    b = #0#0.$2{core::String};
   }
   core::print("${a} ${b}");
-  block {
-    final synthesized dynamic #1#0 = (a, b);
+  {
+    final synthesized(core::String, core::String) #1#0 = (a, b);
     if(!(invalid-expression "pkg/front_end/testcases/patterns/issue51710.dart:8:4: Error: Can't assign to the final variable 'b'.
   (b, a) = (a, b);
    ^" && invalid-expression "pkg/front_end/testcases/patterns/issue51710.dart:8:7: Error: Can't assign to the final variable 'a'.
   (b, a) = (a, b);
       ^"))
       throw new core::StateError::•("Pattern matching error");
-  } =>#1#0;
+  }
   core::print("${a} ${b}");
 }
 
 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///issue51710.dart:6:18 -> RecordConstant(const ("left", "right"))
-Extra constant evaluation: evaluated: 30, effectively constant: 1
+Extra constant evaluation: evaluated: 22, effectively constant: 1

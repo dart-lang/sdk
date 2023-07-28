@@ -25,8 +25,8 @@ static method logger(core::String s) → void {
 }
 static method main() → dynamic {
   {
-    final synthesized dynamic #0#0 = new self::Square::•(2.0, #C2);
-    if(!(let final dynamic #t1 = #0#0{self::Square}.{self::Square::area}{core::double} in true))
+    final synthesized self::Square #0#0 = new self::Square::•(2.0, #C2);
+    if(!(let final dynamic #t1 = #0#0.{self::Square::area}{core::double} in true))
       throw new core::StateError::•("Pattern matching error");
   }
   self::expect("Square.area", self::log);

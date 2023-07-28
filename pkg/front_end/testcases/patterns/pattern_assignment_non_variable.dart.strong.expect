@@ -39,15 +39,11 @@ class Class extends self::Super {
     ;
   method method(dynamic o, dynamic parameter) → dynamic {
     dynamic local;
-    block {
-      dynamic #t1;
-      dynamic #t2;
+    {
       final synthesized dynamic #0#0 = o as{TypeError,ForDynamic} (dynamic, dynamic, dynamic, dynamic, dynamic, dynamic);
-      if(!(#0#0 is (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final dynamic #t3 = #t1 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t4 = #t2 = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true)))
+      if(!(#0#0 is (core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?) && (let final dynamic #t1 = local = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$1{core::Object?} in true) && (let final dynamic #t2 = parameter = #0#0{(core::Object?, core::Object?, core::Object?, core::Object?, core::Object?, core::Object?)}.$2{core::Object?} in true)))
         throw new core::StateError::•("Pattern matching error");
-      local = #t1;
-      parameter = #t2;
-    } =>#0#0;
+    }
   }
 }
 static field dynamic global;

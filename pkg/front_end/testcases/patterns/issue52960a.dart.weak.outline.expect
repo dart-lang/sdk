@@ -1,0 +1,8 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method firstAndLast(core::List<core::int> a) → (core::int, core::int)
+  ;
+static method main() → dynamic
+  ;

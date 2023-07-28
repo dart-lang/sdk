@@ -1369,7 +1369,7 @@ mixin TypeAnalyzer<
   /// Stack effect: pushes (Expression, Pattern).
   ///
   /// Returns a [PatternForInResult] containing information on reported errors.
-  PatternForInResult<Error> analyzePatternForIn({
+  PatternForInResult<Type, Error> analyzePatternForIn({
     required Node node,
     required bool hasAwait,
     required Pattern pattern,
@@ -1424,6 +1424,7 @@ mixin TypeAnalyzer<
     flow.patternForIn_end();
 
     return new PatternForInResult(
+        elementType: elementType,
         patternForInExpressionIsNotIterableError:
             patternForInExpressionIsNotIterableError);
   }
@@ -1440,12 +1441,14 @@ mixin TypeAnalyzer<
   /// variable pattern; [TypeAnalyzerErrors.patternDoesNotAllowLate] will be
   /// reported if any other kind of pattern is used.
   ///
-  /// Returns the type schema of the [pattern].
+  /// Returns a [PatternVariableDeclarationAnalysisResult] holding the static
+  /// type of the initializer and the type schema of the [pattern].
   ///
   /// Stack effect: pushes (Expression, Pattern).
-  Type analyzePatternVariableDeclaration(
-      Node node, Pattern pattern, Expression initializer,
-      {required bool isFinal}) {
+  PatternVariableDeclarationAnalysisResult<Type>
+      analyzePatternVariableDeclaration(
+          Node node, Pattern pattern, Expression initializer,
+          {required bool isFinal}) {
     // Stack: ()
     Type patternSchema = dispatchPatternSchema(pattern);
     Type initializerType = analyzeExpression(initializer, patternSchema);
@@ -1468,7 +1471,8 @@ mixin TypeAnalyzer<
         location: JoinedPatternVariableLocation.singlePattern);
     flow.patternVariableDeclaration_end();
     // Stack: (Expression, Pattern)
-    return patternSchema;
+    return new PatternVariableDeclarationAnalysisResult(
+        initializerType: initializerType, patternSchema: patternSchema);
   }
 
   /// Analyzes a record pattern.  [node] is the pattern itself, and [fields]

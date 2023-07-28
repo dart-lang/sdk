@@ -1,0 +1,109 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  synthetic constructor •() → self::A
+    : super core::Object::•()
+    ;
+  get b() → dynamic
+    return throw "foo";
+}
+class B extends self::A {
+  synthetic constructor •() → self::B
+    : super self::A::•()
+    ;
+  get b() → dynamic
+    return 42;
+}
+static method method1((self::A, self::A) r) → dynamic {
+  dynamic b1;
+  dynamic b2;
+  {
+    final synthesized(self::A, self::A) #0#0 = r;
+    b1 = #0#0.$1{self::A}.{self::A::b}{dynamic};
+    b2 = #0#0.$2{self::A}.{self::A::b}{dynamic};
+  }
+  return b1;
+}
+static method method2((self::A, self::A) r) → dynamic {
+  dynamic b1;
+  dynamic b2;
+  try {
+    {
+      final synthesized(self::A, self::A) #0#0 = r;
+      dynamic #t1;
+      dynamic #t2;
+      #t1 = #0#0.$1{self::A}.{self::A::b}{dynamic};
+      #t2 = #0#0.$2{self::A}.{self::A::b}{dynamic};
+      b1 = #t1;
+      b2 = #t2;
+    }
+  }
+  on core::Object catch(final core::Object _) {
+  }
+  return b1;
+}
+static method method3((self::A, self::A) r) → dynamic {
+  dynamic b1;
+  dynamic b2;
+  self::allowThrow(() → void {
+    {
+      final synthesized(self::A, self::A) #0#0 = r;
+      dynamic #t3;
+      dynamic #t4;
+      #t3 = #0#0.$1{self::A}.{self::A::b}{dynamic};
+      #t4 = #0#0.$2{self::A}.{self::A::b}{dynamic};
+      b1 = #t3;
+      b2 = #t4;
+    }
+  });
+  return b1;
+}
+static method method4((self::A, self::A) r) → dynamic {
+  dynamic b1;
+  dynamic b2;
+  function local() → Null {
+    {
+      final synthesized(self::A, self::A) #0#0 = r;
+      dynamic #t5;
+      dynamic #t6;
+      #t5 = #0#0.$1{self::A}.{self::A::b}{dynamic};
+      #t6 = #0#0.$2{self::A}.{self::A::b}{dynamic};
+      b1 = #t5;
+      b2 = #t6;
+    }
+  }
+  self::allowThrow(local);
+  return b1;
+}
+static method main() → dynamic {
+  self::throws(() → void => self::method1((new self::B::•(), new self::A::•())));
+  self::expect(null, self::method2((new self::B::•(), new self::A::•())));
+  self::expect(null, self::method3((new self::B::•(), new self::A::•())));
+  self::expect(null, self::method4((new self::B::•(), new self::A::•())));
+  self::expect(42, self::method1((new self::B::•(), new self::B::•())));
+  self::expect(42, self::method2((new self::B::•(), new self::B::•())));
+  self::expect(42, self::method3((new self::B::•(), new self::B::•())));
+  self::expect(42, self::method4((new self::B::•(), new self::B::•())));
+}
+static method expect(dynamic expected, dynamic actual) → dynamic {
+  if(!(expected =={core::Object::==}{(core::Object) → core::bool} actual))
+    throw "Expected ${expected}, actual ${actual}";
+}
+static method throws(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object _) {
+    return;
+  }
+  throw "Missing throw";
+}
+static method allowThrow(() → void f) → dynamic {
+  try {
+    f(){() → void};
+  }
+  on core::Object catch(final core::Object _) {
+  }
+}

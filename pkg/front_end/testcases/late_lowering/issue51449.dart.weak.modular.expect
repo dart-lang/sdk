@@ -28,12 +28,9 @@ static method main() → dynamic {
       #j#isSet = true;
       return #j = j#param;
     }
-  block {
-    core::int? #t1;
-    final synthesized dynamic #0#0 = (2, "Hello");
-    if(!(let final dynamic #t2 = #t1 = #0#0{(core::int, core::String)}.$1{core::int} in true))
-      throw new core::StateError::•("Pattern matching error");
-    #j#set(#t1){(core::int) → dynamic};
-  } =>#0#0;
+  {
+    final synthesized(core::int, core::String) #0#0 = (2, "Hello");
+    #j#set(#0#0.$1{core::int}){(core::int) → dynamic};
+  }
   core::print(#j#get(){() → core::int});
 }

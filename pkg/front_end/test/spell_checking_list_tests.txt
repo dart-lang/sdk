@@ -647,6 +647,7 @@ sheets
 shipped
 shortest
 shot
+shuffle
 sidebar
 sigint
 signalled
