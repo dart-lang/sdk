@@ -11,12 +11,12 @@ import self as self;
 import "dart:core" as core;
 
 static method main() → dynamic {
-  block {
-    final synthesized has-declared-initializer dynamic #0#0 = null;
+  {
+    final synthesized has-declared-initializer Null #0#0 = null;
     if(!invalid-expression "pkg/front_end/testcases/rasta/malformed_function.dart:6:4: Error: Refutable patterns can't be used in an irrefutable context.
 Try using an if-case, a 'switch' statement, or a 'switch' expression instead.
   (null) = null;
    ^")
       throw new core::StateError::•("Pattern matching error");
-  } =>#0#0;
+  }
 }

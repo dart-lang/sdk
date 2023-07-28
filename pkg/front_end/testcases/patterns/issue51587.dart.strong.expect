@@ -6,38 +6,29 @@ static method test1() → dynamic {
   core::num b = 0;
   b as core::int;
   b{core::int}.{core::int::isEven}{core::bool};
-  block {
-    core::num #t1;
-    final synthesized dynamic #0#0 = (3.14);
-    if(!(let final dynamic #t2 = #t1 = #0#0{(core::double)}.$1{core::double} in true))
-      throw new core::StateError::•("Pattern matching error");
-    b = #t1;
-  } =>#0#0;
+  {
+    final synthesized(core::double) #0#0 = (3.14);
+    b = #0#0.$1{core::double};
+  }
   return b;
 }
 static method test2() → dynamic {
   core::num b = 0;
   b as core::int;
   b{core::int}.{core::int::isEven}{core::bool};
-  block {
-    core::num #t3;
-    final synthesized dynamic #0#0 = (3.14, {foo: "foo"});
-    if(!(let final dynamic #t4 = #t3 = #0#0{(core::double, {foo: core::String})}.$1{core::double} in true))
-      throw new core::StateError::•("Pattern matching error");
-    b = #t3;
-  } =>#0#0;
+  {
+    final synthesized(core::double, {foo: core::String}) #0#0 = (3.14, {foo: "foo"});
+    b = #0#0.$1{core::double};
+  }
   return b;
 }
 static method test3() → dynamic {
   core::num b = 0;
   b as core::int;
   b{core::int}.{core::int::isEven}{core::bool};
-  block {
-    core::num #t5;
-    final synthesized dynamic #0#0 = ({foo: 3.14});
-    if(!(let final dynamic #t6 = #t5 = #0#0{({foo: core::double})}.foo{core::double} in true))
-      throw new core::StateError::•("Pattern matching error");
-    b = #t5;
-  } =>#0#0;
+  {
+    final synthesized({foo: core::double}) #0#0 = ({foo: 3.14});
+    b = #0#0.foo{core::double};
+  }
   return b;
 }

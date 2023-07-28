@@ -14,6 +14,7 @@ static inline-class-member method IC1|_#new#tearOff(dynamic id) → self::IC1
   return self::IC1|(id);
 static inline-class-member method IC1|f(core::int id) → self::IC1 /* redirection-target: self::IC1| */
   return self::IC1|(id);
-static inline-class-member method IC1|_#f#tearOff(core::int id) → self::IC1;
+static inline-class-member method IC1|_#f#tearOff(core::int id) → self::IC1
+  return self::IC1|(id);
 static method main() → dynamic
   ;

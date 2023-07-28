@@ -14,9 +14,9 @@ static method main(core::List<core::String> arguments) → void {
   final hoisted has-declared-initializer core::double lat;
   final hoisted has-declared-initializer core::double long;
   {
-    final synthesized dynamic #0#0 = self::getLocation("Aarhus");
-    if(!((let final dynamic #t1 = lat = #0#0{(core::double, core::double)}.$1{core::double} in true) && (let final dynamic #t2 = long = #0#0{(core::double, core::double)}.$2{core::double} in true)))
-      throw new core::StateError::•("Pattern matching error");
+    final synthesized(core::double, core::double) #0#0 = self::getLocation("Aarhus");
+    lat = #0#0.$1{core::double};
+    long = #0#0.$2{core::double};
   }
   core::print("Current location: ${lat}, ${long}");
   self::expect(56.1629, lat);

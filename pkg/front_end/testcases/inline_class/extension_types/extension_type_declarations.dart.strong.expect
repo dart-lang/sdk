@@ -92,7 +92,8 @@ static inline-class-member method ExtensionType4|_#fact#tearOff(core::int it) �
   return self::ExtensionType4|fact(it);
 static inline-class-member method ExtensionType4|redirectingFactory(core::int it) → self::ExtensionType4 /* redirection-target: self::ExtensionType4| */
   return self::ExtensionType4|(it);
-static inline-class-member method ExtensionType4|_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4;
+static inline-class-member method ExtensionType4|_#redirectingFactory#tearOff(core::int it) → self::ExtensionType4
+  return self::ExtensionType4|(it);
 static inline-class-member method ExtensionType4|get#getter(lowered final self::ExtensionType4 #this) → core::int
   return #this as{Unchecked} core::int;
 static inline-class-member method ExtensionType4|set#setter(lowered final self::ExtensionType4 #this, core::int value) → void {}

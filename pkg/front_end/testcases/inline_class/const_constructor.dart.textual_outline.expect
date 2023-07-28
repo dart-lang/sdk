@@ -6,7 +6,6 @@ inline class Class {
   factory Class.fact(int i) => Class(i);
   factory Class.redirect2(int i) = Class;
 }
-
 test() {}
 main() {}
 expect(expected, actual) {}

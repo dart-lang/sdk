@@ -948,61 +948,61 @@ static method testIfElement(dynamic dynVar, core::List<core::int*>* listInt, cor
   } =>#t84;
 }
 static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dynamic {
-  block {
+  {
     final core::List<core::int*>* #t85 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t85.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:89:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[if (oracle(\"foo\")) \"bar\"];
                            ^" in "bar" as{TypeError,ForLegacy} core::int*){(core::int*) →* void};
-  } =>#t85;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t86 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t86.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:90:28: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) \"bar\", null};
                            ^" in "bar" as{TypeError,ForLegacy} core::int*){(core::int*) →* core::bool*};
     #t86.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t86;
-  block {
+  }
+  {
     final core::Map<core::String*, core::int*>* #t87 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t87.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:91:43: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <String, int>{if (oracle(\"foo\")) \"bar\": \"bar\", \"baz\": null};
                                           ^" in "bar" as{TypeError,ForLegacy} core::int*){(core::String*, core::int*) →* void};
     #t87.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
-  } =>#t87;
-  block {
+  }
+  {
     final core::List<core::int*>* #t88 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t88.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:92:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[if (oracle(\"foo\")) ...[\"bar\"]];
                                ^" in "bar" as{TypeError,ForLegacy} core::int*)){(core::Iterable<core::int*>*) →* void};
-  } =>#t88;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t89 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t89.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:93:32: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{if (oracle(\"foo\")) ...[\"bar\"], null};
                                ^" in "bar" as{TypeError,ForLegacy} core::int*)){(core::Iterable<core::int*>*) →* void};
     #t89.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t89;
-  block {
+  }
+  {
     final core::Map<core::String*, core::int*>* #t90 = <core::String*, core::int*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t90.{core::Map::addAll}{Invariant}(<core::String*, core::int*>{"bar": invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:94:47: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <String, int>{if (oracle(\"foo\")) ...{\"bar\": \"bar\"}, \"baz\": null};
                                               ^" in "bar" as{TypeError,ForLegacy} core::int*}){(core::Map<core::String*, core::int*>*) →* void};
     #t90.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
-  } =>#t90;
-  block {
+  }
+  {
     final core::List<core::int*>* #t91 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t91.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:95:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int>[if (oracle(\"foo\")) ...map];
                               ^"){(core::int*) →* void};
-  } =>#t91;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t92 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t92.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:96:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1010,7 +1010,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   <int>{if (oracle(\"foo\")) ...map, null};
                               ^"){(core::int*) →* core::bool*};
     #t92.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t92;
+  }
   <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:97:39: Error: Unexpected type 'List<String>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int>{if (oracle(\"foo\")) ...[\"bar\"], \"baz\": null};
@@ -1018,7 +1018,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
  - 'List' is from 'dart:core'.
   <String, int>{if (oracle(\"foo\")) ...[\"bar\"], \"baz\": null};
                                       ^": null};
-  block {
+  {
     final core::List<core::String*>* #t93 = core::_GrowableList::•<core::String*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t93.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
@@ -1028,8 +1028,8 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
       #t93.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:98:39: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>[if (oracle(\"foo\")) 42 else 3.14];
                                       ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*) →* void};
-  } =>#t93;
-  block {
+  }
+  {
     final core::Set<core::String*>* #t94 = new col::_Set::•<core::String*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t94.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:99:31: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
@@ -1040,8 +1040,8 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   <String>{if (oracle(\"foo\")) 42 else 3.14, null};
                                       ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*) →* core::bool*};
     #t94.{core::Set::add}{Invariant}(null){(core::String*) →* core::bool*};
-  } =>#t94;
-  block {
+  }
+  {
     final core::Map<core::String*, core::String*>* #t95 = <core::String*, core::String*>{};
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t95.{core::Map::[]=}{Invariant}("bar", invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:100:46: Error: A value of type 'int' can't be assigned to a variable of type 'String'.
@@ -1052,8 +1052,8 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
   <String, String>{if (oracle(\"foo\")) \"bar\": 42 else \"baz\": 3.14, \"baz\": null};
                                                             ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*, core::String*) →* void};
     #t95.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::String*) →* void};
-  } =>#t95;
-  block {
+  }
+  {
     final core::List<core::int*>* #t96 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t96.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:101:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1062,8 +1062,8 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
                               ^"){(core::int*) →* void};
     else
       #t96.{core::List::add}{Invariant}(42){(core::int*) →* void};
-  } =>#t96;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t97 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t97.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:102:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1073,7 +1073,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
     else
       #t97.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t97.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t97;
+  }
   <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:103:39: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int>{if (oracle(\"foo\")) ...[42] else \"bar\": 42, \"baz\": null};
@@ -1081,7 +1081,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
  - 'List' is from 'dart:core'.
   <String, int>{if (oracle(\"foo\")) ...[42] else \"bar\": 42, \"baz\": null};
                                       ^": null};
-  block {
+  {
     final core::List<core::int*>* #t98 = core::_GrowableList::•<core::int*>(0);
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t98.{core::List::add}{Invariant}(42){(core::int*) →* void};
@@ -1090,8 +1090,8 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
  - 'Map' is from 'dart:core'.
   <int>[if (oracle(\"foo\")) 42 else ...map];
                                       ^"){(core::int*) →* void};
-  } =>#t98;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t99 = new col::_Set::•<core::int*>();
     if(self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*)
       #t99.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:105:31: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1101,7 +1101,7 @@ static method testIfElementErrors(core::Map<core::int*, core::int*>* map) → dy
     else
       #t99.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t99.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t99;
+  }
   <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:106:54: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int>{if (oracle(\"foo\")) \"bar\": 42 else ...[42], \"baz\": null};
@@ -1788,22 +1788,22 @@ static method testForElement(dynamic dynVar, core::List<core::int*>* listInt, co
   } =>#t204;
 }
 static method testForElementErrors(core::Map<core::int*, core::int*>* map, core::List<core::int*>* list) → dynamic async /* futureValueType= dynamic */ {
-  block {
+  {
     final core::List<core::int*>* #t205 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t205.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:212:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) \"bar\"];
                                             ^" in "bar" as{TypeError,ForLegacy} core::int*){(core::int*) →* void};
-  } =>#t205;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t206 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t206.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:213:45: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\", null};
                                             ^" in "bar" as{TypeError,ForLegacy} core::int*){(core::int*) →* core::bool*};
     #t206.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t206;
-  block {
+  }
+  {
     final core::Map<core::int*, core::int*>* #t207 = <core::int*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t207.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:214:50: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
@@ -1814,23 +1814,23 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     #t207.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:214:64: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) \"bar\": \"bar\", \"baz\": null};
                                                                ^" in "baz" as{TypeError,ForLegacy} core::int*, null){(core::int*, core::int*) →* void};
-  } =>#t207;
-  block {
+  }
+  {
     final core::List<core::int*>* #t208 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t208.{core::List::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:215:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"]];
                                                 ^" in "bar" as{TypeError,ForLegacy} core::int*)){(core::Iterable<core::int*>*) →* void};
-  } =>#t208;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t209 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t209.{core::Set::addAll}{Invariant}(core::_GrowableList::_literal1<core::int*>(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:216:49: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int>{for (int i = 0; oracle(\"foo\"); i++) ...[\"bar\"], null};
                                                 ^" in "bar" as{TypeError,ForLegacy} core::int*)){(core::Iterable<core::int*>*) →* void};
     #t209.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t209;
-  block {
+  }
+  {
     final core::Map<core::int*, core::int*>* #t210 = <core::int*, core::int*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t210.{core::Map::addAll}{Invariant}(<core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:217:54: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
@@ -1841,16 +1841,16 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
     #t210.{core::Map::[]=}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:217:69: Error: A value of type 'String' can't be assigned to a variable of type 'int'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...{\"bar\": \"bar\"}, \"baz\": null};
                                                                     ^" in "baz" as{TypeError,ForLegacy} core::int*, null){(core::int*, core::int*) →* void};
-  } =>#t210;
-  block {
+  }
+  {
     final core::List<core::int*>* #t211 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t211.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:218:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
  - 'Map' is from 'dart:core'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) ...map];
                                                ^"){(core::int*) →* void};
-  } =>#t211;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t212 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       #t212.{core::Set::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:219:48: Error: Unexpected type 'Map<int, int>' of a spread.  Expected 'dynamic' or an Iterable.
@@ -1858,7 +1858,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   <int>{for (int i = 0; oracle(\"foo\"); i++) ...map, null};
                                                ^"){(core::int*) →* core::bool*};
     #t212.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t212;
+  }
   <core::int*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:220:53: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
@@ -1866,7 +1866,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'List' is from 'dart:core'.
   <int, int>{for (int i = 0; oracle(\"foo\"); i++) ...list, 42: null};
                                                     ^": null};
-  block {
+  {
     final core::List<core::String*>* #t213 = core::_GrowableList::•<core::String*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1877,8 +1877,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
         #t213.{core::List::add}{Invariant}(invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:221:70: Error: A value of type 'double' can't be assigned to a variable of type 'String'.
   <String>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14];
                                                                      ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*) →* void};
-  } =>#t213;
-  block {
+  }
+  {
     final core::Set<core::String*>* #t214 = new col::_Set::•<core::String*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1890,8 +1890,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   <String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else 3.14, null};
                                                                      ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*) →* core::bool*};
     #t214.{core::Set::add}{Invariant}(null){(core::String*) →* core::bool*};
-  } =>#t214;
-  block {
+  }
+  {
     final core::Map<core::String*, core::String*>* #t215 = <core::String*, core::String*>{};
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1903,8 +1903,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   <String, String>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else \"bar\": 3.14, \"baz\": null};
                                                                                            ^" in 3.14 as{TypeError,ForLegacy} core::String*){(core::String*, core::String*) →* void};
     #t215.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::String*) →* void};
-  } =>#t215;
-  block {
+  }
+  {
     final core::List<core::int*>* #t216 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1914,8 +1914,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
                                                              ^"){(core::int*) →* void};
       else
         #t216.{core::List::add}{Invariant}(42){(core::int*) →* void};
-  } =>#t216;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t217 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1926,7 +1926,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
       else
         #t217.{core::Set::add}{Invariant}(42){(core::int*) →* core::bool*};
     #t217.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t217;
+  }
   <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:226:70: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
@@ -1934,7 +1934,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'List' is from 'dart:core'.
   <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) ...list else \"bar\": 42, \"baz\": null};
                                                                      ^": null};
-  block {
+  {
     final core::List<core::int*>* #t218 = core::_GrowableList::•<core::int*>(0);
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1944,8 +1944,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
  - 'Map' is from 'dart:core'.
   <int>[for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map];
                                                                      ^"){(core::int*) →* void};
-  } =>#t218;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t219 = new col::_Set::•<core::int*>();
     for (core::int* i = 0; self::oracle<core::String*>("foo") as{TypeError,ForDynamic,ForLegacy} core::bool*; i = i.{core::num::+}(1){(core::num*) →* core::int*})
       if(self::oracle<dynamic>() as{TypeError,ForDynamic,ForLegacy} core::bool*)
@@ -1956,7 +1956,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   <int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) 42 else ...map, null};
                                                                      ^"){(core::int*) →* core::bool*};
     #t219.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t219;
+  }
   <core::String*, core::int*>{invalid-expression "pkg/front_end/testcases/general/control_flow_collection_inference.dart:229:85: Error: Unexpected type 'List<int>' of a map spread entry.  Expected 'dynamic' or a Map.
  - 'List' is from 'dart:core'.
   <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
@@ -1965,7 +1965,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   <String, int>{for (int i = 0; oracle(\"foo\"); i++) if (oracle()) \"bar\": 42 else ...list, \"baz\": null};
                                                                                     ^": null};
   final core::int* i = 0;
-  block {
+  {
     final core::List<core::int*>* #t220 = core::_GrowableList::•<core::int*>(0);
     {
       synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
@@ -1979,8 +1979,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
         }
       }
     }
-  } =>#t220;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t222 = new col::_Set::•<core::int*>();
     {
       synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
@@ -1995,8 +1995,8 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
       }
     }
     #t222.{core::Set::add}{Invariant}(null){(core::int*) →* core::bool*};
-  } =>#t222;
-  block {
+  }
+  {
     final core::Map<core::String*, core::int*>* #t224 = <core::String*, core::int*>{};
     {
       synthesized core::Iterator<core::int*>* :sync-for-iterator = core::_GrowableList::_literal1<core::int*>(1).{core::Iterable::iterator}{core::Iterator<core::int*>*};
@@ -2011,7 +2011,7 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
       }
     }
     #t224.{core::Map::[]=}{Invariant}("baz", null){(core::String*, core::int*) →* void};
-  } =>#t224;
+  }
   core::List<dynamic>* list10 = block {
     final core::List<dynamic>* #t226 = core::_GrowableList::•<dynamic>(0);
     {
@@ -2254,21 +2254,21 @@ static method testForElementErrors(core::Map<core::int*, core::int*>* map, core:
   } =>#t249;
 }
 static method testForElementErrorsNotAsync(asy::Stream<core::int*>* stream) → dynamic {
-  block {
+  {
     final core::List<core::int*>* #t250 = core::_GrowableList::•<core::int*>(0);
     await for (core::int* i in stream)
       #t250.{core::List::add}{Invariant}(i){(core::int*) →* void};
-  } =>#t250;
-  block {
+  }
+  {
     final core::Set<core::int*>* #t251 = new col::_Set::•<core::int*>();
     await for (core::int* i in stream)
       #t251.{core::Set::add}{Invariant}(i){(core::int*) →* core::bool*};
-  } =>#t251;
-  block {
+  }
+  {
     final core::Map<core::String*, core::int*>* #t252 = <core::String*, core::int*>{};
     await for (core::int* i in stream)
       #t252.{core::Map::[]=}{Invariant}("bar", i){(core::String*, core::int*) →* void};
-  } =>#t252;
+  }
 }
 static method testPromotion(self::A* a) → dynamic {
   core::List<core::int*>* list10 = block {

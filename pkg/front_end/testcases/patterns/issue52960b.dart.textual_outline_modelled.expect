@@ -1,0 +1,6 @@
+R6 shuffle6a(R6 r) {}
+R6as3of2 shuffle6b(R6as3of2 r) {}
+main() {}
+sort4(int a0, int a1, int a2, int a3) {}
+typedef R6 = (int, int, int, int, int, int);
+typedef R6as3of2 = ((int, int), (int, int), (int, int));

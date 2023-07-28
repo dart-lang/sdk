@@ -5,7 +5,7 @@ import "dart:_internal" as _in;
 
 static method main() → void {
   core::List<core::int> list = core::_GrowableList::_literal3<core::int>(1, 2, 3);
-  block {
+  {
     core::int #t1;
     final synthesized core::List<core::int> #0#0 = list;
     #L1:
@@ -18,8 +18,8 @@ static method main() → void {
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t1;
-  block {
+  }
+  {
     core::int #t2;
     final synthesized core::List<core::int> #1#0 = list;
     function ##1#1#initializer() → core::int
@@ -41,8 +41,8 @@ static method main() → void {
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t2;
-  block {
+  }
+  {
     core::int #t3;
     final synthesized core::List<core::int> #2#0 = list;
     function ##2#1#initializer() → core::int
@@ -70,7 +70,7 @@ static method main() → void {
       }
       throw new _in::ReachabilityError::•("`null` encountered as case in a switch expression with a non-nullable type.");
     }
-  } =>#t3;
+  }
 }
 
 constants  {

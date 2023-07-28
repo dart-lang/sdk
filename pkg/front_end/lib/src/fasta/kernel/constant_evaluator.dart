@@ -1649,8 +1649,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
             constantEvaluator.evaluationMode);
-    // TODO(cstefantsova): Do we need a more precise type for the variable?
-    DartType matchedType = const DynamicType();
+    DartType matchedType = node.matchedValueType!;
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.initializer, matchedType);
     // This expression is used, even if the matching expression doesn't read it.
@@ -1666,23 +1665,34 @@ class ConstantsTransformer extends RemovingTransformer {
     matchedExpression.createExpression(typeEnvironment,
         inCacheInitializer: false);
 
-    Expression readMatchingExpression = matchingExpression
-        .createExpression(typeEnvironment, inCacheInitializer: false);
-
-    List<Statement> replacementStatements = [
-      ...matchingCache.declarations,
-      // TODO(cstefantsova): Provide a better diagnostic message.
-      createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.stateErrorConstructor,
-              createArguments([
-                createStringLiteral(messagePatternMatchingError.problemMessage,
-                    fileOffset: node.fileOffset)
-              ], fileOffset: node.fileOffset),
-              fileOffset: node.fileOffset))),
-          fileOffset: node.fileOffset),
-    ];
+    List<Statement> replacementStatements;
+    if (matchingExpression.isEffectOnly) {
+      replacementStatements = [];
+      matchingExpression.createStatements(
+          typeEnvironment, replacementStatements);
+      replacementStatements = [
+        ...matchingCache.declarations,
+        ...replacementStatements,
+      ];
+    } else {
+      Expression readMatchingExpression = matchingExpression
+          .createExpression(typeEnvironment, inCacheInitializer: false);
+      replacementStatements = [
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Provide a better diagnostic message.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.stateErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messagePatternMatchingError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))),
+            fileOffset: node.fileOffset),
+      ];
+    }
     if (replacementStatements.length > 1) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
@@ -1713,8 +1723,7 @@ class ConstantsTransformer extends RemovingTransformer {
     MatchingExpressionVisitor matchingExpressionVisitor =
         new MatchingExpressionVisitor(matchingCache, typeEnvironment.coreTypes,
             constantEvaluator.evaluationMode);
-    // TODO(cstefantsova): Do we need a more precise type for the variable?
-    DartType matchedType = const DynamicType();
+    DartType matchedType = node.matchedValueType!;
     CacheableExpression matchedExpression =
         matchingCache.createRootExpression(node.expression, matchedType);
 
@@ -1726,28 +1735,45 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression readMatchedExpression = matchedExpression
         .createExpression(typeEnvironment, inCacheInitializer: false);
-    List<Expression> effects = [];
-    Expression readMatchingExpression = matchingExpression.createExpression(
-        typeEnvironment,
-        effects: effects,
-        inCacheInitializer: false);
 
-    List<Statement> replacementStatements = [
-      ...node.pattern.declaredVariables,
-      ...matchingCache.declarations,
-      // TODO(cstefantsova): Provide a better diagnostic message.
-      createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(createThrow(createConstructorInvocation(
-              typeEnvironment.coreTypes.stateErrorConstructor,
-              createArguments([
-                createStringLiteral(messagePatternMatchingError.problemMessage,
-                    fileOffset: node.fileOffset)
-              ], fileOffset: node.fileOffset),
-              fileOffset: node.fileOffset))),
-          fileOffset: node.fileOffset),
-      ...effects.map((e) => createExpressionStatement(e)),
-    ];
+    List<Statement> replacementStatements;
+    if (matchingExpression.isEffectOnly) {
+      List<Statement> effects = [];
+      replacementStatements = [];
+      matchingExpression.createStatements(
+          typeEnvironment, replacementStatements,
+          effects: effects);
+      replacementStatements = [
+        ...node.pattern.declaredVariables,
+        ...matchingCache.declarations,
+        ...replacementStatements,
+        ...effects,
+      ];
+    } else {
+      List<Expression> effects = [];
+      Expression readMatchingExpression = matchingExpression.createExpression(
+          typeEnvironment,
+          effects: effects,
+          inCacheInitializer: false);
+
+      replacementStatements = [
+        ...node.pattern.declaredVariables,
+        ...matchingCache.declarations,
+        // TODO(cstefantsova): Provide a better diagnostic message.
+        createIfStatement(
+            createNot(readMatchingExpression),
+            createExpressionStatement(createThrow(createConstructorInvocation(
+                typeEnvironment.coreTypes.stateErrorConstructor,
+                createArguments([
+                  createStringLiteral(
+                      messagePatternMatchingError.problemMessage,
+                      fileOffset: node.fileOffset)
+                ], fileOffset: node.fileOffset),
+                fileOffset: node.fileOffset))),
+            fileOffset: node.fileOffset),
+        ...effects.map((e) => createExpressionStatement(e)),
+      ];
+    }
 
     Expression result = createBlockExpression(
         createBlock(replacementStatements, fileOffset: node.fileOffset),
@@ -1756,6 +1782,27 @@ class ConstantsTransformer extends RemovingTransformer {
     // TODO(johnniwinther): Avoid this work-around for [getFileUri].
     result.parent = node.parent;
     return transform(result);
+  }
+
+  @override
+  TreeNode visitExpressionStatement(
+      ExpressionStatement node, TreeNode? removalSentinel) {
+    Expression expression = transform(node.expression);
+    if (expression is BlockExpression) {
+      // This avoids unnecessary [BlockExpression]s created by the lowering of
+      // [PatternAssignment]s for effect.
+      if (_exhaustivenessDataForTesting != null) {
+        ExhaustivenessResult? result =
+            _exhaustivenessDataForTesting!.switchResults[expression];
+        if (result != null) {
+          _exhaustivenessDataForTesting!.switchResults[expression.body] =
+              result;
+        }
+      }
+      return expression.body;
+    }
+    node.expression = expression..parent = node;
+    return node;
   }
 
   @override

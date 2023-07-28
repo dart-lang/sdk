@@ -15,15 +15,15 @@ static method main() → void {
   core::int f = 1.{core::int::unary-}(){() → core::int};
   core::int b = 1.{core::int::unary-}(){() → core::int};
   try {
-    block {
+    {
+      final synthesized self::A #0#0 = obj;
       core::int #t1;
       core::int #t2;
-      final synthesized dynamic #0#0 = obj;
-      if(!((let final core::int #t3 = #t1 = #0#0{self::A}.{self::A::foo}{core::int} in true) && (let final core::int #t4 = #t2 = #0#0{self::A}.{self::A::bar}{core::int} in true)))
-        throw new core::StateError::•("Pattern matching error");
+      #t1 = #0#0.{self::A::foo}{core::int};
+      #t2 = #0#0.{self::A::bar}{core::int};
       f = #t1;
       b = #t2;
-    } =>#0#0;
+    }
   }
   on core::Object catch(final core::Object _) {
   }
@@ -39,4 +39,4 @@ Extra constant evaluation status:
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue51861.dart:13:11 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue51861.dart:14:11 -> IntConstant(-1)
 Evaluated: InstanceInvocation @ org-dartlang-testcase:///issue51861.dart:18:10 -> IntConstant(-1)
-Extra constant evaluation: evaluated: 35, effectively constant: 3
+Extra constant evaluation: evaluated: 27, effectively constant: 3

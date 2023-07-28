@@ -152,6 +152,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   /// `null` if no cascade's expressions are currently being visited.
   Cascade? _enclosingCascade;
 
+  /// Set to `true` when we are inside a try-statement or a local function.
+  ///
+  /// This is used to optimize the encoding of [AssignedVariablePattern]. When
+  /// a pattern assignment occurs in a try block or a local function, a
+  /// partially matched pattern is observable, since exceptions occurring during
+  /// the matching can be caught.
+  // TODO(johnniwinther): This can be improved by detecting whether the assigned
+  // variable was declared outside the try statement or local function.
+  bool _inTryOrLocalFunction = false;
+
   InferenceVisitorImpl(TypeInferrerImpl inferrer, InferenceHelper helper,
       this.constructorDeclaration, this.operations)
       : options = new TypeAnalyzerOptions(
@@ -1595,12 +1605,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    PatternForInResult<InvalidExpression> result = analyzePatternForIn(
-        node: node,
-        hasAwait: isAsync,
-        pattern: patternVariableDeclaration.pattern,
-        expression: iterable,
-        dispatchBody: () {});
+    PatternForInResult<DartType, InvalidExpression> result =
+        analyzePatternForIn(
+            node: node,
+            hasAwait: isAsync,
+            pattern: patternVariableDeclaration.pattern,
+            expression: iterable,
+            dispatchBody: () {});
+    patternVariableDeclaration.matchedValueType = result.elementType;
     if (result.patternForInExpressionIsNotIterableError != null) {
       // The error is reported elsewhere.
     }
@@ -1790,6 +1802,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult visitFunctionDeclaration(
       covariant FunctionDeclarationImpl node) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     VariableDeclaration variable = node.variable;
     flowAnalysis.functionExpression_begin(node);
     inferMetadata(this, variable, variable.annotations);
@@ -1804,12 +1818,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     variable.type = inferredType;
     flowAnalysis.declare(variable, variable.type, initialized: true);
     flowAnalysis.functionExpression_end();
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return const StatementInferenceResult();
   }
 
   @override
   ExpressionInferenceResult visitFunctionExpression(
       FunctionExpression node, DartType typeContext) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     flowAnalysis.functionExpression_begin(node);
     FunctionType inferredType =
         visitFunctionNode(node.function, typeContext, null, node.fileOffset);
@@ -1818,6 +1835,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           inferredType.returnType;
     }
     flowAnalysis.functionExpression_end();
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return new ExpressionInferenceResult(inferredType, node);
   }
 
@@ -2356,11 +2374,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           element.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal);
+      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+          analyzePatternVariableDeclaration(
+              patternVariableDeclaration,
+              patternVariableDeclaration.pattern,
+              patternVariableDeclaration.initializer,
+              isFinal: patternVariableDeclaration.isFinal);
+      patternVariableDeclaration.matchedValueType =
+          analysisResult.initializerType;
 
       assert(checkStack(element, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -4229,11 +4250,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
       PatternVariableDeclaration patternVariableDeclaration =
           entry.patternVariableDeclaration;
-      analyzePatternVariableDeclaration(
-          patternVariableDeclaration,
-          patternVariableDeclaration.pattern,
-          patternVariableDeclaration.initializer,
-          isFinal: patternVariableDeclaration.isFinal);
+      PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+          analyzePatternVariableDeclaration(
+              patternVariableDeclaration,
+              patternVariableDeclaration.pattern,
+              patternVariableDeclaration.initializer,
+              isFinal: patternVariableDeclaration.isFinal);
+      patternVariableDeclaration.matchedValueType =
+          analysisResult.initializerType;
 
       assert(checkStack(entry, stackBase, [
         /* pattern = */ ValueKinds.Pattern,
@@ -8467,6 +8491,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   StatementInferenceResult visitTryStatement(TryStatement node) {
+    bool oldInTryOrLocalFunction = _inTryOrLocalFunction;
+    _inTryOrLocalFunction = true;
     if (node.finallyBlock != null) {
       flowAnalysis.tryFinallyStatement_bodyBegin();
     }
@@ -8513,6 +8539,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         ..fileOffset = node.fileOffset;
     }
     libraryBuilder.loader.dataForTesting?.registerAlias(node, result);
+    _inTryOrLocalFunction = oldInTryOrLocalFunction;
     return new StatementInferenceResult.single(result);
   }
 
@@ -8788,8 +8815,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
-        isFinal: node.isFinal);
+    PatternVariableDeclarationAnalysisResult<DartType> analysisResult =
+        analyzePatternVariableDeclaration(node, node.pattern, node.initializer,
+            isFinal: node.isFinal);
+    node.matchedValueType = analysisResult.initializerType;
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10814,8 +10843,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     int? stackBase;
     assert(checkStackBase(node, stackBase = stackHeight));
 
-    ExpressionTypeAnalysisResult<DartType> analysisResult =
+    PatternAssignmentAnalysisResult<DartType> analysisResult =
         analyzePatternAssignment(node, node.pattern, node.expression);
+    node.matchedValueType = analysisResult.type;
 
     assert(checkStack(node, stackBase, [
       /* pattern = */ ValueKinds.Pattern,
@@ -10852,6 +10882,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.matchedValueType = flow.getMatchedValueType();
     node.needsCast = _needsCast(
         matchedType: matchedValueType, requiredType: node.variable.type);
+    node.hasObservableEffect = _inTryOrLocalFunction;
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;

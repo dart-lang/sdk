@@ -2,5 +2,4 @@ inline class A {
   int value;
   A.name1(this.value);
 }
-
 void method() => A.name2(1);

@@ -1,0 +1,17 @@
+allowThrow(void Function() f) {}
+
+class A {
+  get b => throw 'foo';
+}
+
+class B extends A {
+  get b => 42;
+}
+
+expect(expected, actual) {}
+main() {}
+method1((A, A) r) {}
+method2((A, A) r) {}
+method3((A, A) r) {}
+method4((A, A) r) {}
+throws(void Function() f) {}

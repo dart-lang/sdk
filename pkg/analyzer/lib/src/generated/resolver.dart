@@ -3146,8 +3146,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     covariant PatternVariableDeclarationImpl node,
   ) {
     final patternSchema = analyzePatternVariableDeclaration(
-        node, node.pattern, node.expression,
-        isFinal: node.keyword.keyword == Keyword.FINAL);
+            node, node.pattern, node.expression,
+            isFinal: node.keyword.keyword == Keyword.FINAL)
+        .patternSchema;
     node.patternTypeSchema = patternSchema;
     popRewrite(); // expression
   }

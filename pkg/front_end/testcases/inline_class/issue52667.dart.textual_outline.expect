@@ -1,13 +1,10 @@
 abstract class Foo {}
-
 inline class FooBar implements Foo {
   final int i;
   const FooBar(this.i);
 }
-
 inline class FooBaz implements Foo {
   final int i;
   const FooBaz(this.i);
 }
-
 void main() {}

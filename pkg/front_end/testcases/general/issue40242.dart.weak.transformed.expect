@@ -46,13 +46,10 @@ static method errors() → dynamic {
   C = Object;
   ^";
   self::C c2;
-  block {
-    self::C #t1;
-    final synthesized dynamic #0#0 = new self::C::•();
-    if(!(let final self::C #t2 = #t1 = #0#0{self::C} in true))
-      throw new core::StateError::•("Pattern matching error");
-    c2 = #t1;
-  } =>#0#0;
+  {
+    final synthesized self::C #0#0 = new self::C::•();
+    c2 = #0#0;
+  }
   invalid-expression "pkg/front_end/testcases/general/issue40242.dart:20:3: Error: Can't assign to the const variable 'c3'.
   c3 = null;
   ^^";

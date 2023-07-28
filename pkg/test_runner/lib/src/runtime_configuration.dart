@@ -477,11 +477,11 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
         type != 'application/kernel-ir-fully-linked') {
       throw "Dart VM cannot run files of type '$type'.";
     }
+    if (isCrashExpected) {
+      arguments.insert(0, '--suppress-core-dump');
+    }
     var runtimeArgs =
         FuchsiaEmulator.getTestArgs(_configuration.mode.name, arguments);
-    if (isCrashExpected) {
-      runtimeArgs.insert(0, '--suppress-core-dump');
-    }
     runtimeArgs.insert(runtimeArgs.length - 1, '--disable-dart-dev');
     return [
       VMCommand(FuchsiaEmulator.fsshTool, runtimeArgs, environmentOverrides)

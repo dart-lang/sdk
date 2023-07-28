@@ -1,0 +1,148 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef R6 = (core::int, core::int, core::int, core::int, core::int, core::int);
+typedef R6as3of2 = ((core::int, core::int), (core::int, core::int), (core::int, core::int));
+static method shuffle6a((core::int, core::int, core::int, core::int, core::int, core::int) r) → (core::int, core::int, core::int, core::int, core::int, core::int) {
+  hoisted has-declared-initializer core::int a;
+  hoisted has-declared-initializer core::int b;
+  hoisted has-declared-initializer core::int c;
+  hoisted has-declared-initializer core::int d;
+  hoisted has-declared-initializer core::int e;
+  hoisted has-declared-initializer core::int f;
+  {
+    final synthesized(core::int, core::int, core::int, core::int, core::int, core::int) #0#0 = r;
+    a = #0#0.$1{core::int};
+    b = #0#0.$2{core::int};
+    c = #0#0.$3{core::int};
+    d = #0#0.$4{core::int};
+    e = #0#0.$5{core::int};
+    f = #0#0.$6{core::int};
+  }
+  {
+    final synthesized(core::int, core::int, core::int, core::int, core::int, core::int) #1#0 = (a, b, c, d, e, f);
+    b = #1#0.$1{core::int};
+    d = #1#0.$2{core::int};
+    f = #1#0.$3{core::int};
+    a = #1#0.$4{core::int};
+    c = #1#0.$5{core::int};
+    e = #1#0.$6{core::int};
+  }
+  {
+    final synthesized(core::int, core::int, core::int, core::int, core::int, core::int) #2#0 = (a, b, c, d, e, f);
+    b = #2#0.$1{core::int};
+    d = #2#0.$2{core::int};
+    f = #2#0.$3{core::int};
+    a = #2#0.$4{core::int};
+    c = #2#0.$5{core::int};
+    e = #2#0.$6{core::int};
+  }
+  {
+    final synthesized(core::int, core::int, core::int, core::int, core::int, core::int) #3#0 = (a, b, c, d, e, f);
+    b = #3#0.$1{core::int};
+    d = #3#0.$2{core::int};
+    f = #3#0.$3{core::int};
+    a = #3#0.$4{core::int};
+    c = #3#0.$5{core::int};
+    e = #3#0.$6{core::int};
+  }
+  return (a, b, c, d, e, f);
+}
+static method shuffle6b(((core::int, core::int), (core::int, core::int), (core::int, core::int)) r) → ((core::int, core::int), (core::int, core::int), (core::int, core::int)) {
+  hoisted has-declared-initializer core::int a;
+  hoisted has-declared-initializer core::int b;
+  hoisted has-declared-initializer core::int c;
+  hoisted has-declared-initializer core::int d;
+  hoisted has-declared-initializer core::int e;
+  hoisted has-declared-initializer core::int f;
+  {
+    final synthesized((core::int, core::int), (core::int, core::int), (core::int, core::int)) #0#0 = r;
+    late final synthesized(core::int, core::int) #0#1 = #0#0.$1{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #0#4 = #0#0.$2{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #0#7 = #0#0.$3{(core::int, core::int)};
+    a = #0#1.$1{core::int};
+    b = #0#1.$2{core::int};
+    c = #0#4.$1{core::int};
+    d = #0#4.$2{core::int};
+    e = #0#7.$1{core::int};
+    f = #0#7.$2{core::int};
+  }
+  {
+    final synthesized((core::int, core::int), (core::int, core::int), (core::int, core::int)) #1#0 = ((a, b), (c, d), (e, f));
+    late final synthesized(core::int, core::int) #1#1 = #1#0.$1{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #1#4 = #1#0.$2{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #1#7 = #1#0.$3{(core::int, core::int)};
+    b = #1#1.$1{core::int};
+    d = #1#1.$2{core::int};
+    f = #1#4.$1{core::int};
+    a = #1#4.$2{core::int};
+    c = #1#7.$1{core::int};
+    e = #1#7.$2{core::int};
+  }
+  {
+    final synthesized((core::int, core::int), (core::int, core::int), (core::int, core::int)) #2#0 = ((a, b), (c, d), (e, f));
+    late final synthesized(core::int, core::int) #2#1 = #2#0.$1{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #2#4 = #2#0.$2{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #2#7 = #2#0.$3{(core::int, core::int)};
+    b = #2#1.$1{core::int};
+    d = #2#1.$2{core::int};
+    f = #2#4.$1{core::int};
+    a = #2#4.$2{core::int};
+    c = #2#7.$1{core::int};
+    e = #2#7.$2{core::int};
+  }
+  {
+    final synthesized((core::int, core::int), (core::int, core::int), (core::int, core::int)) #3#0 = ((a, b), (c, d), (e, f));
+    late final synthesized(core::int, core::int) #3#1 = #3#0.$1{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #3#4 = #3#0.$2{(core::int, core::int)};
+    late final synthesized(core::int, core::int) #3#7 = #3#0.$3{(core::int, core::int)};
+    b = #3#1.$1{core::int};
+    d = #3#1.$2{core::int};
+    f = #3#4.$1{core::int};
+    a = #3#4.$2{core::int};
+    c = #3#7.$1{core::int};
+    e = #3#7.$2{core::int};
+  }
+  return ((a, b), (c, d), (e, f));
+}
+static method main() → dynamic {
+  core::print(#C1((1, 2, 3, 4, 5, 6)){((core::int, core::int, core::int, core::int, core::int, core::int)) → (core::int, core::int, core::int, core::int, core::int, core::int)});
+  core::print(#C2(((1, 2), (3, 4), (5, 6))){(((core::int, core::int), (core::int, core::int), (core::int, core::int))) → ((core::int, core::int), (core::int, core::int), (core::int, core::int))});
+  core::print(#C3(1, 2, 3, 4){(core::int, core::int, core::int, core::int) → dynamic});
+  core::print(#C3(4, 3, 2, 1){(core::int, core::int, core::int, core::int) → dynamic});
+}
+static method sort4(core::int a0, core::int a1, core::int a2, core::int a3) → dynamic {
+  if(a2.{core::num::<}(a0){(core::num) → core::bool}) {
+    final synthesized(core::int, core::int) #0#0 = (a2, a0);
+    a0 = #0#0.$1{core::int};
+    a2 = #0#0.$2{core::int};
+  }
+  if(a3.{core::num::<}(a1){(core::num) → core::bool}) {
+    final synthesized(core::int, core::int) #1#0 = (a3, a1);
+    a1 = #1#0.$1{core::int};
+    a3 = #1#0.$2{core::int};
+  }
+  if(a1.{core::num::<}(a0){(core::num) → core::bool}) {
+    final synthesized(core::int, core::int) #2#0 = (a1, a0);
+    a0 = #2#0.$1{core::int};
+    a1 = #2#0.$2{core::int};
+  }
+  if(a3.{core::num::<}(a2){(core::num) → core::bool}) {
+    final synthesized(core::int, core::int) #3#0 = (a3, a2);
+    a2 = #3#0.$1{core::int};
+    a3 = #3#0.$2{core::int};
+  }
+  if(a2.{core::num::<}(a1){(core::num) → core::bool}) {
+    final synthesized(core::int, core::int) #4#0 = (a2, a1);
+    a1 = #4#0.$1{core::int};
+    a2 = #4#0.$2{core::int};
+  }
+  return <core::int>[a0, a1, a2, a3];
+}
+
+constants  {
+  #C1 = static-tearoff self::shuffle6a
+  #C2 = static-tearoff self::shuffle6b
+  #C3 = static-tearoff self::sort4
+}

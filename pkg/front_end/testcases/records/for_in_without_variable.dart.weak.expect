@@ -11,9 +11,8 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
     for (final(self::left::A%, self::left::B%) #t2 in pairs) {
       hoisted self::left::A% a;
       {
-        final synthesized dynamic #0#0 = #t2;
-        if(!(let final dynamic #t3 = a = #0#0{(self::left::A%, self::left::B%)}.$1{self::left::A%} in true))
-          throw new core::StateError::•("Pattern matching error");
+        final synthesized(self::left::A%, self::left::B%) #0#0 = #t2;
+        a = #0#0.$1{self::left::A%};
       }
       #t1.{core::List::add}{Invariant}(a){(self::left::A%) → void};
     }

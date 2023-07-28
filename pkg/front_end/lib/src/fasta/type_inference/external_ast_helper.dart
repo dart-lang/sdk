@@ -7,6 +7,7 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 
+import '../kernel/internal_ast.dart';
 import '../names.dart';
 import 'inference_results.dart';
 import 'inference_visitor_base.dart';
@@ -197,11 +198,17 @@ VariableGet createVariableGet(VariableDeclaration variable,
 }
 
 /// Creates a [VariableSet] of [variable] with the [value].
-VariableSet createVariableSet(VariableDeclaration variable, Expression value,
+Expression createVariableSet(VariableDeclaration variable, Expression value,
     {bool allowFinalAssignment = false, required int fileOffset}) {
-  assert(allowFinalAssignment || variable.isAssignable,
-      "Cannot assign to variable $variable");
-  return new VariableSet(variable, value)..fileOffset = fileOffset;
+  if (variable is VariableDeclarationImpl && variable.lateSetter != null) {
+    return createLocalFunctionInvocation(variable.lateSetter!,
+        arguments: createArguments([value], fileOffset: fileOffset),
+        fileOffset: fileOffset);
+  } else {
+    assert(allowFinalAssignment || variable.isAssignable,
+        "Cannot assign to variable $variable");
+    return new VariableSet(variable, value)..fileOffset = fileOffset;
+  }
 }
 
 /// Creates an invocation of the local function [variable] with the provided

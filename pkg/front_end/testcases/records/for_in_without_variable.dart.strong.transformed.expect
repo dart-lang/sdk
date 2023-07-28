@@ -15,9 +15,8 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
         {
           hoisted self::left::A% a;
           {
-            final synthesized dynamic #0#0 = #t2;
-            if(!(let final self::left::A% #t3 = a = #0#0{(self::left::A%, self::left::B%)}.$1{self::left::A%} in true))
-              throw new core::StateError::•("Pattern matching error");
+            final synthesized(self::left::A%, self::left::B%) #0#0 = #t2;
+            a = #0#0.$1{self::left::A%};
           }
           #t1.{core::List::add}{Invariant}(a){(self::left::A%) → void};
         }
@@ -29,4 +28,4 @@ static method left<A extends core::Object? = dynamic, B extends core::Object? = 
 Extra constant evaluation status:
 Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in_without_variable.dart:6:9 -> RecordConstant(const (1, 2))
 Evaluated: RecordLiteral @ org-dartlang-testcase:///for_in_without_variable.dart:6:16 -> RecordConstant(const (3, 4))
-Extra constant evaluation: evaluated: 24, effectively constant: 2
+Extra constant evaluation: evaluated: 20, effectively constant: 2

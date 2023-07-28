@@ -21,11 +21,11 @@ static method test() → dynamic {
       {
         hoisted core::int x;
         {
-          final synthesized dynamic #0#0 = #t1;
+          final synthesized invalid-type #0#0 = #t1;
           function ##0#6#initializer() → invalid-type
-            return (#0#0 as{Unchecked} invalid-type).{core::List::[]}(0){(core::int) → invalid-type};
+            return #0#0.{core::List::[]}(0){(core::int) → invalid-type};
           late final synthesized invalid-type #0#6 = ##0#6#initializer(){() → invalid-type};
-          if(!(#0#0{invalid-type} is core::List<invalid-type> && #0#0{invalid-type}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final invalid-type #t2 = x = #0#6 in true))))
+          if(!(#0#0 is core::List<invalid-type> && #0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} #C1 && (#0#6 is core::int && (let final invalid-type #t2 = x = #0#6 in true))))
             throw new core::StateError::•("Pattern matching error");
         }
       }

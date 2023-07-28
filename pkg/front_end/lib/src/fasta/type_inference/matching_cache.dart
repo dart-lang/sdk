@@ -854,7 +854,9 @@ abstract class CacheableExpression implements DelayedExpression {
 /// Here two different accesses to `o.length` is generated on the same cached
 /// variable, `o`, but with different promoted types, `List<dynamic>` and
 /// `Map<dynamic, dynamic>`, respectively, as guarded by the preceding is-tests.
-class PromotedCacheableExpression implements CacheableExpression {
+class PromotedCacheableExpression
+    with AbstractDelayedExpression
+    implements CacheableExpression {
   final CacheableExpression _expression;
 
   final DartType _promotedType;
@@ -915,7 +917,9 @@ class PromotedCacheableExpression implements CacheableExpression {
 
 /// A cacheable expression that performs a covariant check on the resulting
 /// value.
-class CovariantCheckCacheableExpression implements CacheableExpression {
+class CovariantCheckCacheableExpression
+    with AbstractDelayedExpression
+    implements CacheableExpression {
   final CacheableExpression _expression;
 
   final DartType _checkedType;
@@ -965,7 +969,9 @@ class CovariantCheckCacheableExpression implements CacheableExpression {
 }
 
 /// A [CacheableExpression] created using a potentially shared [Cache].
-class CacheExpression implements CacheableExpression {
+class CacheExpression
+    with AbstractDelayedExpression
+    implements CacheableExpression {
   @override
   final CacheKey cacheKey;
 

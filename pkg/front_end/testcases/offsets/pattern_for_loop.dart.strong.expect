@@ -7,8 +7,8 @@ import "dart:core" as core;
 [249]    [249] hoisted dynamic a;
 [252]    [252] hoisted dynamic b;
 [244]    {
-[257]      [257] final synthesized dynamic #0#0 = [257] [257] list;
-[244]      if([248] [248]![248]([248] [248] [248] [248] [248] [248] [248] [257] [257] #0#0{core::List<dynamic>}.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [248] [248] #C1 && [249]([249] let [249] final dynamic #t1 = [249] [249] a = [248] [248] [257] [257] #0#0{core::List<dynamic>}.{core::List::[]}[248]([248] 0){(core::int) → dynamic} in [249] [249] true) && [252]([252] let [252] final dynamic #t2 = [252] [252] b = [248] [248] [257] [257] #0#0{core::List<dynamic>}.{core::List::[]}[248]([248] 1){(core::int) → dynamic} in [252] [252] true)))
+[257]      [257] final synthesized core::List<dynamic> #0#0 = [257] [257] list;
+[244]      if([248] [248]![248]([248] [248] [248] [248] [248] [248] [248] [257] [257] #0#0.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [248] [248] #C1 && [249]([249] let [249] final dynamic #t1 = [249] [249] a = [248] [248] [257] [257] #0#0.{core::List::[]}[248]([248] 0){(core::int) → dynamic} in [249] [249] true) && [252]([252] let [252] final dynamic #t2 = [252] [252] b = [248] [248] [257] [257] #0#0.{core::List::[]}[248]([248] 1){(core::int) → dynamic} in [252] [252] true)))
 [244]        [244] [244] throw [244] [244] new core::StateError::• [244]([244] "Pattern matching error");
     }
 [249]    [249] final dynamic #t3 = [249] [249] a;

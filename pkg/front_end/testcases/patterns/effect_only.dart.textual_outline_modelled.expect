@@ -1,0 +1,5 @@
+expect(expected, actual) {}
+main() {}
+test(List<int> list) {}
+test2() {}
+throws(void Function() f) {}
