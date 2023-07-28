@@ -25,8 +25,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   void isNotSubtype(
     DartType T0,
     DartType T1, {
-    required String strT0,
-    required String strT1,
+    String? strT0,
+    String? strT1,
   }) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
@@ -73,6 +73,40 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   void setUp() {
     super.setUp();
     defineStringTypes();
+  }
+
+  test_extensionType_nonNullableRepresentation() {
+    final element = extensionType('A', representationType: intNone);
+    final type = interfaceTypeNone(element);
+
+    isSubtype(type, objectQuestion);
+    isSubtype(type, objectNone);
+    isSubtype(neverNone, type);
+  }
+
+  test_extensionType_nullableRepresentation() {
+    final element = extensionType('A', representationType: intQuestion);
+    final type = interfaceTypeNone(element);
+
+    isSubtype(type, objectQuestion);
+    isNotSubtype(type, objectNone);
+  }
+
+  test_extensionType_superinterfaces() {
+    final A = class_(name: 'A');
+    final B = class_(name: 'B');
+
+    final element = extensionType(
+      'X',
+      representationType: intNone,
+      interfaces: [
+        interfaceTypeNone(A),
+      ],
+    );
+    final type = interfaceTypeNone(element);
+
+    isSubtype(type, interfaceTypeNone(A));
+    isNotSubtype(type, interfaceTypeNone(B));
   }
 
   test_functionType_01() {
