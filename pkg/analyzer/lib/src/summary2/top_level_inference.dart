@@ -37,6 +37,7 @@ class ConstantInitializersResolver {
         unit.classes.forEach(_resolveInterfaceFields);
         unit.enums.forEach(_resolveInterfaceFields);
         unit.extensions.forEach(_resolveExtensionFields);
+        unit.extensionTypes.forEach(_resolveInterfaceFields);
         unit.mixins.forEach(_resolveInterfaceFields);
 
         _scope = unit.enclosingElement2.scope;
@@ -131,6 +132,7 @@ class _InitializerInference {
         unit.classes.forEach(_addClassElementFields);
         unit.enums.forEach(_addClassElementFields);
         unit.extensions.forEach(_addExtensionElementFields);
+        unit.extensionTypes.forEach(_addClassElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
         _scope = unit.enclosingElement2.scope;

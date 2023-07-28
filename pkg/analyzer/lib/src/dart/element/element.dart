@@ -786,6 +786,7 @@ class CompilationUnitElementImpl extends UriReferencedElementImpl
         ...classes,
         ...enums,
         ...extensions,
+        ...extensionTypes,
         ...functions,
         ...mixins,
         ...typeAliases,
@@ -3024,8 +3025,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
 
   @override
   T? accept<T>(ElementVisitor<T> visitor) {
-    // TODO(scheglov) implement
-    throw UnimplementedError();
+    return visitor.visitExtensionTypeElement(this);
   }
 }
 
@@ -4274,6 +4274,7 @@ class LibraryElementImpl extends LibraryOrAugmentationElementImpl
       yield* unit.classes;
       yield* unit.enums;
       yield* unit.extensions;
+      yield* unit.extensionTypes;
       yield* unit.functions;
       yield* unit.mixins;
       yield* unit.topLevelVariables;

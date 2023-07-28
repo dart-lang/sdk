@@ -176,6 +176,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
     scope = InterfaceScope(scope, element);
     LinkingNodeContext(node, scope);
+    LinkingNodeContext(node.representation, scope);
 
     node.members.accept(this);
     nodesToBuildType.addDeclaration(node);

@@ -46595,6 +46595,98 @@ library
 ''');
   }
 
+  test_field_const_typed() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  static const int foo = 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+          static const foo @46
+            type: int
+            shouldUseTypeForInitializerInference: true
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @52
+                staticType: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+          synthetic static get foo @-1
+            returnType: int
+''');
+  }
+
+  test_field_const_untyped() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  static const foo = 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+          static const foo @42
+            type: int
+            shouldUseTypeForInitializerInference: false
+            constantInitializer
+              IntegerLiteral
+                literal: 0 @48
+                staticType: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+          synthetic static get foo @-1
+            returnType: int
+''');
+  }
+
+  test_field_instance_untyped() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  final foo = 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+          final foo @35
+            type: int
+            shouldUseTypeForInitializerInference: false
+        accessors
+          synthetic get it @-1
+            returnType: int
+          synthetic get foo @-1
+            returnType: int
+''');
+  }
+
   test_field_metadata() async {
     newFile('$testPackageLibPath/a.dart', r'''
 const foo = 0;
@@ -46633,6 +46725,122 @@ library
         accessors
           synthetic get it @-1
             returnType: int
+''');
+  }
+
+  test_interfaces_class() async {
+    var library = await buildLibrary(r'''
+class A {}
+class B {}
+class C implements A, B {}
+extension type X(C it) implements A, B {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class B @17
+      class C @28
+        interfaces
+          A
+          B
+    extensionTypes
+      X @64
+        representation: self::@extensionType::X::@field::it
+        interfaces
+          A
+          B
+        fields
+          final it @68
+            type: C
+        accessors
+          synthetic get it @-1
+            returnType: C
+''');
+  }
+
+  test_interfaces_extensionType() async {
+    var library = await buildLibrary(r'''
+extension type A(num it) {}
+extension type B(int it) implements A {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: num
+        accessors
+          synthetic get it @-1
+            returnType: num
+      B @43
+        representation: self::@extensionType::B::@field::it
+        interfaces
+          A
+        fields
+          final it @49
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_interfaces_futureOr() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) implements num, FutureOr<int> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        interfaces
+          num
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
+  test_interfaces_void() async {
+    var library = await buildLibrary(r'''
+typedef A = void;
+extension type X(int it) implements A, num {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      X @33
+        representation: self::@extensionType::X::@field::it
+        interfaces
+          num
+        fields
+          final it @39
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    typeAliases
+      A @8
+        aliasedType: void
 ''');
   }
 
@@ -46675,6 +46883,68 @@ library
         accessors
           synthetic get it @-1
             returnType: int
+''');
+  }
+
+  test_method() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  void foo(int a) {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+        methods
+          foo @34
+            parameters
+              requiredPositional a @42
+                type: int
+            returnType: void
+''');
+  }
+
+  test_method_defaultFormalParameter_defaultValue() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  void foo({int a = 0}) {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+        methods
+          foo @34
+            parameters
+              optionalNamed default a @43
+                type: int
+                constantInitializer
+                  IntegerLiteral
+                    literal: 0 @47
+                    staticType: int
+            returnType: void
 ''');
   }
 

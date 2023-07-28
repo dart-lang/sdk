@@ -13,18 +13,12 @@ import 'dart:io';
 /// Note: we don't search for the directory "sdk" because this may not be
 /// available when running this test in a shard.
 Future<Uri> findRoot() async {
-  Uri current = Platform.script;
-  while (true) {
-    var segments = current.pathSegments;
-    var index = segments.lastIndexOf('pkg');
-    if (index == -1) {
-      exitCode = 1;
-      throw "error: cannot find the root of the Dart SDK";
-    }
-    current = current.resolve("../" * (segments.length - index - 1));
-    if (await File.fromUri(current.resolve("DEPS")).exists()) {
-      break;
-    }
+  Uri script = Platform.script;
+  var segments = script.pathSegments;
+  var index = segments.lastIndexOf('pkg');
+  if (index == -1) {
+    exitCode = 1;
+    throw "error: cannot find the root of the Dart SDK";
   }
-  return current;
+  return script.resolve("../" * (segments.length - index - 1));
 }

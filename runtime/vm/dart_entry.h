@@ -154,7 +154,6 @@ class ArgumentsDescriptor : public ValueObject {
     kNamedEntrySize,
   };
 
- public:
   static intptr_t LengthFor(intptr_t num_named_arguments) {
     // Add 1 for the terminating null.
     return kFirstNamedEntryIndex + (kNamedEntrySize * num_named_arguments) + 1;
@@ -180,10 +179,8 @@ class ArgumentsDescriptor : public ValueObject {
   // A cache of VM heap allocated arguments descriptors.
   static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
 
-  friend class Serializer;
-  friend class Deserializer;
-  friend class Simulator;
-  friend class SimulatorHelpers;
+  friend class VMSerializationRoots;
+  friend class VMDeserializationRoots;
   DISALLOW_COPY_AND_ASSIGN(ArgumentsDescriptor);
 };
 
