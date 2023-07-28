@@ -46728,6 +46728,33 @@ library
 ''');
   }
 
+  test_getter() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+          synthetic foo @-1
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+          get foo @37
+            returnType: int
+''');
+  }
+
   test_interfaces_class() async {
     var library = await buildLibrary(r'''
 class A {}
@@ -46980,6 +47007,36 @@ library
         accessors
           synthetic get <empty> @-1
             returnType: InvalidType
+''');
+  }
+
+  test_setter() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {
+  set foo(double _) {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        fields
+          final it @21
+            type: int
+          synthetic foo @-1
+            type: double
+        accessors
+          synthetic get it @-1
+            returnType: int
+          set foo= @33
+            parameters
+              requiredPositional _ @44
+                type: double
+            returnType: void
 ''');
   }
 
