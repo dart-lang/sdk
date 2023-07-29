@@ -2552,6 +2552,21 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
+    final outerType = enclosingClass;
+    try {
+      enclosingClass = node.declaredElement;
+      checkUnreachableNode(node);
+      node.visitChildren(this);
+      elementResolver.visitExtensionTypeDeclaration(node);
+    } finally {
+      enclosingClass = outerType;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     _thisAccessTracker.enterFieldDeclaration(node);
     try {
@@ -3326,6 +3341,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         .resolveInvocation(rawType: node.staticElement?.type);
     checkForArgumentTypesNotAssignableInList(
         node.argumentList, whyNotPromotedList);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {}
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    checkUnreachableNode(node);
+    node.visitChildren(this);
+    elementResolver.visitRepresentationDeclaration(node);
   }
 
   @override

@@ -23,6 +23,8 @@ class ElementWalker {
   int _enumIndex = 0;
   List<ExtensionElement>? _extensions;
   int _extensionIndex = 0;
+  List<ExtensionTypeElement>? _extensionTypes;
+  int _extensionTypeIndex = 0;
   List<ExecutableElement>? _functions;
   int _functionIndex = 0;
   List<MixinElement>? _mixins;
@@ -55,6 +57,7 @@ class ElementWalker {
         _classes = element.classes,
         _enums = element.enums,
         _extensions = element.extensions,
+        _extensionTypes = element.extensionTypes,
         _functions = element.functions,
         _mixins = element.mixins,
         _typedefs = element.typeAliases,
@@ -80,6 +83,13 @@ class ElementWalker {
   /// element.
   ElementWalker.forExtension(ExtensionElement this.element)
       : _accessors = element.accessors.where(_isNotSynthetic).toList(),
+        _functions = element.methods,
+        _typeParameters = element.typeParameters,
+        _variables = element.fields.where(_isNotSynthetic).toList();
+
+  ElementWalker.forExtensionType(ExtensionTypeElementImpl this.element)
+      : _accessors = element.accessors.where(_isNotSynthetic).toList(),
+        _constructors = element.constructors,
         _functions = element.methods,
         _typeParameters = element.typeParameters,
         _variables = element.fields.where(_isNotSynthetic).toList();
@@ -174,6 +184,9 @@ class ElementWalker {
 
   ExtensionElementImpl getExtension() =>
       _extensions![_extensionIndex++] as ExtensionElementImpl;
+
+  ExtensionTypeElementImpl getExtensionType() =>
+      _extensionTypes![_extensionTypeIndex++] as ExtensionTypeElementImpl;
 
   /// Returns the next non-synthetic child of [element] which is a top level
   /// function, method, or local function; throws an [IndexError] if there are

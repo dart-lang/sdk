@@ -205,6 +205,10 @@ class ElementResolver {
     _resolveAnnotations(node.metadata);
   }
 
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    _resolveAnnotations(node.metadata);
+  }
+
   void visitFieldDeclaration(FieldDeclaration node) {
     _resolveAnnotations(node.metadata);
   }
@@ -338,6 +342,10 @@ class ElementResolver {
     if (parameters != null) {
       argumentList.correspondingStaticParameters = parameters;
     }
+  }
+
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    _resolveAnnotations(node.fieldMetadata);
   }
 
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
