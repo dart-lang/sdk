@@ -3535,6 +3535,33 @@ bool true
 ''');
   }
 
+  test_field_deferred_issue48991() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  const A();
+}
+
+const aa = A();
+''');
+
+    await assertErrorsInCode('''
+import 'a.dart' deferred as a;
+
+class B {
+  const B(Object a);
+}
+
+main() {
+  print(const B(a.aa));
+}
+''', [
+      error(
+          CompileTimeErrorCode.CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY,
+          93,
+          2),
+    ]);
+  }
+
   test_int_fromEnvironment() async {
     await assertNoErrorsInCode('''
 const a = int.fromEnvironment('a');

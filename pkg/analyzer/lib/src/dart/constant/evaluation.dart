@@ -1692,6 +1692,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
         } else if (current is IfElement && current.expression == node) {
           return CompileTimeErrorCode
               .IF_ELEMENT_CONDITION_FROM_DEFERRED_LIBRARY;
+        } else if (current is InstanceCreationExpression) {
+          return CompileTimeErrorCode
+              .CONST_CONSTRUCTOR_CONSTANT_FROM_DEFERRED_LIBRARY;
         } else if (current is ListLiteral) {
           return CompileTimeErrorCode
               .NON_CONSTANT_LIST_ELEMENT_FROM_DEFERRED_LIBRARY;
