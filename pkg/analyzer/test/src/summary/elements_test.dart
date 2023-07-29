@@ -46508,6 +46508,8 @@ library
     extensionTypes
       A @21
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @27
             type: int
@@ -46537,6 +46539,8 @@ library
         codeOffset: 0
         codeLength: 33
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @27
             codeOffset: 23
@@ -46574,6 +46578,8 @@ library
         codeOffset: 0
         codeLength: 27
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             codeOffset: 17
@@ -46609,6 +46615,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46641,6 +46649,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46673,6 +46683,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46705,6 +46717,8 @@ library
     extensionTypes
       A @32
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @43
             metadata
@@ -46742,6 +46756,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46802,6 +46818,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: num
@@ -46841,6 +46859,29 @@ library
         accessors
           synthetic get it @-1
             returnType: int
+''');
+  }
+
+  test_interfaces_implicitObjectQuestion() async {
+    var library = await buildLibrary(r'''
+extension type X(int? it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      X @15
+        representation: self::@extensionType::X::@field::it
+        interfaces
+          Object?
+        fields
+          final it @22
+            type: int?
+        accessors
+          synthetic get it @-1
+            returnType: int?
 ''');
   }
 
@@ -46898,6 +46939,8 @@ library
               staticType: null
             element: package:test/a.dart::@getter::foo
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @43
             type: int
@@ -46927,6 +46970,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46956,6 +47001,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -46989,6 +47036,8 @@ library
         codeOffset: 0
         codeLength: 21
         representation: self::@extensionType::A::@field::<empty>
+        interfaces
+          Object?
         fields
           final <empty> @17
             codeOffset: 17
@@ -47024,6 +47073,8 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @21
             type: int
@@ -47055,6 +47106,8 @@ library
             bound: num
           covariant U @32
         representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
         fields
           final it @45
             type: Map<T, U>

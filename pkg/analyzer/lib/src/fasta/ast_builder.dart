@@ -341,6 +341,9 @@ class AstBuilder extends StackListener {
 
   @override
   void beginExtensionTypeDeclaration(Token extensionKeyword, Token name) {
+    assert(optional('extension', extensionKeyword));
+    assert(_classLikeBuilder == null);
+
     final typeParameters = pop() as TypeParameterListImpl?;
     final metadata = pop() as List<AnnotationImpl>?;
     final comment = _findComment(metadata, extensionKeyword);
@@ -1669,6 +1672,8 @@ class AstBuilder extends StackListener {
         implementsClause: implementsClause,
       ),
     );
+
+    _classLikeBuilder = null;
   }
 
   @override

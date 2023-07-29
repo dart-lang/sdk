@@ -104,6 +104,12 @@ extension ExecutableElementExtension on ExecutableElement {
   bool get isEnumConstructor {
     return this is ConstructorElement && enclosingElement2 is EnumElementImpl;
   }
+
+  /// Whether the enclosing element is the class `Object`.
+  bool get isObjectMember {
+    final enclosing = enclosingElement2;
+    return enclosing is ClassElement && enclosing.isDartCoreObject;
+  }
 }
 
 extension ExecutableElementExtensionQuestion on ExecutableElement? {

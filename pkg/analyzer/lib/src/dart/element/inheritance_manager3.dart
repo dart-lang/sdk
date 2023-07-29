@@ -17,9 +17,9 @@ class CandidatesConflict extends Conflict {
   final List<ExecutableElement> candidates;
 
   CandidatesConflict({
-    required Name name,
+    required super.name,
     required this.candidates,
-  }) : super(name);
+  });
 }
 
 /// Failure to find a valid signature from superinterfaces.
@@ -27,7 +27,9 @@ class Conflict {
   /// The name for which we failed to find a valid signature.
   final Name name;
 
-  Conflict(this.name);
+  Conflict({
+    required this.name,
+  });
 }
 
 /// Failure because of a getter and a method from direct superinterfaces.
@@ -36,10 +38,10 @@ class GetterMethodConflict extends Conflict {
   final ExecutableElement method;
 
   GetterMethodConflict({
-    required Name name,
+    required super.name,
     required this.getter,
     required this.method,
-  }) : super(name);
+  });
 }
 
 /// Manages knowledge about interface types and their members.
@@ -160,7 +162,7 @@ class InheritanceManager3 {
   Map<Name, ExecutableElement> getInheritedConcreteMap2(
       InterfaceElement element) {
     var interface = getInterface(element);
-    return interface._superImplemented.last;
+    return interface.superImplemented.last;
   }
 
   /// Return the mapping from names to most specific signatures of members
@@ -189,13 +191,13 @@ class InheritanceManager3 {
   /// corresponding name will not be included.
   Map<Name, ExecutableElement> getInheritedMap2(InterfaceElement element) {
     var interface = getInterface(element);
-    var inheritedMap = interface._inheritedMap;
+    var inheritedMap = interface.inheritedMap;
     if (inheritedMap == null) {
-      inheritedMap = interface._inheritedMap = {};
+      inheritedMap = interface.inheritedMap = {};
       _findMostSpecificFromNamedCandidates(
         element,
         inheritedMap,
-        interface._overridden,
+        interface.overridden,
         doTopMerge: false,
       );
     }
@@ -216,7 +218,9 @@ class InheritanceManager3 {
     }
 
     try {
-      if (element is MixinElement) {
+      if (element is ExtensionTypeElement) {
+        result = _getInterfaceExtensionType(element);
+      } else if (element is MixinElement) {
         result = _getInterfaceMixin(element);
       } else {
         result = _getInterfaceClass(element);
@@ -272,7 +276,10 @@ class InheritanceManager3 {
   }) {
     var interface = getInterface(element);
     if (forSuper) {
-      var superImplemented = interface._superImplemented;
+      if (element is ExtensionTypeElement) {
+        return null;
+      }
+      var superImplemented = interface.superImplemented;
       if (forMixinIndex >= 0) {
         return superImplemented[forMixinIndex][name];
       }
@@ -302,7 +309,7 @@ class InheritanceManager3 {
   /// if no members would be overridden.
   List<ExecutableElement>? getOverridden2(InterfaceElement element, Name name) {
     var interface = getInterface(element);
-    return interface._overridden[name];
+    return interface.overridden[name];
   }
 
   /// Remove interfaces for classes defined in specified libraries.
@@ -608,12 +615,12 @@ class InheritanceManager3 {
     var noSuchMethodForwarders = <Name>{};
     if (element is ClassElement && element.isAbstract) {
       if (superTypeInterface != null) {
-        noSuchMethodForwarders = superTypeInterface._noSuchMethodForwarders;
+        noSuchMethodForwarders = superTypeInterface.noSuchMethodForwarders;
       }
     } else {
       var noSuchMethod = implemented[_noSuchMethodName];
       if (noSuchMethod != null && !_isDeclaredInObject(noSuchMethod)) {
-        var superForwarders = superTypeInterface?._noSuchMethodForwarders;
+        var superForwarders = superTypeInterface?.noSuchMethodForwarders;
         for (var entry in interface.entries) {
           var name = entry.key;
           if (!implemented.containsKey(name) ||
@@ -645,6 +652,126 @@ class InheritanceManager3 {
       noSuchMethodForwarders,
       namedCandidates,
       superImplemented,
+      conflicts.toFixedList(),
+    );
+  }
+
+  /// See https://github.com/dart-lang/language
+  ///   blob/main/accepted/future-releases/extension-types/feature-specification.md
+  ///   #static-analysis-of-an-extension-type-member-invocation
+  ///
+  /// We handle "has an extension type member" and "has a non-extension type
+  /// member" portions, considering redeclaration and conflicts.
+  Interface _getInterfaceExtensionType(ExtensionTypeElement element) {
+    final augmented = element.augmentedOfDeclaration;
+
+    // Add instance members implemented by the element itself.
+    final declared = <Name, ExecutableElement>{};
+    _addImplemented(declared, element, augmented);
+
+    // These declared members take precedence over "inherited" ones.
+    final implemented = Map.of(declared);
+
+    // Prepare candidates for inheritance.
+    final extensionCandidates = <Name, List<ExecutableElement>>{};
+    final notExtensionCandidates = <Name, List<ExecutableElement>>{};
+    for (final interface in augmented.interfaces) {
+      for (final entry in getInterface(interface.element).map.entries) {
+        final name = entry.key;
+        if (interface.element is ExtensionTypeElement) {
+          (extensionCandidates[name] ??= []).add(entry.value);
+        } else {
+          (notExtensionCandidates[name] ??= []).add(entry.value);
+        }
+      }
+    }
+
+    final overridden = <Name, List<ExecutableElement>>{};
+    final conflicts = <Conflict>[];
+
+    // Add extension type members.
+    for (final entry in extensionCandidates.entries) {
+      final name = entry.key;
+      final candidates = entry.value;
+      overridden[name] = candidates;
+
+      // Stop if redeclared.
+      if (implemented.containsKey(name)) {
+        continue;
+      }
+
+      // The inherited member must be unique.
+      ExecutableElement? uniqueElement;
+      for (final candidate in candidates) {
+        if (uniqueElement == null) {
+          uniqueElement = candidate;
+        } else if (uniqueElement.declaration != candidate.declaration) {
+          uniqueElement = null;
+          break;
+        }
+      }
+
+      if (uniqueElement != null) {
+        implemented[name] = uniqueElement;
+      } else {
+        conflicts.add(
+          NotUniqueExtensionMemberConflict(
+            name: name,
+            candidates: candidates,
+          ),
+        );
+      }
+    }
+
+    // Add non-extension type members.
+    for (final entry in notExtensionCandidates.entries) {
+      final name = entry.key;
+      final candidates = entry.value;
+      (overridden[name] ??= []).addAll(candidates);
+
+      // Stop if redeclared.
+      if (implemented.containsKey(name)) {
+        continue;
+      }
+
+      final combinedSignature = combineSignatures(
+        targetClass: element,
+        candidates: candidates,
+        doTopMerge: true,
+        name: name,
+      );
+
+      if (combinedSignature != null) {
+        implemented[name] = combinedSignature;
+      } else {
+        conflicts.add(
+          CandidatesConflict(
+            name: name,
+            candidates: candidates,
+          ),
+        );
+      }
+    }
+
+    // Ensure unique overridden elements.
+    final overridden2 = <Name, List<ExecutableElement>>{};
+    for (final entry in overridden.entries) {
+      final name = entry.key;
+      final elements = entry.value;
+      if (elements.length == 1) {
+        overridden2[name] = elements;
+      } else {
+        overridden2[name] = elements.toSet().toFixedList();
+      }
+    }
+
+    return Interface._(
+      implemented,
+      declared,
+      implemented,
+      const {},
+      overridden2,
+      const [],
       conflicts.toFixedList(),
     );
   }
@@ -941,17 +1068,17 @@ class Interface {
   final Map<Name, ExecutableElement> implemented;
 
   /// The set of names that are `noSuchMethod` forwarders in [implemented].
-  final Set<Name> _noSuchMethodForwarders;
+  final Set<Name> noSuchMethodForwarders;
 
   /// The map of names to their signatures from the mixins, superclasses,
   /// or interfaces.
-  final Map<Name, List<ExecutableElement>> _overridden;
+  final Map<Name, List<ExecutableElement>> overridden;
 
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
   /// `class C extends S with M1, M2`, we get `[S, S&M1, S&M1&M2]`.
-  final List<Map<Name, ExecutableElement>> _superImplemented;
+  final List<Map<Name, ExecutableElement>> superImplemented;
 
   /// The list of conflicts between superinterfaces - the nominal superclass,
   /// mixins, and interfaces.  Does not include conflicts with the declared
@@ -960,21 +1087,21 @@ class Interface {
 
   /// The map of names to the most specific signatures from the mixins,
   /// superclasses, or interfaces.
-  Map<Name, ExecutableElement>? _inheritedMap;
+  Map<Name, ExecutableElement>? inheritedMap;
 
   Interface._(
     this.map,
     this.declared,
     this.implemented,
-    this._noSuchMethodForwarders,
-    this._overridden,
-    this._superImplemented,
+    this.noSuchMethodForwarders,
+    this.overridden,
+    this.superImplemented,
     this.conflicts,
   );
 
   /// Return `true` if the [name] is implemented in the supertype.
   bool isSuperImplemented(Name name) {
-    return _superImplemented.last.containsKey(name);
+    return superImplemented.last.containsKey(name);
   }
 }
 
@@ -1020,6 +1147,16 @@ class Name {
 
   @override
   String toString() => libraryUri != null ? '$libraryUri::$name' : name;
+}
+
+/// Failure because of not unique extension type member.
+class NotUniqueExtensionMemberConflict extends Conflict {
+  final List<ExecutableElement> candidates;
+
+  NotUniqueExtensionMemberConflict({
+    required super.name,
+    required this.candidates,
+  });
 }
 
 class _ParameterDesc {
