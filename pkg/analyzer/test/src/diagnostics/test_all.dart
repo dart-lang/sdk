@@ -722,19 +722,14 @@ import 'return_type_invalid_for_catch_error_test.dart'
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_as_expression_in_const_context_test.dart'
     as sdk_version_as_expression_in_const_context;
-import 'sdk_version_async_exported_from_core_test.dart'
-    as sdk_version_async_exported_from_core;
 import 'sdk_version_bool_operator_in_const_context_test.dart'
     as sdk_version_bool_operator_in_const_context;
 import 'sdk_version_eq_eq_operator_test.dart' as sdk_version_eq_eq_operator;
-import 'sdk_version_extension_methods_test.dart'
-    as sdk_version_extension_methods;
 import 'sdk_version_gt_gt_gt_operator_test.dart'
     as sdk_version_gt_gt_gt_operator;
 import 'sdk_version_is_expression_in_const_context_test.dart'
     as sdk_version_is_expression_in_const_context;
 import 'sdk_version_never_test.dart' as sdk_version_never;
-import 'sdk_version_set_literal_test.dart' as sdk_version_set_literal;
 import 'sdk_version_since_test.dart' as sdk_version_since;
 import 'sealed_class_subtype_outside_of_library_test.dart'
     as sealed_class_subtype_outside_of_library;
@@ -1353,14 +1348,11 @@ main() {
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_as_expression_in_const_context.main();
-    sdk_version_async_exported_from_core.main();
     sdk_version_bool_operator_in_const_context.main();
     sdk_version_eq_eq_operator.main();
-    sdk_version_extension_methods.main();
     sdk_version_gt_gt_gt_operator.main();
     sdk_version_is_expression_in_const_context.main();
     sdk_version_never.main();
-    sdk_version_set_literal.main();
     sdk_version_since.main();
     sealed_class_subtype_outside_of_library.main();
     set_element_type_not_assignable.main();
