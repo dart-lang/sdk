@@ -146,12 +146,21 @@ final class _ArraySize<T extends NativeType> implements Array<T> {
 /// Extension on [Pointer] specialized for the type argument [NativeFunction].
 extension NativeFunctionPointer<NF extends Function>
     on Pointer<NativeFunction<NF>> {
-  /// Convert to Dart function, automatically marshalling the arguments
-  /// and return value.
+  /// Convert to Dart function, automatically marshalling the arguments and
+  /// return value.
   ///
-  /// [isLeaf] specifies whether the function is a leaf function.
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  /// Leaf calls are faster than non-leaf calls.
+  /// [isLeaf] specifies whether the function is a leaf function. Leaf functions
+  /// are small, short-running, non-blocking functions which are not allowed to
+  /// call back into Dart or use any Dart VM APIs. Leaf functions are invoked
+  /// bypassing some of the heavier parts of the standard Dart-to-Native calling
+  /// sequence which reduces the invocation overhead, making leaf calls faster
+  /// than non-leaf calls. However, this implies that a thread executing a leaf
+  /// function can't cooperate with the Dart runtime. A long running or blocking
+  /// leaf function will delay any operation which requires synchronization
+  /// between all threads associated with an isolate group until after the leaf
+  /// function returns. For example, if one isolate in a group is trying to
+  /// perform a GC and a second isolate is blocked in a leaf call, then the
+  /// first isolate will have to pause and wait until this leaf call returns.
   external DF asFunction<@DartRepresentationOf('NF') DF extends Function>(
       {bool isLeaf = false});
 }
@@ -1045,10 +1054,20 @@ abstract final class NativeApi {
 final class FfiNative<T> {
   final String nativeName;
 
-  /// Specifies whether the function is a leaf function.
+  /// Whether the function is a leaf function.
   ///
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  /// Leaf calls are faster than non-leaf calls.
+  /// Leaf functions are small, short-running, non-blocking functions which are
+  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
+  /// are invoked bypassing some of the heavier parts of the standard
+  /// Dart-to-Native calling sequence which reduces the invocation overhead,
+  /// making leaf calls faster than non-leaf calls. However, this implies that a
+  /// thread executing a leaf function can't cooperate with the Dart runtime. A
+  /// long running or blocking leaf function will delay any operation which
+  /// requires synchronization between all threads associated with an isolate
+  /// group until after the leaf function returns. For example, if one isolate
+  /// in a group is trying to perform a GC and a second isolate is blocked in a
+  /// leaf call, then the first isolate will have to pause and wait until this
+  /// leaf call returns.
   final bool isLeaf;
 
   const FfiNative(this.nativeName, {this.isLeaf = false});
@@ -1160,9 +1179,18 @@ final class Native<T> {
 
   /// Whether the function is a leaf function.
   ///
-  /// A leaf function must not run Dart code or call back into the Dart VM.
-  ///
-  /// Leaf calls are faster than non-leaf calls.
+  /// Leaf functions are small, short-running, non-blocking functions which are
+  /// not allowed to call back into Dart or use any Dart VM APIs. Leaf functions
+  /// are invoked bypassing some of the heavier parts of the standard
+  /// Dart-to-Native calling sequence which reduces the invocation overhead,
+  /// making leaf calls faster than non-leaf calls. However, this implies that a
+  /// thread executing a leaf function can't cooperate with the Dart runtime. A
+  /// long running or blocking leaf function will delay any operation which
+  /// requires synchronization between all threads associated with an isolate
+  /// group until after the leaf function returns. For example, if one isolate
+  /// in a group is trying to perform a GC and a second isolate is blocked in a
+  /// leaf call, then the first isolate will have to pause and wait until this
+  /// leaf call returns.
   final bool isLeaf;
 
   const Native({
