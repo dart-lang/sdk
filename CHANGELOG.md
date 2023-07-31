@@ -16,6 +16,11 @@
   `ObjectToJSExportedDartObject` and `JSExportedDartObjectToObject` are renamed
   to `ObjectToJSBoxedDartObject` and `JSBoxedDartObjectToObject` in order to
   avoid confusion with `@JSExport`.
+- **Type parameters in external APIs**:
+  Type parameters must now be bound to a static interop type or one of the
+  `dart:js_interop` types like `JSNumber` when used in an external API. This
+  only affects `dart:js_interop` classes and not `package:js` or other forms of
+  JS interop.
 
 ## 3.1.0
 

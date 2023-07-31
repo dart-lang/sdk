@@ -5552,9 +5552,9 @@ JsInteropNonStaticWithStaticInteropSupertype:
   problemMessage: "Class '#name' does not have an `@staticInterop` annotation, but has supertype '#name2', which does."
   correctionMessage: "Try marking '#name' as a `@staticInterop` class, or don't inherit '#name2'."
 
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters:
-  problemMessage: "`@staticInterop` classes cannot have external extension members with type parameters."
-  correctionMessage: "Try using a Dart extension member if you need type parameters instead."
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters:
+  problemMessage: "External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types."
+  correctionMessage: "Try adding a valid bound to the type parameters used in this member."
 
 JsInteropStaticInteropGenerativeConstructor:
   problemMessage: "`@staticInterop` classes should not contain any generative constructors."
