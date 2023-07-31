@@ -67,7 +67,7 @@ class SelectorInfo {
   /// class member for this selector.
   int? offset;
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   /// The selector's member's name.
   String get name => paramInfo.member!.name.text;
@@ -173,7 +173,7 @@ class SelectorInfo {
     }
     List<w.ValueType> outputs = List.generate(outputSets.length,
         (i) => _upperBound(outputSets[i], ensureBoxed: false));
-    return m.addFunctionType(
+    return m.types.defineFunction(
         [inputs[0], ...typeParameters, ...inputs.sublist(1)], outputs);
   }
 
@@ -237,9 +237,9 @@ class DispatchTable {
   late final List<Reference?> _table;
 
   /// The Wasm table for the dispatch table.
-  late final w.DefinedTable wasmTable;
+  late final w.TableBuilder wasmTable;
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   DispatchTable(this.translator)
       : _selectorMetadata =
@@ -461,7 +461,7 @@ class DispatchTable {
       }
     }
 
-    wasmTable = m.addTable(w.RefType.func(nullable: true), _table.length);
+    wasmTable = m.tables.define(w.RefType.func(nullable: true), _table.length);
   }
 
   void output() {

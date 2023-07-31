@@ -365,8 +365,10 @@ class TestDriver {
             .resolve(p.join(
                 'gen',
                 'utils',
-                'dartdevc',
-                setup.soundNullSafety ? 'sound' : 'kernel',
+                'ddc',
+                // TODO(nshahan): Add canary option here.
+                'stable${setup.soundNullSafety ? '' : '_unsound'}',
+                'sdk',
                 'legacy',
                 'dart_sdk.js'))
             .toFilePath());
@@ -402,8 +404,15 @@ class TestDriver {
         break;
       case ModuleFormat.amd:
         var dartSdkPath = escaped(SetupCompilerOptions.buildRoot
-            .resolve(p.join('gen', 'utils', 'dartdevc',
-                setup.soundNullSafety ? 'sound' : 'kernel', 'amd', 'dart_sdk'))
+            .resolve(p.join(
+                'gen',
+                'utils',
+                'ddc',
+                // TODO(nshahan): Add canary option here.
+                'stable${setup.soundNullSafety ? '' : '_unsound'}',
+                'sdk',
+                'amd',
+                'dart_sdk'))
             .toFilePath());
         if (!File('$dartSdkPath.js').existsSync()) {
           throw Exception('Unable to find Dart SDK at $dartSdkPath.js');

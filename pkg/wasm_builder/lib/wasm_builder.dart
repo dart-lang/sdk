@@ -2,38 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'src/module.dart'
-    show
-        DataSegment,
-        DefinedFunction,
-        DefinedGlobal,
-        DefinedMemory,
-        DefinedTable,
-        BaseFunction,
-        Global,
-        Import,
-        ImportedFunction,
-        ImportedGlobal,
-        ImportedMemory,
-        ImportedTable,
-        Local,
-        Memory,
-        Module,
-        Table,
-        Tag;
-export 'src/types.dart'
-    show
-        ArrayType,
-        DataType,
-        DefType,
-        FieldType,
-        FunctionType,
-        GlobalType,
-        HeapType,
-        NumType,
-        PackedType,
-        RefType,
-        StorageType,
-        StructType,
-        ValueType;
-export 'src/instructions.dart' show Instructions, Label, ValidationError;
+export 'src/ir/ir.dart';
+export 'src/builder/builder.dart';
+export 'src/serialize/serialize.dart';

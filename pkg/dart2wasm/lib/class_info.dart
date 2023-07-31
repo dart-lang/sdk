@@ -295,12 +295,12 @@ class ClassInfoCollector {
 
   ClassInfoCollector(this.translator);
 
-  w.Module get m => translator.m;
+  w.ModuleBuilder get m => translator.m;
 
   TranslatorOptions get options => translator.options;
 
   void _initializeTop() {
-    final w.StructType struct = m.addStructType("#Top");
+    final w.StructType struct = m.types.defineStruct("#Top");
     topInfo = ClassInfo(null, _nextClassId++, 0, struct, null);
     translator.classes.add(topInfo);
     translator.classForHeapType[struct] = topInfo;
@@ -314,7 +314,7 @@ class ClassInfoCollector {
     if (superclass == null) {
       ClassInfo superInfo = topInfo;
       final w.StructType struct =
-          m.addStructType(cls.name, superType: superInfo.struct);
+          m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(
           cls, _nextClassId++, superInfo.depth + 1, struct, superInfo);
       // Mark Top type as implementing Object to force the representation
@@ -368,7 +368,7 @@ class ClassInfoCollector {
               cls.fields.where((f) => f.isInstanceMember).isEmpty;
       w.StructType struct = canReuseSuperStruct
           ? superInfo.struct
-          : m.addStructType(cls.name, superType: superInfo.struct);
+          : m.types.defineStruct(cls.name, superType: superInfo.struct);
       info = ClassInfo(
           cls, _nextClassId++, superInfo.depth + 1, struct, superInfo,
           typeParameterMatch: typeParameterMatch);
@@ -416,7 +416,7 @@ class ClassInfoCollector {
 
     final struct = _recordStructs.putIfAbsent(
         numFields,
-        () => m.addStructType(
+        () => m.types.defineStruct(
               'Record$numFields',
               superType: translator.recordInfo.struct,
             ));
