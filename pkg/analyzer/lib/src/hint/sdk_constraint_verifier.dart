@@ -38,10 +38,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// need to be checked. Use [checkTripleShift] to access this field.
   bool? _checkTripleShift;
 
-  /// A cached flag indicating whether uses of extension method features need to
-  /// be checked. Use [checkExtensionMethods] to access this field.
-  bool? _checkExtensionMethods;
-
   /// A cached flag indicating whether references to Future and Stream need to
   /// be checked. Use [checkFutureAndStream] to access this field.
   bool? _checkFutureAndStream;
@@ -49,10 +45,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// A cached flag indicating whether references to set literals need to
   /// be checked. Use [checkSetLiterals] to access this field.
   bool? _checkSetLiterals;
-
-  /// A flag indicating whether we are visiting code inside a set literal. Used
-  /// to prevent over-reporting uses of set literals.
-  bool _inSetLiteral = false;
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
@@ -87,11 +79,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// be checked.
   bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
       !before_2_5_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to the extension method features need to
-  /// be checked.
-  bool get checkExtensionMethods => _checkExtensionMethods ??=
-      !before_2_6_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to Future and Stream need to be checked.
   bool get checkFutureAndStream => _checkFutureAndStream ??=
@@ -186,27 +173,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitExtensionDeclaration(ExtensionDeclaration node) {
-    if (checkExtensionMethods) {
-      _errorReporter.reportErrorForToken(
-          WarningCode.SDK_VERSION_EXTENSION_METHODS, node.extensionKeyword);
-    }
-    super.visitExtensionDeclaration(node);
-  }
-
-  @override
-  void visitExtensionOverride(ExtensionOverride node) {
-    if (checkExtensionMethods) {
-      _errorReporter.reportErrorForToken(
-        WarningCode.SDK_VERSION_EXTENSION_METHODS,
-        node.name,
-      );
-    }
-    _checkSinceSdkVersion(node.element, node);
-    super.visitExtensionOverride(node);
-  }
-
-  @override
   void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
     _checkSinceSdkVersion(node.staticElement, node);
     super.visitFunctionExpressionInvocation(node);
@@ -249,11 +215,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitNamedType(NamedType node) {
-    _checkAsyncExportedFromCode(
-      name: node.name2,
-      element: node.element,
-    );
-
     if (checkNnbd && node.element == _typeProvider.neverType.element) {
       _errorReporter.reportErrorForNode(WarningCode.SDK_VERSION_NEVER, node);
     }
@@ -275,18 +236,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.isSet && checkSetLiterals && !_inSetLiteral) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_SET_LITERAL, node);
-    }
-    bool wasInSetLiteral = _inSetLiteral;
-    _inSetLiteral = true;
-    super.visitSetOrMapLiteral(node);
-    _inSetLiteral = wasInSetLiteral;
-  }
-
-  @override
   void visitShowCombinator(ShowCombinator node) {
     // Don't flag references to either `Future` or `Stream` within a combinator.
   }
@@ -297,31 +246,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       return;
     }
     _checkSinceSdkVersion(node.staticElement, node);
-  }
-
-  void _checkAsyncExportedFromCode({
-    required Token name,
-    required Element? element,
-  }) {
-    if (checkFutureAndStream &&
-        element is InterfaceElement &&
-        (element == _typeProvider.futureElement ||
-            element == _typeProvider.streamElement)) {
-      for (LibraryElement importedLibrary
-          in _containingLibrary.importedLibraries) {
-        if (!importedLibrary.isDartCore) {
-          var namespace = importedLibrary.exportNamespace;
-          if (namespace.get(element.name) != null) {
-            return;
-          }
-        }
-      }
-      _errorReporter.reportErrorForToken(
-        WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE,
-        name,
-        [element.name],
-      );
-    }
   }
 
   void _checkSinceSdkVersion(

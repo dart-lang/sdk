@@ -17847,55 +17847,6 @@ int f() {
 }
 {% endprettify %}
 
-### sdk_version_async_exported_from_core
-
-_The class '{0}' wasn't exported from 'dart:core' until version 2.1, but this
-code is required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when either the class `Future` or
-`Stream` is referenced in a library that doesn't import `dart:async` in
-code that has an SDK constraint whose lower bound is less than 2.1.0. In
-earlier versions, these classes weren't defined in `dart:core`, so the
-import was necessary.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.1.0:
-
-```yaml
-environment:
-  sdk: '>=2.0.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-void f([!Future!] f) {}
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the classes to be referenced:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-If you need to support older versions of the SDK, then import the
-`dart:async` library.
-
-{% prettify dart tag=pre+code %}
-import 'dart:async';
-
-void f(Future f) {}
-{% endprettify %}
-
 ### sdk_version_as_expression_in_const_context
 
 _The use of an as expression in a constant expression wasn't supported until
@@ -18099,61 +18050,6 @@ const C b = null;
 bool same = a == b;
 {% endprettify %}
 
-### sdk_version_extension_methods
-
-_Extension methods weren't supported until version 2.6.0, but this code is
-required to be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when an extension declaration or an
-extension override is found in code that has an SDK constraint whose lower
-bound is less than 2.6.0. Using extensions wasn't supported in earlier
-versions, so this code won't be able to run against earlier versions of the
-SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.6.0:
-
-```yaml
-environment:
- sdk: '>=2.4.0 <2.7.0'
-```
-
-In the package that has that pubspec, code like the following produces
-this diagnostic:
-
-{% prettify dart tag=pre+code %}
-[!extension!] E on String {
-  void sayHello() {
-    print('Hello $this');
-  }
-}
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.6.0 <2.7.0'
-```
-
-If you need to support older versions of the SDK, then rewrite the code to
-not make use of extensions. The most common way to do this is to rewrite
-the members of the extension as top-level functions (or methods) that take
-the value that would have been bound to `this` as a parameter:
-
-{% prettify dart tag=pre+code %}
-void sayHello(String s) {
-  print('Hello $s');
-}
-{% endprettify %}
-
 ### sdk_version_gt_gt_gt_operator
 
 _The operator '>>>' wasn't supported until version 2.14.0, but this code is
@@ -18303,52 +18199,6 @@ not reference this class:
 
 {% prettify dart tag=pre+code %}
 dynamic x;
-{% endprettify %}
-
-### sdk_version_set_literal
-
-_Set literals weren't supported until version 2.2, but this code is required to
-be able to run on earlier versions._
-
-#### Description
-
-The analyzer produces this diagnostic when a set literal is found in code
-that has an SDK constraint whose lower bound is less than 2.2.0. Set
-literals weren't supported in earlier versions, so this code won't be able
-to run against earlier versions of the SDK.
-
-#### Example
-
-Here's an example of a pubspec that defines an SDK constraint with a lower
-bound of less than 2.2.0:
-
-```yaml
-environment:
-  sdk: '>=2.1.0 <2.4.0'
-```
-
-In the package that has that pubspec, code like the following produces this
-diagnostic:
-
-{% prettify dart tag=pre+code %}
-var s = [!<int>{}!];
-{% endprettify %}
-
-#### Common fixes
-
-If you don't need to support older versions of the SDK, then you can
-increase the SDK constraint to allow the syntax to be used:
-
-```yaml
-environment:
-  sdk: '>=2.2.0 <2.4.0'
-```
-
-If you do need to support older versions of the SDK, then replace the set
-literal with code that creates the set without the use of a literal:
-
-{% prettify dart tag=pre+code %}
-var s = new Set<int>();
 {% endprettify %}
 
 ### set_element_type_not_assignable

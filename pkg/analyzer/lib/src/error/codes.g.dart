@@ -6852,17 +6852,6 @@ class WarningCode extends AnalyzerErrorCode {
     uniqueName: 'RETURN_TYPE_INVALID_FOR_CATCH_ERROR',
   );
 
-  ///  Parameters:
-  ///  0: the name of the class
-  static const WarningCode SDK_VERSION_ASYNC_EXPORTED_FROM_CORE = WarningCode(
-    'SDK_VERSION_ASYNC_EXPORTED_FROM_CORE',
-    "The class '{0}' wasn't exported from 'dart:core' until version 2.1, but "
-        "this code is required to be able to run on earlier versions.",
-    correctionMessage:
-        "Try either importing 'dart:async' or updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
   ///  No parameters.
   static const WarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
       WarningCode(
@@ -6914,15 +6903,6 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode SDK_VERSION_EXTENSION_METHODS = WarningCode(
-    'SDK_VERSION_EXTENSION_METHODS',
-    "Extension methods weren't supported until version 2.6.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const WarningCode SDK_VERSION_GT_GT_GT_OPERATOR = WarningCode(
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
@@ -6946,15 +6926,6 @@ class WarningCode extends AnalyzerErrorCode {
   static const WarningCode SDK_VERSION_NEVER = WarningCode(
     'SDK_VERSION_NEVER',
     "The type 'Never' wasn't supported until version 2.12.0, but this code is "
-        "required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_SET_LITERAL = WarningCode(
-    'SDK_VERSION_SET_LITERAL',
-    "Set literals weren't supported until version 2.2, but this code is "
         "required to be able to run on earlier versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,

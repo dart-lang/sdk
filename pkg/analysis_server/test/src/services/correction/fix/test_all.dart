@@ -119,7 +119,6 @@ import 'fix_in_file_test.dart' as fix_in_file;
 import 'fix_processor_map_test.dart' as fix_processor_map;
 import 'fix_test.dart' as fix;
 import 'ignore_diagnostic_test.dart' as ignore_error;
-import 'import_async_test.dart' as import_async;
 import 'import_library_prefix_test.dart' as import_library_prefix;
 import 'import_library_project_test.dart' as import_library_project;
 import 'import_library_sdk_test.dart' as import_library_sdk;
@@ -378,7 +377,6 @@ void main() {
     fix_in_file.main();
     fix_processor_map.main();
     ignore_error.main();
-    import_async.main();
     import_library_prefix.main();
     import_library_project.main();
     import_library_sdk.main();

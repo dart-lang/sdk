@@ -979,9 +979,6 @@ class FixProcessor extends BaseProcessor {
     WarningCode.OVERRIDE_ON_NON_OVERRIDING_METHOD: [
       DataDriven.new,
     ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      ImportLibrary.dartAsync,
-    ],
   };
 
   /// A map from error codes to a list of the generators that are used to create
@@ -1627,26 +1624,17 @@ class FixProcessor extends BaseProcessor {
     WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],
-    WarningCode.SDK_VERSION_ASYNC_EXPORTED_FROM_CORE: [
-      UpdateSdkConstraints.version_2_1_0,
-    ],
     WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],
     WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
     ],
-    WarningCode.SDK_VERSION_EXTENSION_METHODS: [
-      UpdateSdkConstraints.version_2_6_0,
-    ],
     WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR: [
       UpdateSdkConstraints.version_2_14_0,
     ],
     WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT: [
       UpdateSdkConstraints.version_2_2_2,
-    ],
-    WarningCode.SDK_VERSION_SET_LITERAL: [
-      UpdateSdkConstraints.version_2_2_0,
     ],
     WarningCode.TEXT_DIRECTION_CODE_POINT_IN_COMMENT: [
       RemoveCharacter.new,

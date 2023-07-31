@@ -262,17 +262,21 @@ class TypesBuilder {
     final element = node.declaredElement!;
     final typeSystem = element.library.typeSystem;
 
-    final interfaces = node.implementsClause?.interfaces
+    final type = node.representation.fieldType.typeOrThrow;
+    element.representation.type = type;
+
+    var interfaces = node.implementsClause?.interfaces
         .map((e) => e.type)
         .whereType<InterfaceType>()
         .where(typeSystem.isValidExtensionTypeSuperinterface)
         .toFixedList();
-    if (interfaces != null) {
-      element.interfaces = interfaces;
+    if (interfaces == null || interfaces.isEmpty) {
+      final superInterface = typeSystem.isNonNullable(type)
+          ? typeSystem.objectNone
+          : typeSystem.objectQuestion;
+      interfaces = [superInterface];
     }
-
-    final type = node.representation.fieldType.typeOrThrow;
-    element.representation.type = type;
+    element.interfaces = interfaces;
 
     final primaryConstructor = element.constructors.first;
     final primaryFormalParameter = primaryConstructor.parameters.first;
