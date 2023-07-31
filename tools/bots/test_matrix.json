@@ -2980,7 +2980,8 @@
             "native_assets_builder",
             "native_assets_cli",
             "native_toolchain_c",
-            "package_config"
+            "package_config",
+            "pkg/pkg/dartdev/test/native_assets"
           ]
         },
         {
@@ -3004,7 +3005,7 @@
           "name": "package unit tests",
           "arguments": [
             "-nunittest-asserts-${mode}-${system}",
-            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration)/)"
+            "pkg/pkg/(?!(analyzer*|analysis_server|compiler|dev_compiler|js_runtime|front_end|kernel|nnbd_migration|dartdev/test/native_assets)/)"
           ],
           "shards": 3,
           "fileset": "vm"
