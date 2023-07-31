@@ -474,6 +474,27 @@ String f(int char) {
         contains('Type: `int`'),
       );
 
+  Future<void> test_pattern_variable_wildcard() => assertStringContents(
+        '''
+void f() {
+  var a = (1, 2);
+  var ([!^_!], _) = a;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
+  Future<void> test_pattern_variable_wildcard_annotated() =>
+      assertStringContents(
+        '''
+void f() {
+  var a = (1, 2);
+  var (int [!^_!], _) = a;
+}
+    ''',
+        contains('Type: `int`'),
+      );
+
   Future<void> test_plainText_simple() => assertPlainTextContents(
         '''
     /// This is a string.
