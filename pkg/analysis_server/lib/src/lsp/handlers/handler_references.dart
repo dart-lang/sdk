@@ -64,7 +64,8 @@ class ReferencesHandler
       ReferenceParams params,
       ResolvedUnitResult unit,
       OperationPerformanceImpl performance) async {
-    final node = NodeLocator(offset).searchWithin(result.unit);
+    var node = NodeLocator(offset).searchWithin(result.unit);
+    node = _getReferenceTargetNode(node);
     var element = server.getElementOfNode(node);
     if (element == null) {
       return success(null);
@@ -103,5 +104,25 @@ class ReferencesHandler
     }
 
     return success(referenceResults);
+  }
+
+  /// Gets the nearest node that should be used for finding references.
+  ///
+  /// This is usually the same node but allows some adjustments such as
+  /// considering the offset between a type name and type arguments as part
+  /// of the type.
+  AstNode? _getReferenceTargetNode(AstNode? node) {
+    // Consider the angle brackets for type arguments part of the leading type,
+    // otherwise we don't navigate in the common situation of having the type
+    // name selected, where VS Code provides the end of the selection as the
+    // position to search.
+    //
+    // In `A^<String>` node will be `TypeParameterList` and we will not find any
+    // references.
+    if (node is TypeParameterList) {
+      node = node.parent;
+    }
+
+    return node;
   }
 }
