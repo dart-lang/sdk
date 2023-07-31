@@ -3067,41 +3067,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    CommentReferenceTextHandle data = new CommentReferenceTextHandle(
-        ParserAstType.HANDLE,
-        referenceSource: referenceSource,
-        referenceOffset: referenceOffset);
-    seen(data);
-  }
-
-  @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    CommentReferenceHandle data = new CommentReferenceHandle(
-        ParserAstType.HANDLE,
-        newKeyword: newKeyword,
-        firstToken: firstToken,
-        firstPeriod: firstPeriod,
-        secondToken: secondToken,
-        secondPeriod: secondPeriod,
-        thirdToken: thirdToken);
-    seen(data);
-  }
-
-  @override
-  void handleNoCommentReference() {
-    NoCommentReferenceHandle data =
-        new NoCommentReferenceHandle(ParserAstType.HANDLE);
-    seen(data);
-  }
-
-  @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
     TypeArgumentApplicationHandle data = new TypeArgumentApplicationHandle(
         ParserAstType.HANDLE,
@@ -8548,57 +8513,6 @@ class ScriptHandle extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
         "token": token,
       };
-}
-
-class CommentReferenceTextHandle extends ParserAstNode {
-  final String referenceSource;
-  final int referenceOffset;
-
-  CommentReferenceTextHandle(ParserAstType type,
-      {required this.referenceSource, required this.referenceOffset})
-      : super("CommentReferenceText", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "referenceSource": referenceSource,
-        "referenceOffset": referenceOffset,
-      };
-}
-
-class CommentReferenceHandle extends ParserAstNode {
-  final Token? newKeyword;
-  final Token? firstToken;
-  final Token? firstPeriod;
-  final Token? secondToken;
-  final Token? secondPeriod;
-  final Token thirdToken;
-
-  CommentReferenceHandle(ParserAstType type,
-      {this.newKeyword,
-      this.firstToken,
-      this.firstPeriod,
-      this.secondToken,
-      this.secondPeriod,
-      required this.thirdToken})
-      : super("CommentReference", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-        "newKeyword": newKeyword,
-        "firstToken": firstToken,
-        "firstPeriod": firstPeriod,
-        "secondToken": secondToken,
-        "secondPeriod": secondPeriod,
-        "thirdToken": thirdToken,
-      };
-}
-
-class NoCommentReferenceHandle extends ParserAstNode {
-  NoCommentReferenceHandle(ParserAstType type)
-      : super("NoCommentReference", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {};
 }
 
 class TypeArgumentApplicationHandle extends ParserAstNode {
