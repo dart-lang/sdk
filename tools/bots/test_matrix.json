@@ -17,7 +17,7 @@
       "out/ReleaseX64/dart2js_platform.dill",
       "out/ReleaseX64/dart2js_platform_unsound.dill",
       "out/ReleaseX64/ddc_outline_unsound.dill",
-      "out/ReleaseX64/gen/utils/dartdevc/",
+      "out/ReleaseX64/gen/utils/ddc/",
       "pkg/",
       "runtime/tests/",
       "sdk/",
@@ -44,7 +44,6 @@
       ".dart_tool/package_config.json",
       "out/ReleaseX64/dart-sdk/",
       "out/ReleaseX64/ddc_outline_unsound.dill",
-      "out/ReleaseX64/gen/utils/dartdevc/",
       "out/ReleaseX64/gen/utils/ddc/",
       "pkg/",
       "runtime/tests/",
@@ -66,7 +65,6 @@
       "third_party/requirejs/",
       "tools/",
       "xcodebuild/ReleaseARM64/dart-sdk/",
-      "xcodebuild/ReleaseARM64/gen/utils/dartdevc/",
       "xcodebuild/ReleaseARM64/gen/utils/ddc/"
     ],
     "js_platform_hostasserts_2": [
@@ -742,7 +740,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "dartdevc_test",
+            "ddc_stable_test",
             "kernel_platform_files",
             "runtime"
           ]
@@ -821,7 +819,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "dartdevc_test",
+            "ddc_stable_test",
             "kernel_platform_files",
             "runtime"
           ]
@@ -1870,7 +1868,7 @@
           "script": "tools/build.py",
           "arguments": [
             "dart2js_bot",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -1957,7 +1955,7 @@
           "arguments": [
             "--arch=arm64",
             "dart2js_bot",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -2043,7 +2041,7 @@
           "script": "tools/build.py",
           "arguments": [
             "dart2js_bot",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -2082,7 +2080,7 @@
           "name": "build dart",
           "script": "tools/build.py",
           "arguments": [
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -2920,7 +2918,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -3025,7 +3023,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {
@@ -3069,7 +3067,7 @@
           "script": "tools/build.py",
           "arguments": [
             "create_sdk",
-            "dartdevc_test"
+            "ddc_stable_test"
           ]
         },
         {

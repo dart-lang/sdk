@@ -20,7 +20,7 @@ void main() async {
   // Dart SDK repo.
   final buildDir = computePlatformBinariesLocation(forceBuildDir: true);
   final sdkJsMapDir = buildDir
-      .resolve(p.joinAll(['gen', 'utils', 'dartdevc', 'sound', 'amd']))
+      .resolve(p.joinAll(['gen', 'utils', 'ddc', 'stable', 'sdk', 'amd']))
       .toFilePath();
   final sdkJsMapFile = p.join(sdkJsMapDir, 'dart_sdk.js.map');
 

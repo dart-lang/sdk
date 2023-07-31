@@ -145,31 +145,15 @@ String ddcHtml(
     String testJSDir,
     Compiler compiler,
     NnbdMode mode,
-    bool canary,
+    String genDir,
     bool nonNullAsserts,
     bool weakNullSafetyErrors) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
-  var isNnbdStrong = mode == NnbdMode.strong;
-  String ddcConfigGenDir;
-  String sdkPath;
-  String pkgDir;
-  if (canary) {
-    // TODO(nshahan): Cleanup the differences here when migrating the stable
-    // configurations to use the new gen/utils/ddc directories.
-    var nullSafetySuffix = isNnbdStrong ? '' : '_unsound';
-    ddcConfigGenDir = '/root_build/gen/utils/ddc/canary$nullSafetySuffix';
-    sdkPath = 'sdk/amd/dart_sdk';
-    pkgDir = 'pkg';
-  } else {
-    ddcConfigGenDir = '/root_build/gen/utils/dartdevc';
-    sdkPath = isNnbdStrong ? 'sound/amd/dart_sdk' : 'kernel/amd/dart_sdk';
-    pkgDir = isNnbdStrong ? 'pkg_sound' : 'pkg_kernel';
-  }
-
-  var packagePaths = testPackages
-      .map((p) => '    "$p": "$ddcConfigGenDir/$pkgDir/$p",')
-      .join("\n");
+  var soundNullSafety = mode == NnbdMode.strong;
+  var ddcGenDir = '/root_build/$genDir';
+  var packagePaths =
+      testPackages.map((p) => '    "$p": "$ddcGenDir/pkg/$p",').join("\n");
 
   return """
 <!DOCTYPE html>
@@ -195,7 +179,7 @@ String ddcHtml(
 var require = {
   baseUrl: "/root_dart/$testJSDir",
   paths: {
-    "dart_sdk": "$ddcConfigGenDir/$sdkPath",
+    "dart_sdk": "$ddcGenDir/sdk/amd/dart_sdk",
 $packagePaths
   },
   waitSeconds: 30,
@@ -244,7 +228,7 @@ requirejs(["$testName", "dart_sdk", "async_helper"],
     }, 0);
   };
 
-  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $isNnbdStrong));
+  sdk.dart.weakNullSafetyWarnings(!($weakNullSafetyErrors || $soundNullSafety));
   sdk.dart.weakNullSafetyErrors($weakNullSafetyErrors);
   sdk.dart.nonNullAsserts($nonNullAsserts);
 
