@@ -214,7 +214,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
   }
 
   @override
-  w.DefinedFunction generateLambda(Lambda lambda, Closures closures) {
+  w.BaseFunction generateLambda(Lambda lambda, Closures closures) {
     this.closures = closures;
     setupLambdaParametersAndContexts(lambda);
     generateBodies(lambda.functionNode);
@@ -236,8 +236,8 @@ class SyncStarCodeGenerator extends CodeGenerator {
     }
 
     // Wasm function containing the body of the `sync*` function.
-    final w.DefinedFunction resumeFun = m.addFunction(
-        m.addFunctionType([
+    final resumeFun = m.functions.define(
+        m.types.defineFunction([
           suspendStateInfo.nonNullableType,
           translator.topInfo.nullableType,
           translator.stackTraceInfo.nullableType
@@ -259,8 +259,8 @@ class SyncStarCodeGenerator extends CodeGenerator {
     generateInner(functionNode, context, resumeFun);
   }
 
-  void generateOuter(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+  void generateOuter(
+      FunctionNode functionNode, Context? context, w.BaseFunction resumeFun) {
     // Instantiate a [_SyncStarIterable] containing the context and resume
     // function for this `sync*` function.
     DartType returnType = functionNode.returnType;
@@ -327,7 +327,7 @@ class SyncStarCodeGenerator extends CodeGenerator {
   }
 
   void generateInner(FunctionNode functionNode, Context? context,
-      w.DefinedFunction resumeFun) {
+      w.FunctionBuilder resumeFun) {
     // Set the current Wasm function for the code generator to the inner
     // function of the `sync*`, which is to contain the body.
     function = resumeFun;

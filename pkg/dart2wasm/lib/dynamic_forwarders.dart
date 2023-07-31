@@ -69,10 +69,10 @@ class Forwarder {
 
   final String memberName;
 
-  final w.DefinedFunction function;
+  final w.FunctionBuilder function;
 
   Forwarder(Translator translator, this.kind, this.memberName)
-      : function = translator.m.addFunction(
+      : function = translator.m.functions.define(
             kind.functionType(translator), "$kind forwarder for '$memberName'");
 
   void _generateCode(Translator translator) {
@@ -92,7 +92,7 @@ class Forwarder {
   }
 
   void _generateGetterCode(Translator translator) {
-    final w.Instructions b = function.body;
+    final b = function.body;
 
     final receiverLocal = function.locals[0];
 
@@ -151,7 +151,7 @@ class Forwarder {
   }
 
   void _generateSetterCode(Translator translator) {
-    final w.Instructions b = function.body;
+    final b = function.body;
 
     final receiverLocal = function.locals[0];
     final positionalArgLocal = function.locals[1];
@@ -197,7 +197,7 @@ class Forwarder {
   }
 
   void _generateMethodCode(Translator translator) {
-    final w.Instructions b = function.body;
+    final b = function.body;
 
     final receiverLocal = function.locals[0]; // ref #Top
     final typeArgsLocal = function.locals[1]; // ref _ListBase
@@ -622,7 +622,7 @@ enum _ForwarderKind {
 /// [noSuchMethodBlock] is used as the `br` target when the shape check fails.
 void generateDynamicFunctionCall(
   Translator translator,
-  w.DefinedFunction function,
+  w.FunctionBuilder function,
   w.Local closureLocal,
   w.Local typeArgsLocal,
   w.Local posArgsLocal,
@@ -685,7 +685,7 @@ void generateDynamicFunctionCall(
 
 void createInvocationObject(
     Translator translator,
-    w.DefinedFunction function,
+    w.FunctionBuilder function,
     String memberName,
     w.Local typeArgsLocal,
     w.Local positionalArgsLocal,
@@ -709,7 +709,7 @@ void createInvocationObject(
 
 void createGetterInvocationObject(
   Translator translator,
-  w.DefinedFunction function,
+  w.FunctionBuilder function,
   String memberName,
 ) {
   final b = function.body;
@@ -726,7 +726,7 @@ void createGetterInvocationObject(
 
 void createSetterInvocationObject(
   Translator translator,
-  w.DefinedFunction function,
+  w.FunctionBuilder function,
   String memberName,
   w.Local positionalArgLocal,
 ) {
@@ -747,7 +747,7 @@ void createSetterInvocationObject(
 
 void generateNoSuchMethodCall(
   Translator translator,
-  w.DefinedFunction function,
+  w.FunctionBuilder function,
   void Function() pushReceiver,
   void Function() pushInvocationObject,
 ) {
@@ -810,8 +810,8 @@ void generateNoSuchMethodCall(
 }
 
 void _makeEmptyGrowableList(
-    Translator translator, w.DefinedFunction function, int capacity) {
-  final w.Instructions b = function.body;
+    Translator translator, w.FunctionBuilder function, int capacity) {
+  final b = function.body;
   Class cls = translator.growableListClass;
   ClassInfo info = translator.classInfo[cls]!;
   translator.functions.allocateClass(info.classId);

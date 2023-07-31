@@ -12,7 +12,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'abi.dart' show kWasmAbiEnumIndex;
 
-typedef CodeGenCallback = void Function(w.Instructions);
+typedef CodeGenCallback = void Function(w.InstructionsBuilder);
 
 /// Specialized code generation for external members.
 ///
@@ -133,7 +133,7 @@ class Intrinsifier {
   };
 
   Translator get translator => codeGen.translator;
-  w.Instructions get b => codeGen.b;
+  w.InstructionsBuilder get b => codeGen.b;
 
   DartType dartTypeOf(Expression exp) => codeGen.dartTypeOf(exp);
 
@@ -1101,7 +1101,7 @@ class Intrinsifier {
     return null;
   }
 
-  bool generateMemberIntrinsic(Reference target, w.DefinedFunction function,
+  bool generateMemberIntrinsic(Reference target, w.FunctionBuilder function,
       List<w.Local> paramLocals, w.Label? returnLabel) {
     Member member = target.asMember;
     if (member is! Procedure) return false;

@@ -1,14 +1,11 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore_for_file: non_constant_identifier_names
 
-import 'module.dart';
-import 'serialize.dart';
-import 'types.dart';
-
-part 'instruction.dart';
+import '../ir/ir.dart' as ir;
+import 'builder.dart';
 
 // TODO(joshualitt): Suggested further optimizations:
 //   1) Add size estimates to `_Instruction`, and then remove logic where we
@@ -29,8 +26,8 @@ class ValidationError {
 
 /// Label to use as target for branch instructions.
 abstract class Label {
-  final List<ValueType> inputs;
-  final List<ValueType> outputs;
+  final List<ir.ValueType> inputs;
+  final List<ir.ValueType> outputs;
 
   late final int? ordinal;
   late final int depth;
@@ -40,7 +37,7 @@ abstract class Label {
 
   Label._(this.inputs, this.outputs);
 
-  List<ValueType> get targetTypes;
+  List<ir.ValueType> get targetTypes;
 
   bool get hasOrdinal => ordinal != null;
 
@@ -49,7 +46,7 @@ abstract class Label {
 }
 
 class Expression extends Label {
-  Expression(List<ValueType> inputs, List<ValueType> outputs)
+  Expression(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : super._(inputs, outputs) {
     ordinal = null;
     depth = 0;
@@ -59,43 +56,43 @@ class Expression extends Label {
   }
 
   @override
-  List<ValueType> get targetTypes => outputs;
+  List<ir.ValueType> get targetTypes => outputs;
 }
 
 class Block extends Label {
-  Block(List<ValueType> inputs, List<ValueType> outputs)
+  Block(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : super._(inputs, outputs);
 
   @override
-  List<ValueType> get targetTypes => outputs;
+  List<ir.ValueType> get targetTypes => outputs;
 }
 
 class Loop extends Label {
-  Loop(List<ValueType> inputs, List<ValueType> outputs)
+  Loop(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : super._(inputs, outputs);
 
   @override
-  List<ValueType> get targetTypes => inputs;
+  List<ir.ValueType> get targetTypes => inputs;
 }
 
 class If extends Label {
   bool hasElse = false;
 
-  If(List<ValueType> inputs, List<ValueType> outputs)
+  If(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : super._(inputs, outputs);
 
   @override
-  List<ValueType> get targetTypes => outputs;
+  List<ir.ValueType> get targetTypes => outputs;
 }
 
 class Try extends Label {
   bool hasCatch = false;
 
-  Try(List<ValueType> inputs, List<ValueType> outputs)
+  Try(List<ir.ValueType> inputs, List<ir.ValueType> outputs)
       : super._(inputs, outputs);
 
   @override
-  List<ValueType> get targetTypes => outputs;
+  List<ir.ValueType> get targetTypes => outputs;
 }
 
 /// A sequence of Wasm instructions.
@@ -105,12 +102,12 @@ class Try extends Label {
 ///
 /// If asserts are enabled, the instruction methods will perform on-the-fly
 /// validation and throw a [ValidationError] if validation fails.
-class Instructions implements Serializable {
+class InstructionsBuilder with Builder<ir.Instructions> {
   /// The module containing these instructions.
-  final Module module;
+  final ModuleBuilder module;
 
   /// Locals declared in this body, including parameters.
-  final List<Local> locals = [];
+  final List<ir.Local> locals = [];
 
   /// Is this the initializer of a global variable?
   final bool isGlobalInitializer;
@@ -135,7 +132,7 @@ class Instructions implements Serializable {
 
   int _labelCount = 0;
   final List<Label> _labelStack = [];
-  final List<ValueType> _stackTypes = [];
+  final List<ir.ValueType> _stackTypes = [];
   bool _reachable = true;
 
   /// Whether each local is currently definitely initialized.
@@ -145,20 +142,12 @@ class Instructions implements Serializable {
   final List<int> _localInitializationStack = [];
 
   /// List of instructions.
-  final List<_Instruction> _instructions = [];
+  final List<ir.Instruction> _instructions = [];
 
   /// Create a new instruction sequence.
-  Instructions(this.module, List<ValueType> outputs,
+  InstructionsBuilder(this.module, List<ir.ValueType> outputs,
       {this.isGlobalInitializer = false}) {
     _labelStack.add(Expression(const [], outputs));
-  }
-
-  /// Serialize these instructions to the provided [Serializer].
-  @override
-  void serialize(Serializer s) {
-    for (final i in _instructions) {
-      i.serialize(s);
-    }
   }
 
   /// Whether the current point in the instruction stream is reachable.
@@ -170,16 +159,20 @@ class Instructions implements Serializable {
   /// Textual trace of the instructions.
   String get trace => _traceLines.join();
 
-  void _add(_Instruction i) => _instructions.add(i);
+  @override
+  ir.Instructions forceBuild() =>
+      ir.Instructions(locals, _instructions, _traceLines);
 
-  Local addLocal(ValueType type, {required bool isParameter}) {
-    Local local = Local(locals.length, type);
+  void _add(ir.Instruction i) => _instructions.add(i);
+
+  ir.Local addLocal(ir.ValueType type, {required bool isParameter}) {
+    final local = ir.Local(locals.length, type);
     locals.add(local);
     _localInitialized.add(isParameter || type.defaultable);
     return local;
   }
 
-  bool _initializeLocal(Local local) {
+  bool _initializeLocal(ir.Local local) {
     if (!_localInitialized[local.index]) {
       _localInitialized[local.index] = true;
       _localInitializationStack.add(local.index);
@@ -187,7 +180,7 @@ class Instructions implements Serializable {
     return true;
   }
 
-  bool _localIsInitialized(Local local) {
+  bool _localIsInitialized(ir.Local local) {
     return _localInitialized[local.index];
   }
 
@@ -238,8 +231,8 @@ class Instructions implements Serializable {
     throw ValidationError(trace, error);
   }
 
-  ValueType get _topOfStack {
-    if (!reachable) return RefType.common(nullable: true);
+  ir.ValueType get _topOfStack {
+    if (!reachable) return ir.RefType.common(nullable: true);
     if (_stackTypes.isEmpty) _reportError("Stack underflow");
     return _stackTypes.last;
   }
@@ -249,13 +242,13 @@ class Instructions implements Serializable {
     return _labelStack.last;
   }
 
-  List<ValueType> _stack(int n) {
+  List<ir.ValueType> _stack(int n) {
     if (_stackTypes.length < n) _reportError("Stack underflow");
     return _stackTypes.sublist(_stackTypes.length - n);
   }
 
-  List<ValueType> _checkStackTypes(List<ValueType> inputs,
-      [List<ValueType>? stack]) {
+  List<ir.ValueType> _checkStackTypes(List<ir.ValueType> inputs,
+      [List<ir.ValueType>? stack]) {
     stack ??= _stack(inputs.length);
     bool typesMatch = true;
     for (int i = 0; i < inputs.length; i++) {
@@ -272,14 +265,14 @@ class Instructions implements Serializable {
     return stack;
   }
 
-  bool _verifyTypes(List<ValueType> inputs, List<ValueType> outputs,
+  bool _verifyTypes(List<ir.ValueType> inputs, List<ir.ValueType> outputs,
       {List<Object>? trace, bool reachableAfter = true}) {
     return _verifyTypesFun(inputs, (_) => outputs,
         trace: trace, reachableAfter: reachableAfter);
   }
 
-  bool _verifyTypesFun(List<ValueType> inputs,
-      List<ValueType> Function(List<ValueType>) outputsFun,
+  bool _verifyTypesFun(List<ir.ValueType> inputs,
+      List<ir.ValueType> Function(List<ir.ValueType>) outputsFun,
       {List<Object>? trace, bool reachableAfter = true}) {
     if (!reachable) {
       return _debugTrace(trace, reachableAfter: false);
@@ -292,23 +285,23 @@ class Instructions implements Serializable {
           "Underflowing base stack of innermost block: expected [$expected], "
           "but stack contained [$got]");
     }
-    final List<ValueType> stack = _checkStackTypes(inputs);
+    final List<ir.ValueType> stack = _checkStackTypes(inputs);
     _stackTypes.length -= inputs.length;
     _stackTypes.addAll(outputsFun(stack));
     return _debugTrace(trace, reachableAfter: reachableAfter);
   }
 
   bool _verifyBranchTypes(Label label,
-      [int popped = 0, List<ValueType> pushed = const []]) {
+      [int popped = 0, List<ir.ValueType> pushed = const []]) {
     if (!reachable) {
       return true;
     }
-    final List<ValueType> inputs = label.targetTypes;
+    final List<ir.ValueType> inputs = label.targetTypes;
     if (_stackTypes.length - popped + pushed.length - inputs.length <
         label.baseStackHeight) {
       _reportError("Underflowing base stack of target label");
     }
-    final List<ValueType> stack = inputs.length <= pushed.length
+    final List<ir.ValueType> stack = inputs.length <= pushed.length
         ? pushed.sublist(pushed.length - inputs.length)
         : [
             ..._stackTypes.sublist(
@@ -322,11 +315,11 @@ class Instructions implements Serializable {
 
   bool _verifyStartOfBlock(Label label, {required List<Object> trace}) {
     return _debugTrace(
-        ["$label:", ...trace, FunctionType(label.inputs, label.outputs)],
+        ["$label:", ...trace, ir.FunctionType(label.inputs, label.outputs)],
         reachableAfter: reachable, indentAfter: 1);
   }
 
-  bool _verifyEndOfBlock(List<ValueType> outputs,
+  bool _verifyEndOfBlock(List<ir.ValueType> outputs,
       {required List<Object> trace,
       required bool reachableAfter,
       required bool reindent}) {
@@ -365,13 +358,13 @@ class Instructions implements Serializable {
     assert(_verifyTypes(const [], const [],
         trace: const ['unreachable'], reachableAfter: false));
     _reachable = false;
-    _add(const _Unreachable());
+    _add(const ir.Unreachable());
   }
 
   /// Emit a `nop` instruction.
   void nop() {
     assert(_verifyTypes(const [], const [], trace: const ['nop']));
-    _add(const _Nop());
+    _add(const ir.Nop());
   }
 
   Label _pushLabel(Label label, {required List<Object> trace}) {
@@ -388,15 +381,15 @@ class Instructions implements Serializable {
 
   Label _beginBlock(
       Label label,
-      _Instruction Function() noEffect,
-      _Instruction Function(ValueType type) oneOutput,
-      _Instruction Function(FunctionType type) function) {
+      ir.Instruction Function() noEffect,
+      ir.Instruction Function(ir.ValueType type) oneOutput,
+      ir.Instruction Function(ir.FunctionType type) function) {
     if (label.inputs.isEmpty && label.outputs.isEmpty) {
       _add(noEffect());
     } else if (label.inputs.isEmpty && label.outputs.length == 1) {
       _add(oneOutput(label.outputs.single));
     } else {
-      _add(function(module.addFunctionType(label.inputs, label.outputs)));
+      _add(function(module.types.defineFunction(label.inputs, label.outputs)));
     }
     return label;
   }
@@ -404,32 +397,36 @@ class Instructions implements Serializable {
   /// Emit a `block` instruction.
   /// Branching to the returned label will branch to the matching `end`.
   Label block(
-          [List<ValueType> inputs = const [],
-          List<ValueType> outputs = const []]) =>
+          [List<ir.ValueType> inputs = const [],
+          List<ir.ValueType> outputs = const []]) =>
       _beginBlock(
           _pushLabel(Block(inputs, outputs), trace: const ['block']),
-          _BeginNoEffectBlock.new,
-          _BeginOneOutputBlock.new,
-          _BeginFunctionBlock.new);
+          ir.BeginNoEffectBlock.new,
+          ir.BeginOneOutputBlock.new,
+          ir.BeginFunctionBlock.new);
 
   /// Emit a `loop` instruction.
   /// Branching to the returned label will branch to the `loop`.
   Label loop(
-          [List<ValueType> inputs = const [],
-          List<ValueType> outputs = const []]) =>
+          [List<ir.ValueType> inputs = const [],
+          List<ir.ValueType> outputs = const []]) =>
       _beginBlock(
           _pushLabel(Loop(inputs, outputs), trace: const ['loop']),
-          _BeginNoEffectLoop.new,
-          _BeginOneOutputLoop.new,
-          _BeginFunctionLoop.new);
+          ir.BeginNoEffectLoop.new,
+          ir.BeginOneOutputLoop.new,
+          ir.BeginFunctionLoop.new);
 
   /// Emit an `if` instruction.
   /// Branching to the returned label will branch to the matching `end`.
   Label if_(
-      [List<ValueType> inputs = const [], List<ValueType> outputs = const []]) {
-    assert(_verifyTypes(const [NumType.i32], const []));
-    return _beginBlock(_pushLabel(If(inputs, outputs), trace: const ['if']),
-        _BeginNoEffectIf.new, _BeginOneOutputIf.new, _BeginFunctionIf.new);
+      [List<ir.ValueType> inputs = const [],
+      List<ir.ValueType> outputs = const []]) {
+    assert(_verifyTypes(const [ir.NumType.i32], const []));
+    return _beginBlock(
+        _pushLabel(If(inputs, outputs), trace: const ['if']),
+        ir.BeginNoEffectIf.new,
+        ir.BeginOneOutputIf.new,
+        ir.BeginFunctionIf.new);
   }
 
   /// Emit an `else` instruction.
@@ -444,18 +441,21 @@ class Instructions implements Serializable {
         reindent: true));
     label.hasElse = true;
     _reachable = _topOfLabelStack.reachable;
-    _add(const _Else());
+    _add(const ir.Else());
   }
 
   /// Emit a `try` instruction.
   Label try_(
-          [List<ValueType> inputs = const [],
-          List<ValueType> outputs = const []]) =>
-      _beginBlock(_pushLabel(Try(inputs, outputs), trace: const ['try']),
-          _BeginNoEffectTry.new, _BeginOneOutputTry.new, _BeginFunctionTry.new);
+          [List<ir.ValueType> inputs = const [],
+          List<ir.ValueType> outputs = const []]) =>
+      _beginBlock(
+          _pushLabel(Try(inputs, outputs), trace: const ['try']),
+          ir.BeginNoEffectTry.new,
+          ir.BeginOneOutputTry.new,
+          ir.BeginFunctionTry.new);
 
   /// Emit a `catch` instruction.
-  void catch_(Tag tag) {
+  void catch_(ir.Tag tag) {
     assert(_topOfLabelStack is Try ||
         _reportError("Unexpected 'catch' (not in 'try' block)"));
     final Try try_ = _topOfLabelStack as Try;
@@ -463,7 +463,7 @@ class Instructions implements Serializable {
         trace: ['catch', tag], reachableAfter: try_.reachable, reindent: true));
     try_.hasCatch = true;
     _reachable = try_.reachable;
-    _add(_Catch(tag));
+    _add(ir.Catch(tag));
   }
 
   void catch_all() {
@@ -474,14 +474,14 @@ class Instructions implements Serializable {
         trace: ['catch_all'], reachableAfter: try_.reachable, reindent: true));
     try_.hasCatch = true;
     _reachable = try_.reachable;
-    _add(const _CatchAll());
+    _add(const ir.CatchAll());
   }
 
   /// Emit a `throw` instruction.
-  void throw_(Tag tag) {
+  void throw_(ir.Tag tag) {
     assert(_verifyTypes(tag.type.inputs, const [], trace: ['throw', tag]));
     _reachable = false;
-    _add(_Throw(tag));
+    _add(ir.Throw(tag));
   }
 
   /// Emit a `rethrow` instruction.
@@ -489,7 +489,7 @@ class Instructions implements Serializable {
     assert(label is Try && label.hasCatch);
     assert(_verifyTypes(const [], const [], trace: ['rethrow', label]));
     _reachable = false;
-    _add(_Rethrow(_labelIndex(label)));
+    _add(ir.Rethrow(_labelIndex(label)));
   }
 
   /// Emit an `end` instruction.
@@ -500,7 +500,7 @@ class Instructions implements Serializable {
         reindent: false));
     _reachable = _topOfLabelStack.reachable;
     _labelStack.removeLast();
-    _add(const _End());
+    _add(const ir.End());
   }
 
   int _labelIndex(Label label) {
@@ -515,27 +515,28 @@ class Instructions implements Serializable {
         trace: ['br', label], reachableAfter: false));
     assert(_verifyBranchTypes(label));
     _reachable = false;
-    _add(_Br(_labelIndex(label)));
+    _add(ir.Br(_labelIndex(label)));
   }
 
   /// Emit a `br_if` instruction.
   void br_if(Label label) {
-    assert(
-        _verifyTypes(const [NumType.i32], const [], trace: ['br_if', label]));
+    assert(_verifyTypes(const [ir.NumType.i32], const [],
+        trace: ['br_if', label]));
     assert(_verifyBranchTypes(label));
-    _add(_BrIf(_labelIndex(label)));
+    _add(ir.BrIf(_labelIndex(label)));
   }
 
   /// Emit a `br_table` instruction.
   void br_table(List<Label> labels, Label defaultLabel) {
-    assert(_verifyTypes(const [NumType.i32], const [],
+    assert(_verifyTypes(const [ir.NumType.i32], const [],
         trace: ['br_table', ...labels, defaultLabel], reachableAfter: false));
     for (var label in labels) {
       assert(_verifyBranchTypes(label));
     }
     assert(_verifyBranchTypes(defaultLabel));
     _reachable = false;
-    _add(_BrTable(labels.map(_labelIndex).toList(), _labelIndex(defaultLabel)));
+    _add(ir.BrTable(
+        labels.map(_labelIndex).toList(), _labelIndex(defaultLabel)));
   }
 
   /// Emit a `return` instruction.
@@ -543,29 +544,29 @@ class Instructions implements Serializable {
     assert(_verifyTypes(_labelStack[0].outputs, const [],
         trace: const ['return'], reachableAfter: false));
     _reachable = false;
-    _add(const _Return());
+    _add(const ir.Return());
   }
 
   /// Emit a `call` instruction.
-  void call(BaseFunction function) {
+  void call(ir.BaseFunction function) {
     assert(_verifyTypes(function.type.inputs, function.type.outputs,
         trace: ['call', function]));
-    _add(_Call(function));
+    _add(ir.Call(function));
   }
 
   /// Emit a `call_indirect` instruction.
-  void call_indirect(FunctionType type, [Table? table]) {
-    assert(_verifyTypes([...type.inputs, NumType.i32], type.outputs,
+  void call_indirect(ir.FunctionType type, [ir.Table? table]) {
+    assert(_verifyTypes([...type.inputs, ir.NumType.i32], type.outputs,
         trace: ['call_indirect', type, if (table != null) table.index]));
-    _add(_CallIndirect(type, table));
+    _add(ir.CallIndirect(type, table));
   }
 
   /// Emit a `call_ref` instruction.
-  void call_ref(FunctionType type) {
+  void call_ref(ir.FunctionType type) {
     assert(_verifyTypes(
-        [...type.inputs, RefType.def(type, nullable: true)], type.outputs,
+        [...type.inputs, ir.RefType.def(type, nullable: true)], type.outputs,
         trace: ['call_ref', type]));
-    _add(_CallRef(type));
+    _add(ir.CallRef(type));
   }
 
   // Parametric instructions
@@ -573,550 +574,567 @@ class Instructions implements Serializable {
   /// Emit a `drop` instruction.
   void drop() {
     assert(_verifyTypes([_topOfStack], const [], trace: const ['drop']));
-    _add(const _Drop());
+    _add(const ir.Drop());
   }
 
   /// Emit a `select` instruction.
-  void select(ValueType type) {
-    assert(_verifyTypes([type, type, NumType.i32], [type],
+  void select(ir.ValueType type) {
+    assert(_verifyTypes([type, type, ir.NumType.i32], [type],
         trace: ['select', type]));
-    _add(_Select(type));
+    _add(ir.Select(type));
   }
 
   // Variable instructions
 
   /// Emit a `local.get` instruction.
-  void local_get(Local local) {
+  void local_get(ir.Local local) {
     assert(locals[local.index] == local);
     assert(_verifyTypes(const [], [local.type], trace: ['local.get', local]));
     assert(_localIsInitialized(local) ||
         _reportError("Uninitialized local with non-defaultable type"));
-    _add(_LocalGet(local));
+    _add(ir.LocalGet(local));
   }
 
   /// Emit a `local.set` instruction.
-  void local_set(Local local) {
+  void local_set(ir.Local local) {
     assert(locals[local.index] == local);
     assert(_verifyTypes([local.type], const [], trace: ['local.set', local]));
     assert(_initializeLocal(local));
-    _add(_LocalSet(local));
+    _add(ir.LocalSet(local));
   }
 
   /// Emit a `local.tee` instruction.
-  void local_tee(Local local) {
+  void local_tee(ir.Local local) {
     assert(locals[local.index] == local);
     assert(
         _verifyTypes([local.type], [local.type], trace: ['local.tee', local]));
     assert(_initializeLocal(local));
-    _add(_LocalTee(local));
+    _add(ir.LocalTee(local));
   }
 
   /// Emit a `global.get` instruction.
-  void global_get(Global global) {
+  void global_get(ir.Global global) {
     assert(_verifyTypes(const [], [global.type.type],
         trace: ['global.get', global]));
-    _add(_GlobalGet(global));
+    _add(ir.GlobalGet(global));
   }
 
   /// Emit a `global.set` instruction.
-  void global_set(Global global) {
+  void global_set(ir.Global global) {
     assert(global.type.mutable);
     assert(_verifyTypes([global.type.type], const [],
         trace: ['global.set', global]));
-    _add(_GlobalSet(global));
+    _add(ir.GlobalSet(global));
   }
 
   // Table instructions
 
   /// Emit a `table.get` instruction.
-  void table_get(Table table) {
-    assert(_verifyTypes(const [NumType.i32], [table.type],
+  void table_get(ir.Table table) {
+    assert(_verifyTypes(const [ir.NumType.i32], [table.type],
         trace: ['table.get', table.index]));
-    _add(_TableSet(table));
+    _add(ir.TableSet(table));
   }
 
   /// Emit a `table.set` instruction.
-  void table_set(Table table) {
-    assert(_verifyTypes([NumType.i32, table.type], const [],
+  void table_set(ir.Table table) {
+    assert(_verifyTypes([ir.NumType.i32, table.type], const [],
         trace: ['table.set', table.index]));
-    _add(_TableGet(table));
+    _add(ir.TableGet(table));
   }
 
   /// Emit a `table.size` instruction.
-  void table_size(Table table) {
-    assert(_verifyTypes(const [], const [NumType.i32],
+  void table_size(ir.Table table) {
+    assert(_verifyTypes(const [], const [ir.NumType.i32],
         trace: ['table.size', table.index]));
-    _add(_TableSize(table));
+    _add(ir.TableSize(table));
   }
 
   // Memory instructions
   void _addMemoryInstruction(
-          _Instruction Function(_Memory memory) create, Memory memory,
-          {required int offset, required int align}) =>
-      _add(create(_Memory(memory, offset: offset, align: align)));
+          ir.Instruction Function(ir.MemoryOffsetAlign memory) create,
+          ir.Memory memory,
+          {required int offset,
+          required int align}) =>
+      _add(create(ir.MemoryOffsetAlign(memory, offset: offset, align: align)));
 
   /// Emit an `i32.load` instruction.
-  void i32_load(Memory memory, int offset, [int align = 2]) {
+  void i32_load(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: ['i32.load', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Load.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I32Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i64.load` instruction.
-  void i64_load(Memory memory, int offset, [int align = 3]) {
+  void i64_load(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I64Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f32.load` instruction.
-  void f32_load(Memory memory, int offset, [int align = 2]) {
+  void f32_load(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f32],
         trace: ['f32.load', memory.index, offset, align]));
-    _addMemoryInstruction(_F32Load.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.F32Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `f64.load` instruction.
-  void f64_load(Memory memory, int offset, [int align = 3]) {
+  void f64_load(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f64],
         trace: ['f64.load', memory.index, offset, align]));
-    _addMemoryInstruction(_F64Load.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.F64Load.new, memory, offset: offset, align: align);
   }
 
   /// Emit an `i32.load8_s` instruction.
-  void i32_load8_s(Memory memory, int offset, [int align = 0]) {
+  void i32_load8_s(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: ['i32.load8_s', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Load8S.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I32Load8S.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.load8_u` instruction.
-  void i32_load8_u(Memory memory, int offset, [int align = 0]) {
+  void i32_load8_u(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: ['i32.load8_u', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Load8U.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I32Load8U.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.load16_s` instruction.
-  void i32_load16_s(Memory memory, int offset, [int align = 1]) {
+  void i32_load16_s(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: ['i32.load16_s', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Load16S.new, memory,
+    _addMemoryInstruction(ir.I32Load16S.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i32.load16_u` instruction.
-  void i32_load16_u(Memory memory, int offset, [int align = 1]) {
+  void i32_load16_u(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: ['i32.load16_u', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Load16U.new, memory,
+    _addMemoryInstruction(ir.I32Load16U.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.load8_s` instruction.
-  void i64_load8_s(Memory memory, int offset, [int align = 0]) {
+  void i64_load8_s(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load8_s', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load8S.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I64Load8S.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load8_u` instruction.
-  void i64_load8_u(Memory memory, int offset, [int align = 0]) {
+  void i64_load8_u(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load8_u', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load8U.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I64Load8U.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.load16_s` instruction.
-  void i64_load16_s(Memory memory, int offset, [int align = 1]) {
+  void i64_load16_s(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load16_s', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load16S.new, memory,
+    _addMemoryInstruction(ir.I64Load16S.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.load16_u` instruction.
-  void i64_load16_u(Memory memory, int offset, [int align = 1]) {
+  void i64_load16_u(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load16_u', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load16U.new, memory,
+    _addMemoryInstruction(ir.I64Load16U.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.load32_s` instruction.
-  void i64_load32_s(Memory memory, int offset, [int align = 2]) {
+  void i64_load32_s(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load32_s', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load32S.new, memory,
+    _addMemoryInstruction(ir.I64Load32S.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.load32_u` instruction.
-  void i64_load32_u(Memory memory, int offset, [int align = 2]) {
+  void i64_load32_u(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: ['i64.load32_u', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Load32U.new, memory,
+    _addMemoryInstruction(ir.I64Load32U.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i32.store` instruction.
-  void i32_store(Memory memory, int offset, [int align = 2]) {
+  void i32_store(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
         trace: ['i32.store', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Store.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I32Store.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.store` instruction.
-  void i64_store(Memory memory, int offset, [int align = 3]) {
+  void i64_store(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
-    assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
         trace: ['i64.store', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Store.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I64Store.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `f32.store` instruction.
-  void f32_store(Memory memory, int offset, [int align = 2]) {
+  void f32_store(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32, NumType.f32], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.f32], const [],
         trace: ['f32.store', memory.index, offset, align]));
-    _addMemoryInstruction(_F32Store.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.F32Store.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `f64.store` instruction.
-  void f64_store(Memory memory, int offset, [int align = 3]) {
+  void f64_store(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
-    assert(_verifyTypes(const [NumType.i32, NumType.f64], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.f64], const [],
         trace: ['f64.store', memory.index, offset, align]));
-    _addMemoryInstruction(_F64Store.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.F64Store.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.store8` instruction.
-  void i32_store8(Memory memory, int offset, [int align = 0]) {
+  void i32_store8(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
         trace: ['i32.store8', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Store8.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I32Store8.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i32.store16` instruction.
-  void i32_store16(Memory memory, int offset, [int align = 1]) {
+  void i32_store16(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
         trace: ['i32.store16', memory.index, offset, align]));
-    _addMemoryInstruction(_I32Store16.new, memory,
+    _addMemoryInstruction(ir.I32Store16.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.store8` instruction.
-  void i64_store8(Memory memory, int offset, [int align = 0]) {
+  void i64_store8(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
-    assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
         trace: ['i64.store8', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Store8.new, memory, offset: offset, align: align);
+    _addMemoryInstruction(ir.I64Store8.new, memory,
+        offset: offset, align: align);
   }
 
   /// Emit an `i64.store16` instruction.
-  void i64_store16(Memory memory, int offset, [int align = 1]) {
+  void i64_store16(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
-    assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
         trace: ['i64.store16', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Store16.new, memory,
+    _addMemoryInstruction(ir.I64Store16.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit an `i64.store32` instruction.
-  void i64_store32(Memory memory, int offset, [int align = 2]) {
+  void i64_store32(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
-    assert(_verifyTypes(const [NumType.i32, NumType.i64], const [],
+    assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
         trace: ['i64.store32', memory.index, offset, align]));
-    _addMemoryInstruction(_I64Store32.new, memory,
+    _addMemoryInstruction(ir.I64Store32.new, memory,
         offset: offset, align: align);
   }
 
   /// Emit a `memory.size` instruction.
-  void memory_size(Memory memory) {
-    assert(_verifyTypes(const [], const [NumType.i32]));
-    _add(_MemorySize(memory));
+  void memory_size(ir.Memory memory) {
+    assert(_verifyTypes(const [], const [ir.NumType.i32]));
+    _add(ir.MemorySize(memory));
   }
 
   /// Emit a `memory.grow` instruction.
-  void memory_grow(Memory memory) {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32]));
-    _add(_MemoryGrow(memory));
+  void memory_grow(ir.Memory memory) {
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32]));
+    _add(ir.MemoryGrow(memory));
   }
 
   // Reference instructions
 
   /// Emit a `ref.null` instruction.
-  void ref_null(HeapType heapType) {
-    assert(_verifyTypes(const [], [RefType(heapType, nullable: true)],
+  void ref_null(ir.HeapType heapType) {
+    assert(_verifyTypes(const [], [ir.RefType(heapType, nullable: true)],
         trace: ['ref.null', heapType]));
-    _add(_RefNull(heapType));
+    _add(ir.RefNull(heapType));
   }
 
   /// Emit a `ref.is_null` instruction.
   void ref_is_null() {
     assert(_verifyTypes(
-        const [RefType.common(nullable: true)], const [NumType.i32],
+        const [ir.RefType.common(nullable: true)], const [ir.NumType.i32],
         trace: const ['ref.is_null']));
-    _add(const _RefIsNull());
+    _add(const ir.RefIsNull());
   }
 
   /// Emit a `ref.func` instruction.
-  void ref_func(BaseFunction function) {
-    assert(_verifyTypes(const [], [RefType.def(function.type, nullable: false)],
+  void ref_func(ir.BaseFunction function) {
+    assert(_verifyTypes(
+        const [], [ir.RefType.def(function.type, nullable: false)],
         trace: ['ref.func', function]));
-    _add(_RefFunc(function));
+    _add(ir.RefFunc(function));
   }
 
   /// Emit a `ref.as_non_null` instruction.
   void ref_as_non_null() {
-    assert(_verifyTypes(const [RefType.common(nullable: true)],
+    assert(_verifyTypes(const [ir.RefType.common(nullable: true)],
         [_topOfStack.withNullability(false)],
         trace: const ['ref.as_non_null']));
-    _add(const _RefAsNonNull());
+    _add(const ir.RefAsNonNull());
   }
 
   /// Emit a `br_on_null` instruction.
   void br_on_null(Label label) {
-    assert(_verifyTypes(const [RefType.common(nullable: true)],
+    assert(_verifyTypes(const [ir.RefType.common(nullable: true)],
         [_topOfStack.withNullability(false)],
         trace: ['br_on_null', label]));
     assert(_verifyBranchTypes(label, 1));
-    _add(_BrOnNull(_labelIndex(label)));
+    _add(ir.BrOnNull(_labelIndex(label)));
   }
 
   /// Emit a `ref.eq` instruction.
   void ref_eq() {
     assert(_verifyTypes(
-        const [RefType.eq(nullable: true), RefType.eq(nullable: true)],
-        const [NumType.i32],
+        const [ir.RefType.eq(nullable: true), ir.RefType.eq(nullable: true)],
+        const [ir.NumType.i32],
         trace: const ['ref.eq']));
-    _add(const _RefEq());
+    _add(const ir.RefEq());
   }
 
   /// Emit a `br_on_non_null` instruction.
   void br_on_non_null(Label label) {
     assert(_verifyBranchTypes(label, 1, [_topOfStack.withNullability(false)]));
-    assert(_verifyTypes(const [RefType.common(nullable: true)], const [],
+    assert(_verifyTypes(const [ir.RefType.common(nullable: true)], const [],
         trace: ['br_on_non_null', label]));
-    _add(_BrOnNonNull(_labelIndex(label)));
+    _add(ir.BrOnNonNull(_labelIndex(label)));
   }
 
   /// Emit a `struct.get` instruction.
-  void struct_get(StructType structType, int fieldIndex) {
-    assert(structType.fields[fieldIndex].type is ValueType);
-    assert(_verifyTypes([RefType.def(structType, nullable: true)],
+  void struct_get(ir.StructType structType, int fieldIndex) {
+    assert(structType.fields[fieldIndex].type is ir.ValueType);
+    assert(_verifyTypes([ir.RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get', structType, fieldIndex]));
-    _add(_StructGet(structType, fieldIndex));
+    _add(ir.StructGet(structType, fieldIndex));
   }
 
   /// Emit a `struct.get_s` instruction.
-  void struct_get_s(StructType structType, int fieldIndex) {
-    assert(structType.fields[fieldIndex].type is PackedType);
-    assert(_verifyTypes([RefType.def(structType, nullable: true)],
+  void struct_get_s(ir.StructType structType, int fieldIndex) {
+    assert(structType.fields[fieldIndex].type is ir.PackedType);
+    assert(_verifyTypes([ir.RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get_s', structType, fieldIndex]));
-    _add(_StructGetS(structType, fieldIndex));
+    _add(ir.StructGetS(structType, fieldIndex));
   }
 
   /// Emit a `struct.get_u` instruction.
-  void struct_get_u(StructType structType, int fieldIndex) {
-    assert(structType.fields[fieldIndex].type is PackedType);
-    assert(_verifyTypes([RefType.def(structType, nullable: true)],
+  void struct_get_u(ir.StructType structType, int fieldIndex) {
+    assert(structType.fields[fieldIndex].type is ir.PackedType);
+    assert(_verifyTypes([ir.RefType.def(structType, nullable: true)],
         [structType.fields[fieldIndex].type.unpacked],
         trace: ['struct.get_u', structType, fieldIndex]));
-    _add(_StructGetU(structType, fieldIndex));
+    _add(ir.StructGetU(structType, fieldIndex));
   }
 
   /// Emit a `struct.set` instruction.
-  void struct_set(StructType structType, int fieldIndex) {
+  void struct_set(ir.StructType structType, int fieldIndex) {
     assert(_verifyTypes([
-      RefType.def(structType, nullable: true),
+      ir.RefType.def(structType, nullable: true),
       structType.fields[fieldIndex].type.unpacked
     ], const [], trace: [
       'struct.set',
       structType,
       fieldIndex
     ]));
-    _add(_StructSet(structType, fieldIndex));
+    _add(ir.StructSet(structType, fieldIndex));
   }
 
   /// Emit a `struct.new` instruction.
-  void struct_new(StructType structType) {
+  void struct_new(ir.StructType structType) {
     assert(_verifyTypes([...structType.fields.map((f) => f.type.unpacked)],
-        [RefType.def(structType, nullable: false)],
+        [ir.RefType.def(structType, nullable: false)],
         trace: ['struct.new', structType]));
-    _add(_StructNew(structType));
+    _add(ir.StructNew(structType));
   }
 
   /// Emit a `struct.new_default` instruction.
-  void struct_new_default(StructType structType) {
-    assert(_verifyTypes(const [], [RefType.def(structType, nullable: false)],
+  void struct_new_default(ir.StructType structType) {
+    assert(_verifyTypes(const [], [ir.RefType.def(structType, nullable: false)],
         trace: ['struct.new_default', structType]));
-    _add(_StructNewDefault(structType));
+    _add(ir.StructNewDefault(structType));
   }
 
   /// Emit an `array.get` instruction.
-  void array_get(ArrayType arrayType) {
-    assert(arrayType.elementType.type is ValueType);
-    assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
+  void array_get(ir.ArrayType arrayType) {
+    assert(arrayType.elementType.type is ir.ValueType);
+    assert(_verifyTypes(
+        [ir.RefType.def(arrayType, nullable: true), ir.NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get', arrayType]));
-    _add(_ArrayGet(arrayType));
+    _add(ir.ArrayGet(arrayType));
   }
 
   /// Emit an `array.get_s` instruction.
-  void array_get_s(ArrayType arrayType) {
-    assert(arrayType.elementType.type is PackedType);
-    assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
+  void array_get_s(ir.ArrayType arrayType) {
+    assert(arrayType.elementType.type is ir.PackedType);
+    assert(_verifyTypes(
+        [ir.RefType.def(arrayType, nullable: true), ir.NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get_s', arrayType]));
-    _add(_ArrayGetS(arrayType));
+    _add(ir.ArrayGetS(arrayType));
   }
 
   /// Emit an `array.get_u` instruction.
-  void array_get_u(ArrayType arrayType) {
-    assert(arrayType.elementType.type is PackedType);
-    assert(_verifyTypes([RefType.def(arrayType, nullable: true), NumType.i32],
+  void array_get_u(ir.ArrayType arrayType) {
+    assert(arrayType.elementType.type is ir.PackedType);
+    assert(_verifyTypes(
+        [ir.RefType.def(arrayType, nullable: true), ir.NumType.i32],
         [arrayType.elementType.type.unpacked],
         trace: ['array.get_u', arrayType]));
-    _add(_ArrayGetU(arrayType));
+    _add(ir.ArrayGetU(arrayType));
   }
 
   /// Emit an `array.set` instruction.
-  void array_set(ArrayType arrayType) {
+  void array_set(ir.ArrayType arrayType) {
     assert(_verifyTypes([
-      RefType.def(arrayType, nullable: true),
-      NumType.i32,
+      ir.RefType.def(arrayType, nullable: true),
+      ir.NumType.i32,
       arrayType.elementType.type.unpacked
     ], const [], trace: [
       'array.set',
       arrayType
     ]));
-    _add(_ArraySet(arrayType));
+    _add(ir.ArraySet(arrayType));
   }
 
   /// Emit an `array.len` instruction.
   void array_len() {
-    assert(_verifyTypes([RefType.array(nullable: true)], const [NumType.i32],
+    assert(_verifyTypes(
+        [ir.RefType.array(nullable: true)], const [ir.NumType.i32],
         trace: ['array.len']));
-    _add(const _ArrayLen());
+    _add(const ir.ArrayLen());
   }
 
   /// Emit an `array.new_fixed` instruction.
-  void array_new_fixed(ArrayType arrayType, int length) {
-    ValueType elementType = arrayType.elementType.type.unpacked;
+  void array_new_fixed(ir.ArrayType arrayType, int length) {
+    ir.ValueType elementType = arrayType.elementType.type.unpacked;
     assert(_verifyTypes([...List.filled(length, elementType)],
-        [RefType.def(arrayType, nullable: false)],
+        [ir.RefType.def(arrayType, nullable: false)],
         trace: ['array.new_fixed', arrayType, length]));
-    _add(_ArrayNewFixed(arrayType, length));
+    _add(ir.ArrayNewFixed(arrayType, length));
   }
 
   /// Emit an `array.new` instruction.
-  void array_new(ArrayType arrayType) {
-    assert(_verifyTypes([arrayType.elementType.type.unpacked, NumType.i32],
-        [RefType.def(arrayType, nullable: false)],
+  void array_new(ir.ArrayType arrayType) {
+    assert(_verifyTypes([arrayType.elementType.type.unpacked, ir.NumType.i32],
+        [ir.RefType.def(arrayType, nullable: false)],
         trace: ['array.new', arrayType]));
-    _add(_ArrayNew(arrayType));
+    _add(ir.ArrayNew(arrayType));
   }
 
   /// Emit an `array.new_default` instruction.
-  void array_new_default(ArrayType arrayType) {
+  void array_new_default(ir.ArrayType arrayType) {
     assert(_verifyTypes(
-        [NumType.i32], [RefType.def(arrayType, nullable: false)],
+        [ir.NumType.i32], [ir.RefType.def(arrayType, nullable: false)],
         trace: ['array.new_default', arrayType]));
-    _add(_ArrayNewDefault(arrayType));
+    _add(ir.ArrayNewDefault(arrayType));
   }
 
   /// Emit an `array.new_data` instruction.
-  void array_new_data(ArrayType arrayType, DataSegment data) {
+  void array_new_data(ir.ArrayType arrayType, ir.BaseDataSegment data) {
     assert(arrayType.elementType.type.isPrimitive);
-    assert(_verifyTypes(
-        [NumType.i32, NumType.i32], [RefType.def(arrayType, nullable: false)],
+    assert(_verifyTypes([ir.NumType.i32, ir.NumType.i32],
+        [ir.RefType.def(arrayType, nullable: false)],
         trace: ['array.new_data', arrayType, data.index]));
-    _add(_ArrayNewData(arrayType, data));
+    _add(ir.ArrayNewData(arrayType, data));
     if (isGlobalInitializer) module.dataReferencedFromGlobalInitializer = true;
   }
 
   /// Emit an `array.copy` instruction.
-  void array_copy(ArrayType destArrayType, ArrayType sourceArrayType) {
+  void array_copy(ir.ArrayType destArrayType, ir.ArrayType sourceArrayType) {
     assert(_verifyTypes([
-      RefType.def(destArrayType, nullable: true), // dest
-      NumType.i32, // dest_offset
-      RefType.def(sourceArrayType, nullable: true), // source
-      NumType.i32, // source_offset
-      NumType.i32 // size
+      ir.RefType.def(destArrayType, nullable: true), // dest
+      ir.NumType.i32, // dest_offset
+      ir.RefType.def(sourceArrayType, nullable: true), // source
+      ir.NumType.i32, // source_offset
+      ir.NumType.i32 // size
     ], [], trace: [
       'array.copy',
       destArrayType,
       sourceArrayType
     ]));
-    _add(_ArrayCopy(
+    _add(ir.ArrayCopy(
         destArrayType: destArrayType, sourceArrayType: sourceArrayType));
   }
 
   /// Emit an `array.fill` instruction.
-  void array_fill(ArrayType arrayType) {
+  void array_fill(ir.ArrayType arrayType) {
     assert(_verifyTypes([
-      RefType.def(arrayType, nullable: true),
-      NumType.i32, // offset
+      ir.RefType.def(arrayType, nullable: true),
+      ir.NumType.i32, // offset
       arrayType.elementType.type.unpacked, // fill value
-      NumType.i32 // size
+      ir.NumType.i32 // size
     ], [], trace: [
       'array.copy',
       arrayType,
     ]));
-    _add(_ArrayFill(arrayType));
+    _add(ir.ArrayFill(arrayType));
   }
 
   /// Emit an `i31.new` instruction.
   void i31_new() {
     assert(_verifyTypes(
-        const [NumType.i32], const [RefType.i31(nullable: false)],
+        const [ir.NumType.i32], const [ir.RefType.i31(nullable: false)],
         trace: const ['i31.new']));
-    _add(const _I31New());
+    _add(const ir.I31New());
   }
 
   /// Emit an `i31.get_s` instruction.
   void i31_get_s() {
     assert(_verifyTypes(
-        const [RefType.i31(nullable: false)], const [NumType.i32],
+        const [ir.RefType.i31(nullable: false)], const [ir.NumType.i32],
         trace: const ['i31.get_s']));
-    _add(const _I31GetS());
+    _add(const ir.I31GetS());
   }
 
   /// Emit an `i31.get_u` instruction.
   void i31_get_u() {
     assert(_verifyTypes(
-        const [RefType.i31(nullable: false)], const [NumType.i32],
+        const [ir.RefType.i31(nullable: false)], const [ir.NumType.i32],
         trace: const ['i31.get_u']));
-    _add(const _I31GetU());
+    _add(const ir.I31GetU());
   }
 
-  bool _verifyCast(RefType targetType, ValueType outputType,
+  bool _verifyCast(ir.RefType targetType, ir.ValueType outputType,
       {List<Object>? trace}) {
-    ValueType inputType = _topOfStack;
-    _verifyTypes(const [RefType.common(nullable: true)], [outputType],
+    ir.ValueType inputType = _topOfStack;
+    _verifyTypes(const [ir.RefType.common(nullable: true)], [outputType],
         trace: trace);
     if (reachable &&
-        (inputType as RefType).heapType.topType !=
+        (inputType as ir.RefType).heapType.topType !=
             targetType.heapType.topType) {
       _reportError("Input type $inputType does not belong to the same hierarchy"
           " as target type $targetType");
@@ -1125,27 +1143,27 @@ class Instructions implements Serializable {
   }
 
   /// Emit a `ref.test` instruction.
-  void ref_test(RefType targetType) {
-    assert(_verifyCast(targetType, NumType.i32, trace: [
+  void ref_test(ir.RefType targetType) {
+    assert(_verifyCast(targetType, ir.NumType.i32, trace: [
       'ref.test',
       if (targetType.nullable) 'null',
       targetType.heapType
     ]));
-    _add(_RefTest(targetType));
+    _add(ir.RefTest(targetType));
   }
 
   /// Emit a `ref.cast` instruction.
-  void ref_cast(RefType targetType) {
+  void ref_cast(ir.RefType targetType) {
     assert(_verifyCast(targetType, targetType, trace: [
       'ref.cast',
       if (targetType.nullable) 'null',
       targetType.heapType
     ]));
-    _add(_RefCast(targetType));
+    _add(ir.RefCast(targetType));
   }
 
   /// Emit a `br_on_cast` instruction.
-  void br_on_cast(RefType targetType, Label label) {
+  void br_on_cast(ir.RefType targetType, Label label) {
     assert(_verifyCast(targetType, _topOfStack, trace: [
       'br_on_cast',
       if (targetType.nullable) 'null',
@@ -1153,11 +1171,11 @@ class Instructions implements Serializable {
       label
     ]));
     assert(_verifyBranchTypes(label, 1, [targetType]));
-    _add(_BrOnCast(targetType, _labelIndex(label)));
+    _add(ir.BrOnCast(targetType, _labelIndex(label)));
   }
 
   /// Emit a `br_on_cast_fail` instruction.
-  void br_on_cast_fail(RefType targetType, Label label) {
+  void br_on_cast_fail(ir.RefType targetType, Label label) {
     assert(_verifyCast(targetType, targetType, trace: [
       'br_on_cast_fail',
       if (targetType.nullable) 'null',
@@ -1165,1005 +1183,1081 @@ class Instructions implements Serializable {
       label
     ]));
     assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    _add(_BrOnCastFail(targetType, _labelIndex(label)));
+    _add(ir.BrOnCastFail(targetType, _labelIndex(label)));
   }
 
   /// Emit an `extern.internalize` instruction.
   void extern_internalize() {
-    assert(_verifyTypesFun(const [RefType.extern(nullable: true)],
-        (inputs) => [RefType.any(nullable: inputs.single.nullable)],
+    assert(_verifyTypesFun(const [ir.RefType.extern(nullable: true)],
+        (inputs) => [ir.RefType.any(nullable: inputs.single.nullable)],
         trace: ['extern.internalize']));
-    _add(const _ExternInternalize());
+    _add(const ir.ExternInternalize());
   }
 
   /// Emit an `extern.externalize` instruction.
   void extern_externalize() {
-    assert(_verifyTypesFun(const [RefType.any(nullable: true)],
-        (inputs) => [RefType.extern(nullable: inputs.single.nullable)],
+    assert(_verifyTypesFun(const [ir.RefType.any(nullable: true)],
+        (inputs) => [ir.RefType.extern(nullable: inputs.single.nullable)],
         trace: ['extern.externalize']));
-    _add(const _ExternExternalize());
+    _add(const ir.ExternExternalize());
   }
 
   // Numeric instructions
 
   /// Emit an `i32.const` instruction.
   void i32_const(int value) {
-    assert(_verifyTypes(const [], const [NumType.i32],
+    assert(_verifyTypes(const [], const [ir.NumType.i32],
         trace: ['i32.const', value]));
     assert(-1 << 31 <= value && value < 1 << 31);
-    _add(_I32Const(value));
+    _add(ir.I32Const(value));
   }
 
   /// Emit an `i64.const` instruction.
   void i64_const(int value) {
-    assert(_verifyTypes(const [], const [NumType.i64],
+    assert(_verifyTypes(const [], const [ir.NumType.i64],
         trace: ['i64.const', value]));
-    _add(_I64Const(value));
+    _add(ir.I64Const(value));
   }
 
   /// Emit an `f32.const` instruction.
   void f32_const(double value) {
-    assert(_verifyTypes(const [], const [NumType.f32],
+    assert(_verifyTypes(const [], const [ir.NumType.f32],
         trace: ['f32.const', value]));
-    _add(_F32Const(value));
+    _add(ir.F32Const(value));
   }
 
   /// Emit an `f64.const` instruction.
   void f64_const(double value) {
-    assert(_verifyTypes(const [], const [NumType.f64],
+    assert(_verifyTypes(const [], const [ir.NumType.f64],
         trace: ['f64.const', value]));
-    _add(_F64Const(value));
+    _add(ir.F64Const(value));
   }
 
   /// Emit an `i32.eqz` instruction.
   void i32_eqz() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.eqz']));
-    _add(const _I32Eqz());
+    _add(const ir.I32Eqz());
   }
 
   /// Emit an `i32.eq` instruction.
   void i32_eq() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.eq']));
-    _add(const _I32Eq());
+    _add(const ir.I32Eq());
   }
 
   /// Emit an `i32.ne` instruction.
   void i32_ne() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.ne']));
-    _add(const _I32Ne());
+    _add(const ir.I32Ne());
   }
 
   /// Emit an `i32.lt_s` instruction.
   void i32_lt_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.lt_s']));
-    _add(const _I32LtS());
+    _add(const ir.I32LtS());
   }
 
   /// Emit an `i32.lt_u` instruction.
   void i32_lt_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.lt_u']));
-    _add(const _I32LtU());
+    _add(const ir.I32LtU());
   }
 
   /// Emit an `i32.gt_s` instruction.
   void i32_gt_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.gt_s']));
-    _add(const _I32GtS());
+    _add(const ir.I32GtS());
   }
 
   /// Emit an `i32.gt_u` instruction.
   void i32_gt_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.gt_u']));
-    _add(const _I32GtU());
+    _add(const ir.I32GtU());
   }
 
   /// Emit an `i32.le_s` instruction.
   void i32_le_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.le_s']));
-    _add(const _I32LeS());
+    _add(const ir.I32LeS());
   }
 
   /// Emit an `i32.le_u` instruction.
   void i32_le_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.le_u']));
-    _add(const _I32LeU());
+    _add(const ir.I32LeU());
   }
 
   /// Emit an `i32.ge_s` instruction.
   void i32_ge_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.ge_s']));
-    _add(const _I32GeS());
+    _add(const ir.I32GeS());
   }
 
   /// Emit an `i32.ge_u` instruction.
   void i32_ge_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.ge_u']));
-    _add(const _I32GeU());
+    _add(const ir.I32GeU());
   }
 
   /// Emit an `i64.eqz` instruction.
   void i64_eqz() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.eqz']));
-    _add(const _I64Eqz());
+    _add(const ir.I64Eqz());
   }
 
   /// Emit an `i64.eq` instruction.
   void i64_eq() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.eq']));
-    _add(const _I64Eq());
+    _add(const ir.I64Eq());
   }
 
   /// Emit an `i64.ne` instruction.
   void i64_ne() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.ne']));
-    _add(const _I64Ne());
+    _add(const ir.I64Ne());
   }
 
   /// Emit an `i64.lt_s` instruction.
   void i64_lt_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.lt_s']));
-    _add(const _I64LtS());
+    _add(const ir.I64LtS());
   }
 
   /// Emit an `i64.lt_u` instruction.
   void i64_lt_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.lt_u']));
-    _add(const _I64LtU());
+    _add(const ir.I64LtU());
   }
 
   /// Emit an `i64.gt_s` instruction.
   void i64_gt_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.gt_s']));
-    _add(const _I64GtS());
+    _add(const ir.I64GtS());
   }
 
   /// Emit an `i64.gt_u` instruction.
   void i64_gt_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.gt_u']));
-    _add(const _I64GtU());
+    _add(const ir.I64GtU());
   }
 
   /// Emit an `i64.le_s` instruction.
   void i64_le_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.le_s']));
-    _add(const _I64LeS());
+    _add(const ir.I64LeS());
   }
 
   /// Emit an `i64.le_u` instruction.
   void i64_le_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.le_u']));
-    _add(const _I64LeU());
+    _add(const ir.I64LeU());
   }
 
   /// Emit an `i64.ge_s` instruction.
   void i64_ge_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.ge_s']));
-    _add(const _I64GeS());
+    _add(const ir.I64GeS());
   }
 
   /// Emit an `i64.ge_u` instruction.
   void i64_ge_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i64.ge_u']));
-    _add(const _I64GeU());
+    _add(const ir.I64GeU());
   }
 
   /// Emit an `f32.eq` instruction.
   void f32_eq() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.eq']));
-    _add(const _F32Eq());
+    _add(const ir.F32Eq());
   }
 
   /// Emit an `f32.ne` instruction.
   void f32_ne() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.ne']));
-    _add(const _F32Ne());
+    _add(const ir.F32Ne());
   }
 
   /// Emit an `f32.lt` instruction.
   void f32_lt() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.lt']));
-    _add(const _F32Lt());
+    _add(const ir.F32Lt());
   }
 
   /// Emit an `f32.gt` instruction.
   void f32_gt() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.gt']));
-    _add(const _F32Gt());
+    _add(const ir.F32Gt());
   }
 
   /// Emit an `f32.le` instruction.
   void f32_le() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.le']));
-    _add(const _F32Le());
+    _add(const ir.F32Le());
   }
 
   /// Emit an `f32.ge` instruction.
   void f32_ge() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['f32.ge']));
-    _add(const _F32Ge());
+    _add(const ir.F32Ge());
   }
 
   /// Emit an `f64.eq` instruction.
   void f64_eq() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.eq']));
-    _add(const _F64Eq());
+    _add(const ir.F64Eq());
   }
 
   /// Emit an `f64.ne` instruction.
   void f64_ne() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.ne']));
-    _add(const _F64Ne());
+    _add(const ir.F64Ne());
   }
 
   /// Emit an `f64.lt` instruction.
   void f64_lt() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.lt']));
-    _add(const _F64Lt());
+    _add(const ir.F64Lt());
   }
 
   /// Emit an `f64.gt` instruction.
   void f64_gt() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.gt']));
-    _add(const _F64Gt());
+    _add(const ir.F64Gt());
   }
 
   /// Emit an `f64.le` instruction.
   void f64_le() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.le']));
-    _add(const _F64Le());
+    _add(const ir.F64Le());
   }
 
   /// Emit an `f64.ge` instruction.
   void f64_ge() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['f64.ge']));
-    _add(const _F64Ge());
+    _add(const ir.F64Ge());
   }
 
   /// Emit an `i32.clz` instruction.
   void i32_clz() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.clz']));
-    _add(const _I32Clz());
+    _add(const ir.I32Clz());
   }
 
   /// Emit an `i32.ctz` instruction.
   void i32_ctz() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.ctz']));
-    _add(const _I32Ctz());
+    _add(const ir.I32Ctz());
   }
 
   /// Emit an `i32.popcnt` instruction.
   void i32_popcnt() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.popcnt']));
-    _add(const _I32Popcnt());
+    _add(const ir.I32Popcnt());
   }
 
   /// Emit an `i32.add` instruction.
   void i32_add() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.add']));
-    _add(const _I32Add());
+    _add(const ir.I32Add());
   }
 
   /// Emit an `i32.sub` instruction.
   void i32_sub() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.sub']));
-    _add(const _I32Sub());
+    _add(const ir.I32Sub());
   }
 
   /// Emit an `i32.mul` instruction.
   void i32_mul() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.mul']));
-    _add(const _I32Mul());
+    _add(const ir.I32Mul());
   }
 
   /// Emit an `i32.div_s` instruction.
   void i32_div_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.div_s']));
-    _add(const _I32DivS());
+    _add(const ir.I32DivS());
   }
 
   /// Emit an `i32.div_u` instruction.
   void i32_div_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.div_u']));
-    _add(const _I32DivU());
+    _add(const ir.I32DivU());
   }
 
   /// Emit an `i32.rem_s` instruction.
   void i32_rem_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.rem_s']));
-    _add(const _I32RemS());
+    _add(const ir.I32RemS());
   }
 
   /// Emit an `i32.rem_u` instruction.
   void i32_rem_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.rem_u']));
-    _add(const _I32RemU());
+    _add(const ir.I32RemU());
   }
 
   /// Emit an `i32.and` instruction.
   void i32_and() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.and']));
-    _add(const _I32And());
+    _add(const ir.I32And());
   }
 
   /// Emit an `i32.or` instruction.
   void i32_or() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.or']));
-    _add(const _I32Or());
+    _add(const ir.I32Or());
   }
 
   /// Emit an `i32.xor` instruction.
   void i32_xor() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.xor']));
-    _add(const _I32Xor());
+    _add(const ir.I32Xor());
   }
 
   /// Emit an `i32.shl` instruction.
   void i32_shl() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.shl']));
-    _add(const _I32Shl());
+    _add(const ir.I32Shl());
   }
 
   /// Emit an `i32.shr_s` instruction.
   void i32_shr_s() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.shr_s']));
-    _add(const _I32ShrS());
+    _add(const ir.I32ShrS());
   }
 
   /// Emit an `i32.shr_u` instruction.
   void i32_shr_u() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.shr_u']));
-    _add(const _I32ShrU());
+    _add(const ir.I32ShrU());
   }
 
   /// Emit an `i32.rotl` instruction.
   void i32_rotl() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.rotl']));
-    _add(const _I32Rotl());
+    _add(const ir.I32Rotl());
   }
 
   /// Emit an `i32.rotr` instruction.
   void i32_rotr() {
-    assert(_verifyTypes(const [NumType.i32, NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(
+        const [ir.NumType.i32, ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.rotr']));
-    _add(const _I32Rotr());
+    _add(const ir.I32Rotr());
   }
 
   /// Emit an `i64.clz` instruction.
   void i64_clz() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.clz']));
-    _add(const _I64Clz());
+    _add(const ir.I64Clz());
   }
 
   /// Emit an `i64.ctz` instruction.
   void i64_ctz() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.ctz']));
-    _add(const _I64Ctz());
+    _add(const ir.I64Ctz());
   }
 
   /// Emit an `i64.popcnt` instruction.
   void i64_popcnt() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.popcnt']));
-    _add(const _I64Popcnt());
+    _add(const ir.I64Popcnt());
   }
 
   /// Emit an `i64.add` instruction.
   void i64_add() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.add']));
-    _add(const _I64Add());
+    _add(const ir.I64Add());
   }
 
   /// Emit an `i64.sub` instruction.
   void i64_sub() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.sub']));
-    _add(const _I64Sub());
+    _add(const ir.I64Sub());
   }
 
   /// Emit an `i64.mul` instruction.
   void i64_mul() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.mul']));
-    _add(const _I64Mul());
+    _add(const ir.I64Mul());
   }
 
   /// Emit an `i64.div_s` instruction.
   void i64_div_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.div_s']));
-    _add(const _I64DivS());
+    _add(const ir.I64DivS());
   }
 
   /// Emit an `i64.div_u` instruction.
   void i64_div_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.div_u']));
-    _add(const _I64DivU());
+    _add(const ir.I64DivU());
   }
 
   /// Emit an `i64.rem_s` instruction.
   void i64_rem_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.rem_s']));
-    _add(const _I64RemS());
+    _add(const ir.I64RemS());
   }
 
   /// Emit an `i64.rem_u` instruction.
   void i64_rem_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.rem_u']));
-    _add(const _I64RemU());
+    _add(const ir.I64RemU());
   }
 
   /// Emit an `i64.and` instruction.
   void i64_and() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.and']));
-    _add(const _I64And());
+    _add(const ir.I64And());
   }
 
   /// Emit an `i64.or` instruction.
   void i64_or() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.or']));
-    _add(const _I64Or());
+    _add(const ir.I64Or());
   }
 
   /// Emit an `i64.xor` instruction.
   void i64_xor() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.xor']));
-    _add(const _I64Xor());
+    _add(const ir.I64Xor());
   }
 
   /// Emit an `i64.shl` instruction.
   void i64_shl() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.shl']));
-    _add(const _I64Shl());
+    _add(const ir.I64Shl());
   }
 
   /// Emit an `i64.shr_s` instruction.
   void i64_shr_s() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.shr_s']));
-    _add(const _I64ShrS());
+    _add(const ir.I64ShrS());
   }
 
   /// Emit an `i64.shr_u` instruction.
   void i64_shr_u() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.shr_u']));
-    _add(const _I64ShrU());
+    _add(const ir.I64ShrU());
   }
 
   /// Emit an `i64.rotl` instruction.
   void i64_rotl() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.rotl']));
-    _add(const _I64Rotl());
+    _add(const ir.I64Rotl());
   }
 
   /// Emit an `i64.rotr` instruction.
   void i64_rotr() {
-    assert(_verifyTypes(const [NumType.i64, NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(
+        const [ir.NumType.i64, ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.rotr']));
-    _add(const _I64Rotr());
+    _add(const ir.I64Rotr());
   }
 
   /// Emit an `f32.abs` instruction.
   void f32_abs() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.abs']));
-    _add(const _F32Abs());
+    _add(const ir.F32Abs());
   }
 
   /// Emit an `f32.neg` instruction.
   void f32_neg() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.neg']));
-    _add(const _F32Neg());
+    _add(const ir.F32Neg());
   }
 
   /// Emit an `f32.ceil` instruction.
   void f32_ceil() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.ceil']));
-    _add(const _F32Ceil());
+    _add(const ir.F32Ceil());
   }
 
   /// Emit an `f32.floor` instruction.
   void f32_floor() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.floor']));
-    _add(const _F32Floor());
+    _add(const ir.F32Floor());
   }
 
   /// Emit an `f32.trunc` instruction.
   void f32_trunc() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.trunc']));
-    _add(const _F32Trunc());
+    _add(const ir.F32Trunc());
   }
 
   /// Emit an `f32.nearest` instruction.
   void f32_nearest() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.nearest']));
-    _add(const _F32Nearest());
+    _add(const ir.F32Nearest());
   }
 
   /// Emit an `f32.sqrt` instruction.
   void f32_sqrt() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.sqrt']));
-    _add(const _F32Sqrt());
+    _add(const ir.F32Sqrt());
   }
 
   /// Emit an `f32.add` instruction.
   void f32_add() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.add']));
-    _add(const _F32Add());
+    _add(const ir.F32Add());
   }
 
   /// Emit an `f32.sub` instruction.
   void f32_sub() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.sub']));
-    _add(const _F32Sub());
+    _add(const ir.F32Sub());
   }
 
   /// Emit an `f32.mul` instruction.
   void f32_mul() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.mul']));
-    _add(const _F32Mul());
+    _add(const ir.F32Mul());
   }
 
   /// Emit an `f32.div` instruction.
   void f32_div() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.div']));
-    _add(const _F32Div());
+    _add(const ir.F32Div());
   }
 
   /// Emit an `f32.min` instruction.
   void f32_min() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.min']));
-    _add(const _F32Min());
+    _add(const ir.F32Min());
   }
 
   /// Emit an `f32.max` instruction.
   void f32_max() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.max']));
-    _add(const _F32Max());
+    _add(const ir.F32Max());
   }
 
   /// Emit an `f32.copysign` instruction.
   void f32_copysign() {
-    assert(_verifyTypes(const [NumType.f32, NumType.f32], const [NumType.f32],
+    assert(_verifyTypes(
+        const [ir.NumType.f32, ir.NumType.f32], const [ir.NumType.f32],
         trace: const ['f32.copysign']));
-    _add(const _F32Copysign());
+    _add(const ir.F32Copysign());
   }
 
   /// Emit an `f64.abs` instruction.
   void f64_abs() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.abs']));
-    _add(const _F64Abs());
+    _add(const ir.F64Abs());
   }
 
   /// Emit an `f64.neg` instruction.
   void f64_neg() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.neg']));
-    _add(const _F64Neg());
+    _add(const ir.F64Neg());
   }
 
   /// Emit an `f64.ceil` instruction.
   void f64_ceil() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.ceil']));
-    _add(const _F64Ceil());
+    _add(const ir.F64Ceil());
   }
 
   /// Emit an `f64.floor` instruction.
   void f64_floor() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.floor']));
-    _add(const _F64Floor());
+    _add(const ir.F64Floor());
   }
 
   /// Emit an `f64.trunc` instruction.
   void f64_trunc() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.trunc']));
-    _add(const _F64Trunc());
+    _add(const ir.F64Trunc());
   }
 
   /// Emit an `f64.nearest` instruction.
   void f64_nearest() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.nearest']));
-    _add(const _F64Nearest());
+    _add(const ir.F64Nearest());
   }
 
   /// Emit an `f64.sqrt` instruction.
   void f64_sqrt() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.sqrt']));
-    _add(const _F64Sqrt());
+    _add(const ir.F64Sqrt());
   }
 
   /// Emit an `f64.add` instruction.
   void f64_add() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.add']));
-    _add(const _F64Add());
+    _add(const ir.F64Add());
   }
 
   /// Emit an `f64.sub` instruction.
   void f64_sub() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.sub']));
-    _add(const _F64Sub());
+    _add(const ir.F64Sub());
   }
 
   /// Emit an `f64.mul` instruction.
   void f64_mul() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.mul']));
-    _add(const _F64Mul());
+    _add(const ir.F64Mul());
   }
 
   /// Emit an `f64.div` instruction.
   void f64_div() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.div']));
-    _add(const _F64Div());
+    _add(const ir.F64Div());
   }
 
   /// Emit an `f64.min` instruction.
   void f64_min() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.min']));
-    _add(const _F64Min());
+    _add(const ir.F64Min());
   }
 
   /// Emit an `f64.max` instruction.
   void f64_max() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.max']));
-    _add(const _F64Max());
+    _add(const ir.F64Max());
   }
 
   /// Emit an `f64.copysign` instruction.
   void f64_copysign() {
-    assert(_verifyTypes(const [NumType.f64, NumType.f64], const [NumType.f64],
+    assert(_verifyTypes(
+        const [ir.NumType.f64, ir.NumType.f64], const [ir.NumType.f64],
         trace: const ['f64.copysign']));
-    _add(const _F64Copysign());
+    _add(const ir.F64Copysign());
   }
 
   /// Emit an `i32.wrap_i64` instruction.
   void i32_wrap_i64() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i32],
         trace: const ['i32.wrap_i64']));
-    _add(const _I32WrapI64());
+    _add(const ir.I32WrapI64());
   }
 
   /// Emit an `i32.trunc_f32_s` instruction.
   void i32_trunc_f32_s() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['i32.trunc_f32_s']));
-    _add(const _I32TruncF32S());
+    _add(const ir.I32TruncF32S());
   }
 
   /// Emit an `i32.trunc_f32_u` instruction.
   void i32_trunc_f32_u() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['i32.trunc_f32_u']));
-    _add(const _I32TruncF32U());
+    _add(const ir.I32TruncF32U());
   }
 
   /// Emit an `i32.trunc_f64_s` instruction.
   void i32_trunc_f64_s() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['i32.trunc_f64_s']));
-    _add(const _I32TruncF64S());
+    _add(const ir.I32TruncF64S());
   }
 
   /// Emit an `i32.trunc_f64_u` instruction.
   void i32_trunc_f64_u() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['i32.trunc_f64_u']));
-    _add(const _I32TruncF64U());
+    _add(const ir.I32TruncF64U());
   }
 
   /// Emit an `i64.extend_i32_s` instruction.
   void i64_extend_i32_s() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: const ['i64.extend_i32_s']));
-    _add(const _I64ExtendI32S());
+    _add(const ir.I64ExtendI32S());
   }
 
   /// Emit an `i64.extend_i32_u` instruction.
   void i64_extend_i32_u() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
         trace: const ['i64.extend_i32_u']));
-    _add(const _I64ExtendI32U());
+    _add(const ir.I64ExtendI32U());
   }
 
   /// Emit an `i64.trunc_f32_s` instruction.
   void i64_trunc_f32_s() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i64],
         trace: const ['i64.trunc_f32_s']));
-    _add(const _I64TruncF32S());
+    _add(const ir.I64TruncF32S());
   }
 
   /// Emit an `i64.trunc_f32_u` instruction.
   void i64_trunc_f32_u() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i64],
         trace: const ['i64.trunc_f32_u']));
-    _add(const _I64TruncF32U());
+    _add(const ir.I64TruncF32U());
   }
 
   /// Emit an `i64.trunc_f64_s` instruction.
   void i64_trunc_f64_s() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.trunc_f64_s']));
-    _add(const _I64TruncF64S());
+    _add(const ir.I64TruncF64S());
   }
 
   /// Emit an `i64.trunc_f64_u` instruction.
   void i64_trunc_f64_u() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.trunc_f64_u']));
-    _add(const _I64TruncF64U());
+    _add(const ir.I64TruncF64U());
   }
 
   /// Emit an `f32.convert_i32_s` instruction.
   void f32_convert_i32_s() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f32],
         trace: const ['f32.convert_i32_s']));
-    _add(const _F32ConvertI32S());
+    _add(const ir.F32ConvertI32S());
   }
 
   /// Emit an `f32.convert_i32_u` instruction.
   void f32_convert_i32_u() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f32],
         trace: const ['f32.convert_i32_u']));
-    _add(const _F32ConvertI32U());
+    _add(const ir.F32ConvertI32U());
   }
 
   /// Emit an `f32.convert_i64_s` instruction.
   void f32_convert_i64_s() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.f32],
         trace: const ['f32.convert_i64_s']));
-    _add(const _F32ConvertI64S());
+    _add(const ir.F32ConvertI64S());
   }
 
   /// Emit an `f32.convert_i64_u` instruction.
   void f32_convert_i64_u() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.f32],
         trace: const ['f32.convert_i64_u']));
-    _add(const _F32ConvertI64U());
+    _add(const ir.F32ConvertI64U());
   }
 
   /// Emit an `f32.demote_f64` instruction.
   void f32_demote_f64() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.f32],
         trace: const ['f32.demote_f64']));
-    _add(const _F32DemoteF64());
+    _add(const ir.F32DemoteF64());
   }
 
   /// Emit an `f64.convert_i32_s` instruction.
   void f64_convert_i32_s() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f64],
         trace: const ['f64.convert_i32_s']));
-    _add(const _F64ConvertI32S());
+    _add(const ir.F64ConvertI32S());
   }
 
   /// Emit an `f64.convert_i32_u` instruction.
   void f64_convert_i32_u() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f64],
         trace: const ['f64.convert_i32_u']));
-    _add(const _F64ConvertI32U());
+    _add(const ir.F64ConvertI32U());
   }
 
   /// Emit an `f64.convert_i64_s` instruction.
   void f64_convert_i64_s() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.f64],
         trace: const ['f64.convert_i64_s']));
-    _add(const _F64ConvertI64S());
+    _add(const ir.F64ConvertI64S());
   }
 
   /// Emit an `f64.convert_i64_u` instruction.
   void f64_convert_i64_u() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.f64],
         trace: const ['f64.convert_i64_u']));
-    _add(const _F64ConvertI64U());
+    _add(const ir.F64ConvertI64U());
   }
 
   /// Emit an `f64.promote_f32` instruction.
   void f64_promote_f32() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.f64],
         trace: const ['f64.promote_f32']));
-    _add(const _F64PromoteF32());
+    _add(const ir.F64PromoteF32());
   }
 
   /// Emit an `i32.reinterpret_f32` instruction.
   void i32_reinterpret_f32() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['i32.reinterpret_f32']));
-    _add(const _I32ReinterpretF32());
+    _add(const ir.I32ReinterpretF32());
   }
 
   /// Emit an `i64.reinterpret_f64` instruction.
   void i64_reinterpret_f64() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.reinterpret_f64']));
-    _add(const _I64ReinterpretF64());
+    _add(const ir.I64ReinterpretF64());
   }
 
   /// Emit an `f32.reinterpret_i32` instruction.
   void f32_reinterpret_i32() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.f32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f32],
         trace: const ['f32.reinterpret_i32']));
-    _add(const _F32ReinterpretI32());
+    _add(const ir.F32ReinterpretI32());
   }
 
   /// Emit an `f64.reinterpret_i64` instruction.
   void f64_reinterpret_i64() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.f64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.f64],
         trace: const ['f64.reinterpret_i64']));
-    _add(const _F64ReinterpretI64());
+    _add(const ir.F64ReinterpretI64());
   }
 
   /// Emit an `i32.extend8_s` instruction.
   void i32_extend8_s() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.extend8_s']));
-    _add(const _I32Extend8S());
+    _add(const ir.I32Extend8S());
   }
 
   /// Emit an `i32.extend16_s` instruction.
   void i32_extend16_s() {
-    assert(_verifyTypes(const [NumType.i32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
         trace: const ['i32.extend16_s']));
-    _add(const _I32Extend16S());
+    _add(const ir.I32Extend16S());
   }
 
   /// Emit an `i64.extend8_s` instruction.
   void i64_extend8_s() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.extend8_s']));
-    _add(const _I64Extend8S());
+    _add(const ir.I64Extend8S());
   }
 
   /// Emit an `i64.extend16_s` instruction.
   void i64_extend16_s() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.extend16_s']));
-    _add(const _I64Extend16S());
+    _add(const ir.I64Extend16S());
   }
 
   /// Emit an `i64.extend32_s` instruction.
   void i64_extend32_s() {
-    assert(_verifyTypes(const [NumType.i64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.i64], const [ir.NumType.i64],
         trace: const ['i64.extend32_s']));
-    _add(const _I64Extend32S());
+    _add(const ir.I64Extend32S());
   }
 
   /// Emit an `i32.trunc_sat_f32_s` instruction.
   void i32_trunc_sat_f32_s() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['i32.trunc_sat_f32_s']));
-    _add(const _I32TruncSatF32S());
+    _add(const ir.I32TruncSatF32S());
   }
 
   /// Emit an `i32.trunc_sat_f32_u` instruction.
   void i32_trunc_sat_f32_u() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i32],
         trace: const ['i32.trunc_sat_f32_u']));
-    _add(const _I32TruncSatF32U());
+    _add(const ir.I32TruncSatF32U());
   }
 
   /// Emit an `i32.trunc_sat_f64_s` instruction.
   void i32_trunc_sat_f64_s() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['i32.trunc_sat_f64_s']));
-    _add(const _I32TruncSatF64S());
+    _add(const ir.I32TruncSatF64S());
   }
 
   /// Emit an `i32.trunc_sat_f64_u` instruction.
   void i32_trunc_sat_f64_u() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i32],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i32],
         trace: const ['i32.trunc_sat_f64_u']));
-    _add(const _I32TruncSatF64U());
+    _add(const ir.I32TruncSatF64U());
   }
 
   /// Emit an `i64.trunc_sat_f32_s` instruction.
   void i64_trunc_sat_f32_s() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i64],
         trace: const ['i64.trunc_sat_f32_s']));
-    _add(const _I64TruncSatF32S());
+    _add(const ir.I64TruncSatF32S());
   }
 
   /// Emit an `i64.trunc_sat_f32_u` instruction.
   void i64_trunc_sat_f32_u() {
-    assert(_verifyTypes(const [NumType.f32], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f32], const [ir.NumType.i64],
         trace: const ['i64.trunc_sat_f32_u']));
-    _add(const _I64TruncSatF32U());
+    _add(const ir.I64TruncSatF32U());
   }
 
   /// Emit an `i64.trunc_sat_f64_s` instruction.
   void i64_trunc_sat_f64_s() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.trunc_sat_f64_s']));
-    _add(const _I64TruncSatF64S());
+    _add(const ir.I64TruncSatF64S());
   }
 
   /// Emit an `i64.trunc_sat_f64_u` instruction.
   void i64_trunc_sat_f64_u() {
-    assert(_verifyTypes(const [NumType.f64], const [NumType.i64],
+    assert(_verifyTypes(const [ir.NumType.f64], const [ir.NumType.i64],
         trace: const ['i64.trunc_sat_f64_u']));
-    _add(const _I64TruncSatF64U());
+    _add(const ir.I64TruncSatF64U());
   }
 }
