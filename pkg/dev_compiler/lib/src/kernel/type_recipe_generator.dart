@@ -363,7 +363,7 @@ class _TypeRecipeVisitor extends DartTypeVisitor<String> {
   }
 
   @override
-  String visitInlineType(InlineType node) =>
+  String visitExtensionType(ExtensionType node) =>
       node.instantiatedRepresentationType.accept(this);
 
   @override

@@ -62,8 +62,8 @@ mixin SourceDeclarationBuilderMixin
       if (objectGetter != null && !objectGetter.isStatic ||
           objectSetter != null && !objectSetter.isStatic) {
         addProblem(
-            // TODO(johnniwinther): Use a different error message for inline
-            //  classes.
+            // TODO(johnniwinther): Use a different error message for extension
+            //  type declarations.
             templateExtensionMemberConflictsWithObjectMember
                 .withArguments(name),
             declaration.charOffset,

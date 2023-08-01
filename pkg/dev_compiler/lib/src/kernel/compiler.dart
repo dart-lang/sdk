@@ -3373,7 +3373,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       _emitInterfaceType(type);
 
   @override
-  js_ast.Expression visitInlineType(InlineType type) =>
+  js_ast.Expression visitExtensionType(ExtensionType type) =>
       type.instantiatedRepresentationType.accept(this);
 
   @override
@@ -6303,7 +6303,7 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       }
     }
     if (target.isExternal &&
-        target.isInlineClassMember &&
+        target.isExtensionTypeMember &&
         target.function.namedParameters.isNotEmpty) {
       // JS interop checks assert that only external inline class factories have
       // named parameters. We could do a more robust check by visiting all

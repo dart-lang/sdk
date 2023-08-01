@@ -82,7 +82,7 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
             charOffset, nativeMethodName) {
     _procedureInternal = new Procedure(
         dummyName,
-        nameScheme.isInlineClassMember
+        nameScheme.isExtensionTypeMember
             ? ProcedureKind.Method
             : ProcedureKind.Factory,
         new FunctionNode(null),
@@ -92,15 +92,16 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
       ..fileOffset = charOffset
       ..fileEndOffset = charEndOffset
       ..isNonNullableByDefault = libraryBuilder.isNonNullableByDefault
-      ..isInlineClassMember = nameScheme.isInlineClassMember;
+      ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     nameScheme
         .getProcedureMemberName(ProcedureKind.Factory, name)
         .attachMember(_procedureInternal);
     _factoryTearOff = createFactoryTearOffProcedure(name, libraryBuilder,
         libraryBuilder.fileUri, charOffset, tearOffReference,
-        forceCreateLowering: nameScheme.isInlineClassMember);
+        forceCreateLowering: nameScheme.isExtensionTypeMember);
     if (_factoryTearOff != null) {
-      _factoryTearOff!..isInlineClassMember = nameScheme.isInlineClassMember;
+      _factoryTearOff!
+        ..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
           .attachMember(_factoryTearOff!);
@@ -162,14 +163,14 @@ class SourceFactoryBuilder extends SourceFunctionBuilderImpl {
     _build();
     f(
         _procedureInternal,
-        isInlineClassMember
-            ? BuiltMemberKind.InlineClassFactory
+        isExtensionTypeMember
+            ? BuiltMemberKind.ExtensionTypeFactory
             : BuiltMemberKind.Factory);
     if (_factoryTearOff != null) {
       f(
           _factoryTearOff!,
-          isInlineClassMember
-              ? BuiltMemberKind.InlineClassTearOff
+          isExtensionTypeMember
+              ? BuiltMemberKind.ExtensionTypeTearOff
               : BuiltMemberKind.Method);
     }
   }
@@ -422,14 +423,14 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     _build();
     f(
         _procedureInternal,
-        isInlineClassMember
-            ? BuiltMemberKind.InlineClassRedirectingFactory
+        isExtensionTypeMember
+            ? BuiltMemberKind.ExtensionTypeRedirectingFactory
             : BuiltMemberKind.RedirectingFactory);
     if (_factoryTearOff != null) {
       f(
           _factoryTearOff!,
-          isInlineClassMember
-              ? BuiltMemberKind.InlineClassTearOff
+          isExtensionTypeMember
+              ? BuiltMemberKind.ExtensionTypeTearOff
               : BuiltMemberKind.Method);
     }
   }
@@ -547,7 +548,7 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
 
     if (target is Constructor ||
         target is Procedure &&
-            (target.isFactory || target.isInlineClassMember)) {
+            (target.isFactory || target.isExtensionTypeMember)) {
       typeArguments ??= [];
       if (_factoryTearOff != null) {
         delayedDefaultValueCloners.add(buildRedirectingFactoryTearOffBody(

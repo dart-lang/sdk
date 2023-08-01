@@ -200,7 +200,7 @@ abstract class TypesBuilder {
       } else {
         result = fromStaticType(bound, canBeNull);
       }
-    } else if (type is InlineType) {
+    } else if (type is ExtensionType) {
       result = fromStaticType(type.instantiatedRepresentationType, canBeNull);
     } else {
       throw 'Unexpected type ${type.runtimeType} $type';

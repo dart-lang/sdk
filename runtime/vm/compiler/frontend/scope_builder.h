@@ -51,7 +51,7 @@ class ScopeBuilder {
   void VisitRecordType();
   void VisitTypeParameterType();
   void VisitIntersectionType();
-  void VisitInlineType();
+  void VisitExtensionType();
   void VisitFutureOrType();
   void HandleLocalFunction(intptr_t parent_kernel_offset);
 

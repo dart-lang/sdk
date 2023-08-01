@@ -952,19 +952,21 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return inferredTypes;
   }
 
-  /// Returns inline class member declared immediately for [inlineType].
-  ObjectAccessTarget? _findDirectInlineTypeMember(
-      DartType receiverType, InlineType inlineType, Name name, int fileOffset,
+  /// Returns extension type member declared immediately for [extensionType].
+  ObjectAccessTarget? _findDirectExtensionTypeMember(DartType receiverType,
+      ExtensionType extensionType, Name name, int fileOffset,
       {required bool isSetter,
       required bool isReceiverTypePotentiallyNullable}) {
-    if (name.text == inlineType.inlineClass.representationName) {
+    if (name.text ==
+        extensionType.extensionTypeDeclaration.representationName) {
       if (isSetter ||
           name.isPrivate &&
-              name.library != inlineType.inlineClass.enclosingLibrary) {
+              name.library !=
+                  extensionType.extensionTypeDeclaration.enclosingLibrary) {
         return null;
       }
-      return new ObjectAccessTarget.inlineClassRepresentation(
-          receiverType, inlineType,
+      return new ObjectAccessTarget.extensionTypeRepresentation(
+          receiverType, extensionType,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     }
 
@@ -972,37 +974,37 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Member? targetMember;
     Member? targetTearoff;
     ProcedureKind? targetKind;
-    for (InlineClassMemberDescriptor descriptor
-        in inlineType.inlineClass.members) {
+    for (ExtensionTypeMemberDescriptor descriptor
+        in extensionType.extensionTypeDeclaration.members) {
       if (descriptor.name == name) {
         switch (descriptor.kind) {
-          case InlineClassMemberKind.Method:
+          case ExtensionTypeMemberKind.Method:
             if (!isSetter) {
               targetMember = descriptor.member.asMember;
               targetTearoff ??= targetMember;
               targetKind = ProcedureKind.Method;
             }
             break;
-          case InlineClassMemberKind.TearOff:
+          case ExtensionTypeMemberKind.TearOff:
             if (!isSetter) {
               targetTearoff = descriptor.member.asMember;
             }
             break;
-          case InlineClassMemberKind.Getter:
+          case ExtensionTypeMemberKind.Getter:
             if (!isSetter) {
               targetMember = descriptor.member.asMember;
               targetTearoff = null;
               targetKind = ProcedureKind.Getter;
             }
             break;
-          case InlineClassMemberKind.Setter:
+          case ExtensionTypeMemberKind.Setter:
             if (isSetter) {
               targetMember = descriptor.member.asMember;
               targetTearoff = null;
               targetKind = ProcedureKind.Setter;
             }
             break;
-          case InlineClassMemberKind.Operator:
+          case ExtensionTypeMemberKind.Operator:
             if (!isSetter) {
               targetMember = descriptor.member.asMember;
               targetTearoff = null;
@@ -1010,22 +1012,23 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             }
             break;
           default:
-            unhandled("${descriptor.kind}", "_findDirectInlineClassMember",
+            unhandled("${descriptor.kind}", "_findDirectExtensionTypeMember",
                 fileOffset, libraryBuilder.fileUri);
         }
       }
     }
     if (targetMember != null) {
       assert(targetKind != null);
-      return new ObjectAccessTarget.inlineClassMember(receiverType,
-          targetMember, targetTearoff, targetKind!, inlineType.typeArguments,
+      return new ObjectAccessTarget.extensionTypeMember(receiverType,
+          targetMember, targetTearoff, targetKind!, extensionType.typeArguments,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
-      for (InlineType implement in inlineType.inlineClass.implements) {
-        InlineType supertype = hierarchyBuilder.getInlineTypeAsInstanceOf(
-            inlineType, implement.inlineClass,
+      for (ExtensionType implement
+          in extensionType.extensionTypeDeclaration.implements) {
+        ExtensionType supertype = hierarchyBuilder.getExtensionTypeAsInstanceOf(
+            extensionType, implement.extensionTypeDeclaration,
             isNonNullableByDefault: isNonNullableByDefault)!;
-        ObjectAccessTarget? target = _findDirectInlineTypeMember(
+        ObjectAccessTarget? target = _findDirectExtensionTypeMember(
             receiverType, supertype, name, fileOffset,
             isSetter: isSetter,
             isReceiverTypePotentiallyNullable:
@@ -2306,8 +2309,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       ObjectAccessTarget target, Expression receiver, Arguments arguments) {
     assert(target.isExtensionMember ||
         target.isNullableExtensionMember ||
-        target.isInlineClassMember ||
-        target.isNullableInlineClassMember);
+        target.isExtensionTypeMember ||
+        target.isNullableExtensionTypeMember);
     Procedure procedure = target.member as Procedure;
     return createStaticInvocation(
         procedure,
@@ -2422,8 +2425,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       {required bool isImplicitCall}) {
     assert(target.isExtensionMember ||
         target.isNullableExtensionMember ||
-        target.isInlineClassMember ||
-        target.isNullableInlineClassMember);
+        target.isExtensionTypeMember ||
+        target.isNullableExtensionTypeMember);
     DartType calleeType = target.getGetterType(this);
     FunctionType functionType = target.getFunctionType(this);
 
@@ -3244,8 +3247,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isImplicitCall: isImplicitCall);
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         return _inferExtensionInvocation(
             visitor,
             fileOffset,
@@ -3363,8 +3366,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             isExpressionInvocation: false,
             isImplicitCall: true,
             hoistedExpressions: hoistedExpressions);
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         DartType type = target.getGetterType(this);
         Expression read = new AsExpression(receiver, type)
           ..isForNonNullableByDefault = true
@@ -3375,12 +3378,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         if (target.isNullable) {
           // Handles cases like:
           //
-          //  inline class Foo {
-          //    void Function() bar;
-          //    Foo(this.bar);
-          //  }
-          //   Foo? r;
-          //   r.bar();
+          //   extension type Foo(void Function() bar) {}
+          //   method(Foo? r) => r.bar();
+          //
           List<LocatedMessage>? context = getWhyNotPromotedContext(
               flowAnalysis.whyNotPromoted(receiver)(),
               receiver,
@@ -4030,8 +4030,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         switch (readTarget.declarationMethodKind) {
           case ProcedureKind.Getter:
             read = new StaticInvocation(
@@ -4159,8 +4159,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             readTarget.receiverType as RecordType, readTarget.recordFieldName!)
           ..fileOffset = fileOffset;
         break;
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         read = new AsExpression(receiver, readType)
           ..isForNonNullableByDefault = isNonNullableByDefault
           ..isUnchecked = true
@@ -4631,8 +4631,8 @@ class _ObjectAccessDescriptor {
                   receiverBound, field.type, field.name);
         }
       }
-    } else if (receiverBound is InlineType) {
-      ObjectAccessTarget? target = visitor._findDirectInlineTypeMember(
+    } else if (receiverBound is ExtensionType) {
+      ObjectAccessTarget? target = visitor._findDirectExtensionTypeMember(
           receiverType, receiverBound, name, fileOffset,
           isSetter: isSetter,
           isReceiverTypePotentiallyNullable: isReceiverTypePotentiallyNullable);
@@ -4724,8 +4724,8 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.ambiguous:
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
         return true;
       case ObjectAccessTargetKind.nullableInstanceMember:
       case ObjectAccessTargetKind.nullableCallFunction:
@@ -4734,8 +4734,8 @@ class _ObjectAccessDescriptor {
       case ObjectAccessTargetKind.missing:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         return false;
     }
   }

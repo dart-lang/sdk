@@ -990,8 +990,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     }
   }
 
-  const intptr_t inline_class_count = helper_.ReadListLength();
-  for (intptr_t i = 0; i < inline_class_count; ++i) {
+  const intptr_t extension_type_declaration_count = helper_.ReadListLength();
+  for (intptr_t i = 0; i < extension_type_declaration_count; ++i) {
     helper_.ReadTag();                     // read tag.
     helper_.SkipCanonicalNameReference();  // skip canonical name.
     helper_.SkipStringReference();         // skip name.
@@ -1004,8 +1004,8 @@ void KernelLoader::FinishTopLevelClassLoading(
     helper_.SkipStringReference();         // skip representation name.
     helper_.SkipListOfDartTypes();         // skip implements types.
 
-    const intptr_t inline_class_member_count = helper_.ReadListLength();
-    for (intptr_t j = 0; j < inline_class_member_count; ++j) {
+    const intptr_t extension_type_member_count = helper_.ReadListLength();
+    for (intptr_t j = 0; j < extension_type_member_count; ++j) {
       helper_.SkipName();                    // skip name.
       helper_.ReadByte();                    // read kind.
       helper_.ReadByte();                    // read flags.

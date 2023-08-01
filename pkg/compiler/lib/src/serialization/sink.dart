@@ -355,14 +355,14 @@ class DataSinkWriter {
     _writeString(value.name);
   }
 
-  /// Writes a reference to the kernel inline class node [value] to this data
-  /// sink.
-  void writeInlineClassNode(ir.InlineClass value) {
-    _writeDataKind(DataKind.inlineClassNode);
-    _writeInlineClassNode(value);
+  /// Writes a reference to the kernel extension type declaration node [value]
+  /// to this data sink.
+  void writeExtensionTypeDeclarationNode(ir.ExtensionTypeDeclaration value) {
+    _writeDataKind(DataKind.extensionTypeDeclarationNode);
+    _writeExtensionTypeDeclarationNode(value);
   }
 
-  void _writeInlineClassNode(ir.InlineClass value) {
+  void _writeExtensionTypeDeclarationNode(ir.ExtensionTypeDeclaration value) {
     _writeLibraryNode(value.enclosingLibrary);
     _writeString(value.name);
   }

@@ -50,7 +50,8 @@ class _InvalidTypeFinder implements DartTypeVisitor1<bool, Set<TypedefType>> {
   }
 
   @override
-  bool visitInlineType(InlineType node, Set<TypedefType> visitedTypedefs) {
+  bool visitExtensionType(
+      ExtensionType node, Set<TypedefType> visitedTypedefs) {
     for (DartType typeArgument in node.typeArguments) {
       if (typeArgument.accept1(this, visitedTypedefs)) return true;
     }

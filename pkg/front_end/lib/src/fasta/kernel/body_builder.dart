@@ -48,7 +48,7 @@ import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/inline_class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -289,7 +289,7 @@ class BodyBuilder extends StackListenerImpl
   List<List<VariableDeclaration>>? multiVariablesWithMetadata;
 
   /// If the current member is an instance member in an extension declaration or
-  /// an instance member or constructor in and inline class declaration,
+  /// an instance member or constructor in and extension type declaration,
   /// [thisVariable] holds the synthetically added variable holding the value
   /// for `this`.
   final VariableDeclaration? thisVariable;
@@ -3322,7 +3322,7 @@ class BodyBuilder extends StackListenerImpl
         return new VariableUseGenerator(this, token, variable);
       }
     } else if (declaration.isClassInstanceMember ||
-        declaration.isInlineClassInstanceMember) {
+        declaration.isExtensionTypeInstanceMember) {
       if (constantContext != ConstantContext.none &&
           !inInitializerLeftHandSide &&
           // TODO(ahe): This is a hack because Fasta sets up the scope
@@ -5921,10 +5921,10 @@ class BodyBuilder extends StackListenerImpl
           addProblem(fasta.messageMissingExplicitConst, charOffset, charLength);
         }
         if (isConst && !procedure.isConst) {
-          if (procedure.isInlineClassMember) {
+          if (procedure.isExtensionTypeMember) {
             // Both generative constructors and factory constructors from
-            // inline classes are encoded as procedures so we use the message
-            // for non-const constructors here.
+            // extension type declarations are encoded as procedures so we use
+            // the message for non-const constructors here.
             return buildProblem(
                 fasta.messageNonConstConstructor, charOffset, charLength);
           } else {
@@ -6557,7 +6557,7 @@ class BodyBuilder extends StackListenerImpl
       } else {
         errorName ??= debugName(type.name, name);
       }
-    } else if (type is InlineClassBuilder) {
+    } else if (type is ExtensionTypeDeclarationBuilder) {
       MemberBuilder? b =
           type.findConstructorOrFactory(name, charOffset, uri, libraryBuilder);
       Member? target;

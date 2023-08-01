@@ -89,9 +89,9 @@ class TypeBuilderConstraintGatherer extends TypeConstraintGatherer
   }
 
   @override
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass) {
-    return hierarchy.getInlineTypeArgumentsAsInstanceOf(type, superclass);
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass) {
+    return hierarchy.getExtensionTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override

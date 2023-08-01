@@ -1024,8 +1024,8 @@ class DelayedInstanceInvocation extends AbstractDelayedExpression {
   }
 }
 
-/// A static invocation of the lowered extension or inline class [_target] with
-/// the provided [_arguments] and [_typeArguments].
+/// A static invocation of the lowered extension or extension type declaration
+/// [_target] with the provided [_arguments] and [_typeArguments].
 ///
 /// The [_functionType] is the static type of the invocation.
 class DelayedExtensionInvocation extends AbstractDelayedExpression {

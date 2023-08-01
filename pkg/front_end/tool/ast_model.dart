@@ -96,7 +96,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     '_classes': FieldRule(name: 'classes'),
     '_typedefs': FieldRule(name: 'typedefs'),
     '_extensions': FieldRule(name: 'extensions'),
-    '_inlineClasses': FieldRule(name: 'inlineClasses'),
+    '_extensionTypeDeclarations': FieldRule(name: 'extensionTypeDeclarations'),
     '_fields': FieldRule(name: 'fields'),
     '_procedures': FieldRule(name: 'procedures'),
   },
@@ -115,7 +115,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'Extension': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
-  'InlineClass': {
+  'ExtensionTypeDeclaration': {
     'typeParameters': FieldRule(isDeclaration: true),
   },
   'Field': {
@@ -182,7 +182,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypeParameterType': {
     'parameter': FieldRule(isDeclaration: false),
   },
-  'InlineType': {
+  'ExtensionType': {
     '_instantiatedRepresentationType':
         FieldRule(name: 'instantiatedRepresentationType'),
   },

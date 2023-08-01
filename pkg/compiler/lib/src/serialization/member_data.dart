@@ -63,9 +63,10 @@ class LibraryData {
   /// Cache of [ir.Typedef] nodes for typedefs in this library.
   late final Map<String, ir.Typedef> _typedefs = _initializeTypedefs();
 
-  /// Cache of [ir.InlineClass] nodes for inline classes in this library.
-  late final Map<String, ir.InlineClass> _inlineClasses =
-      _initializeInlineClasses();
+  /// Cache of [ir.ExtensionTypeDeclaration] nodes for extension type
+  /// declarations in this library.
+  late final Map<String, ir.ExtensionTypeDeclaration>
+      _extensionTypeDeclarations = _initializeExtensionTypeDeclarations();
 
   /// Cache of [MemberData] for members in this library.
   Map<String, MemberData>? _membersByName;
@@ -85,16 +86,20 @@ class LibraryData {
     return typedefs;
   }
 
-  Map<String, ir.InlineClass> _initializeInlineClasses() {
-    final inlineClasses = <String, ir.InlineClass>{};
-    for (ir.InlineClass inlineClass in node.inlineClasses) {
+  Map<String, ir.ExtensionTypeDeclaration>
+      _initializeExtensionTypeDeclarations() {
+    final extensionTypeDeclarations = <String, ir.ExtensionTypeDeclaration>{};
+    for (ir.ExtensionTypeDeclaration extensionTypeDeclaration
+        in node.extensionTypeDeclarations) {
       assert(
-          !inlineClasses.containsKey(inlineClass.name),
-          "Duplicate inline class '${inlineClass.name}' in $inlineClasses "
-          "trying to add $inlineClass.");
-      inlineClasses[inlineClass.name] = inlineClass;
+          !extensionTypeDeclarations.containsKey(extensionTypeDeclaration.name),
+          "Duplicate extension type declaration "
+          "'${extensionTypeDeclaration.name}' in  $extensionTypeDeclarations "
+          "trying to add $extensionTypeDeclaration.");
+      extensionTypeDeclarations[extensionTypeDeclaration.name] =
+          extensionTypeDeclaration;
     }
-    return inlineClasses;
+    return extensionTypeDeclarations;
   }
 
   void _ensureClasses() {
@@ -127,9 +132,10 @@ class LibraryData {
     return _classesByNode![node];
   }
 
-  /// Returns the [InlineClass] for the given [name] in this library.
-  ir.InlineClass? lookupInlineClass(String name) {
-    return _inlineClasses[name];
+  /// Returns the [ExtensionTypeDeclaration] for the given [name] in this
+  /// library.
+  ir.ExtensionTypeDeclaration? lookupExtensionTypeDeclaration(String name) {
+    return _extensionTypeDeclarations[name];
   }
 
   ir.Typedef? lookupTypedef(String name) {

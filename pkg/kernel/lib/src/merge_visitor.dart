@@ -217,13 +217,13 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
   }
 
   @override
-  DartType? visitInlineType(InlineType a, DartType b) {
-    if (b is InlineType &&
-        a.inlineClass == b.inlineClass &&
+  DartType? visitExtensionType(ExtensionType a, DartType b) {
+    if (b is ExtensionType &&
+        a.extensionTypeDeclaration == b.extensionTypeDeclaration &&
         a.typeArguments.length == b.typeArguments.length) {
       Nullability? nullability = mergeNullability(a.nullability, b.nullability);
       if (nullability != null) {
-        return mergeInlineTypes(a, b, nullability);
+        return mergeExtensionTypes(a, b, nullability);
       }
     }
     if (b is InvalidType) {
@@ -232,12 +232,12 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
     return null;
   }
 
-  DartType? mergeInlineTypes(
-      InlineType a, InlineType b, Nullability nullability) {
-    assert(a.inlineClass == b.inlineClass);
+  DartType? mergeExtensionTypes(
+      ExtensionType a, ExtensionType b, Nullability nullability) {
+    assert(a.extensionTypeDeclaration == b.extensionTypeDeclaration);
     assert(a.typeArguments.length == b.typeArguments.length);
     if (a.typeArguments.isEmpty) {
-      return new InlineType(a.inlineClass, nullability);
+      return new ExtensionType(a.extensionTypeDeclaration, nullability);
     }
     List<DartType> newTypeArguments =
         new List<DartType>.filled(a.typeArguments.length, dummyDartType);
@@ -248,7 +248,8 @@ class MergeVisitor implements DartTypeVisitor1<DartType?, DartType> {
       }
       newTypeArguments[i] = newType;
     }
-    return new InlineType(a.inlineClass, nullability, newTypeArguments);
+    return new ExtensionType(
+        a.extensionTypeDeclaration, nullability, newTypeArguments);
   }
 
   @override

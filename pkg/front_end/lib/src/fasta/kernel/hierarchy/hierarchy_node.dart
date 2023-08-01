@@ -13,7 +13,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import '../../../testing/id_testing_utils.dart' show typeToText;
 import '../../builder/builder.dart';
 import '../../builder/class_builder.dart';
-import '../../builder/inline_class_builder.dart';
+import '../../builder/extension_type_declaration_builder.dart';
 import '../../builder/library_builder.dart';
 import '../../builder/named_type_builder.dart';
 import '../../builder/type_alias_builder.dart';
@@ -403,7 +403,7 @@ class ClassHierarchyNode {
 }
 
 class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
-  final InlineClassBuilder _extensionTypeBuilder;
+  final ExtensionTypeDeclarationBuilder _extensionTypeBuilder;
 
   ExtensionTypeHierarchyNodeBuilder(
       super._hierarchy, this._extensionTypeBuilder);
@@ -423,7 +423,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   ExtensionTypeHierarchyNode build() {
     assert(!_extensionTypeBuilder.isPatch);
     Map<Class, Supertype> superclasses = {};
-    Map<InlineClass, InlineType> superExtensionTypes = {};
+    Map<ExtensionTypeDeclaration, ExtensionType> superExtensionTypes = {};
     List<ClassHierarchyNode>? superclassNodes;
     List<ExtensionTypeHierarchyNode>? superExtensionTypeNodes;
     int maxInheritancePath = 1;
@@ -458,23 +458,24 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
               _addSuperClass(superclasses, types[i]);
             }
           }
-        } else if (directInterface is InlineType) {
+        } else if (directInterface is ExtensionType) {
           _addSuperExtensionType(superExtensionTypes, directInterface);
           ExtensionTypeHierarchyNode interfaceNode =
-              _hierarchy.getNodeFromExtensionType(directInterface.inlineClass);
+              _hierarchy.getNodeFromExtensionType(
+                  directInterface.extensionTypeDeclaration);
           (superExtensionTypeNodes ??= []).add(interfaceNode);
 
           if (maxInheritancePath < interfaceNode.maxInheritancePath + 1) {
             maxInheritancePath = interfaceNode.maxInheritancePath + 1;
           }
 
-          List<InlineType> types = _substSuperExtensionTypes(
+          List<ExtensionType> types = _substSuperExtensionTypes(
               directInterface, interfaceNode.superExtensionTypes);
           for (int i = 0; i < types.length; i++) {
             _addSuperExtensionType(superExtensionTypes, types[i]);
           }
           if (interfaceNode.superExtensionTypes.isNotEmpty) {
-            List<InlineType> types = _substSuperExtensionTypes(
+            List<ExtensionType> types = _substSuperExtensionTypes(
                 directInterface, interfaceNode.superExtensionTypes);
             for (int i = 0; i < types.length; i++) {
               _addSuperExtensionType(superExtensionTypes, types[i]);
@@ -506,15 +507,15 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
     superClasses[type.classNode] = type;
   }
 
-  InlineType _resolveSuperExtensionTypeConflict(
-      InlineType type, InlineType superclass) {
+  ExtensionType _resolveSuperExtensionTypeConflict(
+      ExtensionType type, ExtensionType superclass) {
     if (_libraryBuilder.isNonNullableByDefault) {
       DartType? merge = nnbdTopMerge(
           _hierarchy.coreTypes,
           norm(_hierarchy.coreTypes, superclass),
           norm(_hierarchy.coreTypes, type));
       if (merge != null) {
-        return merge as InlineType;
+        return merge as ExtensionType;
       }
     } else if (type == superclass) {
       return superclass;
@@ -532,24 +533,26 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
   }
 
   void _addSuperExtensionType(
-      Map<InlineClass, InlineType> interfaces, InlineType type) {
+      Map<ExtensionTypeDeclaration, ExtensionType> interfaces,
+      ExtensionType type) {
     if (!_libraryBuilder.isNonNullableByDefault) {
-      type = legacyErasure(type) as InlineType;
+      type = legacyErasure(type) as ExtensionType;
     }
-    InlineType? interface = interfaces[type.inlineClass];
+    ExtensionType? interface = interfaces[type.extensionTypeDeclaration];
     if (interface != null) {
       // This is a potential conflict.
-      interfaces[type.inlineClass] =
+      interfaces[type.extensionTypeDeclaration] =
           _resolveSuperExtensionTypeConflict(type, interface);
       return;
     }
-    interfaces[type.inlineClass] = type;
+    interfaces[type.extensionTypeDeclaration] = type;
   }
 
-  List<InlineType> _substSuperExtensionTypes(
-      InlineType superExtensionType, List<InlineType> superExtensionTypes) {
+  List<ExtensionType> _substSuperExtensionTypes(
+      ExtensionType superExtensionType,
+      List<ExtensionType> superExtensionTypes) {
     List<TypeParameter> typeVariables =
-        superExtensionType.inlineClass.typeParameters;
+        superExtensionType.extensionTypeDeclaration.typeParameters;
     if (typeVariables.isEmpty) {
       return superExtensionTypes;
     }
@@ -559,11 +562,11 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
       map[typeVariables[i]] = arguments[i];
     }
     Substitution substitution = Substitution.fromMap(map);
-    List<InlineType>? result;
+    List<ExtensionType>? result;
     for (int i = 0; i < superExtensionTypes.length; i++) {
-      InlineType supertype = superExtensionTypes[i];
-      InlineType substituted =
-          substitution.substituteType(supertype) as InlineType;
+      ExtensionType supertype = superExtensionTypes[i];
+      ExtensionType substituted =
+          substitution.substituteType(supertype) as ExtensionType;
       if (supertype != substituted) {
         result ??= superExtensionTypes.toList();
         result[i] = substituted;
@@ -575,7 +578,7 @@ class ExtensionTypeHierarchyNodeBuilder extends HierarchyNodeBuilder {
 
 class ExtensionTypeHierarchyNode {
   /// The extension type corresponding to this hierarchy node.
-  final InlineClassBuilder extensionTypeBuilder;
+  final ExtensionTypeDeclarationBuilder extensionTypeBuilder;
 
   /// The list of all classes implemented by [extensionTypeBuilder] and its
   /// superclasses.
@@ -583,7 +586,7 @@ class ExtensionTypeHierarchyNode {
 
   /// The list of all extension types implemented by [extensionTypeBuilder]
   /// and its super extension types.
-  final List<InlineType> superExtensionTypes;
+  final List<ExtensionType> superExtensionTypes;
 
   /// The [ClassHierarchyNode]s for the direct superclasses of
   /// [extensionTypeBuilder].

@@ -230,7 +230,7 @@ class CfeTypeOperations implements TypeOperations<DartType> {
         type is VoidType ||
         type is NeverType ||
         type is NullType ||
-        type is InlineType ||
+        type is ExtensionType ||
         // TODO(johnniwinther): What about intersection types?
         type is TypeParameterType;
   }
@@ -664,7 +664,7 @@ class ExhaustiveDartTypeVisitor implements DartTypeVisitor1<bool, CoreTypes> {
   }
 
   @override
-  bool visitInlineType(InlineType type, CoreTypes coreTypes) {
+  bool visitExtensionType(ExtensionType type, CoreTypes coreTypes) {
     return type.instantiatedRepresentationType.accept1(this, coreTypes);
   }
 

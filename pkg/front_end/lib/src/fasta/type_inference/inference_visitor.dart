@@ -695,7 +695,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           }
           break;
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.inlineClassMember:
+        case ObjectAccessTargetKind.extensionTypeMember:
           if (callMember.tearoffTarget != null &&
               callMember.declarationMethodKind == ProcedureKind.Method) {
             operandType = callMember.getGetterType(this);
@@ -722,9 +722,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.nullableRecordIndexed:
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.recordNamed:
-        case ObjectAccessTargetKind.nullableInlineClassMember:
-        case ObjectAccessTargetKind.inlineClassRepresentation:
-        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeMember:
+        case ObjectAccessTargetKind.extensionTypeRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
           break;
       }
     }
@@ -6161,8 +6161,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(binaryTarget.declarationMethodKind != ProcedureKind.Setter);
         binary = new StaticInvocation(
             binaryTarget.member as Procedure,
@@ -6249,8 +6249,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected binary target ${binaryTarget}');
     }
 
@@ -6306,8 +6306,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(unaryTarget.declarationMethodKind != ProcedureKind.Setter);
         unary = new StaticInvocation(
             unaryTarget.member as Procedure,
@@ -6368,8 +6368,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected unary target ${unaryTarget}');
     }
 
@@ -6423,8 +6423,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         read = new StaticInvocation(
             readTarget.member as Procedure,
             new Arguments(<Expression>[
@@ -6515,8 +6515,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected index get target ${readTarget}');
     }
 
@@ -6566,8 +6566,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         assert(writeTarget.declarationMethodKind != ProcedureKind.Setter);
         write = new StaticInvocation(
             writeTarget.member as Procedure,
@@ -6631,8 +6631,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       case ObjectAccessTargetKind.recordNamed:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError(
             'Unexpected index set target ${writeTarget}');
     }
@@ -6731,8 +6731,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.extensionMember:
       case ObjectAccessTargetKind.nullableExtensionMember:
-      case ObjectAccessTargetKind.inlineClassMember:
-      case ObjectAccessTargetKind.nullableInlineClassMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
         if (forEffect) {
           write = new StaticInvocation(
               writeTarget.member as Procedure,
@@ -6799,10 +6799,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         break;
       case ObjectAccessTargetKind.recordIndexed:
       case ObjectAccessTargetKind.recordNamed:
-      case ObjectAccessTargetKind.inlineClassRepresentation:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
       case ObjectAccessTargetKind.nullableRecordIndexed:
       case ObjectAccessTargetKind.nullableRecordNamed:
-      case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
         throw new UnsupportedError('Unexpected write target ${writeTarget}');
     }
     Expression result;
@@ -7836,8 +7836,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         inferenceResult);
   }
 
-  InitializerInferenceResult visitInlineClassRedirectingInitializer(
-      InlineClassRedirectingInitializer node) {
+  InitializerInferenceResult visitExtensionTypeRedirectingInitializer(
+      ExtensionTypeRedirectingInitializer node) {
     ensureMemberType(node.target);
     List<TypeParameter> constructorTypeParameters =
         constructorDeclaration!.function.typeParameters;
@@ -10414,13 +10414,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           break;
         case ObjectAccessTargetKind.nullableInstanceMember:
         case ObjectAccessTargetKind.nullableExtensionMember:
-        case ObjectAccessTargetKind.nullableInlineClassMember:
+        case ObjectAccessTargetKind.nullableExtensionTypeMember:
         case ObjectAccessTargetKind.nullableRecordIndexed:
         case ObjectAccessTargetKind.nullableRecordNamed:
         case ObjectAccessTargetKind.nullableCallFunction:
         case ObjectAccessTargetKind.missing:
         case ObjectAccessTargetKind.ambiguous:
-        case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+        case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
           field.pattern = new InvalidPattern(
               createMissingPropertyGet(
                   field.fileOffset, node.requiredType, field.fieldName),
@@ -10435,14 +10435,14 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.callFunction:
           field.accessKind = ObjectAccessKind.FunctionTearOff;
           break;
-        case ObjectAccessTargetKind.inlineClassRepresentation:
+        case ObjectAccessTargetKind.extensionTypeRepresentation:
           field.accessKind = ObjectAccessKind.Direct;
           field.resultType = fieldTarget.getGetterType(this);
         case ObjectAccessTargetKind.superMember:
           problems.unsupported(
               'Object field target $fieldTarget', node.fileOffset, helper.uri);
         case ObjectAccessTargetKind.extensionMember:
-        case ObjectAccessTargetKind.inlineClassMember:
+        case ObjectAccessTargetKind.extensionTypeMember:
           field.accessKind = ObjectAccessKind.Static;
           field.resultType = fieldTarget.getGetterType(this);
           field.typeArguments = fieldTarget.receiverTypeArguments;
@@ -10594,7 +10594,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
             break;
           case ObjectAccessTargetKind.nullableInstanceMember:
           case ObjectAccessTargetKind.nullableExtensionMember:
-          case ObjectAccessTargetKind.nullableInlineClassMember:
+          case ObjectAccessTargetKind.nullableExtensionTypeMember:
           case ObjectAccessTargetKind.missing:
           case ObjectAccessTargetKind.ambiguous:
             replacement ??= new InvalidPattern(
@@ -10612,12 +10612,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           case ObjectAccessTargetKind.recordNamed:
           case ObjectAccessTargetKind.nullableRecordIndexed:
           case ObjectAccessTargetKind.nullableRecordNamed:
-          case ObjectAccessTargetKind.inlineClassRepresentation:
-          case ObjectAccessTargetKind.nullableInlineClassRepresentation:
+          case ObjectAccessTargetKind.extensionTypeRepresentation:
+          case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
             problems.unsupported('Relational pattern target $invokeTarget',
                 node.fileOffset, helper.uri);
           case ObjectAccessTargetKind.extensionMember:
-          case ObjectAccessTargetKind.inlineClassMember:
+          case ObjectAccessTargetKind.extensionTypeMember:
             node.functionType = invokeTarget.getFunctionType(this);
             node.typeArguments = invokeTarget.receiverTypeArguments;
             node.target = invokeTarget.member as Procedure;

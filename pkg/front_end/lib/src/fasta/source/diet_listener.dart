@@ -55,9 +55,9 @@ import 'diet_parser.dart';
 import 'source_class_builder.dart';
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart' show SourceLibraryBuilder;
 import 'source_type_alias_builder.dart';
 import 'stack_listener_impl.dart';
@@ -1287,7 +1287,7 @@ class DietListener extends StackListenerImpl {
   Builder? lookupConstructor(Token token, String constructorName) {
     assert(currentDeclaration != null);
     assert(currentDeclaration is SourceClassBuilder ||
-        currentDeclaration is SourceInlineClassBuilder);
+        currentDeclaration is SourceExtensionTypeDeclarationBuilder);
     Builder? declaration;
     if (libraryFeatures.constructorTearoffs.isEnabled) {
       constructorName = constructorName == "new" ? "" : constructorName;

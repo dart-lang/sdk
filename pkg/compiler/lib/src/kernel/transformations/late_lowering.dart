@@ -334,9 +334,9 @@ class LateLowering {
         ..fileOffset = fileOffset
         ..isNonNullableByDefault = true
         // TODO(fishythefish,srujzs,johnniwinther): Also mark the getter/setter
-        //  as extension/inline class members.
+        //  as extension/extension type members.
         ..isExtensionMember = field.isExtensionMember
-        ..isInlineClassMember = field.isInlineClassMember;
+        ..isExtensionTypeMember = field.isExtensionTypeMember;
       StaticGet fieldCellAccess() =>
           StaticGet(fieldCell)..fileOffset = fileOffset;
 

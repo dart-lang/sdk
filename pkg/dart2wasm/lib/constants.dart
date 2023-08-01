@@ -807,7 +807,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?> {
       return _makeFutureOrType(constant, type, info);
     } else if (type is FunctionType) {
       return _makeFunctionType(constant, type, info);
-    } else if (type is InlineType) {
+    } else if (type is ExtensionType) {
       return ensureConstant(
           TypeLiteralConstant(type.instantiatedRepresentationType));
     } else if (type is TypeParameterType) {

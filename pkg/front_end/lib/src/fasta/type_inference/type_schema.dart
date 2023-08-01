@@ -151,7 +151,7 @@ class _IsKnownVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitInlineType(InlineType node) {
+  bool visitExtensionType(ExtensionType node) {
     for (DartType typeArgument in node.typeArguments) {
       if (!typeArgument.accept(this)) return false;
     }

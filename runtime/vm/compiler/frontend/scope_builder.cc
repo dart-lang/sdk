@@ -1403,8 +1403,8 @@ void ScopeBuilder::VisitDartType() {
     case kIntersectionType:
       VisitIntersectionType();
       return;
-    case kInlineType:
-      VisitInlineType();
+    case kExtensionType:
+      VisitExtensionType();
       return;
     case kFutureOrType:
       VisitFutureOrType();
@@ -1522,8 +1522,8 @@ void ScopeBuilder::VisitIntersectionType() {
   helper_.SkipDartType();  // read right.
 }
 
-void ScopeBuilder::VisitInlineType() {
-  // We skip the inline type and only use the representation type.
+void ScopeBuilder::VisitExtensionType() {
+  // We skip the extension type and only use the representation type.
   helper_.ReadNullability();
   helper_.SkipCanonicalNameReference();  // read index for canonical name.
   helper_.SkipListOfDartTypes();         // read type arguments

@@ -1591,7 +1591,7 @@ enum RelationalAccessKind {
   /// Operator defined by an interface member.
   Instance,
 
-  /// Operator defined by an extension or inline class member.
+  /// Operator defined by an extension or extension type member.
   Static,
 
   /// Operator accessed on a receiver of type `dynamic`.
@@ -1612,7 +1612,7 @@ enum ObjectAccessKind {
   /// Property defined by an interface member.
   Instance,
 
-  /// Property defined by an extension or inline class member.
+  /// Property defined by an extension or extension type member.
   Static,
 
   /// Named record field property.
@@ -1636,7 +1636,7 @@ enum ObjectAccessKind {
   /// Erroneous property access.
   Error,
 
-  /// Access of an inline class representation field.
+  /// Access of an extension type representation field.
   Direct,
 }
 

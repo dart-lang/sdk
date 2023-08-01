@@ -333,7 +333,7 @@ class Types {
             type.positional.every(_isTypeConstant) &&
             type.named.every((n) => _isTypeConstant(n.type))) ||
         type is TypeParameterType && isFunctionTypeParameter(type) ||
-        type is InlineType &&
+        type is ExtensionType &&
             _isTypeConstant(type.instantiatedRepresentationType);
   }
 
@@ -364,7 +364,7 @@ class Types {
       } else {
         return translator.interfaceTypeParameterTypeClass;
       }
-    } else if (type is InlineType) {
+    } else if (type is ExtensionType) {
       return classForType(type.instantiatedRepresentationType);
     } else if (type is RecordType) {
       return translator.recordTypeClass;
@@ -509,7 +509,7 @@ class Types {
     // All of the singleton types represented by canonical objects should be
     // created const.
     assert(type is TypeParameterType ||
-        type is InlineType ||
+        type is ExtensionType ||
         type is InterfaceType ||
         type is FutureOrType ||
         type is FunctionType ||
@@ -523,7 +523,7 @@ class Types {
       return nonNullableTypeType;
     }
 
-    if (type is InlineType) {
+    if (type is ExtensionType) {
       return makeType(codeGen, type.instantiatedRepresentationType);
     }
 

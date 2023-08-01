@@ -10,7 +10,7 @@ import '../builder/constructor_builder.dart';
 import 'dill_member_builder.dart';
 
 abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
-  final InlineClassMemberDescriptor _descriptor;
+  final ExtensionTypeMemberDescriptor _descriptor;
 
   DillExtensionTypeMemberBuilder(
       Member member, this._descriptor, Builder parent)
@@ -28,19 +28,19 @@ abstract class DillExtensionTypeMemberBuilder extends DillMemberBuilder {
   @override
   ProcedureKind? get kind {
     switch (_descriptor.kind) {
-      case InlineClassMemberKind.Method:
+      case ExtensionTypeMemberKind.Method:
         return ProcedureKind.Method;
-      case InlineClassMemberKind.Getter:
+      case ExtensionTypeMemberKind.Getter:
         return ProcedureKind.Getter;
-      case InlineClassMemberKind.Operator:
+      case ExtensionTypeMemberKind.Operator:
         return ProcedureKind.Operator;
-      case InlineClassMemberKind.Setter:
+      case ExtensionTypeMemberKind.Setter:
         return ProcedureKind.Setter;
-      case InlineClassMemberKind.TearOff:
-      case InlineClassMemberKind.Field:
-      case InlineClassMemberKind.Constructor:
-      case InlineClassMemberKind.Factory:
-      case InlineClassMemberKind.RedirectingFactory:
+      case ExtensionTypeMemberKind.TearOff:
+      case ExtensionTypeMemberKind.Field:
+      case ExtensionTypeMemberKind.Constructor:
+      case ExtensionTypeMemberKind.Factory:
+      case ExtensionTypeMemberKind.RedirectingFactory:
     }
     return null;
   }
@@ -50,7 +50,7 @@ class DillExtensionTypeFieldBuilder extends DillExtensionTypeMemberBuilder {
   final Field field;
 
   DillExtensionTypeFieldBuilder(
-      this.field, InlineClassMemberDescriptor descriptor, Builder parent)
+      this.field, ExtensionTypeMemberDescriptor descriptor, Builder parent)
       : super(field, descriptor, parent);
 
   @override
@@ -76,8 +76,8 @@ class DillExtensionTypeSetterBuilder extends DillExtensionTypeMemberBuilder {
   final Procedure procedure;
 
   DillExtensionTypeSetterBuilder(
-      this.procedure, InlineClassMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == InlineClassMemberKind.Setter),
+      this.procedure, ExtensionTypeMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionTypeMemberKind.Setter),
         super(procedure, descriptor, parent);
 
   @override
@@ -97,8 +97,8 @@ class DillExtensionTypeGetterBuilder extends DillExtensionTypeMemberBuilder {
   final Procedure procedure;
 
   DillExtensionTypeGetterBuilder(
-      this.procedure, InlineClassMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == InlineClassMemberKind.Getter),
+      this.procedure, ExtensionTypeMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionTypeMemberKind.Getter),
         super(procedure, descriptor, parent);
 
   @override
@@ -118,8 +118,8 @@ class DillExtensionTypeOperatorBuilder extends DillExtensionTypeMemberBuilder {
   final Procedure procedure;
 
   DillExtensionTypeOperatorBuilder(
-      this.procedure, InlineClassMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == InlineClassMemberKind.Operator),
+      this.procedure, ExtensionTypeMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionTypeMemberKind.Operator),
         super(procedure, descriptor, parent);
 
   @override
@@ -140,8 +140,8 @@ class DillExtensionTypeStaticMethodBuilder
   final Procedure procedure;
 
   DillExtensionTypeStaticMethodBuilder(
-      this.procedure, InlineClassMemberDescriptor descriptor, Builder parent)
-      : assert(descriptor.kind == InlineClassMemberKind.Method),
+      this.procedure, ExtensionTypeMemberDescriptor descriptor, Builder parent)
+      : assert(descriptor.kind == ExtensionTypeMemberKind.Method),
         assert(descriptor.isStatic),
         super(procedure, descriptor, parent);
 
@@ -166,10 +166,10 @@ class DillExtensionTypeInstanceMethodBuilder
 
   DillExtensionTypeInstanceMethodBuilder(
       this.procedure,
-      InlineClassMemberDescriptor descriptor,
+      ExtensionTypeMemberDescriptor descriptor,
       Builder parent,
       this._extensionTearOff)
-      : assert(descriptor.kind == InlineClassMemberKind.Method),
+      : assert(descriptor.kind == ExtensionTypeMemberKind.Method),
         assert(!descriptor.isStatic),
         super(procedure, descriptor, parent);
 
@@ -197,7 +197,7 @@ class DillExtensionTypeConstructorBuilder extends DillExtensionTypeMemberBuilder
   DillExtensionTypeConstructorBuilder(
       this.constructor,
       this._constructorTearOff,
-      InlineClassMemberDescriptor descriptor,
+      ExtensionTypeMemberDescriptor descriptor,
       Builder parent)
       : super(constructor, descriptor, parent);
 
@@ -222,7 +222,7 @@ class DillExtensionTypeFactoryBuilder extends DillExtensionTypeMemberBuilder {
   final Procedure? _factoryTearOff;
 
   DillExtensionTypeFactoryBuilder(this._procedure, this._factoryTearOff,
-      InlineClassMemberDescriptor descriptor, Builder parent)
+      ExtensionTypeMemberDescriptor descriptor, Builder parent)
       : super(_procedure, descriptor, parent);
 
   @override
