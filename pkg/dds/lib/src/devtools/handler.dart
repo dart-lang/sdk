@@ -6,6 +6,7 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:devtools_shared/devtools_extensions.dart';
 import 'package:devtools_shared/devtools_server.dart';
 import 'package:path/path.dart' as path;
 import 'package:shelf/shelf.dart';
@@ -108,7 +109,7 @@ FutureOr<Handler> defaultHandler({
     if (!ServerApi.canHandle(request)) {
       return Response.notFound('$method is not a valid API');
     }
-    return ServerApi.handle(request);
+    return ServerApi.handle(request, ExtensionsManager(buildDir: buildDir));
   }
 
   return (Request request) {
