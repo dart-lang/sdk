@@ -16,6 +16,7 @@ class NodeTextExpectationsCollector {
     'ElementsBaseTest.checkElementText',
     'FileResolutionTest.assertStateString',
     'IndexTest.assertElementIndexText',
+    'InheritanceManager3Test_ExtensionType.assertInterfaceText',
     'ParserDiagnosticsTest.assertParsedNodeText',
     'ResolutionTest.assertParsedNodeText',
     'ResolutionTest.assertResolvedNodeText',

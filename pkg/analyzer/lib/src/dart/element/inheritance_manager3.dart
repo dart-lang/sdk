@@ -646,13 +646,14 @@ class InheritanceManager3 {
     });
 
     return Interface._(
-      interface,
-      declared,
-      implemented,
-      noSuchMethodForwarders,
-      namedCandidates,
-      superImplemented,
-      conflicts.toFixedList(),
+      map: interface,
+      declared: declared,
+      implemented: implemented,
+      noSuchMethodForwarders: noSuchMethodForwarders,
+      overridden: namedCandidates,
+      redeclared: const {},
+      superImplemented: superImplemented,
+      conflicts: conflicts.toFixedList(),
     );
   }
 
@@ -686,14 +687,14 @@ class InheritanceManager3 {
       }
     }
 
-    final overridden = <Name, List<ExecutableElement>>{};
+    final redeclared = <Name, List<ExecutableElement>>{};
     final conflicts = <Conflict>[];
 
     // Add extension type members.
     for (final entry in extensionCandidates.entries) {
       final name = entry.key;
       final candidates = entry.value;
-      overridden[name] = candidates;
+      redeclared[name] = candidates;
 
       // Stop if redeclared.
       if (implemented.containsKey(name)) {
@@ -727,7 +728,7 @@ class InheritanceManager3 {
     for (final entry in notExtensionCandidates.entries) {
       final name = entry.key;
       final candidates = entry.value;
-      (overridden[name] ??= []).addAll(candidates);
+      (redeclared[name] ??= []).addAll(candidates);
 
       // Stop if redeclared.
       if (implemented.containsKey(name)) {
@@ -754,25 +755,26 @@ class InheritanceManager3 {
     }
 
     // Ensure unique overridden elements.
-    final overridden2 = <Name, List<ExecutableElement>>{};
-    for (final entry in overridden.entries) {
+    final uniqueRedeclared = <Name, List<ExecutableElement>>{};
+    for (final entry in redeclared.entries) {
       final name = entry.key;
       final elements = entry.value;
       if (elements.length == 1) {
-        overridden2[name] = elements;
+        uniqueRedeclared[name] = elements;
       } else {
-        overridden2[name] = elements.toSet().toFixedList();
+        uniqueRedeclared[name] = elements.toSet().toFixedList();
       }
     }
 
     return Interface._(
-      implemented,
-      declared,
-      implemented,
-      const {},
-      overridden2,
-      const [],
-      conflicts.toFixedList(),
+      map: implemented,
+      declared: declared,
+      implemented: implemented,
+      noSuchMethodForwarders: const {},
+      overridden: const {},
+      redeclared: uniqueRedeclared,
+      superImplemented: const [],
+      conflicts: conflicts.toFixedList(),
     );
   }
 
@@ -827,13 +829,14 @@ class InheritanceManager3 {
     _addImplemented(implemented, element, augmented);
 
     return Interface._(
-      interface,
-      declared,
-      implemented,
-      {},
-      interfaceCandidates,
-      [superInterface],
-      <Conflict>[
+      map: interface,
+      declared: declared,
+      implemented: implemented,
+      noSuchMethodForwarders: {},
+      overridden: interfaceCandidates,
+      redeclared: const {},
+      superImplemented: [superInterface],
+      conflicts: <Conflict>[
         ...superConflicts,
         ...interfaceConflicts,
       ].toFixedList(),
@@ -1049,13 +1052,14 @@ class InheritanceManager3 {
 /// The instance interface of an [InterfaceType].
 class Interface {
   static final _empty = Interface._(
-    const {},
-    const {},
-    const {},
-    <Name>{},
-    const {},
-    const [{}],
-    const [],
+    map: const {},
+    declared: const {},
+    implemented: const {},
+    noSuchMethodForwarders: <Name>{},
+    overridden: const {},
+    redeclared: const {},
+    superImplemented: const [{}],
+    conflicts: const [],
   );
 
   /// The map of names to their signature in the interface.
@@ -1074,6 +1078,10 @@ class Interface {
   /// or interfaces.
   final Map<Name, List<ExecutableElement>> overridden;
 
+  /// The map of names to the signatures from superinterfaces that a member
+  /// declaration in this extension type redeclares.
+  final Map<Name, List<ExecutableElement>> redeclared;
+
   /// Each item of this list maps names to their concrete implementations.
   /// The first item of the list is the nominal superclass, next the nominal
   /// superclass plus the first mixin, etc. So, for the class like
@@ -1089,15 +1097,16 @@ class Interface {
   /// superclasses, or interfaces.
   Map<Name, ExecutableElement>? inheritedMap;
 
-  Interface._(
-    this.map,
-    this.declared,
-    this.implemented,
-    this.noSuchMethodForwarders,
-    this.overridden,
-    this.superImplemented,
-    this.conflicts,
-  );
+  Interface._({
+    required this.map,
+    required this.declared,
+    required this.implemented,
+    required this.noSuchMethodForwarders,
+    required this.overridden,
+    required this.redeclared,
+    required this.superImplemented,
+    required this.conflicts,
+  });
 
   /// Return `true` if the [name] is implemented in the supertype.
   bool isSuperImplemented(Name name) {
