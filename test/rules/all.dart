@@ -80,6 +80,7 @@ import 'no_self_assignments_test.dart' as no_self_assignments;
 import 'no_wildcard_variable_uses_test.dart' as no_wildcard_variable_uses;
 import 'non_constant_identifier_names_test.dart'
     as non_constant_identifier_names;
+import 'noop_primitive_operations_test.dart' as noop_primitive_operations;
 import 'null_check_on_nullable_type_parameter_test.dart'
     as null_check_on_nullable_type_parameter;
 import 'null_closures_test.dart' as null_closures;
@@ -262,6 +263,7 @@ void main() {
   no_self_assignments.main();
   no_wildcard_variable_uses.main();
   non_constant_identifier_names.main();
+  noop_primitive_operations.main();
   null_check_on_nullable_type_parameter.main();
   null_closures.main();
   omit_local_variable_types.main();
