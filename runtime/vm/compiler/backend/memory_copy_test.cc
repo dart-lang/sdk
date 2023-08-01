@@ -145,7 +145,7 @@ static void RunMemoryCopyInstrTest(intptr_t src_start,
   }
 
   {
-#if !defined(PRODUCT)
+#if !defined(PRODUCT) && !defined(USING_THREAD_SANITIZER)
     SetFlagScope<bool> sfs(&FLAG_disassemble_optimized, true);
 #endif
 
