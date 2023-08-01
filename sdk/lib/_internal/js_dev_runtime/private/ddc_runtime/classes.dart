@@ -35,7 +35,7 @@ void _copyMembers(@notNull Object to, @notNull Object from) {
   var names = getOwnNamesAndSymbols(from);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     String name = JS('', '#[#]', names, i);
-    if (name == 'constructor') continue;
+    if ('constructor' == name) continue;
     _copyMember(to, from, name);
   }
 }
@@ -463,7 +463,7 @@ void _installPropertiesForObject(jsProto) {
   var names = getOwnPropertyNames(coreObjProto);
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS<String>('!', '#[#]', names, i);
-    if (name == 'constructor') continue;
+    if ('constructor' == name) continue;
     var desc = getOwnPropertyDescriptor(coreObjProto, name);
     defineProperty(jsProto, JS('', '#.#', dartx, name), desc);
   }

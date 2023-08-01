@@ -64,7 +64,7 @@ safeGetOwnProperty(obj, name) {
 copyTheseProperties(to, from, names) {
   for (int i = 0, n = JS('!', '#.length', names); i < n; ++i) {
     var name = JS('', '#[#]', names, i);
-    if (name == 'constructor') continue;
+    if ('constructor' == name) continue;
     copyProperty(to, from, name);
   }
   return to;
