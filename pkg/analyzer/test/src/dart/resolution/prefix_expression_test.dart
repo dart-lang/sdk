@@ -279,6 +279,43 @@ PrefixExpression
 ''');
   }
 
+  test_plusPlus_ofExtensionType() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+  set foo(int _) {}
+}
+
+void f(A a) {
+  ++a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixExpression;
+    assertResolvedNodeText(node, r'''
+PrefixExpression
+  operator: ++
+  operand: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  readElement: self::@extensionType::A::@getter::foo
+  readType: int
+  writeElement: self::@extensionType::A::@setter::foo
+  writeType: int
+  staticElement: dart:core::@class::num::@method::+
+  staticType: int
+''');
+  }
+
   test_plusPlus_super() async {
     await assertErrorsInCode(r'''
 class A {
