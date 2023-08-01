@@ -162,9 +162,6 @@ class _ImplicitFieldTypeRoot extends InferredType {
   }
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) return true;
     return other is _ImplicitFieldTypeRoot &&
@@ -203,9 +200,6 @@ class _InferredTypeUse extends InferredType {
   void toTextInternal(AstPrinter printer) {
     printer.write('<inferred-type:${inferableTypeUse.typeBuilder}>');
   }
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {

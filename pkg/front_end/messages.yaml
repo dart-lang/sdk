@@ -5502,7 +5502,7 @@ JsInteropExternalMemberNotJSAnnotated:
   correctionMessage: "Try removing the 'external' keyword or adding a JS interop annotation."
 
 JsInteropInlineClassNotInterop:
-  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#string'."
+  problemMessage: "Inline class '#name' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: '#type'."
   correctionMessage: "Try declaring a valid JS interop representation type, which may include 'dart:js_interop' types, '@staticInterop' types, 'dart:html' types, or other interop inline types."
 
 JsInteropInlineClassMemberNotInterop:
