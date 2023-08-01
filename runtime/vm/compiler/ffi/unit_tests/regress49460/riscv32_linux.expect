@@ -1,5 +1,5 @@
 a0 int32
 (a1, a2) int64
-a3 int32
+t3 int32
 =>
 a0 int32

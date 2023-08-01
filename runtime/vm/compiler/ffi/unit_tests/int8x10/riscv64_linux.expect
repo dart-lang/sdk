@@ -1,9 +1,9 @@
 a0 int32[int8]
 a1 int32[int8]
 a2 int32[int8]
-a3 int32[int8]
-a4 int32[int8]
-a5 int32[int8]
+t3 int32[int8]
+t4 int32[int8]
+t5 int32[int8]
 a6 int32[int8]
 a7 int32[int8]
 S+0 int8

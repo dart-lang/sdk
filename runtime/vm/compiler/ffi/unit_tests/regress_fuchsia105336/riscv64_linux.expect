@@ -3,7 +3,7 @@ fa0 double
 a1 int32
 fa1 double
 a2 int32
-a3 int64
-a4 int64
+t3 int64
+t4 int64
 =>
 a0 void

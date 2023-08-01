@@ -4,11 +4,11 @@ a1 int64
 fa1 double
 a2 int64
 fa2 float
-a3 int64
+t3 int64
 fa3 double
-a4 int64
+t4 int64
 fa4 float
-a5 int64
+t5 int64
 fa5 double
 a6 int64
 fa6 float

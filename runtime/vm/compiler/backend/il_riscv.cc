@@ -1413,76 +1413,17 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 #define R(r) (1 << r)
 
-static Register RemapA3A4A5(Register r) {
-  if (r == A3) return T3;
-  if (r == A4) return T4;
-  if (r == A5) return T5;
-  return r;
-}
-
-static void RemapA3A4A5(LocationSummary* summary) {
-  // A3/A4/A5 are unavailable in normal register allocation because they are
-  // assigned to TMP/TMP2/PP. This assignment is important for reducing code
-  // size. We can't just override the normal blockage of these registers because
-  // they may be used by other instructions between the argument's definition
-  // and its use in FfiCallInstr.
-  // Note that A3/A4/A5 might be not be the 3rd/4th/5th input because of mixed
-  // integer and floating-point arguments.
-  for (intptr_t i = 0; i < summary->input_count(); i++) {
-    if (summary->in(i).IsRegister()) {
-      Register r = RemapA3A4A5(summary->in(i).reg());
-      summary->set_in(i, Location::RegisterLocation(r));
-    } else if (summary->in(i).IsPairLocation() &&
-               summary->in(i).AsPairLocation()->At(0).IsRegister()) {
-      ASSERT(summary->in(i).AsPairLocation()->At(1).IsRegister());
-      Register r0 = RemapA3A4A5(summary->in(i).AsPairLocation()->At(0).reg());
-      Register r1 = RemapA3A4A5(summary->in(i).AsPairLocation()->At(1).reg());
-      summary->set_in(i, Location::Pair(Location::RegisterLocation(r0),
-                                        Location::RegisterLocation(r1)));
-    }
-  }
-}
-
-#define R(r) (1 << r)
-
 LocationSummary* FfiCallInstr::MakeLocationSummary(Zone* zone,
                                                    bool is_optimizing) const {
-  LocationSummary* summary = MakeLocationSummaryInternal(
+  return MakeLocationSummaryInternal(
       zone, is_optimizing,
       (R(CallingConventions::kSecondNonArgumentRegister) |
        R(CallingConventions::kFfiAnyNonAbiRegister) | R(CALLEE_SAVED_TEMP2)));
-
-  RemapA3A4A5(summary);
-  return summary;
 }
 
 #undef R
 
-static void MoveA3A4A5(FlowGraphCompiler* compiler, Register r) {
-  if (r == T3) {
-    __ mv(A3, T3);
-  } else if (r == T4) {
-    __ mv(A4, T4);
-  } else if (r == T5) {
-    __ mv(A5, T5);
-  }
-}
-
 void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // Beware! Do not use CODE_REG/TMP/TMP2/PP within FfiCallInstr as they are
-  // assigned to A2/A3/A4/A5, which may be in use as argument registers.
-  __ set_constant_pool_allowed(false);
-  for (intptr_t i = 0; i < locs()->input_count(); i++) {
-    if (locs()->in(i).IsRegister()) {
-      MoveA3A4A5(compiler, locs()->in(i).reg());
-    } else if (locs()->in(i).IsPairLocation() &&
-               locs()->in(i).AsPairLocation()->At(0).IsRegister()) {
-      ASSERT(locs()->in(i).AsPairLocation()->At(1).IsRegister());
-      MoveA3A4A5(compiler, locs()->in(i).AsPairLocation()->At(0).reg());
-      MoveA3A4A5(compiler, locs()->in(i).AsPairLocation()->At(1).reg());
-    }
-  }
-
   const Register target = locs()->in(TargetAddressIndex()).reg();
 
   // The temps are indexed according to their register number.
@@ -1570,6 +1511,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ StoreToOffset(target, THR, compiler::target::Thread::vm_tag_offset());
 #endif
 
+    __ mv(A3, T3);  // TODO(rmacnak): Only when needed.
+    __ mv(A4, T4);
+    __ mv(A5, T5);
     __ jalr(target);
 
 #if !defined(PRODUCT)
@@ -1595,6 +1539,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ TransitionGeneratedToNative(target, FPREG, temp1,
                                      /*enter_safepoint=*/true);
 
+      __ mv(A3, T3);  // TODO(rmacnak): Only when needed.
+      __ mv(A4, T4);
+      __ mv(A5, T5);
       __ jalr(target);
 
       // Update information in the thread object and leave the safepoint.
@@ -1611,6 +1558,9 @@ void FfiCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
       // Calls T0 and clobbers R19 (along with volatile registers).
       ASSERT(target == T0);
+      __ mv(A3, T3);  // TODO(rmacnak): Only when needed.
+      __ mv(A4, T4);
+      __ mv(A5, T5);
       __ jalr(temp1);
     }
 
@@ -1725,6 +1675,9 @@ void NativeEntryInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ EnterFrame(0);
 
   // Save the argument registers, in reverse order.
+  __ mv(T3, A3);  // TODO(rmacnak): Only when needed.
+  __ mv(T4, A4);
+  __ mv(T5, A5);
   SaveArguments(compiler);
 
   // Enter the entry frame. NativeParameterInstr expects this frame has size
@@ -1819,7 +1772,6 @@ LocationSummary* CCallInstr::MakeLocationSummary(Zone* zone,
   static_assert(saved_fp < temp0, "Unexpected ordering of registers in set.");
   LocationSummary* summary =
       MakeLocationSummaryInternal(zone, (R(saved_fp) | R(temp0)));
-  RemapA3A4A5(summary);
   return summary;
 }
 
@@ -1829,26 +1781,19 @@ void CCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register saved_fp = locs()->temp(0).reg();
   const Register temp0 = locs()->temp(1).reg();
 
-  // Beware! Do not use CODE_REG/TMP/TMP2/PP within FfiCallInstr as they are
-  // assigned to A2/A3/A4/A5, which may be in use as argument registers.
-  __ set_constant_pool_allowed(false);
-
   __ MoveRegister(saved_fp, FPREG);
 
   const intptr_t frame_space = native_calling_convention_.StackTopInBytes();
   __ EnterCFrame(frame_space);
 
-  // Also does the remapping A3/A4/A5.
   EmitParamMoves(compiler, saved_fp, temp0);
 
   const Register target_address = locs()->in(TargetAddressIndex()).reg();
+  // I.e., no use of A3/A4/A5.
+  RELEASE_ASSERT(native_calling_convention_.argument_locations().length() < 4);
   __ CallCFunction(target_address);
 
-  __ LeaveCFrame();
-
-  // PP is a volatile register, so it must be restored even for leaf FFI calls.
-  __ RestorePoolPointer();
-  __ set_constant_pool_allowed(true);
+  __ LeaveCFrame();  // Also restores PP=A5.
 }
 
 LocationSummary* OneByteStringFromCharCodeInstr::MakeLocationSummary(

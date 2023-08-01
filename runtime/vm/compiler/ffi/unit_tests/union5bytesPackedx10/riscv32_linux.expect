@@ -1,6 +1,6 @@
 M(a0 uint32, a1 uint32) Union(size: 5)
-M(a2 uint32, a3 uint32) Union(size: 5)
-M(a4 uint32, a5 uint32) Union(size: 5)
+M(a2 uint32, t3 uint32) Union(size: 5)
+M(t4 uint32, t5 uint32) Union(size: 5)
 M(a6 uint32, a7 uint32) Union(size: 5)
 M(S+0 uint32, S+4 uint32) Union(size: 5)
 M(S+8 uint32, S+12 uint32) Union(size: 5)
