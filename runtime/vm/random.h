@@ -28,6 +28,18 @@ class Random {
            static_cast<uint64_t>(NextUInt32());
   }
 
+  // Returns a random number that's a valid JS integer.
+  //
+  // All IDs that can be returned over the service protocol should be
+  // representable as JS integers and should be generated using this method.
+  //
+  // See https://github.com/dart-lang/sdk/issues/53081.
+  uint64_t NextJSInt() {
+    // Number.MAX_SAFE_INTEGER (2 ^ 53 - 1)
+    const uint64_t kMaxJsInt = 0x1FFFFFFFFFFFFF;
+    return NextUInt64() & kMaxJsInt;
+  }
+
   static uint64_t GlobalNextUInt64();
   static void Init();
   static void Cleanup();
