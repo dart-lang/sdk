@@ -4,7 +4,7 @@
 
 import 'package:test/test.dart';
 
-import '../tool/doc.dart';
+import '../tool/machine.dart';
 import 'util/test_utils.dart';
 
 void main() {

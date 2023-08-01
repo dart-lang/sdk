@@ -19,8 +19,7 @@ Future<List<String>> _readRecommendedLints() async => _fetchLints(
 
 /// todo(pq): update `scorecard.dart` to reuse these fetch functions.
 Future<List<String>> _fetchLints(String url) async {
-  var client = http.Client();
-  var req = await client.get(Uri.parse(url));
+  var req = await http.get(Uri.parse(url));
   return _readLints(req.body);
 }
 

@@ -161,7 +161,6 @@ Details are under active development.  Feedback is most [welcome][issues]!
 [lib/src/rules]: https://github.com/dart-lang/linter/tree/main/lib/src/rules
 [test_data/rules]: https://github.com/dart-lang/linter/tree/main/test_data/rules
 [rule.dart]: https://github.com/dart-lang/linter/blob/main/tool/rule.dart
-[doc.dart]: https://github.com/dart-lang/linter/blob/main/tool/doc.dart
 [analyzer.dart utility library]: https://github.com/dart-lang/linter/blob/main/lib/src/analyzer.dart
 [implementation_imports]: https://dart.dev/lints/implementation_imports
 [Dart Language Specification]: https://dart.dev/guides/language/spec
