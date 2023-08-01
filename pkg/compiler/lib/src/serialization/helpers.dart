@@ -190,10 +190,10 @@ class DartTypeNodeWriter
   }
 
   @override
-  void visitInlineType(
-      ir.InlineType node, List<ir.TypeParameter> functionTypeVariables) {
-    _sink.writeEnum(DartTypeNodeKind.inlineType);
-    _sink.writeInlineClassNode(node.inlineClass);
+  void visitExtensionType(
+      ir.ExtensionType node, List<ir.TypeParameter> functionTypeVariables) {
+    _sink.writeEnum(DartTypeNodeKind.extensionType);
+    _sink.writeExtensionTypeDeclarationNode(node.extensionTypeDeclaration);
     _sink.writeEnum(node.nullability);
     visitTypes(node.typeArguments, functionTypeVariables);
   }

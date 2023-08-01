@@ -176,18 +176,18 @@ class DartTypeEquivalence implements DartTypeVisitor1<bool, DartType> {
   }
 
   @override
-  bool visitInlineType(InlineType node, DartType other) {
+  bool visitExtensionType(ExtensionType node, DartType other) {
     // First, check Object*, Object?.
     if (equateTopTypes && coreTypes.isTop(node)) {
       return coreTypes.isTop(other);
     }
 
-    if (other is InlineType) {
+    if (other is ExtensionType) {
       if (!_checkAndRegisterNullabilities(
           node.declaredNullability, other.declaredNullability)) {
         return false;
       }
-      if (node.inlineClass != other.inlineClass) {
+      if (node.extensionTypeDeclaration != other.extensionTypeDeclaration) {
         return false;
       }
       assert(node.typeArguments.length == other.typeArguments.length);

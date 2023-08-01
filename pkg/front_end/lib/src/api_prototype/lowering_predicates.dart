@@ -656,7 +656,7 @@ bool isExtensionThis(VariableDeclaration node) {
 }
 
 /// Name used for synthetic 'this' variables in extension instance members and
-/// inline class instance members.
+/// extension type instance members.
 const String syntheticThisName = '#this';
 
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
@@ -665,13 +665,16 @@ bool isExtensionThisName(String? name) {
   return name == syntheticThisName;
 }
 
-bool isInlineClassThis(VariableDeclaration node) {
-  return node.isLowered && isInlineClassThisName(node.name);
+/// Return `true` if [node] is the synthetic parameter holding the `this` value
+/// in the encoding of extension type instance members and constructors.
+bool isExtensionTypeThis(VariableDeclaration node) {
+  return node.isLowered && isExtensionTypeThisName(node.name);
 }
 
 /// Returns `true` if [name] is the name of the synthetic parameter holding the
-/// `this` value in the encoding of inline class instance members.
-bool isInlineClassThisName(String? name) {
+/// `this` value in the encoding of extension type instance members and
+/// constructors.
+bool isExtensionTypeThisName(String? name) {
   return name == syntheticThisName;
 }
 

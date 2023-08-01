@@ -27,7 +27,7 @@ import '../problems.dart' show internalProblem, unhandled, unimplemented;
 import '../scope.dart';
 import 'dill_class_builder.dart' show DillClassBuilder;
 import 'dill_extension_builder.dart';
-import 'dill_extension_type_builder.dart';
+import 'dill_extension_type_declaration_builder.dart';
 import 'dill_loader.dart' show DillLoader;
 import 'dill_member_builder.dart';
 import 'dill_type_alias_builder.dart' show DillTypeAliasBuilder;
@@ -95,7 +95,7 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     isBuilt = true;
     library.classes.forEach(_addClass);
     library.extensions.forEach(_addExtension);
-    library.inlineClasses.forEach(_addExtensionType);
+    library.extensionTypeDeclarations.forEach(_addExtensionTypeDeclaration);
 
     Map<String, Map<Name, Procedure>> tearOffs = {};
     List<Procedure> nonTearOffs = [];
@@ -196,14 +196,15 @@ class DillLibraryBuilder extends LibraryBuilderImpl {
     _addBuilder(extension.name, extensionBuilder);
   }
 
-  void _addExtensionType(InlineClass extensionType) {
-    DillExtensionTypeBuilder extensionTypeBuilder =
-        new DillExtensionTypeBuilder(extensionType, this);
-    _addBuilder(extensionType.name, extensionTypeBuilder);
+  void _addExtensionTypeDeclaration(
+      ExtensionTypeDeclaration extensionTypeDeclaration) {
+    DillExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new DillExtensionTypeDeclarationBuilder(extensionTypeDeclaration, this);
+    _addBuilder(extensionTypeDeclaration.name, extensionTypeDeclarationBuilder);
   }
 
   void _addMember(Member member) {
-    if (member.isExtensionMember || member.isInlineClassMember) {
+    if (member.isExtensionMember || member.isExtensionTypeMember) {
       return null;
     }
     String name = member.name.text;

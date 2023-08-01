@@ -551,12 +551,13 @@ class Reference {
     return node as Extension;
   }
 
-  InlineClass get asInlineClass {
+  ExtensionTypeDeclaration get asExtensionTypeDeclaration {
     NamedNode? node = this.node;
     if (node == null) {
-      throw '$this is not bound to an AST node. An inline class was expected';
+      throw '$this is not bound to an AST node. An extension type declaration '
+          'was expected';
     }
-    return node as InlineClass;
+    return node as ExtensionTypeDeclaration;
   }
 
   bool get isConsistent {

@@ -9,7 +9,7 @@ import '../kernel/late_lowering.dart' as late_lowering;
 
 enum FieldNameType { Field, Getter, Setter, IsSetField }
 
-enum ContainerType { Library, Class, InlineClass, Extension }
+enum ContainerType { Library, Class, ExtensionType, Extension }
 
 class NameScheme {
   final bool isInstanceMember;
@@ -29,7 +29,8 @@ class NameScheme {
 
   bool get isExtensionMember => containerType == ContainerType.Extension;
 
-  bool get isInlineClassMember => containerType == ContainerType.InlineClass;
+  bool get isExtensionTypeMember =>
+      containerType == ContainerType.ExtensionType;
 
   MemberName getFieldMemberName(FieldNameType fieldNameType, String name,
       {required bool isSynthesized}) {
@@ -39,7 +40,7 @@ class NameScheme {
       case ContainerType.Class:
         hasSynthesizedName = isSynthesized;
         break;
-      case ContainerType.InlineClass:
+      case ContainerType.ExtensionType:
       case ContainerType.Extension:
         hasSynthesizedName = true;
         break;
@@ -71,7 +72,7 @@ class NameScheme {
       case ContainerType.Class:
         baseName = name;
         break;
-      case ContainerType.InlineClass:
+      case ContainerType.ExtensionType:
       case ContainerType.Extension:
         baseName = "${containerName!.name}|${name}";
         break;
@@ -103,7 +104,7 @@ class NameScheme {
         return name.startsWith('_')
             ? new PrivateMemberName(libraryName, name)
             : new PublicMemberName(name);
-      case ContainerType.InlineClass:
+      case ContainerType.ExtensionType:
       case ContainerType.Extension:
         return new ExtensionProcedureName(
             libraryName, containerName!, containerType, kind, name,
@@ -119,7 +120,7 @@ class NameScheme {
       required String name}) {
     switch (containerType) {
       case ContainerType.Extension:
-      case ContainerType.InlineClass:
+      case ContainerType.ExtensionType:
         String extensionName = containerName!.name;
         String kindInfix = '';
         if (!isStatic) {
@@ -158,10 +159,11 @@ class NameScheme {
         return name.startsWith('_')
             ? new PrivateMemberName(libraryName, name)
             : new PublicMemberName(name);
-      case ContainerType.InlineClass:
+      case ContainerType.ExtensionType:
       case ContainerType.Extension:
         // Extension is handled here for the error case only.
-        return new InlineClassConstructorName(libraryName, containerName!, name,
+        return new ExtensionTypeConstructorName(
+            libraryName, containerName!, name,
             isTearOff: isTearOff);
     }
   }
@@ -202,7 +204,7 @@ class LibraryName {
   }
 }
 
-/// The name of a class, inline class or extension.
+/// The name of a class, extension type declaration or extension.
 abstract class ContainerName {
   /// The current name of the container.
   ///
@@ -214,7 +216,7 @@ abstract class ContainerName {
   void attachMemberName(MemberName name);
 }
 
-/// The name of a class or an inline classes.
+/// The name of a class or an extension type declaration.
 class ClassName extends ContainerName {
   final String _name;
 
@@ -438,18 +440,19 @@ class ExtensionProcedureName extends UpdatableMemberName {
   }
 }
 
-/// A name for an inline class constructor.
+/// A name for an extension type constructor.
 ///
 /// This depends on a [LibraryName] and an [ContainerName] and is updated the
 /// reference of the [LibraryName] or the name of the [ContainerName] is
 /// changed.
-class InlineClassConstructorName extends UpdatableMemberName {
+class ExtensionTypeConstructorName extends UpdatableMemberName {
   final LibraryName _libraryName;
   final ContainerName _containerName;
   final bool isTearOff;
   final String _text;
 
-  InlineClassConstructorName(this._libraryName, this._containerName, this._text,
+  ExtensionTypeConstructorName(
+      this._libraryName, this._containerName, this._text,
       {required this.isTearOff}) {
     _libraryName.attachMemberName(this);
     _containerName.attachMemberName(this);

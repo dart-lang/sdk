@@ -417,7 +417,7 @@ abstract class InternalInitializer extends Initializer {
       return acceptInference(visitor as InferenceVisitorImpl) as R;
     }
     if (visitor is Printer ||
-        visitor is InlineClassInitializerToStatementConverter) {
+        visitor is ExtensionTypeInitializerToStatementConverter) {
       return visitor.defaultInitializer(this);
     }
     return unsupported(
@@ -3465,17 +3465,17 @@ class ObjectPatternInternal extends ObjectPattern {
       {required this.hasExplicitTypeArguments});
 }
 
-class InlineClassRedirectingInitializer extends InternalInitializer {
+class ExtensionTypeRedirectingInitializer extends InternalInitializer {
   Reference targetReference;
   Arguments arguments;
 
-  InlineClassRedirectingInitializer(Procedure target, Arguments arguments)
+  ExtensionTypeRedirectingInitializer(Procedure target, Arguments arguments)
       : this.byReference(
             // Getter vs setter doesn't matter for procedures.
             getNonNullableMemberReferenceGetter(target),
             arguments);
 
-  InlineClassRedirectingInitializer.byReference(
+  ExtensionTypeRedirectingInitializer.byReference(
       this.targetReference, this.arguments) {
     arguments.parent = this;
   }
@@ -3489,7 +3489,7 @@ class InlineClassRedirectingInitializer extends InternalInitializer {
 
   @override
   InitializerInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitInlineClassRedirectingInitializer(this);
+    return visitor.visitExtensionTypeRedirectingInitializer(this);
   }
 
   @override
@@ -3504,5 +3504,5 @@ class InlineClassRedirectingInitializer extends InternalInitializer {
 
   @override
   String toString() =>
-      'InlineClassRedirectingInitializer(${toStringInternal()})';
+      'ExtensionTypeRedirectingInitializer(${toStringInternal()})';
 }

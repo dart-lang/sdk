@@ -44,14 +44,15 @@ abstract class ClassHierarchyBase {
 
   /// Returns the instantiation of [superclass] that is implemented by [type],
   /// or `null` if [type] does not implement [superclass] at all.
-  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+  ExtensionType? getExtensionTypeAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass,
       {required bool isNonNullableByDefault});
 
   /// Returns the type arguments of the instantiation of [superclass] that is
   /// implemented by [type], or `null` if [type] does not implement [superclass]
   /// at all.
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass);
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass);
 
   /// True if [subtype] inherits from [superclass] though zero or more
   /// `extends`, `with`, and `implements` relationships.
@@ -77,28 +78,28 @@ abstract class ClassHierarchyBase {
       {required bool isNonNullableByDefault});
 }
 
-mixin ClassHierarchyInlineClassMixin {
+mixin ClassHierarchyExtensionTypeMixin {
   CoreTypes get coreTypes;
 
-  InlineType? getInlineClassAsInstanceOf(
-      InlineClass subclass, InlineClass superclass,
+  ExtensionType? getExtensionTypeDeclarationAsInstanceOf(
+      ExtensionTypeDeclaration subclass, ExtensionTypeDeclaration superclass,
       {required bool isNonNullableByDefault}) {
     // TODO(johnniwinther): Improve lookup performance.
     if (identical(subclass, superclass)) {
-      return coreTypes.thisInlineType(
+      return coreTypes.thisExtensionType(
           subclass,
           isNonNullableByDefault
               ? Nullability.nonNullable
               : Nullability.legacy);
     }
-    for (InlineType implement in subclass.implements) {
-      InlineType? supertype = getInlineClassAsInstanceOf(
-          implement.inlineClass, superclass,
+    for (ExtensionType implement in subclass.implements) {
+      ExtensionType? supertype = getExtensionTypeDeclarationAsInstanceOf(
+          implement.extensionTypeDeclaration, superclass,
           isNonNullableByDefault: isNonNullableByDefault);
       if (supertype != null) {
         if (implement.typeArguments.isNotEmpty) {
-          supertype = Substitution.fromInlineType(implement)
-              .substituteType(supertype) as InlineType;
+          supertype = Substitution.fromExtensionType(implement)
+              .substituteType(supertype) as ExtensionType;
         }
         return supertype;
       }
@@ -106,24 +107,25 @@ mixin ClassHierarchyInlineClassMixin {
     return null;
   }
 
-  InlineType? getInlineTypeAsInstanceOf(InlineType type, InlineClass superclass,
+  ExtensionType? getExtensionTypeAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass,
       {required bool isNonNullableByDefault}) {
-    InlineType? supertype = getInlineClassAsInstanceOf(
-        type.inlineClass, superclass,
+    ExtensionType? supertype = getExtensionTypeDeclarationAsInstanceOf(
+        type.extensionTypeDeclaration, superclass,
         isNonNullableByDefault: isNonNullableByDefault);
     if (supertype != null) {
       if (type.typeArguments.isNotEmpty) {
-        supertype = Substitution.fromInlineType(type).substituteType(supertype)
-            as InlineType;
+        supertype = Substitution.fromExtensionType(type)
+            .substituteType(supertype) as ExtensionType;
       }
       return supertype;
     }
     return null;
   }
 
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass) {
-    return getInlineTypeAsInstanceOf(type, superclass,
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass) {
+    return getExtensionTypeAsInstanceOf(type, superclass,
             isNonNullableByDefault: true)
         ?.typeArguments;
   }
@@ -519,7 +521,7 @@ class _ClosedWorldClassHierarchySubtypes implements ClassHierarchySubtypes {
 
 /// Implementation of [ClassHierarchy] for closed world.
 class ClosedWorldClassHierarchy
-    with ClassHierarchyInlineClassMixin
+    with ClassHierarchyExtensionTypeMixin
     implements ClassHierarchy {
   @override
   CoreTypes coreTypes;

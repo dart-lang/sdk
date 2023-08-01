@@ -11,11 +11,11 @@ import 'package:kernel/ast.dart';
 
 import '../builder/class_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_type_builder.dart';
 import '../builder/future_or_type_declaration_builder.dart';
-import '../builder/inline_class_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/never_type_declaration_builder.dart';
@@ -110,9 +110,10 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
   }
 
   @override
-  TypeBuilder visitInlineType(InlineType node) {
-    InlineClassBuilder extensionType = loader
-        .computeExtensionTypeBuilderFromTargetExtensionType(node.inlineClass);
+  TypeBuilder visitExtensionType(ExtensionType node) {
+    ExtensionTypeDeclarationBuilder extensionTypeDeclaration =
+        loader.computeExtensionTypeBuilderFromTargetExtensionType(
+            node.extensionTypeDeclaration);
     List<TypeBuilder>? arguments;
     List<DartType> kernelArguments = node.typeArguments;
     if (kernelArguments.isNotEmpty) {
@@ -120,7 +121,7 @@ class TypeBuilderComputer implements DartTypeVisitor<TypeBuilder> {
           kernelArguments.length, (int i) => kernelArguments[i].accept(this),
           growable: false);
     }
-    return new NamedTypeBuilder.forDartType(node, extensionType,
+    return new NamedTypeBuilder.forDartType(node, extensionTypeDeclaration,
         new NullabilityBuilder.fromNullability(node.nullability),
         arguments: arguments);
   }

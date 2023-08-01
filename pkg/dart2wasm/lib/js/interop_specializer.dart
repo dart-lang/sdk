@@ -434,14 +434,14 @@ class InteropSpecializerFactory {
         return _getSpecializerForMember(
             node, '$clsString.$memberSelectorString', invocation);
       }
-    } else if (node.isInlineClassMember) {
+    } else if (node.isExtensionTypeMember) {
       final nodeDescriptor = _inlineExtensionIndex.getInlineDescriptor(node);
       if (nodeDescriptor != null) {
         final cls = _inlineExtensionIndex.getInlineClass(node)!;
         final clsString = _getTopLevelJSString(cls, cls.name);
         final kind = nodeDescriptor.kind;
-        if ((kind == InlineClassMemberKind.Constructor ||
-            kind == InlineClassMemberKind.Factory)) {
+        if ((kind == ExtensionTypeMemberKind.Constructor ||
+            kind == ExtensionTypeMemberKind.Factory)) {
           return _getSpecializerForConstructor(
               _inlineExtensionIndex.isLiteralConstructor(node),
               node,

@@ -6,10 +6,10 @@ library fasta.loader;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Class, DartType, InlineClass;
+import 'package:kernel/ast.dart' show Class, DartType, ExtensionTypeDeclaration;
 
 import 'builder/class_builder.dart';
-import 'builder/inline_class_builder.dart';
+import 'builder/extension_type_declaration_builder.dart';
 import 'builder/library_builder.dart';
 import 'builder/type_builder.dart';
 
@@ -36,8 +36,9 @@ abstract class Loader {
 
   ClassBuilder computeClassBuilderFromTargetClass(Class cls);
 
-  InlineClassBuilder computeExtensionTypeBuilderFromTargetExtensionType(
-      InlineClass extensionType);
+  ExtensionTypeDeclarationBuilder
+      computeExtensionTypeBuilderFromTargetExtensionType(
+          ExtensionTypeDeclaration extensionType);
 
   TypeBuilder computeTypeBuilder(DartType type);
 

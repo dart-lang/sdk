@@ -428,7 +428,8 @@ class ConstantsTransformer extends RemovingTransformer {
     transformTypedefList(library.typedefs, library);
     transformClassList(library.classes, library);
     transformExtensionList(library.extensions, library);
-    transformInlineClassList(library.inlineClasses, library);
+    transformExtensionTypeDeclarationList(
+        library.extensionTypeDeclarations, library);
     transformProcedureList(library.procedures, library);
     transformFieldList(library.fields, library);
 
@@ -498,7 +499,8 @@ class ConstantsTransformer extends RemovingTransformer {
   }
 
   @override
-  InlineClass visitInlineClass(InlineClass node, TreeNode? removalSentinel) {
+  ExtensionTypeDeclaration visitExtensionTypeDeclaration(
+      ExtensionTypeDeclaration node, TreeNode? removalSentinel) {
     StaticTypeContext? oldStaticTypeContext = _staticTypeContext;
     _staticTypeContext = new StaticTypeContext.forAnnotations(
         node.enclosingLibrary, typeEnvironment);
@@ -2318,7 +2320,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   final bool enableTripleShift;
   final bool enableConstFunctions;
-  bool inInlineClassConstConstructor = false;
+  bool inExtensionTypeConstConstructor = false;
 
   final Map<Constant, Constant> canonicalizationCache;
   final Map<Node, Constant?> nodeCache;
@@ -4349,7 +4351,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
     final VariableDeclaration variable = node.variable;
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           createEvaluationErrorConstant(
               node,
@@ -4377,7 +4379,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   @override
   Constant visitVariableSet(VariableSet node) {
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       final VariableDeclaration variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
@@ -4687,19 +4689,19 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
         }
         return evaluateIdentical();
       }
-    } else if (target.isInlineClassMember) {
+    } else if (target.isExtensionTypeMember) {
       if (target.isConst) {
-        bool oldInInlineClassConstructor = inInlineClassConstConstructor;
-        inInlineClassConstConstructor = true;
+        bool oldInExtensionTypeConstructor = inExtensionTypeConstConstructor;
+        inExtensionTypeConstConstructor = true;
         Constant result = _handleFunctionInvocation(
             node.target.function, typeArguments, positional, named);
-        inInlineClassConstConstructor = oldInInlineClassConstructor;
+        inExtensionTypeConstConstructor = oldInExtensionTypeConstructor;
         return result;
       } else {
         return createEvaluationErrorConstant(
             node,
-            templateNotConstantExpression
-                .withArguments('Invocation of non-const inline class member'));
+            templateNotConstantExpression.withArguments(
+                'Invocation of non-const extension type member'));
       }
     } else if (target.isExtensionMember) {
       return createEvaluationErrorConstant(node, messageConstEvalExtension);
@@ -5313,7 +5315,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
 
   T withNewEnvironment<T>(T fn()) {
     final EvaluationEnvironment oldEnv = env;
-    if (enableConstFunctions || inInlineClassConstConstructor) {
+    if (enableConstFunctions || inExtensionTypeConstConstructor) {
       env = new EvaluationEnvironment.withParent(env);
     } else {
       env = new EvaluationEnvironment();
@@ -5445,7 +5447,7 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
 
   StatementConstantEvaluator(this.exprEvaluator) {
     if (!exprEvaluator.enableConstFunctions &&
-        !exprEvaluator.inInlineClassConstConstructor) {
+        !exprEvaluator.inExtensionTypeConstConstructor) {
       throw new UnsupportedError("Statement evaluation is only supported when "
           "in inline class const constructors or when the const functions "
           "feature is enabled.");
@@ -6253,7 +6255,7 @@ class IsInstantiatedVisitor implements DartTypeVisitor<bool> {
   }
 
   @override
-  bool visitInlineType(InlineType node) {
+  bool visitExtensionType(ExtensionType node) {
     return node.typeArguments
         .every((DartType typeArgument) => typeArgument.accept(this));
   }

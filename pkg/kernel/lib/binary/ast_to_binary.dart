@@ -386,12 +386,13 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     }
   }
 
-  void writeInlineClassNodeList(List<InlineClass> nodes) {
+  void writeExtensionTypeDeclarationNodeList(
+      List<ExtensionTypeDeclaration> nodes) {
     final int len = nodes.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final InlineClass node = nodes[i];
-      writeInlineClassNode(node);
+      final ExtensionTypeDeclaration node = nodes[i];
+      writeExtensionTypeDeclarationNode(node);
     }
   }
 
@@ -488,7 +489,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     node.accept(this);
   }
 
-  void writeInlineClassNode(InlineClass node) {
+  void writeExtensionTypeDeclarationNode(ExtensionTypeDeclaration node) {
     if (_metadataSubsections != null) {
       _writeNodeMetadata(node);
     }
@@ -1096,7 +1097,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     writeClassNodeList(node.classes);
     classOffsets.add(getBufferOffset());
     writeExtensionNodeList(node.extensions);
-    writeInlineClassNodeList(node.inlineClasses);
+    writeExtensionTypeDeclarationNodeList(node.extensionTypeDeclarations);
     writeFieldNodeList(node.fields);
     procedureOffsets = <int>[];
     writeProcedureNodeList(node.procedures);
@@ -2437,10 +2438,10 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitInlineType(InlineType node) {
-    writeByte(Tag.InlineType);
+  void visitExtensionType(ExtensionType node) {
+    writeByte(Tag.ExtensionType);
     writeByte(node.nullability.index);
-    writeNonNullReference(node.inlineClassReference);
+    writeNonNullReference(node.extensionTypeDeclarationReference);
     writeNodeList(node.typeArguments);
     writeNode(node.instantiatedRepresentationType);
   }
@@ -2585,12 +2586,12 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitInlineClass(InlineClass node) {
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     CanonicalName? canonicalName = node.reference.canonicalName;
     if (canonicalName == null) {
       throw new ArgumentError('Missing canonical name for $node');
     }
-    writeByte(Tag.InlineClass);
+    writeByte(Tag.ExtensionTypeDeclaration);
     _writeNonNullCanonicalName(canonicalName);
     writeStringReference(node.name);
     writeAnnotationList(node.annotations);
@@ -2608,7 +2609,7 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
     final int len = node.members.length;
     writeUInt30(len);
     for (int i = 0; i < len; i++) {
-      final InlineClassMemberDescriptor descriptor = node.members[i];
+      final ExtensionTypeMemberDescriptor descriptor = node.members[i];
       writeName(descriptor.name);
       writeByte(descriptor.kind.index);
       writeByte(descriptor.flags);
@@ -3007,8 +3008,9 @@ class BinaryPrinter implements Visitor<void>, BinarySink {
   }
 
   @override
-  void visitInlineClassReference(InlineClass node) {
-    throw new UnsupportedError('serialization of InlineClass references');
+  void visitExtensionTypeDeclarationReference(ExtensionTypeDeclaration node) {
+    throw new UnsupportedError(
+        'serialization of ExtensionTypeDeclaration references');
   }
 
   @override

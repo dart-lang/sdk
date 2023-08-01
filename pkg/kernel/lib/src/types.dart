@@ -115,8 +115,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is FunctionType) {
       const IsFunctionSubtypeOf relation = const IsFunctionSubtypeOf();
@@ -138,8 +138,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is TypeParameterType) {
       const IsTypeParameterSubtypeOf relation =
@@ -162,8 +162,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is IntersectionType) {
       const IsIntersectionSubtypeOf relation = const IsIntersectionSubtypeOf();
@@ -185,8 +185,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is TypedefType) {
       const IsTypedefSubtypeOf relation = const IsTypedefSubtypeOf();
@@ -208,8 +208,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is FutureOrType) {
       const IsFutureOrSubtypeOf relation = const IsFutureOrSubtypeOf();
@@ -231,8 +231,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is NullType) {
       const IsNullTypeSubtypeOf relation = const IsNullTypeSubtypeOf();
@@ -254,8 +254,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is NeverType) {
       const IsNeverTypeSubtypeOf relation = const IsNeverTypeSubtypeOf();
@@ -277,8 +277,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else if (t is RecordType) {
       const IsRecordSubtypeOf relation = const IsRecordSubtypeOf();
@@ -301,11 +301,12 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
-    } else if (t is InlineType) {
-      const IsInlineTypeSubtypeOf relation = const IsInlineTypeSubtypeOf();
+    } else if (t is ExtensionType) {
+      const IsExtensionTypeSubtypeOf relation =
+          const IsExtensionTypeSubtypeOf();
       if (s is DynamicType) {
         return relation.isDynamicRelated(s, t, this);
       } else if (s is VoidType) {
@@ -326,8 +327,8 @@ class Types with StandardBounds {
         return relation.isFutureOrRelated(s, t, this);
       } else if (s is RecordType) {
         return relation.isRecordRelated(s, t, this);
-      } else if (s is InlineType) {
-        return relation.isInlineTypeRelated(s, t, this);
+      } else if (s is ExtensionType) {
+        return relation.isExtensionTypeRelated(s, t, this);
       }
     } else {
       throw "Unhandled type: ${t.runtimeType}";
@@ -416,7 +417,7 @@ abstract class TypeRelation<T extends DartType> {
 
   IsSubtypeOf isRecordRelated(RecordType s, T t, Types types);
 
-  IsSubtypeOf isInlineTypeRelated(InlineType s, T t, Types types);
+  IsSubtypeOf isExtensionTypeRelated(ExtensionType s, T t, Types types);
 }
 
 class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
@@ -506,7 +507,8 @@ class IsInterfaceSubtypeOf extends TypeRelation<InterfaceType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, InterfaceType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, InterfaceType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -690,7 +692,8 @@ class IsFunctionSubtypeOf extends TypeRelation<FunctionType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, FunctionType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, FunctionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -776,7 +779,8 @@ class IsRecordSubtypeOf extends TypeRelation<RecordType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, RecordType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, RecordType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -866,8 +870,8 @@ class IsTypeParameterSubtypeOf extends TypeRelation<TypeParameterType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(
-      InlineType s, TypeParameterType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, TypeParameterType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -923,7 +927,8 @@ class IsTypedefSubtypeOf extends TypeRelation<TypedefType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, TypedefType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, TypedefType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s, t.unalias);
   }
 }
@@ -1062,7 +1067,8 @@ class IsFutureOrSubtypeOf extends TypeRelation<FutureOrType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, FutureOrType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, FutureOrType t, Types types) {
     // Rule 11.
     return types.performNullabilityAwareSubtypeCheck(
         s, t.typeArgument.withDeclaredNullability(t.nullability));
@@ -1133,8 +1139,8 @@ class IsIntersectionSubtypeOf extends TypeRelation<IntersectionType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(
-      InlineType s, IntersectionType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, IntersectionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -1194,7 +1200,7 @@ class IsNullTypeSubtypeOf implements TypeRelation<NullType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, NullType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(ExtensionType s, NullType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
@@ -1252,71 +1258,74 @@ class IsNeverTypeSubtypeOf implements TypeRelation<NeverType> {
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, NeverType t, Types types) {
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, NeverType t, Types types) {
     return const IsSubtypeOf.never();
   }
 }
 
-class IsInlineTypeSubtypeOf implements TypeRelation<InlineType> {
-  const IsInlineTypeSubtypeOf();
+class IsExtensionTypeSubtypeOf implements TypeRelation<ExtensionType> {
+  const IsExtensionTypeSubtypeOf();
 
   @override
-  IsSubtypeOf isDynamicRelated(DynamicType s, InlineType t, Types types) {
+  IsSubtypeOf isDynamicRelated(DynamicType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
-  IsSubtypeOf isVoidRelated(VoidType s, InlineType t, Types types) {
+  IsSubtypeOf isVoidRelated(VoidType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
-  IsSubtypeOf isInterfaceRelated(InterfaceType s, InlineType t, Types types) {
+  IsSubtypeOf isInterfaceRelated(
+      InterfaceType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isIntersectionRelated(
-      IntersectionType intersection, InlineType t, Types types) {
+      IntersectionType intersection, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(intersection.right, t);
   }
 
   @override
-  IsSubtypeOf isFunctionRelated(FunctionType s, InlineType t, Types types) {
+  IsSubtypeOf isFunctionRelated(FunctionType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
-  IsSubtypeOf isFutureOrRelated(FutureOrType s, InlineType t, Types types) {
+  IsSubtypeOf isFutureOrRelated(FutureOrType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
   IsSubtypeOf isTypeParameterRelated(
-      TypeParameterType s, InlineType t, Types types) {
+      TypeParameterType s, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.bound, t);
   }
 
   @override
-  IsSubtypeOf isTypedefRelated(TypedefType s, InlineType t, Types types) {
+  IsSubtypeOf isTypedefRelated(TypedefType s, ExtensionType t, Types types) {
     return types.performNullabilityAwareSubtypeCheck(s.unalias, t);
   }
 
   @override
-  IsSubtypeOf isRecordRelated(RecordType s, InlineType t, Types types) {
+  IsSubtypeOf isRecordRelated(RecordType s, ExtensionType t, Types types) {
     return const IsSubtypeOf.never();
   }
 
   @override
-  IsSubtypeOf isInlineTypeRelated(InlineType s, InlineType t, Types types) {
-    List<DartType>? typeArguments =
-        types.hierarchy.getInlineTypeArgumentsAsInstanceOf(s, t.inlineClass);
+  IsSubtypeOf isExtensionTypeRelated(
+      ExtensionType s, ExtensionType t, Types types) {
+    List<DartType>? typeArguments = types.hierarchy
+        .getExtensionTypeArgumentsAsInstanceOf(s, t.extensionTypeDeclaration);
     if (typeArguments == null) {
       return const IsSubtypeOf.never();
     }
     return types
-        .areTypeArgumentsOfSubtypeKernel(
-            typeArguments, t.typeArguments, t.inlineClass.typeParameters)
+        .areTypeArgumentsOfSubtypeKernel(typeArguments, t.typeArguments,
+            t.extensionTypeDeclaration.typeParameters)
         .and(new IsSubtypeOf.basedSolelyOnNullabilities(s, t));
   }
 }

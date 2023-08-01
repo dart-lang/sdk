@@ -1,4 +1,4 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
-import '../builder/inline_class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -35,16 +35,19 @@ import 'source_field_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
 
-class SourceInlineClassBuilder extends InlineClassBuilderImpl
+class SourceExtensionTypeDeclarationBuilder
+    extends ExtensionTypeDeclarationBuilderImpl
     with SourceDeclarationBuilderMixin, ClassDeclarationMixin
-    implements Comparable<SourceInlineClassBuilder>, ClassDeclaration {
+    implements
+        Comparable<SourceExtensionTypeDeclarationBuilder>,
+        ClassDeclaration {
   @override
   final List<ConstructorReferenceBuilder>? constructorReferences;
 
-  final InlineClass _inlineClass;
+  final ExtensionTypeDeclaration _extensionTypeDeclaration;
 
-  SourceInlineClassBuilder? _origin;
-  SourceInlineClassBuilder? patchForTesting;
+  SourceExtensionTypeDeclarationBuilder? _origin;
+  SourceExtensionTypeDeclarationBuilder? patchForTesting;
 
   MergedClassMemberScope? _mergedScope;
 
@@ -56,7 +59,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   final SourceFieldBuilder? representationFieldBuilder;
 
-  SourceInlineClassBuilder(
+  SourceExtensionTypeDeclarationBuilder(
       List<MetadataBuilder>? metadata,
       int modifiers,
       String name,
@@ -69,9 +72,9 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       int startOffset,
       int nameOffset,
       int endOffset,
-      InlineClass? referenceFrom,
+      ExtensionTypeDeclaration? referenceFrom,
       this.representationFieldBuilder)
-      : _inlineClass = new InlineClass(
+      : _extensionTypeDeclaration = new ExtensionTypeDeclaration(
             name: name,
             fileUri: parent.fileUri,
             typeParameters:
@@ -86,42 +89,44 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       super.libraryBuilder as SourceLibraryBuilder;
 
   @override
-  SourceInlineClassBuilder get origin => _origin ?? this;
+  SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
 
-  // TODO(johnniwinther): Add merged scope for inline classes.
+  // TODO(johnniwinther): Add merged scope for extension type declarations.
   MergedClassMemberScope get mergedScope => _mergedScope ??= isPatch
       ? origin.mergedScope
-      : throw new UnimplementedError("SourceInlineClassBuilder.mergedScope");
+      : throw new UnimplementedError(
+          "SourceExtensionTypeDeclarationBuilder.mergedScope");
 
   @override
-  InlineClass get inlineClass => isPatch ? origin._inlineClass : _inlineClass;
+  ExtensionTypeDeclaration get extensionTypeDeclaration =>
+      isPatch ? origin._extensionTypeDeclaration : _extensionTypeDeclaration;
 
   @override
-  Annotatable get annotatable => inlineClass;
+  Annotatable get annotatable => extensionTypeDeclaration;
 
   @override
-  int compareTo(SourceInlineClassBuilder other) {
+  int compareTo(SourceExtensionTypeDeclarationBuilder other) {
     int result = "$fileUri".compareTo("${other.fileUri}");
     if (result != 0) return result;
     return charOffset.compareTo(other.charOffset);
   }
 
-  /// Builds the [InlineClass] for this inline class builder and inserts the
-  /// members into the [Library] of [libraryBuilder].
+  /// Builds the [ExtensionTypeDeclaration] for this extension type declaration
+  /// builder and inserts the members into the [Library] of [libraryBuilder].
   ///
-  /// [addMembersToLibrary] is `true` if the inline class members should be
-  /// added to the library. This is `false` if the inline class is in conflict
-  /// with another library member. In this case, the inline class member should
-  /// not be added to the library to avoid name clashes with other members in
-  /// the library.
-  InlineClass build(LibraryBuilder coreLibrary,
+  /// [addMembersToLibrary] is `true` if the extension type members should be
+  /// added to the library. This is `false` if the extension type declaration is
+  /// in conflict with another library member. In this case, the extension type
+  /// member should not be added to the library to avoid name clashes with other
+  /// members in the library.
+  ExtensionTypeDeclaration build(LibraryBuilder coreLibrary,
       {required bool addMembersToLibrary}) {
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
         DartType? interface =
             interfaceBuilders![i].build(libraryBuilder, TypeUse.superType);
-        if (interface is InlineType) {
-          inlineClass.implements.add(interface);
+        if (interface is ExtensionType) {
+          extensionTypeDeclaration.implements.add(interface);
         }
       }
     }
@@ -141,12 +146,12 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
       representationType = const InvalidType();
       representationName = '#';
     }
-    _inlineClass.declaredRepresentationType = representationType;
-    _inlineClass.representationName = representationName;
+    _extensionTypeDeclaration.declaredRepresentationType = representationType;
+    _extensionTypeDeclaration.representationName = representationName;
 
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
-    return _inlineClass;
+    return _extensionTypeDeclaration;
   }
 
   @override
@@ -169,7 +174,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   void addMemberDescriptorInternal(SourceMemberBuilder memberBuilder,
       Member member, BuiltMemberKind memberKind, Reference memberReference) {
     String name = memberBuilder.name;
-    InlineClassMemberKind kind;
+    ExtensionTypeMemberKind kind;
     switch (memberKind) {
       case BuiltMemberKind.Constructor:
       case BuiltMemberKind.RedirectingFactory:
@@ -185,36 +190,36 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
             memberBuilder.charOffset, memberBuilder.fileUri);
       case BuiltMemberKind.ExtensionField:
       case BuiltMemberKind.LateIsSetField:
-        kind = InlineClassMemberKind.Field;
+        kind = ExtensionTypeMemberKind.Field;
         break;
-      case BuiltMemberKind.InlineClassConstructor:
-        kind = InlineClassMemberKind.Constructor;
+      case BuiltMemberKind.ExtensionTypeConstructor:
+        kind = ExtensionTypeMemberKind.Constructor;
         break;
-      case BuiltMemberKind.InlineClassFactory:
-        kind = InlineClassMemberKind.Factory;
+      case BuiltMemberKind.ExtensionTypeFactory:
+        kind = ExtensionTypeMemberKind.Factory;
         break;
-      case BuiltMemberKind.InlineClassRedirectingFactory:
-        kind = InlineClassMemberKind.RedirectingFactory;
+      case BuiltMemberKind.ExtensionTypeRedirectingFactory:
+        kind = ExtensionTypeMemberKind.RedirectingFactory;
         break;
-      case BuiltMemberKind.InlineClassMethod:
-        kind = InlineClassMemberKind.Method;
+      case BuiltMemberKind.ExtensionTypeMethod:
+        kind = ExtensionTypeMemberKind.Method;
         break;
-      case BuiltMemberKind.InlineClassGetter:
+      case BuiltMemberKind.ExtensionTypeGetter:
       case BuiltMemberKind.LateGetter:
-        kind = InlineClassMemberKind.Getter;
+        kind = ExtensionTypeMemberKind.Getter;
         break;
-      case BuiltMemberKind.InlineClassSetter:
+      case BuiltMemberKind.ExtensionTypeSetter:
       case BuiltMemberKind.LateSetter:
-        kind = InlineClassMemberKind.Setter;
+        kind = ExtensionTypeMemberKind.Setter;
         break;
-      case BuiltMemberKind.InlineClassOperator:
-        kind = InlineClassMemberKind.Operator;
+      case BuiltMemberKind.ExtensionTypeOperator:
+        kind = ExtensionTypeMemberKind.Operator;
         break;
-      case BuiltMemberKind.InlineClassTearOff:
-        kind = InlineClassMemberKind.TearOff;
+      case BuiltMemberKind.ExtensionTypeTearOff:
+        kind = ExtensionTypeMemberKind.TearOff;
         break;
     }
-    inlineClass.members.add(new InlineClassMemberDescriptor(
+    extensionTypeDeclaration.members.add(new ExtensionTypeMemberDescriptor(
         name: new Name(name, libraryBuilder.library),
         member: memberReference,
         isStatic: memberBuilder.isStatic,
@@ -223,7 +228,7 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   @override
   void applyPatch(Builder patch) {
-    if (patch is SourceInlineClassBuilder) {
+    if (patch is SourceExtensionTypeDeclarationBuilder) {
       patch._origin = this;
       if (retainDataForTesting) {
         patchForTesting = patch;
@@ -256,13 +261,13 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceInlineClassConstructorBuilder? lookupConstructor(Name name) {
+  SourceExtensionTypeConstructorBuilder? lookupConstructor(Name name) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
 
     Builder? builder = constructorScope.lookupLocalMember(name.text);
-    if (builder is SourceInlineClassConstructorBuilder) {
+    if (builder is SourceExtensionTypeConstructorBuilder) {
       return builder;
     }
     return null;
@@ -274,26 +279,34 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   @override
   Iterator<T> fullMemberIterator<T extends Builder>() =>
-      new ClassDeclarationMemberIterator<SourceInlineClassBuilder, T>(
-          const _SourceInlineClassBuilderAugmentationAccess(), this,
+      new ClassDeclarationMemberIterator<SourceExtensionTypeDeclarationBuilder,
+              T>(
+          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
+          this,
           includeDuplicates: false);
 
   @override
   NameIterator<T> fullMemberNameIterator<T extends Builder>() =>
-      new ClassDeclarationMemberNameIterator<SourceInlineClassBuilder, T>(
-          const _SourceInlineClassBuilderAugmentationAccess(), this,
+      new ClassDeclarationMemberNameIterator<
+              SourceExtensionTypeDeclarationBuilder, T>(
+          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
+          this,
           includeDuplicates: false);
 
   @override
   Iterator<T> fullConstructorIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorIterator<SourceInlineClassBuilder, T>(
-          const _SourceInlineClassBuilderAugmentationAccess(), this,
+      new ClassDeclarationConstructorIterator<
+              SourceExtensionTypeDeclarationBuilder, T>(
+          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
+          this,
           includeDuplicates: false);
 
   @override
   NameIterator<T> fullConstructorNameIterator<T extends MemberBuilder>() =>
-      new ClassDeclarationConstructorNameIterator<SourceInlineClassBuilder, T>(
-          const _SourceInlineClassBuilderAugmentationAccess(), this,
+      new ClassDeclarationConstructorNameIterator<
+              SourceExtensionTypeDeclarationBuilder, T>(
+          const _SourceExtensionTypeDeclarationBuilderAugmentationAccess(),
+          this,
           includeDuplicates: false);
 
   @override
@@ -307,13 +320,13 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
 
   @override
   BodyBuilderContext get bodyBuilderContext =>
-      new InlineClassBodyBuilderContext(this);
+      new ExtensionTypeBodyBuilderContext(this);
 
   /// Return a map whose keys are the supertypes of this
-  /// [SourceInlineClassBuilder] after expansion of type aliases, if any.
-  /// For each supertype key, the corresponding value is the type alias which
-  /// was unaliased in order to find the supertype, or null if the supertype was
-  /// not aliased.
+  /// [SourceExtensionTypeDeclarationBuilder] after expansion of type aliases,
+  /// if any. For each supertype key, the corresponding value is the type alias
+  /// which was unaliased in order to find the supertype, or null if the
+  /// supertype was not aliased.
   Map<TypeDeclarationBuilder?, TypeAliasBuilder?> computeDirectSupertypes() {
     final Map<TypeDeclarationBuilder?, TypeAliasBuilder?> result = {};
     final List<TypeBuilder>? interfaces = this.interfaceBuilders;
@@ -339,17 +352,19 @@ class SourceInlineClassBuilder extends InlineClassBuilderImpl
   }
 }
 
-class _SourceInlineClassBuilderAugmentationAccess
-    implements ClassDeclarationAugmentationAccess<SourceInlineClassBuilder> {
-  const _SourceInlineClassBuilderAugmentationAccess();
+class _SourceExtensionTypeDeclarationBuilderAugmentationAccess
+    implements
+        ClassDeclarationAugmentationAccess<
+            SourceExtensionTypeDeclarationBuilder> {
+  const _SourceExtensionTypeDeclarationBuilderAugmentationAccess();
 
   @override
-  SourceInlineClassBuilder getOrigin(
-          SourceInlineClassBuilder classDeclaration) =>
+  SourceExtensionTypeDeclarationBuilder getOrigin(
+          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
       classDeclaration.origin;
 
   @override
-  Iterable<SourceInlineClassBuilder>? getAugmentations(
-          SourceInlineClassBuilder classDeclaration) =>
+  Iterable<SourceExtensionTypeDeclarationBuilder>? getAugmentations(
+          SourceExtensionTypeDeclarationBuilder classDeclaration) =>
       null;
 }

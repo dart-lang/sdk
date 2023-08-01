@@ -67,8 +67,8 @@ abstract class TypeConstraintGatherer {
   List<DartType>? getTypeArgumentsAsInstanceOf(
       InterfaceType type, Class superclass);
 
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass);
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass);
 
   InterfaceType futureType(DartType type, Nullability nullability);
 
@@ -639,9 +639,9 @@ abstract class TypeConstraintGatherer {
       }
       if (isMatch) return true;
       _protoConstraints.length = baseConstraintCount;
-    } else if (p is InlineType &&
-        q is InlineType &&
-        p.inlineClass == q.inlineClass) {
+    } else if (p is ExtensionType &&
+        q is ExtensionType &&
+        p.extensionTypeDeclaration == q.extensionTypeDeclaration) {
       assert(p.typeArguments.length == q.typeArguments.length);
 
       final int baseConstraintCount = _protoConstraints.length;
@@ -678,9 +678,9 @@ abstract class TypeConstraintGatherer {
         if (isMatch) return true;
         _protoConstraints.length = baseConstraintCount;
       }
-    } else if (p is InlineType && q is InlineType) {
+    } else if (p is ExtensionType && q is ExtensionType) {
       final List<DartType>? sArguments =
-          getInlineTypeArgumentsAsInstanceOf(p, q.inlineClass);
+          getExtensionTypeArgumentsAsInstanceOf(p, q.extensionTypeDeclaration);
       if (sArguments != null) {
         assert(sArguments.length == q.typeArguments.length);
 
@@ -1157,10 +1157,10 @@ class TypeSchemaConstraintGatherer extends TypeConstraintGatherer {
   }
 
   @override
-  List<DartType>? getInlineTypeArgumentsAsInstanceOf(
-      InlineType type, InlineClass superclass) {
+  List<DartType>? getExtensionTypeArgumentsAsInstanceOf(
+      ExtensionType type, ExtensionTypeDeclaration superclass) {
     return environment.hierarchy
-        .getInlineTypeArgumentsAsInstanceOf(type, superclass);
+        .getExtensionTypeArgumentsAsInstanceOf(type, superclass);
   }
 
   @override

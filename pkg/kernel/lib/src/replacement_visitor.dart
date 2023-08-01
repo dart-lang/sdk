@@ -314,30 +314,30 @@ class ReplacementVisitor implements DartTypeVisitor1<DartType?, int> {
   }
 
   @override
-  DartType? visitInlineType(InlineType node, int variance) {
+  DartType? visitExtensionType(ExtensionType node, int variance) {
     Nullability? newNullability = visitNullability(node);
     List<DartType>? newTypeArguments = null;
     for (int i = 0; i < node.typeArguments.length; i++) {
       DartType? substitution = node.typeArguments[i].accept1(
           this,
-          Variance.combine(
-              variance, node.inlineClass.typeParameters[i].variance));
+          Variance.combine(variance,
+              node.extensionTypeDeclaration.typeParameters[i].variance));
       if (substitution != null) {
         newTypeArguments ??= node.typeArguments.toList(growable: false);
         newTypeArguments[i] = substitution;
       }
     }
-    return createInlineType(node, newNullability, newTypeArguments);
+    return createExtensionType(node, newNullability, newTypeArguments);
   }
 
-  DartType? createInlineType(InlineType node, Nullability? newNullability,
+  DartType? createExtensionType(ExtensionType node, Nullability? newNullability,
       List<DartType>? newTypeArguments) {
     if (newNullability == null && newTypeArguments == null) {
       // No nullability or type arguments needed to be substituted.
       return null;
     } else {
-      return new InlineType(
-          node.inlineClass,
+      return new ExtensionType(
+          node.extensionTypeDeclaration,
           newNullability ?? node.nullability,
           newTypeArguments ?? node.typeArguments);
     }

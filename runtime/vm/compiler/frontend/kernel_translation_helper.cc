@@ -2288,7 +2288,7 @@ void KernelReaderHelper::SkipDartType() {
       }
       return;
     }
-    case kInlineType: {
+    case kExtensionType: {
       ReadNullability();
       SkipCanonicalNameReference();  // read index for canonical name.
       SkipListOfDartTypes();         // read type arguments
@@ -3258,8 +3258,8 @@ void TypeTranslator::BuildTypeInternal() {
     case kIntersectionType:
       BuildIntersectionType();
       break;
-    case kInlineType:
-      BuildInlineType();
+    case kExtensionType:
+      BuildExtensionType();
       break;
     case kFutureOrType:
       BuildFutureOrType();
@@ -3584,8 +3584,8 @@ void TypeTranslator::BuildIntersectionType() {
   helper_->SkipDartType();  // read right.
 }
 
-void TypeTranslator::BuildInlineType() {
-  // We skip the inline type and only use the representation type.
+void TypeTranslator::BuildExtensionType() {
+  // We skip the extension type and only use the representation type.
   helper_->ReadNullability();
   helper_->SkipCanonicalNameReference();  // read index for canonical name.
   helper_->SkipListOfDartTypes();         // read type arguments

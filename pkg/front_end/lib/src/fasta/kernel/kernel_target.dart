@@ -67,8 +67,8 @@ import '../source/class_declaration.dart';
 import '../source/constructor_declaration.dart';
 import '../source/source_class_builder.dart' show SourceClassBuilder;
 import '../source/source_constructor_builder.dart';
+import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_field_builder.dart';
-import '../source/source_inline_class_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/source_loader.dart' show SourceLoader;
 import '../target_implementation.dart' show TargetImplementation;
@@ -432,7 +432,8 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.outline_checkSemantics);
       List<SourceClassBuilder>? sortedSourceClassBuilders;
-      List<SourceInlineClassBuilder>? sortedSourceExtensionTypeBuilders;
+      List<SourceExtensionTypeDeclarationBuilder>?
+          sortedSourceExtensionTypeBuilders;
       (sortedSourceClassBuilders, sortedSourceExtensionTypeBuilders) =
           loader.checkClassCycles(objectClassBuilder);
 
@@ -608,8 +609,9 @@ class KernelTarget extends TargetImplementation {
 
       benchmarker?.enterPhase(BenchmarkPhases.body_collectSourceClasses);
       List<SourceClassBuilder>? sourceClasses = [];
-      List<SourceInlineClassBuilder>? inlineClasses = [];
-      loader.collectSourceClasses(sourceClasses, inlineClasses);
+      List<SourceExtensionTypeDeclarationBuilder>? extensionTypeDeclarations =
+          [];
+      loader.collectSourceClasses(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishNativeMethods);
       loader.finishNativeMethods();
@@ -618,7 +620,7 @@ class KernelTarget extends TargetImplementation {
       loader.buildBodyNodes();
 
       benchmarker?.enterPhase(BenchmarkPhases.body_finishAllConstructors);
-      finishAllConstructors(sourceClasses, inlineClasses);
+      finishAllConstructors(sourceClasses, extensionTypeDeclarations);
 
       benchmarker?.enterPhase(BenchmarkPhases.body_runBuildTransformations);
       runBuildTransformations();
@@ -644,7 +646,7 @@ class KernelTarget extends TargetImplementation {
       // (for whatever amount of time) even though we convert them to dill
       // library builders. To avoid it we null it out here.
       sourceClasses = null;
-      inlineClasses = null;
+      extensionTypeDeclarations = null;
       return new BuildResult(
           component: component, macroApplications: macroApplications);
     }, () => loader.currentUriForCrashReporting);
@@ -1240,8 +1242,10 @@ class KernelTarget extends TargetImplementation {
     loader.computeCoreTypes(platformLibraries);
   }
 
-  void finishAllConstructors(List<SourceClassBuilder> sourceClassBuilders,
-      List<SourceInlineClassBuilder> inlineClassBuilders) {
+  void finishAllConstructors(
+      List<SourceClassBuilder> sourceClassBuilders,
+      List<SourceExtensionTypeDeclarationBuilder>
+          sourceExtensionTypeDeclarationBuilders) {
     Class objectClass = this.objectClass;
     for (SourceClassBuilder builder in sourceClassBuilders) {
       Class cls = builder.cls;
@@ -1249,8 +1253,9 @@ class KernelTarget extends TargetImplementation {
         finishConstructors(builder);
       }
     }
-    for (SourceInlineClassBuilder builder in inlineClassBuilders) {
-      finishInlineConstructors(builder);
+    for (SourceExtensionTypeDeclarationBuilder builder
+        in sourceExtensionTypeDeclarationBuilders) {
+      finishExtensionTypeConstructors(builder);
     }
 
     ticker.logMs("Finished constructors");
@@ -1319,8 +1324,9 @@ class KernelTarget extends TargetImplementation {
     _finishConstructors(classBuilder);
   }
 
-  void finishInlineConstructors(SourceInlineClassBuilder inlineClass) {
-    _finishConstructors(inlineClass);
+  void finishExtensionTypeConstructors(
+      SourceExtensionTypeDeclarationBuilder extensionTypeDeclaration) {
+    _finishConstructors(extensionTypeDeclaration);
   }
 
   void _finishConstructors(ClassDeclaration classDeclaration) {

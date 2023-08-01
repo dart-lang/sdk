@@ -1098,10 +1098,11 @@ class BinaryBuilder {
     return name.reference;
   }
 
-  Reference readNonNullInlineClassReference() {
+  Reference readNonNullExtensionTypeDeclarationReference() {
     CanonicalName? name = readNullableCanonicalNameReference();
     if (name == null) {
-      throw 'Expected an inline class reference to be valid but was `null`.';
+      throw 'Expected an extension type declaration reference to be valid but '
+          'was `null`.';
     }
     return name.reference;
   }
@@ -1266,7 +1267,7 @@ class BinaryBuilder {
     _readTypedefList(library);
     _readClassList(library, classOffsets);
     _readExtensionList(library);
-    _readInlineClassList(library);
+    _readExtensionTypeDeclarationList(library);
     library.fieldsInternal = _readFieldList(library);
     library.proceduresInternal = _readProcedureList(library, procedureOffsets);
 
@@ -1316,16 +1317,18 @@ class BinaryBuilder {
     }
   }
 
-  void _readInlineClassList(Library library) {
+  void _readExtensionTypeDeclarationList(Library library) {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use an
       // almost constant one for the empty list.
-      library.inlineClassesInternal = emptyListOfInlineClass;
+      library.extensionTypeDeclarationsInternal =
+          emptyListOfExtensionTypeDeclaration;
     } else {
-      library.inlineClassesInternal = new List<InlineClass>.generate(
-          length, (int index) => readInlineClass()..parent = library,
-          growable: useGrowableLists);
+      library.extensionTypeDeclarationsInternal =
+          new List<ExtensionTypeDeclaration>.generate(length,
+              (int index) => readExtensionTypeDeclaration()..parent = library,
+              growable: useGrowableLists);
     }
   }
 
@@ -1596,13 +1599,14 @@ class BinaryBuilder {
       ..flags = flags;
   }
 
-  InlineClass readInlineClass() {
+  ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     int tag = readByte();
-    assert(tag == Tag.InlineClass);
+    assert(tag == Tag.ExtensionTypeDeclaration);
 
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
     Reference reference = canonicalName.reference;
-    InlineClass? node = reference.node as InlineClass?;
+    ExtensionTypeDeclaration? node =
+        reference.node as ExtensionTypeDeclaration?;
     if (alwaysCreateNewNamedNodes) {
       node = null;
     }
@@ -1618,8 +1622,8 @@ class BinaryBuilder {
     Uri fileUri = readUriReference();
 
     if (node == null) {
-      node =
-          new InlineClass(name: name, reference: reference, fileUri: fileUri);
+      node = new ExtensionTypeDeclaration(
+          name: name, reference: reference, fileUri: fileUri);
     }
     node.annotations = annotations;
     setParents(annotations, node);
@@ -1631,7 +1635,8 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
     String representationName = readStringReference();
-    List<InlineType> implements = _readInlineClassImplementsList();
+    List<ExtensionType> implements =
+        _readExtensionTypeDeclarationImplementsList();
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1640,43 +1645,43 @@ class BinaryBuilder {
     node.representationName = representationName;
 
     node.implements = implements;
-    node.members = _readInlineClassMemberDescriptorList();
+    node.members = _readExtensionTypeMemberDescriptorList();
 
     return node;
   }
 
-  List<InlineType> _readInlineClassImplementsList() {
+  List<ExtensionType> _readExtensionTypeDeclarationImplementsList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfInlineType;
+      return emptyListOfExtensionType;
     }
-    return new List<InlineType>.generate(
-        length, (_) => readDartType() as InlineType,
+    return new List<ExtensionType>.generate(
+        length, (_) => readDartType() as ExtensionType,
         growable: useGrowableLists);
   }
 
-  List<InlineClassMemberDescriptor> _readInlineClassMemberDescriptorList() {
+  List<ExtensionTypeMemberDescriptor> _readExtensionTypeMemberDescriptorList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
-      return emptyListOfInlineClassMemberDescriptor;
+      return emptyListOfExtensionTypeMemberDescriptor;
     }
-    return new List<InlineClassMemberDescriptor>.generate(
-        length, (_) => _readInlineClassMemberDescriptor(),
+    return new List<ExtensionTypeMemberDescriptor>.generate(
+        length, (_) => _readExtensionTypeMemberDescriptor(),
         growable: useGrowableLists);
   }
 
-  InlineClassMemberDescriptor _readInlineClassMemberDescriptor() {
+  ExtensionTypeMemberDescriptor _readExtensionTypeMemberDescriptor() {
     Name name = readName();
     int kind = readByte();
     int flags = readByte();
     CanonicalName canonicalName = readNonNullCanonicalNameReference();
-    return new InlineClassMemberDescriptor(
+    return new ExtensionTypeMemberDescriptor(
         name: name,
-        kind: InlineClassMemberKind.values[kind],
+        kind: ExtensionTypeMemberKind.values[kind],
         member: canonicalName.reference)
       ..flags = flags;
   }
@@ -3781,8 +3786,8 @@ class BinaryBuilder {
         return _readNeverType();
       case Tag.NullType:
         return _readNullType();
-      case Tag.InlineType:
-        return _readInlineType();
+      case Tag.ExtensionType:
+        return _readExtensionType();
       case Tag.FunctionType:
         return _readFunctionType();
       case Tag.IntersectionType:
@@ -3863,12 +3868,12 @@ class BinaryBuilder {
     return new FutureOrType(typeArgument, Nullability.values[nullabilityIndex]);
   }
 
-  DartType _readInlineType() {
+  DartType _readExtensionType() {
     int nullabilityIndex = readByte();
-    Reference reference = readNonNullInlineClassReference();
+    Reference reference = readNonNullExtensionTypeDeclarationReference();
     List<DartType> typeArguments = readDartTypeList();
     DartType representationType = readDartType();
-    return new InlineType.byReference(
+    return new ExtensionType.byReference(
         reference,
         Nullability.values[nullabilityIndex],
         typeArguments,
@@ -4190,9 +4195,10 @@ class BinaryBuilderWithMetadata extends BinaryBuilder implements BinarySource {
   }
 
   @override
-  InlineClass readInlineClass() {
+  ExtensionTypeDeclaration readExtensionTypeDeclaration() {
     final int nodeOffset = _byteOffset;
-    final InlineClass result = super.readInlineClass();
+    final ExtensionTypeDeclaration result =
+        super.readExtensionTypeDeclaration();
     return _associateMetadata(result, nodeOffset);
   }
 

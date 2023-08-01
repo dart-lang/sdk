@@ -150,24 +150,29 @@ String extensionNameToString(Extension? node) {
   return node == null ? 'null' : node.name;
 }
 
-String qualifiedInlineClassNameToString(InlineClass node,
+String qualifiedExtensionTypeDeclarationNameToString(
+    ExtensionTypeDeclaration node,
     {bool includeLibraryName = false}) {
   TreeNode? parent = node.parent;
   if (parent is Library && includeLibraryName) {
-    return libraryNameToString(parent) + '::' + inlineClassNameToString(node);
+    return libraryNameToString(parent) +
+        '::' +
+        extensionTypeDeclarationNameToString(node);
   } else {
-    return inlineClassNameToString(node);
+    return extensionTypeDeclarationNameToString(node);
   }
 }
 
-String qualifiedInlineClassNameToStringByReference(Reference? reference,
+String qualifiedExtensionTypeDeclarationNameToStringByReference(
+    Reference? reference,
     {bool includeLibraryName = false}) {
   if (reference == null) {
-    return '<missing-inline-class-reference>';
+    return '<missing-extension-type-declaration-reference>';
   } else {
-    InlineClass? node = reference.node as InlineClass?;
+    ExtensionTypeDeclaration? node =
+        reference.node as ExtensionTypeDeclaration?;
     if (node != null) {
-      return qualifiedInlineClassNameToString(node,
+      return qualifiedExtensionTypeDeclarationNameToString(node,
           includeLibraryName: includeLibraryName);
     } else {
       CanonicalName? canonicalName = reference.canonicalName;
@@ -175,13 +180,13 @@ String qualifiedInlineClassNameToStringByReference(Reference? reference,
         return qualifiedCanonicalNameToString(canonicalName,
             includeLibraryName: includeLibraryName);
       } else {
-        return '<unlinked-inline-class-reference>';
+        return '<unlinked-extension-type-declaration-reference>';
       }
     }
   }
 }
 
-String inlineClassNameToString(InlineClass? node) {
+String extensionTypeDeclarationNameToString(ExtensionTypeDeclaration? node) {
   return node == null ? 'null' : node.name;
 }
 

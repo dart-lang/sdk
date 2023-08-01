@@ -776,7 +776,7 @@ class ScopeModelBuilder extends ir.Visitor<EvaluationComplexity>
   }
 
   @override
-  EvaluationComplexity visitInlineType(ir.InlineType type) {
+  EvaluationComplexity visitExtensionType(ir.ExtensionType type) {
     return visitNode(type.instantiatedRepresentationType);
   }
 

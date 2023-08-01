@@ -576,7 +576,7 @@ class Translator with KernelNodes {
               : classInfo[typeClass]!.struct,
           nullable: nullable);
     }
-    if (type is InlineType) {
+    if (type is ExtensionType) {
       return translateStorageType(type.instantiatedRepresentationType);
     }
     if (type is RecordType) {

@@ -115,7 +115,7 @@ inline class IInlineInterop2 {
 @JS()
 inline class IInlineNonInterop {
 //           ^
-// [web] Inline class 'IInlineNonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InlineType(IObject)'.
+// [web] Inline class 'IInlineNonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'ExtensionType(IObject)'.
   final IObject obj;
   external IInlineNonInterop();
   //       ^

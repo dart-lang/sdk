@@ -262,13 +262,14 @@ class TypeLabeler implements DartTypeVisitor<void>, ConstantVisitor<void> {
   }
 
   @override
-  void visitInlineType(InlineType node) {
+  void visitExtensionType(ExtensionType node) {
     // TODO(johnniwinther): Ensure enclosing libraries on extensions earlier
     // in the compiler to ensure types in error messages have context.
-    Library? enclosingLibrary = node.inlineClass.parent as Library?;
+    Library? enclosingLibrary =
+        node.extensionTypeDeclaration.parent as Library?;
     result.add(nameForEntity(
-        node.inlineClass,
-        node.inlineClass.name,
+        node.extensionTypeDeclaration,
+        node.extensionTypeDeclaration.name,
         enclosingLibrary?.importUri ?? unknownUri,
         enclosingLibrary?.fileUri ?? unknownUri));
     if (node.typeArguments.isNotEmpty) {

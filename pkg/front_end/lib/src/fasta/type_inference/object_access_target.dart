@@ -74,21 +74,23 @@ enum ObjectAccessTargetKind {
   /// A potentially nullable access to a named record field.
   nullableRecordNamed,
 
-  /// A valid access to a statically known inline class instance member on a
+  /// A valid access to a statically known extension type instance member on a
   /// non-nullable receiver.
-  inlineClassMember,
+  extensionTypeMember,
 
-  /// A potentially nullable access to a statically known inline class instance
-  /// member. This is an erroneous case and a compile-time error is reported.
-  nullableInlineClassMember,
+  /// A potentially nullable access to a statically known extension type
+  /// instance member. This is an erroneous case and a compile-time error is
+  /// reported.
+  nullableExtensionTypeMember,
 
-  /// A valid access to the inline class representation field on a non-nullable
-  /// receiver.
-  inlineClassRepresentation,
+  /// A valid access to the extension type representation field on a
+  /// non-nullable receiver.
+  extensionTypeRepresentation,
 
-  /// A potentially nullable access to the inline class instance representation
-  /// field. This is an erroneous case and a compile-time error is reported.
-  nullableInlineClassRepresentation,
+  /// A potentially nullable access to the extension type instance
+  /// representation field. This is an erroneous case and a compile-time error
+  /// is reported.
+  nullableExtensionTypeRepresentation,
 }
 
 /// Result for performing an access on an object, like `o.foo`, `o.foo()` and
@@ -124,20 +126,20 @@ abstract class ObjectAccessTarget {
       List<DartType> inferredTypeArguments,
       {bool isPotentiallyNullable}) = ExtensionAccessTarget;
 
-  /// Creates an access to the inline class [member].
-  factory ObjectAccessTarget.inlineClassMember(
+  /// Creates an access to the extension type [member].
+  factory ObjectAccessTarget.extensionTypeMember(
       DartType receiverType,
       Member member,
       Member? tearoffTarget,
       ProcedureKind kind,
-      List<DartType> inlineTypeArguments,
-      {bool isPotentiallyNullable}) = InlineClassAccessTarget;
+      List<DartType> extensionTypeArguments,
+      {bool isPotentiallyNullable}) = ExtensionTypeAccessTarget;
 
-  /// Creates an access to the representation field of the [inlineType].
-  factory ObjectAccessTarget.inlineClassRepresentation(
-          DartType receiverType, InlineType inlineType,
+  /// Creates an access to the representation field of the [extensionType].
+  factory ObjectAccessTarget.extensionTypeRepresentation(
+          DartType receiverType, ExtensionType extensionType,
           {required bool isPotentiallyNullable}) =
-      InlineClassRepresentationAccessTarget;
+      ExtensionTypeRepresentationAccessTarget;
 
   /// Creates an access to a 'call' method on a function, i.e. a function
   /// invocation.
@@ -189,14 +191,14 @@ abstract class ObjectAccessTarget {
   /// Returns `true` if this is an access to an extension member.
   bool get isExtensionMember => kind == ObjectAccessTargetKind.extensionMember;
 
-  /// Returns `true` if this is an access to an inline class member.
-  bool get isInlineClassMember =>
-      kind == ObjectAccessTargetKind.inlineClassMember;
+  /// Returns `true` if this is an access to an extension type member.
+  bool get isExtensionTypeMember =>
+      kind == ObjectAccessTargetKind.extensionTypeMember;
 
   /// Returns `true` if this is an access to the representation field of an
-  /// inline class.
-  bool get isInlineClassRepresentation =>
-      kind == ObjectAccessTargetKind.inlineClassRepresentation;
+  /// extension type declaration.
+  bool get isExtensionTypeRepresentation =>
+      kind == ObjectAccessTargetKind.extensionTypeRepresentation;
 
   bool get isRecordNamedAccess => kind == ObjectAccessTargetKind.recordNamed;
   bool get isRecordIndexedAccess =>
@@ -246,15 +248,15 @@ abstract class ObjectAccessTarget {
   bool get isNullableExtensionMember =>
       kind == ObjectAccessTargetKind.nullableExtensionMember;
 
-  /// Returns `true` if this is an access to an inline class member on a
+  /// Returns `true` if this is an access to an extension type member on a
   /// potentially nullable receiver.
-  bool get isNullableInlineClassMember =>
-      kind == ObjectAccessTargetKind.nullableInlineClassMember;
+  bool get isNullableExtensionTypeMember =>
+      kind == ObjectAccessTargetKind.nullableExtensionTypeMember;
 
   /// Returns `true` if this is an access to the representation field of an
-  /// inline on a potentially nullable receiver.
-  bool get isNullableInlineClassRepresentation =>
-      kind == ObjectAccessTargetKind.nullableInlineClassRepresentation;
+  /// extension type on a potentially nullable receiver.
+  bool get isNullableExtensionTypeRepresentation =>
+      kind == ObjectAccessTargetKind.nullableExtensionTypeRepresentation;
 
   /// Returns `true` if this is an access to an instance member on a potentially
   /// nullable receiver.
@@ -264,15 +266,15 @@ abstract class ObjectAccessTarget {
       isNullableExtensionMember ||
       isNullableRecordIndexedAccess ||
       isNullableRecordNamedAccess ||
-      isNullableInlineClassMember ||
-      isNullableInlineClassRepresentation;
+      isNullableExtensionTypeMember ||
+      isNullableExtensionTypeRepresentation;
 
   /// Returns the candidates for an ambiguous extension access.
   List<ExtensionAccessCandidate> get candidates =>
       throw new UnsupportedError('ObjectAccessTarget.candidates');
 
   /// Returns the original procedure kind, if this is an extension method or
-  /// inline class method target.
+  /// extension type method target.
   ///
   /// This is need because getters, setters, and methods are converted into
   /// top level methods, but access and invocation should still be treated as
@@ -281,7 +283,7 @@ abstract class ObjectAccessTarget {
       throw new UnsupportedError('ObjectAccessTarget.declarationMethodKind');
 
   /// Returns type arguments for the type parameters of an extension or
-  /// inline class method that comes from the extension or inline class
+  /// extension type method that comes from the extension or extension type
   /// declaration. These are determined from the receiver of the access.
   List<DartType> get receiverTypeArguments =>
       throw new UnsupportedError('ObjectAccessTarget.receiverTypeArguments');
@@ -1098,7 +1100,7 @@ class RecordNameTarget extends RecordAccessTarget {
             ObjectAccessTargetKind.nullableRecordNamed);
 }
 
-class InlineClassAccessTarget extends ObjectAccessTarget {
+class ExtensionTypeAccessTarget extends ObjectAccessTarget {
   @override
   final DartType receiverType;
   @override
@@ -1110,12 +1112,12 @@ class InlineClassAccessTarget extends ObjectAccessTarget {
   @override
   final List<DartType> receiverTypeArguments;
 
-  InlineClassAccessTarget(this.receiverType, this.member, this.tearoffTarget,
+  ExtensionTypeAccessTarget(this.receiverType, this.member, this.tearoffTarget,
       this.declarationMethodKind, this.receiverTypeArguments,
       {bool isPotentiallyNullable = false})
       : super.internal(isPotentiallyNullable
-            ? ObjectAccessTargetKind.nullableInlineClassMember
-            : ObjectAccessTargetKind.inlineClassMember);
+            ? ObjectAccessTargetKind.nullableExtensionTypeMember
+            : ObjectAccessTargetKind.extensionTypeMember);
 
   @override
   FunctionType getFunctionType(InferenceVisitorBase base) {
@@ -1319,20 +1321,20 @@ class InlineClassAccessTarget extends ObjectAccessTarget {
 
   @override
   String toString() =>
-      'InlineClassAccessTarget($kind,$member,$declarationMethodKind,'
+      'ExtensionTypeAccessTarget($kind,$member,$declarationMethodKind,'
       '$receiverTypeArguments)';
 }
 
-class InlineClassRepresentationAccessTarget extends ObjectAccessTarget {
+class ExtensionTypeRepresentationAccessTarget extends ObjectAccessTarget {
   @override
   final DartType receiverType;
-  final InlineType inlineType;
+  final ExtensionType extensionType;
 
-  InlineClassRepresentationAccessTarget(this.receiverType, this.inlineType,
+  ExtensionTypeRepresentationAccessTarget(this.receiverType, this.extensionType,
       {required bool isPotentiallyNullable})
       : super.internal(isPotentiallyNullable
-            ? ObjectAccessTargetKind.nullableInlineClassRepresentation
-            : ObjectAccessTargetKind.inlineClassRepresentation);
+            ? ObjectAccessTargetKind.nullableExtensionTypeRepresentation
+            : ObjectAccessTargetKind.extensionTypeRepresentation);
 
   @override
   DartType getBinaryOperandType(InferenceVisitorBase base) {
@@ -1346,10 +1348,12 @@ class InlineClassRepresentationAccessTarget extends ObjectAccessTarget {
 
   @override
   DartType getGetterType(InferenceVisitorBase base) {
-    InlineClass inlineClass = inlineType.inlineClass;
-    DartType representationType = inlineClass.declaredRepresentationType;
-    if (inlineClass.typeParameters.isNotEmpty) {
-      representationType = Substitution.fromInlineType(inlineType)
+    ExtensionTypeDeclaration extensionTypeDeclaration =
+        extensionType.extensionTypeDeclaration;
+    DartType representationType =
+        extensionTypeDeclaration.declaredRepresentationType;
+    if (extensionTypeDeclaration.typeParameters.isNotEmpty) {
+      representationType = Substitution.fromExtensionType(extensionType)
           .substituteType(representationType);
     }
     return representationType;
@@ -1379,6 +1383,6 @@ class InlineClassRepresentationAccessTarget extends ObjectAccessTarget {
   Member? get member => null;
 
   @override
-  String toString() =>
-      'InlineClassRepresentationAccessTarget($kind,$receiverType,$inlineType)';
+  String toString() => 'ExtensionTypeRepresentationAccessTarget'
+      '($kind,$receiverType,$extensionType)';
 }

@@ -6,25 +6,26 @@ library fasta.class_hierarchy_builder;
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
-    show ClassHierarchyBase, ClassHierarchyInlineClassMixin;
+    show ClassHierarchyBase, ClassHierarchyExtensionTypeMixin;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/src/types.dart' show Types;
 import 'package:kernel/type_algebra.dart' show Substitution, uniteNullabilities;
 
 import '../../builder/class_builder.dart';
-import '../../builder/inline_class_builder.dart';
+import '../../builder/extension_type_declaration_builder.dart';
 import '../../loader.dart' show Loader;
 import '../../source/source_class_builder.dart';
-import '../../source/source_inline_class_builder.dart';
+import '../../source/source_extension_type_declaration_builder.dart';
 import '../../source/source_loader.dart' show SourceLoader;
 import 'hierarchy_node.dart';
 
 class ClassHierarchyBuilder
-    with ClassHierarchyInlineClassMixin
+    with ClassHierarchyExtensionTypeMixin
     implements ClassHierarchyBase {
   final Map<Class, ClassHierarchyNode> classNodes = {};
 
-  final Map<InlineClass, ExtensionTypeHierarchyNode> extensionTypeNodes = {};
+  final Map<ExtensionTypeDeclaration, ExtensionTypeHierarchyNode>
+      extensionTypeNodes = {};
 
   final ClassBuilder objectClassBuilder;
 
@@ -64,14 +65,14 @@ class ClassHierarchyBuilder
   }
 
   ExtensionTypeHierarchyNode getNodeFromExtensionTypeBuilder(
-      InlineClassBuilder extensionTypeBuilder) {
-    return extensionTypeNodes[extensionTypeBuilder.inlineClass] ??=
+      ExtensionTypeDeclarationBuilder extensionTypeBuilder) {
+    return extensionTypeNodes[extensionTypeBuilder.extensionTypeDeclaration] ??=
         new ExtensionTypeHierarchyNodeBuilder(this, extensionTypeBuilder)
             .build();
   }
 
   ExtensionTypeHierarchyNode getNodeFromExtensionType(
-      InlineClass extensionType) {
+      ExtensionTypeDeclaration extensionType) {
     return extensionTypeNodes[extensionType] ??
         getNodeFromExtensionTypeBuilder(loader
             .computeExtensionTypeBuilderFromTargetExtensionType(extensionType));
@@ -200,7 +201,7 @@ class ClassHierarchyBuilder
   static ClassHierarchyBuilder build(
       ClassBuilder objectClass,
       List<SourceClassBuilder> classes,
-      List<SourceInlineClassBuilder> extensionTypes,
+      List<SourceExtensionTypeDeclarationBuilder> extensionTypes,
       SourceLoader loader,
       CoreTypes coreTypes) {
     ClassHierarchyBuilder hierarchy =
@@ -212,9 +213,11 @@ class ClassHierarchyBuilder
           new ClassHierarchyNodeBuilder(hierarchy, classBuilder).build();
     }
     for (int i = 0; i < extensionTypes.length; i++) {
-      SourceInlineClassBuilder extensionTypeBuilder = extensionTypes[i];
+      SourceExtensionTypeDeclarationBuilder extensionTypeBuilder =
+          extensionTypes[i];
       assert(!extensionTypeBuilder.isPatch);
-      hierarchy.extensionTypeNodes[extensionTypeBuilder.inlineClass] =
+      hierarchy.extensionTypeNodes[
+              extensionTypeBuilder.extensionTypeDeclaration] =
           new ExtensionTypeHierarchyNodeBuilder(hierarchy, extensionTypeBuilder)
               .build();
     }

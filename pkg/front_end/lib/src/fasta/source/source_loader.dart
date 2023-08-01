@@ -44,7 +44,7 @@ import '../../base/nnbd_mode.dart';
 import '../builder/builder.dart';
 import '../builder/class_builder.dart';
 import '../builder/extension_builder.dart';
-import '../builder/inline_class_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
@@ -93,9 +93,9 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_library_builder.dart'
     show
         ImplicitLanguageVersion,
@@ -1910,7 +1910,7 @@ severity: $severity
   /// Add classes and extension types defined in libraries in this
   /// [SourceLoader] to [sourceClasses] and [sourceExtensionTypes].
   void collectSourceClasses(List<SourceClassBuilder> sourceClasses,
-      List<SourceInlineClassBuilder> sourceExtensionTypes) {
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     for (SourceLibraryBuilder library in sourceLibraryBuilders) {
       library.collectSourceClassesAndExtensionTypes(
           sourceClasses, sourceExtensionTypes);
@@ -1922,7 +1922,7 @@ severity: $severity
   /// topologically, any cycles in the hierarchy are reported as errors, cycles
   /// are broken. This means that the rest of the pipeline (including backends)
   /// can assume that there are no hierarchy cycles.
-  (List<SourceClassBuilder>, List<SourceInlineClassBuilder>)
+  (List<SourceClassBuilder>, List<SourceExtensionTypeDeclarationBuilder>)
       handleHierarchyCycles(ClassBuilder objectClass) {
     Set<ClassBuilder> denyListedClasses = new Set<ClassBuilder>();
     for (int i = 0; i < denylistedCoreClasses.length; i++) {
@@ -1943,7 +1943,7 @@ severity: $severity
 
     // Sort the classes topologically.
     List<SourceClassBuilder> sourceClasses = [];
-    List<SourceInlineClassBuilder> sourceExtensionTypes = [];
+    List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes = [];
     collectSourceClasses(sourceClasses, sourceExtensionTypes);
 
     _SourceClassGraph classGraph =
@@ -1993,22 +1993,23 @@ severity: $severity
 
     _SourceExtensionTypeGraph extensionTypeGraph =
         new _SourceExtensionTypeGraph(sourceExtensionTypes);
-    TopologicalSortResult<SourceInlineClassBuilder> extensionTypeResult =
-        topologicalSort(extensionTypeGraph);
-    List<SourceInlineClassBuilder> extensionsTypes =
+    TopologicalSortResult<SourceExtensionTypeDeclarationBuilder>
+        extensionTypeResult = topologicalSort(extensionTypeGraph);
+    List<SourceExtensionTypeDeclarationBuilder> extensionsTypes =
         extensionTypeResult.sortedVertices;
 
-    List<SourceInlineClassBuilder> extensionTypesWithCycles =
+    List<SourceExtensionTypeDeclarationBuilder> extensionTypesWithCycles =
         extensionTypeResult.cyclicVertices;
     if (extensionTypesWithCycles.isNotEmpty) {
       // Sort the classes to ensure consistent output.
       extensionTypesWithCycles.sort();
       for (int i = 0; i < extensionTypesWithCycles.length; i++) {
-        SourceInlineClassBuilder extensionTypeBuilder =
+        SourceExtensionTypeDeclarationBuilder extensionTypeBuilder =
             extensionTypesWithCycles[i];
 
         /// Ensure that the cycle is broken by removing implemented interfaces.
-        InlineClass extensionType = extensionTypeBuilder.inlineClass;
+        ExtensionTypeDeclaration extensionType =
+            extensionTypeBuilder.extensionTypeDeclaration;
         extensionType.implements.clear();
         extensionTypeBuilder.interfaceBuilders = null;
         extensionsTypes.add(extensionTypeBuilder);
@@ -2160,8 +2161,8 @@ severity: $severity
   ///
   /// Returns list of all source classes and extension types in topological
   /// order.
-  (List<SourceClassBuilder>, List<SourceInlineClassBuilder>) checkClassCycles(
-      ClassBuilder objectClass) {
+  (List<SourceClassBuilder>, List<SourceExtensionTypeDeclarationBuilder>)
+      checkClassCycles(ClassBuilder objectClass) {
     checkObjectClassHierarchy(objectClass);
     return handleHierarchyCycles(objectClass);
   }
@@ -2819,7 +2820,7 @@ severity: $severity
 
   void buildClassHierarchy(
       List<SourceClassBuilder> sourceClasses,
-      List<SourceInlineClassBuilder> sourceExtensionTypes,
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes,
       ClassBuilder objectClass) {
     ClassHierarchyBuilder hierarchyBuilder = _hierarchyBuilder =
         ClassHierarchyBuilder.build(
@@ -3042,8 +3043,9 @@ severity: $severity
   }
 
   @override
-  InlineClassBuilder computeExtensionTypeBuilderFromTargetExtensionType(
-      InlineClass extensionType) {
+  ExtensionTypeDeclarationBuilder
+      computeExtensionTypeBuilderFromTargetExtensionType(
+          ExtensionTypeDeclaration extensionType) {
     Library kernelLibrary = extensionType.enclosingLibrary;
     LibraryBuilder? library = lookupLibraryBuilder(kernelLibrary.importUri);
     if (library == null) {
@@ -3051,7 +3053,7 @@ severity: $severity
           .computeExtensionTypeBuilderFromTargetExtensionType(extensionType);
     }
     return library.lookupLocalMember(extensionType.name, required: true)
-        as InlineClassBuilder;
+        as ExtensionTypeDeclarationBuilder;
   }
 
   late TypeBuilderComputer _typeBuilderComputer = new TypeBuilderComputer(this);
@@ -3357,24 +3359,25 @@ class _SourceClassGraph implements Graph<SourceClassBuilder> {
   }
 }
 
-class _SourceExtensionTypeGraph implements Graph<SourceInlineClassBuilder> {
+class _SourceExtensionTypeGraph
+    implements Graph<SourceExtensionTypeDeclarationBuilder> {
   @override
-  final List<SourceInlineClassBuilder> vertices;
-  final Map<SourceInlineClassBuilder,
+  final List<SourceExtensionTypeDeclarationBuilder> vertices;
+  final Map<SourceExtensionTypeDeclarationBuilder,
       Map<TypeDeclarationBuilder?, TypeAliasBuilder?>> directSupertypeMap = {};
-  final Map<SourceInlineClassBuilder, List<SourceInlineClassBuilder>>
-      _supertypeMap = {};
+  final Map<SourceExtensionTypeDeclarationBuilder,
+      List<SourceExtensionTypeDeclarationBuilder>> _supertypeMap = {};
 
   _SourceExtensionTypeGraph(this.vertices);
 
-  List<SourceInlineClassBuilder> computeSuperClasses(
-      SourceInlineClassBuilder extensionTypeBuilder) {
+  List<SourceExtensionTypeDeclarationBuilder> computeSuperClasses(
+      SourceExtensionTypeDeclarationBuilder extensionTypeBuilder) {
     Map<TypeDeclarationBuilder?, TypeAliasBuilder?> directSupertypes =
         directSupertypeMap[extensionTypeBuilder] =
             extensionTypeBuilder.computeDirectSupertypes();
-    List<SourceInlineClassBuilder> superClasses = [];
+    List<SourceExtensionTypeDeclarationBuilder> superClasses = [];
     for (TypeDeclarationBuilder? directSupertype in directSupertypes.keys) {
-      if (directSupertype is SourceInlineClassBuilder) {
+      if (directSupertype is SourceExtensionTypeDeclarationBuilder) {
         superClasses.add(directSupertype);
       }
     }
@@ -3382,8 +3385,8 @@ class _SourceExtensionTypeGraph implements Graph<SourceInlineClassBuilder> {
   }
 
   @override
-  Iterable<SourceInlineClassBuilder> neighborsOf(
-      SourceInlineClassBuilder vertex) {
+  Iterable<SourceExtensionTypeDeclarationBuilder> neighborsOf(
+      SourceExtensionTypeDeclarationBuilder vertex) {
     return _supertypeMap[vertex] ??= computeSuperClasses(vertex);
   }
 }

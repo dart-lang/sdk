@@ -80,7 +80,7 @@ class OccurrenceCollectorVisitor implements DartTypeVisitor<void> {
   void visitVoidType(VoidType node) {}
 
   @override
-  void visitInlineType(InlineType node) {
+  void visitExtensionType(ExtensionType node) {
     for (DartType argument in node.typeArguments) {
       argument.accept(this);
     }
@@ -772,14 +772,14 @@ class VarianceCalculator
   }
 
   @override
-  int visitInlineType(InlineType node,
+  int visitExtensionType(ExtensionType node,
       Map<TypeParameter, Map<DartType, int>> computedVariances) {
     int result = Variance.unrelated;
     for (int i = 0; i < node.typeArguments.length; ++i) {
       result = Variance.meet(
           result,
           Variance.combine(
-              node.inlineClass.typeParameters[i].variance,
+              node.extensionTypeDeclaration.typeParameters[i].variance,
               computeVariance(typeParameter, node.typeArguments[i],
                   computedVariances: computedVariances)));
     }

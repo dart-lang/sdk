@@ -115,7 +115,7 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   }
 
   @override
-  DartType? visitInlineType(InlineType node) {
+  DartType? visitExtensionType(ExtensionType node) {
     // NonNull(T?) = NonNull(T)
     //
     // NonNull(T*) = NonNull(T)

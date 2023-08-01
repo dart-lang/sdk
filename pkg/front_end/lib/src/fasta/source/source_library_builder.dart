@@ -37,12 +37,12 @@ import '../builder/class_builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/dynamic_type_declaration_builder.dart';
 import '../builder/extension_builder.dart';
+import '../builder/extension_type_declaration_builder.dart';
 import '../builder/field_builder.dart';
 import '../builder/fixed_type_builder.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/function_builder.dart';
 import '../builder/function_type_builder.dart';
-import '../builder/inline_class_builder.dart';
 import '../builder/invalid_type_builder.dart';
 import '../builder/invalid_type_declaration_builder.dart';
 import '../builder/library_builder.dart';
@@ -118,10 +118,10 @@ import 'source_class_builder.dart' show SourceClassBuilder;
 import 'source_constructor_builder.dart';
 import 'source_enum_builder.dart';
 import 'source_extension_builder.dart';
+import 'source_extension_type_declaration_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_field_builder.dart';
 import 'source_function_builder.dart';
-import 'source_inline_class_builder.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_member_builder.dart';
 import 'source_procedure_builder.dart';
@@ -1470,8 +1470,9 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             if (builder is ClassBuilder) {
               library.additionalExports.add(builder.cls.reference);
-            } else if (builder is InlineClassBuilder) {
-              library.additionalExports.add(builder.inlineClass.reference);
+            } else if (builder is ExtensionTypeDeclarationBuilder) {
+              library.additionalExports
+                  .add(builder.extensionTypeDeclaration.reference);
             } else if (builder is TypeAliasBuilder) {
               library.additionalExports.add(builder.typedef.reference);
             } else if (builder is ExtensionBuilder) {
@@ -1572,7 +1573,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
 
   void collectSourceClassesAndExtensionTypes(
       List<SourceClassBuilder> sourceClasses,
-      List<SourceInlineClassBuilder> sourceExtensionTypes) {
+      List<SourceExtensionTypeDeclarationBuilder> sourceExtensionTypes) {
     Iterable<SourceLibraryBuilder>? patches = this.patchLibraries;
     if (patches != null) {
       for (SourceLibraryBuilder patchLibrary in patches) {
@@ -1586,7 +1587,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       Builder member = iterator.current;
       if (member is SourceClassBuilder && !member.isPatch) {
         sourceClasses.add(member);
-      } else if (member is SourceInlineClassBuilder && !member.isPatch) {
+      } else if (member is SourceExtensionTypeDeclarationBuilder &&
+          !member.isPatch) {
         sourceExtensionTypes.add(member);
       }
     }
@@ -2087,7 +2089,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     DartType getterType;
     List<TypeParameter>? getterExtensionTypeParameters;
     if (getterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isInlineClassInstanceMember) {
+        setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance getter
       //
       //     extension E<T> on A {
@@ -2098,7 +2100,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   T# E#get#property<T#>(A #this) => ...
       //
-      // Similarly for inline class instance getters.
+      // Similarly for extension type instance getters.
       //
       Procedure procedure = getterBuilder.procedure;
       getterType = procedure.function.returnType;
@@ -2108,7 +2110,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     }
     DartType setterType;
     if (setterBuilder.isExtensionInstanceMember ||
-        setterBuilder.isInlineClassInstanceMember) {
+        setterBuilder.isExtensionTypeInstanceMember) {
       // An extension instance setter
       //
       //     extension E<T> on A {
@@ -2119,7 +2121,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       //
       //   void E#set#property<T#>(A #this, T# value) { ... }
       //
-      // Similarly for inline class instance setters.
+      // Similarly for extension type instance setters.
       //
       Procedure procedure = setterBuilder.procedure;
       setterType = procedure.function.positionalParameters[1].type;
@@ -2284,12 +2286,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "inline class $name",
+        debugName: "extension type $name",
         isModifiable: false);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
+    ExtensionTypeDeclaration? referenceFrom =
+        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2305,27 +2308,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
-        metadata,
-        modifiers,
-        declaration.name,
-        typeVariables,
-        interfaces,
-        memberScope,
-        constructorScope,
-        this,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom,
-        representationFieldBuilder);
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new SourceExtensionTypeDeclarationBuilder(
+            metadata,
+            modifiers,
+            declaration.name,
+            typeVariables,
+            interfaces,
+            memberScope,
+            constructorScope,
+            this,
+            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            startOffset,
+            nameOffset,
+            endOffset,
+            referenceFrom,
+            representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, inlineClassBuilder);
+        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
     void setParent(MemberBuilder? member) {
       while (member != null) {
-        member.parent = inlineClassBuilder;
+        member.parent = extensionTypeDeclarationBuilder;
         member = member.next as MemberBuilder?;
       }
     }
@@ -2334,7 +2338,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (typeVariablesByName != null) {
         TypeVariableBuilder? tv = typeVariablesByName[name];
         if (tv != null) {
-          inlineClassBuilder.addProblem(
+          extensionTypeDeclarationBuilder.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
@@ -2350,7 +2354,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
+    addBuilder(extensionTypeDeclarationBuilder.name,
+        extensionTypeDeclarationBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -2377,12 +2382,13 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         local: members,
         setters: setters,
         parent: scope.withTypeVariables(typeVariables),
-        debugName: "inline class $name",
+        debugName: "extension type $name",
         isModifiable: false);
     ConstructorScope constructorScope =
         new ConstructorScope(name, constructors);
 
-    InlineClass? referenceFrom = referencesFromIndexed?.lookupInlineClass(name);
+    ExtensionTypeDeclaration? referenceFrom =
+        referencesFromIndexed?.lookupExtensionTypeDeclaration(name);
 
     SourceFieldBuilder? representationFieldBuilder;
     outer:
@@ -2398,27 +2404,28 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       }
     }
 
-    InlineClassBuilder inlineClassBuilder = new SourceInlineClassBuilder(
-        metadata,
-        modifiers,
-        declaration.name,
-        typeVariables,
-        interfaces,
-        memberScope,
-        constructorScope,
-        this,
-        new List<ConstructorReferenceBuilder>.of(constructorReferences),
-        startOffset,
-        nameOffset,
-        endOffset,
-        referenceFrom,
-        representationFieldBuilder);
+    ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder =
+        new SourceExtensionTypeDeclarationBuilder(
+            metadata,
+            modifiers,
+            declaration.name,
+            typeVariables,
+            interfaces,
+            memberScope,
+            constructorScope,
+            this,
+            new List<ConstructorReferenceBuilder>.of(constructorReferences),
+            startOffset,
+            nameOffset,
+            endOffset,
+            referenceFrom,
+            representationFieldBuilder);
     constructorReferences.clear();
     Map<String, TypeVariableBuilder>? typeVariablesByName =
-        checkTypeVariables(typeVariables, inlineClassBuilder);
+        checkTypeVariables(typeVariables, extensionTypeDeclarationBuilder);
     void setParent(MemberBuilder? member) {
       while (member != null) {
-        member.parent = inlineClassBuilder;
+        member.parent = extensionTypeDeclarationBuilder;
         member = member.next as MemberBuilder?;
       }
     }
@@ -2427,7 +2434,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       if (typeVariablesByName != null) {
         TypeVariableBuilder? tv = typeVariablesByName[name];
         if (tv != null) {
-          inlineClassBuilder.addProblem(
+          extensionTypeDeclarationBuilder.addProblem(
               templateConflictsWithTypeVariable.withArguments(name),
               member.charOffset,
               name.length,
@@ -2443,7 +2450,8 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
     members.forEach(setParentAndCheckConflicts);
     constructors.forEach(setParentAndCheckConflicts);
     setters.forEach(setParentAndCheckConflicts);
-    addBuilder(inlineClassBuilder.name, inlineClassBuilder, nameOffset,
+    addBuilder(extensionTypeDeclarationBuilder.name,
+        extensionTypeDeclarationBuilder, nameOffset,
         getterReference: referenceFrom?.reference);
   }
 
@@ -3033,7 +3041,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
             TypeParameterScopeKind.inlineClassDeclaration ||
         currentTypeParameterScopeBuilder.kind ==
             TypeParameterScopeKind.extensionTypeDeclaration) {
-      constructorBuilder = new SourceInlineClassConstructorBuilder(
+      constructorBuilder = new SourceExtensionTypeConstructorBuilder(
           metadata,
           modifiers & ~abstractMask,
           addInferableType(),
@@ -3537,7 +3545,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (declaration is SourceExtensionBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         declaration.buildOutlineExpressions(classHierarchy,
             delayedActionPerformers, delayedDefaultValueCloners);
       } else if (declaration is SourceMemberBuilder) {
@@ -3580,11 +3588,11 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         }
         library.addExtension(extension);
       }
-    } else if (declaration is SourceInlineClassBuilder) {
-      InlineClass inlineClass = declaration.build(coreLibrary,
-          addMembersToLibrary: !declaration.isDuplicate);
+    } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
+      ExtensionTypeDeclaration extensionTypeDeclaration = declaration
+          .build(coreLibrary, addMembersToLibrary: !declaration.isDuplicate);
       if (!declaration.isPatch && !declaration.isDuplicate) {
-        library.addInlineClass(inlineClass);
+        library.addExtensionTypeDeclaration(extensionTypeDeclaration);
       }
     } else if (declaration is SourceMemberBuilder) {
       declaration
@@ -4343,7 +4351,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
                 "Unexpected extension member $member (${member.runtimeType}).");
           }
         });
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         List<NonSimplicityIssue> issues = getNonSimplicityIssuesForDeclaration(
             declaration,
             performErrorRecovery: true);
@@ -4358,7 +4366,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           } else {
             assert(
                 false,
-                "Unexpected inline class member "
+                "Unexpected extension type member "
                 "$member (${member.runtimeType}).");
           }
         });
@@ -4446,7 +4454,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       } else if (builder is SourceExtensionBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
-      } else if (builder is SourceInlineClassBuilder) {
+      } else if (builder is SourceExtensionTypeDeclarationBuilder) {
         count +=
             builder.buildBodyNodes(addMembersToLibrary: !builder.isDuplicate);
       } else if (builder is SourceClassBuilder) {
@@ -4693,7 +4701,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       {bool inferred = false}) {
     if (node.arguments.types.isEmpty) return;
     Procedure factory = node.target;
-    assert(factory.isFactory || factory.isInlineClassMember);
+    assert(factory.isFactory || factory.isExtensionTypeMember);
     DartType constructedType = Substitution.fromPairs(
             node.target.function.typeParameters, node.arguments.types)
         .substituteType(node.target.function.returnType);
@@ -4913,7 +4921,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceExtensionBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
-      } else if (declaration is SourceInlineClassBuilder) {
+      } else if (declaration is SourceExtensionTypeDeclarationBuilder) {
         declaration.checkTypesInOutline(typeEnvironment);
       } else if (declaration is SourceTypeAliasBuilder) {
         // Do nothing.
@@ -5251,7 +5259,7 @@ extension on TypeParameterScopeBuilder {
         return ContainerType.Extension;
       case TypeParameterScopeKind.extensionTypeDeclaration:
       case TypeParameterScopeKind.inlineClassDeclaration:
-        return ContainerType.InlineClass;
+        return ContainerType.ExtensionType;
       case TypeParameterScopeKind.typedef:
       case TypeParameterScopeKind.staticMethod:
       case TypeParameterScopeKind.instanceMethod:

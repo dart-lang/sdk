@@ -1275,8 +1275,6 @@ class OutlineBuilder extends StackListenerImpl {
     Token? interfaceToken = pop(NullValues.Token) as Token?;
     Token? baseToken = pop(NullValues.Token) as Token?;
     Token? sealedToken = pop(NullValues.Token) as Token?;
-    // TODO(johnniwinther): Create builder for inline.
-    // ignore: unused_local_variable
     Token? inlineToken = pop(NullValues.Token) as Token?;
     Token? macroToken = pop(NullValues.Token) as Token?;
     int modifiers = pop() as int;

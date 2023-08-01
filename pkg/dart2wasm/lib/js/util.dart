@@ -184,7 +184,8 @@ extension DartTypeExtension on DartType {
     final type = this;
     return (type is InterfaceType &&
             hasStaticInteropAnnotation(type.classReference.asClass)) ||
-        (type is InlineType && hasJSInteropAnnotation(type.inlineClass));
+        (type is ExtensionType &&
+            hasJSInteropAnnotation(type.extensionTypeDeclaration));
   }
 }
 
