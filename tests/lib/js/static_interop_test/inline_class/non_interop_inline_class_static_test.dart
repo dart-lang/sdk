@@ -15,7 +15,7 @@ import 'package:js/js.dart' as pkgJs;
 @JS()
 inline class IObject {
 //           ^
-// [web] Inline class 'IObject' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InterfaceType(Object)'.
+// [web] Inline class 'IObject' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Object'.
   final Object obj;
   external IObject();
   //       ^
@@ -61,7 +61,7 @@ class Anonymous {}
 @JS()
 inline class IAnonymous {
 //           ^
-// [web] Inline class 'IAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'InterfaceType(Anonymous)'.
+// [web] Inline class 'IAnonymous' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'Anonymous'.
   final Anonymous obj;
   external IAnonymous();
   //       ^
@@ -115,7 +115,7 @@ inline class IInlineInterop2 {
 @JS()
 inline class IInlineNonInterop {
 //           ^
-// [web] Inline class 'IInlineNonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'ExtensionType(IObject)'.
+// [web] Inline class 'IInlineNonInterop' is marked with a '@JS' annotation, but its representation type is not a valid JS interop type: 'IObject'.
   final IObject obj;
   external IInlineNonInterop();
   //       ^

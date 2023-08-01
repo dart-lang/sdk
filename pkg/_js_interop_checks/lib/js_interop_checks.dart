@@ -27,7 +27,6 @@ import 'package:_fe_analyzer_shared/src/messages/codes.dart'
         messageJsInteropStaticInteropParameterInitializersAreIgnored,
         messageJsInteropStaticInteropSyntheticConstructor,
         templateJsInteropDartClassExtendsJSClass,
-        templateJsInteropInlineClassNotInterop,
         templateJsInteropJSClassExtendsDartClass,
         templateJsInteropNonStaticWithStaticInteropSupertype,
         templateJsInteropStaticInteropNoJSAnnotation,
@@ -47,6 +46,7 @@ import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:front_end/src/fasta/fasta_codes.dart'
     show
         templateJsInteropFunctionToJSRequiresStaticType,
+        templateJsInteropInlineClassNotInterop,
         templateJsInteropStrictModeViolation;
 
 import 'package:kernel/class_hierarchy.dart';
@@ -203,7 +203,7 @@ class JsInteropChecks extends RecursiveVisitor {
         !_inlineExtensionIndex.isInteropInlineClass(node)) {
       _reporter.report(
           templateJsInteropInlineClassNotInterop.withArguments(
-              node.name, node.declaredRepresentationType.toString()),
+              node.name, node.declaredRepresentationType, true),
           node.fileOffset,
           node.name.length,
           node.fileUri);
