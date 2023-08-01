@@ -965,6 +965,8 @@ class MacroApplications {
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       hasAbstract: builder.isAbstract,
+      // TODO(johnniwinther): Real implementation of hasBody.
+      hasBody: true,
       hasExternal: builder.isExternal,
       isGetter: builder.isGetter,
       isOperator: builder.isOperator,
@@ -997,6 +999,8 @@ class MacroApplications {
       definingType: definingClass.identifier as macro.IdentifierImpl,
       isFactory: builder.isFactory,
       hasAbstract: builder.isAbstract,
+      // TODO(johnniwinther): Real implementation of hasBody.
+      hasBody: true,
       hasExternal: builder.isExternal,
       isGetter: builder.isGetter,
       isOperator: builder.isOperator,
@@ -1035,6 +1039,8 @@ class MacroApplications {
           metadata: const [],
           definingType: definingClass.identifier as macro.IdentifierImpl,
           hasAbstract: builder.isAbstract,
+          // TODO(johnniwinther): Real implementation of hasBody.
+          hasBody: true,
           hasExternal: builder.isExternal,
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,
@@ -1054,9 +1060,11 @@ class MacroApplications {
               id: macro.RemoteInstance.uniqueId,
               name: builder.name),
           library: library,
-          // TODO: Provide metadata annotations.
+          // TODO(johnniwinther): Provide metadata annotations.
           metadata: const [],
           hasAbstract: builder.isAbstract,
+          // TODO(johnniwinther): Real implementation of hasBody.
+          hasBody: true,
           hasExternal: builder.isExternal,
           isGetter: builder.isGetter,
           isOperator: builder.isOperator,

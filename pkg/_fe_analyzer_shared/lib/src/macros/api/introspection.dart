@@ -261,6 +261,15 @@ abstract interface class FunctionDeclaration implements Declaration {
   /// Whether this function has an `abstract` modifier.
   bool get hasAbstract;
 
+  /// Whether or not this function has a body.
+  ///
+  /// This is useful when augmenting a function, so you know whether an
+  /// `augment super` call would be valid or not.
+  ///
+  /// Note that for external functions, this may return `false` even though
+  /// there is actually a body that is filled in later by another tool.
+  bool get hasBody;
+
   /// Whether this function has an `external` modifier.
   bool get hasExternal;
 
