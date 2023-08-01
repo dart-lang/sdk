@@ -12,7 +12,7 @@ var tests = <VMTest>[
     final result = await vm.invokeRpcNoUpgrade('getVersion', {});
     expect(result['type'], 'Version');
     expect(result['major'], 4);
-    expect(result['minor'], 11);
+    expect(result['minor'], 12);
     expect(result['_privateMajor'], 0);
     expect(result['_privateMinor'], 0);
   },

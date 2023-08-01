@@ -1,3 +1,7 @@
+## 11.9.0
+- Update to version `4.12` of the spec.
+- Add `TypeParametersRef`; change supertype of `TypeParameters` to `Obj`.
+
 ## 11.8.0
 - Update to version `4.11` of the spec.
 - Add `isGetter` and `isSetter` properties to `FuncRef` and `Func`.

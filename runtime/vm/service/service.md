@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.11
+# Dart VM Service Protocol 4.12
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.11_ of the Dart VM Service Protocol. This
+This document describes of _version 4.12_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -4508,9 +4508,16 @@ instantiated generic type.
 ### TypeParameters
 
 ```
-class TypeParameters {
+class @TypeParameters extends @Object {
+}
+```
+
+_@TypeParameters_ is a reference to a _TypeParameters_ object.
+
+```
+class TypeParameters extends Object {
   // The names of the type parameters.
-  string[] names;
+  @Instance names;
 
   // The bounds set on each type parameter.
   @TypeArguments bounds;
@@ -4719,5 +4726,6 @@ version | comments
 4.9 | Added `isolateGroup` property to `Event`.
 4.10 | Deprecated `isSyntheticAsyncContinuation` on `Breakpoint`.
 4.11 | Added `isGetter` and `isSetter` properties to `@Function` and `Function`.
+4.12 | Added `@TypeParameters` and changed `TypeParameters` to extend `Object`.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

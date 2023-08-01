@@ -203,10 +203,12 @@ void Class::PrintImplementationFieldsImpl(const JSONArray& jsarr_fields) const {
 }
 
 void TypeParameters::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  // Consider making this type public if we decide to expose TypeParameters
-  // through the protocol.
   JSONObject jsobj(stream);
-  jsobj.AddProperty("kind", "_TypeParameters");
+  AddCommonObjectProperties(&jsobj, "TypeParameters", ref);
+  jsobj.AddServiceId(*this);
+  if (ref) {
+    return;
+  }
   jsobj.AddProperty("flags", Array::Handle(flags()));
   jsobj.AddProperty("names", Array::Handle(names()));
   jsobj.AddProperty("bounds", TypeArguments::Handle(bounds()));
@@ -736,12 +738,7 @@ void KernelProgramInfo::PrintImplementationFieldsImpl(
     const JSONArray& jsarr_fields) const {}
 
 void Instructions::PrintJSONImpl(JSONStream* stream, bool ref) const {
-  JSONObject jsobj(stream);
-  AddCommonObjectProperties(&jsobj, "Object", ref);
-  jsobj.AddServiceId(*this);
-  if (ref) {
-    return;
-  }
+  Object::PrintJSONImpl(stream, ref);
 }
 
 void Instructions::PrintImplementationFieldsImpl(
