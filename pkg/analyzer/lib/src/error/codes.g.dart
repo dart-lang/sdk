@@ -6853,29 +6853,6 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an as expression in a constant expression wasn't supported "
-        "until version 2.3.2, but this code is required to be able to run on "
-        "earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  Parameters:
-  ///  0: the name of the operator
-  static const WarningCode SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT',
-    "The use of the operator '{0}' for 'bool' operands in a constant context "
-        "wasn't supported until version 2.3.2, but this code is required to be "
-        "able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   ///
   ///  There is also a [ParserError.EXPERIMENT_NOT_ENABLED] code which catches
   ///  some cases of constructor tearoff features (like `List<int>.filled;`).
@@ -6892,32 +6869,10 @@ class WarningCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
-  static const WarningCode SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT',
-    "Using the operator '==' for non-primitive types wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
   static const WarningCode SDK_VERSION_GT_GT_GT_OPERATOR = WarningCode(
     'SDK_VERSION_GT_GT_GT_OPERATOR',
     "The operator '>>>' wasn't supported until version 2.14.0, but this code "
         "is required to be able to run on earlier versions.",
-    correctionMessage: "Try updating the SDK constraints.",
-    hasPublishedDocs: true,
-  );
-
-  ///  No parameters.
-  static const WarningCode SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT =
-      WarningCode(
-    'SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT',
-    "The use of an is expression in a constant context wasn't supported until "
-        "version 2.3.2, but this code is required to be able to run on earlier "
-        "versions.",
     correctionMessage: "Try updating the SDK constraints.",
     hasPublishedDocs: true,
   );
