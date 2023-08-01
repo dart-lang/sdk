@@ -10,12 +10,15 @@ import 'package:test/test.dart';
 import '../tool/machine.dart';
 
 void main() {
-  test('ensure `rules.json` is up to date', () async {
+  test("ensure 'rules.json' is up to date", () async {
     var rulesFilePath = path.join('tool', 'machine', 'rules.json');
     var onDisk = File(rulesFilePath).readAsStringSync();
     var generated = await generateRulesJson();
-    expect(generated, onDisk, reason: '''`rules.json` is out of date.
-  Regenerate by running `dart tool/machine.dart -w`
-''');
+    expect(
+      generated,
+      onDisk,
+      reason: "'rules.json' is out of date. Regenerate by running "
+          '`dart tool/machine.dart -w`',
+    );
   });
 }
