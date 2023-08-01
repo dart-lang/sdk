@@ -42,7 +42,7 @@ jobs:
         run: ./tool/bot.sh
       - name: upload coverage
         if: matrix.linter-bot == 'coverage'
-        uses: coverallsapp/github-action@c7885c00cb7ec0b8f9f5ff3f53cddb980f7a4412
+        uses: coverallsapp/github-action@95b1a2355bd0e526ad2fd62da9fd386ad4c98474
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           path-to-lcov: var/lcov.info
