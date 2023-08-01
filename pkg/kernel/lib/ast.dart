@@ -4153,16 +4153,20 @@ class RecordIndexGet extends Expression {
   @override
   void visitChildren(Visitor v) {
     receiver.accept(v);
+    receiverType.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     receiver = v.transform(receiver)..parent = this;
+    receiverType = v.visitDartType(receiverType) as RecordType;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     receiver = v.transform(receiver)..parent = this;
+    receiverType =
+        v.visitDartType(receiverType, cannotRemoveSentinel) as RecordType;
   }
 
   @override
@@ -4218,16 +4222,20 @@ class RecordNameGet extends Expression {
   @override
   void visitChildren(Visitor v) {
     receiver.accept(v);
+    receiverType.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     receiver = v.transform(receiver)..parent = this;
+    receiverType = v.visitDartType(receiverType) as RecordType;
   }
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     receiver = v.transform(receiver)..parent = this;
+    receiverType =
+        v.visitDartType(receiverType, cannotRemoveSentinel) as RecordType;
   }
 
   @override
