@@ -10808,7 +10808,7 @@ abstract class DartType extends Node {
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   @override
-  bool operator ==(Object other);
+  bool operator ==(Object other) => equals(other, null);
 
   /// The nullability declared on the type.
   ///
@@ -10875,6 +10875,8 @@ abstract class DartType extends Node {
   /// Returns the non-type parameter type bound of this type.
   DartType get resolveTypeParameterType;
 
+  /// Internal implementation of equality using [assumptions] to handle equality
+  /// of type parameters on function types coinductively.
   bool equals(Object other, Assumptions? assumptions);
 
   /// Returns a textual representation of the this type.
@@ -10913,9 +10915,6 @@ class InvalidType extends DartType {
 
   @override
   DartType get resolveTypeParameterType => this;
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) => other is InvalidType;
@@ -10968,9 +10967,6 @@ class DynamicType extends DartType {
   DartType get resolveTypeParameterType => this;
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) => other is DynamicType;
 
   @override
@@ -11011,9 +11007,6 @@ class VoidType extends DartType {
 
   @override
   DartType get resolveTypeParameterType => this;
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) => other is VoidType;
@@ -11087,9 +11080,6 @@ class NeverType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) =>
       other is NeverType && nullability == other.nullability;
 
@@ -11131,9 +11121,6 @@ class NullType extends DartType {
 
   @override
   DartType get resolveTypeParameterType => this;
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) => other is NullType;
@@ -11206,9 +11193,6 @@ class InterfaceType extends DartType {
     classNode.acceptReference(v);
     visitList(typeArguments, v);
   }
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
@@ -11304,9 +11288,6 @@ class FunctionType extends DartType {
     visitList(namedParameters, v);
     returnType.accept(v);
   }
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
@@ -11521,9 +11502,6 @@ class TypedefType extends DartType {
   }
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) {
       return true;
@@ -11604,9 +11582,6 @@ class FutureOrType extends DartType {
 
   @override
   DartType get resolveTypeParameterType => this;
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
@@ -11952,9 +11927,6 @@ class IntersectionType extends DartType {
   }
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) {
       return true;
@@ -12241,9 +12213,6 @@ class TypeParameterType extends DartType {
   void visitChildren(Visitor v) {}
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     if (identical(this, other)) {
       return true;
@@ -12397,9 +12366,6 @@ class RecordType extends DartType {
     visitList(positional, v);
     visitList(named, v);
   }
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {

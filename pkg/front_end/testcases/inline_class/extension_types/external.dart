@@ -13,7 +13,7 @@ extension type B._(A a) {
 
   external A method();
 
-  external T genericMethod<T>(T t);
+  external T genericMethod<T extends B>(T t);
 
   external B get getter;
 

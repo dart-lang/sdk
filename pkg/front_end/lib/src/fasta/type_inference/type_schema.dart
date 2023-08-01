@@ -60,9 +60,6 @@ class UnknownType extends DartType {
   DartType get resolveTypeParameterType => this;
 
   @override
-  bool operator ==(Object other) => equals(other, null);
-
-  @override
   bool equals(Object other, Assumptions? assumptions) {
     // This class doesn't have any fields so all instances of `UnknownType` are
     // equal.

@@ -4,7 +4,7 @@ external B(A a);
 external B.named(int i);
 external A field;
 external A method();
-external T genericMethod<T>(T t);
+external T genericMethod<T extends B>(T t);
 external B get getter;
 external void set setter(B b);
 external static A staticField;

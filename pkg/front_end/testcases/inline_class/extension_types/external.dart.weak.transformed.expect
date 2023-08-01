@@ -1,4 +1,12 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/extension_types/external.dart:42:29: Error: Inferred type argument 'int' doesn't conform to the bound 'B' of the type variable 'T' on 'T Function<T extends B>(T)'.
+// Try specifying type arguments explicitly so that they conform to the bounds.
+//   int Function(int) f3 = b2.genericMethod;
+//                             ^
+//
 import self as self;
 import "dart:core" as core;
 
@@ -46,9 +54,9 @@ external static inline-class-member method B|set#field(lowered self::A #this, se
 external static inline-class-member method B|method(lowered final self::B #this) → self::A;
 static inline-class-member method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);
-external static inline-class-member method B|genericMethod<T extends core::Object? = dynamic>(lowered final self::B #this, self::B|genericMethod::T% t) → self::B|genericMethod::T%;
-static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends core::Object? = dynamic>(T%) → T%
-  return <T extends core::Object? = dynamic>(T% t) → T% => self::B|genericMethod<T%>(#this, t);
+external static inline-class-member method B|genericMethod<T extends self::B>(lowered final self::B #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
+static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends self::B>(T) → T
+  return <T extends self::B>(T t) → T => self::B|genericMethod<T>(#this, t);
 external static inline-class-member method B|get#getter(lowered final self::B #this) → self::B;
 external static inline-class-member method B|set#setter(lowered final self::B #this, self::B b) → void;
 external static inline-class-member get B|staticField() → self::A;
@@ -65,7 +73,7 @@ static method method(self::A a) → void {
   a = self::B|method(b1);
   () → self::A f1 = self::B|get#method(b1);
   b2 = self::B|genericMethod<self::B>(b2, b2);
-  <T extends core::Object? = dynamic>(T%) → T% f2 = self::B|get#genericMethod(b2);
+  <T extends self::B>(T) → T f2 = self::B|get#genericMethod(b2);
   (core::int) → core::int f3 = self::B|get#genericMethod(b2)<core::int>;
   b1 = self::B|get#getter(b2);
   self::B|set#setter(b1, b2);
