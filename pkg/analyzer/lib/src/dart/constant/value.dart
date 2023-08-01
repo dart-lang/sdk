@@ -15,6 +15,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/dart/constant/has_invalid_type.dart';
 import 'package:analyzer/src/dart/constant/has_type_parameter_reference.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -303,6 +304,14 @@ class DartObjectImpl implements DartObject, Constant {
 
     // If we don't know the type, we cannot prove that the cast will fail.
     if (resultType == null) {
+      return this;
+    }
+
+    // If any type is unresolved, we cannot prove that the cast will fail.
+    if (isInvalid ||
+        castType.isInvalid ||
+        hasInvalidType(type) ||
+        hasInvalidType(resultType)) {
       return this;
     }
 

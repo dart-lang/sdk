@@ -619,8 +619,8 @@ JsInteropOperatorsNotSupported/analyzerCode: Fail # Web compiler specific
 JsInteropOperatorsNotSupported/example: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/analyzerCode: Fail # Web compiler specific
 JsInteropObjectLiteralConstructorPositionalParameters/example: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/analyzerCode: Fail # Web compiler specific
-JsInteropStaticInteropExternalExtensionMembersWithTypeParameters/example: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropExternalMemberWithInvalidTypeParameters/example: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropGenerativeConstructor/example: Fail # Web compiler specific
 JsInteropStaticInteropMockMissingGetterOrSetter/analyzerCode: Fail # Web compiler specific

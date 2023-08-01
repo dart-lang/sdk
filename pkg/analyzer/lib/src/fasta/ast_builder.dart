@@ -3831,61 +3831,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleCommentReference(
-    Token? newKeyword,
-    Token? firstToken,
-    Token? firstPeriod,
-    Token? secondToken,
-    Token? secondPeriod,
-    Token thirdToken,
-  ) {
-    var identifier = SimpleIdentifierImpl(thirdToken);
-    if (firstToken != null) {
-      var target = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(firstToken),
-        period: firstPeriod!,
-        identifier: SimpleIdentifierImpl(secondToken!),
-      );
-      var expression = PropertyAccessImpl(
-        target: target,
-        operator: secondPeriod!,
-        propertyName: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else if (secondToken != null) {
-      var expression = PrefixedIdentifierImpl(
-        prefix: SimpleIdentifierImpl(secondToken),
-        period: secondPeriod!,
-        identifier: identifier,
-      );
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: expression,
-        ),
-      );
-    } else {
-      push(
-        CommentReferenceImpl(
-          newKeyword: newKeyword,
-          expression: identifier,
-        ),
-      );
-    }
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    push(referenceSource);
-    push(referenceOffset);
-  }
-
-  @override
   void handleConstFactory(Token constKeyword) {
     debugEvent("ConstFactory");
     // TODO(kallentu): Removal of const factory error for const function feature
@@ -5585,28 +5530,24 @@ class AstBuilder extends StackListener {
   /// [dartdoc] is the first token in the sequence.
   List<CommentReferenceImpl> parseCommentReferences(Token dartdoc) {
     // Parse dartdoc into potential comment reference source/offset pairs.
-    var count = dartdoc.lexeme.startsWith('///')
+    var sourcesAndOffsets = dartdoc.lexeme.startsWith('///')
         ? _parseReferencesInSingleLineComments(dartdoc)
         : _parseReferencesInMultiLineComment(dartdoc);
-    var sourcesAndOffsets = List<Object?>.filled(count * 2, null);
-    popList(count * 2, sourcesAndOffsets);
 
+    var references = <CommentReferenceImpl>[];
     // Parse each of the source/offset pairs into actual comment references.
-    count = 0;
-    var index = 0;
-    while (index < sourcesAndOffsets.length) {
-      var referenceSource = sourcesAndOffsets[index++] as String;
-      var referenceOffset = sourcesAndOffsets[index++] as int;
-      var result = scanString(referenceSource);
+    for (var (:source, :offset) in sourcesAndOffsets) {
+      var result = scanString(source);
       if (!result.hasErrors) {
         var token = result.tokens;
-        if (_parseOneCommentReference(token, referenceOffset)) {
-          ++count;
+        var reference = _parseOneCommentReference(token, offset);
+        if (reference != null) {
+          references.add(reference);
         }
       }
     }
 
-    return popTypedList<CommentReferenceImpl>(count) ?? const [];
+    return references;
   }
 
   List<CollectionElementImpl> popCollectionElements(int count) {
@@ -5815,7 +5756,7 @@ class AstBuilder extends StackListener {
 
   CommentImpl? _findComment(
       List<AnnotationImpl>? metadata, Token tokenAfterMetadata) {
-    // Find the dartdoc tokens
+    // Find the dartdoc tokens.
     var dartdoc = parser.findDartDoc(tokenAfterMetadata);
     if (dartdoc == null) {
       if (metadata == null) {
@@ -5902,13 +5843,22 @@ class AstBuilder extends StackListener {
     );
   }
 
-  /// Parse the comment references in the text between [start] inclusive
+  /// Parses the comment references in the text between [start] inclusive
   /// and [end] exclusive.
   ///
-  /// Return the number of comment references that were parsed.
-  int _parseCommentReferencesInText(Token commentToken, int start, int end) {
+  /// Returns information about the comment references as a list of records,
+  /// each with a `source` field and an `offset` field. The `source` is the text
+  /// between the delimiting `[` and `]` characters, not including them. The
+  /// `offset` is the offset of the comment reference in the containing
+  /// compilation unit.
+  ///
+  /// For example, for the text `/// [a] and [b.c].`, two records are returned:
+  /// `(source: 'a', offset: 5)` and `(source: 'b.c', offset: 13)` (assuming the
+  /// comment is the beginning of the compilation unit).
+  List<({String source, int offset})> _parseCommentReferencesInText(
+      Token commentToken, int start, int end) {
     var comment = commentToken.lexeme;
-    var count = 0;
+    var references = <({String source, int offset})>[];
     var index = start;
     while (index < end) {
       var ch = comment.codeUnitAt(index);
@@ -5932,10 +5882,10 @@ class AstBuilder extends StackListener {
               // TODO(brianwilkerson) Handle the case where there's a library
               // URI in the link text.
             } else {
-              /*listener.*/ handleCommentReferenceText(
-                  comment.substring(referenceStart, index),
-                  commentToken.charOffset + referenceStart);
-              ++count;
+              references.add((
+                source: comment.substring(referenceStart, index),
+                offset: commentToken.charOffset + referenceStart,
+              ));
             }
           }
         }
@@ -5948,13 +5898,14 @@ class AstBuilder extends StackListener {
       }
       ++index;
     }
-    return count;
+    return references;
   }
 
-  /// Parse the tokens in a single comment reference and generate either a
-  /// [_handleCommentReference] or [_handleNoCommentReference] event.
-  /// Return `true` if a comment reference was successfully parsed.
-  bool _parseOneCommentReference(Token token, int referenceOffset) {
+  /// Parses the text in a single comment reference.
+  ///
+  /// Returns `null` if the text could not be parsed as a comment reference.
+  CommentReferenceImpl? _parseOneCommentReference(
+      Token token, int referenceOffset) {
     var begin = token;
     Token? newKeyword;
     if (optional('new', token)) {
@@ -5999,17 +5950,31 @@ class AstBuilder extends StackListener {
     }
     if (token.isUserDefinableOperator) {
       if (token.next!.isEof) {
-        _parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-            firstToken, firstPeriod, secondToken, secondPeriod, token);
-        return true;
+        return _parseOneCommentReferenceRest(
+          begin,
+          referenceOffset,
+          newKeyword,
+          firstToken,
+          firstPeriod,
+          secondToken,
+          secondPeriod,
+          token,
+        );
       }
     } else {
       token = operatorKeyword ?? token;
       if (token.next!.isEof) {
         if (token.isIdentifier) {
-          _parseOneCommentReferenceRest(begin, referenceOffset, newKeyword,
-              firstToken, firstPeriod, secondToken, secondPeriod, token);
-          return true;
+          return _parseOneCommentReferenceRest(
+            begin,
+            referenceOffset,
+            newKeyword,
+            firstToken,
+            firstPeriod,
+            secondToken,
+            secondPeriod,
+            token,
+          );
         }
         var keyword = token.keyword;
         if (newKeyword == null &&
@@ -6026,11 +5991,29 @@ class AstBuilder extends StackListener {
         }
       }
     }
-    handleNoCommentReference();
-    return false;
+    return null;
   }
 
-  void _parseOneCommentReferenceRest(
+  /// Parses the parameters into a [CommentReferenceImpl].
+  ///
+  /// If the reference begins with `new `, then pass the Token associated with
+  /// that text as [newToken].
+  ///
+  /// If the reference contains a single identifier or operator (aside from the
+  /// optional [newToken]), then pass the associated Token as
+  /// [identifierOrOperator].
+  ///
+  /// If the reference contains two identifiers separated by a period, then pass
+  /// the associated Tokens as [secondToken], [secondPeriod], and
+  /// [identifierOrOperator], in lexical order.
+  // TODO(srawlins): Rename the parameters or refactor this code to avoid the
+  // confusion of `null` values for the "first*" parameters and non-`null` values
+  // for the "second*" parameters.
+  ///
+  /// If the reference contains three identifiers, each separated by a period,
+  /// then pass the associated Tokens as [firstToken], [firstPeriod],
+  /// [secondToken], [secondPeriod], and [identifierOrOperator].
+  CommentReferenceImpl _parseOneCommentReferenceRest(
       Token begin,
       int referenceOffset,
       Token? newKeyword,
@@ -6046,16 +6029,46 @@ class AstBuilder extends StackListener {
       token = token.next!;
     } while (!token.isEof);
 
-    handleCommentReference(newKeyword, firstToken, firstPeriod, secondToken,
-        secondPeriod, identifierOrOperator);
+    var identifier = SimpleIdentifierImpl(identifierOrOperator);
+    if (firstToken != null) {
+      var target = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(firstToken),
+        period: firstPeriod!,
+        identifier: SimpleIdentifierImpl(secondToken!),
+      );
+      var expression = PropertyAccessImpl(
+        target: target,
+        operator: secondPeriod!,
+        propertyName: identifier,
+      );
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: expression,
+      );
+    } else if (secondToken != null) {
+      var expression = PrefixedIdentifierImpl(
+        prefix: SimpleIdentifierImpl(secondToken),
+        period: secondPeriod!,
+        identifier: identifier,
+      );
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: expression,
+      );
+    } else {
+      return CommentReferenceImpl(
+        newKeyword: newKeyword,
+        expression: identifier,
+      );
+    }
   }
 
-  /// Parse the comment references in a multi-line comment token.
-  /// Return the number of comment references parsed.
-  int _parseReferencesInMultiLineComment(Token multiLineDoc) {
+  /// Parses the comment references in a multi-line comment token.
+  List<({String source, int offset})> _parseReferencesInMultiLineComment(
+      Token multiLineDoc) {
     var comment = multiLineDoc.lexeme;
     assert(comment.startsWith('/**'));
-    var count = 0;
+    var references = <({String source, int offset})>[];
     var length = comment.length;
     var start = 3;
     var inCodeBlock = false;
@@ -6080,18 +6093,20 @@ class AstBuilder extends StackListener {
         }
       }
       if (!inCodeBlock && !comment.startsWith('*     ', start)) {
-        count += _parseCommentReferencesInText(multiLineDoc, start, end);
+        references
+            .addAll(_parseCommentReferencesInText(multiLineDoc, start, end));
       }
       start = end + 1;
     }
-    return count;
+    return references;
   }
 
   /// Parse the comment references in a sequence of single line comment tokens
   /// where [token] is the first comment token in the sequence.
   /// Return the number of comment references parsed.
-  int _parseReferencesInSingleLineComments(Token? token) {
-    var count = 0;
+  List<({String source, int offset})> _parseReferencesInSingleLineComments(
+      Token? token) {
+    var references = <({String source, int offset})>[];
     var inCodeBlock = false;
     while (token != null && !token.isEof) {
       var comment = token.lexeme;
@@ -6110,14 +6125,14 @@ class AstBuilder extends StackListener {
             parseReferences = true;
           }
           if (parseReferences) {
-            count += _parseCommentReferencesInText(
-                token, /* start = */ 3, comment.length);
+            references.addAll(_parseCommentReferencesInText(
+                token, /* start = */ 3, comment.length));
           }
         }
       }
       token = token.next;
     }
-    return count;
+    return references;
   }
 
   List<NamedTypeImpl> _popNamedTypeList({

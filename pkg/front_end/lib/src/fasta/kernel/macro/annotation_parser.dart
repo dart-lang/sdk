@@ -443,9 +443,6 @@ class _MacroListener implements Listener {
     unrecognized = true;
   }
 
-  /// Called for listener events that are ignored.
-  void _ignored() {}
-
   @override
   void beginAsOperatorType(Token operator) {
     _unsupported();
@@ -1670,22 +1667,6 @@ class _MacroListener implements Listener {
   }
 
   @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    _ignored();
-  }
-
-  @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    _ignored();
-  }
-
-  @override
   void handleConditionalExpressionColon() {
     _unhandled();
   }
@@ -1975,11 +1956,6 @@ class _MacroListener implements Listener {
   @override
   void handleNewAsIdentifier(Token token) {
     _unhandled();
-  }
-
-  @override
-  void handleNoCommentReference() {
-    _ignored();
   }
 
   @override

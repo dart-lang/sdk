@@ -10163,15 +10163,15 @@ _The 'platforms' field must be a map with platforms as keys._
 
 #### Description
 
-The analyzer produces this diagnostic when there is a top-level
-`platforms` field and the value of this key not a map.
-See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+The analyzer produces this diagnostic when a top-level `platforms`
+field is specified, but its value is not a map with keys.
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
 for details.
 
 #### Example
 
 The following `pubspec.yaml` produces this diagnostic because `platforms`
-should be a map (if specified).
+should be a map.
 
 ```yaml
 name: example
@@ -10183,15 +10183,15 @@ platforms:
 
 #### Common fixes
 
-Omit the top-level `platforms` key if you can rely on automatic platform
-detection.
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` field. 
 
 ```yaml
 name: example
 ```
 
 If you need to manually specify the list of supported platforms, then
-write a `platforms` field as a map with _platform names_ as keys.
+write the `platforms` field as a map with platform names as keys.
 
 ```yaml
 name: example
@@ -16218,13 +16218,13 @@ void f(int x) {
 
 ### platform_value_disallowed
 
-_A value may not be provided for keys in `platforms`._
+_Keys in the `platforms` field can't have values._
 
 #### Description
 
 The analyzer produces this diagnostic when a key in the `platforms` map
 has a value.
-See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
 for details.
 
 #### Example
@@ -16248,7 +16248,8 @@ platforms:
   web:
 ```
 
-Values for keys in the `platforms` fields are reserved for future.
+Values for keys in the `platforms` field are currently reserved for
+potential future behavior.
 
 ### positional_field_in_object_pattern
 
@@ -20864,9 +20865,9 @@ _The platform '{0}' is not a recognized platform._
 
 #### Description
 
-The analyzer produces this diagnostic when an unknown _platform name_ is
-used as key in the `platforms` map.
-See [documentation for platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
+The analyzer produces this diagnostic when an unknown platform name is
+used as a key in the `platforms` map.
+See the [documentation on platform declaration](https://dart.dev/tools/pub/pubspec#platforms)
 for details.
 
 #### Example
@@ -20882,15 +20883,15 @@ platforms:
 
 #### Common fixes
 
-Omit the top-level `platforms` key if you can rely on automatic platform
-detection.
+If you can rely on automatic platform detection, then omit the
+top-level `platforms` key.
 
 ```yaml
 name: example
 ```
 
 If you need to manually specify the list of supported platforms, then
-write a `platforms` field as a map with _known platform names_ as keys.
+write the `platforms` field as a map with known platform names as keys.
 
 ```yaml
 name: example

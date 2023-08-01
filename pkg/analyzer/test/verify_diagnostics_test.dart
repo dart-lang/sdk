@@ -123,6 +123,7 @@ class DocumentationValidator {
     'PubspecWarningCode.PATH_DOES_NOT_EXIST',
     'PubspecWarningCode.PATH_NOT_POSIX',
     'PubspecWarningCode.PATH_PUBSPEC_DOES_NOT_EXIST',
+    'PubspecWarningCode.PLATFORM_VALUE_DISALLOWED',
     'PubspecWarningCode.UNKNOWN_PLATFORM',
     'PubspecWarningCode.UNNECESSARY_DEV_DEPENDENCY',
 

@@ -8182,18 +8182,18 @@ const MessageCode messageJsInteropOperatorsNotSupported = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null>
-    codeJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters;
+    codeJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode
-    messageJsInteropStaticInteropExternalExtensionMembersWithTypeParameters =
+    messageJsInteropStaticInteropExternalMemberWithInvalidTypeParameters =
     const MessageCode(
-        "JsInteropStaticInteropExternalExtensionMembersWithTypeParameters",
+        "JsInteropStaticInteropExternalMemberWithInvalidTypeParameters",
         problemMessage:
-            r"""`@staticInterop` classes cannot have external extension members with type parameters.""",
+            r"""External static interop members can only use type parameters that extend either a static interop type or one of the 'dart:js_interop' types.""",
         correctionMessage:
-            r"""Try using a Dart extension member if you need type parameters instead.""");
+            r"""Try adding a valid bound to the type parameters used in this member.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeJsInteropStaticInteropGenerativeConstructor =

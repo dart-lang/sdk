@@ -20,4 +20,5 @@ enum SnippetContext {
   inQualifiedMemberAccess,
   inStatement,
   inString,
+  inName,
 }

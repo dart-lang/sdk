@@ -3218,40 +3218,6 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleCommentReferenceText(String referenceSource, int referenceOffset) {
-    doPrint(
-        'handleCommentReferenceText(' '$referenceSource, ' '$referenceOffset)');
-  }
-
-  @override
-  void handleCommentReference(
-      Token? newKeyword,
-      Token? firstToken,
-      Token? firstPeriod,
-      Token? secondToken,
-      Token? secondPeriod,
-      Token thirdToken) {
-    seen(newKeyword);
-    seen(firstToken);
-    seen(firstPeriod);
-    seen(secondToken);
-    seen(secondPeriod);
-    seen(thirdToken);
-    doPrint('handleCommentReference('
-        '$newKeyword, '
-        '$firstToken, '
-        '$firstPeriod, '
-        '$secondToken, '
-        '$secondPeriod, '
-        '$thirdToken)');
-  }
-
-  @override
-  void handleNoCommentReference() {
-    doPrint('handleNoCommentReference()');
-  }
-
-  @override
   void handleTypeArgumentApplication(Token openAngleBracket) {
     seen(openAngleBracket);
     doPrint('handleTypeArgumentApplication(' '$openAngleBracket)');

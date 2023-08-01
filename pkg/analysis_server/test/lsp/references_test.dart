@@ -178,6 +178,26 @@ f^oo() {
     await _checkRanges(content, includeDeclarations: false);
   }
 
+  Future<void> test_type() async {
+    final content = '''
+class A^aa<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
+  }
+
+  Future<void> test_type_generic_end() async {
+    final content = '''
+class Aaa^<T> {}
+
+[!Aaa!]<String>? a;
+''';
+
+    await _checkRanges(content);
+  }
+
   Future<void> test_unopenFile() async {
     final code = TestCode.parse('''
     f^oo() {

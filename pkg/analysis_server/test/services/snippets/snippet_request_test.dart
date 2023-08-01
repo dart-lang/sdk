@@ -32,6 +32,14 @@ class A {}
 ''', SnippetContext.inAnnotation);
   }
 
+  Future<void> test_argumentName() async {
+    await testRequest(r'''
+void({required int switch}) {
+  f([!sw^!]:);
+}
+''', SnippetContext.inName);
+  }
+
   Future<void> test_block_forBody() async {
     await testRequest(r'''
 foo() {
