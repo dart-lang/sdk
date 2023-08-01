@@ -568,7 +568,7 @@ abstract interface class Uri {
   /// ```dart import:convert
   /// final uri =
   ///     Uri.parse('https://example.com/api/fetch?limit=10,20,30&max=100');
-  /// print(jsonEncode(uri.queryParameters)); // {"limit":"10,20,30","max":"100"}
+  /// print(jsonEncode(uri.queryParametersAll)); // {"limit":["10,20,30"],"max":["100"]}
   /// ```
   ///
   /// The map and the lists it contains are unmodifiable.
