@@ -354,14 +354,6 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
     closures.findCaptures(member);
     closures.collectContexts(member);
-    if (member is Constructor) {
-      for (Field field in member.enclosingClass.fields) {
-        if (field.isInstanceMember && field.initializer != null) {
-          closures.collectContexts(field.initializer!,
-              container: member.function);
-        }
-      }
-    }
     closures.buildContexts();
 
     allocateContext(member.function!);
