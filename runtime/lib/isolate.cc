@@ -34,7 +34,11 @@ namespace dart {
 DEFINE_NATIVE_ENTRY(Capability_factory, 0, 1) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
-  uint64_t id = isolate->random()->NextUInt64();
+  // Keep capability IDs less than 2^53 so web clients of the service
+  // protocol can process it properly.
+  //
+  // See https://github.com/dart-lang/sdk/issues/53081.
+  uint64_t id = isolate->random()->NextJSInt();
   return Capability::New(id);
 }
 

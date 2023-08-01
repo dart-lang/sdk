@@ -46,13 +46,13 @@ Dart_Port PortMap::AllocatePort() {
   // Keep getting new values while we have an illegal port number or the port
   // number is already in use.
   do {
-    // Ensure port ids are representable in JavaScript for the benefit of
-    // vm-service clients such as Observatory.
-    const Dart_Port kMask1 = 0xFFFFFFFFFFFFF;
     // Ensure port ids are never valid object pointers so that reinterpreting
     // an object pointer as a port id never produces a used port id.
     const Dart_Port kMask2 = 0x3;
-    result = (prng_->NextUInt64() & kMask1) | kMask2;
+
+    // Ensure port ids are representable in JavaScript for the benefit of
+    // vm-service clients such as Observatory.
+    result = prng_->NextJSInt() | kMask2;
 
     // The two special marker ports are used for the hashset implementation and
     // cannot be used as actual ports.

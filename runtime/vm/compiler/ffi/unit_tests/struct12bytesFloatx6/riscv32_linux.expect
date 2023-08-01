@@ -1,8 +1,8 @@
 P(a0 uint32) Struct(size: 12)
 P(a1 uint32) Struct(size: 12)
 P(a2 uint32) Struct(size: 12)
-P(a3 uint32) Struct(size: 12)
-P(a4 uint32) Struct(size: 12)
-P(a5 uint32) Struct(size: 12)
+P(t3 uint32) Struct(size: 12)
+P(t4 uint32) Struct(size: 12)
+P(t5 uint32) Struct(size: 12)
 =>
 (a0, a1) int64

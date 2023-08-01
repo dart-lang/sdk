@@ -393,7 +393,11 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
   }
   {
     WriteRwLocker wl(ThreadState::Current(), isolate_groups_rwlock_);
-    id_ = isolate_group_random_->NextUInt64();
+    // Keep isolate IDs less than 2^53 so web clients of the service
+    // protocol can process it properly.
+    //
+    // See https://github.com/dart-lang/sdk/issues/53081.
+    id_ = isolate_group_random_->NextJSInt();
   }
   heap_walk_class_table_ = class_table_ =
       new ClassTable(&class_table_allocator_);
@@ -1789,8 +1793,13 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   Isolate::VisitIsolates(&id_verifier);
 #endif
   result->set_origin_id(result->main_port());
-  result->set_pause_capability(result->random()->NextUInt64());
-  result->set_terminate_capability(result->random()->NextUInt64());
+
+  // Keep capability IDs less than 2^53 so web clients of the service
+  // protocol can process it properly.
+  //
+  // See https://github.com/dart-lang/sdk/issues/53081.
+  result->set_pause_capability(result->random()->NextJSInt());
+  result->set_terminate_capability(result->random()->NextJSInt());
 
 #if !defined(PRODUCT)
   result->debugger_ = new Debugger(result);

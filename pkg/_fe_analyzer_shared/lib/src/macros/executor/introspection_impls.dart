@@ -466,6 +466,9 @@ class FunctionDeclarationImpl extends DeclarationImpl
   final bool hasAbstract;
 
   @override
+  final bool hasBody;
+
+  @override
   final bool hasExternal;
 
   @override
@@ -498,6 +501,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
     required super.library,
     required super.metadata,
     required this.hasAbstract,
+    required this.hasBody,
     required this.hasExternal,
     required this.isGetter,
     required this.isOperator,
@@ -514,6 +518,7 @@ class FunctionDeclarationImpl extends DeclarationImpl
 
     serializer
       ..addBool(hasAbstract)
+      ..addBool(hasBody)
       ..addBool(hasExternal)
       ..addBool(isGetter)
       ..addBool(isOperator)
@@ -557,6 +562,7 @@ class MethodDeclarationImpl extends FunctionDeclarationImpl
     required super.metadata,
     // Function fields.
     required super.hasAbstract,
+    required super.hasBody,
     required super.hasExternal,
     required super.isGetter,
     required super.isOperator,
@@ -595,6 +601,7 @@ class ConstructorDeclarationImpl extends MethodDeclarationImpl
     required super.metadata,
     // Function fields.
     required super.hasAbstract,
+    required super.hasBody,
     required super.hasExternal,
     required super.isGetter,
     required super.isOperator,

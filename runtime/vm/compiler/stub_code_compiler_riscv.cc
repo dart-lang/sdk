@@ -366,18 +366,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ PushRegisterPair(RA, THR);
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
-  RegisterSet all_registers;
-  all_registers.AddAllArgumentRegisters();
-
-  // The call below might clobber T1 (volatile, holding callback_id).
-  all_registers.Add(Location::RegisterLocation(T1));
-
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ PushRegisters(all_registers);
+    // Push arguments and callback id.
+    __ subi(SP, SP, 9 * target::kWordSize);
+    __ sx(T1, Address(SP, 8 * target::kWordSize));
+    __ sx(A7, Address(SP, 7 * target::kWordSize));
+    __ sx(A6, Address(SP, 6 * target::kWordSize));
+    __ sx(A5, Address(SP, 5 * target::kWordSize));
+    __ sx(A4, Address(SP, 4 * target::kWordSize));
+    __ sx(A3, Address(SP, 3 * target::kWordSize));
+    __ sx(A2, Address(SP, 2 * target::kWordSize));
+    __ sx(A1, Address(SP, 1 * target::kWordSize));
+    __ sx(A0, Address(SP, 0 * target::kWordSize));
 
     __ EnterFrame(0);
     // Reserve one slot for the entry point and one for the tramp abi.
@@ -422,7 +426,17 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ LeaveFrame();
 
-    __ PopRegisters(all_registers);
+    // Restore arguments and callback id.
+    __ lx(A0, Address(SP, 0 * target::kWordSize));
+    __ lx(A1, Address(SP, 1 * target::kWordSize));
+    __ lx(A2, Address(SP, 2 * target::kWordSize));
+    __ lx(A3, Address(SP, 3 * target::kWordSize));
+    __ lx(A4, Address(SP, 4 * target::kWordSize));
+    __ lx(A5, Address(SP, 5 * target::kWordSize));
+    __ lx(A6, Address(SP, 6 * target::kWordSize));
+    __ lx(A7, Address(SP, 7 * target::kWordSize));
+    __ lx(T1, Address(SP, 8 * target::kWordSize));
+    __ addi(SP, SP, 9 * target::kWordSize);
   }
 
   COMPILE_ASSERT(!IsCalleeSavedRegister(T2) && !IsArgumentRegister(T2));
