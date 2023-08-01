@@ -510,6 +510,10 @@ class ElementBuilder extends ThrowingAstVisitor<void> {
     element.typeParameters = holder.typeParameters;
 
     node.implementsClause?.accept(this);
+
+    // TODO(scheglov) We cannot do this anymore.
+    // Not for class augmentations, not for classes.
+    _resolveConstructorFieldFormals(element);
   }
 
   @override

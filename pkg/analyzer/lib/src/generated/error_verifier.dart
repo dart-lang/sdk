@@ -684,6 +684,29 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    var outerClass = _enclosingClass;
+    try {
+      final element = node.declaredElement!;
+      final augmented = element.augmented;
+      if (augmented == null) {
+        return;
+      }
+
+      final declarationElement = augmented.declaration;
+      declarationElement as ExtensionTypeElementImpl;
+
+      _enclosingClass = declarationElement;
+
+      // TODO(scheglov) Add checks.
+
+      super.visitExtensionTypeDeclaration(node);
+    } finally {
+      _enclosingClass = outerClass;
+    }
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     var fields = node.fields;
     _thisAccessTracker.enterFieldDeclaration(node);
