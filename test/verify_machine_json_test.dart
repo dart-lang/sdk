@@ -8,17 +8,21 @@ import 'package:path/path.dart' as path;
 import 'package:test/test.dart';
 
 import '../tool/machine.dart';
+import 'util/test_utils.dart';
 
 void main() {
-  test("ensure 'rules.json' is up to date", () async {
-    var rulesFilePath = path.join('tool', 'machine', 'rules.json');
-    var onDisk = File(rulesFilePath).readAsStringSync();
-    var generated = await generateRulesJson();
-    expect(
-      generated,
-      onDisk,
-      reason: "'rules.json' is out of date. Regenerate by running "
-          '`dart tool/machine.dart -w`',
-    );
+  group('machine output tests', () {
+    setUp(setUpSharedTestEnvironment);
+    test("ensure 'rules.json' is up to date", () async {
+      var rulesFilePath = path.join('tool', 'machine', 'rules.json');
+      var onDisk = File(rulesFilePath).readAsStringSync();
+      var generated = await generateRulesJson();
+      expect(
+        generated,
+        onDisk,
+        reason: "'rules.json' is out of date. Regenerate by running "
+            '`dart tool/machine.dart -w`',
+      );
+    });
   });
 }
