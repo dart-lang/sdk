@@ -47225,7 +47225,9 @@ library
         typeParameters
           covariant T @17
             bound: num
+            defaultType: num
           covariant U @32
+            defaultType: dynamic
         representation: self::@extensionType::A::@field::it
         interfaces
           Object

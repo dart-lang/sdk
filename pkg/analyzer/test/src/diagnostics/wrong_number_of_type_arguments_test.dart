@@ -10,6 +10,7 @@ import '../dart/resolution/context_collection_resolution.dart';
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WrongNumberOfTypeArgumentsTest);
+    defineReflectiveTests(WrongNumberOfTypeArgumentsTest_ExtensionType);
   });
 }
 
@@ -354,5 +355,91 @@ f(p) {
 ''', [
       error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 46, 7),
     ]);
+  }
+}
+
+@reflectiveTest
+class WrongNumberOfTypeArgumentsTest_ExtensionType
+    extends PubPackageResolutionTest {
+  test_notGeneric() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+
+void f(A<int> a) {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 36, 6),
+    ]);
+
+    final node = findNode.namedType('A<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@extensionType::A
+  type: A
+''');
+  }
+
+  test_tooFew() async {
+    await assertErrorsInCode(r'''
+extension type A<S, T>(int it) {}
+
+void f(A<int> a) {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 42, 6),
+    ]);
+
+    final node = findNode.namedType('A<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@extensionType::A
+  type: A<InvalidType, InvalidType>
+''');
+  }
+
+  test_tooMany() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(int it) {}
+
+void f(A<int, String> a) {}
+''', [
+      error(CompileTimeErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 39, 14),
+    ]);
+
+    final node = findNode.namedType('A<int, String>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+      NamedType
+        name: String
+        element: dart:core::@class::String
+        type: String
+    rightBracket: >
+  element: self::@extensionType::A
+  type: A<InvalidType>
+''');
   }
 }
