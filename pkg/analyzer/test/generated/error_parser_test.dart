@@ -1522,8 +1522,10 @@ class Wrong<T> {
     createParser("C() : super = 42;");
     ClassMember member = parser.parseClassMember('C');
     expectNotNullIfNoErrors(member);
-    listener.assertErrors(
-        [expectedError(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 5)]);
+    listener.assertErrors([
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 6, 5),
+      error(ParserErrorCode.INVALID_INITIALIZER, 6, 10),
+    ]);
   }
 
   void test_invalidConstructorSuperFieldAssignment() {
