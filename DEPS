@@ -175,7 +175,7 @@ vars = {
   "string_scanner_rev": "413b57a3b14fa273e8ed52578edfbe0446084795",
   "sync_http_rev": "c3d6ad48ec997c56b7f076bc9f8b4134c4a9225c",
   "term_glyph_rev": "423700a3c019dc67f93d2bd6578016a1402506f7",
-  "test_rev": "7f81deeac294a1120917aeaa35d5b670146c4529",
+  "test_rev": "92eb0f7c3df8f3f089eb3962b46d55b00cf0e51c",
   "test_descriptor_rev": "36d8617fafccbe36dfcf74ad4921c61911a6a411",
   "test_process_rev": "b360784a9149b15888aed8d7cf167bb46fe733d5",
   "test_reflective_loader_rev": "0bfaad91ed308ce9da11b48395c8210d7542c16b",
