@@ -1405,30 +1405,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return receiverType;
   }
 
-  FunctionType getFunctionTypeForImplicitCall(DartType calleeType) {
-    calleeType = resolveTypeParameter(calleeType);
-    if (calleeType is FunctionType) {
-      if (!isNonNullableByDefault) {
-        calleeType = legacyErasure(calleeType);
-      }
-      return calleeType as FunctionType;
-    } else if (calleeType is InterfaceType) {
-      Member? member =
-          _getInterfaceMember(calleeType.classNode, callName, false, -1);
-      if (member != null) {
-        DartType callType =
-            getGetterTypeForMemberTarget(member, calleeType, isSuper: false);
-        if (callType is FunctionType) {
-          if (!isNonNullableByDefault) {
-            callType = legacyErasure(callType);
-          }
-          return callType as FunctionType;
-        }
-      }
-    }
-    return unknownFunction;
-  }
-
   DartType? getDerivedTypeArgumentOf(DartType type, Class class_) {
     if (type is InterfaceType) {
       List<DartType>? typeArgumentsAsInstanceOfClass =
@@ -2830,7 +2806,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     DartType calleeType = target.getGetterType(this);
-    FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
     if (hoistedExpressions == null) {
@@ -2866,7 +2841,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         receiver is! ThisExpression &&
         returnedTypeParametersOccurNonCovariantly(
             getter.enclosingClass!, getter.function.returnType)) {
-      propertyGet = new AsExpression(propertyGet, functionType)
+      propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
         ..isForNonNullableByDefault = isNonNullableByDefault
@@ -2875,7 +2850,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         int offset =
             arguments.fileOffset == -1 ? fileOffset : arguments.fileOffset;
         instrumentation!.record(uriForInstrumentation, offset,
-            'checkGetterReturn', new InstrumentationValueForType(functionType));
+            'checkGetterReturn', new InstrumentationValueForType(calleeType));
       }
     }
 
@@ -3008,7 +2983,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression originalReceiver = receiver;
 
     DartType calleeType = target.getGetterType(this);
-    FunctionType functionType = getFunctionTypeForImplicitCall(calleeType);
 
     List<VariableDeclaration>? locallyHoistedExpressions;
     if (hoistedExpressions == null) {
@@ -3059,7 +3033,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         calleeType is! DynamicType &&
         returnedTypeParametersOccurNonCovariantly(
             field.enclosingClass!, field.type)) {
-      propertyGet = new AsExpression(propertyGet, functionType)
+      propertyGet = new AsExpression(propertyGet, calleeType)
         ..isTypeError = true
         ..isCovarianceCheck = true
         ..isForNonNullableByDefault = isNonNullableByDefault
@@ -3068,7 +3042,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         int offset =
             arguments.fileOffset == -1 ? fileOffset : arguments.fileOffset;
         instrumentation!.record(uriForInstrumentation, offset,
-            'checkGetterReturn', new InstrumentationValueForType(functionType));
+            'checkGetterReturn', new InstrumentationValueForType(calleeType));
       }
     }
 
