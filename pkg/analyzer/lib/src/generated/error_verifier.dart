@@ -698,10 +698,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declarationElement;
 
+      _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       // TODO(scheglov) Add checks.
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
+      _constructorFieldsVerifier.leaveClass();
       _enclosingClass = outerClass;
     }
   }
