@@ -37,6 +37,7 @@ class InstanceMemberInferrer {
     isNonNullableByDefault = typeSystem.isNonNullableByDefault;
     _inferClasses(unit.classes);
     _inferClasses(unit.enums);
+    _inferExtensionTypes(unit.extensionTypes);
     _inferClasses(unit.mixins);
   }
 
@@ -488,6 +489,14 @@ class InstanceMemberInferrer {
     }
 
     _resetOperatorEqualParameterTypeToDynamic(element, overriddenElements);
+  }
+
+  void _inferExtensionTypes(List<ExtensionTypeElementImpl> extensionTypes) {
+    for (final extensionType in extensionTypes) {
+      for (final constructor in extensionType.constructors) {
+        _inferConstructor(constructor);
+      }
+    }
   }
 
   void _inferMixinApplicationConstructor(

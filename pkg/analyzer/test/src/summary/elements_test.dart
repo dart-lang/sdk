@@ -46564,6 +46564,127 @@ library
 ''');
   }
 
+  test_constructor_secondary_fieldFormalParameter() async {
+    var library = await buildLibrary(r'''
+extension type A(num it) {
+  A.named(this.it);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
+        fields
+          final it @21
+            type: num
+        constructors
+          @15
+            parameters
+              requiredPositional final this.it @21
+                type: num
+                field: self::@extensionType::A::@field::it
+          named @31
+            periodOffset: 30
+            nameEnd: 36
+            parameters
+              requiredPositional final this.it @42
+                type: num
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: num
+''');
+  }
+
+  test_constructor_secondary_fieldFormalParameter_typed() async {
+    var library = await buildLibrary(r'''
+extension type A(num it) {
+  A.named(int this.it);
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
+        fields
+          final it @21
+            type: num
+        constructors
+          @15
+            parameters
+              requiredPositional final this.it @21
+                type: num
+                field: self::@extensionType::A::@field::it
+          named @31
+            periodOffset: 30
+            nameEnd: 36
+            parameters
+              requiredPositional final this.it @46
+                type: int
+                field: self::@extensionType::A::@field::it
+        accessors
+          synthetic get it @-1
+            returnType: num
+''');
+  }
+
+  test_constructor_secondary_fieldInitializer() async {
+    var library = await buildLibrary(r'''
+extension type A(num it) {
+  const A.named(int a) : it = a;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        interfaces
+          Object
+        fields
+          final it @21
+            type: num
+        constructors
+          @15
+            parameters
+              requiredPositional final this.it @21
+                type: num
+                field: self::@extensionType::A::@field::it
+          const named @37
+            periodOffset: 36
+            nameEnd: 42
+            parameters
+              requiredPositional a @47
+                type: int
+            constantInitializers
+              ConstructorFieldInitializer
+                fieldName: SimpleIdentifier
+                  token: it @52
+                  staticElement: self::@extensionType::A::@field::it
+                  staticType: null
+                equals: = @55
+                expression: SimpleIdentifier
+                  token: a @57
+                  staticElement: self::@extensionType::A::@constructor::named::@parameter::a
+                  staticType: int
+        accessors
+          synthetic get it @-1
+            returnType: num
+''');
+  }
+
   test_constructor_unnamed() async {
     var library = await buildLibrary(r'''
 extension type A(int it) {}

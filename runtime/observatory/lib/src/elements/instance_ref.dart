@@ -149,6 +149,16 @@ class InstanceRefElement extends CustomElement implements Renderable {
               new SpanElement()..text = ' (${_instance.pattern!.valueAsString})'
             ]
         ];
+      case M.InstanceKind.userTag:
+        return [
+          new AnchorElement(href: Uris.inspect(_isolate, object: _instance))
+            ..children = <Element>[
+              new SpanElement()
+                ..classes = ['emphasize']
+                ..text = _instance.clazz!.name,
+              new SpanElement()..text = ' (${_instance.name})'
+            ]
+        ];
       case M.InstanceKind.stackTrace:
         return [
           new AnchorElement(href: Uris.inspect(_isolate, object: _instance))

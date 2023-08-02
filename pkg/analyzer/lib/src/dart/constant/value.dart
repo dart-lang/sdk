@@ -230,7 +230,7 @@ class DartObjectImpl implements DartObject, Constant {
 
   /// Return `true` if this object represents an object whose type is an invalid
   /// type.
-  bool get isInvalid => state.isInvalid;
+  bool get isInvalid => state.isInvalid || hasInvalidType(type);
 
   @override
   bool get isNull => state is NullState;
@@ -308,10 +308,7 @@ class DartObjectImpl implements DartObject, Constant {
     }
 
     // If any type is unresolved, we cannot prove that the cast will fail.
-    if (isInvalid ||
-        castType.isInvalid ||
-        hasInvalidType(type) ||
-        hasInvalidType(resultType)) {
+    if (isInvalid || castType.isInvalid) {
       return this;
     }
 

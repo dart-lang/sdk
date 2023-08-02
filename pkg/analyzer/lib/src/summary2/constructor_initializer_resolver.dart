@@ -20,6 +20,7 @@ class ConstructorInitializerResolver {
       var interfaceElements = <InterfaceElementImpl>[
         ...unitElement.classes,
         ...unitElement.enums,
+        ...unitElement.extensionTypes,
         ...unitElement.mixins,
       ];
       for (var interfaceElement in interfaceElements) {
@@ -41,7 +42,8 @@ class ConstructorInitializerResolver {
   ) {
     if (element.isSynthetic) return;
 
-    var node = _linker.getLinkingNode(element) as ConstructorDeclarationImpl;
+    var node = _linker.getLinkingNode(element);
+    if (node is! ConstructorDeclarationImpl) return;
 
     var functionScope = LinkingNodeContext.get(node).scope;
     var initializerScope = ConstructorInitializerScope(

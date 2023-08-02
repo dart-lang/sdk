@@ -48,6 +48,14 @@ class ConstructorFieldsVerifier {
     );
   }
 
+  void enterExtensionType(
+    ExtensionTypeDeclaration node,
+    ExtensionTypeElementImpl element,
+  ) {
+    _isInNativeClass = false;
+    _initFieldsMap(element.fields);
+  }
+
   void leaveClass() {
     _isInNativeClass = false;
     _initialFieldMap = null;
@@ -63,8 +71,13 @@ class ConstructorFieldsVerifier {
       return;
     }
 
-    if (!(node.parent is ClassDeclaration || node.parent is EnumDeclaration)) {
-      return;
+    switch (node.parent) {
+      case ClassDeclaration _:
+      case EnumDeclaration _:
+      case ExtensionTypeDeclaration _:
+        break;
+      default:
+        return;
     }
 
     if (_isInNativeClass) {

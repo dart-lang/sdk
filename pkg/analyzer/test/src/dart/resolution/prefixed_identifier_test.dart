@@ -543,6 +543,74 @@ PrefixedIdentifier
 ''');
   }
 
+  test_ofExtensionType_read() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@getter::foo
+    staticType: int
+  staticElement: self::@extensionType::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_ofExtensionType_write() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extensionType::A::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extensionType::A::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
+''');
+  }
+
   test_ofMixin_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart'

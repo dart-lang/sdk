@@ -28,7 +28,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.11.0';
+const String vmServiceVersion = '4.12.0';
 
 /// @optional
 const String optional = 'optional';
@@ -189,6 +189,7 @@ Map<String, Function> _typeFactories = {
   'Timestamp': Timestamp.parse,
   '@TypeArguments': TypeArgumentsRef.parse,
   'TypeArguments': TypeArguments.parse,
+  '@TypeParameters': TypeParametersRef.parse,
   'TypeParameters': TypeParameters.parse,
   'UnresolvedSourceLocation': UnresolvedSourceLocation.parse,
   'UriList': UriList.parse,
@@ -8826,14 +8827,49 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   String toString() => '[TypeArguments id: $id, name: $name, types: $types]';
 }
 
+/// `TypeParametersRef` is a reference to a `TypeParameters` object.
+class TypeParametersRef extends ObjRef {
+  static TypeParametersRef? parse(Map<String, dynamic>? json) =>
+      json == null ? null : TypeParametersRef._fromJson(json);
+
+  TypeParametersRef({
+    required String id,
+  }) : super(
+          id: id,
+        );
+
+  TypeParametersRef._fromJson(Map<String, dynamic> json)
+      : super._fromJson(json);
+
+  @override
+  String get type => '@TypeParameters';
+
+  @override
+  Map<String, dynamic> toJson() {
+    final json = super.toJson();
+    json['type'] = type;
+    return json;
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) =>
+      other is TypeParametersRef && id == other.id;
+
+  @override
+  String toString() => '[TypeParametersRef id: $id]';
+}
+
 /// A `TypeParameters` object represents the type argument vector for some
 /// uninstantiated generic type.
-class TypeParameters {
+class TypeParameters extends Obj implements TypeParametersRef {
   static TypeParameters? parse(Map<String, dynamic>? json) =>
       json == null ? null : TypeParameters._fromJson(json);
 
   /// The names of the type parameters.
-  List<String>? names;
+  InstanceRef? names;
 
   /// The bounds set on each type parameter.
   TypeArgumentsRef? bounds;
@@ -8845,20 +8881,29 @@ class TypeParameters {
     this.names,
     this.bounds,
     this.defaults,
-  });
+    required String id,
+  }) : super(
+          id: id,
+        );
 
-  TypeParameters._fromJson(Map<String, dynamic> json) {
-    names = List<String>.from(json['names']);
+  TypeParameters._fromJson(Map<String, dynamic> json) : super._fromJson(json) {
+    names = createServiceObject(json['names'], const ['InstanceRef'])
+        as InstanceRef?;
     bounds = createServiceObject(json['bounds'], const ['TypeArgumentsRef'])
         as TypeArgumentsRef?;
     defaults = createServiceObject(json['defaults'], const ['TypeArgumentsRef'])
         as TypeArgumentsRef?;
   }
 
+  @override
+  String get type => 'TypeParameters';
+
+  @override
   Map<String, dynamic> toJson() {
-    final json = <String, dynamic>{};
+    final json = super.toJson();
+    json['type'] = type;
     json.addAll({
-      'names': names?.map((f) => f).toList(),
+      'names': names?.toJson(),
       'bounds': bounds?.toJson(),
       'defaults': defaults?.toJson(),
     });
@@ -8866,8 +8911,14 @@ class TypeParameters {
   }
 
   @override
+  int get hashCode => id.hashCode;
+
+  @override
+  bool operator ==(Object other) => other is TypeParameters && id == other.id;
+
+  @override
   String toString() =>
-      '[TypeParameters names: $names, bounds: $bounds, defaults: $defaults]';
+      '[TypeParameters id: $id, names: $names, bounds: $bounds, defaults: $defaults]';
 }
 
 /// The `UnresolvedSourceLocation` class is used to refer to an unresolved

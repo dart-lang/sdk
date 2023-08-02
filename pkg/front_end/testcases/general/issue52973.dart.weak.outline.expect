@@ -1,0 +1,33 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
+class Foo<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::Foo<self::Foo::T%>
+    ;
+}
+class C<T extends core::Object> extends core::Object {
+  synthetic constructor •() → self::C<self::C::T>
+    ;
+  method something(covariant-by-class () → self::C::T? read) → void
+    ;
+}
+extension CheckType<T extends core::Object? = dynamic> on T% {
+  method expect = self::CheckType|expect;
+  tearoff expect = self::CheckType|get#expect;
+}
+extension CheckTypeArgumentOfFoo<T extends core::Object? = dynamic> on self::Foo<T%> {
+  method expect = self::CheckTypeArgumentOfFoo|expect;
+  tearoff expect = self::CheckTypeArgumentOfFoo|get#expect;
+}
+static extension-member method CheckType|expect<T extends core::Object? = dynamic, S extends (self::CheckType|expect::T%) → self::CheckType|expect::T% = (dynamic) → dynamic>(lowered final self::CheckType|expect::T% #this) → void
+  ;
+static extension-member method CheckType|get#expect<T extends core::Object? = dynamic>(lowered final self::CheckType|get#expect::T% #this) → <S extends (self::CheckType|get#expect::T%) → self::CheckType|get#expect::T% = (dynamic) → dynamic>() → void
+  return <S extends (self::CheckType|get#expect::T%) → self::CheckType|get#expect::T% = (dynamic) → dynamic>() → void => self::CheckType|expect<self::CheckType|get#expect::T%, S>(#this);
+static extension-member method CheckTypeArgumentOfFoo|expect<T extends core::Object? = dynamic, S extends (self::CheckTypeArgumentOfFoo|expect::T%) → self::CheckTypeArgumentOfFoo|expect::T% = (dynamic) → dynamic>(lowered final self::Foo<self::CheckTypeArgumentOfFoo|expect::T%> #this) → void
+  ;
+static extension-member method CheckTypeArgumentOfFoo|get#expect<T extends core::Object? = dynamic>(lowered final self::Foo<self::CheckTypeArgumentOfFoo|get#expect::T%> #this) → <S extends (self::CheckTypeArgumentOfFoo|get#expect::T%) → self::CheckTypeArgumentOfFoo|get#expect::T% = (dynamic) → dynamic>() → void
+  return <S extends (self::CheckTypeArgumentOfFoo|get#expect::T%) → self::CheckTypeArgumentOfFoo|get#expect::T% = (dynamic) → dynamic>() → void => self::CheckTypeArgumentOfFoo|expect<self::CheckTypeArgumentOfFoo|get#expect::T%, S>(#this);
+static method main() → void
+  ;

@@ -52,19 +52,6 @@ class C {
     await assertUpdateWithGtGtGt(from: 'any', to: '^2.14.0');
   }
 
-  Future<void> test_asInConstContext() async {
-    await assertUpdate(content: '''
-const dynamic a = 2;
-const c = a as int;
-''', to: '^2.2.2');
-  }
-
-  Future<void> test_boolOperator() async {
-    await assertUpdate(content: '''
-const c = true & false;
-''', to: '^2.2.2');
-  }
-
   Future<void> test_caret() async {
     await assertUpdateWithGtGtGt(from: '^2.12.0', to: '^2.14.0');
   }
@@ -72,16 +59,6 @@ const c = true & false;
   Future<void> test_compound() async {
     await assertUpdateWithGtGtGt(
         from: "'>=2.12.0 <3.0.0'", to: "'>=2.14.0 <3.0.0'");
-  }
-
-  Future<void> test_eqEqOperatorInConstContext() async {
-    await assertUpdate(content: '''
-class A {
-  const A();
-}
-const A? a = A();
-const c = a == null;
-''', to: '^2.2.2');
   }
 
   Future<void> test_gt() async {
@@ -100,12 +77,5 @@ class C {
   C operator >>>(C other) => this;
 }
 ''', to: '^2.14.0');
-  }
-
-  Future<void> test_isInConstContext() async {
-    await assertUpdate(content: '''
-const num a = 0;
-const c = a is int;
-''', to: '^2.2.2');
   }
 }

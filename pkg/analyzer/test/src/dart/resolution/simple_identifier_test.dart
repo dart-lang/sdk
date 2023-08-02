@@ -400,6 +400,50 @@ SimpleIdentifier
 ''');
   }
 
+  test_inExtensionType_declared() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@extensionType::A::@getter::foo
+  staticType: int
+''');
+  }
+
+  test_inExtensionType_explicitThis_exposed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int get foo => 0;
+}
+
+class B extends A {}
+
+extension type X(B it) implements A {
+  void f() {
+    foo;
+  }
+}
+''');
+
+    final node = findNode.simple('foo;');
+    assertResolvedNodeText(node, r'''
+SimpleIdentifier
+  token: foo
+  staticElement: self::@class::A::@getter::foo
+  staticType: int
+''');
+  }
+
   test_inMixin_inDeclaration_augmentationDeclares() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart'

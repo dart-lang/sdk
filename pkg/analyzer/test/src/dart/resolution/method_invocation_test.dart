@@ -322,6 +322,62 @@ MethodInvocation
 ''');
   }
 
+  test_extensionType_explicitThis() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+
+  void f() {
+    this.foo();
+  }
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: ThisExpression
+    thisKeyword: this
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_extensionType_implicitThis() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+
+  void f() {
+    foo();
+  }
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
   test_hasReceiver_className_augmentationAugments() async {
     newFile('$testPackageLibPath/a.dart', r'''
 library augment 'test.dart'
@@ -436,6 +492,37 @@ MethodInvocation
     rightParenthesis: )
   staticInvokeType: Future<dynamic>* Function()*
   staticType: Future<dynamic>*
+''');
+  }
+
+  test_hasReceiver_extensionTypeName() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  static void foo() {}
+}
+
+void f() {
+  A.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: A
+    staticElement: self::@extensionType::A
+    staticType: null
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -715,6 +802,144 @@ MethodInvocation
   methodName: SimpleIdentifier
     token: foo
     staticElement: self::@mixin::M::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_declared() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  void foo() {}
+}
+
+void f(A a) {
+  a.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_exposed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+class B extends A {}
+
+extension type X(B it) implements A {}
+
+void f(X x) {
+  x.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: X
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@class::A::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_notExposed() async {
+    await assertErrorsInCode(r'''
+class A {}
+
+class B extends A {
+  void foo() {}
+}
+
+extension type X(B it) implements A {}
+
+void f(X x) {
+  x.foo();
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_METHOD, 109, 3),
+    ]);
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: X
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: <null>
+    staticType: InvalidType
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: InvalidType
+  staticType: InvalidType
+''');
+  }
+
+  test_hasReceiver_interfaceType_extensionType_redeclared() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo() {}
+}
+
+extension type X(A it) implements A {
+  void foo() {}
+}
+
+void f(X x) {
+  x.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: x
+    staticElement: self::@function::f::@parameter::x
+    staticType: X
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extensionType::X::@method::foo
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (

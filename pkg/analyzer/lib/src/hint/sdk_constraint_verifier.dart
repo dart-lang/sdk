@@ -10,7 +10,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/dart/element/type_provider.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -29,22 +28,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   /// The version constraint for the SDK.
   final VersionConstraint _versionConstraint;
 
-  /// A cached flag indicating whether references to the constant-update-2018
-  /// features need to be checked. Use [checkConstantUpdate2018] to access this
-  /// field.
-  bool? _checkConstantUpdate2018;
-
   /// A cached flag indicating whether references to the triple-shift features
   /// need to be checked. Use [checkTripleShift] to access this field.
   bool? _checkTripleShift;
-
-  /// A cached flag indicating whether references to Future and Stream need to
-  /// be checked. Use [checkFutureAndStream] to access this field.
-  bool? _checkFutureAndStream;
-
-  /// A cached flag indicating whether references to set literals need to
-  /// be checked. Use [checkSetLiterals] to access this field.
-  bool? _checkSetLiterals;
 
   /// Initialize a newly created verifier to use the given [_errorReporter] to
   /// report errors.
@@ -75,22 +61,9 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   VersionRange get before_2_6_0 =>
       VersionRange(max: Version.parse('2.6.0'), includeMax: false);
 
-  /// Return `true` if references to the constant-update-2018 features need to
-  /// be checked.
-  bool get checkConstantUpdate2018 => _checkConstantUpdate2018 ??=
-      !before_2_5_0.intersect(_versionConstraint).isEmpty;
-
-  /// Return `true` if references to Future and Stream need to be checked.
-  bool get checkFutureAndStream => _checkFutureAndStream ??=
-      !before_2_1_0.intersect(_versionConstraint).isEmpty;
-
   /// Return `true` if references to the non-nullable features need to be
   /// checked.
   bool get checkNnbd => !_containingLibrary.isNonNullableByDefault;
-
-  /// Return `true` if references to set literals need to be checked.
-  bool get checkSetLiterals =>
-      _checkSetLiterals ??= !before_2_2_0.intersect(_versionConstraint).isEmpty;
 
   /// Return `true` if references to the constant-update-2018 features need to
   /// be checked.
@@ -112,15 +85,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitAsExpression(AsExpression node) {
-    if (checkConstantUpdate2018 && node.inConstantContext) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_AS_EXPRESSION_IN_CONST_CONTEXT, node);
-    }
-    super.visitAsExpression(node);
-  }
-
-  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     _checkSinceSdkVersion(node.readElement, node);
     _checkSinceSdkVersion(node.writeElement, node);
@@ -134,33 +98,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
       if (operatorType == TokenType.GT_GT_GT) {
         _errorReporter.reportErrorForToken(
             WarningCode.SDK_VERSION_GT_GT_GT_OPERATOR, node.operator);
-      } else if (checkConstantUpdate2018) {
-        if ((operatorType == TokenType.AMPERSAND ||
-                operatorType == TokenType.BAR ||
-                operatorType == TokenType.CARET) &&
-            node.inConstantContext) {
-          if (node.leftOperand.typeOrThrow.isDartCoreBool) {
-            _errorReporter.reportErrorForToken(
-                WarningCode.SDK_VERSION_BOOL_OPERATOR_IN_CONST_CONTEXT,
-                node.operator,
-                [node.operator.lexeme]);
-          }
-        } else if (operatorType == TokenType.EQ_EQ && node.inConstantContext) {
-          bool primitive(Expression node) {
-            DartType type = node.typeOrThrow;
-            return type.isDartCoreBool ||
-                type.isDartCoreDouble ||
-                type.isDartCoreInt ||
-                type.isDartCoreNull ||
-                type.isDartCoreString;
-          }
-
-          if (!primitive(node.leftOperand) || !primitive(node.rightOperand)) {
-            _errorReporter.reportErrorForToken(
-                WarningCode.SDK_VERSION_EQ_EQ_OPERATOR_IN_CONST_CONTEXT,
-                node.operator);
-          }
-        }
       }
     }
     super.visitBinaryExpression(node);
@@ -187,15 +124,6 @@ class SdkConstraintVerifier extends RecursiveAstVisitor<void> {
   void visitIndexExpression(IndexExpression node) {
     _checkSinceSdkVersion(node.staticElement, node);
     super.visitIndexExpression(node);
-  }
-
-  @override
-  void visitIsExpression(IsExpression node) {
-    if (checkConstantUpdate2018 && node.inConstantContext) {
-      _errorReporter.reportErrorForNode(
-          WarningCode.SDK_VERSION_IS_EXPRESSION_IN_CONST_CONTEXT, node);
-    }
-    super.visitIsExpression(node);
   }
 
   @override

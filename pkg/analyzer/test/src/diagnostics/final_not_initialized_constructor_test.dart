@@ -144,4 +144,30 @@ enum E {
 }
 ''');
   }
+
+  test_extensionType() async {
+    await assertErrorsInCode('''
+extension type A(int it) {
+  A.named();
+}
+''', [
+      error(CompileTimeErrorCode.FINAL_NOT_INITIALIZED_CONSTRUCTOR_1, 29, 1),
+    ]);
+  }
+
+  test_extensionType_noError_constructorFieldInitializer() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  A.named() : it = 0;
+}
+''');
+  }
+
+  test_extensionType_noError_fieldFormalParameter() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {
+  A.named(this.it);
+}
+''');
+  }
 }

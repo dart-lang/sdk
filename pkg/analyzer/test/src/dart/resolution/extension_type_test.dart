@@ -14,40 +14,6 @@ main() {
 
 @reflectiveTest
 class ExtensionTypeResolutionTest extends PubPackageResolutionTest {
-  test_constructor_implementsClause() async {
-    await assertNoErrorsInCode(r'''
-extension type A(int it) implements num {}
-''');
-
-    final node = findNode.singleExtensionTypeDeclaration;
-    assertResolvedNodeText(node, r'''
-ExtensionTypeDeclaration
-  extensionKeyword: extension
-  typeKeyword: type
-  name: A
-  representation: RepresentationDeclaration
-    leftParenthesis: (
-    fieldType: NamedType
-      name: int
-      element: dart:core::@class::int
-      type: int
-    fieldName: it
-    rightParenthesis: )
-    fieldElement: self::@extensionType::A::@field::it
-    constructorElement: self::@extensionType::A::@constructor::new
-  implementsClause: ImplementsClause
-    implementsKeyword: implements
-    interfaces
-      NamedType
-        name: num
-        element: dart:core::@class::num
-        type: num
-  leftBracket: {
-  rightBracket: }
-  declaredElement: self::@extensionType::A
-''');
-  }
-
   test_constructor_named() async {
     await assertNoErrorsInCode(r'''
 extension type A.named(int it) {}
@@ -78,6 +44,121 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_constructor_secondary_fieldFormalParameter() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  A.named(this.it);
+}
+''');
+
+    final node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    fieldName: it
+    rightParenthesis: )
+    fieldElement: self::@extensionType::A::@field::it
+    constructorElement: self::@extensionType::A::@constructor::new
+  leftBracket: {
+  members
+    ConstructorDeclaration
+      returnType: SimpleIdentifier
+        token: A
+        staticElement: self::@extensionType::A
+        staticType: null
+      period: .
+      name: named
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: FieldFormalParameter
+          thisKeyword: this
+          period: .
+          name: it
+          declaredElement: self::@extensionType::A::@constructor::named::@parameter::it
+            type: int
+        rightParenthesis: )
+      body: EmptyFunctionBody
+        semicolon: ;
+      declaredElement: self::@extensionType::A::@constructor::named
+        type: A Function(int)
+  rightBracket: }
+  declaredElement: self::@extensionType::A
+''');
+  }
+
+  test_constructor_secondary_fieldInitializer() async {
+    await assertNoErrorsInCode(r'''
+extension type A(num it) {
+  const A.named(int a) : it = a;
+}
+''');
+
+    final node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: num
+      element: dart:core::@class::num
+      type: num
+    fieldName: it
+    rightParenthesis: )
+    fieldElement: self::@extensionType::A::@field::it
+    constructorElement: self::@extensionType::A::@constructor::new
+  leftBracket: {
+  members
+    ConstructorDeclaration
+      constKeyword: const
+      returnType: SimpleIdentifier
+        token: A
+        staticElement: self::@extensionType::A
+        staticType: null
+      period: .
+      name: named
+      parameters: FormalParameterList
+        leftParenthesis: (
+        parameter: SimpleFormalParameter
+          type: NamedType
+            name: int
+            element: dart:core::@class::int
+            type: int
+          name: a
+          declaredElement: self::@extensionType::A::@constructor::named::@parameter::a
+            type: int
+        rightParenthesis: )
+      separator: :
+      initializers
+        ConstructorFieldInitializer
+          fieldName: SimpleIdentifier
+            token: it
+            staticElement: self::@extensionType::A::@field::it
+            staticType: null
+          equals: =
+          expression: SimpleIdentifier
+            token: a
+            staticElement: self::@extensionType::A::@constructor::named::@parameter::a
+            staticType: int
+      body: EmptyFunctionBody
+        semicolon: ;
+      declaredElement: self::@extensionType::A::@constructor::named
+        type: A Function(int)
+  rightBracket: }
+  declaredElement: self::@extensionType::A
+''');
+  }
+
   test_constructor_unnamed() async {
     await assertNoErrorsInCode(r'''
 extension type A(int it) {}
@@ -99,6 +180,40 @@ ExtensionTypeDeclaration
     rightParenthesis: )
     fieldElement: self::@extensionType::A::@field::it
     constructorElement: self::@extensionType::A::@constructor::new
+  leftBracket: {
+  rightBracket: }
+  declaredElement: self::@extensionType::A
+''');
+  }
+
+  test_implementsClause() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) implements num {}
+''');
+
+    final node = findNode.singleExtensionTypeDeclaration;
+    assertResolvedNodeText(node, r'''
+ExtensionTypeDeclaration
+  extensionKeyword: extension
+  typeKeyword: type
+  name: A
+  representation: RepresentationDeclaration
+    leftParenthesis: (
+    fieldType: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    fieldName: it
+    rightParenthesis: )
+    fieldElement: self::@extensionType::A::@field::it
+    constructorElement: self::@extensionType::A::@constructor::new
+  implementsClause: ImplementsClause
+    implementsKeyword: implements
+    interfaces
+      NamedType
+        name: num
+        element: dart:core::@class::num
+        type: num
   leftBracket: {
   rightBracket: }
   declaredElement: self::@extensionType::A

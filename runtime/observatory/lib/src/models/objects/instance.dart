@@ -139,6 +139,9 @@ enum InstanceKind {
 
   /// An instance of WeakReference
   weakReference,
+
+  /// An instance of UserTag
+  userTag,
 }
 
 bool isTypedData(InstanceKind? kind) {
