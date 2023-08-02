@@ -787,6 +787,31 @@ ConstructorDeclaration
 ''');
   }
 
+  void test_constructor_initilizer_assignmentWithSuperCallAsTarget() {
+    var parseResult = parseStringWithErrors(r'''
+class A {
+  A() : super() = 0;
+}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.MISSING_ASSIGNABLE_SELECTOR, 18, 7),
+      error(ParserErrorCode.INVALID_INITIALIZER, 18, 11),
+    ]);
+
+    var node = parseResult.findNode.constructor('A()');
+    assertParsedNodeText(node, r'''
+ConstructorDeclaration
+  returnType: SimpleIdentifier
+    token: A
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  separator: :
+  body: EmptyFunctionBody
+    semicolon: ;
+''');
+  }
+
   void test_constructor_superParamAndSuperInitializer() {
     var parseResult = parseStringWithErrors(r'''
 abstract class A {

@@ -675,12 +675,7 @@ class AstBuilder extends StackListener {
       } else if (left is SimpleIdentifierImpl) {
         fieldName = left;
       } else {
-        // Recovery:
-        // Parser has reported invalid assignment.
-        var superExpression = left as SuperExpressionImpl;
-        fieldName = SimpleIdentifierImpl(
-          superExpression.superKeyword,
-        );
+        return null;
       }
       return ConstructorFieldInitializerImpl(
         thisKeyword: thisKeyword,
