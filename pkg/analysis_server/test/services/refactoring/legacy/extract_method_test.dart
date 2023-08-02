@@ -1972,7 +1972,30 @@ class A {
 ''');
   }
 
-  Future<void> test_singleExpression_staticContext_extractFromStatic() async {
+  Future<void>
+      test_singleExpression_staticContext_extractFromStaticField() async {
+    await indexTestUnit('''
+class A {
+  static String x(String Function(String) f) => '';
+
+  static String test = x((v) => v.toString());
+}
+''');
+    _createRefactoringForString('(v) => v.toString()');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A {
+  static String x(String Function(String) f) => '';
+
+  static String test = x(res);
+
+  static String res(v) => v.toString();
+}
+''');
+  }
+
+  Future<void>
+      test_singleExpression_staticContext_extractFromStaticMethod() async {
     await indexTestUnit('''
 class A {
   static staticMethodA() {
