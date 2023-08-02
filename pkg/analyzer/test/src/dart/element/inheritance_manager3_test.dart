@@ -23,6 +23,7 @@ main() {
     defineReflectiveTests(InheritanceManager3Test);
     defineReflectiveTests(InheritanceManager3WithoutNullSafetyTest);
     defineReflectiveTests(InheritanceManager3Test_ExtensionType);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -490,7 +491,7 @@ map
 declared
   foo: self::@extensionType::C::@method::foo
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
     self::@class::B::@method::foo
@@ -544,7 +545,7 @@ map
 declared
   foo: self::@extensionType::C::@method::foo
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
 ''');
@@ -573,7 +574,7 @@ map
 declared
   foo: self::@extensionType::C::@method::foo
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@getter::foo
 ''');
@@ -602,7 +603,7 @@ map
 declared
   foo: self::@extensionType::B::@method::foo
   it: self::@extensionType::B::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A1::@method::foo
     self::@extensionType::A2::@method::foo
@@ -631,7 +632,7 @@ map
 declared
   foo: self::@extensionType::B::@method::foo
   it: self::@extensionType::B::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A::@method::foo
   it
@@ -658,7 +659,7 @@ map
 declared
   foo: self::@extensionType::B::@method::foo
   it: self::@extensionType::B::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A::@getter::foo
   it
@@ -704,7 +705,7 @@ map
   it: self::@extensionType::D::@getter::it
 declared
   it: self::@extensionType::D::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A::@method::foo
     self::@class::B::@method::foo
@@ -731,7 +732,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
 ''');
@@ -756,7 +757,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
     self::@class::B::@method::foo
@@ -787,7 +788,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
     self::@class::B::@method::foo
@@ -814,7 +815,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@class::A::@method::foo
 ''');
@@ -838,7 +839,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo=
     self::@class::A::@setter::foo
 ''');
@@ -860,7 +861,7 @@ map
   it: self::@extensionType::B::@getter::it
 declared
   it: self::@extensionType::B::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A::@method::foo
   it
@@ -887,7 +888,7 @@ map
   it: self::@extensionType::B::@getter::it
 declared
   it: self::@extensionType::B::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A1::@method::foo
     self::@extensionType::A2::@method::foo
@@ -921,7 +922,7 @@ map
   it: self::@extensionType::C::@getter::it
 declared
   it: self::@extensionType::C::@getter::it
-overridden
+redeclared
   foo
     self::@extensionType::A::@method::foo
   it
@@ -947,7 +948,7 @@ map
   toString: dart:core::@class::Object::@method::toString
 declared
   it: self::@extensionType::A::@getter::it
-overridden
+redeclared
   ==
     dart:core::@class::Object::@method::==
   hashCode
@@ -2243,6 +2244,7 @@ class _InterfacePrinter {
     }
 
     _writeNameToListMap('overridden', interface.overridden);
+    _writeNameToListMap('redeclared', interface.redeclared);
     _writeListOfMaps('superImplemented', interface.superImplemented);
     _writeNameToMap('inheritedMap', interface.inheritedMap ?? {});
     _writeConflicts(interface.conflicts);

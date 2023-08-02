@@ -2481,11 +2481,10 @@ class FlowModel<Type extends Object> {
     return newModel ?? this;
   }
 
-  /// Makes a copy of `this` that can be safely edited.  Optional argument
-  /// [reachable] may be used to specify a different reachability.
-  FlowModel<Type> _clone({Reachability? reachable}) {
-    return new FlowModel<Type>.withInfo(reachable ?? this.reachable,
-        new Map<int, VariableModel<Type>>.of(variableInfo));
+  /// Makes a copy of `this` that can be safely edited.
+  FlowModel<Type> _clone() {
+    return new FlowModel<Type>.withInfo(
+        reachable, new Map<int, VariableModel<Type>>.of(variableInfo));
   }
 
   /// Common algorithm for [tryMarkNonNullable], [tryPromoteForTypeCast],
@@ -2528,8 +2527,7 @@ class FlowModel<Type extends Object> {
                 assigned: info.assigned,
                 unassigned: info.unassigned,
                 ssaNode: info.ssaNode,
-                nonPromotionHistory: info.nonPromotionHistory),
-            reachable: reachable);
+                nonPromotionHistory: info.nonPromotionHistory));
   }
 
   /// Gets the info for [promotionKey] reference, creating it if it doesn't
@@ -2540,9 +2538,8 @@ class FlowModel<Type extends Object> {
   /// Returns a new [FlowModel] where the information for [reference] is
   /// replaced with [model].
   FlowModel<Type> _updateVariableInfo(
-      int promotionKey, VariableModel<Type> model,
-      {Reachability? reachable}) {
-    return _clone(reachable: reachable)..variableInfo[promotionKey] = model;
+      int promotionKey, VariableModel<Type> model) {
+    return _clone()..variableInfo[promotionKey] = model;
   }
 
   /// Forms a new state to reflect a control flow path that might have come from

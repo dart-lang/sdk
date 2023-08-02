@@ -1552,9 +1552,17 @@ abstract class AsyncRewriterBase extends js.NodeVisitor {
 
     if (!shouldTransform(node)) {
       js.Block body = translateToBlock(node.body);
-      js.Catch? translatedCatchPart = (catchPart == null)
-          ? null
-          : js.Catch(catchPart.declaration, translateToBlock(catchPart.body));
+      js.Catch? translatedCatchPart;
+      if (catchPart != null) {
+        // JavaScript catch variable bindings are a local scope of the catch
+        // block so shadow any catch variable bindings that might collide with
+        // this one so that references to this binding do not get renamed.
+        variableRenamings
+            .add(Pair(catchPart.declaration.name, catchPart.declaration.name));
+        translatedCatchPart =
+            js.Catch(catchPart.declaration, translateToBlock(catchPart.body));
+        variableRenamings.removeLast();
+      }
       js.Block? translatedFinallyPart =
           (finallyPart == null) ? null : translateToBlock(finallyPart);
       addStatement(js.Try(body, translatedCatchPart, translatedFinallyPart));

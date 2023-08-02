@@ -1738,8 +1738,6 @@ void ProgramReloadContext::CommitBeforeInstanceMorphing() {
 }
 
 void ProgramReloadContext::CommitAfterInstanceMorphing() {
-  become_.Forward();
-
   // Rehash constants map for all classes. Constants are hashed by content, and
   // content may have changed from fields being added or removed.
   {
