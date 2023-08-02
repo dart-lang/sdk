@@ -1,0 +1,29 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+typedef Exactly<invariant T extends core::Object? = dynamic> = (T%) → T%;
+extension CheckType<T extends core::Object? = dynamic> on T% {
+  method expect = self::CheckType|expect;
+  tearoff expect = self::CheckType|get#expect;
+}
+static method f<X extends core::Object? = dynamic>(self::f::X? arg) → void {
+  if(arg is core::int) {
+    self::f::X% x = arg{self::f::X% & core::int /* '%' & '!' = '!' */};
+    core::int i = arg{self::f::X% & core::int /* '%' & '!' = '!' */};
+    core::List<self::f::X%> xs = <self::f::X%>[arg{self::f::X% & core::int /* '%' & '!' = '!' */}];
+    self::CheckType|expect<core::List<self::f::X%>, (core::List<self::f::X%>) → core::List<self::f::X%>>(xs);
+    core::List<self::f::X%> ys = xs;
+    self::CheckType|expect<core::List<self::f::X%>, (core::List<self::f::X%>) → core::List<self::f::X%>>(ys);
+    core::List<self::f::X?> ys2 = xs;
+    self::CheckType|expect<core::List<self::f::X?>, (core::List<self::f::X?>) → core::List<self::f::X?>>(ys2);
+    core::List<core::Object> ys3 = xs as core::List<core::Object>;
+    self::CheckType|expect<core::List<core::Object>, (core::List<core::Object>) → core::List<core::Object>>(ys3);
+  }
+}
+static extension-member method CheckType|expect<T extends core::Object? = dynamic, S extends (self::CheckType|expect::T%) → self::CheckType|expect::T% = (dynamic) → dynamic>(lowered final self::CheckType|expect::T% #this) → void {}
+static extension-member method CheckType|get#expect<T extends core::Object? = dynamic>(lowered final self::CheckType|get#expect::T% #this) → <S extends (self::CheckType|get#expect::T%) → self::CheckType|get#expect::T% = (dynamic) → dynamic>() → void
+  return <S extends (self::CheckType|get#expect::T%) → self::CheckType|get#expect::T% = (dynamic) → dynamic>() → void => self::CheckType|expect<self::CheckType|get#expect::T%, S>(#this);
+static method main() → void {
+  self::f<core::Object>(1);
+}

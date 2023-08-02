@@ -11,7 +11,7 @@ class C<T extends core::num?, S extends core::Object? = dynamic, U extends core:
     ;
   method promoteNullable(covariant-by-class self::C::T? t) → void {
     if(t is core::int) {
-      t{self::C::T? & core::int /* '?' & '!' = '!' */};
+      t{self::C::T% & core::int /* '%' & '!' = '!' */};
     }
     if(t is core::int?) {
       t{self::C::T? & core::int? /* '?' & '?' = '?' */};

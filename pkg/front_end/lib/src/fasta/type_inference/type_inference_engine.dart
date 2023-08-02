@@ -596,7 +596,18 @@ class OperationsCfe
     }
     if (from is TypeParameterType) {
       if (isSubtypeOf(to, from.bound)) {
-        return new IntersectionType(from, to);
+        if (to.nullability != Nullability.nullable) {
+          // We treat promotions of the form `x is T`, where `T` is not
+          // nullable, as a two-step promotions equivalent to
+          // `x != null && x is T`.
+          return new IntersectionType(
+              from.withDeclaredNullability(
+                  TypeParameterType.computeNullabilityFromBound(
+                      from.parameter)),
+              to);
+        } else {
+          return new IntersectionType(from, to);
+        }
       }
     }
     if (from is IntersectionType) {
