@@ -153,7 +153,7 @@ class FunctionCollector {
     if (target.isTearOffReference) {
       return action(
           translator.dispatchTable.selectorForTarget(target).signature,
-          "${target.asMember}");
+          "${target.asMember} tear-off");
     }
 
     final ftype =

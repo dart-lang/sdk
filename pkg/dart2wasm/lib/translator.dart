@@ -729,7 +729,7 @@ class Translator with KernelNodes {
 
     w.BaseFunction makeTrampoline(
         w.FunctionType signature, int posArgCount, List<String> argNames) {
-      final trampoline = m.functions.define(signature, name);
+      final trampoline = m.functions.define(signature, "$name trampoline");
 
       // Defer generation of the trampoline body to avoid cyclic dependency
       // when a tear-off constant is used as default value in the torn-off
