@@ -2996,7 +2996,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
         /* charOpenParenOffset = */ charOffset,
         /* charEndOffset = */ charOffset,
         /* nativeMethodName = */ null,
-        forAbstractClass: false);
+        forAbstractClassOrMixin: false);
   }
 
   void addConstructor(
@@ -3012,7 +3012,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
       int charEndOffset,
       String? nativeMethodName,
       {Token? beginInitializers,
-      required bool forAbstractClass}) {
+      required bool forAbstractClassOrMixin}) {
     Reference? constructorReference;
     Reference? tearOffReference;
     if (_currentClassReferencesFromIndexed != null) {
@@ -3057,7 +3057,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           tearOffReference,
           nameScheme,
           nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnum: forAbstractClass);
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     } else {
       constructorBuilder = new DeclaredSourceConstructorBuilder(
           metadata,
@@ -3075,7 +3075,7 @@ class SourceLibraryBuilder extends LibraryBuilderImpl {
           tearOffReference,
           nameScheme,
           nativeMethodName: nativeMethodName,
-          forAbstractClassOrEnum: forAbstractClass);
+          forAbstractClassOrEnumOrMixin: forAbstractClassOrMixin);
     }
     checkTypeVariables(typeVariables, constructorBuilder);
     // TODO(johnniwinther): There is no way to pass the tear off reference here.

@@ -416,6 +416,11 @@ class RedirectingFactoryBuilder extends SourceFactoryBuilder {
     body = createRedirectingFactoryErrorBody(message);
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
+    if (_factoryTearOff != null) {
+      _factoryTearOff!.function.body =
+          createRedirectingFactoryErrorBody(message)
+            ..parent = _factoryTearOff!.function;
+    }
   }
 
   @override

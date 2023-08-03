@@ -363,7 +363,7 @@ class DeclaredSourceConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnum})
+      required bool forAbstractClassOrEnumOrMixin})
       : _hasSuperInitializingFormals =
             formals?.any((formal) => formal.isSuperInitializingFormal) ?? false,
         super(
@@ -390,7 +390,7 @@ class DeclaredSourceConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-        forAbstractClassOrEnum: forAbstractClassOrEnum);
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin);
     if (_constructorTearOff != null) {
       nameScheme
           .getConstructorMemberName(name, isTearOff: true)
@@ -1094,7 +1094,7 @@ class SourceExtensionTypeConstructorBuilder
       Reference? tearOffReference,
       NameScheme nameScheme,
       {String? nativeMethodName,
-      required bool forAbstractClassOrEnum})
+      required bool forAbstractClassOrEnumOrMixin})
       : super(
             metadata,
             modifiers,
@@ -1117,7 +1117,7 @@ class SourceExtensionTypeConstructorBuilder
         .attachMember(_constructor);
     _constructorTearOff = createConstructorTearOffProcedure(name,
         compilationUnit, compilationUnit.fileUri, charOffset, tearOffReference,
-        forAbstractClassOrEnum: forAbstractClassOrEnum,
+        forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
         forceCreateLowering: true);
     if (_constructorTearOff != null) {
       nameScheme

@@ -22,21 +22,30 @@ abstract class A<T extends core::Object? = dynamic> extends core::Object {
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:6:17: Error: Cyclic definition of factory 'A'.
   const factory A() = B;
                 ^";
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:6:17: Error: Cyclic definition of factory 'A'.
+  const factory A() = B;
+                ^";
 }
 abstract class B<T extends core::Object? = dynamic> extends core::Object implements self::A<self::B::T%> {
   static factory •<T extends core::Object? = dynamic>() → self::B<self::B::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:10:17: Error: Cyclic definition of factory 'B'.
   const factory B() = C;
                 ^";
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::T%>;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::B<self::B::_#new#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:10:17: Error: Cyclic definition of factory 'B'.
+  const factory B() = C;
+                ^";
 }
 class C<T extends core::Object? = dynamic> extends core::Object implements self::B<self::C::T%> {
   static factory •<T extends core::Object? = dynamic>() → self::C<self::C::•::T%>
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:14:17: Error: Cyclic definition of factory 'C'.
   const factory C() = A;
                 ^";
-  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::C<self::C::_#new#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916d.dart:14:17: Error: Cyclic definition of factory 'C'.
+  const factory C() = A;
+                ^";
 }
 static method test() → dynamic
   ;

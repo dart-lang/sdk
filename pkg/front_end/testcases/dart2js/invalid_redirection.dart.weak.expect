@@ -1,0 +1,46 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/dart2js/invalid_redirection.dart:13:40: Error: The constructor function type 'A<T> Function()' isn't a subtype of 'B<T> Function(int)'.
+//  - 'A' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+//  - 'B' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+//   factory B.test05(int incompatible) = A<T>;
+//                                        ^
+//
+import self as self;
+import "dart:core" as core;
+
+class A<T extends core::Object? = dynamic> extends core::Object implements self::B<self::A::T%> {
+  final field self::A::T? x;
+  constructor •() → self::A<self::A::T%>
+    : self::A::x = null, super core::Object::•()
+    ;
+  static method _#new#tearOff<T extends core::Object? = dynamic>() → self::A<self::A::_#new#tearOff::T%>
+    return new self::A::•<self::A::_#new#tearOff::T%>();
+}
+class B<T extends core::Object? = dynamic> extends core::Object {
+  static factory test05<T extends core::Object? = dynamic>(core::int incompatible = #C1) → self::B<self::B::test05::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/invalid_redirection.dart:13:40: Error: The constructor function type 'A<T> Function()' isn't a subtype of 'B<T> Function(int)'.
+ - 'A' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+ - 'B' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+  factory B.test05(int incompatible) = A<T>;
+                                       ^";
+  static method _#test05#tearOff<T extends core::Object? = dynamic>(core::int incompatible = #C1) → self::B<self::B::_#test05#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/dart2js/invalid_redirection.dart:13:40: Error: The constructor function type 'A<T> Function()' isn't a subtype of 'B<T> Function(int)'.
+ - 'A' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+ - 'B' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+  factory B.test05(int incompatible) = A<T>;
+                                       ^";
+}
+static method test() → dynamic {
+  invalid-expression "pkg/front_end/testcases/dart2js/invalid_redirection.dart:13:40: Error: The constructor function type 'A<T> Function()' isn't a subtype of 'B<T> Function(int)'.
+ - 'A' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+ - 'B' is from 'pkg/front_end/testcases/dart2js/invalid_redirection.dart'.
+  factory B.test05(int incompatible) = A<T>;
+                                       ^";
+}
+
+constants  {
+  #C1 = null
+}

@@ -5,7 +5,6 @@
 # Status file for the modular_suite.dart test suite.
 
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.

@@ -1,23 +1,35 @@
-library /*isNonNullableByDefault*/;
+library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:11:11: Error: The name of a constructor must match the name of the enclosing class.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:13:11: Error: The name of a constructor must match the name of the enclosing class.
 //   factory Link.create() {
 //           ^^^^
-// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:10:7: Context: The name of the enclosing class is 'LinkFactory'.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:12:7: Context: The name of the enclosing class is 'LinkFactory'.
 // class LinkFactory {
 //       ^^^^^^^^^^^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
-//   factory Link.create() = LinkFactory<T>.create;
-//                           ^
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:28: Error: Expected 0 type arguments.
+//   factory Link.create1() = LinkFactory<T>.create;
+//                            ^
 //
 // pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
 //   factory Link.create2() = LinkFactory<T, T>.create;
 //                            ^
 //
-// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:12:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:8:33: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function(int)'.
+//  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+//  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+//   factory Link.create3(int i) = LinkFactory.create;
+//                                 ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
+//  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+//  - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+//   factory Link.create4({int i}) = LinkFactory.create;
+//                                   ^
+//
+// pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
 //  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
 //     return null;
 //            ^
@@ -26,28 +38,59 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Link<T extends core::Object? = dynamic> extends core::Object {
-  static final field dynamic _redirecting# = <dynamic>[self::Link::create, self::Link::create2]/*isLegacy*/;
-  static factory create<T extends core::Object? = dynamic>() → self::Link<self::Link::create::T%>
-    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:27: Error: Expected 0 type arguments.
-  factory Link.create() = LinkFactory<T>.create;
-                          ^";
-  static method _#create#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create#tearOff::T%>
-    return self::LinkFactory::create();
+  static factory create1<T extends core::Object? = dynamic>() → self::Link<self::Link::create1::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:28: Error: Expected 0 type arguments.
+  factory Link.create1() = LinkFactory<T>.create;
+                           ^";
+  static method _#create1#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create1#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:6:28: Error: Expected 0 type arguments.
+  factory Link.create1() = LinkFactory<T>.create;
+                           ^";
   static factory create2<T extends core::Object? = dynamic>() → self::Link<self::Link::create2::T%>
     return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
   factory Link.create2() = LinkFactory<T, T>.create;
                            ^";
   static method _#create2#tearOff<T extends core::Object? = dynamic>() → self::Link<self::Link::_#create2#tearOff::T%>
-    return self::LinkFactory::create();
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:7:28: Error: Expected 0 type arguments.
+  factory Link.create2() = LinkFactory<T, T>.create;
+                           ^";
+  static factory create3<T extends core::Object? = dynamic>(core::int i = #C1) → self::Link<self::Link::create3::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:8:33: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function(int)'.
+ - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+ - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+  factory Link.create3(int i) = LinkFactory.create;
+                                ^";
+  static method _#create3#tearOff<T extends core::Object? = dynamic>(core::int i = #C1) → self::Link<self::Link::_#create3#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:8:33: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function(int)'.
+ - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+ - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+  factory Link.create3(int i) = LinkFactory.create;
+                                ^";
+  static factory create4<T extends core::Object? = dynamic>({core::int i = #C1}) → self::Link<self::Link::create4::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
+ - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+ - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+  factory Link.create4({int i}) = LinkFactory.create;
+                                  ^";
+  static method _#create4#tearOff<T extends core::Object? = dynamic>({core::int i = #C1}) → self::Link<self::Link::_#create4#tearOff::T%>
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:9:35: Error: The constructor function type 'LinkFactory Function()' isn't a subtype of 'Link<T> Function({int i})'.
+ - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+ - 'Link' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
+  factory Link.create4({int i}) = LinkFactory.create;
+                                  ^";
 }
 class LinkFactory extends core::Object {
   static factory create() → self::LinkFactory {
-    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:12:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
+    return invalid-expression "pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart:14:12: Error: The value 'null' can't be returned from a function with return type 'LinkFactory' because 'LinkFactory' is not nullable.
  - 'LinkFactory' is from 'pkg/front_end/testcases/constructor_tearoffs/lowering/invalid_redirect.dart'.
     return null;
-           ^" in null as{TypeError,ForNonNullableByDefault} self::LinkFactory;
+           ^" in null as{TypeError} self::LinkFactory;
   }
   static method _#create#tearOff() → self::LinkFactory
     return self::LinkFactory::create();
 }
 static method main() → dynamic {}
+
+constants  {
+  #C1 = null
+}

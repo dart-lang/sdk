@@ -1,0 +1,10 @@
+class A<T> implements B<T> {
+  A() : x = null;
+  final T? x;
+}
+
+class B<T> {
+  factory B.test05(int incompatible) = A<T>;
+}
+
+test() {}

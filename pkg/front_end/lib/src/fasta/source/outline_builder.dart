@@ -2231,7 +2231,8 @@ class OutlineBuilder extends StackListenerImpl {
             endToken.charOffset,
             nativeMethodName,
             beginInitializers: beginInitializers,
-            forAbstractClass: inAbstractOrSealedClass);
+            forAbstractClassOrMixin: inAbstractOrSealedClass ||
+                methodKind == _MethodKind.mixinConstructor);
       } else {
         if (isConst) {
           // TODO(danrubel): consider removing this
