@@ -10083,6 +10083,18 @@ const MessageCode messageNonConstFactory = const MessageCode("NonConstFactory",
         r"""Try using a constructor or factory that is 'const'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeNonCovariantTypeParameterInRepresentationType =
+    messageNonCovariantTypeParameterInRepresentationType;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageNonCovariantTypeParameterInRepresentationType =
+    const MessageCode("NonCovariantTypeParameterInRepresentationType",
+        problemMessage:
+            r"""An extension type parameter can't be used non-covariantly in its representation type.""",
+        correctionMessage:
+            r"""Try removing the type parameters from function parameter types and type parameter bounds.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
     Message Function(
         String

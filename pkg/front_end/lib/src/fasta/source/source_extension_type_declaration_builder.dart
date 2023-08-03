@@ -23,6 +23,7 @@ import '../kernel/kernel_helper.dart';
 import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
+import '../type_inference/type_inference_engine.dart';
 import '../util/helpers.dart';
 import 'class_declaration.dart';
 import 'source_builder_mixins.dart';
@@ -220,6 +221,21 @@ class SourceExtensionTypeDeclarationBuilder
       if (typeBuilder.isExplicit) {
         representationType =
             typeBuilder.build(libraryBuilder, TypeUse.fieldType);
+        if (typeParameters != null) {
+          IncludesTypeParametersNonCovariantly checker =
+              new IncludesTypeParametersNonCovariantly(
+                  extensionTypeDeclaration.typeParameters,
+                  // We are checking the returned type (field/getter type or return
+                  // type of a method) and this is a covariant position.
+                  initialVariance: Variance.covariant);
+          if (representationType.accept(checker)) {
+            libraryBuilder.addProblem(
+                messageNonCovariantTypeParameterInRepresentationType,
+                typeBuilder.charOffset!,
+                noLength,
+                typeBuilder.fileUri);
+          }
+        }
       } else {
         representationType = const DynamicType();
       }

@@ -7058,3 +7058,10 @@ UnsupportedMacroApplication:
 ScriptTagInPartFile:
   problemMessage: "A part file cannot have script tag."
   correctionMessage: "Try removing the script tag or the 'part of' directive."
+
+NonCovariantTypeParameterInRepresentationType:
+  problemMessage: "An extension type parameter can't be used non-covariantly in its representation type."
+  correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+  experiments: inline-class
+  script: |
+    extension type E<T>(void Function(T) f) {}
