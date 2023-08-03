@@ -1002,6 +1002,7 @@ mixin StandardBounds {
 
       // TODO(johnniwinther): Move this computation to [ClassHierarchyBase] and
       // cache it there.
+      // TODO(johnniwinther): Handle non-extension type supertypes.
       Map<ExtensionTypeDeclaration, int> extensionTypeDeclarationDepth = {};
 
       int computeExtensionTypeDeclarationDepth(
@@ -1009,12 +1010,13 @@ mixin StandardBounds {
         int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
-          for (ExtensionType implemented
-              in extensionTypeDeclaration.implements) {
-            int supertypeDepth = computeExtensionTypeDeclarationDepth(
-                implemented.extensionTypeDeclaration);
-            if (supertypeDepth >= maxDepth) {
-              maxDepth = supertypeDepth + 1;
+          for (DartType implemented in extensionTypeDeclaration.implements) {
+            if (implemented is ExtensionType) {
+              int supertypeDepth = computeExtensionTypeDeclarationDepth(
+                  implemented.extensionTypeDeclaration);
+              if (supertypeDepth >= maxDepth) {
+                maxDepth = supertypeDepth + 1;
+              }
             }
           }
           depth = extensionTypeDeclarationDepth[extensionTypeDeclaration] =
@@ -1023,16 +1025,18 @@ mixin StandardBounds {
         return depth;
       }
 
+      // TODO(johnniwinther): Handle non-extension type supertypes.
       void computeSuperTypes(
           ExtensionType type, List<ExtensionType> supertypes) {
         computeExtensionTypeDeclarationDepth(type.extensionTypeDeclaration);
         supertypes.add(type);
-        for (ExtensionType implemented
-            in type.extensionTypeDeclaration.implements) {
-          ExtensionType supertype = hierarchy.getExtensionTypeAsInstanceOf(
-              type, implemented.extensionTypeDeclaration,
-              isNonNullableByDefault: isNonNullableByDefault)!;
-          computeSuperTypes(supertype, supertypes);
+        for (DartType implemented in type.extensionTypeDeclaration.implements) {
+          if (implemented is ExtensionType) {
+            ExtensionType supertype = hierarchy.getExtensionTypeAsInstanceOf(
+                type, implemented.extensionTypeDeclaration,
+                isNonNullableByDefault: isNonNullableByDefault)!;
+            computeSuperTypes(supertype, supertypes);
+          }
         }
       }
 

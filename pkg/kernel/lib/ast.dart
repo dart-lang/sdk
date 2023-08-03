@@ -1773,7 +1773,7 @@ class ExtensionTypeDeclaration extends NamedNode
   @override
   List<Expression> annotations = const <Expression>[];
 
-  List<ExtensionType> implements;
+  List<DartType> implements;
 
   int flags = 0;
 
@@ -1791,12 +1791,12 @@ class ExtensionTypeDeclaration extends NamedNode
       List<TypeParameter>? typeParameters,
       DartType? declaredRepresentationType,
       List<ExtensionTypeMemberDescriptor>? members,
-      List<ExtensionType>? implements,
+      List<DartType>? implements,
       required this.fileUri,
       Reference? reference})
       : this.typeParameters = typeParameters ?? <TypeParameter>[],
         this.members = members ?? <ExtensionTypeMemberDescriptor>[],
-        this.implements = implements ?? <ExtensionType>[],
+        this.implements = implements ?? <DartType>[],
         super(reference) {
     setParents(this.typeParameters, this);
     if (declaredRepresentationType != null) {
@@ -7440,6 +7440,8 @@ class AsExpression extends Expression {
   /// This is the case for instance for access to extension type representation
   /// fields on an extension type, where this node shows that the static type
   /// changes from the extension type of the declared representation type.
+  ///
+  /// This is also the case when a field access undergoes type promotion.
   bool get isUnchecked => flags & FlagUnchecked != 0;
 
   void set isUnchecked(bool value) {

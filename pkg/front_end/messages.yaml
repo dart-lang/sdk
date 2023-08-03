@@ -3518,8 +3518,6 @@ SupertypeIsIllegal:
   problemMessage: "The type '#name' can't be used as supertype."
   analyzerCode: EXTENDS_NON_CLASS
   script: |
-
-
     class C extends dynamic {}
 
 SupertypeIsIllegalAliased:
@@ -3543,6 +3541,33 @@ SupertypeIsTypeVariable:
   analyzerCode: EXTENDS_NON_CLASS
   script: |
     class C<T> extends T {}
+
+SuperExtensionTypeIsIllegal:
+  problemMessage: "The type '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E(dynamic it) implements dynamic {}
+
+SuperExtensionTypeIsIllegalAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    typedef F = void Function();
+    extension type E(F it) implements F {}
+
+SuperExtensionTypeIsNullableAliased:
+  problemMessage: "The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable."
+  experiments: inline-class
+  script: |
+    class A {}
+    typedef B = A?;
+    extension type E(B it) implements B {}
+
+SuperExtensionTypeIsTypeVariable:
+  problemMessage: "The type variable '#name' can't be implemented by an extension type."
+  experiments: inline-class
+  script: |
+    extension type E<T>(T it) implements T {}
 
 PartOfLibraryNameMismatch:
   problemMessage: "Using '#uri' as part of '#name' but its 'part of' declaration says '#name2'."

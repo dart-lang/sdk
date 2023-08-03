@@ -86,6 +86,8 @@ class ValueKinds {
   static const ValueKind FormalListOrNull =
       const SingleValueKind<List<type.FormalParameterBuilder>>(
           NullValues.FormalParameters);
+  static const ValueKind FormalParameterBuilder =
+      const SingleValueKind<type.FormalParameterBuilder>();
   static const ValueKind Generator = const SingleValueKind<type.Generator>();
   static const ValueKind Identifier = const SingleValueKind<type.Identifier>();
   static const ValueKind IdentifierOrNull =

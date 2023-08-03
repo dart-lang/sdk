@@ -1635,8 +1635,7 @@ class BinaryBuilder {
     readAndPushTypeParameterList(node.typeParameters, node);
     DartType representationType = readDartType();
     String representationName = readStringReference();
-    List<ExtensionType> implements =
-        _readExtensionTypeDeclarationImplementsList();
+    List<DartType> implements = _readExtensionTypeDeclarationImplementsList();
     typeParameterStack.length = 0;
 
     node.name = name;
@@ -1650,15 +1649,14 @@ class BinaryBuilder {
     return node;
   }
 
-  List<ExtensionType> _readExtensionTypeDeclarationImplementsList() {
+  List<DartType> _readExtensionTypeDeclarationImplementsList() {
     int length = readUInt30();
     if (!useGrowableLists && length == 0) {
       // When lists don't have to be growable anyway, we might as well use a
       // constant one for the empty list.
       return emptyListOfExtensionType;
     }
-    return new List<ExtensionType>.generate(
-        length, (_) => readDartType() as ExtensionType,
+    return new List<DartType>.generate(length, (_) => readDartType(),
         growable: useGrowableLists);
   }
 

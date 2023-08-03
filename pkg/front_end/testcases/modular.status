@@ -64,8 +64,6 @@ inference/mixin_inference_unification_2: TypeCheckError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_update_2/call_invocation_with_hoisting: TypeCheckError
-inference_update_2/cascaded_field_promotion: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

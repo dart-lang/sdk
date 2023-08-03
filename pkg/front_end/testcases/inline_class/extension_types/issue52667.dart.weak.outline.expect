@@ -6,11 +6,11 @@ abstract class Foo extends core::Object {
   synthetic constructor •() → self::Foo
     ;
 }
-inline class FooBar /* declaredRepresentationType = core::int */ {
+inline class FooBar /* declaredRepresentationType = core::int */ implements self::Foo {
   constructor • = self::FooBar|;
   tearoff • = self::FooBar|_#new#tearOff;
 }
-inline class FooBaz /* declaredRepresentationType = core::int */ {
+inline class FooBaz /* declaredRepresentationType = core::int */ implements self::Foo {
   constructor • = self::FooBaz|;
   tearoff • = self::FooBaz|_#new#tearOff;
 }

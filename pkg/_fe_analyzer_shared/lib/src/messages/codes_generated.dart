@@ -12320,6 +12320,56 @@ const MessageCode messageSuperAsIdentifier = const MessageCode(
     problemMessage: r"""Expected identifier, but got 'super'.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name)>
+    templateSuperExtensionTypeIsIllegal =
+    const Template<Message Function(String name)>(
+        problemMessageTemplate:
+            r"""The type '#name' can't be implemented by an extension type.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsIllegal);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsIllegal =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsIllegal",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsIllegal(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsIllegal,
+      problemMessage:
+          """The type '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+    Message Function(
+        String
+            name)> templateSuperExtensionTypeIsTypeVariable = const Template<
+        Message Function(String name)>(
+    problemMessageTemplate:
+        r"""The type variable '#name' can't be implemented by an extension type.""",
+    withArguments: _withArgumentsSuperExtensionTypeIsTypeVariable);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name)> codeSuperExtensionTypeIsTypeVariable =
+    const Code<Message Function(String name)>(
+  "SuperExtensionTypeIsTypeVariable",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsTypeVariable(String name) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  return new Message(codeSuperExtensionTypeIsTypeVariable,
+      problemMessage:
+          """The type variable '${name}' can't be implemented by an extension type.""",
+      arguments: {'name': name});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeSuperInitializerNotLast = messageSuperInitializerNotLast;
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

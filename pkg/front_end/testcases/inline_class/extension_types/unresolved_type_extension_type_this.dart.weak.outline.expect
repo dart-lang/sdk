@@ -1,0 +1,18 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/extension_types/unresolved_type_extension_type_this.dart:5:26: Error: Type 'Unresolved' not found.
+// extension type Extension(Unresolved it) {}
+//                          ^^^^^^^^^^
+//
+import self as self;
+
+inline class Extension /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::Extension|;
+  tearoff • = self::Extension|_#new#tearOff;
+}
+static inline-class-member method Extension|(dynamic it) → self::Extension
+  ;
+static inline-class-member method Extension|_#new#tearOff(dynamic it) → self::Extension
+  return self::Extension|(it);

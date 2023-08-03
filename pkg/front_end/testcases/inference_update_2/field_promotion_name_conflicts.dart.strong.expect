@@ -58,7 +58,7 @@ static extension-member method _extension#0|get#_f10(lowered final core::String 
 static method acceptsInt(core::int x) → void {}
 static method testFinalField(self::C c) → void {
   if(!(c.{self::C::_f1}{core::int?} == null)) {
-    core::int x = c.{self::C::_f1}{core::int};
+    core::int x = c.{self::C::_f1}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
@@ -70,7 +70,7 @@ static method testNonFinalField(self::C c) → void {
 }
 static method testAbstractGetter(self::C c) → void {
   if(!(c.{self::C::_f3}{core::int?} == null)) {
-    core::int x = c.{self::C::_f3}{core::int};
+    core::int x = c.{self::C::_f3}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
@@ -82,37 +82,37 @@ static method testConcreteGetter(self::C c) → void {
 }
 static method testSetter(self::C c) → void {
   if(!(c.{self::C::_f5}{core::int?} == null)) {
-    core::int x = c.{self::C::_f5}{core::int};
+    core::int x = c.{self::C::_f5}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testStaticField(self::C c) → void {
   if(!(c.{self::C::_f6}{core::int?} == null)) {
-    core::int x = c.{self::C::_f6}{core::int};
+    core::int x = c.{self::C::_f6}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testStaticGetter(self::C c) → void {
   if(!(c.{self::C::_f7}{core::int?} == null)) {
-    core::int x = c.{self::C::_f7}{core::int};
+    core::int x = c.{self::C::_f7}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testTopLevelField(self::C c) → void {
   if(!(c.{self::C::_f8}{core::int?} == null)) {
-    core::int x = c.{self::C::_f8}{core::int};
+    core::int x = c.{self::C::_f8}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testTopLevelGetter(self::C c) → void {
   if(!(c.{self::C::_f9}{core::int?} == null)) {
-    core::int x = c.{self::C::_f9}{core::int};
+    core::int x = c.{self::C::_f9}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }
 static method testExtensionGetter(self::C c) → void {
   if(!(c.{self::C::_f10}{core::int?} == null)) {
-    core::int x = c.{self::C::_f10}{core::int};
+    core::int x = c.{self::C::_f10}{core::int?} as{Unchecked} core::int;
     self::acceptsInt(x);
   }
 }

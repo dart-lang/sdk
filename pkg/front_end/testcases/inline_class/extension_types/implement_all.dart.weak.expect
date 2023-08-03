@@ -1,0 +1,328 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:33:45: Error: Type 'void' can't be used here.
+// Try removing 'void' keyword or replace it with 'var', 'final', or a type.
+// extension type ET_Void(Never it) implements void /* Error */ {}
+//                                             ^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:33:45: Error: Type 'void' not found.
+// extension type ET_Void(Never it) implements void /* Error */ {}
+//                                             ^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:57:50: Error: 'Extension' isn't a type.
+// extension type ET_Extension(Never it) implements Extension /* Error */ {}
+//                                                  ^^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:29:44: Error: The type 'Null' can't be implemented by an extension type.
+// extension type ET_Null(Null it) implements Null /* Error */ {}
+//                                            ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:31:50: Error: The type 'dynamic' can't be implemented by an extension type.
+// extension type ET_Dynamic(dynamic it) implements dynamic /* Error */ {}
+//                                                  ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:33:45: Error: The type 'void' can't be implemented by an extension type.
+// extension type ET_Void(Never it) implements void /* Error */ {}
+//                                             ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:35:46: Error: The type 'Never' can't be implemented by an extension type.
+// extension type ET_Never(Never it) implements Never /* Error */ {}
+//                                              ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:37:48: Error: The type 'Object' can't be implemented by an extension type.
+// extension type ET_Object(Object it) implements Object /* Error */ {}
+//                                                ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:39:48: Error: The type 'Record' can't be implemented by an extension type.
+// extension type ET_Record(Record it) implements Record /* Error */ {}
+//                                                ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:41:56: Error: The type 'RecordType' which is an alias of '(int, String)' can't be implemented by an extension type.
+// extension type ET_RecordType(RecordType it) implements RecordType /* Error */ {}
+//                                                        ^
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:7:9: Context: The issue arises via this type alias.
+// typedef RecordType = (int, String);
+//         ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:43:52: Error: The type 'Function' can't be implemented by an extension type.
+// extension type ET_Function(Function it) implements Function /* Error */ {}
+//                                                    ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:46:16: Error: The type 'FunctionType' which is an alias of 'void Function()' can't be implemented by an extension type.
+//     implements FunctionType /* Error */ {}
+//                ^
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:9:9: Context: The issue arises via this type alias.
+// typedef FunctionType = void Function();
+//         ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:49:16: Error: The type 'NullableInterfaceType' which is an alias of 'String?' can't be implemented by an extension type because it is nullable.
+//     implements NullableInterfaceType /* Error */ {}
+//                ^
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:11:9: Context: The issue arises via this type alias.
+// typedef NullableInterfaceType = String?;
+//         ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:52:16: Error: The type 'NullableExtensionType' which is an alias of 'ExtensionType?' can't be implemented by an extension type because it is nullable.
+//     implements NullableExtensionType /* Error */ {}
+//                ^
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:13:9: Context: The issue arises via this type alias.
+// typedef NullableExtensionType = ExtensionType?;
+//         ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:55:16: Error: The type 'FutureOr<int>' can't be implemented by an extension type.
+//     implements FutureOr<int> /* Error */ {}
+//                ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:57:50: Error: The type 'Extension' can't be implemented by an extension type.
+// extension type ET_Extension(Never it) implements Extension /* Error */ {}
+//                                                  ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/implement_all.dart:59:52: Error: The type variable 'T' can't be implemented by an extension type.
+// extension type ET_TypeVariable<T>(T it) implements T /* Error */ {}
+//                                                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+import "dart:async";
+
+typedef RecordType = (core::int, core::String);
+typedef FunctionType = () → void;
+typedef NullableInterfaceType = core::String?;
+typedef NullableExtensionType = self::ExtensionType?;
+typedef Alias = self::Class;
+typedef GenericAlias<T extends core::Object? = dynamic> = self::GenericClass<T%>;
+class Class extends core::Object {
+  synthetic constructor •() → self::Class
+    : super core::Object::•()
+    ;
+}
+class GenericClass<T extends core::Object? = dynamic> extends core::Object {
+  synthetic constructor •() → self::GenericClass<self::GenericClass::T%>
+    : super core::Object::•()
+    ;
+}
+extension Extension on core::int {
+}
+inline class ExtensionType /* declaredRepresentationType = core::int */ {
+  constructor • = self::ExtensionType|;
+  tearoff • = self::ExtensionType|_#new#tearOff;
+}
+inline class GenericExtensionType<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+  constructor • = self::GenericExtensionType|;
+  tearoff • = self::GenericExtensionType|_#new#tearOff;
+}
+inline class ET_Null /* declaredRepresentationType = Null */ {
+  constructor • = self::ET_Null|;
+  tearoff • = self::ET_Null|_#new#tearOff;
+}
+inline class ET_Dynamic /* declaredRepresentationType = dynamic */ {
+  constructor • = self::ET_Dynamic|;
+  tearoff • = self::ET_Dynamic|_#new#tearOff;
+}
+inline class ET_Void /* declaredRepresentationType = Never */ {
+  constructor • = self::ET_Void|;
+  tearoff • = self::ET_Void|_#new#tearOff;
+}
+inline class ET_Never /* declaredRepresentationType = Never */ {
+  constructor • = self::ET_Never|;
+  tearoff • = self::ET_Never|_#new#tearOff;
+}
+inline class ET_Object /* declaredRepresentationType = core::Object */ {
+  constructor • = self::ET_Object|;
+  tearoff • = self::ET_Object|_#new#tearOff;
+}
+inline class ET_Record /* declaredRepresentationType = core::Record */ {
+  constructor • = self::ET_Record|;
+  tearoff • = self::ET_Record|_#new#tearOff;
+}
+inline class ET_RecordType /* declaredRepresentationType =(core::int, core::String) */ {
+  constructor • = self::ET_RecordType|;
+  tearoff • = self::ET_RecordType|_#new#tearOff;
+}
+inline class ET_Function /* declaredRepresentationType = core::Function */ {
+  constructor • = self::ET_Function|;
+  tearoff • = self::ET_Function|_#new#tearOff;
+}
+inline class ET_FunctionType /* declaredRepresentationType = () → void */ {
+  constructor • = self::ET_FunctionType|;
+  tearoff • = self::ET_FunctionType|_#new#tearOff;
+}
+inline class ET_NullableInterfaceType /* declaredRepresentationType = core::String? */ {
+  constructor • = self::ET_NullableInterfaceType|;
+  tearoff • = self::ET_NullableInterfaceType|_#new#tearOff;
+}
+inline class ET_NullableExtensionType /* declaredRepresentationType = self::ExtensionType? */ {
+  constructor • = self::ET_NullableExtensionType|;
+  tearoff • = self::ET_NullableExtensionType|_#new#tearOff;
+}
+inline class ET_FutureOr /* declaredRepresentationType = FutureOr<core::int>*/ {
+  constructor • = self::ET_FutureOr|;
+  tearoff • = self::ET_FutureOr|_#new#tearOff;
+}
+inline class ET_Extension /* declaredRepresentationType = Never */ {
+  constructor • = self::ET_Extension|;
+  tearoff • = self::ET_Extension|_#new#tearOff;
+}
+inline class ET_TypeVariable<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+  constructor • = self::ET_TypeVariable|;
+  tearoff • = self::ET_TypeVariable|_#new#tearOff;
+}
+inline class ET_Class /* declaredRepresentationType = self::Class */ implements self::Class {
+  constructor • = self::ET_Class|;
+  tearoff • = self::ET_Class|_#new#tearOff;
+}
+inline class ET_GenericClass<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericClass<T%> */ implements self::GenericClass<T%> {
+  constructor • = self::ET_GenericClass|;
+  tearoff • = self::ET_GenericClass|_#new#tearOff;
+}
+inline class ET_Alias /* declaredRepresentationType = self::Class */ implements self::Class {
+  constructor • = self::ET_Alias|;
+  tearoff • = self::ET_Alias|_#new#tearOff;
+}
+inline class ET_GenericAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericClass<T%> */ implements self::GenericClass<T%> {
+  constructor • = self::ET_GenericAlias|;
+  tearoff • = self::ET_GenericAlias|_#new#tearOff;
+}
+inline class ET_ExtensionType /* declaredRepresentationType = self::ExtensionType */ implements self::ExtensionType {
+  constructor • = self::ET_ExtensionType|;
+  tearoff • = self::ET_ExtensionType|_#new#tearOff;
+}
+inline class ET_GenericExtensionType<T extends core::Object? = dynamic> /* declaredRepresentationType = self::GenericExtensionType<T%> */ implements self::GenericExtensionType<T%> {
+  constructor • = self::ET_GenericExtensionType|;
+  tearoff • = self::ET_GenericExtensionType|_#new#tearOff;
+}
+static inline-class-member method ExtensionType|(dynamic it) → self::ExtensionType {
+  lowered final self::ExtensionType #this = it;
+  return #this;
+}
+static inline-class-member method ExtensionType|_#new#tearOff(dynamic it) → self::ExtensionType
+  return self::ExtensionType|(it);
+static inline-class-member method GenericExtensionType|<T extends core::Object? = dynamic>(dynamic it) → self::GenericExtensionType<self::GenericExtensionType|::T%> {
+  lowered final self::GenericExtensionType<self::GenericExtensionType|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::GenericExtensionType<self::GenericExtensionType|_#new#tearOff::T%>
+  return self::GenericExtensionType|<self::GenericExtensionType|_#new#tearOff::T%>(it);
+static inline-class-member method ET_Null|(dynamic it) → self::ET_Null {
+  lowered final self::ET_Null #this = it;
+  return #this;
+}
+static inline-class-member method ET_Null|_#new#tearOff(dynamic it) → self::ET_Null
+  return self::ET_Null|(it);
+static inline-class-member method ET_Dynamic|(dynamic it) → self::ET_Dynamic {
+  lowered final self::ET_Dynamic #this = it;
+  return #this;
+}
+static inline-class-member method ET_Dynamic|_#new#tearOff(dynamic it) → self::ET_Dynamic
+  return self::ET_Dynamic|(it);
+static inline-class-member method ET_Void|(dynamic it) → self::ET_Void {
+  lowered final self::ET_Void #this = it;
+  return #this;
+}
+static inline-class-member method ET_Void|_#new#tearOff(dynamic it) → self::ET_Void
+  return self::ET_Void|(it);
+static inline-class-member method ET_Never|(dynamic it) → self::ET_Never {
+  lowered final self::ET_Never #this = it;
+  return #this;
+}
+static inline-class-member method ET_Never|_#new#tearOff(dynamic it) → self::ET_Never
+  return self::ET_Never|(it);
+static inline-class-member method ET_Object|(dynamic it) → self::ET_Object {
+  lowered final self::ET_Object #this = it;
+  return #this;
+}
+static inline-class-member method ET_Object|_#new#tearOff(dynamic it) → self::ET_Object
+  return self::ET_Object|(it);
+static inline-class-member method ET_Record|(dynamic it) → self::ET_Record {
+  lowered final self::ET_Record #this = it;
+  return #this;
+}
+static inline-class-member method ET_Record|_#new#tearOff(dynamic it) → self::ET_Record
+  return self::ET_Record|(it);
+static inline-class-member method ET_RecordType|(dynamic it) → self::ET_RecordType {
+  lowered final self::ET_RecordType #this = it;
+  return #this;
+}
+static inline-class-member method ET_RecordType|_#new#tearOff(dynamic it) → self::ET_RecordType
+  return self::ET_RecordType|(it);
+static inline-class-member method ET_Function|(dynamic it) → self::ET_Function {
+  lowered final self::ET_Function #this = it;
+  return #this;
+}
+static inline-class-member method ET_Function|_#new#tearOff(dynamic it) → self::ET_Function
+  return self::ET_Function|(it);
+static inline-class-member method ET_FunctionType|(dynamic it) → self::ET_FunctionType {
+  lowered final self::ET_FunctionType #this = it;
+  return #this;
+}
+static inline-class-member method ET_FunctionType|_#new#tearOff(dynamic it) → self::ET_FunctionType
+  return self::ET_FunctionType|(it);
+static inline-class-member method ET_NullableInterfaceType|(dynamic it) → self::ET_NullableInterfaceType {
+  lowered final self::ET_NullableInterfaceType #this = it;
+  return #this;
+}
+static inline-class-member method ET_NullableInterfaceType|_#new#tearOff(dynamic it) → self::ET_NullableInterfaceType
+  return self::ET_NullableInterfaceType|(it);
+static inline-class-member method ET_NullableExtensionType|(dynamic it) → self::ET_NullableExtensionType {
+  lowered final self::ET_NullableExtensionType #this = it;
+  return #this;
+}
+static inline-class-member method ET_NullableExtensionType|_#new#tearOff(dynamic it) → self::ET_NullableExtensionType
+  return self::ET_NullableExtensionType|(it);
+static inline-class-member method ET_FutureOr|(dynamic it) → self::ET_FutureOr {
+  lowered final self::ET_FutureOr #this = it;
+  return #this;
+}
+static inline-class-member method ET_FutureOr|_#new#tearOff(dynamic it) → self::ET_FutureOr
+  return self::ET_FutureOr|(it);
+static inline-class-member method ET_Extension|_#new#tearOff(dynamic it) → self::ET_Extension
+  return self::ET_Extension|(it);
+static inline-class-member method ET_Extension|(dynamic it) → self::ET_Extension {
+  lowered final self::ET_Extension #this = it;
+  return #this;
+}
+static inline-class-member method ET_TypeVariable|<T extends core::Object? = dynamic>(dynamic it) → self::ET_TypeVariable<self::ET_TypeVariable|::T%> {
+  lowered final self::ET_TypeVariable<self::ET_TypeVariable|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method ET_TypeVariable|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_TypeVariable<self::ET_TypeVariable|_#new#tearOff::T%>
+  return self::ET_TypeVariable|<self::ET_TypeVariable|_#new#tearOff::T%>(it);
+static inline-class-member method ET_Class|(dynamic it) → self::ET_Class {
+  lowered final self::ET_Class #this = it;
+  return #this;
+}
+static inline-class-member method ET_Class|_#new#tearOff(dynamic it) → self::ET_Class
+  return self::ET_Class|(it);
+static inline-class-member method ET_GenericClass|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericClass<self::ET_GenericClass|::T%> {
+  lowered final self::ET_GenericClass<self::ET_GenericClass|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method ET_GenericClass|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericClass<self::ET_GenericClass|_#new#tearOff::T%>
+  return self::ET_GenericClass|<self::ET_GenericClass|_#new#tearOff::T%>(it);
+static inline-class-member method ET_Alias|(dynamic it) → self::ET_Alias {
+  lowered final self::ET_Alias #this = it;
+  return #this;
+}
+static inline-class-member method ET_Alias|_#new#tearOff(dynamic it) → self::ET_Alias
+  return self::ET_Alias|(it);
+static inline-class-member method ET_GenericAlias|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericAlias<self::ET_GenericAlias|::T%> {
+  lowered final self::ET_GenericAlias<self::ET_GenericAlias|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method ET_GenericAlias|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericAlias<self::ET_GenericAlias|_#new#tearOff::T%>
+  return self::ET_GenericAlias|<self::ET_GenericAlias|_#new#tearOff::T%>(it);
+static inline-class-member method ET_ExtensionType|(dynamic it) → self::ET_ExtensionType {
+  lowered final self::ET_ExtensionType #this = it;
+  return #this;
+}
+static inline-class-member method ET_ExtensionType|_#new#tearOff(dynamic it) → self::ET_ExtensionType
+  return self::ET_ExtensionType|(it);
+static inline-class-member method ET_GenericExtensionType|<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|::T%> {
+  lowered final self::ET_GenericExtensionType<self::ET_GenericExtensionType|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method ET_GenericExtensionType|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::ET_GenericExtensionType<self::ET_GenericExtensionType|_#new#tearOff::T%>
+  return self::ET_GenericExtensionType|<self::ET_GenericExtensionType|_#new#tearOff::T%>(it);

@@ -19,12 +19,8 @@ import '../builder/type_alias_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/type_declaration_builder.dart';
 import '../builder/type_variable_builder.dart';
-import '../fasta_codes.dart'
-    show
-        messagePatchDeclarationMismatch,
-        messagePatchDeclarationOrigin,
-        noLength;
 import '../kernel/kernel_helper.dart';
+import '../messages.dart';
 import '../problems.dart';
 import '../scope.dart';
 import '../util/helpers.dart';
@@ -123,10 +119,96 @@ class SourceExtensionTypeDeclarationBuilder
       {required bool addMembersToLibrary}) {
     if (interfaceBuilders != null) {
       for (int i = 0; i < interfaceBuilders!.length; ++i) {
-        DartType? interface =
-            interfaceBuilders![i].build(libraryBuilder, TypeUse.superType);
+        TypeBuilder typeBuilder = interfaceBuilders![i];
+        TypeAliasBuilder? aliasBuilder =
+            typeBuilder.declaration is TypeAliasBuilder
+                ? typeBuilder.declaration as TypeAliasBuilder
+                : null;
+        DartType interface =
+            typeBuilder.build(libraryBuilder, TypeUse.superType);
+        Message? errorMessage;
+        List<LocatedMessage>? errorContext;
         if (interface is ExtensionType) {
-          extensionTypeDeclaration.implements.add(interface);
+          if (interface.isPotentiallyNullable) {
+            errorMessage =
+                templateSuperExtensionTypeIsNullableAliased.withArguments(
+                    typeBuilder.fullNameForErrors,
+                    interface,
+                    libraryBuilder.isNonNullableByDefault);
+            if (aliasBuilder != null) {
+              errorContext = [
+                messageTypedefCause.withLocation(
+                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              ];
+            }
+          } else {
+            extensionTypeDeclaration.implements.add(interface);
+          }
+        } else if (interface is InterfaceType) {
+          if (interface.isPotentiallyNullable) {
+            errorMessage =
+                templateSuperExtensionTypeIsNullableAliased.withArguments(
+                    typeBuilder.fullNameForErrors,
+                    interface,
+                    libraryBuilder.isNonNullableByDefault);
+            if (aliasBuilder != null) {
+              errorContext = [
+                messageTypedefCause.withLocation(
+                    aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+              ];
+            }
+          } else {
+            Class cls = interface.classNode;
+            if (LibraryBuilder.isObject(cls, coreLibrary) ||
+                LibraryBuilder.isFunction(cls, coreLibrary) ||
+                LibraryBuilder.isRecord(cls, coreLibrary)) {
+              if (aliasBuilder != null) {
+                errorMessage =
+                    templateSuperExtensionTypeIsIllegalAliased.withArguments(
+                        typeBuilder.fullNameForErrors,
+                        interface,
+                        libraryBuilder.isNonNullableByDefault);
+                errorContext = [
+                  messageTypedefCause.withLocation(
+                      aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+                ];
+              } else {
+                errorMessage = templateSuperExtensionTypeIsIllegal
+                    .withArguments(typeBuilder.fullNameForErrors);
+              }
+            } else {
+              extensionTypeDeclaration.implements.add(interface);
+            }
+          }
+        } else if (interface is TypeParameterType) {
+          errorMessage = templateSuperExtensionTypeIsTypeVariable
+              .withArguments(typeBuilder.fullNameForErrors);
+          if (aliasBuilder != null) {
+            errorContext = [
+              messageTypedefCause.withLocation(
+                  aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+            ];
+          }
+        } else {
+          if (aliasBuilder != null) {
+            errorMessage =
+                templateSuperExtensionTypeIsIllegalAliased.withArguments(
+                    typeBuilder.fullNameForErrors,
+                    interface,
+                    libraryBuilder.isNonNullableByDefault);
+            errorContext = [
+              messageTypedefCause.withLocation(
+                  aliasBuilder.fileUri, aliasBuilder.charOffset, noLength),
+            ];
+          } else {
+            errorMessage = templateSuperExtensionTypeIsIllegal
+                .withArguments(typeBuilder.fullNameForErrors);
+          }
+        }
+        if (errorMessage != null) {
+          libraryBuilder.addProblem(errorMessage, typeBuilder.charOffset!,
+              noLength, typeBuilder.fileUri,
+              context: errorContext);
         }
       }
     }

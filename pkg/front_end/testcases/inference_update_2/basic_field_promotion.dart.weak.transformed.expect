@@ -20,7 +20,7 @@ abstract class C extends core::Object {
 static method acceptsInt(core::int x) → void {}
 static method testPrivateFinalField(self::C c) → void {
   if(!(c.{self::C::_privateFinalField}{core::int?} == null)) {
-    core::int x = c.{self::C::_privateFinalField}{core::int};
+    core::int x = c.{self::C::_privateFinalField}{core::int?};
     self::acceptsInt(x);
   }
 }

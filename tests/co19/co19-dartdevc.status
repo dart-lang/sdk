@@ -28,6 +28,8 @@ Language/Libraries_and_Scripts/Scripts/top_level_main_t06: SkipByDesign # Uses d
 Language/Libraries_and_Scripts/Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Libraries_and_Scripts/top_level_syntax_t01: SkipByDesign # External variables are not supported
 Language/Reference/Operator_Precedence/precedence_15_unary_prefix_t08: SkipByDesign # binary '~' produces different results in JavaScript and Dart
+Language/Statements/For/Asynchronous_For_in/execution_A02_t01: Skip # Issue 49622
+Language/Statements/For/Asynchronous_For_in/execution_A02_t02: Skip # Issue 49622
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t01: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t02: SkipByDesign # External variables are not supported
 LanguageFeatures/Abstract-external-fields/static_analysis_external_A01_t03: SkipByDesign # External variables are not supported

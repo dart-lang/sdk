@@ -92,16 +92,19 @@ mixin ClassHierarchyExtensionTypeMixin {
               ? Nullability.nonNullable
               : Nullability.legacy);
     }
-    for (ExtensionType implement in subclass.implements) {
-      ExtensionType? supertype = getExtensionTypeDeclarationAsInstanceOf(
-          implement.extensionTypeDeclaration, superclass,
-          isNonNullableByDefault: isNonNullableByDefault);
-      if (supertype != null) {
-        if (implement.typeArguments.isNotEmpty) {
-          supertype = Substitution.fromExtensionType(implement)
-              .substituteType(supertype) as ExtensionType;
+    for (DartType implement in subclass.implements) {
+      // TODO(johnniwinther): Handle non-extension type supertypes.
+      if (implement is ExtensionType) {
+        ExtensionType? supertype = getExtensionTypeDeclarationAsInstanceOf(
+            implement.extensionTypeDeclaration, superclass,
+            isNonNullableByDefault: isNonNullableByDefault);
+        if (supertype != null) {
+          if (implement.typeArguments.isNotEmpty) {
+            supertype = Substitution.fromExtensionType(implement)
+                .substituteType(supertype) as ExtensionType;
+          }
+          return supertype;
         }
-        return supertype;
       }
     }
     return null;

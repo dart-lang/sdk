@@ -937,6 +937,10 @@ StrongWithWeakDillLibrary/example: Fail
 StrongWithWeakDillLibrary/spelling: Fail
 SuperAsExpression/example: Fail
 SuperAsIdentifier/example: Fail
+SuperExtensionTypeIsIllegal/analyzerCode: Fail
+SuperExtensionTypeIsIllegalAliased/analyzerCode: Fail
+SuperExtensionTypeIsNullableAliased/analyzerCode: Fail
+SuperExtensionTypeIsTypeVariable/analyzerCode: Fail
 SuperNullAware/example: Fail
 SuperParameterInitializerOutsideConstructor/analyzerCode: Fail
 SuperParameterInitializerOutsideConstructor/example: Fail
