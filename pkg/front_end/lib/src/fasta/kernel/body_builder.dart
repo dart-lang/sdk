@@ -178,6 +178,9 @@ class BodyBuilder extends StackListenerImpl
   /// This is set to true when we are parsing constructor initializers.
   bool inConstructorInitializer = false;
 
+  /// This is set to `true` when we are parsing formals.
+  bool inFormals = false;
+
   /// Set to `true` when we are parsing a field initializer either directly
   /// or within an initializer list.
   ///
@@ -3272,7 +3275,7 @@ class BodyBuilder extends StackListenerImpl
           return new UnresolvedNameGenerator(this, token, n,
               unresolvedReadKind: UnresolvedKind.Unknown);
         }
-        if (thisVariable != null) {
+        if (!inFormals && thisVariable != null) {
           // If we are in an extension instance member we interpret this as an
           // implicit access on the 'this' parameter.
           return PropertyAccessGenerator.make(this, token,
@@ -5479,13 +5482,34 @@ class BodyBuilder extends StackListenerImpl
   @override
   void beginFormalParameters(Token token, MemberKind kind) {
     super.push(constantContext);
+    super.push(inFormals);
     constantContext = ConstantContext.none;
+    inFormals = true;
   }
 
   @override
   void endFormalParameters(
       int count, Token beginToken, Token endToken, MemberKind kind) {
     debugEvent("FormalParameters");
+    assert(checkState(beginToken, [
+      if (count > 0 && peek() is List<FormalParameterBuilder>) ...[
+        ValueKinds.FormalList,
+        ...repeatedKind(
+            unionOfKinds([
+              ValueKinds.FormalParameterBuilder,
+              ValueKinds.ParserRecovery,
+            ]),
+            count - 1),
+      ] else
+        ...repeatedKind(
+            unionOfKinds([
+              ValueKinds.FormalParameterBuilder,
+              ValueKinds.ParserRecovery,
+            ]),
+            count),
+      /* inFormals */ ValueKinds.Bool,
+      /* constantContext */ ValueKinds.ConstantContext,
+    ]));
     List<FormalParameterBuilder>? optionals;
     int optionalsCount = 0;
     if (count > 0 && peek() is List<FormalParameterBuilder>) {
@@ -5502,6 +5526,7 @@ class BodyBuilder extends StackListenerImpl
     assert(parameters?.isNotEmpty ?? true);
     FormalParameters formals = new FormalParameters(parameters,
         offsetForToken(beginToken), lengthOfSpan(beginToken, endToken), uri);
+    inFormals = pop() as bool;
     constantContext = pop() as ConstantContext;
     push(formals);
     if ((inCatchClause || functionNestingLevel != 0) &&
