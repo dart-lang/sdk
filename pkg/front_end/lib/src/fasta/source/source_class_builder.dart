@@ -245,7 +245,8 @@ class SourceClassBuilder extends ClassBuilderImpl
       supertypeBuilder = _checkSupertype(supertypeBuilder!);
     }
     Supertype? supertype = supertypeBuilder?.buildSupertype(libraryBuilder);
-    if (_isFunction(supertype, coreLibrary)) {
+    if (supertype != null &&
+        LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
       supertype = null;
       supertypeBuilder = null;
     }
@@ -273,7 +274,8 @@ class SourceClassBuilder extends ClassBuilderImpl
     }
     Supertype? mixedInType =
         mixedInTypeBuilder?.buildMixedInType(libraryBuilder);
-    if (_isFunction(mixedInType, coreLibrary)) {
+    if (mixedInType != null &&
+        LibraryBuilder.isFunction(mixedInType.classNode, coreLibrary)) {
       mixedInType = null;
       mixedInTypeBuilder = null;
       actualCls.isAnonymousMixin = false;
@@ -301,7 +303,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         Supertype? supertype =
             interfaceBuilders![i].buildSupertype(libraryBuilder);
         if (supertype != null) {
-          if (_isFunction(supertype, coreLibrary)) {
+          if (LibraryBuilder.isFunction(supertype.classNode, coreLibrary)) {
             continue;
           }
           // TODO(ahe): Report an error if supertype is null.
@@ -348,25 +350,6 @@ class SourceClassBuilder extends ClassBuilderImpl
 
     cls.procedures.sort(compareProcedures);
     return cls;
-  }
-
-  bool _isFunction(Supertype? supertype, LibraryBuilder coreLibrary) {
-    if (supertype != null) {
-      Class superclass = supertype.classNode;
-      if (superclass.name == 'Function' &&
-          // We use `superclass.parent` here instead of
-          // `superclass.enclosingLibrary` to handle platform compilation. If
-          // we are currently compiling the platform, the enclosing library of
-          // `Function` has not yet been set, so the accessing
-          // `enclosingLibrary` would result in a cast error. We assume that the
-          // SDK does not contain this error, which we otherwise not find. If we
-          // are _not_ compiling the platform, the `superclass.parent` has been
-          // set, if it is `Function` from `dart:core`.
-          superclass.parent == coreLibrary.library) {
-        return true;
-      }
-    }
-    return false;
   }
 
   BodyBuilderContext get bodyBuilderContext =>

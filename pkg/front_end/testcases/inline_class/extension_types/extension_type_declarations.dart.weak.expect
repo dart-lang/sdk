@@ -6,7 +6,7 @@ inline class ExtensionType1 /* declaredRepresentationType = core::int */ {
   constructor • = self::ExtensionType1|;
   tearoff • = self::ExtensionType1|_#new#tearOff;
 }
-inline class ExtensionType2 /* declaredRepresentationType = core::int */ implements self::ExtensionType1 {
+inline class ExtensionType2 /* declaredRepresentationType = core::int */ implements self::ExtensionType1, core::int {
   constructor • = self::ExtensionType2|;
   tearoff • = self::ExtensionType2|_#new#tearOff;
 }

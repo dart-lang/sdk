@@ -18,7 +18,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
     : super core::Object::•()
     ;
 }
-inline class B<T extends core::Object? = dynamic> /* declaredRepresentationType = self::A<T%> */ {
+inline class B<T extends core::Object? = dynamic> /* declaredRepresentationType = self::A<T%> */ implements self::A<T%> {
   constructor • = self::B|;
   tearoff • = self::B|_#new#tearOff;
 }
@@ -26,7 +26,7 @@ inline class C<T extends core::Object? = dynamic> /* declaredRepresentationType 
   constructor • = self::C|;
   tearoff • = self::C|_#new#tearOff;
 }
-inline class D /* declaredRepresentationType = self::A<Never> */ implements self::B<core::String> {
+inline class D /* declaredRepresentationType = self::A<Never> */ implements self::A<core::int>, self::B<core::String> {
   constructor • = self::D|;
   tearoff • = self::D|_#new#tearOff;
 }

@@ -5269,6 +5269,78 @@ Message _withArgumentsSuperBoundedHint(
 const Template<
         Message Function(
             String name, DartType _type, bool isNonNullableByDefault)>
+    templateSuperExtensionTypeIsIllegalAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsIllegalAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSuperExtensionTypeIsIllegalAliased = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "SuperExtensionTypeIsIllegalAliased",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsIllegalAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSuperExtensionTypeIsIllegalAliased,
+      problemMessage:
+          """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    templateSuperExtensionTypeIsNullableAliased = const Template<
+            Message Function(
+                String name, DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""The type '#name' which is an alias of '#type' can't be implemented by an extension type because it is nullable.""",
+        withArguments: _withArgumentsSuperExtensionTypeIsNullableAliased);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
+    codeSuperExtensionTypeIsNullableAliased = const Code<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>(
+  "SuperExtensionTypeIsNullableAliased",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsSuperExtensionTypeIsNullableAliased(
+    String name, DartType _type, bool isNonNullableByDefault) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeSuperExtensionTypeIsNullableAliased,
+      problemMessage:
+          """The type '${name}' which is an alias of '${type}' can't be implemented by an extension type because it is nullable.""" +
+              labeler.originMessages,
+      arguments: {'name': name, 'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+        Message Function(
+            String name, DartType _type, bool isNonNullableByDefault)>
     templateSupertypeIsIllegalAliased = const Template<
             Message Function(
                 String name, DartType _type, bool isNonNullableByDefault)>(

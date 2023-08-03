@@ -1023,18 +1023,22 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           targetMember, targetTearoff, targetKind!, extensionType.typeArguments,
           isPotentiallyNullable: isReceiverTypePotentiallyNullable);
     } else {
-      for (ExtensionType implement
+      for (DartType implement
           in extensionType.extensionTypeDeclaration.implements) {
-        ExtensionType supertype = hierarchyBuilder.getExtensionTypeAsInstanceOf(
-            extensionType, implement.extensionTypeDeclaration,
-            isNonNullableByDefault: isNonNullableByDefault)!;
-        ObjectAccessTarget? target = _findDirectExtensionTypeMember(
-            receiverType, supertype, name, fileOffset,
-            isSetter: isSetter,
-            isReceiverTypePotentiallyNullable:
-                isReceiverTypePotentiallyNullable);
-        if (target != null) {
-          return target;
+        // TODO(johnniwinther): Handle non-extension type supertypes.
+        if (implement is ExtensionType) {
+          ExtensionType supertype =
+              hierarchyBuilder.getExtensionTypeAsInstanceOf(
+                  extensionType, implement.extensionTypeDeclaration,
+                  isNonNullableByDefault: isNonNullableByDefault)!;
+          ObjectAccessTarget? target = _findDirectExtensionTypeMember(
+              receiverType, supertype, name, fileOffset,
+              isSetter: isSetter,
+              isReceiverTypePotentiallyNullable:
+                  isReceiverTypePotentiallyNullable);
+          if (target != null) {
+            return target;
+          }
         }
       }
       return null;

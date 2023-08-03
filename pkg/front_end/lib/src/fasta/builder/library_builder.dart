@@ -6,7 +6,7 @@ library fasta.library_builder;
 
 import 'package:_fe_analyzer_shared/src/messages/severity.dart' show Severity;
 
-import 'package:kernel/ast.dart' show Library, Nullability;
+import 'package:kernel/ast.dart' show Class, Library, Nullability;
 
 import '../combinator.dart' show CombinatorBuilder;
 
@@ -177,6 +177,36 @@ abstract class LibraryBuilder implements ModifierBuilder {
   NullabilityBuilder get nonNullableBuilder;
 
   NullabilityBuilder nullableBuilderIfTrue(bool isNullable);
+
+  /// Returns `true` if [cls] is the 'Function' class defined in [coreLibrary].
+  static bool isFunction(Class cls, LibraryBuilder coreLibrary) {
+    return cls.name == 'Function' && _isCoreClass(cls, coreLibrary);
+  }
+
+  /// Returns `true` if [cls] is the 'Record' class defined in [coreLibrary].
+  static bool isRecord(Class cls, LibraryBuilder coreLibrary) {
+    return cls.name == 'Record' && _isCoreClass(cls, coreLibrary);
+  }
+
+  /// Returns `true` if [cls] is the 'Object' class defined in [coreLibrary].
+  static bool isObject(Class cls, LibraryBuilder coreLibrary) {
+    return cls.name == 'Object' && _isCoreClass(cls, coreLibrary);
+  }
+
+  static bool _isCoreClass(Class cls, LibraryBuilder coreLibrary) {
+    // We use `superclass.parent` here instead of
+    // `superclass.enclosingLibrary` to handle platform compilation. If
+    // we are currently compiling the platform, the enclosing library of
+    // the core class has not yet been set, so the accessing
+    // `enclosingLibrary` would result in a cast error. We assume that the
+    // SDK does not contain this error, which we otherwise not find. If we
+    // are _not_ compiling the platform, the `superclass.parent` has been
+    // set, if it is a class from `dart:core`.
+    if (cls.parent == coreLibrary.library) {
+      return true;
+    }
+    return false;
+  }
 }
 
 abstract class LibraryBuilderImpl extends ModifierBuilderImpl

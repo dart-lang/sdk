@@ -440,6 +440,19 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     _computeExtensionTypeMembers(node.enclosingLibrary);
     declareTypeParameters(node.typeParameters);
     final TreeNode? oldParent = enterParent(node);
+    for (DartType type in node.implements) {
+      if (!(type is ExtensionType || type is InterfaceType)) {
+        problem(
+            node,
+            "Extension type can only implement extension types and interface "
+            "types. Found $type.");
+      } else if (type.isPotentiallyNullable) {
+        problem(
+            node,
+            "Extension type can only implement non-nullable types. "
+            "Found $type.");
+      }
+    }
     node.visitChildren(this);
     exitParent(oldParent);
     undeclareTypeParameters(node.typeParameters);
