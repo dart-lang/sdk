@@ -277,7 +277,8 @@ class Intrinsifier {
     if (cls == translator.wasmAnyRefClass && name == "toObject") {
       w.Label succeed = b.block(const [], [translator.topInfo.nonNullableType]);
       codeGen.wrap(receiver, const w.RefType.any(nullable: false));
-      b.br_on_cast(translator.topInfo.nonNullableType, succeed);
+      b.br_on_cast(succeed, const w.RefType.any(nullable: false),
+          translator.topInfo.nonNullableType);
       codeGen.throwWasmRefError("a Dart object");
       b.end(); // succeed
       return translator.topInfo.nonNullableType;
@@ -925,7 +926,7 @@ class Intrinsifier {
         w.RefType resultType = typeOfExp(node) as w.RefType;
         w.Label succeed = b.block(const [], [resultType]);
         codeGen.wrap(ref, w.RefType.func(nullable: false));
-        b.br_on_cast(resultType, succeed);
+        b.br_on_cast(succeed, w.RefType.func(nullable: false), resultType);
         codeGen.throwWasmRefError("a function with the expected signature");
         b.end(); // succeed
         return resultType;
@@ -1391,7 +1392,8 @@ class Intrinsifier {
           ClassInfo intInfo = translator.classInfo[translator.boxedIntClass]!;
           w.Label intArg = b.block(const [], [intInfo.nonNullableType]);
           b.local_get(function.locals[1]);
-          b.br_on_cast(intInfo.nonNullableType, intArg);
+          b.br_on_cast(intArg, function.locals[1].type as w.RefType,
+              intInfo.nonNullableType);
           // double argument
           b.drop();
           b.local_get(function.locals[0]);
@@ -1545,14 +1547,15 @@ class Intrinsifier {
           b.block([], [w.RefType.struct(nullable: false)]);
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(instantiationContextBase, fun1NotInstantiationBlock);
+      b.br_on_cast_fail(fun1NotInstantiationBlock,
+          const w.RefType.struct(nullable: false), instantiationContextBase);
       b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
           FieldIndex.instantiationContextInner);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
       b.local_get(fun2);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(
-          instantiationContextBase, fun1InstantiationFun2NotInstantiationBlock);
+      b.br_on_cast_fail(fun1InstantiationFun2NotInstantiationBlock,
+          const w.RefType.struct(nullable: false), instantiationContextBase);
       b.struct_get(translator.closureLayouter.instantiationContextBaseStruct,
           FieldIndex.instantiationContextInner);
       b.struct_get(closureBaseStruct, FieldIndex.closureVtable);
@@ -1586,7 +1589,8 @@ class Intrinsifier {
 
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(instantiationContextBase, notInstantiationBlock);
+      b.br_on_cast_fail(notInstantiationBlock,
+          const w.RefType.struct(nullable: false), instantiationContextBase);
 
       // Closures are instantiations. Compare inner function vtables to check
       // that instantiations are for the same generic function.
@@ -1641,11 +1645,17 @@ class Intrinsifier {
       final contextCheckFail = b.block([], [w.RefType.struct(nullable: false)]);
       b.local_get(fun1);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(translator.topInfo.nonNullableType, contextCheckFail);
+      b.br_on_cast_fail(
+          contextCheckFail,
+          const w.RefType.struct(nullable: false),
+          translator.topInfo.nonNullableType);
 
       b.local_get(fun2);
       b.struct_get(closureBaseStruct, FieldIndex.closureContext);
-      b.br_on_cast_fail(translator.topInfo.nonNullableType, contextCheckFail);
+      b.br_on_cast_fail(
+          contextCheckFail,
+          const w.RefType.struct(nullable: false),
+          translator.topInfo.nonNullableType);
 
       // Both contexts are objects, compare for equality with `identical`. This
       // handles identical `this` values in instance tear-offs.
@@ -1754,7 +1764,8 @@ class Intrinsifier {
       final stackTraceFieldIndex =
           translator.fieldIndex[translator.errorClassStackTraceField]!;
       b.local_get(objectLocal);
-      b.br_on_cast_fail(errorRefType, notErrorBlock);
+      b.br_on_cast_fail(
+          notErrorBlock, objectLocal.type as w.RefType, errorRefType);
 
       // Binaryen can merge struct types, so we need to check class ID in the
       // slow path

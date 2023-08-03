@@ -848,29 +848,39 @@ class RefCast implements Instruction {
 }
 
 class BrOnCast implements Instruction {
-  final RefType targetType;
   final int labelIndex;
+  final RefType inputType;
+  final RefType targetType;
 
-  BrOnCast(this.targetType, this.labelIndex);
+  BrOnCast(this.labelIndex, this.inputType, this.targetType);
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x4A] : const [0xFB, 0x42]);
+    int flags = (inputType.nullable ? 0x01 : 0x00) |
+        (targetType.nullable ? 0x02 : 0x00);
+    s.writeBytes(const [0xFB, 0x4E]);
+    s.writeByte(flags);
     s.writeUnsigned(labelIndex);
+    s.write(inputType.heapType);
     s.write(targetType.heapType);
   }
 }
 
 class BrOnCastFail implements Instruction {
-  final RefType targetType;
   final int labelIndex;
+  final RefType inputType;
+  final RefType targetType;
 
-  BrOnCastFail(this.targetType, this.labelIndex);
+  BrOnCastFail(this.labelIndex, this.inputType, this.targetType);
 
   @override
   void serialize(Serializer s) {
-    s.writeBytes(targetType.nullable ? const [0xFB, 0x4B] : const [0xFB, 0x43]);
+    int flags = (inputType.nullable ? 0x01 : 0x00) |
+        (targetType.nullable ? 0x02 : 0x00);
+    s.writeBytes(const [0xFB, 0x4F]);
+    s.writeByte(flags);
     s.writeUnsigned(labelIndex);
+    s.write(inputType.heapType);
     s.write(targetType.heapType);
   }
 }
