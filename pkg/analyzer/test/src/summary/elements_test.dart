@@ -47384,6 +47384,7 @@ library
       A @15
         typeParameters
           covariant T @17
+            defaultType: dynamic
         representation: self::@extensionType::A::@field::it
         typeErasure: T
         interfaces
