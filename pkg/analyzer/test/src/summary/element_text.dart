@@ -498,8 +498,9 @@ class _ElementWriter {
     _assertNonSyntheticElementSelf(e);
   }
 
-  void _writeExtensionTypeElement(ExtensionTypeElement e) {
+  void _writeExtensionTypeElement(ExtensionTypeElementImpl e) {
     _sink.writeIndentedLine(() {
+      _sink.writeIf(e.hasSelfReference, 'hasSelfReference ');
       _writeName(e);
     });
 
@@ -513,6 +514,7 @@ class _ElementWriter {
 
     _sink.withIndent(() {
       _elementPrinter.writeNamedElement('representation', e.representation);
+      _elementPrinter.writeNamedType('typeErasure', e.typeErasure);
       _elementPrinter.writeTypeList('interfaces', e.interfaces);
       _writeElements('fields', e.fields, _writePropertyInducingElement);
       if (configuration.withConstructors) {

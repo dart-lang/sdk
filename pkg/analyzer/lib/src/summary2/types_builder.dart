@@ -15,6 +15,7 @@ import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/summary2/default_types_builder.dart';
+import 'package:analyzer/src/summary2/extension_type.dart';
 import 'package:analyzer/src/summary2/link.dart';
 import 'package:analyzer/src/summary2/type_builder.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -98,6 +99,7 @@ class TypesBuilder {
       _declaration(declaration);
     }
 
+    buildExtensionTypes(_linker, nodes.declarations);
     _MixinsInference(_toInferMixins).perform();
   }
 
@@ -258,31 +260,7 @@ class TypesBuilder {
     element.extendedType = node.extendedType.typeOrThrow;
   }
 
-  void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {
-    final element = node.declaredElement!;
-    final typeSystem = element.library.typeSystem;
-
-    final type = node.representation.fieldType.typeOrThrow;
-    element.representation.type = type;
-
-    var interfaces = node.implementsClause?.interfaces
-        .map((e) => e.type)
-        .whereType<InterfaceType>()
-        .where(typeSystem.isValidExtensionTypeSuperinterface)
-        .toFixedList();
-    if (interfaces == null || interfaces.isEmpty) {
-      final superInterface = typeSystem.isNonNullable(type)
-          ? typeSystem.objectNone
-          : typeSystem.objectQuestion;
-      interfaces = [superInterface];
-    }
-    element.interfaces = interfaces;
-
-    final primaryConstructor = element.constructors.first;
-    final primaryFormalParameter = primaryConstructor.parameters.first;
-    primaryFormalParameter as FieldFormalParameterElementImpl;
-    primaryFormalParameter.type = type;
-  }
+  void _extensionTypeDeclaration(ExtensionTypeDeclarationImpl node) {}
 
   void _fieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredElement as FieldFormalParameterElementImpl;

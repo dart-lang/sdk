@@ -3007,6 +3007,12 @@ class ExtensionElementImpl extends InstanceElementImpl
 class ExtensionTypeElementImpl extends InterfaceElementImpl
     with _HasAugmentation<ExtensionTypeElementImpl>
     implements ExtensionTypeElement {
+  @override
+  late final DartType typeErasure;
+
+  /// Whether the element has direct or indirect reference to itself.
+  bool hasSelfReference = false;
+
   ExtensionTypeElementImpl(super.name, super.nameOffset);
 
   @override

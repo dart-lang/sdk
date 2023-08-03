@@ -329,9 +329,11 @@ class BundleWriter {
     _sink.writeUInt30(_resolutionSink.offset);
 
     _sink._writeStringReference(element.name);
+    ExtensionTypeElementFlags.write(_sink, element);
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
+      _resolutionSink.writeType(element.typeErasure);
       _resolutionSink._writeTypeList(element.interfaces);
       _writeList(
         element.fields.where((e) => !e.isSynthetic).toList(),

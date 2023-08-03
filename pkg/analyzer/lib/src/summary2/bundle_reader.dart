@@ -347,6 +347,7 @@ class ExtensionTypeElementLinkedData
       unitElement: element.enclosingElement2,
     );
     _readTypeParameters(reader, element.typeParameters);
+    element.typeErasure = reader.readRequiredType();
     element.interfaces = reader._readInterfaceTypeList();
     applyConstantOffsets?.perform();
   }
@@ -971,6 +972,7 @@ class LibraryReader {
         offset: resolutionOffset,
       ),
     );
+    ExtensionTypeElementFlags.read(_reader, element);
 
     element.typeParameters = _readTypeParameters();
 

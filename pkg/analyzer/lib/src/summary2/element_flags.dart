@@ -96,6 +96,21 @@ class EnumElementFlags {
   }
 }
 
+class ExtensionTypeElementFlags {
+  static const int _hasSelfReference = 1 << 0;
+
+  static void read(SummaryDataReader reader, ExtensionTypeElementImpl element) {
+    var byte = reader.readByte();
+    element.hasSelfReference = (byte & _hasSelfReference) != 0;
+  }
+
+  static void write(BufferedSink sink, ExtensionTypeElementImpl element) {
+    var result = 0;
+    result |= element.hasSelfReference ? _hasSelfReference : 0;
+    sink.writeByte(result);
+  }
+}
+
 class FieldElementFlags {
   static const int _hasImplicitType = 1 << 0;
   static const int _hasInitializer = 1 << 1;

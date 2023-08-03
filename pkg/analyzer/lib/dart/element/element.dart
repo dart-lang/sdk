@@ -1321,6 +1321,11 @@ abstract class ExtensionTypeElement implements InterfaceElement {
 
   /// The representation of this extension.
   FieldElement get representation;
+
+  /// The extension type erasure, obtained by recursively replacing every
+  /// subterm which is an extension type by the corresponding representation
+  /// type.
+  DartType get typeErasure;
 }
 
 /// A field defined within a class.

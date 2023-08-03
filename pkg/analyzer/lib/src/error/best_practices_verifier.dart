@@ -2104,6 +2104,11 @@ class _InvalidAccessVerifier {
         element.variable.hasVisibleOutsideTemplate) {
       return true;
     }
+    final enclosingElement = element.enclosingElement2;
+    if (enclosingElement != null &&
+        _hasVisibleOutsideTemplate(enclosingElement)) {
+      return true;
+    }
     return false;
   }
 

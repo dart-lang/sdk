@@ -46508,6 +46508,7 @@ library
     extensionTypes
       A @21
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46539,6 +46540,7 @@ library
         codeOffset: 0
         codeLength: 33
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46577,6 +46579,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: num
         interfaces
           Object
         fields
@@ -46614,6 +46617,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: num
         interfaces
           Object
         fields
@@ -46651,6 +46655,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: num
         interfaces
           Object
         fields
@@ -46699,6 +46704,7 @@ library
         codeOffset: 0
         codeLength: 27
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46736,6 +46742,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46770,6 +46777,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46804,6 +46812,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46838,6 +46847,7 @@ library
     extensionTypes
       A @32
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46877,6 +46887,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -46914,6 +46925,7 @@ library
     extensionTypes
       X @64
         representation: self::@extensionType::X::@field::it
+        typeErasure: C
         interfaces
           A
           B
@@ -46939,6 +46951,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: num
         interfaces
           Object
         fields
@@ -46949,6 +46962,7 @@ library
             returnType: num
       B @43
         representation: self::@extensionType::B::@field::it
+        typeErasure: int
         interfaces
           A
         fields
@@ -46972,6 +46986,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           num
         fields
@@ -46995,6 +47010,7 @@ library
     extensionTypes
       X @15
         representation: self::@extensionType::X::@field::it
+        typeErasure: int?
         interfaces
           Object?
         fields
@@ -47019,6 +47035,7 @@ library
     extensionTypes
       X @33
         representation: self::@extensionType::X::@field::it
+        typeErasure: int
         interfaces
           num
         fields
@@ -47060,6 +47077,7 @@ library
               staticType: null
             element: package:test/a.dart::@getter::foo
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -47091,6 +47109,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -47122,6 +47141,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -47157,6 +47177,7 @@ library
         codeOffset: 0
         codeLength: 21
         representation: self::@extensionType::A::@field::<empty>
+        typeErasure: InvalidType
         interfaces
           Object?
         fields
@@ -47194,6 +47215,7 @@ library
     extensionTypes
       A @15
         representation: self::@extensionType::A::@field::it
+        typeErasure: int
         interfaces
           Object
         fields
@@ -47209,6 +47231,242 @@ library
               requiredPositional _ @44
                 type: double
             returnType: void
+''');
+  }
+
+  test_typeErasure_hasExtension_cycle2_direct() async {
+    var library = await buildLibrary(r'''
+extension type A(B it) {}
+
+extension type B(A it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: InvalidType
+        interfaces
+          Object?
+        fields
+          final it @19
+            type: InvalidType
+        accessors
+          synthetic get it @-1
+            returnType: InvalidType
+      hasSelfReference B @42
+        representation: self::@extensionType::B::@field::it
+        typeErasure: InvalidType
+        interfaces
+          Object?
+        fields
+          final it @46
+            type: InvalidType
+        accessors
+          synthetic get it @-1
+            returnType: InvalidType
+''');
+  }
+
+  test_typeErasure_hasExtension_cycle2_typeArgument() async {
+    var library = await buildLibrary(r'''
+extension type A(B it) {}
+
+extension type B(List<B> it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: InvalidType
+        interfaces
+          Object?
+        fields
+          final it @19
+            type: B
+        accessors
+          synthetic get it @-1
+            returnType: B
+      hasSelfReference B @42
+        representation: self::@extensionType::B::@field::it
+        typeErasure: InvalidType
+        interfaces
+          Object?
+        fields
+          final it @52
+            type: InvalidType
+        accessors
+          synthetic get it @-1
+            returnType: InvalidType
+''');
+  }
+
+  test_typeErasure_hasExtension_cycle_self() async {
+    var library = await buildLibrary(r'''
+extension type A(A it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      hasSelfReference A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: InvalidType
+        interfaces
+          Object?
+        fields
+          final it @19
+            type: InvalidType
+        accessors
+          synthetic get it @-1
+            returnType: InvalidType
+''');
+  }
+
+  test_typeErasure_hasExtension_functionType() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {}
+
+extension type B(A Function(A a) it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+      B @44
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int Function(int)
+        interfaces
+          Object
+        fields
+          final it @62
+            type: A Function(A)
+        accessors
+          synthetic get it @-1
+            returnType: A Function(A)
+''');
+  }
+
+  test_typeErasure_hasExtension_interfaceType() async {
+    var library = await buildLibrary(r'''
+extension type A<T>(T it) {}
+
+extension type B(A<double> it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        typeParameters
+          covariant T @17
+            defaultType: dynamic
+        representation: self::@extensionType::A::@field::it
+        typeErasure: T
+        interfaces
+          Object?
+        fields
+          final it @22
+            type: T
+        accessors
+          synthetic get it @-1
+            returnType: T
+      B @45
+        representation: self::@extensionType::B::@field::it
+        typeErasure: double
+        interfaces
+          Object
+        fields
+          final it @57
+            type: A<double>
+        accessors
+          synthetic get it @-1
+            returnType: A<double>
+''');
+  }
+
+  test_typeErasure_hasExtension_interfaceType_typeArgument() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {}
+
+extension type B(List<A> it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+      B @44
+        representation: self::@extensionType::B::@field::it
+        typeErasure: List<int>
+        interfaces
+          Object
+        fields
+          final it @54
+            type: List<A>
+        accessors
+          synthetic get it @-1
+            returnType: List<A>
+''');
+  }
+
+  test_typeErasure_notExtension() async {
+    var library = await buildLibrary(r'''
+extension type A(int it) {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -47229,6 +47487,7 @@ library
           covariant U @32
             defaultType: dynamic
         representation: self::@extensionType::A::@field::it
+        typeErasure: Map<T, U>
         interfaces
           Object
         fields
