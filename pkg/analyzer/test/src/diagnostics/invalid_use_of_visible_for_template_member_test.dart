@@ -237,6 +237,32 @@ void f(C c) {
     await _resolveFile('$testPackageLibPath/lib2.dart');
   }
 
+  test_class_method_parameter_withVisibleOutsideTemplate() async {
+    newFile('$testPackageLibPath/lib1.dart', r'''
+import 'package:angular_meta/angular_meta.dart';
+
+@visibleForTemplate
+class A {
+  late bool bar;
+
+  @visibleOutsideTemplate
+  void foo({required bool bar}){
+    this.bar = bar;
+  }
+}
+''');
+    newFile('$testPackageLibPath/lib2.dart', r'''
+import 'lib1.dart';
+
+void f(A a) {
+  a.foo(bar: true);
+}
+''');
+
+    await _resolveFile('$testPackageLibPath/lib1.dart');
+    await _resolveFile('$testPackageLibPath/lib2.dart');
+  }
+
   test_class_method_withVisibleOutsideTemplate() async {
     newFile('$testPackageLibPath/lib1.dart', r'''
 import 'package:angular_meta/angular_meta.dart';
