@@ -19,7 +19,10 @@ abstract class B extends core::Object implements self::A {
     return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
   const factory B() = C.named;
                       ^";
-  static method _#new#tearOff() → self::B;
+  static method _#new#tearOff() → self::B
+    return invalid-expression "pkg/front_end/testcases/dart2js/issue47916e.dart:10:23: Error: Redirection constructor target not found: 'C.named'
+  const factory B() = C.named;
+                      ^";
 }
 class C extends core::Object implements self::B {
   synthetic constructor •() → self::C

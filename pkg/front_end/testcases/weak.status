@@ -114,7 +114,6 @@ none/mixin_super: semiFuzzFailureOnForceRebuildBodies # has private name mixin
 regress/issue_39682: semiFuzzFailureOnForceRebuildBodies # has private method
 
 constructor_tearoffs/call_instantiation: TypeCheckError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError
 enhanced_enums/simple_mixins: RuntimeError

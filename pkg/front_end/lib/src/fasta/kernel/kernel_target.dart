@@ -1074,7 +1074,7 @@ class KernelTarget extends TargetImplementation {
         cls.fileUri,
         cls.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum: classBuilder.isAbstract);
+        forAbstractClassOrEnumOrMixin: classBuilder.isAbstract);
 
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(
@@ -1153,7 +1153,7 @@ class KernelTarget extends TargetImplementation {
         enclosingClass.fileUri,
         enclosingClass.fileOffset,
         tearOffReference,
-        forAbstractClassOrEnum:
+        forAbstractClassOrEnumOrMixin:
             enclosingClass.isAbstract || enclosingClass.isEnum);
     if (constructorTearOff != null) {
       buildConstructorTearOffProcedure(

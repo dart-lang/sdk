@@ -4,7 +4,6 @@
 
 enhanced_enums/declared_hashcode: TypeCheckError
 const_functions/const_functions_const_factory: VerificationError
-constructor_tearoffs/lowering/invalid_redirect: VerificationError
 enhanced_enums/declared_index: TypeCheckError
 extension_types/access_setter_as_getter: ExpectationFileMismatchSerialized # Expected.
 extension_types/call_not_get: ExpectationFileMismatchSerialized # Expected.
