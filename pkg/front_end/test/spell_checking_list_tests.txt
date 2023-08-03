@@ -82,6 +82,7 @@ besides
 beta
 bigger
 bitmask
+bivariant
 bkonyi
 bla
 blah

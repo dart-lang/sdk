@@ -104,7 +104,9 @@ extension ObjectToJSBoxedDartObject on Object {
       throw 'Attempting to box non-Dart object.';
     }
     final box = js_util.newObject();
-    js_util.setProperty(box, _jsBoxedDartObjectProperty, this);
+    // Use JS foreign function to avoid assertInterop check when `this` is a
+    // `Function` for `setProperty`.
+    foreign_helper.JS('', '#[#]=#', box, _jsBoxedDartObjectProperty, this);
     return box as JSBoxedDartObject;
   }
 }

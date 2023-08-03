@@ -1128,23 +1128,21 @@ class InstructionsBuilder with Builder<ir.Instructions> {
     _add(const ir.I31GetU());
   }
 
-  bool _verifyCast(ir.RefType targetType, ir.ValueType outputType,
+  bool _verifyCast(
+      ir.RefType inputType, ir.RefType targetType, ir.ValueType outputType,
       {List<Object>? trace}) {
-    ir.ValueType inputType = _topOfStack;
-    _verifyTypes(const [ir.RefType.common(nullable: true)], [outputType],
-        trace: trace);
-    if (reachable &&
-        (inputType as ir.RefType).heapType.topType !=
-            targetType.heapType.topType) {
-      _reportError("Input type $inputType does not belong to the same hierarchy"
-          " as target type $targetType");
+    _verifyTypes([inputType], [outputType], trace: trace);
+    if (!targetType.isSubtypeOf(inputType)) {
+      _reportError("Target type '$targetType' not a subtype of "
+          "input type '$inputType' in cast");
     }
     return true;
   }
 
   /// Emit a `ref.test` instruction.
   void ref_test(ir.RefType targetType) {
-    assert(_verifyCast(targetType, ir.NumType.i32, trace: [
+    assert(_verifyCast(ir.RefType(targetType.heapType.topType, nullable: true),
+        targetType, ir.NumType.i32, trace: [
       'ref.test',
       if (targetType.nullable) 'null',
       targetType.heapType
@@ -1154,7 +1152,8 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Emit a `ref.cast` instruction.
   void ref_cast(ir.RefType targetType) {
-    assert(_verifyCast(targetType, targetType, trace: [
+    assert(_verifyCast(ir.RefType(targetType.heapType.topType, nullable: true),
+        targetType, targetType, trace: [
       'ref.cast',
       if (targetType.nullable) 'null',
       targetType.heapType
@@ -1163,27 +1162,32 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   }
 
   /// Emit a `br_on_cast` instruction.
-  void br_on_cast(ir.RefType targetType, Label label) {
-    assert(_verifyCast(targetType, _topOfStack, trace: [
+  void br_on_cast(Label label, ir.RefType inputType, ir.RefType targetType) {
+    assert(_verifyCast(inputType, targetType, inputType, trace: [
       'br_on_cast',
+      label,
+      if (inputType.nullable) 'null',
+      inputType.heapType,
       if (targetType.nullable) 'null',
-      targetType.heapType,
-      label
+      targetType.heapType
     ]));
     assert(_verifyBranchTypes(label, 1, [targetType]));
-    _add(ir.BrOnCast(targetType, _labelIndex(label)));
+    _add(ir.BrOnCast(_labelIndex(label), inputType, targetType));
   }
 
   /// Emit a `br_on_cast_fail` instruction.
-  void br_on_cast_fail(ir.RefType targetType, Label label) {
-    assert(_verifyCast(targetType, targetType, trace: [
+  void br_on_cast_fail(
+      Label label, ir.RefType inputType, ir.RefType targetType) {
+    assert(_verifyCast(inputType, targetType, targetType, trace: [
       'br_on_cast_fail',
+      label,
+      if (inputType.nullable) 'null',
+      inputType.heapType,
       if (targetType.nullable) 'null',
-      targetType.heapType,
-      label
+      targetType.heapType
     ]));
-    assert(_verifyBranchTypes(label, 1, [_topOfStack]));
-    _add(ir.BrOnCastFail(targetType, _labelIndex(label)));
+    assert(_verifyBranchTypes(label, 1, [inputType]));
+    _add(ir.BrOnCastFail(_labelIndex(label), inputType, targetType));
   }
 
   /// Emit an `extern.internalize` instruction.

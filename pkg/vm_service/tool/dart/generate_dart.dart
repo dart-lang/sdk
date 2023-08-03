@@ -1455,7 +1455,7 @@ class Type extends Member {
         (superType.name == 'ObjRef' || superType.name == 'Obj');
     // Default
     gen.write('$name(');
-    if (fields.isNotEmpty) {
+    if (fields.isNotEmpty || hasRequiredParentFields) {
       gen.write('{');
       fields.where((field) => !field.optional).forEach((field) {
         final fromParent = (name == 'Instance' && field.name == 'classRef');

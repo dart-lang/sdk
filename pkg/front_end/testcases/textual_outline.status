@@ -149,6 +149,7 @@ inline_class/extension_types/issue52525: FormatterCrash
 inline_class/extension_types/issue52667: FormatterCrash
 inline_class/extension_types/member_not_found: FormatterCrash
 inline_class/extension_types/method_access: FormatterCrash
+inline_class/extension_types/non_covariant_type_parameter: FormatterCrash
 inline_class/extension_types/procedures: FormatterCrash
 inline_class/extension_types/representation: FormatterCrash
 inline_class/extension_types/supertype_conflict: FormatterCrash
