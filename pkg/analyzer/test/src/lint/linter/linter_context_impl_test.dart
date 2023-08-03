@@ -280,6 +280,24 @@ A f() => A(a);
     assertCanBeConst('A(a)', true);
   }
 
+  void test_true_constConstructor_instance() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static const A instance = const A();
+  const A();
+}
+''');
+    await resolve('''
+import 'a.dart';
+class B {
+  final A v;
+  const B(this.v);
+}
+B f1() => B(A.instance);
+''');
+    assertCanBeConst('B(A.instance)', true);
+  }
+
   void test_true_constConstructorArg() async {
     await resolve('''
 class A {

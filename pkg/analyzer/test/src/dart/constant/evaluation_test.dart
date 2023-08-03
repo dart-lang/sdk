@@ -3562,6 +3562,24 @@ main() {
     ]);
   }
 
+  test_field_imported_staticConst() async {
+    newFile('$testPackageLibPath/a.dart', '''
+class A {
+  static const A instance = const A();
+  const A();
+}
+''');
+
+    await assertNoErrorsInCode('''
+import 'a.dart';
+class B {
+  final A v;
+  const B(this.v);
+}
+B f1() => const B(A.instance);
+''');
+  }
+
   test_int_fromEnvironment() async {
     await assertNoErrorsInCode('''
 const a = int.fromEnvironment('a');
