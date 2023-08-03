@@ -138,6 +138,11 @@ void syncTests() {
   edo = DartObject().toJSBox;
   expect(edo is JSBoxedDartObject, true);
   expect(((edo as JSBoxedDartObject).toDart as DartObject).foo, 'bar');
+  // Functions should be boxed without assertInterop.
+  final concat = (String a, String b) => a + b;
+  edo = concat.toJSBox;
+  expect(
+      (edo.toDart as String Function(String, String))('foo', 'bar'), 'foobar');
   // Should not box a non Dart-object.
   Expect.throws(() => edo.toJSBox);
 
