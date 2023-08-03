@@ -743,6 +743,119 @@ ObjectPattern
 ''');
   }
 
+  test_extensionType_notGeneric_hasName_constant() async {
+    await assertNoErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(x) {
+  switch (x) {
+    case A(foo: 0):
+      break;
+  }
+}
+''');
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: A
+    element: self::@extensionType::A
+    type: A
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        matchedValueType: int
+      element: self::@extensionType::A::@getter::foo
+  rightParenthesis: )
+  matchedValueType: dynamic
+''');
+  }
+
+  test_extensionType_notGeneric_noName_variable() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  int get foo => 0;
+}
+
+void f(x) {
+  switch (x) {
+    case A(: final foo):
+      break;
+  }
+}
+''', [
+      error(WarningCode.UNUSED_LOCAL_VARIABLE, 96, 3),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: A
+    element: self::@extensionType::A
+    type: A
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        colon: :
+      pattern: DeclaredVariablePattern
+        keyword: final
+        name: foo
+        declaredElement: hasImplicitType isFinal foo@96
+          type: int
+        matchedValueType: int
+      element: self::@extensionType::A::@getter::foo
+  rightParenthesis: )
+  matchedValueType: dynamic
+''');
+  }
+
+  test_extensionType_notGeneric_unresolved_hasName() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+
+void f(x) {
+  switch (x) {
+    case A(foo: 0):
+      break;
+  }
+}
+''', [
+      error(CompileTimeErrorCode.UNDEFINED_GETTER, 67, 3),
+    ]);
+    final node = findNode.singleGuardedPattern.pattern;
+    assertResolvedNodeText(node, r'''
+ObjectPattern
+  type: NamedType
+    name: A
+    element: self::@extensionType::A
+    type: A
+  leftParenthesis: (
+  fields
+    PatternField
+      name: PatternFieldName
+        name: foo
+        colon: :
+      pattern: ConstantPattern
+        expression: IntegerLiteral
+          literal: 0
+          staticType: int
+        matchedValueType: dynamic
+      element: <null>
+  rightParenthesis: )
+  matchedValueType: dynamic
+''');
+  }
+
   test_typeAlias_nullable() async {
     await assertErrorsInCode(r'''
 typedef A = int?;
