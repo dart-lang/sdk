@@ -24,7 +24,7 @@ class C extends core::Object {
 }
 static method test(self::C c, core::num n) → void {
   if(c.{self::C::_a}{self::A} is self::B) {
-    let final self::C #t1 = c in let final core::num #t2 = n in #t1.{self::C::_a}{self::B}.{self::B::call}(#t2){(core::num) → core::int};
+    let final self::C #t1 = c in let final core::num #t2 = n in (#t1.{self::C::_a}{self::A} as{ForLegacy,Unchecked} self::B).{self::B::call}(#t2){(core::num) → core::int};
   }
 }
 static method main() → dynamic {}

@@ -25,7 +25,6 @@ general/with_dependencies/issue_43084/issue_43084: SemiFuzzFailure # https://dar
 inference_update_1/horizontal_inference_extension_method: SemiFuzzFailure # https://dart-review.googlesource.com/c/sdk/+/245004
 inference_update_1/horizontal_inference_extension_method: semiFuzzFailureOnForceRebuildBodies # Errors on split
 inference_update_2/basic_field_promotion: semiFuzzFailureOnForceRebuildBodies # Private fields.
-inference_update_2/cascaded_field_promotion: TypeCheckError
 inference_update_2/disabled: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_and_no_such_method: semiFuzzFailureOnForceRebuildBodies # Private fields.
 inference_update_2/field_promotion_name_conflicts: semiFuzzFailureOnForceRebuildBodies # Private fields.
@@ -210,7 +209,6 @@ inference/override_equals: RuntimeError
 inference_new/infer_assign_to_index_super_upwards: TypeCheckError
 inference_new/infer_assign_to_index_this_upwards: TypeCheckError
 inference_new/infer_assign_to_index_upwards: TypeCheckError
-inference_update_2/call_invocation_with_hoisting: TypeCheckError
 late_lowering/covariant_late_field: TypeCheckError
 nnbd/covariant_late_field: TypeCheckError
 nnbd/getter_vs_setter_type: TypeCheckError

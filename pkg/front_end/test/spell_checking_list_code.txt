@@ -1681,6 +1681,7 @@ undeclare
 undeferred
 underestimate
 undergo
+undergoes
 undermine
 undo
 undoable

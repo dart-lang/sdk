@@ -7440,6 +7440,8 @@ class AsExpression extends Expression {
   /// This is the case for instance for access to extension type representation
   /// fields on an extension type, where this node shows that the static type
   /// changes from the extension type of the declared representation type.
+  ///
+  /// This is also the case when a field access undergoes type promotion.
   bool get isUnchecked => flags & FlagUnchecked != 0;
 
   void set isUnchecked(bool value) {

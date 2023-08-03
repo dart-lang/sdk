@@ -3020,13 +3020,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         kind, receiver, originalName,
         resultType: calleeType, interfaceTarget: originalTarget)
       ..fileOffset = fileOffset;
-    calleeType = flowAnalysis.propertyGet(
-            originalPropertyGet,
-            computePropertyTarget(originalReceiver),
-            originalName.text,
-            originalTarget,
-            calleeType) ??
-        calleeType;
+    DartType? promotedCalleeType = flowAnalysis.propertyGet(
+        originalPropertyGet,
+        computePropertyTarget(originalReceiver),
+        originalName.text,
+        originalTarget,
+        calleeType);
     originalPropertyGet.resultType = calleeType;
     Expression propertyGet = originalPropertyGet;
     if (receiver is! ThisExpression &&
@@ -3044,6 +3043,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         instrumentation!.record(uriForInstrumentation, offset,
             'checkGetterReturn', new InstrumentationValueForType(calleeType));
       }
+    }
+
+    if (promotedCalleeType != null) {
+      propertyGet = new AsExpression(propertyGet, promotedCalleeType)
+        ..isUnchecked = true
+        ..fileOffset = fileOffset;
+      calleeType = promotedCalleeType;
     }
 
     if (isExpressionInvocation) {
@@ -3498,9 +3504,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (member is Procedure && member.kind == ProcedureKind.Method) {
       return instantiateTearOff(inferredType, typeContext, expression);
     }
-    inferredType = flowAnalysis.propertyGet(expression,
-            SuperPropertyTarget.singleton, name.text, member, inferredType) ??
-        inferredType;
+    DartType? promotedType = flowAnalysis.propertyGet(expression,
+        SuperPropertyTarget.singleton, name.text, member, inferredType);
+    if (promotedType != null) {
+      expression = new AsExpression(expression, promotedType)
+        ..isUnchecked = true
+        ..fileOffset = expression.fileOffset;
+      inferredType = promotedType;
+    }
     return new ExpressionInferenceResult(inferredType, expression);
   }
 
@@ -3983,6 +3994,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       required DartType typeContext,
       ObjectAccessTarget? readTarget,
       DartType? readType,
+      required DartType? promotedReadType,
       required bool isThisReceiver,
       Map<DartType, NonPromotionReason> Function()? whyNotPromoted}) {
     Expression read;
@@ -4140,6 +4152,14 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           ..isUnchecked = true
           ..fileOffset = fileOffset;
         break;
+    }
+
+    if (promotedReadType != null) {
+      read = new AsExpression(read, promotedReadType)
+        ..isForNonNullableByDefault = isNonNullableByDefault
+        ..isUnchecked = true
+        ..fileOffset = fileOffset;
+      readType = promotedReadType;
     }
 
     if (!isNonNullableByDefault) {

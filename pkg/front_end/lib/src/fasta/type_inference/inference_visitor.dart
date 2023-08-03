@@ -6671,13 +6671,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         includeExtensionMethods: true, isSetter: false);
 
     DartType readType = readTarget.getGetterType(this);
-    readType = flowAnalysis.propertyGet(
-            propertyGetNode,
-            computePropertyTarget(receiver),
-            propertyName.text,
-            readTarget.member,
-            readType) ??
-        readType;
+    DartType? promotedReadType = flowAnalysis.propertyGet(
+        propertyGetNode,
+        computePropertyTarget(receiver),
+        propertyName.text,
+        readTarget.member,
+        readType);
     return createPropertyGet(
         fileOffset: fileOffset,
         receiver: receiver,
@@ -6686,6 +6685,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         typeContext: typeContext,
         readTarget: readTarget,
         readType: readType,
+        promotedReadType: promotedReadType,
         isThisReceiver: isThisReceiver,
         whyNotPromoted: whyNotPromoted);
   }
