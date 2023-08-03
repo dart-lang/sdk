@@ -30,7 +30,10 @@ bool canUseAliasedSuperMember(MemberEntity member, Selector selector) {
 /// - Combine read/modify/write sequences into HReadModifyWrite instructions to
 ///   simplify codegen of expressions like `a.x += y`.
 class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
-    with CodegenPhase {
+    implements CodegenPhase {
+  @override
+  String get name => 'SsaInstructionSelection';
+
   final JClosedWorld _closedWorld;
   final CompilerOptions _options;
   late final HGraph graph;
@@ -484,7 +487,10 @@ class SsaInstructionSelection extends HBaseVisitor<HInstruction?>
 
 /// Remove [HTypeKnown] instructions from the graph, to make codegen analysis
 /// easier.
-class SsaTypeKnownRemover extends HBaseVisitor<void> with CodegenPhase {
+class SsaTypeKnownRemover extends HBaseVisitor<void> implements CodegenPhase {
+  @override
+  String get name => 'SsaTypeKnownRemover';
+
   @override
   void visitGraph(HGraph graph) {
     // Visit bottom-up to visit uses before instructions and capture refined
@@ -517,7 +523,10 @@ class SsaTypeKnownRemover extends HBaseVisitor<void> with CodegenPhase {
 /// Remove [HPrimitiveCheck] instructions from the graph in '--trust-primitives'
 /// mode.
 class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
-    with CodegenPhase {
+    implements CodegenPhase {
+  @override
+  String get name => 'SsaTrustedPrimitiveCheckRemover';
+
   final CompilerOptions _options;
 
   SsaTrustedPrimitiveCheckRemover(this._options);
@@ -552,7 +561,11 @@ class SsaTrustedPrimitiveCheckRemover extends HBaseVisitor<void>
 }
 
 /// Remove trusted late variable checks.
-class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
+class SsaTrustedLateCheckRemover extends HBaseVisitor<void>
+    implements CodegenPhase {
+  @override
+  String get name => 'SsaInstructionSelection';
+
   final AbstractValueDomain _abstractValueDomain;
 
   SsaTrustedLateCheckRemover(this._abstractValueDomain);
@@ -609,7 +622,10 @@ class SsaTrustedLateCheckRemover extends HBaseVisitor<void> with CodegenPhase {
 /// -->
 ///     b.y = a.x = v;
 class SsaAssignmentChaining extends HBaseVisitor<HInstruction?>
-    with CodegenPhase {
+    implements CodegenPhase {
+  @override
+  String get name => 'SsaAssignmentChaining';
+
   final JClosedWorld _closedWorld;
 
   SsaAssignmentChaining(this._closedWorld);
@@ -775,7 +791,10 @@ class SsaAssignmentChaining extends HBaseVisitor<HInstruction?>
 ///   t2 = add(t0, t1);
 /// t0 and t1 would be marked and the resulting code would then be:
 ///   t2 = add(4, 3);
-class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
+class SsaInstructionMerger extends HBaseVisitor<void> implements CodegenPhase {
+  @override
+  String get name => 'SsaInstructionMerger';
+
   final AbstractValueDomain _abstractValueDomain;
 
   /// List of [HInstruction] that the instruction merger expects in
@@ -1109,7 +1128,10 @@ class SsaInstructionMerger extends HBaseVisitor<void> with CodegenPhase {
 ///  Detect control flow arising from short-circuit logical and
 ///  conditional operators, and prepare the program to be generated
 ///  using these operators instead of nested ifs and boolean variables.
-class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
+class SsaConditionMerger extends HGraphVisitor implements CodegenPhase {
+  @override
+  String get name => 'SsaConditionMerger';
+
   Set<HInstruction> generateAtUseSite;
   Set<HIf> controlFlowOperators;
 
@@ -1285,7 +1307,11 @@ class SsaConditionMerger extends HGraphVisitor with CodegenPhase {
 /// Insert 'caches' for whole-function region-constants when the local minified
 /// name would be shorter than repeated references.  These are caches for 'this'
 /// and constant values.
-class SsaShareRegionConstants extends HBaseVisitor<void> with CodegenPhase {
+class SsaShareRegionConstants extends HBaseVisitor<void>
+    implements CodegenPhase {
+  @override
+  String get name => 'SsaShareRegionConstants';
+
   SsaShareRegionConstants();
 
   @override
