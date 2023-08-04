@@ -31,6 +31,7 @@ import 'package:front_end/src/api_prototype/experimental_flags.dart'
     show
         AllowedExperimentalFlags,
         ExperimentalFlag,
+        LibraryFeatures,
         defaultAllowedExperimentalFlags,
         isExperimentEnabled;
 import 'package:front_end/src/api_prototype/file_system.dart'
@@ -51,7 +52,7 @@ import 'package:front_end/src/fasta/compiler_context.dart' show CompilerContext;
 import 'package:front_end/src/fasta/crash.dart';
 import 'package:front_end/src/fasta/dill/dill_target.dart' show DillTarget;
 import 'package:front_end/src/fasta/incremental_compiler.dart'
-    show IncrementalCompiler;
+    show AdvancedInvalidationResult, IncrementalCompiler;
 import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_builder.dart'
     show ClassHierarchyBuilder;
 import 'package:front_end/src/fasta/kernel/hierarchy/hierarchy_node.dart'
@@ -1342,8 +1343,10 @@ class FuzzCompiles
         bool didRebuildBodiesOnly =
             incrementalCompiler.recorderForTesting.rebuildBodiesCount! > 0;
         if (!didRebuildBodiesOnly) {
+          AdvancedInvalidationResult? error =
+              incrementalCompiler.recorderForTesting.advancedInvalidationResult;
           return new Result<ComponentResult>(originalCompilationResult,
-              semiFuzzFailure, "Didn't rebuild bodies only!");
+              semiFuzzFailure, "Didn't rebuild bodies only! (error: $error)");
         }
       }
       final Component newComponent = newResult.component;
@@ -1507,8 +1510,12 @@ class FuzzCompiles
       }
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
-        fuzzAstVisitorSorter =
-            new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+        LibraryFeatures libFeatures = new LibraryFeatures(
+            compilationSetup.options.globalFeatures,
+            builder.importUri,
+            builder.library.languageVersion);
+        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
+            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1647,8 +1654,12 @@ class FuzzCompiles
       Uint8List orgData = fs.data[uri]!;
       FuzzAstVisitorSorter fuzzAstVisitorSorter;
       try {
-        fuzzAstVisitorSorter =
-            new FuzzAstVisitorSorter(orgData, builder.isNonNullableByDefault);
+        LibraryFeatures libFeatures = new LibraryFeatures(
+            compilationSetup.options.globalFeatures,
+            builder.importUri,
+            builder.library.languageVersion);
+        fuzzAstVisitorSorter = new FuzzAstVisitorSorter(orgData,
+            builder.isNonNullableByDefault, libFeatures.patterns.isEnabled);
       } on FormatException catch (e, st) {
         // UTF-16-LE formatted test crashes `utf8.decode(bytes)` --- catch that
         return new Result<ComponentResult>(
@@ -1876,13 +1887,16 @@ class FuzzAstVisitorSorter extends ParserAstVisitor {
   final Uint8List bytes;
   final String asString;
   final bool nnbd;
+  final bool allowPatterns;
 
-  FuzzAstVisitorSorter(this.bytes, this.nnbd) : asString = utf8.decode(bytes) {
+  FuzzAstVisitorSorter(this.bytes, this.nnbd, this.allowPatterns)
+      : asString = utf8.decode(bytes) {
     CompilationUnitEnd ast = getAST(bytes,
         includeBody: false,
         includeComments: true,
         enableExtensionMethods: true,
-        enableNonNullable: nnbd);
+        enableNonNullable: nnbd,
+        allowPatterns: allowPatterns);
     accept(ast);
 
     if (metadataStart == null &&

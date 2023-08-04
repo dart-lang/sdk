@@ -35,6 +35,7 @@ CompilationUnitEnd getAST(List<int> rawBytes,
     bool enableExtensionMethods = false,
     bool enableNonNullable = false,
     bool enableTripleShift = false,
+    bool allowPatterns = false,
     List<Token>? languageVersionsSeen}) {
   Uint8List bytes = new Uint8List(rawBytes.length + 1);
   bytes.setRange(0, rawBytes.length, rawBytes);
@@ -58,11 +59,17 @@ CompilationUnitEnd getAST(List<int> rawBytes,
   ParserASTListener listener = new ParserASTListener();
   Parser parser;
   if (includeBody) {
-    parser = new Parser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    parser = new Parser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: allowPatterns,
+    );
   } else {
-    parser = new ClassMemberParser(listener,
-        useImplicitCreationExpression: useImplicitCreationExpressionInCfe);
+    parser = new ClassMemberParser(
+      listener,
+      useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
+      allowPatterns: allowPatterns,
+    );
   }
   parser.parseUnit(firstToken);
   return listener.data.single as CompilationUnitEnd;
