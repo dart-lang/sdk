@@ -330,7 +330,8 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
             _util.jsifyTarget(expr.getStaticType(_staticTypeContext)),
             Arguments([expr])))
         .toList();
-    assert(function.returnType.isStaticInteropType);
+    assert(
+        factory._inlineExtensionIndex.isStaticInteropType(function.returnType));
     return invokeOneArg(_util.jsValueBoxTarget,
         StaticInvocation(interopProcedure, Arguments(positionalArgs)));
   }
@@ -345,12 +346,8 @@ class InteropSpecializerFactory {
   late String _libraryJSString;
   late final InlineExtensionIndex _inlineExtensionIndex;
 
-  InteropSpecializerFactory(
-      this._staticTypeContext, this._util, this._methodCollector) {
-    final typeEnvironment = _staticTypeContext.typeEnvironment;
-    _inlineExtensionIndex =
-        InlineExtensionIndex(typeEnvironment.coreTypes, typeEnvironment);
-  }
+  InteropSpecializerFactory(this._staticTypeContext, this._util,
+      this._methodCollector, this._inlineExtensionIndex);
 
   void enterLibrary(Library library) {
     _libraryJSString = getJSName(library);

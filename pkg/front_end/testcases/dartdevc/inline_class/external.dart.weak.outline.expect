@@ -21,10 +21,13 @@ inline class B /* declaredRepresentationType = self::A */ {
   set field = self::B|set#field;
   method method = self::B|method;
   tearoff method = self::B|get#method;
+  method genericMethod = self::B|genericMethod;
+  tearoff genericMethod = self::B|get#genericMethod;
   get getter = self::B|get#getter;
   static get staticField = get self::B|staticField;
   static set staticField = set self::B|staticField;
   static method staticMethod = self::B|staticMethod;
+  static method staticGenericMethod = self::B|staticGenericMethod;
   static get staticGetter = get self::B|staticGetter;
   set setter = self::B|set#setter;
   static set staticSetter = set self::B|staticSetter;
@@ -44,11 +47,15 @@ external static inline-class-member method B|set#field(lowered self::A #this, se
 external static inline-class-member method B|method(lowered final self::B #this) → self::A;
 static inline-class-member method B|get#method(lowered final self::B #this) → () → self::A
   return () → self::A => self::B|method(#this);
+external static inline-class-member method B|genericMethod<T extends self::B>(lowered final self::B #this, self::B|genericMethod::T t) → self::B|genericMethod::T;
+static inline-class-member method B|get#genericMethod(lowered final self::B #this) → <T extends self::B>(T) → T
+  return <T extends self::B>(T t) → T => self::B|genericMethod<T>(#this, t);
 external static inline-class-member method B|get#getter(lowered final self::B #this) → self::B;
 external static inline-class-member method B|set#setter(lowered final self::B #this, self::B b) → void;
 external static inline-class-member get B|staticField() → self::A;
 external static inline-class-member set B|staticField(self::A #externalFieldValue) → void;
 external static inline-class-member method B|staticMethod() → self::A;
+external static inline-class-member method B|staticGenericMethod<T extends self::B>(self::B|staticGenericMethod::T t) → self::B|staticGenericMethod::T;
 external static inline-class-member get B|staticGetter() → self::B;
 external static inline-class-member set B|staticSetter(self::B b) → void;
 static method method(self::A a) → void
@@ -60,4 +67,4 @@ Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:6:2 ->
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:11:2 -> InstanceConstant(const JS{JS.name: null})
 Evaluated: StaticGet @ org-dartlang-testcase:///external.dart:12:2 -> InstanceConstant(const _StaticInterop{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///external.dart:15:2 -> InstanceConstant(const JS{JS.name: null})
-Extra constant evaluation: evaluated: 12, effectively constant: 4
+Extra constant evaluation: evaluated: 16, effectively constant: 4

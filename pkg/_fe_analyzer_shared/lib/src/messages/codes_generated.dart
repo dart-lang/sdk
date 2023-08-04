@@ -7803,7 +7803,7 @@ const Template<
             name)> templateJsInteropExportDisallowedMember = const Template<
         Message Function(String name)>(
     problemMessageTemplate:
-        r"""Member '#name' is not a concrete instance member, and therefore can't be exported.""",
+        r"""Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
     correctionMessageTemplate:
         r"""Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
     withArguments: _withArgumentsJsInteropExportDisallowedMember);
@@ -7820,7 +7820,7 @@ Message _withArgumentsJsInteropExportDisallowedMember(String name) {
   name = demangleMixinApplicationName(name);
   return new Message(codeJsInteropExportDisallowedMember,
       problemMessage:
-          """Member '${name}' is not a concrete instance member, and therefore can't be exported.""",
+          """Member '${name}' is not a concrete instance member or declares type parameters, and therefore can't be exported.""",
       correctionMessage: """Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead.""",
       arguments: {'name': name});
 }

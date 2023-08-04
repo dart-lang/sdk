@@ -11,10 +11,12 @@ inline class B {
   external B.named(int i);
   external A field;
   external A method();
+  external T genericMethod<T extends B>(T t);
   external B get getter;
   external void set setter(B b);
   external static A staticField;
   external static A staticMethod();
+  external static T staticGenericMethod<T extends B>(T t);
   external static B get staticGetter;
   external static void set staticSetter(B b);
 }

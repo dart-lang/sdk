@@ -23,9 +23,7 @@ inline class B {
 
   external A method();
 
-  // TODO: Once https://github.com/dart-lang/sdk/issues/53046 is resolved,
-  // uncomment this, the static variant below, and the usage of the members.
-  // external T genericMethod<T extends B>(T t);
+  external T genericMethod<T extends B>(T t);
 
   external B get getter;
 
@@ -35,7 +33,7 @@ inline class B {
 
   external static A staticMethod();
 
-  // external static T staticGenericMethod<T extends B>(T t);
+  external static T staticGenericMethod<T extends B>(T t);
 
   external static B get staticGetter;
 
@@ -48,13 +46,13 @@ void method(A a) {
   a = b1.field;
   b1.field = a;
   a = b1.method();
-  // b2 = b2.genericMethod(b2);
+  b2 = b2.genericMethod(b2);
   b1 = b2.getter;
   b1.setter = b2;
   a = B.staticField;
   B.staticField = a;
   a = B.staticMethod();
-  // b2 = B.staticGenericMethod(b2);
+  b2 = B.staticGenericMethod(b2);
   b1 = B.staticGetter;
   B.staticSetter = b2;
 }

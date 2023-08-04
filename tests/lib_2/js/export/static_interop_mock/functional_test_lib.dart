@@ -6,8 +6,12 @@
 // (final and not), getters, and setters are tested along with potential
 // renames.
 
+@JS()
+library functional_test_lib;
+
+import 'dart:js_interop';
+
 import 'package:expect/minitest.dart';
-import 'package:js/js.dart';
 import 'package:js/js_util.dart';
 
 @JS()
@@ -21,7 +25,7 @@ extension on Methods {
   @JS('_rename')
   external String rename();
   external String optionalConcat(String foo, String bar,
-      [String boo = '', String? baz]);
+      [String boo, String? baz]);
 }
 
 @JSExport()
@@ -84,6 +88,58 @@ class GetSetDart {
   String _differentNameSameRename = 'initialized';
 }
 
+@JS()
+@staticInterop
+class Supersupertype {}
+
+@JS()
+@staticInterop
+class Supertype<T extends JSObject> implements Supersupertype {}
+
+extension SupertypeExtension<T extends JSObject> on Supertype<T> {
+  external T superMethod(T param);
+}
+
+// Note that even though `Supertype` is instantiated with `JSArray`, we still
+// require users to implement `superMethod` using the `JSObject` bound.
+// Functionally, this means `superMethod` needs to accept a `JSObject` (or a
+// supertype), even though an object typed `Params` can never actually call
+// `superMethod` with a type less specific than `JSArray`. This is probably
+// rare, but can be a bit frustrating. A similar analysis can be made for the
+// type parameters on `Params`. A user may want to mock only a
+// `Params<JSArray, Params>`, but we require them to mock a
+// `Params<JSObject, Supertype>` as those are the bounds. Unlike the
+// `superMethod` case however, we have an error check when trying to pass in
+// such a type to `createStaticInteropMock` to reduce confusion.
+@JS()
+@staticInterop
+class Params<T extends JSObject, U extends Supertype>
+    extends Supertype<JSArray> {
+  external factory Params();
+}
+
+extension ParamsExtension<T extends JSObject, U extends Supertype>
+    on Params<T, U> {
+  external T get getSet;
+  external set getSet(T val);
+  external T method(T param);
+  external U interopTypeMethod(U param);
+  external V genericMethod<V extends JSObject>(V param);
+}
+
+late JSObject _jsObject;
+
+@JSExport()
+class ParamsImpl<S extends JSObject, T extends JSObject, U extends Supertype> {
+  S superMethod(S param) => param;
+
+  T get getSet => _jsObject as T;
+  set getSet(T val) => _jsObject = val;
+  T method(T param) => param;
+  U interopTypeMethod(U param) => param;
+  JSObject genericMethod(JSObject param) => param;
+}
+
 void test([Object? proto]) {
   var jsMethods =
       createStaticInteropMock<Methods, MethodsDart>(MethodsDart(), proto);
@@ -138,4 +194,18 @@ void test([Object? proto]) {
   expect(jsGetSet.renamedGetSet, 'dartModified');
   expect(jsGetSet.sameNameDifferentRename, 'dartModifiedGet');
   expect(jsGetSet.differentNameSameRenameGet, 'dartModified');
+  // Calling members with type parameters.
+  final jsParams = createStaticInteropMock<Params, ParamsImpl>(ParamsImpl());
+  final jsArray = JSArray();
+  expect(jsParams.superMethod(jsArray), jsArray);
+  _jsObject = newObject<JSObject>();
+  expect(jsParams.getSet, _jsObject);
+  final newJsObject = newObject<JSObject>();
+  jsParams.getSet = newJsObject;
+  expect(jsParams.getSet, newJsObject);
+  expect(jsParams.method(_jsObject), _jsObject);
+  expect(jsParams.interopTypeMethod(_jsObject as Supertype), _jsObject);
+  expect(jsParams.genericMethod(_jsObject), _jsObject);
+  expect(jsParams.genericMethod<JSObject>(_jsObject), _jsObject);
+  expect(jsParams.genericMethod<JSArray>(jsArray), jsArray);
 }

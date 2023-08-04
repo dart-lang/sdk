@@ -3939,6 +3939,38 @@ Message _withArgumentsJsInteropStaticInteropMockNotStaticInteropType(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
+    templateJsInteropStaticInteropMockTypeParametersNotAllowed = const Template<
+            Message Function(DartType _type, bool isNonNullableByDefault)>(
+        problemMessageTemplate:
+            r"""Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""",
+        correctionMessageTemplate:
+            r"""Remove the type parameter in the type argument or replace it with its bound.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(DartType _type, bool isNonNullableByDefault)>
+    codeJsInteropStaticInteropMockTypeParametersNotAllowed =
+    const Code<Message Function(DartType _type, bool isNonNullableByDefault)>(
+  "JsInteropStaticInteropMockTypeParametersNotAllowed",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropMockTypeParametersNotAllowed(
+    DartType _type, bool isNonNullableByDefault) {
+  TypeLabeler labeler = new TypeLabeler(isNonNullableByDefault);
+  List<Object> typeParts = labeler.labelType(_type);
+  String type = typeParts.join();
+  return new Message(codeJsInteropStaticInteropMockTypeParametersNotAllowed,
+      problemMessage:
+          """Type argument '${type}' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance.""" +
+              labeler.originMessages,
+      correctionMessage: """Remove the type parameter in the type argument or replace it with its bound.""",
+      arguments: {'type': _type});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(DartType _type, bool isNonNullableByDefault)>
     templateJsInteropStrictModeViolation = const Template<
             Message Function(DartType _type, bool isNonNullableByDefault)>(
         problemMessageTemplate:

@@ -967,4 +967,15 @@ class InlineExtensionIndex {
 
   bool isNonLiteralConstructor(Procedure node) =>
       _isStaticInteropConstructor(node, literal: false);
+
+  bool isStaticInteropType(DartType type) {
+    if (type is InterfaceType) {
+      return hasStaticInteropAnnotation(type.classNode);
+    } else if (type is ExtensionType) {
+      return isInteropInlineClass(type.extensionTypeDeclaration);
+    } else if (type is TypeParameterType) {
+      return isStaticInteropType(type.bound);
+    }
+    return false;
+  }
 }

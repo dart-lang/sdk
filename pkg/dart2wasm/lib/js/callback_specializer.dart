@@ -1,7 +1,8 @@
 // Copyright (c) 2023, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
+    show InlineExtensionIndex;
 import 'package:dart2wasm/js/method_collector.dart';
 import 'package:dart2wasm/js/util.dart';
 import 'package:kernel/ast.dart';
@@ -12,9 +13,10 @@ class CallbackSpecializer {
   final StatefulStaticTypeContext _staticTypeContext;
   final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
+  final InlineExtensionIndex _inlineExtensionIndex;
 
-  CallbackSpecializer(
-      this._staticTypeContext, this._util, this._methodCollector) {}
+  CallbackSpecializer(this._staticTypeContext, this._util,
+      this._methodCollector, this._inlineExtensionIndex) {}
 
   bool _needsArgumentsLength(FunctionType type) =>
       type.requiredParameterCount < type.positionalParameters.length;
@@ -30,7 +32,8 @@ class CallbackSpecializer {
       DartType callbackParameterType = function.positionalParameters[i];
       Expression expression;
       VariableGet v = VariableGet(positionalParameters[i]);
-      if (callbackParameterType.isStaticInteropType && boxExternRef) {
+      if (_inlineExtensionIndex.isStaticInteropType(callbackParameterType) &&
+          boxExternRef) {
         expression = _createJSValue(v);
       } else {
         expression = AsExpression(
