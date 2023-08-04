@@ -25,9 +25,12 @@ class C {
   void instanceMethod() {
     ((int y) {
       debugger();
+      use(this);
     })(78);
   }
 }
+
+void use(_) {}
 
 testMain() {
   C c = C();

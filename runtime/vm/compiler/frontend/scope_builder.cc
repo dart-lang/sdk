@@ -1928,6 +1928,8 @@ void ScopeBuilder::HandleLoadReceiver() {
     // use-site also includes the [receiver].
     scope_->CaptureVariable(parsed_function_->receiver_var());
   }
+
+  parsed_function_->set_receiver_used();
 }
 
 void ScopeBuilder::HandleSpecialLoad(LocalVariable** variable,

@@ -1055,28 +1055,27 @@ ObjectPtr ActivationFrame::EvaluateCompiledExpression(
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) {
-  if (function().IsClosureFunction()) {
-    return Library::Handle(Library()).EvaluateCompiledExpression(
-        kernel_buffer, type_definitions, arguments, type_arguments);
-  } else if (function().is_static()) {
-    const Class& cls = Class::Handle(function().Owner());
-    return cls.EvaluateCompiledExpression(kernel_buffer, type_definitions,
-                                          arguments, type_arguments);
-  } else {
-    const Object& receiver = Object::Handle(GetReceiver());
-    if (receiver.ptr() == Object::optimized_out().ptr()) {
-      // Cannot execute an instance method without a receiver.
-      return Object::optimized_out().ptr();
-    }
-    const Class& method_cls = Class::Handle(function().Owner());
-    ASSERT(receiver.IsInstance() || receiver.IsNull());
-    if (!(receiver.IsInstance() || receiver.IsNull())) {
-      return Object::null();
-    }
-    const Instance& inst = Instance::Cast(receiver);
-    return inst.EvaluateCompiledExpression(
-        method_cls, kernel_buffer, type_definitions, arguments, type_arguments);
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+
+  // The expression evaluation function will get all it's captured state passed
+  // as parameters (with `this` being the exception). As a result, we treat the
+  // expression evaluation function as either a top-level, static or instance
+  // method.
+  const auto& outermost =
+      Function::Handle(zone, function().GetOutermostFunction());
+  const auto& klass = Class::Handle(zone, outermost.Owner());
+  const auto& library = Library::Handle(zone, klass.library());
+
+  auto& receiver = Object::Handle(zone);
+  if (!klass.IsTopLevel() && !outermost.is_static()) {
+    receiver = GetReceiver();
+    RELEASE_ASSERT(receiver.IsInstance() ||
+                   receiver.ptr() == Object::optimized_out().ptr());
   }
+  return Instance::EvaluateCompiledExpression(thread, receiver, library, klass,
+                                              kernel_buffer, type_definitions,
+                                              arguments, type_arguments);
 }
 
 TypeArgumentsPtr ActivationFrame::BuildParameters(

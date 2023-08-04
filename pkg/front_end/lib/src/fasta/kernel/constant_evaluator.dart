@@ -5442,7 +5442,7 @@ class ConstantEvaluator implements ExpressionVisitor<Constant> {
   }
 }
 
-class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
+class StatementConstantEvaluator implements StatementVisitor<ExecutionStatus> {
   ConstantEvaluator exprEvaluator;
 
   StatementConstantEvaluator(this.exprEvaluator) {
@@ -5691,6 +5691,37 @@ class StatementConstantEvaluator extends StatementVisitor<ExecutionStatus> {
     if (condition is AbortConstant) return new AbortStatus(condition);
     assert(condition is BoolConstant);
     return const ProceedStatus();
+  }
+
+  @override
+  ExecutionStatus visitForInStatement(ForInStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('For-in statement.')));
+  }
+
+  @override
+  ExecutionStatus visitIfCaseStatement(IfCaseStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('If-case statement.')));
+  }
+
+  @override
+  ExecutionStatus visitPatternSwitchStatement(PatternSwitchStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
+        templateConstEvalError.withArguments('Pattern switch statement.')));
+  }
+
+  @override
+  ExecutionStatus visitPatternVariableDeclaration(
+      PatternVariableDeclaration node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(node,
+        templateConstEvalError.withArguments('Pattern variable declaration.')));
+  }
+
+  @override
+  ExecutionStatus visitYieldStatement(YieldStatement node) {
+    return new AbortStatus(exprEvaluator.createEvaluationErrorConstant(
+        node, templateConstEvalError.withArguments('Yield statement.')));
   }
 }
 

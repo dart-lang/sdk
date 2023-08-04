@@ -203,9 +203,6 @@ KernelLoader::KernelLoader(Program* program,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       static_field_value_(Object::Handle(Z)),
-      pragma_class_(Class::Handle(Z)),
-      pragma_name_field_(Field::Handle(Z)),
-      pragma_options_field_(Field::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
   if (!program->is_single_program()) {
@@ -467,9 +464,6 @@ KernelLoader::KernelLoader(const KernelProgramInfo& kernel_program_info,
                        /* finalize= */ false),
       inferred_type_metadata_helper_(&helper_, &constant_reader_),
       static_field_value_(Object::Handle(Z)),
-      pragma_class_(Class::Handle(Z)),
-      pragma_name_field_(Field::Handle(Z)),
-      pragma_options_field_(Field::Handle(Z)),
       name_index_handle_(Smi::Handle(Z)),
       expression_evaluation_library_(Library::Handle(Z)) {
   ASSERT(T.active_class_ == &active_class_);
@@ -517,12 +511,6 @@ ObjectPtr KernelLoader::LoadProgram(bool process_pending_classes) {
         return H.thread()->StealStickyError();
       }
     }
-
-    // Ensure that `pragma` class is looked up before we install the constants
-    // table: Once the constants table is installed finalization of classes will
-    // eagerly want to evaluate constants and doing so will require those two
-    // classes to be available.
-    EnsurePragmaClassIsLookedUp();
 
     // Sets the constants array to an empty array with the length equal to
     // the number of constants. The array gets filled lazily while reading
@@ -1029,11 +1017,8 @@ void KernelLoader::FinishTopLevelClassLoading(
 
     field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
     intptr_t annotation_count = helper_.ReadListLength();
-    bool has_pragma_annotation;
-    ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      /*is_invisible_function=*/nullptr,
-                      /*is_isolate_unsendable=*/nullptr,
-                      &has_pragma_annotation);
+    uint32_t pragma_bits = 0;
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     field_helper.SetJustRead(FieldHelper::kAnnotations);
 
     field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1052,7 +1037,7 @@ void KernelLoader::FinishTopLevelClassLoading(
                               script_class, field_helper.position_,
                               field_helper.end_position_));
     field.set_kernel_offset(field_offset);
-    field.set_has_pragma(has_pragma_annotation);
+    field.set_has_pragma(HasPragma::decode(pragma_bits));
     field.set_is_extension_member(is_extension_member);
     const AbstractType& type = T.BuildType();  // read type.
     field.SetFieldType(type);
@@ -1075,7 +1060,7 @@ void KernelLoader::FinishTopLevelClassLoading(
     GenerateFieldAccessors(toplevel_class, field, &field_helper);
     IG->RegisterStaticField(field, static_field_value_);
 
-    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+    if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
         annotation_count > 0) {
       library.AddMetadata(field, field_offset);
     }
@@ -1344,15 +1329,12 @@ void KernelLoader::LoadClass(const Library& library,
 
   class_helper.ReadUntilExcluding(ClassHelper::kAnnotations);
   intptr_t annotation_count = helper_.ReadListLength();
-  bool has_pragma_annotation = false;
-  bool is_isolate_unsendable = false;
-  ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                    /*is_invisible_function=*/nullptr, &is_isolate_unsendable,
-                    &has_pragma_annotation);
-  if (is_isolate_unsendable) {
+  uint32_t pragma_bits = 0;
+  ReadVMAnnotations(library, annotation_count, &pragma_bits);
+  if (IsolateUnsendablePragma::decode(pragma_bits)) {
     out_class->set_is_isolate_unsendable_due_to_pragma(true);
   }
-  if (has_pragma_annotation) {
+  if (HasPragma::decode(pragma_bits)) {
     out_class->set_has_pragma(true);
   }
   class_helper.SetJustRead(ClassHelper::kAnnotations);
@@ -1368,7 +1350,8 @@ void KernelLoader::LoadClass(const Library& library,
     class_helper.SetJustRead(ClassHelper::kTypeParameters);
   }
 
-  if ((FLAG_enable_mirrors || has_pragma_annotation) && annotation_count > 0) {
+  if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
+      annotation_count > 0) {
     library.AddMetadata(*out_class, class_offset - correction_offset_);
   }
 
@@ -1427,12 +1410,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       field_helper.SetJustRead(FieldHelper::kName);
 
       field_helper.ReadUntilExcluding(FieldHelper::kAnnotations);
-      intptr_t annotation_count = helper_.ReadListLength();
-      bool has_pragma_annotation;
-      ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                        /*is_invisible_function=*/nullptr,
-                        /*is_isolate_unsendable=*/nullptr,
-                        &has_pragma_annotation);
+      const intptr_t annotation_count = helper_.ReadListLength();
+      uint32_t pragma_bits = 0;
+      ReadVMAnnotations(library, annotation_count, &pragma_bits);
       field_helper.SetJustRead(FieldHelper::kAnnotations);
 
       field_helper.ReadUntilExcluding(FieldHelper::kType);
@@ -1454,7 +1434,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
                         script_class, type, field_helper.position_,
                         field_helper.end_position_));
       field.set_kernel_offset(field_offset);
-      field.set_has_pragma(has_pragma_annotation);
+      field.set_has_pragma(HasPragma::decode(pragma_bits));
       field.set_is_covariant(field_helper.IsCovariant());
       field.set_is_generic_covariant_impl(
           field_helper.IsGenericCovariantImpl());
@@ -1479,7 +1459,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
       if (field.is_static()) {
         IG->RegisterStaticField(field, static_field_value_);
       }
-      if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+      if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
           annotation_count > 0) {
         library.AddMetadata(field, field_offset);
       }
@@ -1554,12 +1534,9 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     ActiveMemberScope active_member_scope(&active_class_, nullptr);
     ConstructorHelper constructor_helper(&helper_);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kAnnotations);
-    intptr_t annotation_count = helper_.ReadListLength();
-    bool has_pragma_annotation;
-    bool is_invisible_function;
-    ReadVMAnnotations(library, annotation_count, /*native_name=*/nullptr,
-                      &is_invisible_function, /*isolate_unsendable=*/nullptr,
-                      &has_pragma_annotation);
+    const intptr_t annotation_count = helper_.ReadListLength();
+    uint32_t pragma_bits = 0;
+    ReadVMAnnotations(library, annotation_count, &pragma_bits);
     constructor_helper.SetJustRead(ConstructorHelper::kAnnotations);
     constructor_helper.ReadUntilExcluding(ConstructorHelper::kFunction);
 
@@ -1587,8 +1564,8 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     function.set_end_token_pos(constructor_helper.end_position_);
     function.set_kernel_offset(constructor_offset);
     signature.set_result_type(T.ReceiverType(klass));
-    function.set_has_pragma(has_pragma_annotation);
-    function.set_is_visible(!is_invisible_function);
+    function.set_has_pragma(HasPragma::decode(pragma_bits));
+    function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
 
     FunctionNodeHelper function_node_helper(&helper_);
     function_node_helper.ReadUntilExcluding(
@@ -1622,7 +1599,7 @@ void KernelLoader::FinishClassLoading(const Class& klass,
     }
     functions_.Add(&function);
 
-    if ((FLAG_enable_mirrors || has_pragma_annotation) &&
+    if ((FLAG_enable_mirrors || HasPragma::decode(pragma_bits)) &&
         annotation_count > 0) {
       library.AddMetadata(function, constructor_offset);
     }
@@ -1709,23 +1686,15 @@ void KernelLoader::FinishLoading(const Class& klass) {
 //
 // Output parameters:
 //
-//   `is_invisible_function`: if `@pragma('vm:invisible)` was found.
+//   `native_name`: the native name if @pragma('vm:external-name)` was found.
 //
-//   `native_name`: set if @pragma('vm:external-name)` was identified.
-//
-//   `has_pragma_annotation`: if `@pragma(...)` was found (no information
-//   is given on the kind of pragma directive).
+//   `pragma_bits`: any recognized pragma that was found
 //
 void KernelLoader::ReadVMAnnotations(const Library& library,
                                      intptr_t annotation_count,
-                                     String* native_name,
-                                     bool* is_invisible_function,
-                                     bool* is_isolate_unsendable,
-                                     bool* has_pragma_annotation) {
-  if (is_invisible_function != nullptr) {
-    *is_invisible_function = false;
-  }
-  *has_pragma_annotation = false;
+                                     uint32_t* pragma_bits,
+                                     String* native_name) {
+  *pragma_bits = 0;
   if (annotation_count == 0) {
     return;
   }
@@ -1748,24 +1717,18 @@ void KernelLoader::ReadVMAnnotations(const Library& library,
       intptr_t options_index = -1;
       if (constant_reader.IsPragmaInstanceConstant(
               index_in_constant_table, &name_index, &options_index)) {
-        *has_pragma_annotation = true;
+        *pragma_bits = HasPragma::update(true, *pragma_bits);
 
-        if (is_invisible_function != nullptr) {
-          if (constant_reader.IsStringConstant(name_index, "vm:invisible")) {
-            *is_invisible_function = true;
-          }
+        if (constant_reader.IsStringConstant(name_index, "vm:invisible")) {
+          *pragma_bits = InvisibleFunctionPragma::update(true, *pragma_bits);
         }
-        if (native_name != nullptr) {
-          if (constant_reader.IsStringConstant(name_index,
-                                               "vm:external-name")) {
-            constant_reader.GetStringConstant(options_index, native_name);
-          }
+        if (constant_reader.IsStringConstant(name_index, "vm:external-name")) {
+          *pragma_bits = ExternalNamePragma::update(true, *pragma_bits);
+          constant_reader.GetStringConstant(options_index, native_name);
         }
-        if (is_isolate_unsendable != nullptr) {
-          if (constant_reader.IsStringConstant(name_index,
-                                               "vm:isolate-unsendable")) {
-            *is_isolate_unsendable = true;
-          }
+        if (constant_reader.IsStringConstant(name_index,
+                                             "vm:isolate-unsendable")) {
+          *pragma_bits = IsolateUnsendablePragma::update(true, *pragma_bits);
         }
       }
     } else {
@@ -1802,12 +1765,9 @@ void KernelLoader::LoadProcedure(const Library& library,
   bool is_extension_member = procedure_helper.IsExtensionMember();
   bool is_synthetic = procedure_helper.IsSynthetic();
   String& native_name = String::Handle(Z);
-  bool has_pragma_annotation;
-  bool is_invisible_function;
+  uint32_t pragma_bits = 0;
   const intptr_t annotation_count = helper_.ReadListLength();
-  ReadVMAnnotations(library, annotation_count, &native_name,
-                    &is_invisible_function, /*isolate_unsendable=*/nullptr,
-                    &has_pragma_annotation);
+  ReadVMAnnotations(library, annotation_count, &pragma_bits, &native_name);
   is_external = is_external && native_name.IsNull();
   procedure_helper.SetJustRead(ProcedureHelper::kAnnotations);
   const Object& script_class =
@@ -1827,12 +1787,12 @@ void KernelLoader::LoadProcedure(const Library& library,
                        is_abstract, is_external,
                        !native_name.IsNull(),  // is_native
                        script_class, procedure_helper.start_position_));
-  function.set_has_pragma(has_pragma_annotation);
+  function.set_has_pragma(HasPragma::decode(pragma_bits));
   function.set_end_token_pos(procedure_helper.end_position_);
   function.set_is_synthetic(procedure_helper.IsNoSuchMethodForwarder() ||
                             procedure_helper.IsMemberSignature() ||
                             is_synthetic);
-  function.set_is_visible(!is_invisible_function);
+  function.set_is_visible(!InvisibleFunctionPragma::decode(pragma_bits));
   if (register_function) {
     functions_.Add(&function);
   } else {

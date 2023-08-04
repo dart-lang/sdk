@@ -4800,32 +4800,164 @@ ObjectPtr Class::Invoke(const String& function_name,
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
+
+static ObjectPtr LoadExpressionEvaluationFunction(
+    Zone* zone,
+    const ExternalTypedData& kernel_buffer,
+    const String& library_url,
+    const String& klass) {
+  std::unique_ptr<kernel::Program> kernel_pgm =
+      kernel::Program::ReadFromTypedData(kernel_buffer);
+
+  if (kernel_pgm == nullptr) {
+    return ApiError::New(String::Handle(
+        zone, String::New("Kernel isolate returned ill-formed kernel.")));
+  }
+
+  auto& result = Object::Handle(zone);
+  {
+    kernel::KernelLoader loader(kernel_pgm.get(),
+                                /*uri_to_source_table=*/nullptr);
+    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
+    kernel_pgm.reset();
+  }
+  if (result.IsError()) return result.ptr();
+  return Function::Cast(result).ptr();
+}
+
+static bool EvaluationFunctionNeedsReceiver(Thread* thread,
+                                            Zone* zone,
+                                            const Function& eval_function) {
+  auto parsed_function = new ParsedFunction(
+      thread, Function::ZoneHandle(zone, eval_function.ptr()));
+  parsed_function->EnsureKernelScopes();
+  return parsed_function->is_receiver_used();
+}
+
 static ObjectPtr EvaluateCompiledExpressionHelper(
+    Zone* zone,
+    const Function& eval_function,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+  // type_arguments is null if all type arguments are dynamic.
+  if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
+    return DartEntry::InvokeFunction(eval_function, arguments);
+  }
+
+  intptr_t num_type_args = type_arguments.Length();
+  const auto& real_arguments =
+      Array::Handle(zone, Array::New(arguments.Length() + 1));
+  real_arguments.SetAt(0, type_arguments);
+  Object& arg = Object::Handle(zone);
+  for (intptr_t i = 0; i < arguments.Length(); ++i) {
+    arg = arguments.At(i);
+    real_arguments.SetAt(i + 1, arg);
+  }
+
+  const Array& args_desc =
+      Array::Handle(zone, ArgumentsDescriptor::NewBoxed(
+                              num_type_args, arguments.Length(), Heap::kNew));
+  return DartEntry::InvokeFunction(eval_function, real_arguments, args_desc);
+}
+
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
+
+ObjectPtr Library::EvaluateCompiledExpression(
     const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
-    const String& library_url,
-    const String& klass,
     const Array& arguments,
-    const TypeArguments& type_arguments);
+    const TypeArguments& type_arguments) const {
+  const auto& klass = Class::Handle(toplevel_class());
+  return klass.EvaluateCompiledExpression(kernel_buffer, type_definitions,
+                                          arguments, type_arguments);
+}
 
 ObjectPtr Class::EvaluateCompiledExpression(
     const ExternalTypedData& kernel_buffer,
     const Array& type_definitions,
     const Array& arguments,
     const TypeArguments& type_arguments) const {
-  ASSERT(Thread::Current()->IsDartMutatorThread());
-  if (IsInternalOnlyClassId(id()) || (id() == kTypeArgumentsCid)) {
-    const Instance& exception = Instance::Handle(String::New(
-        "Expressions can be evaluated only with regular Dart instances"));
-    const Instance& stacktrace = Instance::Handle();
-    return UnhandledException::New(exception, stacktrace);
+  auto thread = Thread::Current();
+  const auto& library = Library::Handle(thread->zone(), this->library());
+  return Instance::EvaluateCompiledExpression(
+      thread, Instance::null_object(), library, *this, kernel_buffer,
+      type_definitions, arguments, type_arguments);
+}
+
+ObjectPtr Instance::EvaluateCompiledExpression(
+    const Class& klass,
+    const ExternalTypedData& kernel_buffer,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) const {
+  auto thread = Thread::Current();
+  auto zone = thread->zone();
+  const auto& library = Library::Handle(zone, klass.library());
+  return Instance::EvaluateCompiledExpression(thread, *this, library, klass,
+                                              kernel_buffer, type_definitions,
+                                              arguments, type_arguments);
+}
+
+ObjectPtr Instance::EvaluateCompiledExpression(
+    Thread* thread,
+    const Object& receiver,
+    const Library& library,
+    const Class& klass,
+    const ExternalTypedData& kernel_buffer,
+    const Array& type_definitions,
+    const Array& arguments,
+    const TypeArguments& type_arguments) {
+  auto zone = Thread::Current()->zone();
+#if defined(DART_PRECOMPILED_RUNTIME)
+  const auto& error_str = String::Handle(
+      zone,
+      String::New("Expression evaluation not available in precompiled mode."));
+  return ApiError::New(error_str);
+#else
+  if (IsInternalOnlyClassId(klass.id()) || (klass.id() == kTypeArgumentsCid)) {
+    const auto& exception = Instance::Handle(
+        zone, String::New("Expressions can be evaluated only with regular Dart "
+                          "instances/classes."));
+    return UnhandledException::New(exception, StackTrace::null_instance());
   }
 
-  return EvaluateCompiledExpressionHelper(
-      kernel_buffer, type_definitions,
-      String::Handle(Library::Handle(library()).url()),
-      IsTopLevel() ? String::Handle() : String::Handle(UserVisibleName()),
-      arguments, type_arguments);
+  const auto& url = String::Handle(zone, library.url());
+  const auto& klass_name = klass.IsTopLevel()
+                               ? String::null_string()
+                               : String::Handle(zone, klass.UserVisibleName());
+
+  const auto& result = Object::Handle(
+      zone,
+      LoadExpressionEvaluationFunction(zone, kernel_buffer, url, klass_name));
+  if (result.IsError()) return result.ptr();
+
+  const auto& eval_function = Function::Cast(result);
+
+  auto& all_arguments = Array::Handle(zone, arguments.ptr());
+  if (!eval_function.is_static()) {
+    // `this` may be optimized out (e.g. not accessible from breakpoint due to
+    // not being captured by closure). We allow this as long as the evaluation
+    // function doesn't actually need `this`.
+    if (receiver.IsNull() || receiver.ptr() == Object::optimized_out().ptr()) {
+      if (EvaluationFunctionNeedsReceiver(thread, zone, eval_function)) {
+        return Object::optimized_out().ptr();
+      }
+    }
+
+    all_arguments = Array::New(1 + arguments.Length());
+    auto& param = PassiveObject::Handle();
+    all_arguments.SetAt(0, receiver);
+    for (intptr_t i = 0; i < arguments.Length(); i++) {
+      param = arguments.At(i);
+      all_arguments.SetAt(i + 1, param);
+    }
+  }
+
+  return EvaluateCompiledExpressionHelper(zone, eval_function, type_definitions,
+                                          all_arguments, type_arguments);
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
 }
 
 void Class::EnsureDeclarationLoaded() const {
@@ -14573,16 +14705,6 @@ ObjectPtr Library::Invoke(const String& function_name,
   return DartEntry::InvokeFunction(function, args, args_descriptor_array);
 }
 
-ObjectPtr Library::EvaluateCompiledExpression(
-    const ExternalTypedData& kernel_buffer,
-    const Array& type_definitions,
-    const Array& arguments,
-    const TypeArguments& type_arguments) const {
-  return EvaluateCompiledExpressionHelper(
-      kernel_buffer, type_definitions, String::Handle(url()), String::Handle(),
-      arguments, type_arguments);
-}
-
 void Library::InitNativeWrappersLibrary(IsolateGroup* isolate_group,
                                         bool is_kernel) {
   const int kNumNativeWrappersClasses = 4;
@@ -14637,65 +14759,6 @@ class LibraryLookupTraits {
   static ObjectPtr NewKey(const String& str) { return str.ptr(); }
 };
 typedef UnorderedHashMap<LibraryLookupTraits> LibraryLookupMap;
-
-static ObjectPtr EvaluateCompiledExpressionHelper(
-    const ExternalTypedData& kernel_buffer,
-    const Array& type_definitions,
-    const String& library_url,
-    const String& klass,
-    const Array& arguments,
-    const TypeArguments& type_arguments) {
-  Thread* thread = Thread::Current();
-  Zone* zone = thread->zone();
-#if defined(DART_PRECOMPILED_RUNTIME)
-  const String& error_str = String::Handle(
-      zone,
-      String::New("Expression evaluation not available in precompiled mode."));
-  return ApiError::New(error_str);
-#else
-  std::unique_ptr<kernel::Program> kernel_pgm =
-      kernel::Program::ReadFromTypedData(kernel_buffer);
-
-  if (kernel_pgm == nullptr) {
-    return ApiError::New(String::Handle(
-        zone, String::New("Kernel isolate returned ill-formed kernel.")));
-  }
-
-  auto& result = Object::Handle(zone);
-  {
-    kernel::KernelLoader loader(kernel_pgm.get(),
-                                /*uri_to_source_table=*/nullptr);
-    result = loader.LoadExpressionEvaluationFunction(library_url, klass);
-    kernel_pgm.reset();
-  }
-
-  if (result.IsError()) return result.ptr();
-
-  const auto& callee = Function::CheckedHandle(zone, result.ptr());
-
-  // type_arguments is null if all type arguments are dynamic.
-  if (type_definitions.Length() == 0 || type_arguments.IsNull()) {
-    result = DartEntry::InvokeFunction(callee, arguments);
-  } else {
-    intptr_t num_type_args = type_arguments.Length();
-    Array& real_arguments =
-        Array::Handle(zone, Array::New(arguments.Length() + 1));
-    real_arguments.SetAt(0, type_arguments);
-    Object& arg = Object::Handle(zone);
-    for (intptr_t i = 0; i < arguments.Length(); ++i) {
-      arg = arguments.At(i);
-      real_arguments.SetAt(i + 1, arg);
-    }
-
-    const Array& args_desc =
-        Array::Handle(zone, ArgumentsDescriptor::NewBoxed(
-                                num_type_args, arguments.Length(), Heap::kNew));
-    result = DartEntry::InvokeFunction(callee, real_arguments, args_desc);
-  }
-
-  return result.ptr();
-#endif
-}
 
 // Returns library with given url in current isolate, or nullptr.
 LibraryPtr Library::LookupLibrary(Thread* thread, const String& url) {
@@ -20342,28 +20405,6 @@ ObjectPtr Instance::Invoke(const String& function_name,
   return InvokeInstanceFunction(thread, *this, function, function_name, args,
                                 args_descriptor, respect_reflectable,
                                 inst_type_args);
-}
-
-ObjectPtr Instance::EvaluateCompiledExpression(
-    const Class& method_cls,
-    const ExternalTypedData& kernel_buffer,
-    const Array& type_definitions,
-    const Array& arguments,
-    const TypeArguments& type_arguments) const {
-  const Array& arguments_with_receiver =
-      Array::Handle(Array::New(1 + arguments.Length()));
-  PassiveObject& param = PassiveObject::Handle();
-  arguments_with_receiver.SetAt(0, *this);
-  for (intptr_t i = 0; i < arguments.Length(); i++) {
-    param = arguments.At(i);
-    arguments_with_receiver.SetAt(i + 1, param);
-  }
-
-  return EvaluateCompiledExpressionHelper(
-      kernel_buffer, type_definitions,
-      String::Handle(Library::Handle(method_cls.library()).url()),
-      String::Handle(method_cls.UserVisibleName()), arguments_with_receiver,
-      type_arguments);
 }
 
 ObjectPtr Instance::HashCode() const {

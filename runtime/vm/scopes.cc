@@ -341,7 +341,7 @@ LocalVariable* LocalScope::LookupVariable(const String& name,
     LocalVariable* var =
         current_scope->LocalLookupVariable(name, kernel_offset);
     // If testing only, return the variable even if invisible.
-    if ((var != nullptr) && (!var->is_invisible_ || test_only)) {
+    if ((var != nullptr) && (!var->is_invisible() || test_only)) {
       if (!test_only && (var->owner()->function_level() != function_level())) {
         CaptureVariable(var);
       }

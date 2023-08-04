@@ -2744,7 +2744,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
 
   @override
   w.ValueType visitAsExpression(AsExpression node, w.ValueType expectedType) {
-    if (translator.options.omitTypeChecks) {
+    if (translator.options.omitTypeChecks || node.isUnchecked) {
       return wrap(node.operand, expectedType);
     }
 
