@@ -7,8 +7,9 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
 import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
-void main() async {
+void main(List<String> args) async {
   var driver = await TestDriver.init();
 
   group('Dart 3.0 language features', () {
@@ -19,17 +20,21 @@ void main() async {
     group('(Unsound null safety)', () {
       group('(AMD module system)', () {
         var setup = SetupCompilerOptions(
-            soundNullSafety: false,
-            legacyCode: false,
-            moduleFormat: ModuleFormat.amd);
+          soundNullSafety: false,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.amd,
+          args: args,
+        );
         runSharedTests(setup, driver);
       });
 
       group('(DDC module system)', () {
         var setup = SetupCompilerOptions(
-            soundNullSafety: false,
-            legacyCode: false,
-            moduleFormat: ModuleFormat.ddc);
+          soundNullSafety: false,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.ddc,
+          args: args,
+        );
         runSharedTests(setup, driver);
       });
     });
@@ -37,17 +42,21 @@ void main() async {
     group('(Sound null safety)', () {
       group('(AMD module system)', () {
         var setup = SetupCompilerOptions(
-            soundNullSafety: true,
-            legacyCode: false,
-            moduleFormat: ModuleFormat.amd);
+          soundNullSafety: true,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.amd,
+          args: args,
+        );
         runSharedTests(setup, driver);
       });
 
       group('(DDC module system)', () {
         var setup = SetupCompilerOptions(
-            soundNullSafety: true,
-            legacyCode: false,
-            moduleFormat: ModuleFormat.ddc);
+          soundNullSafety: true,
+          legacyCode: false,
+          moduleFormat: ModuleFormat.ddc,
+          args: args,
+        );
         runSharedTests(setup, driver);
       });
     });

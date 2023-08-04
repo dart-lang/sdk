@@ -196,7 +196,12 @@ void _webServerControl(SendPort sendPort, bool enable, bool? silenceOutput) {
 }
 
 @patch
-String? _getIsolateIDFromSendPort(SendPort sendPort) {
+String? _getIsolateIdFromSendPort(SendPort sendPort) {
+  return null;
+}
+
+@patch
+String? _getObjectId(Object object) {
   return null;
 }
 

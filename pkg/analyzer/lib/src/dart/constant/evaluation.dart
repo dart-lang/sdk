@@ -25,9 +25,11 @@ import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart' show TypeSystemImpl;
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/generated/constant.dart';
 import 'package:analyzer/src/generated/engine.dart';
+import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/task/api/model.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
@@ -2527,12 +2529,25 @@ class _InstanceCreationEvaluator {
         superName: evaluationResult.superName,
         superArguments: evaluationResult.superArguments);
     if (error != null) {
-      // TODO(kallentu): Report a better error here with context from the other
-      // error reported.
+      final formattedMessage =
+          formatList(error.errorCode.problemMessage, error.arguments);
+      final contextMessage = DiagnosticMessageImpl(
+        filePath: _library.source.fullName,
+        length: error.node.length,
+        message: "The exception is '$formattedMessage' and occurs here.",
+        offset: error.node.offset,
+        url: null,
+      );
+
+      // TODO(kallentu): When removing all on-site reporting, move this error
+      // to [_InstanceCreationEvaluator.evaluate] and provide context for all
+      // constructor related errors.
       _errorReporter.reportErrorForNode(
-          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
-      return InvalidConstant(
-          _errorNode, CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION);
+          CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+          _errorNode,
+          [],
+          [...error.contextMessages, contextMessage]);
+      return error;
     }
 
     return DartObjectImpl(
@@ -2755,12 +2770,12 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             if (!evaluationConstant.isBool ||
                 evaluationConstant.toBoolValue() == false) {
-              // TODO(kallentu): Report a better error here.
+              // TODO(kallentu): Don't report error here.
               _errorReporter.reportErrorForNode(
                   CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, _errorNode);
               return _InitializersEvaluationResult(
-                  InvalidConstant(_errorNode,
-                      CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION),
+                  InvalidConstant(initializer,
+                      CompileTimeErrorCode.CONST_EVAL_ASSERTION_FAILURE),
                   evaluationIsComplete: true);
             }
           case InvalidConstant():
@@ -2913,6 +2928,16 @@ class _InstanceCreationEvaluator {
           case DartObjectImpl():
             _fieldMap[GenericState.SUPERCLASS_FIELD] = evaluationResult;
           case InvalidConstant():
+            evaluationResult.contextMessages.add(DiagnosticMessageImpl(
+              filePath: _constructor.source.fullName,
+              length: _constructor.nameLength,
+              message:
+                  "The evaluated constructor '${superConstructor.displayName}' "
+                  "is called by '${_constructor.displayName}' and "
+                  "'${_constructor.displayName}' is defined here.",
+              offset: _constructor.nameOffset,
+              url: null,
+            ));
             return evaluationResult;
         }
       }

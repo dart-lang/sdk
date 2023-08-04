@@ -2575,6 +2575,8 @@ CompileTimeErrorCode:
 
       const json2 = convert.JsonCodec();
       ```
+  CONST_EVAL_ASSERTION_FAILURE:
+    problemMessage: "The assertion in this constant expression failed."
   CONST_EVAL_EXTENSION_METHOD:
     problemMessage: "Extension methods can't be used in constant expressions."
   CONST_EVAL_FOR_ELEMENT:

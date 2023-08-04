@@ -158,13 +158,25 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 3) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 0, 1) {
+DEFINE_NATIVE_ENTRY(Developer_getIsolateIdFromSendPort, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else
   GET_NON_NULL_NATIVE_ARGUMENT(SendPort, port, arguments->NativeArgAt(0));
   int64_t port_id = port.Id();
   return String::NewFormatted(ISOLATE_SERVICE_ID_FORMAT_STRING, port_id);
+#endif
+}
+
+DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  JSONStream js;
+  RingServiceIdZone& ring_service_id_zone =
+      *reinterpret_cast<RingServiceIdZone*>(js.id_zone());
+  return String::New(ring_service_id_zone.GetServiceId(instance));
 #endif
 }
 

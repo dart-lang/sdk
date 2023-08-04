@@ -807,6 +807,12 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  static const CompileTimeErrorCode CONST_EVAL_ASSERTION_FAILURE =
+      CompileTimeErrorCode(
+    'CONST_EVAL_ASSERTION_FAILURE',
+    "The assertion in this constant expression failed.",
+  );
+
   static const CompileTimeErrorCode CONST_EVAL_EXTENSION_METHOD =
       CompileTimeErrorCode(
     'CONST_EVAL_EXTENSION_METHOD',

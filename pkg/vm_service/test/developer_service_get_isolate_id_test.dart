@@ -26,8 +26,8 @@ Future testeeMain() async {
   childIsolate = await iso.Isolate.spawn(spawnEntry, 0);
   // Assign the id for this isolate and it's child to strings so they can
   // be read by the tester.
-  selfId = Service.getIsolateID(iso.Isolate.current)!;
-  childId = Service.getIsolateID(childIsolate)!;
+  selfId = Service.getIsolateId(iso.Isolate.current)!;
+  childId = Service.getIsolateId(childIsolate)!;
   debugger();
 }
 

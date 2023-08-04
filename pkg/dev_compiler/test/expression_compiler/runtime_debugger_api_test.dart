@@ -7,38 +7,33 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
 import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
 void main(List<String> args) async {
-  if (args.length > 1 || (args.length == 1 && args.first != '--canary')) {
-    throw Exception('Invalid arguments: $args, expected "--canary"');
-  }
-  var canaryFeatures = args.isNotEmpty;
   var driver = await TestDriver.init();
 
   tearDownAll(() async {
     await driver.finish();
   });
-
-  var canary = canaryFeatures ? '(Canary)' : '';
-  group('$canary (Sound null safety)', () {
+  group('(Sound null safety)', () {
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
         soundNullSafety: true,
         legacyCode: false,
         moduleFormat: ModuleFormat.amd,
-        canaryFeatures: canaryFeatures,
+        args: args,
       );
       runSharedTests(setup, driver);
     });
   });
 
-  group('$canary (Weak null safety)', () {
+  group('(Weak null safety)', () {
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
         soundNullSafety: false,
         legacyCode: false,
         moduleFormat: ModuleFormat.amd,
-        canaryFeatures: canaryFeatures,
+        args: args,
       );
       runSharedTests(setup, driver);
     });

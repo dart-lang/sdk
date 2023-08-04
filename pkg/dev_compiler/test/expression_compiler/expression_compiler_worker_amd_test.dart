@@ -6,20 +6,21 @@ import 'package:dev_compiler/dev_compiler.dart';
 import 'package:test/test.dart';
 
 import 'expression_compiler_worker_shared.dart';
+import 'setup_compiler_options.dart';
 
-void main() async {
+void main(List<String> args) async {
   // Set to true to enable debug output
   var debug = false;
 
   group('amd module format -', () {
     for (var soundNullSafety in [true, false]) {
       group('${soundNullSafety ? "sound" : "unsound"} null safety -', () {
-        runTests(
+        var setup = SetupCompilerOptions(
           moduleFormat: ModuleFormat.amd,
           soundNullSafety: soundNullSafety,
-          canaryFeatures: false,
-          verbose: debug,
+          args: args,
         );
+        runTests(setup, verbose: debug);
       });
     }
   });

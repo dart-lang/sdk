@@ -4546,12 +4546,27 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
       jsCondition = runtimeCall('test(#)', [jsCondition]);
     }
 
-    var encodedSource =
-        node.enclosingComponent!.uriToSource[node.location!.file]!.source;
-    var source = utf8.decode(encodedSource, allowMalformed: true);
-    var conditionSource =
-        source.substring(node.conditionStartOffset, node.conditionEndOffset);
-    var location = _toSourceLocation(node.conditionStartOffset)!;
+    SourceLocation? location;
+    late String conditionSource;
+    if (node.location != null) {
+      var encodedSource =
+          node.enclosingComponent!.uriToSource[node.location!.file]!.source;
+      var source = utf8.decode(encodedSource, allowMalformed: true);
+
+      conditionSource =
+          source.substring(node.conditionStartOffset, node.conditionEndOffset);
+      location = _toSourceLocation(node.conditionStartOffset)!;
+    } else {
+      // Location is null in expression compilation when modules
+      // are loaded from kernel using expression compiler worker.
+      // Show the error only in that case, with the condition AST
+      // instead of the source.
+      //
+      // TODO(annagrin): Can we add some information to the kernel,
+      // or add better printing for the condition?
+      // Issue: https://github.com/dart-lang/sdk/issues/43986
+      conditionSource = node.condition.toString();
+    }
     return js.statement(' if (!#) #;', [
       jsCondition,
       runtimeCall('assertFailed(#, #, #, #, #)', [
@@ -4559,10 +4574,13 @@ class ProgramCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
           js_ast.LiteralNull()
         else
           _visitExpression(node.message!),
-        _cacheUri(location.sourceUrl.toString()),
+        if (location == null)
+          _cacheUri('<unknown source>')
+        else
+          _cacheUri(location.sourceUrl.toString()),
         // Lines and columns are typically printed with 1 based indexing.
-        js.number(location.line + 1),
-        js.number(location.column + 1),
+        js.number(location == null ? -1 : location.line + 1),
+        js.number(location == null ? -1 : location.column + 1),
         js.escapedString(conditionSource),
       ])
     ]);
