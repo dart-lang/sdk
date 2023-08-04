@@ -126,10 +126,10 @@ main() {
         124,
         10,
         contextMessages: [
-          ExpectedContextMessage('/home/test/lib/test.dart', 84, 1,
+          ExpectedContextMessage(testFile.path, 84, 1,
               text:
                   "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
-          ExpectedContextMessage('/home/test/lib/test.dart', 31, 14,
+          ExpectedContextMessage(testFile.path, 31, 14,
               text:
                   "The exception is 'The assertion in this constant expression failed.' and occurs here."),
         ],
