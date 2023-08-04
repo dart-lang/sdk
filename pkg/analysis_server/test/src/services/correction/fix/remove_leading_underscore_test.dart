@@ -222,6 +222,23 @@ void f() {
 ''');
   }
 
+  Future<void> test_parameter_constructor() async {
+    await resolveTestCode('''
+class A {
+  A(int _foo) {
+    print(_foo);
+  }
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int foo) {
+    print(foo);
+  }
+}
+''');
+  }
+
   Future<void> test_parameter_function() async {
     await resolveTestCode('''
 void f(int _foo) {
