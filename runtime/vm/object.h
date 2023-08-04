@@ -8201,17 +8201,31 @@ class Instance : public Object {
                          bool respect_reflectable = true,
                          bool check_is_entrypoint = false) const;
 
+  ObjectPtr EvaluateCompiledExpression(
+      const Class& klass,
+      const ExternalTypedData& kernel_buffer,
+      const Array& type_definitions,
+      const Array& arguments,
+      const TypeArguments& type_arguments) const;
+
   // Evaluate the given expression as if it appeared in an instance method of
-  // this instance and return the resulting value, or an error object if
+  // [receiver] and return the resulting value, or an error object if
   // evaluating the expression fails. The method has the formal (type)
   // parameters given in (type_)param_names, and is invoked with the (type)
   // argument values given in (type_)param_values.
-  ObjectPtr EvaluateCompiledExpression(
-      const Class& method_cls,
+  //
+  // We allow [receiver] to be null/<optimized out> if
+  //   * the evaluation function doesn't access `this`
+  //   * the evaluation function is static
+  static ObjectPtr EvaluateCompiledExpression(
+      Thread* thread,
+      const Object& receiver,
+      const Library& library,
+      const Class& klass,
       const ExternalTypedData& kernel_buffer,
       const Array& type_definitions,
       const Array& param_values,
-      const TypeArguments& type_param_values) const;
+      const TypeArguments& type_param_values);
 
   // Equivalent to invoking hashCode on this instance.
   virtual ObjectPtr HashCode() const;

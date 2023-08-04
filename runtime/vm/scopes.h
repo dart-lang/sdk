@@ -91,13 +91,7 @@ class LocalVariable : public ZoneAllocated {
         parameter_type_(parameter_type),
         parameter_value_(parameter_value),
         const_value_(nullptr),
-        is_final_(false),
-        is_captured_(false),
-        is_invisible_(false),
-        is_captured_parameter_(false),
-        is_forced_stack_(false),
         covariance_mode_(kNotCovariant),
-        is_late_(false),
         late_init_offset_(0),
         type_check_mode_(kDoTypeCheck),
         index_(),
@@ -132,11 +126,11 @@ class LocalVariable : public ZoneAllocated {
   CompileType* parameter_type() const { return parameter_type_; }
   const Object* parameter_value() const { return parameter_value_; }
 
-  bool is_final() const { return is_final_; }
-  void set_is_final() { is_final_ = true; }
+  bool is_final() const { return IsFinalBit::decode(bitfield_); }
+  void set_is_final() { bitfield_ = IsFinalBit::update(true, bitfield_); }
 
-  bool is_captured() const { return is_captured_; }
-  void set_is_captured() { is_captured_ = true; }
+  bool is_captured() const { return IsCapturedBit::decode(bitfield_); }
+  void set_is_captured() { bitfield_ = IsCapturedBit::update(true, bitfield_); }
 
   bool ComputeIfIsAwaiterLink(const Library& library);
   void set_is_awaiter_link(bool value) {
@@ -147,11 +141,13 @@ class LocalVariable : public ZoneAllocated {
   // CaptureLocalVariables - which iterates scope chain between two scopes
   // and indiscriminately marks all variables as captured.
   // TODO(27590) remove the hardcoded list of names from CaptureLocalVariables
-  bool is_forced_stack() const { return is_forced_stack_; }
-  void set_is_forced_stack() { is_forced_stack_ = true; }
+  bool is_forced_stack() const { return IsForcedStackBit::decode(bitfield_); }
+  void set_is_forced_stack() {
+    bitfield_ = IsForcedStackBit::update(true, bitfield_);
+  }
 
-  bool is_late() const { return is_late_; }
-  void set_is_late() { is_late_ = true; }
+  bool is_late() const { return IsLateBit::decode(bitfield_); }
+  void set_is_late() { bitfield_ = IsLateBit::update(true, bitfield_); }
 
   intptr_t late_init_offset() const { return late_init_offset_; }
   void set_late_init_offset(intptr_t late_init_offset) {
@@ -205,11 +201,17 @@ class LocalVariable : public ZoneAllocated {
 
   // Invisible variables are not included into LocalVarDescriptors
   // and not displayed in the debugger.
-  void set_invisible(bool value) { is_invisible_ = value; }
-  bool is_invisible() const { return is_invisible_; }
+  bool is_invisible() const { return IsInvisibleBit::decode(bitfield_); }
+  void set_invisible(bool value) {
+    bitfield_ = IsInvisibleBit::update(value, bitfield_);
+  }
 
-  bool is_captured_parameter() const { return is_captured_parameter_; }
-  void set_is_captured_parameter(bool value) { is_captured_parameter_ = value; }
+  bool is_captured_parameter() const {
+    return IsCapturedParameterBit::decode(bitfield_);
+  }
+  void set_is_captured_parameter(bool value) {
+    bitfield_ = IsCapturedParameterBit::update(value, bitfield_);
+  }
 
   bool IsConst() const { return const_value_ != nullptr; }
 
@@ -226,6 +228,18 @@ class LocalVariable : public ZoneAllocated {
   bool Equals(const LocalVariable& other) const;
 
  private:
+  // If true, this variable is readonly.
+  using IsFinalBit = BitField<uint32_t, bool, 0, 1>;
+  // If true, this variable lives in the context, otherwise
+  // in the stack frame.
+  using IsCapturedBit = BitField<uint32_t, bool, IsFinalBit::kNextBit, 1>;
+  using IsInvisibleBit = BitField<uint32_t, bool, IsCapturedBit::kNextBit, 1>;
+  using IsCapturedParameterBit =
+      BitField<uint32_t, bool, IsInvisibleBit::kNextBit, 1>;
+  using IsForcedStackBit =
+      BitField<uint32_t, bool, IsCapturedParameterBit::kNextBit, 1>;
+  using IsLateBit = BitField<uint32_t, bool, IsForcedStackBit ::kNextBit, 1>;
+
   enum CovarianceMode {
     kNotCovariant,
     kImplicit,
@@ -250,14 +264,8 @@ class LocalVariable : public ZoneAllocated {
 
   const Instance* const_value_;  // nullptr or compile-time const value.
 
-  bool is_final_;     // If true, this variable is readonly.
-  bool is_captured_;  // If true, this variable lives in the context, otherwise
-                      // in the stack frame.
-  bool is_invisible_;
-  bool is_captured_parameter_;
-  bool is_forced_stack_;
+  uint32_t bitfield_ = 0;
   CovarianceMode covariance_mode_;
-  bool is_late_;
   intptr_t late_init_offset_;
   TypeCheckMode type_check_mode_;
   VariableIndex index_;

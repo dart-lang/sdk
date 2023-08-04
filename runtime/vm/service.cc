@@ -3370,43 +3370,38 @@ static void EvaluateCompiledExpression(Thread* thread, JSONStream* js) {
       }
       return;
     }
+    const auto& type_params_names_fixed =
+        Array::Handle(zone, Array::MakeFixedLength(type_params_names));
+    const auto& param_values_fixed =
+        Array::Handle(zone, Array::MakeFixedLength(param_values));
+
     TypeArguments& type_arguments = TypeArguments::Handle(zone);
     if (obj.IsLibrary()) {
-      const Library& lib = Library::Cast(obj);
-      const Object& result = Object::Handle(
+      const auto& lib = Library::Cast(obj);
+      const auto& result = Object::Handle(
           zone,
-          lib.EvaluateCompiledExpression(
-              kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+          lib.EvaluateCompiledExpression(kernel_data, type_params_names_fixed,
+                                         param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
     if (obj.IsClass()) {
-      const Class& cls = Class::Cast(obj);
-      const Object& result = Object::Handle(
+      const auto& cls = Class::Cast(obj);
+      const auto& result = Object::Handle(
           zone,
-          cls.EvaluateCompiledExpression(
-              kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+          cls.EvaluateCompiledExpression(kernel_data, type_params_names_fixed,
+                                         param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
     if ((obj.IsInstance() || obj.IsNull()) && !ContainsNonInstance(obj)) {
-      // We don't use Instance::Cast here because it doesn't allow null.
-      Instance& instance = Instance::Handle(zone);
-      instance ^= obj.ptr();
-      const Class& receiver_cls = Class::Handle(zone, instance.clazz());
-      const Object& result = Object::Handle(
-          zone,
-          instance.EvaluateCompiledExpression(
-              receiver_cls, kernel_data,
-              Array::Handle(zone, Array::MakeFixedLength(type_params_names)),
-              Array::Handle(zone, Array::MakeFixedLength(param_values)),
-              type_arguments));
+      const auto& instance =
+          Instance::Handle(zone, Instance::RawCast(obj.ptr()));
+      const auto& receiver_cls = Class::Handle(zone, instance.clazz());
+      const auto& result = Object::Handle(
+          zone, instance.EvaluateCompiledExpression(
+                    receiver_cls, kernel_data, type_params_names_fixed,
+                    param_values_fixed, type_arguments));
       result.PrintJSON(js, true);
       return;
     }
