@@ -1658,15 +1658,22 @@ class AstBuilder extends StackListener {
     final representation = pop() as RepresentationDeclarationImpl;
     final constKeyword = pop() as Token?;
 
-    final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
-    declarations.add(
-      builder.build(
-        typeKeyword: typeKeyword,
-        constKeyword: constKeyword,
-        representation: representation,
-        implementsClause: implementsClause,
-      ),
-    );
+    if (enableInlineClass) {
+      final builder = _classLikeBuilder as _ExtensionTypeDeclarationBuilder;
+      declarations.add(
+        builder.build(
+          typeKeyword: typeKeyword,
+          constKeyword: constKeyword,
+          representation: representation,
+          implementsClause: implementsClause,
+        ),
+      );
+    } else {
+      _reportFeatureNotEnabled(
+        feature: ExperimentalFeatures.inline_class,
+        startToken: typeKeyword,
+      );
+    }
 
     _classLikeBuilder = null;
   }
