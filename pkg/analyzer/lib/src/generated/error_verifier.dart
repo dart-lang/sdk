@@ -354,7 +354,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (_isNonNullableByDefault) {
       checkForUseOfVoidResult(node.expression);
     }
+
     _checkForAwaitInLateLocalVariableInitializer(node);
+    _checkForAwaitOfExtensionTypeNotFuture(node);
     super.visitAwaitExpression(node);
   }
 
@@ -1781,6 +1783,22 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.AWAIT_IN_LATE_LOCAL_VARIABLE_INITIALIZER,
         node.awaitKeyword,
       );
+    }
+  }
+
+  void _checkForAwaitOfExtensionTypeNotFuture(AwaitExpression node) {
+    final expression = node.expression;
+    final expressionType = expression.typeOrThrow;
+    if (expressionType.element is ExtensionTypeElement) {
+      final anyFuture = typeSystem.typeProvider.futureType(
+        typeSystem.objectQuestion,
+      );
+      if (!typeSystem.isSubtypeOf(expressionType, anyFuture)) {
+        errorReporter.reportErrorForToken(
+          CompileTimeErrorCode.AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE,
+          node.awaitKeyword,
+        );
+      }
     }
   }
 

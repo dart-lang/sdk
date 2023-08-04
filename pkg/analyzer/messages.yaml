@@ -1127,6 +1127,9 @@ CompileTimeErrorCode:
       16.30 Await Expressions: It is a compile-time error if the function
       immediately enclosing _a_ is not declared asynchronous. (Where _a_ is the
       await expression.)
+  AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE:
+    problemMessage: "The 'await' expression can't be used for an expression with an extension type that is not a subtype of 'Future'."
+    correctionMessage: Try updating the extension type to implement 'Future'.
   BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY:
     sharedName: INVALID_USE_OF_TYPE_OUTSIDE_LIBRARY
     problemMessage: "The class '{0}' can't be implemented outside of its library because it's a base class."
