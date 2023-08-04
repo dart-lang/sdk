@@ -17,6 +17,50 @@ class SortConstructorsFirstTest extends LintRuleTest {
   @override
   String get lintRule => 'sort_constructors_first';
 
+  test_constructorBeforeMethod() async {
+    await assertNoDiagnostics(r'''
+abstract class A {
+  const A();
+  void f();
+}
+''');
+  }
+
+  test_fieldBeforeConstructor() async {
+    await assertDiagnostics(r'''
+abstract class A {
+  final a = 0;
+  A();
+}
+''', [
+      lint(36, 1),
+    ]);
+  }
+
+  test_methodBeforeConstructor() async {
+    await assertDiagnostics(r'''
+abstract class A {
+  void f();
+  const A();
+}
+''', [
+      lint(39, 1),
+    ]);
+  }
+
+  test_methodBeforeConstructors() async {
+    await assertDiagnostics(r'''
+abstract class A {
+  void f();
+  A();
+  A.named();
+}
+''', [
+      lint(33, 1),
+      lint(40, 1),
+    ]);
+  }
+
   test_ok() async {
     await assertNoDiagnostics(r'''
 enum A {
@@ -25,6 +69,17 @@ enum A {
   int f() => 0;
 }
 ''');
+  }
+
+  test_staticFieldBeforeConstructor() async {
+    await assertDiagnostics(r'''
+abstract class A {
+  static final a = 0;
+  A();
+}
+''', [
+      lint(43, 1),
+    ]);
   }
 
   test_unsorted() async {
