@@ -5,6 +5,7 @@
 import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
 const simpleClassSource = '''
 extension NumberParsing on String {

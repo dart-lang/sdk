@@ -8,8 +8,9 @@ import 'package:test/test.dart';
 
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
+import 'setup_compiler_options.dart';
 
-void main() async {
+void main(List<String> args) async {
   var driver = await TestDriver.init();
 
   group('(Unsound null safety) (Agnostic code shard 1)', () {
@@ -19,9 +20,11 @@ void main() async {
 
     group('(AMD module system)', () {
       var setup = SetupCompilerOptions(
-          soundNullSafety: false,
-          legacyCode: false,
-          moduleFormat: ModuleFormat.amd);
+        soundNullSafety: false,
+        legacyCode: false,
+        moduleFormat: ModuleFormat.amd,
+        args: args,
+      );
       runAgnosticSharedTestsShard1(setup, driver);
     });
   });
