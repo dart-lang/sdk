@@ -201,6 +201,11 @@ String? _getIsolateIdFromSendPort(SendPort sendPort) {
 }
 
 @patch
+String? _getObjectId(Object object) {
+  return null;
+}
+
+@patch
 class UserTag {
   @patch
   factory UserTag(String label) = _FakeUserTag;

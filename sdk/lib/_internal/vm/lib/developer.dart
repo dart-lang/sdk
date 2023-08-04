@@ -181,6 +181,10 @@ external void _webServerControl(
 external String _getIsolateIdFromSendPort(SendPort sendPort);
 
 @patch
+@pragma("vm:external-name", "Developer_getObjectId")
+external String _getObjectId(Object object);
+
+@patch
 abstract final class NativeRuntime {
   @patch
   @pragma("vm:external-name", "Developer_NativeRuntime_buildId")

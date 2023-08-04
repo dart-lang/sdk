@@ -168,6 +168,18 @@ DEFINE_NATIVE_ENTRY(Developer_getIsolateIdFromSendPort, 0, 1) {
 #endif
 }
 
+DEFINE_NATIVE_ENTRY(Developer_getObjectId, 0, 1) {
+#if defined(PRODUCT)
+  return Object::null();
+#else
+  GET_NON_NULL_NATIVE_ARGUMENT(Instance, instance, arguments->NativeArgAt(0));
+  JSONStream js;
+  RingServiceIdZone& ring_service_id_zone =
+      *reinterpret_cast<RingServiceIdZone*>(js.id_zone());
+  return String::New(ring_service_id_zone.GetServiceId(instance));
+#endif
+}
+
 DEFINE_NATIVE_ENTRY(Developer_reachability_barrier, 0, 0) {
   IsolateGroup* isolate_group = thread->isolate_group();
   ASSERT(isolate_group != nullptr);
