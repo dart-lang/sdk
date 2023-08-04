@@ -972,7 +972,8 @@ abstract interface class Future<T> {
 /// Explicitly ignores a future.
 ///
 /// Not all futures need to be awaited.
-/// The Dart linter has an optional ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html)
+/// The Dart linter has an optional
+/// ["unawaited futures" lint](https://dart.dev/lints/unawaited_futures)
 /// which enforces that potential futures
 /// (expressions with a static type of [Future] or `Future?`)
 /// in asynchronous functions are handled *somehow*.
@@ -1087,7 +1088,8 @@ extension FutureExtensions<T> on Future<T> {
   ///
   /// Use `ignore` to signal that the result of the future is
   /// no longer important to the program, not even if it's an error.
-  /// If you merely want to silence the ["unawaited futures" lint](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
+  /// If you merely want to silence the
+  /// ["unawaited futures" lint](https://dart.dev/lints/unawaited_futures),
   /// use the [unawaited] function instead.
   /// That will ensure that an unexpected error is still reported.
   @Since("2.14")

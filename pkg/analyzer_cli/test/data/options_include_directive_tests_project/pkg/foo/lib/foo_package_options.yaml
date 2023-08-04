@@ -9,5 +9,5 @@ analyzer:
 
 linter:
  rules:
-   # see catalog here: http://dart-lang.github.io/linter/lints/
+   # see catalog here: https://dart.dev/lints
    - avoid_empty_else

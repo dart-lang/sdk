@@ -110,7 +110,7 @@ class _Override {
 /// it means that the variable's implicit getter and setter (if any)
 /// are marked as overriding. It has no effect on the variable itself.
 ///
-/// Further [lints](https://dart-lang.github.io/linter/lints/)
+/// Further [lints](https://dart.dev/lints)
 /// can be used to enable more warnings based on `@override` annotations.
 const Object override = _Override();
 
