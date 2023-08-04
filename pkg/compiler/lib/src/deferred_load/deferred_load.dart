@@ -405,10 +405,10 @@ class DeferredLoadTask extends CompilerTask {
     int nextDeferId = 0;
     Set<String> usedImportNames = {};
     for (ImportEntity import in allDeferredImports) {
-      String result = computeImportDeferName(import, compiler);
       if (useIds) {
         importDeferName[import] = (++nextDeferId).toString();
       } else {
+        String result = computeImportDeferName(import, compiler);
         // Note: tools that process the json file to build multi-part initial load
         // bundles depend on the fact that makeUnique appends only digits, or a
         // period followed by digits.

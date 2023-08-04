@@ -47,7 +47,7 @@ import 'nodes.dart';
 import 'variable_allocator.dart';
 
 abstract class CodegenPhase {
-  String get name => '$runtimeType';
+  String get name;
   void visitGraph(HGraph graph);
 }
 

@@ -85,6 +85,9 @@
       "lib": [
         "out_1.part.js"
       ]
+    },
+    "importPrefixToLoadId": {
+      "lib": "lib"
     }
   }
 }],
