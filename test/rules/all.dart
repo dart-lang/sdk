@@ -115,6 +115,8 @@ import 'prefer_for_elements_to_map_fromIterable_test.dart'
     as prefer_for_elements_to_map_fromIterable;
 import 'prefer_generic_function_type_aliases_test.dart'
     as prefer_generic_function_type_aliases;
+import 'prefer_if_elements_to_conditional_expressions_test.dart'
+    as prefer_if_elements_to_conditional_expressions;
 import 'prefer_inlined_adds_test.dart' as prefer_inlined_adds;
 import 'prefer_interpolation_to_compose_strings_test.dart'
     as prefer_interpolation_to_compose_strings;
@@ -288,6 +290,7 @@ void main() {
   prefer_final_parameters.main();
   prefer_for_elements_to_map_fromIterable.main();
   prefer_generic_function_type_aliases.main();
+  prefer_if_elements_to_conditional_expressions.main();
   prefer_inlined_adds.main();
   prefer_interpolation_to_compose_strings.main();
   prefer_mixin.main();
