@@ -1,4 +1,4 @@
-## 6.1.0-dev
+## 6.1.0
 * Added `InstanceElement`, a super-interface for `InterfaceElement`
   and `ExtensionElement`.
 * Added `TypeSystem.greatestLowerBound`.
