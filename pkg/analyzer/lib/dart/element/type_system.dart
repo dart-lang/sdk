@@ -34,6 +34,12 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   DartType flatten(DartType type);
 
+  /// Computes the greatest lower bound of [T1] and [T2].
+  ///
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
+  DartType greatestLowerBound(DartType T1, DartType T2);
+
   /// Instantiate the given [element] with default type arguments.
   InterfaceType instantiateInterfaceToBounds({
     required InterfaceElement element,
@@ -151,16 +157,11 @@ abstract class TypeSystem {
   /// Other type systems may define this operation differently.
   bool isSubtypeOf(DartType leftType, DartType rightType);
 
-  /// Compute the least upper bound of two types. This operation if commutative,
-  /// meaning that `leastUpperBound(t, s) == leastUpperBound(s, t)` for all `t`
-  /// and `s`.
+  /// Computes the least upper bound of [T1] and [T2].
   ///
-  /// For the Dart 2.0 type system, the definition of the least upper bound is
-  /// given in the Dart Language Specification, section 19.9.2 Least Upper
-  /// Bounds.
-  ///
-  /// Other type systems may define this operation differently.
-  DartType leastUpperBound(DartType leftType, DartType rightType);
+  /// https://github.com/dart-lang/language
+  /// See `resources/type-system/upper-lower-bounds.md`
+  DartType leastUpperBound(DartType T1, DartType T2);
 
   /// Returns a non-nullable version of [type].  This is equivalent to the
   /// operation `NonNull` defined in the spec.

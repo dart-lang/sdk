@@ -300,7 +300,7 @@ class GreatestLowerBoundHelper {
           gIndex++;
           parameters.add(
             fParameter.copyWith(
-              type: _typeSystem.getLeastUpperBound(
+              type: _typeSystem.leastUpperBound(
                 fParameter.type,
                 gParameter.type,
               ),
@@ -320,7 +320,7 @@ class GreatestLowerBoundHelper {
             gIndex++;
             parameters.add(
               fParameter.copyWith(
-                type: _typeSystem.getLeastUpperBound(
+                type: _typeSystem.leastUpperBound(
                   fParameter.type,
                   gParameter.type,
                 ),

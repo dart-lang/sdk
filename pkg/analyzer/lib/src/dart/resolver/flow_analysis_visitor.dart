@@ -420,7 +420,7 @@ class TypeSystemOperations
 
   @override
   DartType glb(DartType type1, DartType type2) {
-    return typeSystem.getGreatestLowerBound(type1, type2);
+    return typeSystem.greatestLowerBound(type1, type2);
   }
 
   @override

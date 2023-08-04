@@ -380,8 +380,8 @@ class GenericInferrer {
       //
       // This resulting constraint may be unsatisfiable; in that case inference
       // will fail.
-      upper = _typeSystem.getGreatestLowerBound(upper, constraint.upperBound);
-      lower = _typeSystem.getLeastUpperBound(lower, constraint.lowerBound);
+      upper = _typeSystem.greatestLowerBound(upper, constraint.upperBound);
+      lower = _typeSystem.leastUpperBound(lower, constraint.lowerBound);
       upper = _toLegacyElementIfOptOut(upper);
       lower = _toLegacyElementIfOptOut(lower);
     }
