@@ -158,7 +158,7 @@ DEFINE_NATIVE_ENTRY(Developer_webServerControl, 0, 3) {
 #endif
 }
 
-DEFINE_NATIVE_ENTRY(Developer_getIsolateIDFromSendPort, 0, 1) {
+DEFINE_NATIVE_ENTRY(Developer_getIsolateIdFromSendPort, 0, 1) {
 #if defined(PRODUCT)
   return Object::null();
 #else

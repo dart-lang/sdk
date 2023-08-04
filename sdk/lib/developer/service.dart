@@ -102,10 +102,21 @@ final class Service {
   ///
   /// Returns null if the running Dart environment does not support the service
   /// protocol.
+  static String? getIsolateId(Isolate isolate) {
+    // TODO: When NNBD is complete, delete the following line.
+    ArgumentError.checkNotNull(isolate, 'isolate');
+    return _getIsolateIdFromSendPort(isolate.controlPort);
+  }
+
+  /// Returns a [String] token representing the ID of [isolate].
+  ///
+  /// Returns null if the running Dart environment does not support the service
+  /// protocol.
+  @Deprecated("Use getIsolateId instead")
   static String? getIsolateID(Isolate isolate) {
     // TODO: When NNBD is complete, delete the following line.
     ArgumentError.checkNotNull(isolate, 'isolate');
-    return _getIsolateIDFromSendPort(isolate.controlPort);
+    return _getIsolateIdFromSendPort(isolate.controlPort);
   }
 }
 
@@ -123,4 +134,4 @@ external int _getServiceMajorVersion();
 external int _getServiceMinorVersion();
 
 /// Returns the service id for the isolate that owns [sendPort].
-external String? _getIsolateIDFromSendPort(SendPort sendPort);
+external String? _getIsolateIdFromSendPort(SendPort sendPort);
