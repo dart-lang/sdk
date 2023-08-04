@@ -17,7 +17,7 @@ class UnnecessaryStringInterpolationsTest extends LintRuleTest {
   @override
   String get lintRule => 'unnecessary_string_interpolations';
 
-  test_necessaryInterpolation_adjascentStrings() async {
+  test_necessaryInterpolation_adjacentStrings() async {
     await assertNoDiagnostics(r'''
 var a = '';
 var b = 'x' '$a';

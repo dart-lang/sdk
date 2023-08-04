@@ -27,7 +27,7 @@ Reasons a lint might be marked experimental include a lint
 ### Stable
 
 Stable lints are lints whose semantics and implementation are considered complete. False
-positives (that are not known, accepted and documentted limitations of lint semantics) are
+positives (that are not known, accepted and documented limitations of lint semantics) are
 considered bugs and fixing them should be prioritized. False negatives may be bugs or
 enhancements (depending on semantics).
 

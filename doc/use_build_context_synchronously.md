@@ -92,7 +92,7 @@ This calculation is based on a few simple properties:
   it occurs _before_ **child**. Examples:
   * YieldStatement - this node has one child. If **child** is that child, then
     the async state is "uninteresting" (`null`). Otherwise, **child** follows
-    the YieldStatement, and any await expressions occuring in the
+    the YieldStatement, and any await expressions occurring in the
     YieldStatement's expression result in `AsyncState.asynchronous`.
   * Block - this node has a list of child Statements. If **child** is one of
     those, then we compute the async state between each Statement that precedes
@@ -102,7 +102,7 @@ This calculation is based on a few simple properties:
     starting with the Statement that immediately precedes **child**. In this way
     we can correctly identify that a Statement which acts as a mounted guard for
     **child**. If **child** is not one of the Statements, then it follows the
-    Block, and any await expressions occuring in the Block's expressions result
+    Block, and any await expressions occurring in the Block's expressions result
     in `AsyncState.asynchronous`.
   * MethodInvocation - this node has a target Expression and an argument list of
     Expressions. At runtime, the target is evaluated before the argument list,

@@ -146,7 +146,7 @@ class _Visitor extends SimpleAstVisitor {
 
     // If the constructor being called is a redirecting factory constructor, an
     // argument is redundant if it is equal to the default value of the
-    // corresponding parameter on the _redirectied constructor_, not this
+    // corresponding parameter on the _redirected constructor_, not this
     // constructor, which may be different.
 
     var arguments = node.argumentList.arguments;

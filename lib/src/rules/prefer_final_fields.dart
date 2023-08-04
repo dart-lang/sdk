@@ -184,7 +184,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var MapEntry(key: field, value: variable) in fields.entries) {
       // TODO(srawlins): We could look at the constructors once and store a set
       // of which fields are initialized by any, and a set of which fields are
-      // initialized by all. This would concievably improve performance.
+      // initialized by all. This would conceivably improve performance.
       var classDeclaration = variable.parent?.parent?.parent;
       var constructors = classDeclaration is ClassDeclaration
           ? classDeclaration.members.whereType<ConstructorDeclaration>()

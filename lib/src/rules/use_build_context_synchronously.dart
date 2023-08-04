@@ -252,7 +252,7 @@ class AsyncStateVisitor extends SimpleAstVisitor<AsyncState> {
         (_, null) => leftGuardState,
         // Anything on the left followed by async on the right is async.
         (_, AsyncState.asynchronous) => AsyncState.asynchronous,
-        // An async state on the left is superceded by the state on the right.
+        // An async state on the left is superseded by the state on the right.
         (AsyncState.asynchronous, _) => rightGuardState,
         // Otherwise just use the state on the left.
         (AsyncState.mountedCheck, _) => AsyncState.mountedCheck,

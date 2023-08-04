@@ -105,7 +105,7 @@ void m({required void p}) {}
     ]);
   }
 
-  test_functionArgument_voidParamter_optional() async {
+  test_functionArgument_voidParameter_optional() async {
     await assertDiagnostics(r'''
 void f(dynamic p) {
   m(p);
