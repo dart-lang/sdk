@@ -3447,6 +3447,35 @@ B<int>
 
 @reflectiveTest
 mixin InstanceCreationEvaluatorTestCases on ConstantVisitorTestSupport {
+  test_assertInitializer_indirect() async {
+    await assertErrorsInCode(r'''
+class A {
+  const A(int i)
+  : assert(i == 1); // (2)
+}
+class B extends A {
+  const B(int i) : super(i);
+}
+main() {
+  print(const B(2)); // (1)
+}
+''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        124,
+        10,
+        contextMessages: [
+          ExpectedContextMessage('/home/test/lib/test.dart', 84, 1,
+              text:
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
+          ExpectedContextMessage('/home/test/lib/test.dart', 31, 14,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
+    ]);
+  }
+
   test_assertInitializer_intInDoubleContext_false() async {
     await assertErrorsInCode('''
 class A {
@@ -3479,7 +3508,19 @@ class B extends A {
 }
 const b = const B();
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 101, 9),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        101,
+        9,
+        contextMessages: [
+          ExpectedContextMessage('/home/test/lib/test.dart', 74, 1,
+              text:
+                  "The evaluated constructor 'A' is called by 'B' and 'B' is defined here."),
+          ExpectedContextMessage('/home/test/lib/test.dart', 23, 19,
+              text:
+                  "The exception is 'The assertion in this constant expression failed.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
