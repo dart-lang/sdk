@@ -213,6 +213,14 @@ class KernelLoader : public ValueObject {
   void ReadLoadingUnits();
 
  private:
+  // Pragma bits
+  using HasPragma = BitField<uint32_t, bool, 0, 1>;
+  using ExternalNamePragma = BitField<uint32_t, bool, HasPragma::kNextBit, 1>;
+  using InvisibleFunctionPragma =
+      BitField<uint32_t, bool, ExternalNamePragma::kNextBit, 1>;
+  using IsolateUnsendablePragma =
+      BitField<uint32_t, bool, InvisibleFunctionPragma::kNextBit, 1>;
+
   void FinishTopLevelClassLoading(const Class& toplevel_class,
                                   const Library& library,
                                   const LibraryIndex& library_index);
@@ -221,10 +229,8 @@ class KernelLoader : public ValueObject {
 
   void ReadVMAnnotations(const Library& library,
                          intptr_t annotation_count,
-                         String* native_name,
-                         bool* is_invisible_function,
-                         bool* is_isolate_unsendable,
-                         bool* has_pragma_annotation);
+                         uint32_t* pragma_bits,
+                         String* native_name = nullptr);
 
   KernelLoader(const KernelProgramInfo& kernel_program_info,
                const TypedDataBase& kernel_data,
@@ -326,20 +332,6 @@ class KernelLoader : public ValueObject {
 
   UntaggedFunction::Kind GetFunctionType(ProcedureHelper::Kind procedure_kind);
 
-  void EnsurePragmaClassIsLookedUp() {
-    if (pragma_class_.IsNull()) {
-      const Library& core_lib =
-          Library::Handle(zone_, dart::Library::CoreLibrary());
-      pragma_class_ = core_lib.LookupLocalClass(Symbols::Pragma());
-      pragma_name_field_ = pragma_class_.LookupField(Symbols::name());
-      pragma_options_field_ = pragma_class_.LookupField(Symbols::options());
-    }
-    ASSERT(!pragma_class_.IsNull());
-    ASSERT(!pragma_name_field_.IsNull());
-    ASSERT(!pragma_options_field_.IsNull());
-    ASSERT(pragma_class_.is_declaration_loaded());
-  }
-
   Program* program_;
 
   Thread* thread_;
@@ -366,10 +358,6 @@ class KernelLoader : public ValueObject {
   InferredTypeMetadataHelper inferred_type_metadata_helper_;
 
   Object& static_field_value_;
-
-  Class& pragma_class_;
-  Field& pragma_name_field_;
-  Field& pragma_options_field_;
 
   Smi& name_index_handle_;
 
