@@ -27,7 +27,7 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   Future<RefactoringStatus> checkFinalConditions() async {
     final result = RefactoringStatus();
 
-    final enclosing = element.enclosingElement2;
+    final enclosing = element.enclosingElement;
     if (enclosing is TypeParameterizedElement) {
       for (final sibling in enclosing.typeParameters) {
         if (sibling.name == newName) {

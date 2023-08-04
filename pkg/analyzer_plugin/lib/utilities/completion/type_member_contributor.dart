@@ -81,7 +81,7 @@ class TypeMemberContributor implements CompletionContributor {
       if (expression is Identifier) {
         var elem = expression.staticElement;
         if (elem is FunctionTypedElement) {
-          type = elem.returnType2;
+          type = elem.returnType;
         } else if (elem is ParameterElement) {
           type = elem.type;
         } else if (elem is LocalVariableElement) {

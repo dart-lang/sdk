@@ -92,10 +92,10 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
     if (element.isOperator) {
       return;
     }
-    if (element.enclosingElement2 is! CompilationUnitElement) {
+    if (element.enclosingElement is! CompilationUnitElement) {
       return;
     }
-    var returnType = element.returnType2;
+    var returnType = element.returnType;
     if (returnType is VoidType) {
       if (opType.includeVoidReturnSuggestions) {
         builder.suggestTopLevelFunction(element, kind: kind, prefix: prefix);
@@ -128,7 +128,7 @@ class LibraryElementSuggestionBuilder extends GeneralizingElementVisitor<void> {
   void visitPropertyAccessorElement(PropertyAccessorElement element) {
     if (opType.includeReturnValueSuggestions ||
         (opType.includeAnnotationSuggestions && element.variable.isConst)) {
-      var parent = element.enclosingElement2;
+      var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         builder.suggestAccessor(element, inheritanceDistance: 0.0);
       } else {

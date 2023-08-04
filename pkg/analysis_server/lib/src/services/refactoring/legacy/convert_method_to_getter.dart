@@ -80,7 +80,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
     // check Element type
     if (element is FunctionElement) {
-      if (element.enclosingElement2 is! CompilationUnitElement) {
+      if (element.enclosingElement is! CompilationUnitElement) {
         return RefactoringStatus.fatal(
             'Only top-level functions can be converted to getters.');
       }
@@ -89,7 +89,7 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
           'Only class methods or top-level functions can be converted to getters.');
     }
     // returns a value
-    if (element.returnType2 is VoidType) {
+    if (element.returnType is VoidType) {
       return RefactoringStatus.fatal(
           'Cannot convert ${element.kind.displayName} returning void.');
     }

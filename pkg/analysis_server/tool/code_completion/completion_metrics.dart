@@ -1716,7 +1716,7 @@ class CompletionResult {
     var entity = expectedCompletion.syntacticEntity;
     var element = _getElement(entity);
     if (element != null) {
-      var parent = element.enclosingElement2;
+      var parent = element.enclosingElement;
       if (parent is InterfaceElement || parent is ExtensionElement) {
         if (_isStatic(element)) {
           return CompletionGroup.staticMember;

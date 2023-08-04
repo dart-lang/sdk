@@ -1646,7 +1646,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (getter != null) {
       fieldNode.element = getter;
       if (getter is PropertyAccessorElement) {
-        return getter.returnType2;
+        return getter.returnType;
       } else {
         return getter.type;
       }
@@ -1710,7 +1710,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     return RelationalOperatorResolution(
       kind: kind,
       parameterType: parameterType,
-      returnType: element.returnType2,
+      returnType: element.returnType,
     );
   }
 
@@ -1723,13 +1723,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         atDynamicTarget ? DynamicTypeImpl.instance : InvalidTypeImpl.instance;
     if (node is IndexExpression) {
       if (element is MethodElement) {
-        readType = element.returnType2;
+        readType = element.returnType;
       }
     } else if (node is PrefixedIdentifier ||
         node is PropertyAccess ||
         node is SimpleIdentifier) {
       if (element is PropertyAccessorElement && element.isGetter) {
-        readType = element.returnType2;
+        readType = element.returnType;
       } else if (element is VariableElement) {
         readType = localVariableTypeProvider.getType(node as SimpleIdentifier,
             isRead: true);
@@ -2861,7 +2861,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (identical(targetType, NeverTypeImpl.instance)) {
       type = NeverTypeImpl.instance;
     } else if (element is MethodElement) {
-      type = element.returnType2;
+      type = element.returnType;
     } else if (targetType is DynamicType) {
       type = DynamicTypeImpl.instance;
     } else {
@@ -2974,7 +2974,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     flowAnalysis.executableDeclaration_enter(node, node.parameters,
         isClosure: false);
 
-    DartType returnType = node.declaredElement!.returnType2;
+    DartType returnType = node.declaredElement!.returnType;
 
     var outerFunction = _enclosingFunction;
     try {
@@ -4045,7 +4045,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
           name =
-              '${staticElement.returnType2.getDisplayString(withNullability: true)}.new';
+              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
         }
       }
     } else if (nameNode is SuperConstructorInvocation) {
@@ -4054,7 +4054,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         var staticElement = nameNode.staticElement;
         if (staticElement != null) {
           name =
-              '${staticElement.returnType2.getDisplayString(withNullability: true)}.new';
+              '${staticElement.returnType.getDisplayString(withNullability: true)}.new';
         }
       }
     } else if (nameNode is MethodInvocation) {

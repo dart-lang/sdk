@@ -40,7 +40,7 @@ class ConstantInitializersResolver {
         unit.extensionTypes.forEach(_resolveInterfaceFields);
         unit.mixins.forEach(_resolveInterfaceFields);
 
-        _scope = unit.enclosingElement2.scope;
+        _scope = unit.enclosingElement.scope;
         unit.topLevelVariables.forEach(_resolveVariable);
       }
     }
@@ -135,7 +135,7 @@ class _InitializerInference {
         unit.extensionTypes.forEach(_addClassElementFields);
         unit.mixins.forEach(_addClassElementFields);
 
-        _scope = unit.enclosingElement2.scope;
+        _scope = unit.enclosingElement.scope;
         for (var element in unit.topLevelVariables) {
           _addVariableNode(element);
         }
@@ -244,7 +244,7 @@ class _PropertyInducingElementTypeInference
     _inferring.add(this);
     _status = _InferenceStatus.beingInferred;
 
-    final enclosingElement = _element.enclosingElement2;
+    final enclosingElement = _element.enclosingElement;
     final enclosingClassElement =
         enclosingElement is InterfaceElement ? enclosingElement : null;
 

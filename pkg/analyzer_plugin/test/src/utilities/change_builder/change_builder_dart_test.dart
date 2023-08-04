@@ -1792,7 +1792,7 @@ _prefix0.A1 a1; _prefix0.A2 a2; _prefix1.B b;''');
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(content.length - 1, (builder) {
-        builder.writeType(f.returnType2);
+        builder.writeType(f.returnType);
       });
     });
     var edit = getEdit(builder);

@@ -194,7 +194,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_dynamic() async {
@@ -210,7 +210,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_different_generic() async {
@@ -226,7 +226,7 @@ mixin M on A<int>, B<double> {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertTypeDynamic(foo.returnType2);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_incompatible() async {
@@ -242,7 +242,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertTypeDynamic(foo.returnType2);
+    assertTypeDynamic(foo.returnType);
   }
 
   test_method_return_multiple_different_merge() async {
@@ -260,7 +260,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'Object?');
+    assertType(foo.returnType, 'Object?');
   }
 
   test_method_return_multiple_different_void() async {
@@ -276,7 +276,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_generic() async {
@@ -292,7 +292,7 @@ mixin M<T> on A<T>, B<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'T');
+    assertType(foo.returnType, 'T');
   }
 
   test_method_return_multiple_same_nonVoid() async {
@@ -308,7 +308,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_multiple_same_void() async {
@@ -324,7 +324,7 @@ mixin M on A, B {
 }
 ''');
     var foo = findElement.method('foo', of: 'M');
-    assertType(foo.returnType2, 'void');
+    assertType(foo.returnType, 'void');
   }
 
   test_method_return_single() async {
@@ -337,7 +337,7 @@ class B extends A {
 }
 ''');
     var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType2, 'int');
+    assertType(foo.returnType, 'int');
   }
 
   test_method_return_single_generic() async {
@@ -350,6 +350,6 @@ class B<T> extends A<T> {
 }
 ''');
     var foo = findElement.method('foo', of: 'B');
-    assertType(foo.returnType2, 'T');
+    assertType(foo.returnType, 'T');
   }
 }

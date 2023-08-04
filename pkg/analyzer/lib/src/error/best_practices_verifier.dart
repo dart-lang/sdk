@@ -371,7 +371,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           final element = field.declaredElement;
           if (element is PropertyAccessorElement || element is FieldElement) {
             Name name = Name(_currentLibrary.source.uri, element!.name);
-            Element enclosingElement = element.enclosingElement2!;
+            Element enclosingElement = element.enclosingElement!;
             if (enclosingElement is InterfaceElement) {
               var overridden = _inheritanceManager
                   .getMember2(enclosingElement, name, forSuper: true);
@@ -397,7 +397,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
           _errorReporter.reportErrorForToken(
               WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, field.name, [
             field.name.lexeme,
-            overriddenElement.enclosingElement2.displayName
+            overriddenElement.enclosingElement.displayName
           ]);
         }
         if (!_invalidAccessVerifier._inTestDirectory) {
@@ -556,7 +556,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
   void visitMethodDeclaration(MethodDeclaration node) {
     bool wasInDoNotStoreMember = _inDoNotStoreMember;
     var element = node.declaredElement!;
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
 
     _deprecatedVerifier.pushInDeprecatedValue(element.hasDeprecated);
     if (element.hasDoNotStore) {
@@ -592,10 +592,9 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         // always named, so we can safely assume
         // `overriddenElement.enclosingElement3.name` is non-`null`.
         _errorReporter.reportErrorForToken(
-            WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER, node.name, [
-          node.name.lexeme,
-          overriddenElement.enclosingElement2.displayName
-        ]);
+            WarningCode.INVALID_OVERRIDE_OF_NON_VIRTUAL_MEMBER,
+            node.name,
+            [node.name.lexeme, overriddenElement.enclosingElement.displayName]);
       }
 
       super.visitMethodDeclaration(node);
@@ -1031,7 +1030,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
       } else if (element is FunctionElement) {
         var signatureTypes = [
           ...element.parameters.map((p) => p.type),
-          element.returnType2,
+          element.returnType,
           ...element.typeParameters.map((tp) => tp.bound),
         ];
         for (var type in signatureTypes) {
@@ -1387,7 +1386,7 @@ class BestPracticesVerifier extends RecursiveAstVisitor<void> {
         SimpleIdentifier name = invocation.methodName;
         if (name.name == FunctionElement.NO_SUCH_METHOD_METHOD_NAME) {
           var methodElement = name.staticElement;
-          var classElement = methodElement?.enclosingElement2;
+          var classElement = methodElement?.enclosingElement;
           return methodElement is MethodElement &&
               classElement is ClassElement &&
               !classElement.isDartCoreObject;
@@ -1916,7 +1915,7 @@ class _InvalidAccessVerifier {
   void _checkForOtherInvalidAccess(AstNode node, Element element) {
     bool hasProtected = _hasProtected(element);
     if (hasProtected) {
-      var definingClass = element.enclosingElement2 as InterfaceElement;
+      var definingClass = element.enclosingElement as InterfaceElement;
       if (_hasTypeOrSuperType(_enclosingClass, definingClass)) {
         return;
       }
@@ -1969,7 +1968,7 @@ class _InvalidAccessVerifier {
           '${node.runtimeType}');
     }
 
-    var definingClass = element.enclosingElement2;
+    var definingClass = element.enclosingElement;
     if (definingClass == null) {
       return;
     }
@@ -2032,12 +2031,12 @@ class _InvalidAccessVerifier {
 
   bool _hasProtected(Element element) {
     if (element is PropertyAccessorElement &&
-        element.enclosingElement2 is InterfaceElement &&
+        element.enclosingElement is InterfaceElement &&
         (element.hasProtected || element.variable.hasProtected)) {
       return true;
     }
     if (element is MethodElement &&
-        element.enclosingElement2 is InterfaceElement &&
+        element.enclosingElement is InterfaceElement &&
         element.hasProtected) {
       return true;
     }
@@ -2078,7 +2077,7 @@ class _InvalidAccessVerifier {
         element.variable.hasVisibleForTemplate) {
       return true;
     }
-    final enclosingElement = element.enclosingElement2;
+    final enclosingElement = element.enclosingElement;
     if (_hasVisibleForTemplate(enclosingElement)) {
       return true;
     }
@@ -2104,7 +2103,7 @@ class _InvalidAccessVerifier {
         element.variable.hasVisibleOutsideTemplate) {
       return true;
     }
-    final enclosingElement = element.enclosingElement2;
+    final enclosingElement = element.enclosingElement;
     if (enclosingElement != null &&
         _hasVisibleOutsideTemplate(enclosingElement)) {
       return true;

@@ -45,7 +45,7 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
     }
 
     // It must be a field declaration.
-    if (getter.enclosingElement2 is! ClassElement) {
+    if (getter.enclosingElement is! ClassElement) {
       return;
     }
 

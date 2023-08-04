@@ -969,9 +969,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     data.recordPercentage(
         'Methods with type parameters', node.typeParameters != null);
     var element = node.declaredElement!;
-    if (!element.isStatic && element.enclosingElement2 is InterfaceElement) {
+    if (!element.isStatic && element.enclosingElement is InterfaceElement) {
       var overriddenMembers = inheritanceManager.getOverridden2(
-          element.enclosingElement2 as InterfaceElement,
+          element.enclosingElement as InterfaceElement,
           Name(element.librarySource.uri, element.name));
       if (overriddenMembers != null) {
         // Consider limiting this to the most immediate override. If the
@@ -1407,7 +1407,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     Element? currentElement = element;
     while (currentElement != enclosingLibrary) {
       depth++;
-      currentElement = currentElement?.enclosingElement2;
+      currentElement = currentElement?.enclosingElement;
     }
     return depth;
   }
@@ -1689,7 +1689,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var reference = _leftMostIdentifier(node);
     var element = reference?.staticElement;
     if (element is ParameterElement) {
-      var definingElement = element.enclosingElement2!;
+      var definingElement = element.enclosingElement!;
       var depth = _parameterReferenceDepth(node, definingElement);
       _recordDistance('function depth of referenced parameter', depth);
     } else if (element is LocalVariableElement) {
@@ -1848,7 +1848,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   /// have a return type.
   DartType? _returnType(Element? element) {
     if (element is ExecutableElement) {
-      return element.returnType2;
+      return element.returnType;
     }
     return null;
   }

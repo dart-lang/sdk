@@ -135,7 +135,7 @@ class TypeMemberContributor extends DartCompletionContributor {
       if (expression is Identifier) {
         var elem = expression.staticElement;
         if (elem is FunctionTypedElement) {
-          type = elem.returnType2;
+          type = elem.returnType;
         } else if (elem is ParameterElement) {
           type = elem.type;
         } else if (elem is LocalVariableElement) {
@@ -332,7 +332,7 @@ class _SuggestionBuilder extends MemberSuggestionBuilder {
 
     for (final rawMember in map.values) {
       var member = ExecutableMember.from2(rawMember, substitution);
-      var enclosingInterface = member.enclosingElement2 as InterfaceElement;
+      var enclosingInterface = member.enclosingElement as InterfaceElement;
       var inheritanceDistance = inheritanceDistances.putIfAbsent(
         enclosingInterface,
         () => request.featureComputer

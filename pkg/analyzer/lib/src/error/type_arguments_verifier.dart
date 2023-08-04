@@ -97,7 +97,7 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var enumElement = constructorElement.enclosingElement2;
+    var enumElement = constructorElement.enclosingElement;
     var typeParameters = enumElement.typeParameters;
 
     var typeArgumentList = node.arguments?.typeArguments;
@@ -116,13 +116,8 @@ class TypeArgumentsVerifier {
       return;
     }
 
-    var returnType = constructorElement.returnType2;
-    if (returnType is! InterfaceType) {
-      return;
-    }
-
     // Check that type arguments are regular-bounded.
-    var typeArguments = returnType.typeArguments;
+    var typeArguments = constructorElement.returnType.typeArguments;
     var substitution = Substitution.fromPairs(typeParameters, typeArguments);
     for (var i = 0; i < typeArguments.length; i++) {
       var typeParameter = typeParameters[i];

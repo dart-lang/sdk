@@ -13,7 +13,7 @@ class BuiltValueTransformer {
           var element = annotation.element;
           if (element is PropertyAccessorElement &&
               element.name == 'nullable') {
-            if (element.enclosingElement2 is CompilationUnitElement) {
+            if (element.enclosingElement is CompilationUnitElement) {
               if (element.library.source.uri.toString() ==
                   'package:built_value/built_value.dart') {
                 return annotation;

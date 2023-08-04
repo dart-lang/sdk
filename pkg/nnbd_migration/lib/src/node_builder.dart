@@ -284,7 +284,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     _variables.recordDecoratedElementType(
         valuesGetter,
         DecoratedType(valuesGetter.type, makeNonNullNode(valuesTarget),
-            returnType: DecoratedType(valuesGetter.returnType2,
+            returnType: DecoratedType(valuesGetter.returnType,
                 makeNonNullNode(valuesTarget.returnType()),
                 typeArguments: [
                   DecoratedType(classElement.thisType,
@@ -716,7 +716,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
     for (var annotation in metadata) {
       var element = annotation.element;
       if (element is ConstructorElement) {
-        var name = element.enclosingElement2.name;
+        var name = element.enclosingElement.name;
         if (_isAngularUri(element.librarySource.uri)) {
           if (name == 'ViewChild' || name == 'ContentChild') {
             return _AngularAnnotation.child;
@@ -758,8 +758,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         // Constructors have no explicit return type annotation, so use the
         // implicit return type.
         decoratedReturnType = _createDecoratedTypeForClass(
-            declaredElement.enclosingElement2 as InterfaceElement,
-            parameters!.parent);
+            declaredElement.enclosingElement, parameters!.parent);
         instrumentation?.implicitReturnType(source, node, decoratedReturnType);
       } else {
         // If the function expression just throws, analyzer will infer `Null`
@@ -882,7 +881,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
         }
       }
     }
-    final enclosingElement = declaredElement.enclosingElement2;
+    final enclosingElement = declaredElement.enclosingElement;
     if ((enclosingElement is ConstructorElement &&
                 (_isInsideAngularComponent || _isInjectable) ||
             (enclosingElement is FunctionElement) &&
@@ -987,7 +986,7 @@ class NodeBuilder extends GeneralizingAstVisitor<DecoratedType>
   /// package.
   bool _isAngularConstructor(Element? element, String name) =>
       element is ConstructorElement &&
-      element.enclosingElement2.name == name &&
+      element.enclosingElement.name == name &&
       _isAngularUri(element.librarySource.uri);
 
   /// Determines whether the given [uri] comes from the Angular package.

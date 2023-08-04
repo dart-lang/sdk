@@ -63,7 +63,7 @@ abstract class B<E> {
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType2;
+    final returnType = foo.returnType;
     expect(returnType.element, same(T));
   }
 
@@ -134,7 +134,7 @@ abstract class B<E> extends A<E> {}
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType2;
+    final returnType = foo.returnType;
     // Check that the return type uses the same `T` as `<T>`.
     expect(returnType.element, same(T));
   }
@@ -150,7 +150,7 @@ abstract class B extends A {}
     final B = findElement.classOrMixin('B');
     final foo = manager.getMember2(B, Name(null, 'foo'))!;
     final T = foo.typeParameters.single;
-    final returnType = foo.returnType2;
+    final returnType = foo.returnType;
     expect(returnType.element, same(T));
   }
 
@@ -2106,7 +2106,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
   void _assertExecutable(ExecutableElement? element, String? expected) {
     if (expected != null && element != null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
 
       var type = element.type;
       var typeStr = typeString(type);
@@ -2116,10 +2116,10 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
 
       if (element is PropertyAccessorElement) {
         var variable = element.variable;
-        expect(variable.enclosingElement2, same(element.enclosingElement2));
+        expect(variable.enclosingElement, same(element.enclosingElement));
         expect(variable.name, element.displayName);
         if (element.isGetter) {
-          expect(variable.type, element.returnType2);
+          expect(variable.type, element.returnType);
         } else {
           expect(variable.type, element.parameters[0].type);
         }
@@ -2198,7 +2198,7 @@ class _InheritanceManager3Base extends PubPackageResolutionTest {
       var element = entry.value;
       var type = element.type;
 
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement.name == 'Object') continue;
 
       var typeStr = type.getDisplayString(withNullability: false);

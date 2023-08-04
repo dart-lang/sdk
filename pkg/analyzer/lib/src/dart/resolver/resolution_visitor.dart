@@ -871,7 +871,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var type = FunctionTypeImpl(
       typeFormals: element.typeParameters,
       parameters: element.parameters,
-      returnType: element.returnType2,
+      returnType: element.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
     element.type = type;
@@ -1795,7 +1795,7 @@ class _VariableBinder
             .map((e) => e.inconsistency),
       ),
     )
-      ..enclosingElement = first.enclosingElement2
+      ..enclosingElement = first.enclosingElement
       ..type = InvalidTypeImpl.instance;
   }
 }

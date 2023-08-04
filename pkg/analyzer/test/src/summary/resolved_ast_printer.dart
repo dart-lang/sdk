@@ -1696,7 +1696,7 @@ Expected parent: (${parent.runtimeType}) $parent
       _sink.withIndent(() {
         _sink.writeln('GenericFunctionTypeElement');
         _writeParameterElements(element.parameters);
-        _writeType('returnType', element.returnType2);
+        _writeType('returnType', element.returnType);
         _writeType('type', element.type);
       });
     }

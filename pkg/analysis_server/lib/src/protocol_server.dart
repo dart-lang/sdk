@@ -61,7 +61,7 @@ String? getReturnTypeString(engine.Element element,
     if (element.kind == engine.ElementKind.SETTER) {
       return null;
     } else {
-      return element.returnType2
+      return element.returnType
           .getDisplayString(withNullability: withNullability);
     }
   } else if (element is engine.VariableElement) {
@@ -225,7 +225,7 @@ Location newLocation_fromUnit(
 OverriddenMember newOverriddenMember_fromEngine(engine.Element member,
     {required bool withNullability}) {
   var element = convertElement(member, withNullability: withNullability);
-  var className = member.enclosingElement2!.displayName;
+  var className = member.enclosingElement!.displayName;
   return OverriddenMember(element, className);
 }
 
@@ -271,7 +271,7 @@ List<Element> _computePath(engine.Element element) {
   var path = <Element>[];
 
   if (element is engine.PrefixElement) {
-    element = element.enclosingElement2.definingCompilationUnit;
+    element = element.enclosingElement.definingCompilationUnit;
   }
 
   var withNullability = element.library?.isNonNullableByDefault ?? false;
@@ -286,7 +286,7 @@ engine.CompilationUnitElement _getUnitElement(engine.Element element) {
     return element;
   }
 
-  var enclosingElement = element.enclosingElement2;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is engine.LibraryElement) {
     element = enclosingElement;
   }

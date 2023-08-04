@@ -14919,14 +14919,14 @@ library
 ''');
     var x = library.definingCompilationUnit.topLevelVariables[0];
     var xExpr = x.constantInitializer as InstanceCreationExpression;
-    var xType = xExpr.constructorName.staticElement!.returnType2;
+    var xType = xExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(
       xType,
       'C<int>',
     );
     var y = library.definingCompilationUnit.topLevelVariables[0];
     var yExpr = y.constantInitializer as InstanceCreationExpression;
-    var yType = yExpr.constructorName.staticElement!.returnType2;
+    var yType = yExpr.constructorName.staticElement!.returnType;
     _assertTypeStr(yType, 'C<int>');
   }
 
@@ -26550,14 +26550,14 @@ typedef void F<T>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement, same(F));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement, same(function));
   }
 
   test_functionTypeAlias_type_element() async {
@@ -27682,18 +27682,18 @@ typedef F<T> = void Function<U>(int a);
 
     var T = F.typeParameters[0];
     expect(T.name, 'T');
-    expect(T.enclosingElement2, same(F));
+    expect(T.enclosingElement, same(F));
 
     var function = F.aliasedElement as GenericFunctionTypeElement;
-    expect(function.enclosingElement2, same(F));
+    expect(function.enclosingElement, same(F));
 
     var U = function.typeParameters[0];
     expect(U.name, 'U');
-    expect(U.enclosingElement2, same(function));
+    expect(U.enclosingElement, same(function));
 
     var a = function.parameters[0];
     expect(a.name, 'a');
-    expect(a.enclosingElement2, same(function));
+    expect(a.enclosingElement, same(function));
   }
 
   test_genericTypeAlias_recursive() async {
@@ -31057,7 +31057,7 @@ library
 
     final import_0 = library.augmentationImports[0];
     final augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement2, same(library));
+    expect(augmentation.enclosingElement, same(library));
   }
 
   test_library_augmentationImports_depthFirst() async {
@@ -31099,7 +31099,7 @@ library
 
     final import_0 = library.augmentationImports[0];
     final augmentation = import_0.importedAugmentation!;
-    expect(augmentation.enclosingElement2, same(library));
+    expect(augmentation.enclosingElement, same(library));
   }
 
   test_library_augmentationImports_noRelativeUriStr() async {

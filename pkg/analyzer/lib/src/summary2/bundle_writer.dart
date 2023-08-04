@@ -373,7 +373,7 @@ class BundleWriter {
     _resolutionSink._writeAnnotationList(element.metadata);
 
     _writeTypeParameters(element.typeParameters, () {
-      _resolutionSink.writeType(element.returnType2);
+      _resolutionSink.writeType(element.returnType);
       _writeList(element.parameters, _writeParameterElement);
     });
   }
@@ -441,7 +441,7 @@ class BundleWriter {
     _writeTypeParameters(element.typeParameters, () {
       _writeList(element.parameters, _writeParameterElement);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
-      _resolutionSink.writeType(element.returnType2);
+      _resolutionSink.writeType(element.returnType);
       _resolutionSink.writeElement(element.augmentation);
       _resolutionSink.writeElement(element.augmentationTarget);
     });
@@ -547,7 +547,7 @@ class BundleWriter {
     PropertyAccessorElementFlags.write(_sink, element);
 
     _resolutionSink._writeAnnotationList(element.metadata);
-    _resolutionSink.writeType(element.returnType2);
+    _resolutionSink.writeType(element.returnType);
     _writeList(element.parameters, _writeParameterElement);
 
     _resolutionSink.writeIf(element.isAugmentation, () {
@@ -797,7 +797,7 @@ class ResolutionSink extends _SummaryDataWriter {
       writeByte(AliasedElementTag.genericFunctionElement);
       _writeTypeParameters(element.typeParameters, () {
         _writeFormalParameters(element.parameters, withAnnotations: true);
-        writeType(element.returnType2);
+        writeType(element.returnType);
       }, withAnnotations: true);
     } else {
       throw UnimplementedError('${element.runtimeType}');
@@ -948,7 +948,7 @@ class ResolutionSink extends _SummaryDataWriter {
       return const [];
     }
 
-    var enclosing = declaration.enclosingElement2;
+    var enclosing = declaration.enclosingElement;
     if (enclosing is InstanceElement) {
       var typeParameters = enclosing.typeParameters;
       if (typeParameters.isEmpty) {

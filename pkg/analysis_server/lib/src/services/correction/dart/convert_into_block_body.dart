@@ -64,7 +64,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
 
     var lines = ['// TODO: implement ${functionElement.displayName}'];
 
-    var returnValueType = functionElement.returnType2;
+    var returnValueType = functionElement.returnType;
     if (returnValueType is! VoidType) {
       lines.add('throw UnimplementedError();');
     }
@@ -88,7 +88,7 @@ class ConvertIntoBlockBody extends ResolvedCorrectionProducer {
     var returnCode = '';
     if (returnValueType is! VoidType &&
         !returnValueType.isBottom &&
-        functionElement.returnType2 is! VoidType) {
+        functionElement.returnType is! VoidType) {
       returnCode = 'return ';
     }
     returnCode += '$returnValueCode;';

@@ -8,7 +8,7 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 
 MemberId computeMemberId(Element element) {
-  var enclosingElement = element.enclosingElement2;
+  var enclosingElement = element.enclosingElement;
   if (enclosingElement is CompilationUnitElement) {
     var memberName = element.name!;
     if (element is PropertyAccessorElement && element.isSetter) {

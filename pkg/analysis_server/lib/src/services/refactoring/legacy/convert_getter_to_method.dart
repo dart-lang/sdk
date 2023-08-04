@@ -48,15 +48,15 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   Future<SourceChange> createChange() async {
     change = SourceChange(refactoringName);
     // function
-    if (element.enclosingElement2 is CompilationUnitElement) {
+    if (element.enclosingElement is CompilationUnitElement) {
       await _updateElementDeclaration(element);
       await _updateElementReferences(element);
     }
     // method
     var field = element.variable;
     if (field is FieldElement &&
-        (field.enclosingElement2 is InterfaceElement ||
-            field.enclosingElement2 is ExtensionElement)) {
+        (field.enclosingElement is InterfaceElement ||
+            field.enclosingElement is ExtensionElement)) {
       var elements = await getHierarchyMembers(searchEngine, field);
       await Future.forEach(elements, (ClassMemberElement member) async {
         if (member is FieldElement) {
