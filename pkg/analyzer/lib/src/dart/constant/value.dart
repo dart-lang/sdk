@@ -1476,7 +1476,7 @@ class GenericState extends InstanceState {
     final type = _type;
     if (type is InterfaceType) {
       bool isFromDartCoreObject(ExecutableElement? element) {
-        final enclosing = element?.enclosingElement2;
+        final enclosing = element?.enclosingElement;
         return enclosing is ClassElement && enclosing.isDartCoreObject;
       }
 

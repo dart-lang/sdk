@@ -150,7 +150,7 @@ class AnnotationVerifier {
         }
       }
     } else if (parent is ConstructorDeclaration) {
-      var class_ = parent.declaredElement!.enclosingElement2;
+      var class_ = parent.declaredElement!.enclosingElement;
       if (class_.isPrivate || parentElementIsPrivate) {
         _errorReporter.reportErrorForNode(
             WarningCode.INVALID_INTERNAL_ANNOTATION, node, []);
@@ -171,7 +171,7 @@ class AnnotationVerifier {
         var invokedElement = element.element!;
         var name = invokedElement.name;
         if (invokedElement is ConstructorElement) {
-          var className = invokedElement.enclosingElement2.name;
+          var className = invokedElement.enclosingElement.name;
           if (name!.isEmpty) {
             name = className;
           } else {

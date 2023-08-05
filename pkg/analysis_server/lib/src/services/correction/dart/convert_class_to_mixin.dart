@@ -102,7 +102,7 @@ class _SuperclassReferenceFinder extends RecursiveAstVisitor<void> {
 
   void _addElement(Element? element) {
     if (element is ExecutableElement) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement) {
         referencedClasses.add(enclosingElement);
       }

@@ -104,7 +104,7 @@ class WhereOrNullTransformer {
       if (element.isStatic) return null;
       var replacementName = _replacementNames[element.name];
       if (replacementName == null) return null;
-      var enclosingElement = element.declaration.enclosingElement2;
+      var enclosingElement = element.declaration.enclosingElement;
       if (enclosingElement is ClassElement) {
         // If the class is `Iterable` or a subtype of it, we consider the user
         // to be calling a transformable method.

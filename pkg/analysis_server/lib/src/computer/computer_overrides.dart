@@ -11,7 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 
 /// Return the elements that the given [element] overrides.
 OverriddenElements findOverriddenElements(Element element) {
-  if (element.enclosingElement2 is InterfaceElement) {
+  if (element.enclosingElement is InterfaceElement) {
     return _OverriddenElementsFinder(element).find();
   }
   return OverriddenElements(element, <Element>[], <Element>[]);
@@ -111,7 +111,7 @@ class _OverriddenElementsFinder {
   final Set<InterfaceElement> _visited = {};
 
   factory _OverriddenElementsFinder(Element seed) {
-    var class_ = seed.enclosingElement2 as InterfaceElement;
+    var class_ = seed.enclosingElement as InterfaceElement;
     var library = class_.library;
     var name = seed.displayName;
     List<ElementKind> kinds;

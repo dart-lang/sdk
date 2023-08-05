@@ -70,7 +70,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeConstructorElement(ConstructorElement element) {
-    _writeType(element.returnType2);
+    _writeType(element.returnType);
     _write(' ');
 
     _write(element.displayName);
@@ -99,7 +99,7 @@ class ElementDisplayStringBuilder {
       _write('augment ');
     }
 
-    _writeType(element.returnType2);
+    _writeType(element.returnType);
     _write(' ');
 
     _write(name);
@@ -152,7 +152,7 @@ class ElementDisplayStringBuilder {
   }
 
   void writeGenericFunctionTypeElement(GenericFunctionTypeElementImpl element) {
-    _writeType(element.returnType2);
+    _writeType(element.returnType);
     _write(' Function');
     _writeTypeParameters(element.typeParameters);
     _writeFormalParameters(element.parameters, forElement: true);

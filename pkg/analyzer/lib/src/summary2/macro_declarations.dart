@@ -141,7 +141,7 @@ class DeclarationBuilderFromElement {
 
   FieldDeclarationImpl _fieldElement(FieldElement element) {
     assert(!_fieldMap.containsKey(element));
-    final enclosingClass = element.enclosingElement2 as ClassElement;
+    final enclosingClass = element.enclosingElement as ClassElement;
     return FieldDeclarationImpl(
       id: macro.RemoteInstance.uniqueId,
       identifier: identifier(element),

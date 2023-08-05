@@ -49,27 +49,27 @@ class GetterSetterTypesVerifier {
       if (getter.kind == ElementKind.GETTER) {
         var setter = interface.map[Name(libraryUri, '${name.name}=')];
         if (setter != null && setter.parameters.length == 1) {
-          var getterType = getter.returnType2;
+          var getterType = getter.returnType;
           var setterType = setter.parameters[0].type;
           if (!_match(getterType, setterType)) {
             Element errorElement;
-            if (getter.enclosingElement2 == element) {
+            if (getter.enclosingElement == element) {
               errorElement = getter;
-            } else if (setter.enclosingElement2 == element) {
+            } else if (setter.enclosingElement == element) {
               errorElement = setter;
             } else {
               errorElement = element;
             }
 
             var getterName = getter.displayName;
-            if (getter.enclosingElement2 != element) {
-              var getterClassName = getter.enclosingElement2.displayName;
+            if (getter.enclosingElement != element) {
+              var getterClassName = getter.enclosingElement.displayName;
               getterName = '$getterClassName.$getterName';
             }
 
             var setterName = setter.displayName;
-            if (setter.enclosingElement2 != element) {
-              var setterClassName = setter.enclosingElement2.displayName;
+            if (setter.enclosingElement != element) {
+              var setterClassName = setter.enclosingElement.displayName;
               setterName = '$setterClassName.$setterName';
             }
 
@@ -119,7 +119,7 @@ class GetterSetterTypesVerifier {
 
   /// Return the return type of the [getter].
   static DartType _getGetterType(PropertyAccessorElement getter) {
-    return getter.returnType2;
+    return getter.returnType;
   }
 
   /// Return the type of the first parameter of the [setter].

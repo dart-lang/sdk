@@ -48,7 +48,7 @@ class _ElementVisitor extends GeneralizingElementVisitor<void> {
 
   @override
   void visitElement(Element element) {
-    final enclosing = element.enclosingElement2;
+    final enclosing = element.enclosingElement;
     if (enclosing is CompilationUnitElement ||
         element is FieldElement ||
         element is MethodElement ||

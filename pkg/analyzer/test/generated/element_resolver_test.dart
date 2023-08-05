@@ -35,7 +35,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement2, name1.staticElement);
+        expect(annotationElement.enclosingElement, name1.staticElement);
         expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -61,7 +61,7 @@ class A {
       expect(name3.staticElement!.displayName, 'A.named');
       if (annotationElement is ConstructorElement) {
         expect(annotationElement, same(name3.staticElement));
-        expect(annotationElement.enclosingElement2, name2.staticElement);
+        expect(annotationElement.enclosingElement, name2.staticElement);
         expect(annotationElement.displayName, 'A.named');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -87,7 +87,7 @@ class A {
       expect(name3.staticElement!.displayName, 'V');
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name3.staticElement));
-        expect(annotationElement.enclosingElement2, name2.staticElement);
+        expect(annotationElement.enclosingElement, name2.staticElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -110,7 +110,7 @@ class A {
       expect(name2.staticElement!.displayName, 'A');
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
-        expect(annotationElement.enclosingElement2, name2.staticElement);
+        expect(annotationElement.enclosingElement, name2.staticElement);
         expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -135,7 +135,7 @@ class A {
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement2, name1.staticElement);
+        expect(annotationElement.enclosingElement, name1.staticElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -157,7 +157,7 @@ class A {
       expect(name2, isNull);
       expect(name3, isNull);
       if (annotationElement is ConstructorElement) {
-        expect(annotationElement.enclosingElement2, name1.staticElement);
+        expect(annotationElement.enclosingElement, name1.staticElement);
         expect(annotationElement.displayName, 'A');
         expect(annotationElement.parameters, isEmpty);
       } else {
@@ -179,7 +179,7 @@ const V = 0;
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name1.staticElement));
-        expect(annotationElement.enclosingElement2, isCompilationUnitElement);
+        expect(annotationElement.enclosingElement, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '
@@ -201,7 +201,7 @@ const V = 0;
       expect(name3, isNull);
       if (annotationElement is PropertyAccessorElement) {
         expect(annotationElement, same(name2.staticElement));
-        expect(annotationElement.enclosingElement2, isCompilationUnitElement);
+        expect(annotationElement.enclosingElement, isCompilationUnitElement);
         expect(annotationElement.displayName, 'V');
       } else {
         fail('Expected "annotationElement" is PropertyAccessorElement, '

@@ -29,7 +29,7 @@ class ConstructorReferenceResolver {
     node.constructorName.accept(_resolver);
     var element = node.constructorName.staticElement;
     if (element != null && !element.isFactory) {
-      final enclosingElement = element.enclosingElement2;
+      final enclosingElement = element.enclosingElement;
       if (enclosingElement is ClassElement && enclosingElement.isAbstract) {
         _resolver.errorReporter.reportErrorForNode(
           CompileTimeErrorCode

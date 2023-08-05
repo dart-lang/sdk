@@ -172,7 +172,7 @@ class FunctionReferenceResolver {
     ExecutableElement element, {
     required bool implicitReceiver,
   }) {
-    var enclosingElement = element.enclosingElement2;
+    var enclosingElement = element.enclosingElement;
     if (implicitReceiver) {
       if (_resolver.enclosingExtension != null) {
         _resolver.errorReporter.reportErrorForNode(
@@ -375,7 +375,7 @@ class FunctionReferenceResolver {
 
     if (member is PropertyAccessorElement) {
       function.accept(_resolver);
-      _resolve(node: node, rawType: member.returnType2);
+      _resolve(node: node, rawType: member.returnType);
       return;
     }
 
@@ -694,7 +694,7 @@ class FunctionReferenceResolver {
 
         if (method is PropertyAccessorElement) {
           function.staticElement = method;
-          function.staticType = method.returnType2;
+          function.staticType = method.returnType;
           _resolve(node: node, rawType: method.variable.type);
           return;
         }
@@ -758,7 +758,7 @@ class FunctionReferenceResolver {
         _resolveAsImplicitCallReference(node, callMethod);
         return;
       }
-      _resolve(node: node, rawType: element.returnType2);
+      _resolve(node: node, rawType: element.returnType);
       return;
     } else if (element is ExecutableElement) {
       function.staticElement = element;
@@ -913,7 +913,7 @@ extension on Element {
     } else if (this is FunctionElement) {
       return (this as FunctionElement).type;
     } else if (this is PropertyAccessorElement) {
-      return (this as PropertyAccessorElement).returnType2;
+      return (this as PropertyAccessorElement).returnType;
     } else if (this is MethodElement) {
       return (this as MethodElement).type;
     } else if (this is VariableElement) {

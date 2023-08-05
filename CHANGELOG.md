@@ -1353,13 +1353,13 @@ the new implementation carries a few subtle changes in behavior:
 
 - added quick fixes for diagnostics: `abstract_field_constructor_initializer`,
   `abstract_class_member`,
-  [`always_put_control_body_on_new_line`](https://dart-lang.github.io/linter/lints/always_put_control_body_on_new_line.html),
-  [`avoid_print`](https://dart-lang.github.io/linter/lints/avoid_print.html),
-  [`avoid_renaming_method_parameters`](https://dart-lang.github.io/linter/lints/avoid_renaming_method_parameters.html),
-  [`discarded_futures`](https://dart-lang.github.io/linter/lints/discarded_futures.html),
+  [`always_put_control_body_on_new_line`](https://dart.dev/lints/always_put_control_body_on_new_line),
+  [`avoid_print`](https://dart.dev/lints/avoid_print),
+  [`avoid_renaming_method_parameters`](https://dart.dev/lints/avoid_renaming_method_parameters),
+  [`discarded_futures`](https://dart.dev/lints/discarded_futures),
   `enum_with_abstract_member`, `non_bool_condition`,
   `super_formal_parameter_without_associated_named`,
-  [`unawaited_futures`](https://dart-lang.github.io/linter/lints/unawaited_futures.html),
+  [`unawaited_futures`](https://dart.dev/lints/unawaited_futures),
   `unnecessary_final` `unused_element_parameter`,
 - added new Hint: `deprecated_export_use`
 
@@ -1721,22 +1721,22 @@ them, you must set the lower bound on the SDK constraint for your package to
 #### Analyzer
 
 - added quick fixes for diagnostics:
-  [`always_use_package_imports`](https://dart-lang.github.io/linter/lints/always_use_package_imports.html),
-  [`avoid_void_async`](https://dart-lang.github.io/linter/lints/avoid_void_async.html),
-  [`cascade_invocations`](https://dart-lang.github.io/linter/lints/cascade_invocations.html),
+  [`always_use_package_imports`](https://dart.dev/lints/always_use_package_imports),
+  [`avoid_void_async`](https://dart.dev/lints/avoid_void_async),
+  [`cascade_invocations`](https://dart.dev/lints/cascade_invocations),
   `default_list_constructor`,
   [`must_call_super`](https://dart.dev/tools/diagnostic-messages#must_call_super),
-  [`no_leading_underscores_for_local_identifiers`](https://dart-lang.github.io/linter/lints/no_leading_underscores_for_local_identifiers.html),
-  [`null_check_on_nullable_type_parameter`](https://dart-lang.github.io/linter/lints/null_check_on_nullable_type_parameter.html),
-  [`prefer_function_declarations_over_variables`](https://dart-lang.github.io/linter/lints/prefer_function_declarations_over_variables.html),
-  [`sort_constructors_first`](https://dart-lang.github.io/linter/lints/sort_constructors_first.html),
-  [`sort_unnamed_constructors_first`](https://dart-lang.github.io/linter/lints/sort_unnamed_constructors_first.html),
+  [`no_leading_underscores_for_local_identifiers`](https://dart.dev/lints/no_leading_underscores_for_local_identifiers),
+  [`null_check_on_nullable_type_parameter`](https://dart.dev/lints/null_check_on_nullable_type_parameter),
+  [`prefer_function_declarations_over_variables`](https://dart.dev/lints/prefer_function_declarations_over_variables),
+  [`sort_constructors_first`](https://dart.dev/lints/sort_constructors_first),
+  [`sort_unnamed_constructors_first`](https://dart.dev/lints/sort_unnamed_constructors_first),
   `undefined_enum_constant`,
-  [`unnecessary_late`](https://dart-lang.github.io/linter/lints/unnecessary_late.html),
+  [`unnecessary_late`](https://dart.dev/lints/unnecessary_late),
   `unnecessary_null_aware_assignments`,
-  [`use_enums`](https://dart-lang.github.io/linter/lints/use_enums.html),
-  [`use_raw_strings`](https://dart-lang.github.io/linter/lints/use_raw_strings.html),
-  [`use_super_parameters`](https://dart-lang.github.io/linter/lints/use_super_parameters.html),
+  [`use_enums`](https://dart.dev/lints/use_enums),
+  [`use_raw_strings`](https://dart.dev/lints/use_raw_strings),
+  [`use_super_parameters`](https://dart.dev/lints/use_super_parameters),
   `var_return_type`
 - added many errors for invalid enhanced enums
 - added new Hint: [`unnecessary_final`](https://dart.dev/tools/diagnostic-messages#unnecessary_final)

@@ -960,7 +960,7 @@ class _Base extends AbstractContextTest {
   }
 
   static String _executableNameStr(ExecutableElement executable) {
-    var executableEnclosing = executable.enclosingElement2;
+    var executableEnclosing = executable.enclosingElement;
     if (executableEnclosing is CompilationUnitElement) {
       return executable.name;
     } else if (executable is ConstructorElement) {

@@ -139,7 +139,7 @@ class WhereNotNullTransformer {
     if (element is MethodElement) {
       if (element.isStatic) return false;
       if (element.name != 'where') return false;
-      var enclosingElement = element.declaration.enclosingElement2;
+      var enclosingElement = element.declaration.enclosingElement;
       if (enclosingElement is ClassElement) {
         // If the class is `Iterable` or a subtype of it, we consider the user
         // to be calling a transformable method.

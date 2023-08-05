@@ -129,7 +129,7 @@ class LocalReferenceContributor extends DartCompletionContributor {
     for (var method in type.methods) {
       if (!method.isStatic) {
         if (_visibilityTracker._isVisible(method.declaration)) {
-          if (method.returnType2 is! VoidType) {
+          if (method.returnType is! VoidType) {
             if (opType.includeReturnValueSuggestions) {
               memberBuilder.addSuggestionForMethod(
                   method: method,
@@ -266,7 +266,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
           .thisOrAncestorOfType<ClassDeclaration>();
       var enclosingElement = enclosingClass?.declaredElement;
       if (enclosingElement != null) {
-        var enclosingElement = field.enclosingElement2;
+        var enclosingElement = field.enclosingElement;
         if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(enclosingElement, enclosingElement);
@@ -345,7 +345,7 @@ class _LocalVisitor extends LocalDeclarationVisitor {
       var enclosingClass = request.target.containingNode
           .thisOrAncestorOfType<ClassDeclaration>();
       if (enclosingClass != null) {
-        var enclosingElement = element?.enclosingElement2;
+        var enclosingElement = element?.enclosingElement;
         if (enclosingElement is InterfaceElement) {
           inheritanceDistance = request.featureComputer
               .inheritanceDistanceFeature(

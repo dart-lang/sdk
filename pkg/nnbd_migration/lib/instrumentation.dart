@@ -37,7 +37,7 @@ class CodeReference {
   factory CodeReference.fromElement(Element element) {
     var unitElement = element.thisOrAncestorOfType<CompilationUnitElement>();
     if (unitElement == null) {
-      var enclosingElement = element.enclosingElement2;
+      var enclosingElement = element.enclosingElement;
       if (enclosingElement is LibraryElement) {
         unitElement = enclosingElement.definingCompilationUnit;
       } else {
@@ -76,7 +76,7 @@ class CodeReference {
       if (elementName != null) {
         parts.add(elementName);
       }
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     if (parts.isEmpty) return null;
     return parts.reversed.join('.');

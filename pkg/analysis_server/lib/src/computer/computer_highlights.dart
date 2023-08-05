@@ -184,6 +184,8 @@ class DartUnitHighlightsComputer {
       semanticModifiers = {CustomSemanticTokenModifiers.constructor};
     } else if (element is EnumElement) {
       type = HighlightRegionType.ENUM;
+    } else if (element is ExtensionTypeElement) {
+      type = HighlightRegionType.EXTENSION_TYPE;
     } else {
       type = HighlightRegionType.CLASS;
       if (parent is ConstructorDeclaration) {
@@ -317,7 +319,7 @@ class DartUnitHighlightsComputer {
     var isInvocation =
         parent is MethodInvocation && parent.methodName.token == nameToken;
     HighlightRegionType type;
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
     type = isTopLevel
         ? isInvocation
             ? HighlightRegionType.TOP_LEVEL_FUNCTION_REFERENCE
@@ -342,7 +344,7 @@ class DartUnitHighlightsComputer {
       return false;
     }
     // getter or setter
-    var isTopLevel = element.enclosingElement2 is CompilationUnitElement;
+    var isTopLevel = element.enclosingElement is CompilationUnitElement;
     HighlightRegionType type;
     if (element.isGetter) {
       if (isTopLevel) {
@@ -863,6 +865,27 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    computer._addRegion_token(
+      node.extensionKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
+      node.typeKeyword,
+      HighlightRegionType.BUILT_IN,
+    );
+
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.EXTENSION_TYPE,
+      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+    );
+
+    super.visitExtensionTypeDeclaration(node);
+  }
+
+  @override
   void visitFieldDeclaration(FieldDeclaration node) {
     computer._addRegion_token(
         node.abstractKeyword, HighlightRegionType.BUILT_IN);
@@ -1267,6 +1290,32 @@ class _DartUnitHighlightsComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     super.visitRecordTypeAnnotation(node);
+  }
+
+  @override
+  void visitRepresentationConstructorName(RepresentationConstructorName node) {
+    computer._addRegion_token(
+      node.name,
+      HighlightRegionType.CONSTRUCTOR,
+      semanticTokenType: SemanticTokenTypes.method,
+      semanticTokenModifiers: {
+        CustomSemanticTokenModifiers.constructor,
+        SemanticTokenModifiers.declaration,
+      },
+    );
+
+    super.visitRepresentationConstructorName(node);
+  }
+
+  @override
+  void visitRepresentationDeclaration(RepresentationDeclaration node) {
+    computer._addRegion_token(
+      node.fieldName,
+      HighlightRegionType.INSTANCE_FIELD_DECLARATION,
+      semanticTokenModifiers: {SemanticTokenModifiers.declaration},
+    );
+
+    super.visitRepresentationDeclaration(node);
   }
 
   @override

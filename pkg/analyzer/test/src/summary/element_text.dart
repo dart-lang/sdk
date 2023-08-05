@@ -314,7 +314,7 @@ class _ElementWriter {
       var classReference = reference.parent!.parent!;
       // We need this `if` for duplicate declarations.
       // The reference might be filled by another declaration.
-      if (identical(classReference.element, e.enclosingElement2)) {
+      if (identical(classReference.element, e.enclosingElement)) {
         expect(reference.element, same(e));
       }
     }
@@ -352,7 +352,7 @@ class _ElementWriter {
 
       var superConstructor = e.superConstructor;
       if (superConstructor != null) {
-        final enclosingElement = superConstructor.enclosingElement2;
+        final enclosingElement = superConstructor.enclosingElement;
         if (enclosingElement is ClassElement &&
             !enclosingElement.isDartCoreObject) {
           _elementPrinter.writeNamedElement(
@@ -378,7 +378,7 @@ class _ElementWriter {
 
     if (e.isSynthetic) {
       expect(e.nameOffset, -1);
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
       if (!e.isTempAugmentation) {
         expect(e.nameOffset, isPositive);
@@ -558,7 +558,7 @@ class _ElementWriter {
       _writeCodeRange(e);
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType2);
+      _writeType('returnType', e.returnType);
     });
 
     _assertNonSyntheticElementSelf(e);
@@ -750,7 +750,7 @@ class _ElementWriter {
 
       _writeTypeParameterElements(e.typeParameters);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType2);
+      _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
 
       if (e.isAugmentation) {
@@ -766,9 +766,9 @@ class _ElementWriter {
       }
     });
 
-    if (e.isSynthetic && e.enclosingElement2 is EnumElementImpl) {
+    if (e.isSynthetic && e.enclosingElement is EnumElementImpl) {
       expect(e.name, 'toString');
-      expect(e.nonSynthetic, same(e.enclosingElement2));
+      expect(e.nonSynthetic, same(e.enclosingElement));
     } else {
       _assertNonSyntheticElementSelf(e);
     }
@@ -892,7 +892,7 @@ class _ElementWriter {
     PropertyInducingElement variable = e.variable;
     expect(variable, isNotNull);
 
-    var variableEnclosing = variable.enclosingElement2;
+    var variableEnclosing = variable.enclosingElement;
     if (variableEnclosing is CompilationUnitElement) {
       expect(variableEnclosing.topLevelVariables, contains(variable));
     } else if (variableEnclosing is InterfaceElement) {
@@ -940,7 +940,7 @@ class _ElementWriter {
 
       expect(e.typeParameters, isEmpty);
       _writeParameterElements(e.parameters);
-      _writeType('returnType', e.returnType2);
+      _writeType('returnType', e.returnType);
       _writeNonSyntheticElement(e);
       writeLinking();
       _writeAugmentationTarget(e);
@@ -1084,7 +1084,7 @@ class _ElementWriter {
         _sink.withIndent(() {
           _writeTypeParameterElements(aliasedElement.typeParameters);
           _writeParameterElements(aliasedElement.parameters);
-          _writeType('returnType', aliasedElement.returnType2);
+          _writeType('returnType', aliasedElement.returnType);
         });
       }
     });

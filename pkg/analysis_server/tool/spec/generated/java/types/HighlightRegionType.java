@@ -52,6 +52,8 @@ public class HighlightRegionType {
 
   public static final String EXTENSION = "EXTENSION";
 
+  public static final String EXTENSION_TYPE = "EXTENSION_TYPE";
+
   /**
    * Deprecated - no longer sent.
    */

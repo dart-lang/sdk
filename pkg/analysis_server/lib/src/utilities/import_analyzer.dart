@@ -350,9 +350,9 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
       return;
     }
     if (element is ExecutableElement &&
-        element.enclosingElement2 is ExtensionElement &&
+        element.enclosingElement is ExtensionElement &&
         !element.isStatic) {
-      element = element.enclosingElement2;
+      element = element.enclosingElement;
     }
     if (!element.isInterestingReference) {
       return;
@@ -366,6 +366,5 @@ class _ReferenceFinder extends RecursiveAstVisitor<void> {
 extension on Element {
   /// Return `true` if this element reference is an interesting reference from
   /// the perspective of determining which imports need to be added.
-  bool get isInterestingReference =>
-      enclosingElement2 is CompilationUnitElement;
+  bool get isInterestingReference => enclosingElement is CompilationUnitElement;
 }

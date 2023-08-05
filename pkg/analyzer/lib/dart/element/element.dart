@@ -59,12 +59,8 @@ import 'package:pub_semver/pub_semver.dart';
 /// Clients may not extend, implement or mix-in this class.
 @experimental
 abstract class AugmentationImportElement implements _ExistingElement {
-  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
-
-  @override
-  LibraryOrAugmentationElement get enclosingElement2;
 
   /// The [LibraryAugmentationElement], if [uri] is a
   /// [DirectiveUriWithAugmentation].
@@ -148,8 +144,13 @@ abstract class AugmentedInstanceElement {
 /// The result of applying augmentations to a [InterfaceElement].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedInterfaceElement
-    implements AugmentedNamedInstanceElement {
+abstract class AugmentedInterfaceElement implements AugmentedInstanceElement {
+  /// The constructors declared in this element.
+  ///
+  /// [ConstructorAugmentationElement]s replace corresponding elements,
+  /// other [ConstructorElement]s are appended.
+  List<ConstructorElement> get constructors;
+
   @override
   InterfaceElement get declaration;
 
@@ -164,6 +165,12 @@ abstract class AugmentedInterfaceElement
   /// This is a union of mixins applied by the class declaration and all its
   /// augmentations.
   List<InterfaceType> get mixins;
+
+  /// The unnamed constructor from [constructors].
+  ConstructorElement? get unnamedConstructor;
+
+  /// Returns the constructor from [constructors] that has the given [name].
+  ConstructorElement? getNamedConstructor(String name);
 }
 
 /// The result of applying augmentations to a [MixinElement].
@@ -175,27 +182,6 @@ abstract class AugmentedMixinElement extends AugmentedInterfaceElement {
   /// This is a union of constraints declared by the class declaration and
   /// all its augmentations.
   List<InterfaceType> get superclassConstraints;
-}
-
-/// The result of applying augmentations to a [NamedInstanceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-abstract class AugmentedNamedInstanceElement
-    implements AugmentedInstanceElement {
-  /// The constructors declared in this element.
-  ///
-  /// [ConstructorAugmentationElement]s replace corresponding elements,
-  /// other [ConstructorElement]s are appended.
-  List<ConstructorElement> get constructors;
-
-  @override
-  NamedInstanceElement get declaration;
-
-  /// The unnamed constructor from [constructors].
-  ConstructorElement? get unnamedConstructor;
-
-  /// Returns the constructor from [constructors] that has the given [name].
-  ConstructorElement? getNamedConstructor(String name);
 }
 
 /// A pattern variable that is explicitly declared.
@@ -322,12 +308,8 @@ abstract class ClassMemberElement implements Element {
   // TODO(brianwilkerson) Either remove this class or rename it to something
   //  more correct.
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement;
-
-  @override
-  Element get enclosingElement2;
 
   /// Whether the element is a static element.
   ///
@@ -348,13 +330,8 @@ abstract class CompilationUnitElement implements UriReferencedElement {
   List<ClassElement> get classes;
 
   /// The library, or library augmentation that encloses this unit.
-  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
-
-  /// The library, or library augmentation that encloses this unit.
-  @override
-  LibraryOrAugmentationElement get enclosingElement2;
 
   /// The enums declared in this compilation unit.
   List<EnumElement> get enums;
@@ -415,12 +392,8 @@ abstract class ConstructorElement
   @override
   String get displayName;
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   InterfaceElement get enclosingElement;
-
-  @override
-  NamedInstanceElement get enclosingElement2;
 
   /// Whether the constructor is a const constructor.
   bool get isConst;
@@ -453,12 +426,8 @@ abstract class ConstructorElement
   /// library containing this constructor has not yet been resolved.
   ConstructorElement? get redirectedConstructor;
 
-  @Deprecated('Use returnType2 instead')
   @override
   InterfaceType get returnType;
-
-  @override
-  DartType get returnType2;
 }
 
 /// [ImportElementPrefix] that is used together with `deferred`.
@@ -576,14 +545,7 @@ abstract class Element implements AnalysisTarget {
   ///
   /// This will be `null` if this element is a library because libraries are
   /// the top-level elements in the model.
-  @Deprecated('Use enclosingElement2 instead')
   Element? get enclosingElement;
-
-  /// The element that either physically or logically encloses this element.
-  ///
-  /// This will be `null` if this element is a library because libraries are
-  /// the top-level elements in the model.
-  Element? get enclosingElement2;
 
   /// Whether the element has an annotation of the form `@alwaysThrows`.
   bool get hasAlwaysThrows;
@@ -1209,12 +1171,8 @@ abstract class ExecutableElement implements FunctionTypedElement {
   @override
   String get displayName;
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement;
-
-  @override
-  Element get enclosingElement2;
 
   /// Whether the executable element did not have an explicit return type
   /// specified for it in the original source.
@@ -1418,11 +1376,7 @@ abstract class FunctionTypedElement implements TypeParameterizedElement {
   List<ParameterElement> get parameters;
 
   /// The return type defined by this element.
-  @Deprecated('Use returnType2 instead')
   DartType get returnType;
-
-  /// The return type defined by this element.
-  DartType get returnType2;
 
   /// The type defined by this element.
   FunctionType get type;
@@ -1482,12 +1436,8 @@ abstract class InstanceElement
   @experimental
   AugmentedInstanceElement? get augmented;
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElement get enclosingElement;
-
-  @override
-  CompilationUnitElement get enclosingElement2;
 
   /// The declared fields.
   List<FieldElement> get fields;
@@ -1513,7 +1463,7 @@ abstract class InstanceElement
 /// An element that defines an [InterfaceType].
 ///
 /// Clients may not extend, implement or mix-in this class.
-abstract class InterfaceElement implements NamedInstanceElement {
+abstract class InterfaceElement implements InstanceElement {
   /// All the supertypes defined for this element and its supertypes.
   ///
   /// This includes superclasses, mixins, interfaces, and superclass constraints.
@@ -1525,6 +1475,11 @@ abstract class InterfaceElement implements NamedInstanceElement {
   @experimental
   @override
   AugmentedInterfaceElement? get augmented;
+
+  /// The declared constructors.
+  ///
+  /// The list is empty for [MixinElement].
+  List<ConstructorElement> get constructors;
 
   /// The interfaces that are implemented by this class.
   ///
@@ -1549,6 +1504,9 @@ abstract class InterfaceElement implements NamedInstanceElement {
   /// guard against infinite loops.
   List<InterfaceType> get mixins;
 
+  @override
+  String get name;
+
   /// The superclass of this element.
   ///
   /// For [ClassElement] returns `null` only if this class is `Object`. If the
@@ -1569,6 +1527,13 @@ abstract class InterfaceElement implements NamedInstanceElement {
   @override
   InterfaceType get thisType;
 
+  /// The unnamed constructor declared directly in this class.
+  ///
+  /// If the class does not declare any constructors, a synthetic default
+  /// constructor will be returned.
+  /// TODO(scheglov) Deprecate and remove it.
+  ConstructorElement? get unnamedConstructor;
+
   /// The field (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   /// TODO(scheglov) Deprecate and remove it.
@@ -1584,12 +1549,18 @@ abstract class InterfaceElement implements NamedInstanceElement {
   /// TODO(scheglov) Deprecate and remove it.
   MethodElement? getMethod(String name);
 
+  /// The constructor defined directly in this class or augmentation
+  /// that has the given [name].
+  /// TODO(scheglov) Deprecate and remove it.
+  ConstructorElement? getNamedConstructor(String name);
+
   /// The setter (synthetic or explicit) defined directly in this class or
   /// augmentation that has the given [name].
   /// TODO(scheglov) Deprecate and remove it.
   PropertyAccessorElement? getSetter(String name);
 
-  @override
+  /// Create the [InterfaceType] for this element with the given
+  /// [typeArguments] and [nullabilitySuffix].
   InterfaceType instantiate({
     required List<DartType> typeArguments,
     required NullabilitySuffix nullabilitySuffix,
@@ -1771,12 +1742,8 @@ abstract class JoinPatternVariableElement implements PatternVariableElement {
 ///
 /// Clients may not extend, implement or mix-in this class.
 abstract class LabelElement implements Element {
-  @Deprecated('Use enclosingElement2 instead')
   @override
   ExecutableElement get enclosingElement;
-
-  @override
-  ExecutableElement get enclosingElement2;
 
   @override
   String get name;
@@ -2084,46 +2051,6 @@ abstract class MultiplyInheritedExecutableElement implements ExecutableElement {
   List<ExecutableElement> get inheritedElements;
 }
 
-/// An element that represents a named [InstanceElement].
-///
-/// Clients may not extend, implement or mix-in this class.
-@experimental
-abstract class NamedInstanceElement implements InstanceElement {
-  @override
-  NamedInstanceElement? get augmentationTarget;
-
-  @experimental
-  @override
-  AugmentedNamedInstanceElement? get augmented;
-
-  /// The declared constructors.
-  ///
-  /// The list is empty for [MixinElement].
-  List<ConstructorElement> get constructors;
-
-  @override
-  String get name;
-
-  /// The unnamed constructor declared directly in this class.
-  ///
-  /// If the class does not declare any constructors, a synthetic default
-  /// constructor will be returned.
-  /// TODO(scheglov) Deprecate and remove it.
-  ConstructorElement? get unnamedConstructor;
-
-  /// The constructor defined directly in this class or augmentation
-  /// that has the given [name].
-  /// TODO(scheglov) Deprecate and remove it.
-  ConstructorElement? getNamedConstructor(String name);
-
-  /// Create the [DartType] for this element with the given [typeArguments]
-  /// and [nullabilitySuffix].
-  DartType instantiate({
-    required List<DartType> typeArguments,
-    required NullabilitySuffix nullabilitySuffix,
-  });
-}
-
 /// An object that controls how namespaces are combined.
 ///
 /// Clients may not extend, implement or mix-in this class.
@@ -2252,13 +2179,8 @@ abstract class PatternVariableElement implements LocalVariableElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class PrefixElement implements _ExistingElement {
   /// The library, or library augmentation that encloses this element.
-  @Deprecated('Use enclosingElement2 instead')
   @override
   LibraryOrAugmentationElement get enclosingElement;
-
-  /// The library, or library augmentation that encloses this element.
-  @override
-  LibraryOrAugmentationElement get enclosingElement2;
 
   /// The imports that share this prefix.
   List<LibraryImportElement> get imports;
@@ -2319,12 +2241,8 @@ abstract class PropertyAccessorElement implements ExecutableElement {
   @override
   PropertyAccessorElement get declaration;
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   Element get enclosingElement;
-
-  @override
-  Element get enclosingElement2;
 
   /// Whether the accessor represents a getter.
   bool get isGetter;
@@ -2446,12 +2364,8 @@ abstract class TypeAliasElement
   /// a [FunctionType].
   DartType get aliasedType;
 
-  @Deprecated('Use enclosingElement2 instead')
   @override
   CompilationUnitElement get enclosingElement;
-
-  @override
-  CompilationUnitElement get enclosingElement2;
 
   @override
   String get name;

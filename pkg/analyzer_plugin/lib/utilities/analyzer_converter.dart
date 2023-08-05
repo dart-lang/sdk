@@ -177,7 +177,7 @@ class AnalyzerConverter {
         // in either or both of these cases?
         ) {
       final type = element.type;
-      if (type is InterfaceType && type.element == element.enclosingElement2) {
+      if (type is InterfaceType && type.element == element.enclosingElement) {
         return plugin.ElementKind.ENUM_CONSTANT;
       }
     }
@@ -245,7 +245,7 @@ class AnalyzerConverter {
       if (element.kind == analyzer.ElementKind.SETTER) {
         return null;
       }
-      return element.returnType2.getDisplayString(withNullability: false);
+      return element.returnType.getDisplayString(withNullability: false);
     } else if (element is analyzer.VariableElement) {
       return element.type.getDisplayString(withNullability: false);
     } else if (element is analyzer.TypeAliasElement) {
@@ -320,15 +320,15 @@ extension ElementExtensions on analyzer.Element? {
     if (currentElement is analyzer.CompilationUnitElement) {
       return currentElement;
     }
-    if (currentElement?.enclosingElement2 is analyzer.LibraryElement) {
-      currentElement = currentElement?.enclosingElement2;
+    if (currentElement?.enclosingElement is analyzer.LibraryElement) {
+      currentElement = currentElement?.enclosingElement;
     }
     if (currentElement is analyzer.LibraryElement) {
       return currentElement.definingCompilationUnit;
     }
     for (;
         currentElement != null;
-        currentElement = currentElement.enclosingElement2) {
+        currentElement = currentElement.enclosingElement) {
       if (currentElement is analyzer.CompilationUnitElement) {
         return currentElement;
       }

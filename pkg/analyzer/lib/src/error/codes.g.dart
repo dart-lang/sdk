@@ -232,6 +232,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "Try marking the function body with either 'async' or 'async*'.",
   );
 
+  static const CompileTimeErrorCode AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE =
+      CompileTimeErrorCode(
+    'AWAIT_OF_EXTENSION_TYPE_NOT_FUTURE',
+    "The 'await' expression can't be used for an expression with an extension "
+        "type that is not a subtype of 'Future'.",
+    correctionMessage: "Try updating the extension type to implement 'Future'.",
+  );
+
   ///  Parameters:
   ///  0: the name of the base class being implemented
   static const CompileTimeErrorCode BASE_CLASS_IMPLEMENTED_OUTSIDE_OF_LIBRARY =

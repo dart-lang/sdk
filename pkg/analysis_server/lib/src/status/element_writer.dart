@@ -79,7 +79,7 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
       properties['isOperator'] = element.isOperator;
       properties['isStatic'] = element.isStatic;
       properties['isSynchronous'] = element.isSynchronous;
-      properties['returnType'] = element.returnType2;
+      properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
     if (element is LibraryExportElement) {
@@ -96,7 +96,7 @@ class ElementWriter extends GeneralizingElementVisitor<void> with TreeWriter {
       properties['isEntryPoint'] = element.isEntryPoint;
     }
     if (element is FunctionTypedElement) {
-      properties['returnType'] = element.returnType2;
+      properties['returnType'] = element.returnType;
       properties['type'] = element.type;
     }
     if (element is LibraryImportElement) {

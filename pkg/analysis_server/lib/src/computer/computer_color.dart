@@ -85,7 +85,7 @@ class ColorComputer {
 
     final constructor = expression.constructorName;
     final staticElement = constructor.staticElement;
-    final classElement = staticElement?.enclosingElement2;
+    final classElement = staticElement?.enclosingElement;
     final className = classElement?.name;
     final constructorName = constructor.name?.name;
     final constructorArgs = expression.argumentList.arguments

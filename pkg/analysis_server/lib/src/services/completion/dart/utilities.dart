@@ -230,7 +230,7 @@ String? nameForType(SimpleIdentifier identifier, TypeAnnotation? declaredType) {
     if (element is PropertyAccessorElement && element.isSetter) {
       return null;
     }
-    type = element.returnType2;
+    type = element.returnType;
   } else if (element is TypeAliasElement) {
     final aliasedType = element.aliasedType;
     if (aliasedType is FunctionType) {

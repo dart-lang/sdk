@@ -217,7 +217,7 @@ class InlineMethodRefactoringImpl extends RefactoringImpl
 
   @override
   String? get className {
-    var interfaceElement = _methodElement?.enclosingElement2;
+    var interfaceElement = _methodElement?.enclosingElement;
     if (interfaceElement is InterfaceElement) {
       return interfaceElement.displayName;
     }
@@ -611,7 +611,7 @@ class _ReferenceProcessor {
           }
           if (refElement is ExecutableElement) {
             var executable = refElement as ExecutableElement;
-            if (!executable.returnType2.isDartAsyncFuture) {
+            if (!executable.returnType.isDartAsyncFuture) {
               status.addFatalError(
                   'Cannot inline async into a function that does not return a Future.',
                   newLocation_fromNode(_node));
@@ -855,13 +855,13 @@ class _VariablesVisitor extends GeneralizingAstVisitor<void> {
     } else {
       return;
     }
-    if (element.enclosingElement2 is! InterfaceElement) {
+    if (element.enclosingElement is! InterfaceElement) {
       return;
     }
     // record the implicit static or instance reference
     var offset = node.offset;
     if (element.isStatic) {
-      var className = element.enclosingElement2.displayName;
+      var className = element.enclosingElement.displayName;
       result.addImplicitClassNameOffset(className, offset);
     } else {
       result.addImplicitThisOffset(offset);

@@ -6818,6 +6818,7 @@ final class ExtensionTypeDeclarationImpl extends NamedCompilationUnitMemberImpl
     super.visitChildren(visitor);
     typeParameters?.accept(visitor);
     representation.accept(visitor);
+    implementsClause?.accept(visitor);
     members.accept(visitor);
   }
 }

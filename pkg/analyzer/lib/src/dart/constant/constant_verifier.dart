@@ -248,16 +248,12 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
       // evaluation.
       var constructor = node.constructorName.staticElement;
       if (constructor != null) {
-        var returnType = constructor.returnType2;
-        if (returnType is! InterfaceType) {
-          return;
-        }
         ConstantVisitor constantVisitor =
             ConstantVisitor(_evaluationEngine, _currentLibrary, _errorReporter);
         _evaluationEngine.evaluateConstructorCall(
             _currentLibrary,
             node,
-            returnType.typeArguments,
+            constructor.returnType.typeArguments,
             node.argumentList.arguments,
             constructor,
             constantVisitor,
@@ -450,7 +446,7 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     if (initializer != null && (node.isConst || node.isFinal)) {
       var element = node.declaredElement as VariableElementImpl;
       if (element is FieldElement && !element.isStatic) {
-        var enclosingElement = element.enclosingElement2;
+        var enclosingElement = element.enclosingElement;
         if (enclosingElement is ClassElementImpl &&
             !enclosingElement.hasGenerativeConstConstructor) {
           // TODO(kallentu): Evaluate if we need to do this check for inline

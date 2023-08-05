@@ -91,7 +91,7 @@ class AssignmentVerifier {
         _errorReporter.reportErrorForNode(
           CompileTimeErrorCode.ASSIGNMENT_TO_FINAL_NO_SETTER,
           node,
-          [variable.name, variable.enclosingElement2.displayName],
+          [variable.name, variable.enclosingElement.displayName],
         );
       } else {
         _errorReporter.reportErrorForNode(
