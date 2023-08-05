@@ -249,6 +249,21 @@ class DuplicateDefinitionVerifier {
     }
   }
 
+  void checkExtensionType(
+    ExtensionTypeDeclaration node,
+    ExtensionTypeElement element,
+  ) {
+    final declarationElement = element.augmented?.declaration;
+    if (declarationElement == null) return;
+
+    final primaryConstructorName = element.constructors.first.name;
+    _getElementContext(declarationElement)
+        .constructorNames
+        .add(primaryConstructorName);
+
+    _checkClassMembers(element, node.members);
+  }
+
   /// Check that the given list of variable declarations does not define
   /// multiple variables of the same name.
   void checkForVariables(VariableDeclarationList node) {
@@ -383,9 +398,7 @@ class DuplicateDefinitionVerifier {
     final declarationElement = element.augmented?.declaration;
     if (declarationElement == null) return;
 
-    final elementContext =
-        context._interfaceElementContexts[declarationElement] ??=
-            _InterfaceElementContext();
+    final elementContext = _getElementContext(declarationElement);
     final constructorNames = elementContext.constructorNames;
     final instanceGetters = elementContext.instanceGetters;
     final instanceSetters = elementContext.instanceSetters;
@@ -594,6 +607,11 @@ class DuplicateDefinitionVerifier {
         name,
       );
     }
+  }
+
+  _InterfaceElementContext _getElementContext(InterfaceElement element) {
+    return context._interfaceElementContexts[element] ??=
+        _InterfaceElementContext();
   }
 
   ExecutableElement? _getInheritedMember(

@@ -106,4 +106,44 @@ enum E {
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 39, 5),
     ]);
   }
+
+  test_extensionType_empty_empty() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  A(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 1),
+    ]);
+  }
+
+  test_extensionType_empty_new() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  A.new(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 29, 5),
+    ]);
+  }
+
+  test_extensionType_new_empty() async {
+    await assertErrorsInCode(r'''
+extension type A.new(int it) {
+  A(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 1),
+    ]);
+  }
+
+  test_extensionType_new_new() async {
+    await assertErrorsInCode(r'''
+extension type A.new(int it) {
+  A.new(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_DEFAULT, 33, 5),
+    ]);
+  }
 }

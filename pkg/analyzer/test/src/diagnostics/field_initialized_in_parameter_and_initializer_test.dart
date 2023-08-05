@@ -45,11 +45,11 @@ enum E {
   test_extensionType_fieldFormalParameter_initializer() async {
     await assertErrorsInCode(r'''
 extension type A(int it) {
-  A(this.it) : it = 0;
+  A.named(this.it) : it = 0;
 }
 ''', [
       error(CompileTimeErrorCode.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER,
-          42, 2),
+          48, 2),
     ]);
   }
 }

@@ -700,6 +700,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       _enclosingClass = declarationElement;
 
+      _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
+      _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       // TODO(scheglov) Add checks.
 
@@ -2018,7 +2020,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is PropertyAccessorElement) {
+      } else if (inherited is PropertyAccessorElement &&
+          _enclosingClass is! ExtensionTypeElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_METHOD_AND_FIELD, method, [
           _enclosingClass!.displayName,
@@ -2045,7 +2048,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           name,
           inherited.enclosingElement.displayName,
         ]);
-      } else if (inherited is MethodElement) {
+      } else if (inherited is MethodElement &&
+          _enclosingClass is! ExtensionTypeElement) {
         errorReporter.reportErrorForElement(
             CompileTimeErrorCode.CONFLICTING_FIELD_AND_METHOD, accessor, [
           _enclosingClass!.displayName,

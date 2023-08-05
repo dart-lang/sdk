@@ -197,7 +197,9 @@ class InheritanceManager3 {
       _findMostSpecificFromNamedCandidates(
         element,
         inheritedMap,
-        interface.overridden,
+        element is ExtensionTypeElement
+            ? interface.redeclared
+            : interface.overridden,
         doTopMerge: false,
       );
     }
