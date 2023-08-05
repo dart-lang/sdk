@@ -3550,6 +3550,18 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
         "an expression statement.",
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode
+      NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE =
+      CompileTimeErrorCode(
+    'NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE',
+    "An extension type parameter can't be used in a non-covariant position of "
+        "its representation type.",
+    correctionMessage:
+        "Try removing the type parameters from function parameter types and "
+        "type parameter bounds.",
+  );
+
   ///  Parameters:
   ///  0: the type of the switch scrutinee
   ///  1: the witness pattern for the unmatched value

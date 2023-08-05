@@ -21,6 +21,7 @@ import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/non_covariant_type_parameter_position.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -703,6 +704,8 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _duplicateDefinitionVerifier.checkExtensionType(node, declarationElement);
       _checkForConflictingClassMembers();
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
+      _checkForNonCovariantTypeParameterPositionInRepresentationType(
+          node, element);
       // TODO(scheglov) Add checks.
 
       super.visitExtensionTypeDeclaration(node);
@@ -4106,6 +4109,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     /// TODO(srawlins): Add any tests showing this is reported.
     errorReporter.reportErrorForNode(
         CompileTimeErrorCode.NON_CONST_MAP_AS_EXPRESSION_STATEMENT, literal);
+  }
+
+  void _checkForNonCovariantTypeParameterPositionInRepresentationType(
+    ExtensionTypeDeclaration node,
+    ExtensionTypeElement element,
+  ) {
+    final typeParameters = node.typeParameters?.typeParameters;
+    if (typeParameters == null) {
+      return;
+    }
+
+    final representationType = element.representation.type;
+
+    for (final typeParameterNode in typeParameters) {
+      final typeParameterElement = typeParameterNode.declaredElement!;
+      final nonCovariant = representationType.accept(
+        NonCovariantTypeParameterPositionVisitor(
+          [typeParameterElement],
+          initialVariance: Variance.covariant,
+        ),
+      );
+      if (nonCovariant) {
+        errorReporter.reportErrorForNode(
+          CompileTimeErrorCode
+              .NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE,
+          typeParameterNode,
+        );
+      }
+    }
   }
 
   void _checkForNonFinalFieldInEnum(FieldDeclaration node) {

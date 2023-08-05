@@ -585,6 +585,8 @@ import 'non_constant_relational_pattern_expression_test.dart'
     as non_constant_relational_pattern_expression;
 import 'non_constant_set_element_test.dart' as non_constant_set_element;
 import 'non_constant_type_argument_test.dart' as non_constant_type_argument;
+import 'non_covariant_type_parameter_position_in_representation_type_test.dart'
+    as non_covariant_type_parameter_position_in_representation_type;
 import 'non_exhaustive_switch_test.dart' as non_exhaustive_switch;
 import 'non_final_field_in_enum_test.dart' as non_final_field_in_enum;
 import 'non_generative_constructor_test.dart' as non_generative_constructor;
@@ -1254,6 +1256,7 @@ main() {
     non_constant_map_value_from_deferred_library.main();
     non_constant_set_element.main();
     non_constant_type_argument.main();
+    non_covariant_type_parameter_position_in_representation_type.main();
     non_exhaustive_switch.main();
     non_final_field_in_enum.main();
     non_generative_constructor.main();

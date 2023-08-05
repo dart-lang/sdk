@@ -10959,6 +10959,10 @@ CompileTimeErrorCode:
       13.2 Expression Statements: It is a compile-time error if a non-constant
       map literal that has no explicit type arguments appears in a place where a
       statement is expected.
+  NON_COVARIANT_TYPE_PARAMETER_POSITION_IN_REPRESENTATION_TYPE:
+    problemMessage: "An extension type parameter can't be used in a non-covariant position of its representation type."
+    correctionMessage: "Try removing the type parameters from function parameter types and type parameter bounds."
+    comment: No parameters.
   NON_EXHAUSTIVE_SWITCH_EXPRESSION:
     problemMessage: "The type '{0}' is not exhaustively matched by the switch cases since it doesn't match '{1}'."
     correctionMessage: "Try adding a wildcard pattern or cases that match '{2}'."
