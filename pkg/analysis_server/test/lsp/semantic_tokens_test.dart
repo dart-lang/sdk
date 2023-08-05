@@ -1122,6 +1122,33 @@ void f() {
     await _verifyTokensInRange(content, expected);
   }
 
+  Future<void> test_sort_sameOffsets() async {
+    // This code initially (before merging) produces a String token starting at
+    // offset 11 (as it drops out of one interpolated variable) and then a new
+    // Interpolatation token.
+    // This test is to ensure the assertion in `offsetLengthPrioritySort` does
+    // not trigger (as it does if length is ignored, which was a bug).
+    final content = r'''
+var a = '$s$s';
+    ''';
+
+    final expected = [
+      _Token('var', SemanticTokenTypes.keyword),
+      _Token('a', SemanticTokenTypes.property,
+          [SemanticTokenModifiers.declaration]),
+      _Token("'", SemanticTokenTypes.string),
+      _Token(r'$', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
+      _Token('s', CustomSemanticTokenTypes.source),
+      _Token(r'$', CustomSemanticTokenTypes.source,
+          [CustomSemanticTokenModifiers.interpolation]),
+      _Token('s', CustomSemanticTokenTypes.source),
+      _Token("'", SemanticTokenTypes.string)
+    ];
+
+    await _verifyTokens(content, expected);
+  }
+
   Future<void> test_strings() async {
     final content = '''
 String foo(String c) => c;
