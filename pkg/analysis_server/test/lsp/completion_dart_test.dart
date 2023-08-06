@@ -2326,17 +2326,17 @@ void f() { }
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final setters = res
         .where((c) => c.label.endsWith('Setter'))
-        .map((c) => '${c.label} (${c.detail})')
+        .map((c) => c.detail != null ? '${c.label} (${c.detail})' : c.label)
         .toList();
     expect(
       setters,
       [
         'stringSetter (String)',
-        'noArgSetter ()',
-        'multiArgSetter ()',
+        'noArgSetter',
+        'multiArgSetter',
         // Because of how we extract the type name, we don't currently support
         // this.
-        'functionSetter ()',
+        'functionSetter',
       ],
     );
   }
