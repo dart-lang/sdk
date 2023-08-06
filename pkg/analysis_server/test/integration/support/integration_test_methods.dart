@@ -2731,6 +2731,26 @@ abstract class IntegrationTest {
   /// Stream controller for [onFlutterOutline].
   final _onFlutterOutline = StreamController<FlutterOutlineParams>(sync: true);
 
+  /// Call an LSP handler. Message can be requests or notifications.
+  ///
+  /// Parameters
+  ///
+  /// lspMessage: object
+  ///
+  ///   The LSP RequestMessage.
+  ///
+  /// Returns
+  ///
+  /// lspResponse: object
+  ///
+  ///   The LSP ResponseMessage returned by the handler.
+  Future<LspHandleResult> sendLspHandle(Object lspMessage) async {
+    var params = LspHandleParams(lspMessage).toJson();
+    var result = await server.send('lsp.handle', params);
+    var decoder = ResponseDecoder(null);
+    return LspHandleResult.fromJson(decoder, 'result', result);
+  }
+
   /// Dispatch the notification named [event], and containing parameters
   /// [params], to the appropriate stream.
   void dispatchNotification(String event, params) {

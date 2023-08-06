@@ -7,7 +7,7 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 
 /// A [MessageHandler] that rejects specific types of messages with a given
 /// error code/message.
-class RejectMessageHandler extends LspMessageHandler<Object?, void> {
+class RejectMessageHandler extends SharedMessageHandler<Object?, void> {
   @override
   final Method handlesMessage;
   final ErrorCodes errorCode;

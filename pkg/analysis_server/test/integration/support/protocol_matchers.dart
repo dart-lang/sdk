@@ -2868,6 +2868,22 @@ final Matcher isInlineMethodFeedback = LazyMatcher(() => MatchesJsonObject(
 final Matcher isInlineMethodOptions = LazyMatcher(() => MatchesJsonObject(
     'inlineMethod options', {'deleteSource': isBool, 'inlineAll': isBool}));
 
+/// lsp.handle params
+///
+/// {
+///   "lspMessage": object
+/// }
+final Matcher isLspHandleParams = LazyMatcher(
+    () => MatchesJsonObject('lsp.handle params', {'lspMessage': isObject}));
+
+/// lsp.handle result
+///
+/// {
+///   "lspResponse": object
+/// }
+final Matcher isLspHandleResult = LazyMatcher(
+    () => MatchesJsonObject('lsp.handle result', {'lspResponse': isObject}));
+
 /// moveFile feedback
 final Matcher isMoveFileFeedback = isNull;
 

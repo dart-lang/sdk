@@ -23,15 +23,8 @@ class HoverTest extends LspOverLegacyTest {
     newFile(testFilePath, code.code);
     await waitForTasksFinished();
 
-    final request = createRequest(
-      Method.textDocument_hover,
-      HoverParams(
-        position: code.position.position,
-        textDocument: testFileIdentifier,
-      ),
-    );
-    final result = await sendRequest(request, Hover.fromJson);
-    final markup = _getMarkupContents(result);
+    final result = await getHover(testFileUri, code.position.position);
+    final markup = _getMarkupContents(result!);
     expect(markup.kind, MarkupKind.Markdown);
     expect(markup.value.trimRight(), expected.trimRight());
     expect(result.range, code.range.range);
