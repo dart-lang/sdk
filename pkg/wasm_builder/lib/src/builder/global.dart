@@ -5,7 +5,7 @@
 part of 'globals.dart';
 
 /// A global variable defined in a module.
-class GlobalBuilder extends ir.Global with Builder<ir.DefinedGlobal> {
+class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
   final InstructionsBuilder initializer;
 
   GlobalBuilder(ModuleBuilder module, super.index, super.type)
@@ -14,5 +14,5 @@ class GlobalBuilder extends ir.Global with Builder<ir.DefinedGlobal> {
 
   @override
   ir.DefinedGlobal forceBuild() =>
-      ir.DefinedGlobal(initializer.build(), index, type);
+      ir.DefinedGlobal(initializer.build(), finalizableIndex, type);
 }
