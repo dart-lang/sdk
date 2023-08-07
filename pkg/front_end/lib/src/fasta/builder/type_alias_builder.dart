@@ -17,6 +17,7 @@ import '../fasta_codes.dart'
 import '../problems.dart' show unhandled;
 import '../source/source_library_builder.dart';
 import 'class_builder.dart';
+import 'extension_type_declaration_builder.dart';
 import 'library_builder.dart';
 import 'metadata_builder.dart';
 import 'named_type_builder.dart';
@@ -56,6 +57,57 @@ abstract class TypeAliasBuilder implements TypeDeclarationBuilder {
 
   /// Returns `true` if this typedef is an alias of the `Null` type.
   bool get isNullAlias;
+
+  /// Returns the unaliased type for this type alias with the given
+  /// [typeArguments], or `null` if this type alias is cyclic.
+  ///
+  /// If [usedTypeAliasBuilders] is supplied, the [TypeAliasBuilder]s used
+  /// during unaliasing are added to [usedTypeAliasBuilders].
+  ///
+  /// If [unboundTypes] is provided, created type builders that are not bound
+  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
+  // TODO(johnniwinther): Used this instead of [unaliasDeclaration] and
+  // [unaliasTypeArguments].
+  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables});
+
+  /// Helper method for computing [unalias].
+  ///
+  /// Returns the directly alias of this type alias with the given
+  /// [typeArguments], or `null` if this type alias is cyclic.
+  ///
+  /// [currentTypeAliasBuilders] contains the type alias builders used so
+  /// for in the computation of [unalias]. This method will add this type alias
+  /// builder to [currentTypeAliasBuilders] or report a cyclic error if this
+  /// type alias builder is already in the set.
+  ///
+  /// If [unboundTypes] is provided, created type builders that are not bound
+  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
+  TypeBuilder? unaliasOnce(
+      List<TypeBuilder>? typeArguments,
+      Set<TypeAliasBuilder> currentTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables);
 
   /// Returns the [TypeDeclarationBuilder] for the type aliased by `this`,
   /// based on the given [typeArguments]. It expands type aliases repeatedly
@@ -189,6 +241,64 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
         fileUri,
         charOffset,
         hasExplicitTypeArguments: hasExplicitTypeArguments);
+  }
+
+  @override
+  TypeBuilder? unalias(List<TypeBuilder>? typeArguments,
+      {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables}) {
+    Set<TypeAliasBuilder> currentTypeAliasBuilders;
+    if (usedTypeAliasBuilders != null && usedTypeAliasBuilders.isEmpty) {
+      currentTypeAliasBuilders = usedTypeAliasBuilders;
+    } else {
+      currentTypeAliasBuilders = {};
+    }
+    TypeBuilder? type = unaliasOnce(typeArguments, currentTypeAliasBuilders,
+        unboundTypes, unboundTypeVariables);
+    while (type is NamedTypeBuilder && type.declaration is TypeAliasBuilder) {
+      TypeAliasBuilder? declaration = type.declaration as TypeAliasBuilder;
+      type = declaration.unaliasOnce(type.arguments, currentTypeAliasBuilders,
+          unboundTypes, unboundTypeVariables);
+    }
+    if (usedTypeAliasBuilders != null &&
+        !identical(usedTypeAliasBuilders, currentTypeAliasBuilders)) {
+      usedTypeAliasBuilders.addAll(currentTypeAliasBuilders);
+    }
+    return type;
+  }
+
+  @override
+  TypeBuilder? unaliasOnce(
+      List<TypeBuilder>? typeArguments,
+      Set<TypeAliasBuilder> currentBuilders,
+      List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables) {
+    if (!currentBuilders.add(this)) {
+      // Cyclic type alias.
+      libraryBuilder.addProblem(templateCyclicTypedef.withArguments(this.name),
+          charOffset, noLength, fileUri);
+      return null;
+    }
+    // TODO(johnniwinther): Handle/report type argument count mismatch. These
+    // are currently reported through [unaliasDeclaration].
+    if (typeVariables != null) {
+      if (typeArguments == null ||
+          typeArguments.length != typeVariables!.length) {
+        typeArguments =
+            new List<TypeBuilder>.generate(typeVariables!.length, (int i) {
+          return typeVariables![i].defaultType!;
+        }, growable: true);
+      }
+      Map<TypeVariableBuilder, TypeBuilder> substitution = {};
+      for (int index = 0; index < typeArguments.length; index++) {
+        substitution[typeVariables![index]] = typeArguments[index];
+      }
+      return type.subst(substitution,
+          unboundTypes: unboundTypes,
+          unboundTypeVariables: unboundTypeVariables);
+    }
+    return type;
   }
 
   TypeDeclarationBuilder? _cachedUnaliasedDeclaration;
@@ -400,10 +510,11 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
     return currentDeclarationBuilder;
   }
 
-  /// Compute type arguments passed to [ClassBuilder] from unaliasDeclaration.
+  /// Compute type arguments passed to [ClassBuilder] or
+  /// [ExtensionTypeDeclarationBuilder] from unaliasDeclaration.
   /// This method does not check for cycles and may only be called if an
   /// invocation of `this.unaliasDeclaration(typeArguments)` has returned a
-  /// [ClassBuilder].
+  /// [ClassBuilder] or [ExtensionTypeDeclarationBuilder].
   ///
   /// The parameter [typeArguments] would typically be obtained from a
   /// [NamedTypeBuilder] whose `declaration` is `this`. It must be non-null.
@@ -412,8 +523,9 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
   ///
   /// The method substitutes through the chain of type aliases denoted by
   /// [this], such that the returned [TypeBuilder]s are appropriate type
-  /// arguments for passing to the [ClassBuilder] which is the end of the
-  /// unaliasing chain.
+  /// arguments for passing to the [ClassBuilder] or
+  /// [ExtensionTypeDeclarationBuilder] which is the end of the unaliasing
+  /// chain.
   @override
   List<TypeBuilder>? unaliasTypeArguments(List<TypeBuilder>? typeArguments) {
     TypeDeclarationBuilder? currentDeclarationBuilder = this;
@@ -462,7 +574,8 @@ abstract class TypeAliasBuilderImpl extends TypeDeclarationBuilderImpl
           return declarationBuilder
               .unaliasTypeArguments(namedSubstitutedBuilder.arguments);
         }
-        assert(declarationBuilder is ClassBuilder);
+        assert(declarationBuilder is ClassBuilder ||
+            declarationBuilder is ExtensionTypeDeclarationBuilder);
         return namedSubstitutedBuilder.arguments ?? [];
       }
       // Not yet at the end of the chain, more named builders to come.

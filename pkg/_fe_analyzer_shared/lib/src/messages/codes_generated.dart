@@ -2234,6 +2234,16 @@ Message _withArgumentsCyclicRedirectingFactoryConstructors(String name) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeCyclicRepresentationDependency =
+    messageCyclicRepresentationDependency;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageCyclicRepresentationDependency = const MessageCode(
+    "CyclicRepresentationDependency",
+    problemMessage:
+        r"""An extension type can't depend on itself through its representation type.""");
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name)> templateCyclicTypedef =
     const Template<Message Function(String name)>(
         problemMessageTemplate:
@@ -4245,6 +4255,17 @@ Message _withArgumentsExtensionMemberConflictsWithObjectMember(String name) {
           """This extension member conflicts with Object member '${name}'.""",
       arguments: {'name': name});
 }
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Null> codeExtensionTypeDeclarationCause =
+    messageExtensionTypeDeclarationCause;
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode messageExtensionTypeDeclarationCause = const MessageCode(
+    "ExtensionTypeDeclarationCause",
+    severity: Severity.context,
+    problemMessage:
+        r"""The issue arises via this extension type declaration.""");
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Code<Null> codeExternalClass = messageExternalClass;

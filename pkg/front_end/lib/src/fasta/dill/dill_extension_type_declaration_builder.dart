@@ -21,6 +21,8 @@ class DillExtensionTypeDeclarationBuilder
 
   List<TypeBuilder>? _interfaceBuilders;
 
+  TypeBuilder? _declaredRepresentationTypeBuilder;
+
   DillExtensionTypeDeclarationBuilder(
       this._extensionTypeDeclaration, DillLibraryBuilder parent)
       : super(
@@ -124,6 +126,11 @@ class DillExtensionTypeDeclarationBuilder
   @override
   DartType get declaredRepresentationType =>
       _extensionTypeDeclaration.declaredRepresentationType;
+
+  @override
+  TypeBuilder? get declaredRepresentationTypeBuilder =>
+      _declaredRepresentationTypeBuilder ??=
+          libraryBuilder.loader.computeTypeBuilder(declaredRepresentationType);
 
   @override
   ExtensionTypeDeclaration get extensionTypeDeclaration =>

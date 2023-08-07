@@ -7,11 +7,13 @@ library fasta.type_builder;
 import 'package:kernel/ast.dart' show DartType, Supertype;
 import 'package:kernel/class_hierarchy.dart';
 
+import '../kernel/type_algorithms.dart';
 import '../source/source_library_builder.dart';
 import 'library_builder.dart';
 import 'named_type_builder.dart';
 import 'nullability_builder.dart';
 import 'omitted_type_builder.dart';
+import 'type_alias_builder.dart';
 import 'type_declaration_builder.dart';
 import 'type_variable_builder.dart';
 
@@ -303,11 +305,36 @@ abstract class TypeBuilder {
   ///
   /// If [unboundTypes] is provided, created type builders that are not bound
   /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
-  /// throws an error.
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
   // TODO(johnniwinther): Change [NamedTypeBuilder] to hold the
   // [TypeParameterScopeBuilder] should resolve it, so that we cannot create
   // [NamedTypeBuilder]s that are orphaned.
-  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution) => this;
+  TypeBuilder subst(Map<TypeVariableBuilder, TypeBuilder> substitution,
+      {List<TypeBuilder>? unboundTypes,
+      List<TypeVariableBuilder>? unboundTypeVariables}) {
+    if (substitution.isEmpty) {
+      return this;
+    }
+    List<TypeBuilder> unboundTypesInternal = unboundTypes ?? [];
+    List<TypeVariableBuilder> unboundTypeVariablesInternal =
+        unboundTypeVariables ?? [];
+    TypeBuilder result = substitute(this, substitution,
+        unboundTypes: unboundTypesInternal,
+        unboundTypeVariables: unboundTypeVariablesInternal);
+    assert(unboundTypes != null || unboundTypesInternal.isEmpty,
+        "Non-empty unbound types: $unboundTypesInternal.");
+    assert(unboundTypeVariables != null || unboundTypeVariablesInternal.isEmpty,
+        "Non-empty unbound type variables: $unboundTypeVariables.");
+    return result;
+  }
 
   /// Clones the type builder recursively without binding the subterms to
   /// existing declaration or type variable builders.  All newly built types
@@ -378,6 +405,28 @@ abstract class TypeBuilder {
   ///
   /// If this type is not an [InferableTypeBuilder], this call is a no-op.
   void registerInferable(Inferable inferable) {}
+
+  /// Computes the unaliased type builder for this type builder.
+  ///
+  /// If [usedTypeAliasBuilders] is supplied, the [TypeAliasBuilder]s used
+  /// during unaliasing are added to [usedTypeAliasBuilders].
+  ///
+  /// If [unboundTypes] is provided, created type builders that are not bound
+  /// are added to [unboundTypes]. Otherwise, creating an unbound type builder
+  /// results in an assertion error.
+  ///
+  /// If [unboundTypeVariables] is provided, created type variable builders are
+  /// added to [unboundTypeVariables]. Otherwise, creating a
+  /// type variable builder result in an assertion error.
+  ///
+  /// The [unboundTypes] and [unboundTypeVariables] must be processed by the
+  /// call, unless the created [TypeBuilder]s and [TypeVariableBuilder]s are
+  /// not part of the generated AST.
+  TypeBuilder? unalias(
+          {Set<TypeAliasBuilder>? usedTypeAliasBuilders,
+          List<TypeBuilder>? unboundTypes,
+          List<TypeVariableBuilder>? unboundTypeVariables}) =>
+      this;
 }
 
 abstract class InferableType {

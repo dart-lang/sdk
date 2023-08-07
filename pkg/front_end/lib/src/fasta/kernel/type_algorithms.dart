@@ -243,6 +243,20 @@ TypeBuilder substituteRange(
           arguments[i] = substitutedArgument;
         }
       }
+    } else if (declaration is ExtensionTypeDeclarationBuilder) {
+      for (int i = 0; i < type.arguments!.length; ++i) {
+        TypeBuilder substitutedArgument = substituteRange(
+            type.arguments![i],
+            upperSubstitution,
+            lowerSubstitution,
+            unboundTypes,
+            unboundTypeVariables,
+            variance: variance);
+        if (substitutedArgument != type.arguments![i]) {
+          arguments ??= type.arguments!.toList();
+          arguments[i] = substitutedArgument;
+        }
+      }
     } else if (declaration is TypeAliasBuilder) {
       for (int i = 0; i < type.arguments!.length; ++i) {
         TypeVariableBuilder variable = declaration.typeVariables![i];
@@ -646,6 +660,14 @@ List<Object> findRawTypesWithInboundReferences(TypeBuilder? type) {
           declaration.typeVariables != null) {
         List<Object> dependencies =
             findInboundReferences(declaration.typeVariables!);
+        if (dependencies.length != 0) {
+          typesAndDependencies.add(type);
+          typesAndDependencies.add(dependencies);
+        }
+      } else if (declaration is ExtensionTypeDeclarationBuilder &&
+          declaration.typeParameters != null) {
+        List<Object> dependencies =
+            findInboundReferences(declaration.typeParameters!);
         if (dependencies.length != 0) {
           typesAndDependencies.add(type);
           typesAndDependencies.add(dependencies);

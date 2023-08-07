@@ -7069,3 +7069,13 @@ NonCovariantTypeParameterInRepresentationType:
   experiments: inline-class
   script: |
     extension type E<T>(void Function(T) f) {}
+
+CyclicRepresentationDependency:
+  problemMessage: "An extension type can't depend on itself through its representation type."
+  experiments: inline-class
+  script: |
+    extension type E(E it) {}
+
+ExtensionTypeDeclarationCause:
+  problemMessage: "The issue arises via this extension type declaration."
+  severity: CONTEXT

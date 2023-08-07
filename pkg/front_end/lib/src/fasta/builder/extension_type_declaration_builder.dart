@@ -22,6 +22,9 @@ abstract class ExtensionTypeDeclarationBuilder implements DeclarationBuilder {
   /// The type of the underlying representation.
   DartType get declaredRepresentationType;
 
+  /// The type builder of the underlying representation.
+  TypeBuilder? get declaredRepresentationTypeBuilder;
+
   /// Return the [ExtensionTypeDeclaration] built by this builder.
   ExtensionTypeDeclaration get extensionTypeDeclaration;
 
@@ -77,5 +80,5 @@ abstract class ExtensionTypeDeclarationBuilderImpl
   }
 
   @override
-  String get debugName => "InlineClassBuilder";
+  String get debugName => "ExtensionTypeDeclarationBuilder";
 }
