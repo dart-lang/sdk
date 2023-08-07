@@ -131,6 +131,7 @@ inline_class/extension_types/constructor_bodies: FormatterCrash
 inline_class/extension_types/constructor_formal_parameters: FormatterCrash
 inline_class/extension_types/constructors: FormatterCrash
 inline_class/extension_types/cyclic_extension_types: FormatterCrash
+inline_class/extension_types/cyclic_representation_type: FormatterCrash
 inline_class/extension_types/extension_type_declarations: FormatterCrash
 inline_class/extension_types/external: FormatterCrash
 inline_class/extension_types/field_access: FormatterCrash

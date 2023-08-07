@@ -11690,6 +11690,7 @@ class ExtensionType extends DartType {
       Reference extensionTypeDeclarationReference,
       List<DartType> typeArguments,
       Nullability declaredNullability) {
+    // TODO(johnniwinther): Handle transitive dependencies.
     ExtensionTypeDeclaration extensionTypeDeclaration =
         extensionTypeDeclarationReference.asExtensionTypeDeclaration;
     if (extensionTypeDeclaration.typeParameters.isEmpty) {

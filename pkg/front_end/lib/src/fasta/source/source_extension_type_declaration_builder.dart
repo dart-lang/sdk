@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:front_end/src/fasta/builder/function_type_builder.dart';
+import 'package:front_end/src/fasta/builder/record_type_builder.dart';
 import 'package:front_end/src/fasta/kernel/body_builder_context.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
@@ -10,6 +12,7 @@ import '../../base/common.dart';
 import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/extension_type_declaration_builder.dart';
+import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
@@ -84,6 +87,10 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   SourceLibraryBuilder get libraryBuilder =>
       super.libraryBuilder as SourceLibraryBuilder;
+
+  @override
+  TypeBuilder? get declaredRepresentationTypeBuilder =>
+      representationFieldBuilder?.type;
 
   @override
   SourceExtensionTypeDeclarationBuilder get origin => _origin ?? this;
@@ -236,6 +243,9 @@ class SourceExtensionTypeDeclarationBuilder
                 typeBuilder.fileUri);
           }
         }
+        if (_checkRepresentationDependency(typeBuilder, {this}, {})) {
+          representationType = const InvalidType();
+        }
       } else {
         representationType = const DynamicType();
       }
@@ -250,6 +260,124 @@ class SourceExtensionTypeDeclarationBuilder
     buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
     return _extensionTypeDeclaration;
+  }
+
+  bool _checkRepresentationDependency(
+      TypeBuilder? typeBuilder,
+      Set<ExtensionTypeDeclarationBuilder> seenExtensionTypeDeclarations,
+      Set<TypeAliasBuilder> usedTypeAliasBuilders) {
+    TypeBuilder? unaliased = typeBuilder?.unalias(
+        usedTypeAliasBuilders: usedTypeAliasBuilders,
+        // We allow creating new type variables during unaliasing. This type
+        // variables are short-lived and therefore don't need to be bound.
+        unboundTypeVariables: []);
+    if (unaliased is NamedTypeBuilder) {
+      TypeDeclarationBuilder? declaration = unaliased.declaration;
+      if (declaration is ExtensionTypeDeclarationBuilder) {
+        if (!seenExtensionTypeDeclarations.add(declaration)) {
+          List<LocatedMessage> context = [];
+          for (ExtensionTypeDeclarationBuilder extensionTypeDeclarationBuilder
+              in seenExtensionTypeDeclarations) {
+            if (extensionTypeDeclarationBuilder != this) {
+              context.add(messageExtensionTypeDeclarationCause.withLocation(
+                  extensionTypeDeclarationBuilder.fileUri,
+                  extensionTypeDeclarationBuilder.charOffset,
+                  extensionTypeDeclarationBuilder.name.length));
+            }
+          }
+          for (TypeAliasBuilder typeAliasBuilder in usedTypeAliasBuilders) {
+            context.add(messageTypedefCause.withLocation(
+                typeAliasBuilder.fileUri,
+                typeAliasBuilder.charOffset,
+                typeAliasBuilder.name.length));
+          }
+          libraryBuilder.addProblem(
+              messageCyclicRepresentationDependency,
+              representationFieldBuilder!.type.charOffset!,
+              noLength,
+              representationFieldBuilder!.type.fileUri,
+              context: context);
+          return true;
+        } else {
+          TypeBuilder? representationTypeBuilder =
+              declaration.declaredRepresentationTypeBuilder;
+          if (representationTypeBuilder != null) {
+            if (_checkRepresentationDependency(
+                representationTypeBuilder,
+                seenExtensionTypeDeclarations.toSet(),
+                usedTypeAliasBuilders.toSet())) {
+              return true;
+            }
+          }
+        }
+      }
+      List<TypeBuilder>? typeArguments = unaliased.arguments;
+      if (typeArguments != null) {
+        for (TypeBuilder typeArgument in typeArguments) {
+          if (_checkRepresentationDependency(
+              typeArgument,
+              seenExtensionTypeDeclarations.toSet(),
+              usedTypeAliasBuilders.toSet())) {
+            return true;
+          }
+        }
+      }
+    } else if (unaliased is FunctionTypeBuilder) {
+      if (_checkRepresentationDependency(
+          unaliased.returnType,
+          seenExtensionTypeDeclarations.toSet(),
+          usedTypeAliasBuilders.toSet())) {
+        return true;
+      }
+      List<ParameterBuilder>? formals = unaliased.formals;
+      if (formals != null) {
+        for (ParameterBuilder formal in formals) {
+          if (_checkRepresentationDependency(
+              formal.type,
+              seenExtensionTypeDeclarations.toSet(),
+              usedTypeAliasBuilders.toSet())) {
+            return true;
+          }
+        }
+      }
+      List<TypeVariableBuilder>? typeVariables = unaliased.typeVariables;
+      if (typeVariables != null) {
+        for (TypeVariableBuilder typeVariable in typeVariables) {
+          TypeBuilder? bound = typeVariable.bound;
+          if (_checkRepresentationDependency(
+              bound,
+              seenExtensionTypeDeclarations.toSet(),
+              usedTypeAliasBuilders.toSet())) {
+            return true;
+          }
+        }
+      }
+    } else if (unaliased is RecordTypeBuilder) {
+      List<RecordTypeFieldBuilder>? positionalFields =
+          unaliased.positionalFields;
+      if (positionalFields != null) {
+        for (RecordTypeFieldBuilder field in positionalFields) {
+          if (_checkRepresentationDependency(
+              field.type,
+              seenExtensionTypeDeclarations.toSet(),
+              usedTypeAliasBuilders.toSet())) {
+            return true;
+          }
+        }
+      }
+      List<RecordTypeFieldBuilder>? namedFields = unaliased.namedFields;
+      if (namedFields != null) {
+        for (RecordTypeFieldBuilder field in namedFields) {
+          if (_checkRepresentationDependency(
+              field.type,
+              seenExtensionTypeDeclarations.toSet(),
+              usedTypeAliasBuilders.toSet())) {
+            return true;
+          }
+        }
+      }
+    }
+    return false;
   }
 
   @override

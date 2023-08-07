@@ -1,0 +1,569 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:64:20: Error: Expected 0 type arguments.
+// extension type E21(Alias21<int> it) /* Error */ {}
+//                    ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:66:20: Error: Expected 0 type arguments.
+// typedef Alias22a = Alias22b<int>; /* Error */
+//                    ^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:5:19: Error: An extension type can't depend on itself through its representation type.
+// extension type E1(E1 it) /* Error */ {}
+//                   ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:7:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E2a(E2b it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:8:16: Context: The issue arises via this extension type declaration.
+// extension type E2b(E2a it) /* Error */ {}
+//                ^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:8:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E2b(E2a it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:7:16: Context: The issue arises via this extension type declaration.
+// extension type E2a(E2b it) /* Error */ {}
+//                ^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:10:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E3a(E3b it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:11:16: Context: The issue arises via this extension type declaration.
+// extension type E3b(E3c it) /* Error */ {}
+//                ^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:12:16: Context: The issue arises via this extension type declaration.
+// extension type E3c(E3a it) /* Error */ {}
+//                ^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:11:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E3b(E3c it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:12:16: Context: The issue arises via this extension type declaration.
+// extension type E3c(E3a it) /* Error */ {}
+//                ^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:10:16: Context: The issue arises via this extension type declaration.
+// extension type E3a(E3b it) /* Error */ {}
+//                ^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:12:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E3c(E3a it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:10:16: Context: The issue arises via this extension type declaration.
+// extension type E3a(E3b it) /* Error */ {}
+//                ^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:11:16: Context: The issue arises via this extension type declaration.
+// extension type E3b(E3c it) /* Error */ {}
+//                ^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:14:22: Error: An extension type can't depend on itself through its representation type.
+// extension type E4(E4 Function() it) /* Error */ {}
+//                      ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:16:24: Error: An extension type can't depend on itself through its representation type.
+// extension type E5(void Function(E5) it) /* Error */ {}
+//                        ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:18:19: Error: An extension type can't depend on itself through its representation type.
+// extension type E6((E6, int) it) /* Error */ {}
+//                   ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:20:24: Error: An extension type can't depend on itself through its representation type.
+// extension type E7(void Function<T extends E7>() it) /* Error */ {}
+//                        ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:22:22: Error: An extension type can't depend on itself through its representation type.
+// extension type E8<T>(List<E8> it) /* Error */ {}
+//                      ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:25:19: Error: An extension type can't depend on itself through its representation type.
+// extension type E9(Alias9 it) /* Error */ {}
+//                   ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:24:9: Context: The issue arises via this type alias.
+// typedef Alias9 = E9;
+//         ^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:28:23: Error: An extension type can't depend on itself through its representation type.
+// extension type E10<T>(Alias10<T> it) /* Error */ {}
+//                       ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:27:9: Context: The issue arises via this type alias.
+// typedef Alias10<T> = E10<T>;
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:31:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E11(Alias11 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:30:9: Context: The issue arises via this type alias.
+// typedef Alias11 = E11 Function();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:34:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E12(Alias12 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:33:9: Context: The issue arises via this type alias.
+// typedef Alias12 = void Function(E12);
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:37:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E13(Alias13 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:36:9: Context: The issue arises via this type alias.
+// typedef Alias13 = void Function<T extends E13>();
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:43:21: Error: An extension type can't depend on itself through its representation type.
+// extension type E15a(Alias15<E15b> it) /* Error */ {}
+//                     ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:44:16: Context: The issue arises via this extension type declaration.
+// extension type E15b(Alias15<E15a> it) /* Error */ {}
+//                ^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:42:9: Context: The issue arises via this type alias.
+// typedef Alias15<T> = List<T>;
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:44:21: Error: An extension type can't depend on itself through its representation type.
+// extension type E15b(Alias15<E15a> it) /* Error */ {}
+//                     ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:43:16: Context: The issue arises via this extension type declaration.
+// extension type E15a(Alias15<E15b> it) /* Error */ {}
+//                ^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:42:9: Context: The issue arises via this type alias.
+// typedef Alias15<T> = List<T>;
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:48:21: Error: An extension type can't depend on itself through its representation type.
+// extension type E16a(Alias16a<int> it) /* Error */ {}
+//                     ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:49:16: Context: The issue arises via this extension type declaration.
+// extension type E16b(Alias16b<int> it) /* Error */ {}
+//                ^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:46:9: Context: The issue arises via this type alias.
+// typedef Alias16a<T> = List<E16b>;
+//         ^^^^^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:47:9: Context: The issue arises via this type alias.
+// typedef Alias16b<T> = List<E16a>;
+//         ^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:49:21: Error: An extension type can't depend on itself through its representation type.
+// extension type E16b(Alias16b<int> it) /* Error */ {}
+//                     ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:48:16: Context: The issue arises via this extension type declaration.
+// extension type E16a(Alias16a<int> it) /* Error */ {}
+//                ^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:47:9: Context: The issue arises via this type alias.
+// typedef Alias16b<T> = List<E16a>;
+//         ^^^^^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:46:9: Context: The issue arises via this type alias.
+// typedef Alias16a<T> = List<E16b>;
+//         ^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:51:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E17((int, {E17 a}) it) /* Error */ {}
+//                    ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:55:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E18(Alias18a<int> it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:53:9: Context: The issue arises via this type alias.
+// typedef Alias18a<T> = Alias18b<E18>;
+//         ^^^^^^^^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:54:9: Context: The issue arises via this type alias.
+// typedef Alias18b<T> = void Function(T);
+//         ^^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:60:9: Error: The typedef 'Alias20' has a reference to itself.
+// typedef Alias20 = Alias20; /* Error */
+//         ^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:71:20: Error: An extension type can't depend on itself through its representation type.
+// extension type E23(Alias23 it) /* Error */ {}
+//                    ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:70:9: Context: The issue arises via this type alias.
+// typedef Alias23<T extends E23> = List<T>;
+//         ^^^^^^^
+//
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:74:23: Error: An extension type can't depend on itself through its representation type.
+// extension type E24<T>(Alias24 it) /* Error */ {}
+//                       ^
+// pkg/front_end/testcases/inline_class/extension_types/cyclic_representation_type.dart:73:9: Context: The issue arises via this type alias.
+// typedef Alias24<T extends E24<T>> = List<T>;
+//         ^^^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+typedef Alias9 = self::E9;
+typedef Alias10<unrelated T extends core::Object? = dynamic> = self::E10<T%>;
+typedef Alias11 = () → self::E11;
+typedef Alias12 = (self::E12) → void;
+typedef Alias13 = <T extends self::E13 = dynamic>() → void;
+typedef Alias14<unrelated T extends core::Object? = dynamic> = core::int;
+typedef Alias15<T extends core::Object? = dynamic> = core::List<T%>;
+typedef Alias16a<unrelated T extends core::Object? = dynamic> = core::List<self::E16b>;
+typedef Alias16b<unrelated T extends core::Object? = dynamic> = core::List<self::E16a>;
+typedef Alias18a<unrelated T extends core::Object? = dynamic> = (self::E18) → void;
+typedef Alias18b<contravariant T extends core::Object? = dynamic> = (T%) → void;
+typedef Alias20 = invalid-type;
+typedef Alias21 = core::int;
+typedef Alias22a = invalid-type;
+typedef Alias22b = core::int;
+typedef Alias23<T extends self::E23> = core::List<T>;
+typedef Alias24<T extends self::E24<T> = self::E24<dynamic>> = core::List<T>;
+inline class E1 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E1|;
+  tearoff • = self::E1|_#new#tearOff;
+}
+inline class E2a /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E2a|;
+  tearoff • = self::E2a|_#new#tearOff;
+}
+inline class E2b /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E2b|;
+  tearoff • = self::E2b|_#new#tearOff;
+}
+inline class E3a /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E3a|;
+  tearoff • = self::E3a|_#new#tearOff;
+}
+inline class E3b /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E3b|;
+  tearoff • = self::E3b|_#new#tearOff;
+}
+inline class E3c /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E3c|;
+  tearoff • = self::E3c|_#new#tearOff;
+}
+inline class E4 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E4|;
+  tearoff • = self::E4|_#new#tearOff;
+}
+inline class E5 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E5|;
+  tearoff • = self::E5|_#new#tearOff;
+}
+inline class E6 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E6|;
+  tearoff • = self::E6|_#new#tearOff;
+}
+inline class E7 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E7|;
+  tearoff • = self::E7|_#new#tearOff;
+}
+inline class E8<T extends core::Object? = dynamic> /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E8|;
+  tearoff • = self::E8|_#new#tearOff;
+}
+inline class E9 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E9|;
+  tearoff • = self::E9|_#new#tearOff;
+}
+inline class E10<T extends core::Object? = dynamic> /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E10|;
+  tearoff • = self::E10|_#new#tearOff;
+}
+inline class E11 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E11|;
+  tearoff • = self::E11|_#new#tearOff;
+}
+inline class E12 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E12|;
+  tearoff • = self::E12|_#new#tearOff;
+}
+inline class E13 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E13|;
+  tearoff • = self::E13|_#new#tearOff;
+}
+inline class E14 /* declaredRepresentationType = core::int */ {
+  constructor • = self::E14|;
+  tearoff • = self::E14|_#new#tearOff;
+}
+inline class E15a /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E15a|;
+  tearoff • = self::E15a|_#new#tearOff;
+}
+inline class E15b /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E15b|;
+  tearoff • = self::E15b|_#new#tearOff;
+}
+inline class E16a /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E16a|;
+  tearoff • = self::E16a|_#new#tearOff;
+}
+inline class E16b /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E16b|;
+  tearoff • = self::E16b|_#new#tearOff;
+}
+inline class E17 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E17|;
+  tearoff • = self::E17|_#new#tearOff;
+}
+inline class E18 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E18|;
+  tearoff • = self::E18|_#new#tearOff;
+}
+inline class E19a /* declaredRepresentationType =(self::E19b, self::E19b) */ {
+  constructor • = self::E19a|;
+  tearoff • = self::E19a|_#new#tearOff;
+}
+inline class E19b /* declaredRepresentationType = core::int */ {
+  constructor • = self::E19b|;
+  tearoff • = self::E19b|_#new#tearOff;
+}
+inline class E20 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E20|;
+  tearoff • = self::E20|_#new#tearOff;
+}
+inline class E21 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E21|;
+  tearoff • = self::E21|_#new#tearOff;
+}
+inline class E22 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E22|;
+  tearoff • = self::E22|_#new#tearOff;
+}
+inline class E23 /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E23|;
+  tearoff • = self::E23|_#new#tearOff;
+}
+inline class E24<T extends core::Object? = dynamic> /* declaredRepresentationType = invalid-type */ {
+  constructor • = self::E24|;
+  tearoff • = self::E24|_#new#tearOff;
+}
+static inline-class-member method E1|(dynamic it) → self::E1 {
+  lowered final self::E1 #this = it;
+  return #this;
+}
+static inline-class-member method E1|_#new#tearOff(dynamic it) → self::E1
+  return self::E1|(it);
+static inline-class-member method E2a|(dynamic it) → self::E2a {
+  lowered final self::E2a #this = it;
+  return #this;
+}
+static inline-class-member method E2a|_#new#tearOff(dynamic it) → self::E2a
+  return self::E2a|(it);
+static inline-class-member method E2b|(dynamic it) → self::E2b {
+  lowered final self::E2b #this = it;
+  return #this;
+}
+static inline-class-member method E2b|_#new#tearOff(dynamic it) → self::E2b
+  return self::E2b|(it);
+static inline-class-member method E3a|(dynamic it) → self::E3a {
+  lowered final self::E3a #this = it;
+  return #this;
+}
+static inline-class-member method E3a|_#new#tearOff(dynamic it) → self::E3a
+  return self::E3a|(it);
+static inline-class-member method E3b|(dynamic it) → self::E3b {
+  lowered final self::E3b #this = it;
+  return #this;
+}
+static inline-class-member method E3b|_#new#tearOff(dynamic it) → self::E3b
+  return self::E3b|(it);
+static inline-class-member method E3c|(dynamic it) → self::E3c {
+  lowered final self::E3c #this = it;
+  return #this;
+}
+static inline-class-member method E3c|_#new#tearOff(dynamic it) → self::E3c
+  return self::E3c|(it);
+static inline-class-member method E4|(dynamic it) → self::E4 {
+  lowered final self::E4 #this = it;
+  return #this;
+}
+static inline-class-member method E4|_#new#tearOff(dynamic it) → self::E4
+  return self::E4|(it);
+static inline-class-member method E5|(dynamic it) → self::E5 {
+  lowered final self::E5 #this = it;
+  return #this;
+}
+static inline-class-member method E5|_#new#tearOff(dynamic it) → self::E5
+  return self::E5|(it);
+static inline-class-member method E6|(dynamic it) → self::E6 {
+  lowered final self::E6 #this = it;
+  return #this;
+}
+static inline-class-member method E6|_#new#tearOff(dynamic it) → self::E6
+  return self::E6|(it);
+static inline-class-member method E7|_#new#tearOff(dynamic it) → self::E7
+  return self::E7|(it);
+static inline-class-member method E7|(dynamic it) → self::E7 {
+  lowered final self::E7 #this = it;
+  return #this;
+}
+static inline-class-member method E8|<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|::T%> {
+  lowered final self::E8<self::E8|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method E8|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E8<self::E8|_#new#tearOff::T%>
+  return self::E8|<self::E8|_#new#tearOff::T%>(it);
+static inline-class-member method E9|(dynamic it) → self::E9 {
+  lowered final self::E9 #this = it;
+  return #this;
+}
+static inline-class-member method E9|_#new#tearOff(dynamic it) → self::E9
+  return self::E9|(it);
+static inline-class-member method E10|<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|::T%> {
+  lowered final self::E10<self::E10|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method E10|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E10<self::E10|_#new#tearOff::T%>
+  return self::E10|<self::E10|_#new#tearOff::T%>(it);
+static inline-class-member method E11|(dynamic it) → self::E11 {
+  lowered final self::E11 #this = it;
+  return #this;
+}
+static inline-class-member method E11|_#new#tearOff(dynamic it) → self::E11
+  return self::E11|(it);
+static inline-class-member method E12|(dynamic it) → self::E12 {
+  lowered final self::E12 #this = it;
+  return #this;
+}
+static inline-class-member method E12|_#new#tearOff(dynamic it) → self::E12
+  return self::E12|(it);
+static inline-class-member method E13|(dynamic it) → self::E13 {
+  lowered final self::E13 #this = it;
+  return #this;
+}
+static inline-class-member method E13|_#new#tearOff(dynamic it) → self::E13
+  return self::E13|(it);
+static inline-class-member method E14|(dynamic it) → self::E14 {
+  lowered final self::E14 #this = it;
+  return #this;
+}
+static inline-class-member method E14|_#new#tearOff(dynamic it) → self::E14
+  return self::E14|(it);
+static inline-class-member method E15a|(dynamic it) → self::E15a {
+  lowered final self::E15a #this = it;
+  return #this;
+}
+static inline-class-member method E15a|_#new#tearOff(dynamic it) → self::E15a
+  return self::E15a|(it);
+static inline-class-member method E15b|(dynamic it) → self::E15b {
+  lowered final self::E15b #this = it;
+  return #this;
+}
+static inline-class-member method E15b|_#new#tearOff(dynamic it) → self::E15b
+  return self::E15b|(it);
+static inline-class-member method E16a|(dynamic it) → self::E16a {
+  lowered final self::E16a #this = it;
+  return #this;
+}
+static inline-class-member method E16a|_#new#tearOff(dynamic it) → self::E16a
+  return self::E16a|(it);
+static inline-class-member method E16b|(dynamic it) → self::E16b {
+  lowered final self::E16b #this = it;
+  return #this;
+}
+static inline-class-member method E16b|_#new#tearOff(dynamic it) → self::E16b
+  return self::E16b|(it);
+static inline-class-member method E17|(dynamic it) → self::E17 {
+  lowered final self::E17 #this = it;
+  return #this;
+}
+static inline-class-member method E17|_#new#tearOff(dynamic it) → self::E17
+  return self::E17|(it);
+static inline-class-member method E18|(dynamic it) → self::E18 {
+  lowered final self::E18 #this = it;
+  return #this;
+}
+static inline-class-member method E18|_#new#tearOff(dynamic it) → self::E18
+  return self::E18|(it);
+static inline-class-member method E19a|(dynamic it) → self::E19a {
+  lowered final self::E19a #this = it;
+  return #this;
+}
+static inline-class-member method E19a|_#new#tearOff(dynamic it) → self::E19a
+  return self::E19a|(it);
+static inline-class-member method E19b|(dynamic it) → self::E19b {
+  lowered final self::E19b #this = it;
+  return #this;
+}
+static inline-class-member method E19b|_#new#tearOff(dynamic it) → self::E19b
+  return self::E19b|(it);
+static inline-class-member method E20|(dynamic it) → self::E20 {
+  lowered final self::E20 #this = it;
+  return #this;
+}
+static inline-class-member method E20|_#new#tearOff(dynamic it) → self::E20
+  return self::E20|(it);
+static inline-class-member method E21|(dynamic it) → self::E21 {
+  lowered final self::E21 #this = it;
+  return #this;
+}
+static inline-class-member method E21|_#new#tearOff(dynamic it) → self::E21
+  return self::E21|(it);
+static inline-class-member method E22|(dynamic it) → self::E22 {
+  lowered final self::E22 #this = it;
+  return #this;
+}
+static inline-class-member method E22|_#new#tearOff(dynamic it) → self::E22
+  return self::E22|(it);
+static inline-class-member method E23|(dynamic it) → self::E23 {
+  lowered final self::E23 #this = it;
+  return #this;
+}
+static inline-class-member method E23|_#new#tearOff(dynamic it) → self::E23
+  return self::E23|(it);
+static inline-class-member method E24|<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|::T%> {
+  lowered final self::E24<self::E24|::T%> #this = it;
+  return #this;
+}
+static inline-class-member method E24|_#new#tearOff<T extends core::Object? = dynamic>(dynamic it) → self::E24<self::E24|_#new#tearOff::T%>
+  return self::E24|<self::E24|_#new#tearOff::T%>(it);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/integers_patch.dart */ _#Alias14#fromEnvironment#tearOff<unrelated T extends core::Object? = dynamic>(core::String name, {core::int defaultValue = #C1}) → core::int
+  return core::int::fromEnvironment(name, defaultValue: defaultValue);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16b fill, {core::bool growable = #C2}) → core::List<self::E16b>
+  return core::List::filled<self::E16b>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16b>
+  return core::List::empty<self::E16b>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16b>
+  return core::List::from<self::E16b>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16b> elements, {core::bool growable = #C3}) → core::List<self::E16b>
+  return core::List::of<self::E16b>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16b generator, {core::bool growable = #C3}) → core::List<self::E16b>
+  return core::List::generate<self::E16b>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16a#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16b>
+  return core::List::unmodifiable<self::E16b>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#filled#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, self::E16a fill, {core::bool growable = #C2}) → core::List<self::E16a>
+  return core::List::filled<self::E16a>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#empty#tearOff<unrelated T extends core::Object? = dynamic>({core::bool growable = #C2}) → core::List<self::E16a>
+  return core::List::empty<self::E16a>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#from#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::E16a>
+  return core::List::from<self::E16a>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#of#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<self::E16a> elements, {core::bool growable = #C3}) → core::List<self::E16a>
+  return core::List::of<self::E16a>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#generate#tearOff<unrelated T extends core::Object? = dynamic>(core::int length, (core::int) → self::E16a generator, {core::bool growable = #C3}) → core::List<self::E16a>
+  return core::List::generate<self::E16a>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias16b#unmodifiable#tearOff<unrelated T extends core::Object? = dynamic>(core::Iterable<dynamic> elements) → core::List<self::E16a>
+  return core::List::unmodifiable<self::E16a>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#filled#tearOff<T extends self::E23>(core::int length, self::_#Alias23#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias23#filled#tearOff::T>
+  return core::List::filled<self::_#Alias23#filled#tearOff::T>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#empty#tearOff<T extends self::E23>({core::bool growable = #C2}) → core::List<self::_#Alias23#empty#tearOff::T>
+  return core::List::empty<self::_#Alias23#empty#tearOff::T>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#from#tearOff<T extends self::E23>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#from#tearOff::T>
+  return core::List::from<self::_#Alias23#from#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#of#tearOff<T extends self::E23>(core::Iterable<self::_#Alias23#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias23#of#tearOff::T>
+  return core::List::of<self::_#Alias23#of#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#generate#tearOff<T extends self::E23>(core::int length, (core::int) → self::_#Alias23#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias23#generate#tearOff::T>
+  return core::List::generate<self::_#Alias23#generate#tearOff::T>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias23#unmodifiable#tearOff<T extends self::E23>(core::Iterable<dynamic> elements) → core::List<self::_#Alias23#unmodifiable#tearOff::T>
+  return core::List::unmodifiable<self::_#Alias23#unmodifiable#tearOff::T>(elements);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#filled#tearOff<T extends self::E24<self::_#Alias24#filled#tearOff::T> = self::E24<dynamic>>(core::int length, self::_#Alias24#filled#tearOff::T fill, {core::bool growable = #C2}) → core::List<self::_#Alias24#filled#tearOff::T>
+  return core::List::filled<self::_#Alias24#filled#tearOff::T>(length, fill, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#empty#tearOff<T extends self::E24<self::_#Alias24#empty#tearOff::T> = self::E24<dynamic>>({core::bool growable = #C2}) → core::List<self::_#Alias24#empty#tearOff::T>
+  return core::List::empty<self::_#Alias24#empty#tearOff::T>(growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#from#tearOff<T extends self::E24<self::_#Alias24#from#tearOff::T> = self::E24<dynamic>>(core::Iterable<dynamic> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#from#tearOff::T>
+  return core::List::from<self::_#Alias24#from#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#of#tearOff<T extends self::E24<self::_#Alias24#of#tearOff::T> = self::E24<dynamic>>(core::Iterable<self::_#Alias24#of#tearOff::T> elements, {core::bool growable = #C3}) → core::List<self::_#Alias24#of#tearOff::T>
+  return core::List::of<self::_#Alias24#of#tearOff::T>(elements, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#generate#tearOff<T extends self::E24<self::_#Alias24#generate#tearOff::T> = self::E24<dynamic>>(core::int length, (core::int) → self::_#Alias24#generate#tearOff::T generator, {core::bool growable = #C3}) → core::List<self::_#Alias24#generate#tearOff::T>
+  return core::List::generate<self::_#Alias24#generate#tearOff::T>(length, generator, growable: growable);
+static method /* from org-dartlang-sdk:///sdk/lib/_internal/vm_shared/lib/array_patch.dart */ _#Alias24#unmodifiable#tearOff<T extends self::E24<self::_#Alias24#unmodifiable#tearOff::T> = self::E24<dynamic>>(core::Iterable<dynamic> elements) → core::List<self::_#Alias24#unmodifiable#tearOff::T>
+  return core::List::unmodifiable<self::_#Alias24#unmodifiable#tearOff::T>(elements);
+
+constants  {
+  #C1 = 0
+  #C2 = false
+  #C3 = true
+}
