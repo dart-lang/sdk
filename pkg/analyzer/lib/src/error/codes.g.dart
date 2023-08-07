@@ -1605,6 +1605,16 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     correctionMessage: "Try specifying a different name for the member.",
   );
 
+  ///  Parameters:
+  ///  0: the display string of the disallowed type
+  static const CompileTimeErrorCode EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE',
+    "Extension types can't implement '{0}'.",
+    correctionMessage:
+        "Try specifying a different type, or remove the type from the list.",
+  );
+
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',
