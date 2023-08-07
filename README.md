@@ -1,11 +1,11 @@
 # Dart
 
-## A client-optimized language for fast apps on any platform
+## Dart is a language designed for the development of fast, efficient applications on any platform
 
 Dart is:
 
-  * **Optimized for UI**:
-  Develop with a programming language specialized around the needs of user interface creation.
+  * **Approachable**:
+  Dart's syntax is clear and concise, making it easy for developers to learn and use.
   
   * **Productive**:
   Make changes iteratively: use hot reload to see the result instantly in your running app.
