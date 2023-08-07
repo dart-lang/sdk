@@ -33,6 +33,9 @@ bool _isInterfaceTypeInterface(InterfaceType type) {
   if (type.element is EnumElement) {
     return false;
   }
+  if (type.element is ExtensionTypeElement) {
+    return false;
+  }
   if (type.isDartCoreFunction || type.isDartCoreNull) {
     return false;
   }
