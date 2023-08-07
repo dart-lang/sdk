@@ -427,13 +427,28 @@ mixin ClientCapabilitiesHelperMixin {
     }
   }
 
+  void setAllSupportedTextDocumentDynamicRegistrations() {
+    textDocumentCapabilities = withAllSupportedTextDocumentDynamicRegistrations(
+        textDocumentCapabilities);
+  }
+
   void setApplyEditSupport([bool supported = true]) {
     workspaceCapabilities =
         withApplyEditSupport(workspaceCapabilities, supported);
   }
 
+  void setCompletionItemSnippetSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        withCompletionItemSnippetSupport(textDocumentCapabilities, supported);
+  }
+
   void setConfigurationSupport() {
     workspaceCapabilities = withConfigurationSupport(workspaceCapabilities);
+  }
+
+  void setDidChangeConfigurationDynamicRegistration() {
+    workspaceCapabilities =
+        withDidChangeConfigurationDynamicRegistration(workspaceCapabilities);
   }
 
   void setDocumentChangesSupport([bool supported = true]) {
@@ -603,11 +618,12 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source,
-  ) {
+    TextDocumentClientCapabilities source, [
+    bool supported = true,
+  ]) {
     return extendTextDocumentCapabilities(source, {
       'completion': {
-        'completionItem': {'snippetSupport': true}
+        'completionItem': {'snippetSupport': supported}
       }
     });
   }
@@ -1395,6 +1411,8 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
+  ///
+  /// Automatically enables `workspace/configuration` support.
   Future<T> provideConfig<T>(
     Future<T> Function() f,
     FutureOr<Map<String, Object?>> globalConfig, {
