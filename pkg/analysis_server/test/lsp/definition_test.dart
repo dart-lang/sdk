@@ -533,6 +533,18 @@ class [[A]] {}
     await testContents(contents);
   }
 
+  Future<void> test_type_generic_end() async {
+    final contents = '''
+f() {
+  final a = A^<String>();
+}
+
+class [[A]]<T> {}
+''';
+
+    await testContents(contents);
+  }
+
   Future<void> test_unopenFile() async {
     final contents = '''
 [[foo]]() {

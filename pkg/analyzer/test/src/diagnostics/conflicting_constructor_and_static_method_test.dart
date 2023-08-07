@@ -70,4 +70,23 @@ enum E {
           3),
     ]);
   }
+
+  test_extensionType_instance() async {
+    await assertNoErrorsInCode(r'''
+extension type A.foo(int it) {
+  void foo() {}
+}
+''');
+  }
+
+  test_extensionType_static() async {
+    await assertErrorsInCode(r'''
+extension type A.foo(int it) {
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.CONFLICTING_CONSTRUCTOR_AND_STATIC_METHOD, 17,
+          3),
+    ]);
+  }
 }

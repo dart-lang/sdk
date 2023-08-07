@@ -191,7 +191,7 @@ class SemanticTokenInfo {
     }
 
     // Then length (so longest are first).
-    if (t1.length != t1.length) {
+    if (t1.length != t2.length) {
       return -t1.length.compareTo(t2.length);
     }
 
@@ -201,6 +201,17 @@ class SemanticTokenInfo {
     if (priority1 != priority2) {
       return priority1.compareTo(priority2);
     }
+
+    // The code below ensures consistent results for users, but ideally we don't
+    // get here, so use an assert to fail any tests/debug builds if we failed
+    // to sort based on the offset/length/priorities above.
+    assert(
+      false,
+      'Failed to resolve semantic token ordering by offset/length/priority:\n'
+      '${t1.offset}:${t1.length} ($priority1) - ${t1.type} / ${t1.modifiers?.join(', ')}\n'
+      '${t2.offset}:${t2.length} ($priority2) - ${t2.type} / ${t2.modifiers?.join(', ')}\n'
+      'Perhaps an explicit priority needs to be added?',
+    );
 
     // If the tokens had the same offset and length, sort by name. This
     // is completely arbitrary but it's only important that it is consistent

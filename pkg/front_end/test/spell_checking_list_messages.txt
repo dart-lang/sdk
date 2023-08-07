@@ -28,9 +28,11 @@ cast
 collide
 compilercontext.runincontext
 compilesdk
+conformance
 constructor(s)
 core
 count.#count
+createstaticinteropmock
 d
 dart.dev
 dart2js_server
@@ -67,6 +69,7 @@ loadlibrary
 macro
 member(s)
 migrate
+mocking
 n
 name.#name
 name.stack

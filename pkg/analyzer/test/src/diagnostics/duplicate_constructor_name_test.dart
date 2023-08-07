@@ -37,4 +37,25 @@ enum E {
       error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 45, 5),
     ]);
   }
+
+  test_extensionType_secondary() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {
+  A.foo(this.it);
+  A.foo(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 47, 5),
+    ]);
+  }
+
+  test_extensionType_withPrimary() async {
+    await assertErrorsInCode(r'''
+extension type A.foo(int it) {
+  A.foo(this.it);
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_CONSTRUCTOR_NAME, 33, 5),
+    ]);
+  }
 }

@@ -128,6 +128,59 @@ NamedType
 ''');
   }
 
+  test_extensionType_generic_toBounds() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T extends num>(List<T> it) {}
+void f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@extensionType::A
+  type: A<num>
+''');
+  }
+
+  test_extensionType_generic_toBounds_dynamic() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(List<T> it) {}
+void f(A a) {}
+''');
+
+    final node = findNode.namedType('A a');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  element: self::@extensionType::A
+  type: A<dynamic>
+''');
+  }
+
+  test_extensionType_generic_typeParameters() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T>(List<T> it) {}
+void f(A<int> a) {}
+''');
+
+    final node = findNode.namedType('A<int>');
+    assertResolvedNodeText(node, r'''
+NamedType
+  name: A
+  typeArguments: TypeArgumentList
+    leftBracket: <
+    arguments
+      NamedType
+        name: int
+        element: dart:core::@class::int
+        type: int
+    rightBracket: >
+  element: self::@extensionType::A
+  type: A<int>
+''');
+  }
+
   test_importPrefix_genericClass() async {
     await assertNoErrorsInCode(r'''
 import 'dart:async' as async;

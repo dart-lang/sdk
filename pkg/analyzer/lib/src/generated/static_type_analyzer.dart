@@ -308,8 +308,7 @@ class StaticTypeAnalyzer {
   void _analyzeLeastUpperBoundTypes(
       ExpressionImpl node, DartType staticType1, DartType staticType2,
       {required DartType? contextType}) {
-    DartType staticType =
-        _typeSystem.getLeastUpperBound(staticType1, staticType2);
+    DartType staticType = _typeSystem.leastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 

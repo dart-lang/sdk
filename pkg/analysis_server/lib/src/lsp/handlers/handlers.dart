@@ -319,7 +319,7 @@ mixin PositionalArgCommandHandler {
 
 /// A message handler that handles all messages for a given server state.
 abstract class ServerStateMessageHandler {
-  final LspAnalysisServer server;
+  final AnalysisServer server;
   final Map<Method, SharedMessageHandler<Object?, Object?>> _messageHandlers =
       {};
   final CancelRequestHandler _cancelHandler;

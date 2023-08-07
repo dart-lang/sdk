@@ -211,9 +211,9 @@ class InterfaceLeastUpperBoundHelper {
         Variance parameterVariance =
             (params[i] as TypeParameterElementImpl).variance;
         if (parameterVariance.isCovariant) {
-          args.add(typeSystem.getLeastUpperBound(args1[i], args2[i]));
+          args.add(typeSystem.leastUpperBound(args1[i], args2[i]));
         } else if (parameterVariance.isContravariant) {
-          args.add(typeSystem.getGreatestLowerBound(args1[i], args2[i]));
+          args.add(typeSystem.greatestLowerBound(args1[i], args2[i]));
         } else if (parameterVariance.isInvariant) {
           if (!typeSystem.isSubtypeOf(args1[i], args2[i]) ||
               !typeSystem.isSubtypeOf(args2[i], args1[i])) {
@@ -915,7 +915,7 @@ class LeastUpperBoundHelper {
   }
 
   DartType _parameterType(ParameterElement a, ParameterElement b) {
-    return _typeSystem.getGreatestLowerBound(a.type, b.type);
+    return _typeSystem.greatestLowerBound(a.type, b.type);
   }
 
   DartType _recordType(RecordTypeImpl T1, RecordTypeImpl T2) {

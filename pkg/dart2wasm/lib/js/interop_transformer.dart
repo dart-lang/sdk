@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
+    show InlineExtensionIndex;
 import 'package:dart2wasm/js/callback_specializer.dart';
 import 'package:dart2wasm/js/inline_expander.dart';
 import 'package:dart2wasm/js/interop_specializer.dart';
@@ -31,22 +33,28 @@ class InteropTransformer extends Transformer {
   final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
 
-  InteropTransformer._(
-      this._staticTypeContext, this._util, this._methodCollector)
-      : _callbackSpecializer =
-            CallbackSpecializer(_staticTypeContext, _util, _methodCollector),
+  InteropTransformer._(this._staticTypeContext, this._util,
+      this._methodCollector, inlineExtensionIndex)
+      : _callbackSpecializer = CallbackSpecializer(
+            _staticTypeContext, _util, _methodCollector, inlineExtensionIndex),
         _inlineExpander =
             InlineExpander(_staticTypeContext, _util, _methodCollector),
         _interopSpecializerFactory = InteropSpecializerFactory(
-            _staticTypeContext, _util, _methodCollector) {}
+            _staticTypeContext,
+            _util,
+            _methodCollector,
+            inlineExtensionIndex) {}
 
   factory InteropTransformer(CoreTypes coreTypes, ClassHierarchy hierarchy) {
-    final util = CoreTypesUtil(coreTypes);
+    final typeEnvironment = TypeEnvironment(coreTypes, hierarchy);
+    final inlineExtensionIndex =
+        InlineExtensionIndex(coreTypes, typeEnvironment);
+    final util = CoreTypesUtil(coreTypes, inlineExtensionIndex);
     return InteropTransformer._(
-        StatefulStaticTypeContext.stacked(
-            TypeEnvironment(coreTypes, hierarchy)),
+        StatefulStaticTypeContext.stacked(typeEnvironment),
         util,
-        MethodCollector(util));
+        MethodCollector(util),
+        inlineExtensionIndex);
   }
 
   @override

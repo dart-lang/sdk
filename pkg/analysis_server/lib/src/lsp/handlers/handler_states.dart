@@ -64,13 +64,7 @@ class FailureStateMessageHandler extends ServerStateMessageHandler {
   }
 }
 
-class InitializedStateMessageHandler extends ServerStateMessageHandler {
-  /// Generators for handlers that work with any [AnalysisServer].
-  static const sharedHandlerGenerators =
-      <_RequestHandlerGenerator<AnalysisServer>>[
-    HoverHandler.new,
-  ];
-
+class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
   /// Generators for handlers that require an [LspAnalysisServer].
   static const lspHandlerGenerators =
       <_RequestHandlerGenerator<LspAnalysisServer>>[
@@ -117,8 +111,29 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
     InlayHintHandler.new,
   ];
 
-  InitializedStateMessageHandler(
+  InitializedLspStateMessageHandler(
     LspAnalysisServer server,
+  ) : super(server) {
+    for (final generator in lspHandlerGenerators) {
+      registerHandler(generator(server));
+    }
+  }
+}
+
+/// A message handler for the initialized state that can be used by either
+/// server.
+///
+/// Only handlers that can work with either server are available. Use
+/// [InitializedLspStateMessageHandler] for full LSP support.
+class InitializedStateMessageHandler extends ServerStateMessageHandler {
+  /// Generators for handlers that work with any [AnalysisServer].
+  static const sharedHandlerGenerators =
+      <_RequestHandlerGenerator<AnalysisServer>>[
+    HoverHandler.new,
+  ];
+
+  InitializedStateMessageHandler(
+    AnalysisServer server,
   ) : super(server) {
     reject(Method.initialize, ServerErrorCodes.ServerAlreadyInitialized,
         'Server already initialized');
@@ -126,9 +141,6 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
         'Server already initialized');
 
     for (final generator in sharedHandlerGenerators) {
-      registerHandler(generator(server));
-    }
-    for (final generator in lspHandlerGenerators) {
       registerHandler(generator(server));
     }
   }

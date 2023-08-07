@@ -5495,7 +5495,7 @@ JsInteropExportDartInterfaceHasNonEmptyJSExportValue:
   severity: WARNING
 
 JsInteropExportDisallowedMember:
-  problemMessage: "Member '#name' is not a concrete instance member, and therefore can't be exported."
+  problemMessage: "Member '#name' is not a concrete instance member or declares type parameters, and therefore can't be exported."
   correctionMessage: "Remove the `@JSExport` annotation from the member, and use an instance member to call this member instead."
 
 JsInteropExportInvalidInteropTypeArgument:
@@ -5596,6 +5596,10 @@ JsInteropStaticInteropMockMissingImplements:
 JsInteropStaticInteropMockNotStaticInteropType:
   problemMessage: "Type argument '#type' needs to be a `@staticInterop` type."
   correctionMessage: "Use a `@staticInterop` class instead."
+
+JsInteropStaticInteropMockTypeParametersNotAllowed:
+  problemMessage: "Type argument '#type' has type parameters that do not match their bound. createStaticInteropMock requires instantiating all type parameters to their bound to ensure mocking conformance."
+  correctionMessage: "Remove the type parameter in the type argument or replace it with its bound."
 
 JsInteropStaticInteropNoJSAnnotation:
   problemMessage: "`@staticInterop` classes should also have the `@JS` annotation."

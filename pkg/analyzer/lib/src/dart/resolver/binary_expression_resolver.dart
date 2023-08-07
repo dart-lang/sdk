@@ -87,7 +87,7 @@ class BinaryExpressionResolver {
   void _analyzeLeastUpperBoundTypes(
       ExpressionImpl node, DartType staticType1, DartType staticType2,
       {required DartType? contextType}) {
-    var staticType = _typeSystem.getLeastUpperBound(staticType1, staticType2);
+    var staticType = _typeSystem.leastUpperBound(staticType1, staticType2);
 
     staticType = _resolver.toLegacyTypeIfOptOut(staticType);
 

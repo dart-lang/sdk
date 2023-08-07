@@ -21,6 +21,8 @@ import 'is_known_test.dart' as is_known_test;
 import 'least_greatest_closure_test.dart' as least_greatest_closure_test;
 import 'least_upper_bound_helper_test.dart' as least_upper_bound_helper;
 import 'name_union_test.dart' as name_union;
+import 'non_covariant_type_parameter_position_test.dart'
+    as non_covariant_type_parameter_position;
 import 'normalize_type_test.dart' as normalize_type;
 import 'nullability_eliminator_test.dart' as nullability_eliminator;
 import 'nullable_test.dart' as nullable;
@@ -58,6 +60,7 @@ main() {
     least_greatest_closure_test.main();
     least_upper_bound_helper.main();
     name_union.main();
+    non_covariant_type_parameter_position.main();
     normalize_type.main();
     nullability_eliminator.main();
     nullable.main();

@@ -65,6 +65,34 @@ ExtensionTypeDeclaration
 ''');
   }
 
+  test_featureNotEnabled() {
+    final parseResult = parseStringWithErrors(r'''
+// @dart = 3.1
+class A {}
+extension type B(int it) {}
+class C {}
+''');
+    parseResult.assertErrors([
+      error(ParserErrorCode.EXPERIMENT_NOT_ENABLED, 36, 4),
+    ]);
+
+    final node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      name: A
+      leftBracket: {
+      rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      name: C
+      leftBracket: {
+      rightBracket: }
+''');
+  }
+
   test_field_metadata() {
     final parseResult = parseStringWithErrors(r'''
 extension type A(@foo int it) {}

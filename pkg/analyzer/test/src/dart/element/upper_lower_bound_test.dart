@@ -1557,7 +1557,7 @@ class LowerBoundTest extends _BoundsTestBase {
       {bool checkSubtype = true}) {
     var expectedStr = typeString(expected);
 
-    var result = typeSystem.getGreatestLowerBound(T1, T2);
+    var result = typeSystem.greatestLowerBound(T1, T2);
     var resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
@@ -1571,7 +1571,7 @@ actual: $resultStr
     }
 
     // Check for symmetry.
-    result = typeSystem.getGreatestLowerBound(T2, T1);
+    result = typeSystem.greatestLowerBound(T2, T1);
     resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
@@ -2132,12 +2132,12 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
         typeFormals: [U],
       );
       {
-        final result = typeSystem.getLeastUpperBound(T1, T2);
+        final result = typeSystem.leastUpperBound(T1, T2);
         final resultStr = typeString(result);
         expect(resultStr, 'T Function<T extends num>()');
       }
       {
-        final result = typeSystem.getLeastUpperBound(T2, T1);
+        final result = typeSystem.leastUpperBound(T2, T1);
         final resultStr = typeString(result);
         expect(resultStr, 'U Function<U extends num>()');
       }
@@ -2260,8 +2260,8 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var bNoneNone = bTypeNoneElement(NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
-      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+      expect(typeSystem.leastUpperBound(type1, type2), expected);
+      expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
 
     assertLUB(bStarQuestion, aQuestion, aQuestion);
@@ -2340,8 +2340,8 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var aNone = interfaceTypeNone(aElement);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
-      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+      expect(typeSystem.leastUpperBound(type1, type2), expected);
+      expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
 
     assertLUB(aQuestion, aQuestion, aQuestion);
@@ -2498,8 +2498,8 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     var cStarNone = cTypeElementStar(NullabilitySuffix.none);
 
     void assertLUB(DartType type1, DartType type2, DartType expected) {
-      expect(typeSystem.getLeastUpperBound(type1, type2), expected);
-      expect(typeSystem.getLeastUpperBound(type2, type1), expected);
+      expect(typeSystem.leastUpperBound(type1, type2), expected);
+      expect(typeSystem.leastUpperBound(type2, type1), expected);
     }
 
     assertLUB(bNoneQuestion, cNoneQuestion, aQuestion);
@@ -3678,7 +3678,7 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
   void _checkLeastUpperBound(DartType T1, DartType T2, DartType expected) {
     var expectedStr = typeString(expected);
 
-    var result = typeSystem.getLeastUpperBound(T1, T2);
+    var result = typeSystem.leastUpperBound(T1, T2);
     var resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr
@@ -3690,7 +3690,7 @@ actual: $resultStr
     expect(typeSystem.isSubtypeOf(T2, result), true);
 
     // Check for symmetry.
-    result = typeSystem.getLeastUpperBound(T2, T1);
+    result = typeSystem.leastUpperBound(T2, T1);
     resultStr = typeString(result);
     expect(result, expected, reason: '''
 expected: $expectedStr

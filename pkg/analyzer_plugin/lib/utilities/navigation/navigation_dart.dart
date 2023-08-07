@@ -62,6 +62,17 @@ AstNode _getNavigationTargetNode(AstNode node) {
     current = parent;
   }
 
+  // Consider the angle brackets for type arguments part of the leading type,
+  // otherwise we don't navigate in the common situation of having the type name
+  // selected, where VS Code provides the end of the selection as the position
+  // to search.
+  //
+  // In `A^<String>` node will be TypeArgumentList and we will never find A if
+  // we start visiting from there.
+  if (current is TypeArgumentList && parent != null) {
+    current = parent;
+  }
+
   return current;
 }
 

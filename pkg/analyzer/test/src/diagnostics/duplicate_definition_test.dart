@@ -15,6 +15,7 @@ main() {
     defineReflectiveTests(DuplicateDefinitionClassTest);
     defineReflectiveTests(DuplicateDefinitionEnumTest);
     defineReflectiveTests(DuplicateDefinitionExtensionTest);
+    defineReflectiveTests(DuplicateDefinitionExtensionTypeTest);
     defineReflectiveTests(DuplicateDefinitionMixinTest);
     defineReflectiveTests(DuplicateDefinitionUnitTest);
   });
@@ -1146,6 +1147,280 @@ extension E on A {}
 ''', [
       error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 41, 1,
           contextMessages: [message('/home/test/lib/test.dart', 21, 1)]),
+    ]);
+  }
+}
+
+@reflectiveTest
+class DuplicateDefinitionExtensionTypeTest extends PubPackageResolutionTest {
+  test_instance_getter_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  int get foo => 0;
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 57, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 37, 3)]),
+    ]);
+  }
+
+  test_instance_getter_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  int get foo => 0;
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 54, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 37, 3)]),
+    ]);
+  }
+
+  test_instance_getter_setter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  int get foo => 0;
+  set foo(_) {}
+}
+''');
+  }
+
+  test_instance_method_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  void foo() {}
+  int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 53, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 3)]),
+    ]);
+  }
+
+  test_instance_method_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  void foo() {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 3)]),
+    ]);
+  }
+
+  test_instance_method_setter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  void foo() {}
+  set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 49, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 34, 3)]),
+    ]);
+  }
+
+  test_instance_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  set foo(_) {}
+  int get foo => 0;
+}
+''');
+  }
+
+  test_instance_setter_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  set foo(_) {}
+  void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 50, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 33, 3)]),
+    ]);
+  }
+
+  test_instance_setter_setter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  void set foo(_) {}
+  void set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 59, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 38, 3)]),
+    ]);
+  }
+
+  test_static_field_field() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static int foo = 0;
+  static int foo = 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 62, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 3)]),
+    ]);
+  }
+
+  test_static_field_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 66, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 3)]),
+    ]);
+  }
+
+  test_static_field_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static int foo = 0;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 63, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 3)]),
+    ]);
+  }
+
+  test_static_fieldFinal_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static final int foo = 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 72, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 46, 3)]),
+    ]);
+  }
+
+  test_static_fieldFinal_setter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  static final int foo = 0;
+  static set foo(int x) {}
+}
+''');
+  }
+
+  test_static_getter_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static int get foo => 0;
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 71, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 44, 3)]),
+    ]);
+  }
+
+  test_static_getter_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static int get foo => 0;
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 68, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 44, 3)]),
+    ]);
+  }
+
+  test_static_getter_setter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  static int get foo => 0;
+  static set foo(_) {}
+}
+''');
+  }
+
+  test_static_method_getter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static void foo() {}
+  static int get foo => 0;
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 67, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 41, 3)]),
+    ]);
+  }
+
+  test_static_method_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static void foo() {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 64, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 41, 3)]),
+    ]);
+  }
+
+  test_static_method_setter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static void foo() {}
+  static set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 63, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 41, 3)]),
+    ]);
+  }
+
+  test_static_setter_getter() async {
+    await assertNoErrorsInCode(r'''
+extension type E(int it) {
+  static set foo(_) {}
+  static int get foo => 0;
+}
+''');
+  }
+
+  test_static_setter_method() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static set foo(_) {}
+  static void foo() {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 64, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 40, 3)]),
+    ]);
+  }
+
+  test_static_setter_setter() async {
+    await assertErrorsInCode(r'''
+extension type E(int it) {
+  static void set foo(_) {}
+  static void set foo(_) {}
+}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 73, 3,
+          contextMessages: [message('/home/test/lib/test.dart', 45, 3)]),
+    ]);
+  }
+
+  test_unitMembers_extensionType() async {
+    await assertErrorsInCode('''
+extension type E(int it) {}
+extension type E(int it) {}
+''', [
+      error(CompileTimeErrorCode.DUPLICATE_DEFINITION, 43, 1,
+          contextMessages: [message('/home/test/lib/test.dart', 15, 1)]),
     ]);
   }
 }

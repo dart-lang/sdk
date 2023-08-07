@@ -120,6 +120,7 @@ class WasmTarget extends Target {
         'dart:_wasm',
         'dart:collection',
         'dart:js_interop',
+        'dart:js_interop_unsafe',
         'dart:js_util',
         'dart:typed_data',
       ];

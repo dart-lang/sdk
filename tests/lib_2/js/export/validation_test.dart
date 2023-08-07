@@ -179,9 +179,37 @@ void testClassExportWithValue() {
   createDartExport(ClassWithValue());
 }
 
+// `JSExport` classes can't export methods that define type parameters as those
+// type parameters will never be instantiated through interop. Class type
+// parameters are okay, however.
+@JSExport()
+class GenericAll {
+//    ^
+// [web] Class 'GenericAll' has no exportable members in the class or the inheritance chain.
+  void defineTypeParam<T extends int>() {}
+  T useTypeParam<T extends Object>(T t) => t;
+}
+
+class GenericSome<U> {
+  @JSExport()
+  void defineTypeParam<T extends int>() {}
+  //   ^
+  // [web] Member 'defineTypeParam' is not a concrete instance member or declares type parameters, and therefore can't be exported.
+  T useTypeParam<T extends Object>(T t) => t;
+  @JSExport()
+  U useClassParam(U u) => u;
+}
+
+void testClassWithGenerics() {
+  createDartExport(GenericAll());
+  createDartExport(GenericSome());
+  createDartExport(GenericSome<int>());
+}
+
 void main() {
   testNumberOfExports();
   testUseDartInterface();
   testCollisions();
   testClassExportWithValue();
+  testClassWithGenerics();
 }

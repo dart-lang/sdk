@@ -64,6 +64,7 @@ import 'package:analysis_server/src/handler/legacy/flutter_get_widget_descriptio
 import 'package:analysis_server/src/handler/legacy/flutter_set_subscriptions.dart';
 import 'package:analysis_server/src/handler/legacy/flutter_set_widget_property_value.dart';
 import 'package:analysis_server/src/handler/legacy/legacy_handler.dart';
+import 'package:analysis_server/src/handler/legacy/lsp_over_legacy_handler.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_element_references.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_declarations.dart';
 import 'package:analysis_server/src/handler/legacy/search_find_member_references.dart';
@@ -78,8 +79,6 @@ import 'package:analysis_server/src/handler/legacy/server_shutdown.dart';
 import 'package:analysis_server/src/handler/legacy/unsupported_request.dart';
 import 'package:analysis_server/src/lsp/client_capabilities.dart' as lsp;
 import 'package:analysis_server/src/lsp/client_configuration.dart' as lsp;
-import 'package:analysis_server/src/lsp/handlers/handler_states.dart' as lsp;
-import 'package:analysis_server/src/lsp/handlers/handlers.dart' as lsp;
 import 'package:analysis_server/src/operation/operation_analysis.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server;
@@ -260,6 +259,9 @@ class LegacyAnalysisServer extends AnalysisServer {
         ServerSetClientCapabilitiesHandler.new,
     SERVER_REQUEST_SET_SUBSCRIPTIONS: ServerSetSubscriptionsHandler.new,
     SERVER_REQUEST_SHUTDOWN: ServerShutdownHandler.new,
+
+    //
+    LSP_REQUEST_HANDLE: LspOverLegacyHandler.new,
   };
 
   /// The channel from which requests are received and to which responses should
@@ -365,10 +367,6 @@ class LegacyAnalysisServer extends AnalysisServer {
   /// that have not yet received a response, to the completer used to return the
   /// response when it has been received.
   Map<String, Completer<Response>> pendingServerRequests = {};
-
-  /// A lazy-initialized handler for LSP requests through the legacy-protocol
-  /// server.
-  late final _LspOverLegacyHandler _lspHandler = _LspOverLegacyHandler(this);
 
   /// Initialize a newly created server to receive requests from and send
   /// responses to the given [channel].
@@ -548,8 +546,7 @@ class LegacyAnalysisServer extends AnalysisServer {
           var handler =
               generator(this, request, cancellationToken, performance);
           await handler.handle();
-        } else if (!(await _lspHandler.handle(
-            request, cancellationToken, performance))) {
+        } else {
           sendResponse(Response.unknownRequest(request));
         }
       });
@@ -1161,51 +1158,5 @@ class ServerPerformance {
         ++slowRequestCount;
       }
     }
-  }
-}
-
-/// A request handler for the legacy server that can delegate to LSP handlers
-/// that are written to support either kind of server.
-class _LspOverLegacyHandler {
-  final LegacyAnalysisServer server;
-
-  final Map<String, lsp.SharedMessageHandler<Object?, Object?>>
-      _messageHandlers = {};
-
-  _LspOverLegacyHandler(this.server) {
-    final generators =
-        lsp.InitializedStateMessageHandler.sharedHandlerGenerators;
-    for (final generator in generators) {
-      final handler = generator(server);
-      _messageHandlers[handler.handlesMessage.toString()] = handler;
-    }
-  }
-
-  Future<bool> handle(
-    Request request,
-    CancellationToken cancellationToken,
-    OperationPerformanceImpl performance,
-  ) async {
-    final handler = _messageHandlers[request.method];
-    if (handler == null) {
-      return false;
-    }
-
-    final message = lsp.MessageInfo(
-      performance: performance,
-      timeSinceRequest: request.timeSinceRequest,
-    );
-    final params = handler.jsonHandler.convertParams(request.params);
-    final result = await handler.handle(params, message, cancellationToken);
-
-    server.sendResponse(Response(
-      request.id,
-      result: lsp.specToJson(result.resultOrNull) as Map<String, Object?>?,
-      error: result.isError
-          ? RequestError(RequestErrorCode.INVALID_REQUEST, result.error.message)
-          : null,
-    ));
-
-    return true;
   }
 }

@@ -602,19 +602,6 @@ class TypeSystemImpl implements TypeSystem {
     return parameters;
   }
 
-  /// Computes the greatest lower bound of [T1] and [T2].
-  DartType getGreatestLowerBound(DartType T1, DartType T2) {
-    return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
-  }
-
-  /// Compute the least upper bound of two types.
-  ///
-  /// https://github.com/dart-lang/language
-  /// See `resources/type-system/upper-lower-bounds.md`
-  DartType getLeastUpperBound(DartType T1, DartType T2) {
-    return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
-  }
-
   /// Returns the greatest closure of [type] with respect to [typeParameters].
   ///
   /// https://github.com/dart-lang/language
@@ -675,6 +662,11 @@ class TypeSystemImpl implements TypeSystem {
         schema: schema,
       );
     }
+  }
+
+  @override
+  DartType greatestLowerBound(DartType T1, DartType T2) {
+    return _greatestLowerBoundHelper.getGreatestLowerBound(T1, T2);
   }
 
   /// Given a generic function type `F<T0, T1, ... Tn>` and a context type C,
@@ -1558,8 +1550,8 @@ class TypeSystemImpl implements TypeSystem {
   }
 
   @override
-  DartType leastUpperBound(DartType leftType, DartType rightType) {
-    return getLeastUpperBound(leftType, rightType);
+  DartType leastUpperBound(DartType T1, DartType T2) {
+    return _leastUpperBoundHelper.getLeastUpperBound(T1, T2);
   }
 
   /// Returns a nullable version of [type].  The result would be equivalent to

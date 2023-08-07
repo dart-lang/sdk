@@ -28,6 +28,8 @@ const Matcher isNotification = MatchesJsonObject(
     'notification', {'event': isString},
     optionalFields: {'params': isMap});
 
+const Matcher isObject = TypeMatcher<Object>();
+
 const Matcher isString = TypeMatcher<String>();
 
 final Matcher isResponse = MatchesJsonObject('response', {'id': isString},

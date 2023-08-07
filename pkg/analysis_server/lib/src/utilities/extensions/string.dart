@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 extension StringExtension on String {
+  /// Returns this string if not empty, otherwise null.
+  String? get nullIfEmpty => isEmpty ? null : this;
+
   /// Computes a filename for a given symbol name (convert from PascalCase to
   /// snake_case and append '.dart').
   ///

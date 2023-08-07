@@ -32,6 +32,28 @@ class JsInteropClass {
 
   /*member: JsInteropClass.method:type=[
     native:GenericClass<dynamic>,
+    native:JSAny,
+    native:JSArray,
+    native:JSArrayBuffer,
+    native:JSBoolean,
+    native:JSBoxedDartObject,
+    native:JSDataView,
+    native:JSExportedDartFunction,
+    native:JSFloat32Array,
+    native:JSFloat64Array,
+    native:JSFunction,
+    native:JSInt16Array,
+    native:JSInt32Array,
+    native:JSInt8Array,
+    native:JSNumber,
+    native:JSObject,
+    native:JSPromise,
+    native:JSString,
+    native:JSTypedArray,
+    native:JSUint16Array,
+    native:JSUint32Array,
+    native:JSUint8Array,
+    native:JSUint8ClampedArray,
     native:JsInteropClass]*/
   @JS()
   external double method();

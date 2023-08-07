@@ -8,28 +8,52 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 
 import '../analysis_server_base.dart';
+import '../lsp/request_helpers_mixin.dart';
 
-abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest {
+abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
+    with LspRequestHelpersMixin {
   var _requestId = 0;
 
-  TextDocumentIdentifier get testFileIdentifier => TextDocumentIdentifier(
-      uri:
-          server.resourceProvider.pathContext.toUri(convertPath(testFilePath)));
+  Uri get testFileUri =>
+      server.resourceProvider.pathContext.toUri(convertPath(testFilePath));
 
-  Request createRequest(Method method, ToJsonable params) {
-    return Request('${_requestId++}', method.toString(),
-        params.toJson() as Map<String, Object?>);
-  }
+  @override
+  Future<T> expectSuccessfulResponseTo<T, R>(
+    RequestMessage message,
+    T Function(R) fromJson,
+  ) async {
+    // Round-trip request via JSON because this doesn't happen automatically
+    // when we're bypassing the streams (running in-process) and we want to
+    // validate everything.
+    final messageJson =
+        jsonDecode(jsonEncode(message.toJson())) as Map<String, Object?>;
 
-  Future<T> sendRequest<T>(
-      Request request, T Function(Map<String, Object?>) fromJson) async {
-    final response = await handleSuccessfulRequest(request);
+    final legacyRequest = Request(
+      '${_requestId++}',
+      'lsp.handle',
+      LspHandleParams(messageJson).toJson(),
+    );
+    final legacyResponse = await handleSuccessfulRequest(legacyRequest);
+    final legacyResult = LspHandleResult.fromResponse(legacyResponse);
 
-    // Round-trip via JSON because this doesn't happen automatically when
-    // we're bypassing the streams (running in-process) and we want to ensure
-    // everything is valid.
-    final jsonResult = jsonDecode(jsonEncode(response.result));
-    return fromJson(jsonResult as Map<String, Object?>);
+    // Round-trip response via JSON because this doesn't happen automatically
+    // when we're bypassing the streams (running in-process) and we want to
+    // validate everything.
+    final lspResponseJson = jsonDecode(jsonEncode(legacyResult.lspResponse))
+        as Map<String, Object?>;
+
+    // Unwrap the LSP response.
+    final lspResponse = ResponseMessage.fromJson(lspResponseJson);
+    final error = lspResponse.error;
+    if (error != null) {
+      throw error;
+    } else if (T == Null) {
+      return lspResponse.result == null
+          ? null as T
+          : throw 'Expected Null response but got ${lspResponse.result}';
+    } else {
+      return fromJson(lspResponse.result as R);
+    }
   }
 
   @override

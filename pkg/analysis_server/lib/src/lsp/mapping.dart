@@ -16,6 +16,7 @@ import 'package:analysis_server/src/lsp/source_edits.dart';
 import 'package:analysis_server/src/protocol_server.dart' as server
     hide AnalysisError;
 import 'package:analysis_server/src/services/snippets/snippet.dart';
+import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analyzer/dart/analysis/results.dart' as server;
 import 'package:analyzer/error/error.dart' as server;
 import 'package:analyzer/source/line_info.dart' as server;
@@ -375,50 +376,48 @@ lsp.SymbolKind elementKindToSymbolKind(
       .firstWhere(isSupported, orElse: () => lsp.SymbolKind.Obj);
 }
 
-String? getCompletionDetail(
-  server.CompletionSuggestion suggestion,
-  lsp.CompletionItemKind? completionKind,
-  bool supportsDeprecated,
-) {
+/// Returns additional details to be shown against a completion.
+CompletionDetail getCompletionDetail(
+  server.CompletionSuggestion suggestion, {
+  required bool supportsDeprecated,
+}) {
   final element = suggestion.element;
-  final hasElement = element != null;
-  final parameters = element?.parameters;
-  final returnType = element?.returnType;
-  final parameterType = suggestion.parameterType;
-  final hasParameters =
-      hasElement && parameters != null && parameters.isNotEmpty;
-  final hasReturnType =
-      hasElement && returnType != null && returnType.isNotEmpty;
-  final hasParameterType = parameterType != null && parameterType.isNotEmpty;
+  var parameters = element?.parameters;
+  var returnType = element?.returnType;
 
-  final prefix =
-      supportsDeprecated || !suggestion.isDeprecated ? '' : '(Deprecated) ';
-
-  if (completionKind == lsp.CompletionItemKind.Property) {
-    // Setters appear as methods with one arg but they also cause getters to not
-    // appear in the completion list, so displaying them as setters is misleading.
-    // To avoid this, always show only the return type, whether it's a getter
-    // or a setter.
-    if (element?.kind == server.ElementKind.GETTER) {
-      return prefix + (returnType ?? '');
-    } else if (parameters == null) {
-      return prefix;
-    } else {
-      // TODO(dantup): Consider having the type of a setter available on
-      //  CompletionSuggestion (or changing it to a protocol-agnostic class that
-      //  includes it).
-      return prefix +
-          (_completionSetterTypePattern.firstMatch(parameters)?.group(1) ?? '');
-    }
-  } else if (hasParameters && hasReturnType) {
-    return '$prefix$parameters → $returnType';
-  } else if (hasReturnType) {
-    return '$prefix$returnType';
-  } else if (hasParameterType) {
-    return '$prefix$parameterType';
-  } else {
-    return prefix.isNotEmpty ? prefix : null;
+  // Extract the type from setters to be shown in the place a return type
+  // would usually be shown.
+  if (returnType == null &&
+      element?.kind == server.ElementKind.SETTER &&
+      parameters != null) {
+    returnType = _completionSetterTypePattern.firstMatch(parameters)?.group(1);
+    parameters = null;
   }
+
+  final truncatedParameters = switch (parameters) {
+    null || '' => '',
+    '()' => '()',
+    _ => '(…)',
+  };
+  final fullSignature = switch ((parameters, returnType)) {
+    (null, _) => returnType ?? '',
+    (final parameters?, null) => parameters,
+    (final parameters?, '') => parameters,
+    (final parameters?, _) => '$parameters → $returnType',
+  };
+
+  // Use the full signature in the details popup.
+  var detail = fullSignature;
+  if (suggestion.isDeprecated && !supportsDeprecated) {
+    // If the item is deprecated and we don't support the native deprecated flag
+    // then include it in the details.
+    detail = '$detail\n\n(Deprecated)'.trim();
+  }
+
+  return (
+    detail: detail,
+    truncatedParams: truncatedParameters,
+  );
 }
 
 List<lsp.DiagnosticTag>? getDiagnosticTags(
@@ -883,9 +882,8 @@ lsp.CompletionItem toCompletionItem(
       elementKind == server.ElementKind.METHOD;
   final isInvocation =
       suggestion.kind == server.CompletionSuggestionKind.INVOCATION;
-
-  if (suggestion.displayText == null && isCallable) {
-    label += suggestion.parameterNames?.isNotEmpty ?? false ? '(…)' : '()';
+  if (!isCallable || !isInvocation) {
+    completeFunctionCalls = false;
   }
 
   final supportsCompletionDeprecatedFlag =
@@ -905,12 +903,22 @@ lsp.CompletionItem toCompletionItem(
       : suggestionKindToCompletionItemKind(
           capabilities.completionItemKinds, suggestion.kind, label);
 
+  var labelDetails = getCompletionDetail(
+    suggestion,
+    supportsDeprecated:
+        supportsCompletionDeprecatedFlag || supportsDeprecatedTag,
+  );
+
+  // Include short params on the end of labels as long as the item doesn't have
+  // custom display text (which may already include params).
+  if (suggestion.displayText == null) {
+    label += labelDetails.truncatedParams;
+  }
+
   final insertTextInfo = _buildInsertText(
     supportsSnippets: supportsSnippets,
     commitCharactersEnabled: commitCharactersEnabled,
     completeFunctionCalls: completeFunctionCalls,
-    isCallable: isCallable,
-    isInvocation: isInvocation,
     requiredArgumentListString: suggestion.defaultArgumentListString,
     requiredArgumentListTextRanges: suggestion.defaultArgumentListTextRanges,
     hasOptionalParameters: suggestion.parameterNames?.isNotEmpty ?? false,
@@ -928,8 +936,6 @@ lsp.CompletionItem toCompletionItem(
           ? suggestion.docSummary
           : null;
   var cleanedDoc = cleanDartdoc(rawDoc);
-  var detail = getCompletionDetail(suggestion, completionKind,
-      supportsCompletionDeprecatedFlag || supportsDeprecatedTag);
 
   // To improve the display of some items (like pubspec version numbers),
   // short labels in the format `_foo_` in docComplete are "upgraded" to the
@@ -939,7 +945,10 @@ lsp.CompletionItem toCompletionItem(
       : null;
   if (labelMatch != null) {
     cleanedDoc = null;
-    detail = labelMatch.group(1);
+    labelDetails = (
+      detail: labelMatch.group(1)!,
+      truncatedParams: labelDetails.truncatedParams,
+    );
   }
 
   // Because we potentially send thousands of these items, we should minimise
@@ -953,7 +962,7 @@ lsp.CompletionItem toCompletionItem(
         lsp.CompletionItemTag.Deprecated
     ]),
     data: resolutionData,
-    detail: detail,
+    detail: labelDetails.detail.nullIfEmpty,
     documentation: cleanedDoc != null
         ? asMarkupContentOrString(formats, cleanedDoc)
         : null,
@@ -1385,8 +1394,6 @@ lsp.MarkupContent _asMarkup(
   required bool supportsSnippets,
   required bool commitCharactersEnabled,
   required bool completeFunctionCalls,
-  required bool isCallable,
-  required bool isInvocation,
   required String? requiredArgumentListString,
   required List<int>? requiredArgumentListTextRanges,
   required bool hasOptionalParameters,
@@ -1410,10 +1417,7 @@ lsp.MarkupContent _asMarkup(
   if (supportsSnippets) {
     // completeFunctionCalls should only work if commit characters are disabled
     // otherwise the editor may insert parens that we're also inserting.
-    if (!commitCharactersEnabled &&
-        completeFunctionCalls &&
-        isCallable &&
-        isInvocation) {
+    if (!commitCharactersEnabled && completeFunctionCalls) {
       insertTextFormat = lsp.InsertTextFormat.Snippet;
       final hasRequiredParameters =
           requiredArgumentListTextRanges?.isNotEmpty ?? false;
@@ -1441,3 +1445,20 @@ lsp.MarkupContent _asMarkup(
 }
 
 String _errorCode(server.ErrorCode code) => code.name.toLowerCase();
+
+/// Additional details about a completion that may be formatted differently
+/// depending on the client capabilities.
+typedef CompletionDetail = ({
+  /// Additional details to go in the details popup.
+  ///
+  /// This is usually a full signature (with full parameters) and may also
+  /// include whether the item is deprecated if the client did not support the
+  /// native deprecated tag.
+  String detail,
+
+  /// Truncated parameters. Similate to [truncatedSignature] but does not
+  /// include return types. Used in clients that cannot format signatures
+  /// differently and is appended immediately after the completion label. The
+  /// return type is ommitted to reduce noise because this text is not subtle.
+  String truncatedParams,
+});

@@ -701,7 +701,7 @@ class MigrationResolutionHooksImpl
     } else {
       _flowAnalysis!.asExpression_end(node, contextType);
       var glb = _fixBuilder._typeSystem
-          .getGreatestLowerBound(contextType, expressionType);
+          .greatestLowerBound(contextType, expressionType);
 
       if (glb != _fixBuilder._typeSystem.typeProvider.neverType &&
           !identical(glb, expressionType)) {
