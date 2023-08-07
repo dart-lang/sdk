@@ -1711,6 +1711,23 @@ class FixProcessor extends BaseProcessor {
     ],
   };
 
+  /// A map from error codes to a list of fix generators that work with only
+  /// parsed results.
+  static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {
+    LintNames.slash_for_doc_comments: [
+      ConvertDocumentationIntoLine.new,
+    ],
+    LintNames.unnecessary_const: [
+      RemoveUnnecessaryConst.new,
+    ],
+    LintNames.unnecessary_new: [
+      RemoveUnnecessaryNew.new,
+    ],
+    LintNames.unnecessary_string_escapes: [
+      RemoveUnnecessaryStringEscape.new,
+    ],
+  };
+
   final DartFixContext fixContext;
 
   final List<Fix> fixes = <Fix>[];

@@ -90,6 +90,11 @@ class AbstractSingleUnitTest extends AbstractContextTest {
   String normalizeSource(String code) =>
       useLineEndingsForPlatform ? normalizeNewlinesForPlatform(code) : code;
 
+  Future<void> parseTestCode(String code) async {
+    addTestSource(code);
+    await getParsedUnit(testFile);
+  }
+
   Future<void> resolveTestCode(String code) async {
     addTestSource(code);
     await resolveTestFile();

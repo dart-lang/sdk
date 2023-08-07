@@ -24,8 +24,13 @@ import 'package:analyzer/exception/exception.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
 import 'package:analyzer/source/error_processor.dart';
+import 'package:analyzer/src/clients/build_resolvers/build_resolvers.dart';
+import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/error/codes.dart';
+import 'package:analyzer/src/lint/linter.dart';
+import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/lint/registry.dart';
+import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
@@ -35,6 +40,7 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_exception.dart';
+import 'package:collection/collection.dart';
 
 /// A fix producer that produces changes that will fix multiple diagnostics in
 /// one or more files.
@@ -46,6 +52,15 @@ import 'package:analyzer_plugin/utilities/change_builder/conflicting_edit_except
 /// The correction producers that are associated with the diagnostics should not
 /// produce changes that alter the semantics of the code.
 class BulkFixProcessor {
+  /// A list of lint codes that can be run on parsed code. These lints will all
+  /// be run when the `--syntactic-fixes` flag is specified.
+  static const List<String> syntacticLintCodes = [
+    LintNames.slash_for_doc_comments,
+    LintNames.unnecessary_const,
+    LintNames.unnecessary_new,
+    LintNames.unnecessary_string_escapes,
+  ];
+
   /// A map from an error code to a list of generators used to create multiple
   /// correction producers used to build fixes for those diagnostics. The
   /// generators used for lint rules are in the [lintMultiProducerMap].
@@ -238,6 +253,13 @@ class BulkFixProcessor {
     return builder;
   }
 
+  /// Return a [BulkFixRequestResult] that includes a change builder that has
+  /// been used to create fixes for the diagnostics in the libraries in the
+  /// given [contexts].
+  Future<BulkFixRequestResult> fixErrorsUsingParsedResult(
+          List<AnalysisContext> contexts) =>
+      _computeFixesUsingParsedResult(contexts);
+
   /// Checks whether any diagnostics are bulk fixable.
   ///
   /// This is faster than calling [fixErrors] if the only requirement is to
@@ -258,6 +280,19 @@ class BulkFixProcessor {
     } on ConflictingEditException {
       // If a conflicting edit was added in [compute], then the [localBuilder]
       // is discarded and we revert to the previous state of the builder.
+    }
+  }
+
+  Future<void> _bulkApply(List<ProducerGenerator> generators, String codeName,
+      CorrectionProducerContext context) async {
+    for (var generator in generators) {
+      var producer = generator();
+      if (producer.canBeAppliedInBulk) {
+        await _generateFix(context, producer, codeName);
+        if (isCancelled) {
+          return;
+        }
+      }
     }
   }
 
@@ -318,6 +353,83 @@ class BulkFixProcessor {
     }
 
     return BulkFixRequestResult(builder);
+  }
+
+  Future<BulkFixRequestResult> _computeFixesUsingParsedResult(
+    List<AnalysisContext> contexts, {
+    bool stopAfterFirst = false,
+  }) async {
+    for (var context in contexts) {
+      var pathContext = context.contextRoot.resourceProvider.pathContext;
+      for (var path in context.contextRoot.analyzedFiles()) {
+        if (!file_paths.isDart(pathContext, path) ||
+            file_paths.isGenerated(path)) {
+          continue;
+        }
+
+        if (!await _hasFixableErrors(context, path)) {
+          continue;
+        }
+
+        var result = context.currentSession.getParsedLibrary(path);
+
+        if (isCancelled) {
+          break;
+        }
+        if (result is ParsedLibraryResult) {
+          final allUnits = result.units
+              .map((parsedUnit) =>
+                  LinterContextUnit(parsedUnit.content, parsedUnit.unit))
+              .toList();
+          var errorListener = RecordingErrorListener();
+          for (final linterUnit in allUnits) {
+            var errorReporter = ErrorReporter(
+              errorListener,
+              StringSource(linterUnit.content, null),
+              isNonNullableByDefault: false,
+            );
+            _computeLints(
+              linterUnit,
+              allUnits,
+              errorReporter,
+            );
+          }
+          await _fixErrorsInParsedLibrary(result, errorListener.errors,
+              stopAfterFirst: stopAfterFirst);
+          if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+            break;
+          }
+        }
+      }
+    }
+    return BulkFixRequestResult(builder);
+  }
+
+  void _computeLints(LinterContextUnit currentUnit,
+      List<LinterContextUnit> allUnits, ErrorReporter errorReporter) {
+    var unit = currentUnit.unit;
+    var nodeRegistry = NodeLintRegistry(false);
+
+    var context = LinterContextParsedImpl(allUnits, currentUnit);
+
+    var lintRules = syntacticLintCodes
+        .map((name) => Registry.ruleRegistry.getRule(name))
+        .whereNotNull()
+        .toList();
+    for (var linter in lintRules) {
+      linter.reporter = errorReporter;
+      linter.registerNodeProcessors(nodeRegistry, context);
+    }
+
+    // Run lints that handle specific node types.
+    unit.accept(
+      LinterVisitor(
+        nodeRegistry,
+        LinterExceptionHandler(
+          propagateExceptions: false,
+        ).logException,
+      ),
+    );
   }
 
   /// Filters errors to only those that are in [codes] and are not filtered out
@@ -431,6 +543,22 @@ class BulkFixProcessor {
     }
   }
 
+  Future<void> _fixErrorsInParsedLibrary(
+      ParsedLibraryResult result, List<AnalysisError> errors,
+      {required bool stopAfterFirst}) async {
+    var analysisOptions = result.session.analysisContext.analysisOptions;
+
+    for (var unitResult in result.units) {
+      var overrideSet = _readOverrideSet(unitResult);
+      for (var error in _filterErrors(analysisOptions, errors)) {
+        await _fixSingleParseError(unitResult, error, overrideSet);
+        if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
+          return;
+        }
+      }
+    }
+  }
+
   /// Use the change [builder] and the [fixContext] to create a fix for the
   /// given [diagnostic] in the compilation unit associated with the analysis
   /// [result].
@@ -453,25 +581,12 @@ class BulkFixProcessor {
       return;
     }
 
-    Future<void> bulkApply(
-        List<ProducerGenerator> generators, String codeName) async {
-      for (var generator in generators) {
-        var producer = generator();
-        if (producer.canBeAppliedInBulk) {
-          await _generateFix(context, producer, codeName);
-          if (isCancelled) {
-            return;
-          }
-        }
-      }
-    }
-
     var errorCode = diagnostic.errorCode;
     var codeName = errorCode.name;
     try {
       if (errorCode is LintCode) {
         var generators = FixProcessor.lintProducerMap[codeName] ?? [];
-        await bulkApply(generators, codeName);
+        await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
@@ -487,7 +602,7 @@ class BulkFixProcessor {
         }
       } else {
         var generators = FixProcessor.nonLintProducerMap[errorCode] ?? [];
-        await bulkApply(generators, codeName);
+        await _bulkApply(generators, codeName, context);
         if (isCancelled) {
           return;
         }
@@ -503,6 +618,37 @@ class BulkFixProcessor {
               }
             }
           }
+        }
+      }
+    } catch (e, s) {
+      throw CaughtException.withMessage(
+          'Exception generating fix for $codeName in ${result.path}', e, s);
+    }
+  }
+
+  /// Use the change [builder] and the [fixContext] to create a fix for the
+  /// given [diagnostic] in the compilation unit associated with the analysis
+  /// [result].
+  Future<void> _fixSingleParseError(ParsedUnitResult result,
+      AnalysisError diagnostic, TransformOverrideSet? overrideSet) async {
+    var context = CorrectionProducerContext.createParsed(
+      applyingBulkFixes: true,
+      diagnostic: diagnostic,
+      overrideSet: overrideSet,
+      resolvedResult: result,
+      selectionOffset: diagnostic.offset,
+      selectionLength: diagnostic.length,
+      workspace: workspace,
+    );
+
+    var errorCode = diagnostic.errorCode;
+    var codeName = errorCode.name;
+    try {
+      if (errorCode is LintCode) {
+        var generators = FixProcessor.parseLintProducerMap[codeName] ?? [];
+        await _bulkApply(generators, codeName, context);
+        if (isCancelled) {
+          return;
         }
       }
     } catch (e, s) {
@@ -553,7 +699,7 @@ class BulkFixProcessor {
   /// Return the override set corresponding to the given [result], or `null` if
   /// there is no corresponding configuration file or the file content isn't a
   /// valid override set.
-  TransformOverrideSet? _readOverrideSet(ResolvedUnitResult result) {
+  TransformOverrideSet? _readOverrideSet(ParsedUnitResult result) {
     if (useConfigFiles) {
       var provider = result.session.resourceProvider;
       var context = provider.pathContext;

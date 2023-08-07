@@ -520,6 +520,66 @@ class LinterContextImpl implements LinterContext {
   }
 }
 
+class LinterContextParsedImpl implements LinterContext {
+  @override
+  final List<LinterContextUnit> allUnits;
+
+  @override
+  final LinterContextUnit currentUnit;
+
+  @override
+  final WorkspacePackage? package = null;
+
+  @override
+  final InheritanceManager3 inheritanceManager = InheritanceManager3();
+
+  LinterContextParsedImpl(
+    this.allUnits,
+    this.currentUnit,
+    //  this.package,
+  );
+
+  @override
+  AnalysisOptions get analysisOptions => throw UnimplementedError();
+
+  @override
+  DeclaredVariables get declaredVariables =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  TypeProvider get typeProvider =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  TypeSystem get typeSystem =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool canBeConst(Expression expression) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool canBeConstConstructor(ConstructorDeclaration node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterConstantEvaluationResult evaluateConstant(Expression node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool inTestDir(CompilationUnit unit) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  bool isEnabled(Feature feature) =>
+      throw UnsupportedError('LinterContext with parsed results');
+
+  @override
+  LinterNameInScopeResolutionResult resolveNameInScope(
+          String id, bool setter, AstNode node) =>
+      throw UnsupportedError('LinterContext with parsed results');
+}
+
 class LinterContextUnit {
   final String content;
 
