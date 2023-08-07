@@ -9,7 +9,7 @@ import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
 class FormattingHandler
-    extends LspMessageHandler<DocumentFormattingParams, List<TextEdit>?> {
+    extends SharedMessageHandler<DocumentFormattingParams, List<TextEdit>?> {
   FormattingHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_formatting;

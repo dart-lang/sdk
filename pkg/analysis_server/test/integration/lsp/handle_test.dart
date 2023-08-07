@@ -21,9 +21,22 @@ void main() {
   });
 }
 
+/// Integration tests for using LSP over the Legacy protocol.
+///
+/// These tests are slow (each test spawns an out-of-process server) so these
+/// tests are intended only to ensure the basic functionality is available and
+/// not to test all handlers/functionality already are covered by LSP tests.
+///
+/// Additional tests (to verify each expected LSP handler is available over
+/// Legacy) are in `test/lsp_over_legacy/` and tests for all handler
+/// functionality are in `test/lsp`.
 @reflectiveTest
 class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
     with LspRequestHelpersMixin {
+  late final testFile = sourcePath('lib/test.dart');
+
+  Uri get testFileUri => Uri.file(testFile);
+
   @override
   Future<T> expectSuccessfulResponseTo<T, R>(
     RequestMessage message,
@@ -63,20 +76,30 @@ class LspOverLegacyTest extends AbstractAnalysisServerIntegrationTest
   }
 
   Future<void> test_error_lspHandlerError() async {
-    // This file will not be created.
-    final testFile = sourcePath('lib/test.dart');
+    // testFile will not be created.
     await standardAnalysisSetup();
     await analysisFinished;
 
     await expectLater(
-      getHover(Uri.file(testFile), Position(character: 0, line: 0)),
+      getHover(testFileUri, Position(character: 0, line: 0)),
       throwsA(isResponseError(ServerErrorCodes.InvalidFilePath,
           message: 'File does not exist')),
     );
   }
 
+  Future<void> test_format() async {
+    const content = 'void     main() {}';
+    const expectedContent = 'void main() {}';
+    writeFile(testFile, content);
+    await standardAnalysisSetup();
+    await analysisFinished;
+
+    final edits = await formatDocument(testFileUri);
+    final formattedContents = applyTextEdits(content, edits!);
+    expect(formattedContents.trimRight(), equals(expectedContent));
+  }
+
   Future<void> test_hover() async {
-    final testFile = sourcePath('lib/test.dart');
     final code = TestCode.parse('''
 /// This is my class.
 class [!A^aa!] {}
@@ -86,7 +109,7 @@ class [!A^aa!] {}
     await standardAnalysisSetup();
     await analysisFinished;
 
-    final result = await getHover(Uri.file(testFile), code.position.position);
+    final result = await getHover(testFileUri, code.position.position);
 
     expect(result!.range, code.range.range);
     _expectMarkdown(
@@ -109,7 +132,6 @@ This is my class.
   /// in a way that is not abstracted by (or affected by refactors to) helper
   /// methods to ensure this never changes in a way that will affect clients.
   Future<void> test_hover_rawProtocol() async {
-    final testFile = sourcePath('lib/test.dart');
     final code = TestCode.parse('''
 /// This is my class.
 class [!A^aa!] {}
@@ -134,7 +156,7 @@ This is my class.''';
         'id': '12345',
         'method': Method.textDocument_hover.toString(),
         'params': {
-          "textDocument": {"uri": Uri.file(testFile).toString()},
+          "textDocument": {"uri": testFileUri.toString()},
           "position": code.position.position.toJson(),
         },
       }

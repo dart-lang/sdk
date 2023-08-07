@@ -33,7 +33,7 @@ import 'package:analysis_server/src/lsp/handlers/handler_initialized.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_inlay_hint.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_references.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_rename.dart';
-import 'package:analysis_server/src/lsp/handlers/handler_select_range.dart';
+import 'package:analysis_server/src/lsp/handlers/handler_selection_range.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_semantic_tokens.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_shutdown.dart';
 import 'package:analysis_server/src/lsp/handlers/handler_signature_help.dart';
@@ -75,27 +75,18 @@ class InitializedLspStateMessageHandler extends InitializedStateMessageHandler {
     TextDocumentCloseHandler.new,
     CompletionHandler.new,
     CompletionResolveHandler.new,
-    DocumentColorHandler.new,
-    DocumentColorPresentationHandler.new,
     SignatureHelpHandler.new,
     DefinitionHandler.new,
     TypeDefinitionHandler.new,
     SuperHandler.new,
     ReferencesHandler.new,
     ImplementationHandler.new,
-    FormattingHandler.new,
-    FormatOnTypeHandler.new,
-    FormatRangeHandler.new,
-    DocumentHighlightsHandler.new,
     DocumentSymbolHandler.new,
     CodeActionHandler.new,
     ExecuteCommandHandler.new,
     WorkspaceFoldersHandler.new,
     PrepareRenameHandler.new,
     RenameHandler.new,
-    PrepareCallHierarchyHandler.new,
-    IncomingCallHierarchyHandler.new,
-    OutgoingCallHierarchyHandler.new,
     PrepareTypeHierarchyHandler.new,
     TypeHierarchySubtypesHandler.new,
     TypeHierarchySupertypesHandler.new,
@@ -129,7 +120,16 @@ class InitializedStateMessageHandler extends ServerStateMessageHandler {
   /// Generators for handlers that work with any [AnalysisServer].
   static const sharedHandlerGenerators =
       <_RequestHandlerGenerator<AnalysisServer>>[
+    DocumentColorHandler.new,
+    DocumentColorPresentationHandler.new,
+    DocumentHighlightsHandler.new,
+    FormatOnTypeHandler.new,
+    FormatRangeHandler.new,
+    FormattingHandler.new,
     HoverHandler.new,
+    IncomingCallHierarchyHandler.new,
+    OutgoingCallHierarchyHandler.new,
+    PrepareCallHierarchyHandler.new,
   ];
 
   InitializedStateMessageHandler(
