@@ -3517,6 +3517,57 @@ void f(StatefulElement element) {
   }
 
   Future<void>
+      test_widgets_WidgetsApp_debugShowWidgetInspectorOverride_replace() async {
+    setPackageContent('''
+class WidgetsApp {
+  @deprecated
+  static bool debugShowWidgetInspectorOverride = false;
+  static ValueNotifier<bool> debugShowWidgetInspectorOverrideNotifier = ValueNotifier<bool>(false);
+}
+
+class ValueNotifier<T> {
+  ValueNotifier(this._value);
+
+  T get value => _value;
+  T _value;
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to 'debugShowWidgetInspectorOverrideNotifier'"
+    date: 2023-03-13
+    element:
+      uris: ['$importUri']
+      field: 'debugShowWidgetInspectorOverride'
+      inClass: 'WidgetsApp'
+      static: true
+    changes:
+      - kind: 'replacedBy'
+        newElement:
+          uris: ['$importUri']
+          field: 'debugShowWidgetInspectorOverrideNotifier.value'
+          inClass: 'WidgetsApp'
+          static: true
+  ''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  WidgetsApp.debugShowWidgetInspectorOverride = true;
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  WidgetsApp.debugShowWidgetInspectorOverrideNotifier.value = true;
+}
+''');
+  }
+
+  Future<void>
       test_widgets_WidgetsBinding_allowFirstFrameReport_deprecated() async {
     setPackageContent('''
 class WidgetsBinding {
