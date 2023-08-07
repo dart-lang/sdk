@@ -1,6 +1,6 @@
 # Dart
 
-## Dart is a language designed for the development of fast, efficient applications on any platform
+## A language designed for the development of fast, efficient applications on any platform
 
 Dart is:
 
