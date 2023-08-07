@@ -24,8 +24,6 @@
 
 ## 3.1.0
 
-### Language
-
 ### Libraries
 
 #### `dart:async`
