@@ -133,10 +133,10 @@ enum E {
     ]);
   }
 
-  test_extensionType_instance_field() async {
+  test_extensionType_instance_getter() async {
     await assertNoErrorsInCode(r'''
 extension type A.foo(int it) {
-  int foo = 0;
+  int get foo => 0;
 }
 ''');
   }

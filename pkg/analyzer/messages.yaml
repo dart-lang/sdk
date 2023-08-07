@@ -5055,6 +5055,10 @@ CompileTimeErrorCode:
 
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
+  EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+    problemMessage: "Extension types can't declare instance fields."
+    correctionMessage: Try replacing the field with a getter.
+    comment: No parameters.
   EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
     problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
     correctionMessage: Try specifying a different name for the member.

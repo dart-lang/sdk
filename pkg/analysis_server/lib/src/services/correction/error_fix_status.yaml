@@ -636,6 +636,8 @@ CompileTimeErrorCode.EXTENSION_OVERRIDE_WITH_CASCADE:
     Replace the `..` with `.`.
 CompileTimeErrorCode.EXTENSION_OVERRIDE_WITHOUT_ACCESS:
   status: noFix
+CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD:
+  status: noFix
 CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
   status: needsFix
   notes: |-

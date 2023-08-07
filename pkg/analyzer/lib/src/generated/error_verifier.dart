@@ -729,6 +729,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       }
     }
     try {
+      _checkForExtensionTypeDeclaresInstanceField(node);
       _checkForNotInitializedNonNullableStaticField(node);
       _checkForWrongTypeParameterVarianceInField(node);
       _checkForLateFinalFieldWithConstConstructor(node);
@@ -2865,6 +2866,23 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           node.name,
         );
       }
+    }
+  }
+
+  void _checkForExtensionTypeDeclaresInstanceField(FieldDeclaration node) {
+    if (_enclosingClass is! ExtensionTypeElement) {
+      return;
+    }
+
+    if (node.isStatic) {
+      return;
+    }
+
+    for (final field in node.fields.variables) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
+        field.name,
+      );
     }
   }
 
