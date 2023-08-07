@@ -56,6 +56,14 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     }
   }
 
+  /// Gets the number of recorded responses for [method].
+  int numberOfRecordedResponses(String method) {
+    return server.analyticsManager
+        .getRequestData(method)
+        .responseTimes
+        .valueCount;
+  }
+
   @override
   Future<void> setUp() async {
     super.setUp();

@@ -183,7 +183,7 @@ class AnalyticsPage extends DiagnosticPageWithNav {
           'statistics and to send basic crash reports. This data is used to '
           'help improve the Dart platform and tools over time.');
       p('To disable reporting of analytics, run:');
-      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>');
+      p('&nbsp;&nbsp;<code>dart --disable-analytics</code>', raw: true);
       p('The information below will be reported the next time analytics are '
           'sent.');
     }
