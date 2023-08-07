@@ -305,7 +305,7 @@ class DartCompletionManager {
     }
     var state = CompletionState(request.libraryElement, selection);
     var pass = InScopeCompletionPass(state: state, collector: collector);
-    selection.coveringNode.accept(pass);
+    pass.computeSuggestions();
     builder.suggestFromCandidates(collector.suggestions);
   }
 }

@@ -128,21 +128,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitAssignmentExpression(AssignmentExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitAwaitExpression(AwaitExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitBinaryExpression(BinaryExpression node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
   void visitBlock(Block node) {
     var prevStmt = OpType.getPreviousStatement(node, entity);
     if (prevStmt is TryStatement) {
@@ -198,70 +183,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   @override
   void visitCaseClause(CaseClause node) {
     _addSuggestions(patternKeywords);
-  }
-
-  @override
-  void visitClassDeclaration(ClassDeclaration node) {
-    final entity = this.entity;
-    // Don't suggest class name
-    if (entity == node.name) {
-      return;
-    }
-    if (entity == node.classKeyword) {
-      var previous = node.findPrevious(node.classKeyword);
-      if (previous != null) {
-        if (previous.keyword != Keyword.BASE &&
-            previous.keyword != Keyword.FINAL &&
-            previous.keyword != Keyword.INTERFACE &&
-            previous.keyword != Keyword.MIXIN &&
-            previous.keyword != Keyword.SEALED) {
-          if (previous.keyword != Keyword.ABSTRACT) {
-            if (request.featureSet.isEnabled(Feature.sealed_class)) {
-              _addSuggestion(Keyword.SEALED);
-            }
-          } else {
-            // abstract ^ class A {}
-            if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-              _addSuggestions([
-                Keyword.BASE,
-                Keyword.FINAL,
-                Keyword.INTERFACE,
-                Keyword.MIXIN
-              ]);
-            }
-          }
-        }
-        if (request.featureSet.isEnabled(Feature.class_modifiers) &&
-            previous.keyword == Keyword.BASE) {
-          // base ^ class A {}
-          // abstract base ^ class A {}
-          _addSuggestion(Keyword.MIXIN);
-        }
-      }
-    } else if (entity == node.mixinKeyword) {
-      var previous = node.findPrevious(node.mixinKeyword!);
-      if (previous != null) {
-        if (previous.keyword != Keyword.BASE) {
-          // abstract ^ mixin class A {}
-          if (request.featureSet.isEnabled(Feature.class_modifiers)) {
-            _addSuggestion(Keyword.BASE);
-          }
-        }
-      }
-    } else if (entity == node.rightBracket) {
-      _addClassBodyKeywords();
-    } else if (entity is ClassMember) {
-      _addClassBodyKeywords();
-      var index = node.members.indexOf(entity);
-      var previous = index > 0 ? node.members[index - 1] : null;
-      if (previous is MethodDeclaration && previous.body.isEmpty) {
-        _addSuggestion(Keyword.ASYNC);
-        _addSuggestion2(ASYNC_STAR);
-        _addSuggestion2(SYNC_STAR);
-      }
-    } else {
-      _addClassDeclarationKeywords(node);
-    }
   }
 
   @override
@@ -911,13 +832,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitReturnStatement(ReturnStatement node) {
-    if (entity == node.expression) {
-      _addExpressionKeywords(node);
-    }
-  }
-
-  @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var entity = this.entity;
     if (node.type == entity && entity is GenericFunctionType) {
@@ -935,16 +849,6 @@ class _KeywordVisitor extends SimpleAstVisitor<void> {
 
   @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitSpreadElement(SpreadElement node) {
-    _addExpressionKeywords(node);
-  }
-
-  @override
-  void visitSuperExpression(SuperExpression node) {
     _addExpressionKeywords(node);
   }
 

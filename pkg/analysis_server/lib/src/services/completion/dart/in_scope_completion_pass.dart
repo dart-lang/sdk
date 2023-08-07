@@ -5,8 +5,10 @@
 import 'package:analysis_server/src/services/completion/dart/completion_state.dart';
 import 'package:analysis_server/src/services/completion/dart/keyword_helper.dart';
 import 'package:analysis_server/src/services/completion/dart/suggestion_collector.dart';
+import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 
 /// A completion pass that will create candidate suggestions based on the
@@ -39,9 +41,96 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   /// Return the offset at which completion was requested.
   int get offset => state.selection.offset;
 
+  /// Return the node that should be used as the context in which completion is
+  /// occurring.
+  ///
+  /// This is normally the covering node, but if the covering node begins with
+  /// an identifier (or keyword) and the [offset] is covered by the identifier,
+  /// then we look for the highest node that also begins with the same token and
+  /// use the parent of that node.
+  ///
+  /// This allows us more context for completing what the user might be trying
+  /// to write and also reduces the complexity of the visitor and reduces the
+  /// amount of code duplication.
+  AstNode get _completionNode {
+    var selection = state.selection;
+    var coveringNode = selection.coveringNode;
+    var beginToken = coveringNode.beginToken;
+    if (!beginToken.isKeywordOrIdentifier ||
+        !selection.isCoveredByToken(beginToken)) {
+      return coveringNode;
+    }
+    var child = coveringNode;
+    var parent = child.parent;
+    while (parent != null && parent.beginToken == beginToken) {
+      child = parent;
+      parent = child.parent;
+    }
+    // The [child] is now the highest node that starts with the [beginToken].
+    if (parent != null) {
+      return parent;
+    }
+    return child;
+  }
+
+  /// Compute the candidate suggestions associated with this pass.
+  void computeSuggestions() {
+    _completionNode.accept(this);
+  }
+
   @override
   void visitAdjacentStrings(AdjacentStrings node) {
     _visitParentIfAtOrBeforeNode(node);
+  }
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    collector.completionLocation = 'AssignmentExpression_rightHandSide';
+    _forExpression(node);
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    collector.completionLocation = 'AwaitExpression_expression';
+    _forExpression(node);
+  }
+
+  @override
+  void visitBinaryExpression(BinaryExpression node) {
+    var operator = node.operator.lexeme;
+    collector.completionLocation = 'BinaryExpression_${operator}_rightOperand';
+    _forExpression(node);
+  }
+
+  @override
+  void visitClassDeclaration(ClassDeclaration node) {
+    if (offset < node.classKeyword.offset) {
+      keywordHelper.addClassModifiers(node);
+      return;
+    }
+    if (offset <= node.classKeyword.end) {
+      keywordHelper.addKeyword(Keyword.CLASS);
+      return;
+    }
+    if (offset <= node.name.end) {
+      // TODO(brianwilkerson) Suggest a name for the class.
+      return;
+    }
+    if (offset <= node.leftBracket.offset) {
+      keywordHelper.addClassDeclarationKeywords(node);
+      return;
+    }
+    if (offset >= node.leftBracket.end && offset <= node.rightBracket.offset) {
+      collector.completionLocation = 'ClassDeclaration_member';
+      _forClassMember();
+      var element = node.members.elementBefore(offset);
+      if (element is MethodDeclaration) {
+        var body = element.body;
+        if (body.isEmpty) {
+          keywordHelper.addFunctionBodyModifiers(body);
+        }
+      }
+    }
   }
 
   @override
@@ -155,8 +244,9 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitRethrowExpression(RethrowExpression node) {
-    _forExpression(node);
+  void visitReturnStatement(ReturnStatement node) {
+    collector.completionLocation = 'ReturnStatement_expression';
+    _forExpression(node.expression ?? node);
   }
 
   @override
@@ -169,18 +259,26 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleIdentifier(SimpleIdentifier node) {
-    node.parent?.accept(this);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _visitParentIfAtOrBeforeNode(node);
   }
 
   @override
+  void visitSpreadElement(SpreadElement node) {
+    collector.completionLocation = 'SpreadElement_expression';
+    _forExpression(node);
+  }
+
+  @override
   void visitStringInterpolation(StringInterpolation node) {
     _visitParentIfAtOrBeforeNode(node);
+  }
+
+  /// Add the suggestions that are appropriate when the selection is at the
+  /// beginning of a class member.
+  void _forClassMember() {
+    keywordHelper.addClassMemberKeywords();
+    // TODO(brianwilkerson) Suggest type names.
   }
 
   /// Add the suggestions that are appropriate when the selection is at the
