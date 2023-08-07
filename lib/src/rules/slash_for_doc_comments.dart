@@ -43,6 +43,7 @@ bool isJavaStyle(Comment comment) {
 }
 
 class SlashForDocComments extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode('slash_for_doc_comments',

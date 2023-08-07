@@ -51,6 +51,7 @@ if (overflowChars != other.overflowChars) {
 ''';
 
 class CurlyBracesInFlowControlStructures extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode(

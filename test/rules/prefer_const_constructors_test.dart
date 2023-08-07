@@ -20,7 +20,6 @@ class PreferConstConstructorsTest extends LintRuleTest {
   @override
   String get lintRule => 'prefer_const_constructors';
 
-  @FailingTest(issue: 'https://github.com/dart-lang/linter/issues/3389')
   test_deferred_arg() async {
     newFile2('$testPackageLibPath/a.dart', '''
 class A {

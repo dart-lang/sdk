@@ -33,6 +33,7 @@ typedef F = void Function();
 ''';
 
 class PreferGenericFunctionTypeAliases extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode('prefer_generic_function_type_aliases',

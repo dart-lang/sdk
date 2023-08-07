@@ -27,6 +27,7 @@ set speed(int ms);
 ''';
 
 class AvoidReturnTypesOnSetters extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode(

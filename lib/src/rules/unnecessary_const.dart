@@ -34,6 +34,7 @@ m(){
 ''';
 
 class UnnecessaryConst extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode(

@@ -113,11 +113,11 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   String _getTypeName(MethodDeclaration method) {
     var parent = method.parent;
-    if (parent is ClassOrAugmentationDeclaration) {
+    if (parent is ClassDeclaration) {
       return parent.name.lexeme;
     } else if (parent is EnumDeclaration) {
       return parent.name.lexeme;
-    } else if (parent is MixinOrAugmentationDeclaration) {
+    } else if (parent is MixinDeclaration) {
       return parent.name.lexeme;
     } else if (parent is ExtensionDeclaration) {
       return parent.extendedType.toSource();

@@ -25,6 +25,7 @@ Iterable<T> where(bool Function(T) predicate) {}
 ''';
 
 class UseFunctionTypeSyntaxForParameters extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode(

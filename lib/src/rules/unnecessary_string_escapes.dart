@@ -28,6 +28,7 @@ Remove unnecessary backslashes in strings.
 ''';
 
 class UnnecessaryStringEscapes extends LintRule {
+  @override
   bool get canUseParsedResult => true;
 
   static const LintCode code = LintCode(
