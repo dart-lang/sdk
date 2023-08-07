@@ -260,6 +260,18 @@ extension ListOfFormalParameterExtension on List<FormalParameter> {
   }
 }
 
+extension MethodDeclarationExtension on MethodDeclaration {
+  bool get hasObjectMemberName {
+    return const {
+      '==',
+      'hashCode',
+      'toString',
+      'runtimeType',
+      'noSuchMethod',
+    }.contains(name.lexeme);
+  }
+}
+
 extension NamedTypeExtension on NamedType {
   String get qualifiedName {
     final importPrefix = this.importPrefix;

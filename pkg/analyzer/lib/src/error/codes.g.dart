@@ -1596,6 +1596,15 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
     hasPublishedDocs: true,
   );
 
+  ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
+    "Extension types can't declare members with the same name as a member "
+        "declared by 'Object'.",
+    correctionMessage: "Try specifying a different name for the member.",
+  );
+
   static const CompileTimeErrorCode EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER =
       CompileTimeErrorCode(
     'EXTERNAL_WITH_INITIALIZER',

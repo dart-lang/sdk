@@ -238,6 +238,8 @@ import 'extension_override_with_cascade_test.dart'
     as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
+import 'extension_type_declares_member_of_object_test.dart'
+    as extension_type_declares_member_of_object;
 import 'external_field_constructor_initializer_test.dart'
     as external_field_constructor_initializer;
 import 'external_field_initializer_test.dart' as external_field_initializer;
@@ -1036,6 +1038,7 @@ main() {
     extension_override_argument_not_assignable.main();
     extension_override_with_cascade.main();
     extension_override_without_access.main();
+    extension_type_declares_member_of_object.main();
     external_field_constructor_initializer.main();
     external_field_initializer.main();
     external_variable_initializer.main();
