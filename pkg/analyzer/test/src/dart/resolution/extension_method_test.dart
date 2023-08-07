@@ -846,6 +846,36 @@ class ExtensionMethodsExtendedTypeWithoutNullSafetyTest
 @reflectiveTest
 class ExtensionMethodsExternalReferenceTest extends PubPackageResolutionTest
     with ExtensionMethodsExternalReferenceTestCases {
+  test_instance_getter_fromInstance_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {}
+
+extension E on A {
+  int get foo => 0;
+}
+
+void f(A a) {
+  a.foo;
+}
+''');
+
+    final node = findNode.singlePrefixedIdentifier;
+    assertResolvedNodeText(node, r'''
+PrefixedIdentifier
+  prefix: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  period: .
+  identifier: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@getter::foo
+    staticType: int
+  staticElement: self::@extension::E::@getter::foo
+  staticType: int
+''');
+  }
+
   test_instance_getter_fromInstance_Never() async {
     await assertNoErrorsInCode('''
 extension E on Never {
@@ -923,6 +953,39 @@ PropertyAccess
     staticElement: self::@extension::E::@getter::foo
     staticType: int
   staticType: int?
+''');
+  }
+
+  test_instance_method_fromInstance_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {}
+
+extension E on A {
+  void foo() {}
+}
+
+void f(A a) {
+  a.foo();
+}
+''');
+
+    final node = findNode.singleMethodInvocation;
+    assertResolvedNodeText(node, r'''
+MethodInvocation
+  target: SimpleIdentifier
+    token: a
+    staticElement: self::@function::f::@parameter::a
+    staticType: A
+  operator: .
+  methodName: SimpleIdentifier
+    token: foo
+    staticElement: self::@extension::E::@method::foo
+    staticType: void Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: void Function()
+  staticType: void
 ''');
   }
 
@@ -1246,6 +1309,48 @@ PrefixExpression
     staticType: A?
   staticElement: self::@extension::E::@method::unary-
   staticType: A?
+''');
+  }
+
+  test_instance_setter_fromInstance_extensionType() async {
+    await assertNoErrorsInCode('''
+extension type A(int it) {}
+
+extension E on A {
+  set foo(int _) {}
+}
+
+void f(A a) {
+  a.foo = 0;
+}
+''');
+
+    final node = findNode.singleAssignmentExpression;
+    assertResolvedNodeText(node, r'''
+AssignmentExpression
+  leftHandSide: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: a
+      staticElement: self::@function::f::@parameter::a
+      staticType: A
+    period: .
+    identifier: SimpleIdentifier
+      token: foo
+      staticElement: <null>
+      staticType: null
+    staticElement: <null>
+    staticType: null
+  operator: =
+  rightHandSide: IntegerLiteral
+    literal: 0
+    parameter: self::@extension::E::@setter::foo::@parameter::_
+    staticType: int
+  readElement: <null>
+  readType: null
+  writeElement: self::@extension::E::@setter::foo
+  writeType: int
+  staticElement: <null>
+  staticType: int
 ''');
   }
 
