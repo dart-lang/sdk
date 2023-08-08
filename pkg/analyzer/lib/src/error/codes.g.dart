@@ -1597,6 +1597,14 @@ class CompileTimeErrorCode extends AnalyzerErrorCode {
   );
 
   ///  No parameters.
+  static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_INSTANCE_FIELD =
+      CompileTimeErrorCode(
+    'EXTENSION_TYPE_DECLARES_INSTANCE_FIELD',
+    "Extension types can't declare instance fields.",
+    correctionMessage: "Try replacing the field with a getter.",
+  );
+
+  ///  No parameters.
   static const CompileTimeErrorCode EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT =
       CompileTimeErrorCode(
     'EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT',
