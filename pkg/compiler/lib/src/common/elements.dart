@@ -88,6 +88,10 @@ abstract class CommonElements {
   /// The `Future` class defined in 'async';.
   late final ClassEntity futureClass = _findClass(asyncLibrary, 'Future');
 
+  /// The `Future.value` constructor.
+  late final ConstructorEntity? futureValueConstructor =
+      _env.lookupConstructor(futureClass, 'value');
+
   /// The `Stream` class defined in 'async';
   late final ClassEntity streamClass = _findClass(asyncLibrary, 'Stream');
 

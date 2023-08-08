@@ -6060,11 +6060,64 @@ class KernelSsaGraphBuilder extends ir.Visitor<void> with ir.VisitorVoidMixin {
 
   @override
   void visitAwaitExpression(ir.AwaitExpression node) {
-    node.operand.accept(this);
+    // `await e` first checks if the runtime type of `e` is a subtype of
+    // `Future<T>` where `T = flatten(S)` and `S` is the static type of `e`.
+    // (The type `Future<T>` is helpfully precomputed by the CFE and stored in
+    // [AwaitExpression.runtimeCheckType].)
+    //
+    // If the check succeeds (or if no `runtimeCheckType` is provided), we await
+    // `e` directly.
+    //
+    // If the check fails, we must await `Future.value(e)` instead.
+    //
+    // See https://github.com/dart-lang/sdk/issues/49396 for details.
+
+    final operand = node.operand;
+    operand.accept(this);
     HInstruction awaited = pop();
-    // TODO(herhut): Improve this type.
-    push(HAwait(awaited, _abstractValueDomain.dynamicType)
-      ..sourceInformation = _sourceInformationBuilder.buildAwait(node));
+    final runtimeCheckType = node.runtimeCheckType;
+    final sourceInformation = _sourceInformationBuilder.buildAwait(node);
+
+    void checkType() {
+      // TODO(fishythefish): Can we get rid of the redundancy with the type
+      // checks in async_patch?
+      _pushIsTest(runtimeCheckType!, awaited, sourceInformation);
+    }
+
+    void pushAwait(HInstruction expression) {
+      // TODO(herhut): Improve this type.
+      push(HAwait(expression, _abstractValueDomain.dynamicType)
+        ..sourceInformation = sourceInformation);
+    }
+
+    void awaitUnwrapped() {
+      pushAwait(awaited);
+    }
+
+    void awaitWrapped() {
+      final constructor = _commonElements.futureValueConstructor!;
+      final arguments = [awaited];
+      // If [runtimeCheckType] exists, it is guaranteed to be `Future<T>`, and
+      // we want to call `Future<T>.value`.
+      final typeArgument = _elementMap.getDartType(
+          (runtimeCheckType as ir.InterfaceType).typeArguments.single);
+      final typeArguments = [typeArgument];
+      _addTypeArguments(arguments, typeArguments, sourceInformation);
+      final instanceType = _commonElements.futureType(typeArgument);
+      _addImplicitInstantiation(instanceType);
+      _pushStaticInvocation(constructor, arguments,
+          _typeInferenceMap.getReturnTypeOf(constructor), typeArguments,
+          sourceInformation: sourceInformation, instanceType: instanceType);
+      _removeImplicitInstantiation(instanceType);
+      pushAwait(pop());
+    }
+
+    if (runtimeCheckType == null) {
+      awaitUnwrapped();
+    } else {
+      SsaBranchBuilder(this)
+          .handleConditional(checkType, awaitUnwrapped, awaitWrapped);
+    }
   }
 
   @override
