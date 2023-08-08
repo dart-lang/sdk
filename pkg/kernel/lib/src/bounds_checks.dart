@@ -342,6 +342,10 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
   } else if (type is TypedefType) {
     variables = type.typedefNode.typeParameters;
     arguments = type.typeArguments;
+  } else if (type is ExtensionType) {
+    variables = type.extensionTypeDeclaration.typeParameters;
+    arguments = type.typeArguments;
+    allowSuperBounded = false;
   } else if (type is FunctionType) {
     List<TypeArgumentIssue> result = <TypeArgumentIssue>[];
 
@@ -372,6 +376,12 @@ List<TypeArgumentIssue> findTypeArgumentIssues(DartType type,
     variables = typeEnvironment.coreTypes.futureClass.typeParameters;
     arguments = <DartType>[type.typeArgument];
   } else {
+    assert(type is DynamicType ||
+        type is VoidType ||
+        type is IntersectionType ||
+        type is TypeParameterType ||
+        type is NeverType ||
+        type is NullType);
     return const <TypeArgumentIssue>[];
   }
 
