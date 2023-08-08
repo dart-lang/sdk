@@ -80,6 +80,13 @@ class ChangeBuilderImpl implements ChangeBuilder {
     ]);
   }
 
+  /// Return `true` if this builder has edits to be applied.
+  bool get hasEdits {
+    return _dartFileEditBuilders.isNotEmpty ||
+        _genericFileEditBuilders.isNotEmpty ||
+        _yamlFileEditBuilders.isNotEmpty;
+  }
+
   @override
   SourceRange? get selectionRange => _selectionRange;
 
