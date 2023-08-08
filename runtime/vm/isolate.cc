@@ -1786,7 +1786,8 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   ASSERT(handler != nullptr);
   result->set_message_handler(handler);
 
-  result->set_main_port(PortMap::CreatePort(result->message_handler()));
+  result->set_main_port(
+      PortMap::CreatePort(result->message_handler(), PortMap::kControlPort));
 #if defined(DEBUG)
   // Verify that we are never reusing a live origin id.
   VerifyOriginId id_verifier(result->main_port());

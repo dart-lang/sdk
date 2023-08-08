@@ -61,8 +61,9 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
-  Dart_Port port_id = PortMap::CreatePort(isolate->message_handler());
-  return ReceivePort::New(port_id, debug_name, false /* not control port */);
+  Dart_Port port_id =
+      PortMap::CreatePort(isolate->message_handler(), PortMap::kLivePort);
+  return ReceivePort::New(port_id, debug_name);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {

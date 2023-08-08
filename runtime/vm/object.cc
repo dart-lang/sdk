@@ -26240,7 +26240,6 @@ const char* Capability::ToCString() const {
 
 ReceivePortPtr ReceivePort::New(Dart_Port id,
                                 const String& debug_name,
-                                bool is_control_port,
                                 Heap::Space space) {
   ASSERT(id != ILLEGAL_PORT);
   Thread* thread = Thread::Current();
@@ -26259,8 +26258,6 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   result.untag()->set_debug_name(debug_name.ptr());
   result.untag()->set_allocation_location(allocation_location_.ptr());
 #endif  // !defined(PRODUCT)
-  PortMap::SetPortState(
-      id, is_control_port ? PortMap::kControlPort : PortMap::kLivePort);
   return result.ptr();
 }
 

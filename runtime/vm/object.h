@@ -12524,7 +12524,6 @@ class ReceivePort : public Instance {
   }
   static ReceivePortPtr New(Dart_Port id,
                             const String& debug_name,
-                            bool is_control_port,
                             Heap::Space space = Heap::kNew);
 
  private:

@@ -24,8 +24,6 @@ Random* PortMap::prng_ = nullptr;
 
 const char* PortMap::PortStateString(PortState kind) {
   switch (kind) {
-    case kNewPort:
-      return "new";
     case kLivePort:
       return "live";
     case kControlPort:
@@ -96,7 +94,8 @@ void PortMap::SetPortState(Dart_Port port, PortState state) {
   }
 }
 
-Dart_Port PortMap::CreatePort(MessageHandler* handler) {
+Dart_Port PortMap::CreatePort(MessageHandler* handler,
+                              PortState initial_state) {
   ASSERT(handler != nullptr);
   MutexLocker ml(mutex_);
   if (ports_ == nullptr) {
@@ -118,8 +117,14 @@ Dart_Port PortMap::CreatePort(MessageHandler* handler) {
   Entry entry;
   entry.port = port;
   entry.handler = handler;
-  entry.state = kNewPort;
+  entry.state = initial_state;
   ports_->Insert(entry);
+
+  if (initial_state == kLivePort) {
+    entry.handler->increment_live_ports();
+  } else {
+    ASSERT(initial_state == kInactivePort || initial_state == kControlPort);
+  }
 
   if (FLAG_trace_isolates) {
     OS::PrintErr(
@@ -218,22 +223,6 @@ bool PortMap::PostMessage(std::unique_ptr<Message> message,
   ASSERT(handler != nullptr);
   handler->PostMessage(std::move(message), before_events);
   return true;
-}
-
-bool PortMap::IsLocalPort(Dart_Port id) {
-  MutexLocker ml(mutex_);
-  if (ports_ == nullptr) {
-    return false;
-  }
-  auto it = ports_->TryLookup(id);
-  if (it == ports_->end()) {
-    // Port does not exist.
-    return false;
-  }
-
-  MessageHandler* handler = (*it).handler;
-  ASSERT(handler != nullptr);
-  return handler->IsCurrentIsolate();
 }
 
 bool PortMap::IsLivePort(Dart_Port id) {
