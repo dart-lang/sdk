@@ -43,7 +43,7 @@ class PortTestMessageHandler : public MessageHandler {
 
 TEST_CASE(PortMap_CreateAndCloseOnePort) {
   PortTestMessageHandler handler;
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
 
@@ -53,8 +53,8 @@ TEST_CASE(PortMap_CreateAndCloseOnePort) {
 
 TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
   PortTestMessageHandler handler;
-  Dart_Port port1 = PortMap::CreatePort(&handler);
-  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
   EXPECT(PortMapTestPeer::IsActivePort(port2));
 
@@ -72,8 +72,8 @@ TEST_CASE(PortMap_CreateAndCloseTwoPorts) {
 
 TEST_CASE(PortMap_ClosePorts) {
   PortTestMessageHandler handler;
-  Dart_Port port1 = PortMap::CreatePort(&handler);
-  Dart_Port port2 = PortMap::CreatePort(&handler);
+  Dart_Port port1 = PortMap::CreatePort(&handler, PortMap::kLivePort);
+  Dart_Port port2 = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT(PortMapTestPeer::IsActivePort(port1));
   EXPECT(PortMapTestPeer::IsActivePort(port2));
 
@@ -86,7 +86,7 @@ TEST_CASE(PortMap_ClosePorts) {
 TEST_CASE(PortMap_CreateManyPorts) {
   PortTestMessageHandler handler;
   for (int i = 0; i < 32; i++) {
-    Dart_Port port = PortMap::CreatePort(&handler);
+    Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
     EXPECT(PortMapTestPeer::IsActivePort(port));
     PortMap::ClosePort(port);
     EXPECT(!PortMapTestPeer::IsActivePort(port));
@@ -97,7 +97,7 @@ TEST_CASE(PortMap_SetPortState) {
   PortTestMessageHandler handler;
 
   // Regular port.
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kInactivePort);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));
@@ -116,7 +116,7 @@ TEST_CASE(PortMap_SetPortState) {
   EXPECT(!PortMapTestPeer::IsLivePort(port));
 
   // Control port.
-  port = PortMap::CreatePort(&handler);
+  port = PortMap::CreatePort(&handler, PortMap::kInactivePort);
   EXPECT_NE(0, port);
   EXPECT(PortMapTestPeer::IsActivePort(port));
   EXPECT(!PortMapTestPeer::IsLivePort(port));
@@ -132,7 +132,7 @@ TEST_CASE(PortMap_SetPortState) {
 
 TEST_CASE(PortMap_PostMessage) {
   PortTestMessageHandler handler;
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT_EQ(0, handler.notify_count);
 
   const char* message = "msg";
@@ -149,7 +149,7 @@ TEST_CASE(PortMap_PostMessage) {
 
 TEST_CASE(PortMap_PostIntegerMessage) {
   PortTestMessageHandler handler;
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT_EQ(0, handler.notify_count);
 
   EXPECT(PortMap::PostMessage(
@@ -162,7 +162,7 @@ TEST_CASE(PortMap_PostIntegerMessage) {
 
 TEST_CASE(PortMap_PostNullMessage) {
   PortTestMessageHandler handler;
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
   EXPECT_EQ(0, handler.notify_count);
 
   EXPECT(PortMap::PostMessage(
@@ -176,7 +176,7 @@ TEST_CASE(PortMap_PostNullMessage) {
 TEST_CASE(PortMap_PostMessageClosedPort) {
   // Create a port id and make it invalid.
   PortTestMessageHandler handler;
-  Dart_Port port = PortMap::CreatePort(&handler);
+  Dart_Port port = PortMap::CreatePort(&handler, PortMap::kLivePort);
   PortMap::ClosePort(port);
 
   const char* message = "msg";

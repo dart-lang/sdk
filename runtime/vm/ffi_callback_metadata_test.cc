@@ -189,7 +189,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
 
     EXPECT_EQ(isolate->ffi_callback_list_head(), nullptr);
 
-    auto port1 = PortMap::CreatePort(new FakeMessageHandler());
+    auto port1 =
+        PortMap::CreatePort(new FakeMessageHandler(), PortMap::kLivePort);
     tramp1 = isolate->CreateAsyncFfiCallback(zone, func, port1);
     EXPECT_NE(tramp1, 0u);
 
@@ -210,7 +211,8 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
       EXPECT_EQ(e1->list_next(), nullptr);
     }
 
-    auto port2 = PortMap::CreatePort(new FakeMessageHandler());
+    auto port2 =
+        PortMap::CreatePort(new FakeMessageHandler(), PortMap::kLivePort);
     tramp2 = isolate->CreateAsyncFfiCallback(zone, func, port2);
     EXPECT_NE(tramp2, 0u);
     EXPECT_NE(tramp2, tramp1);
@@ -271,7 +273,7 @@ ISOLATE_UNIT_TEST_CASE(FfiCallbackMetadata_TrampolineRecycling) {
   const Code& code = Code::Handle(func.EnsureHasCode());
   EXPECT(!code.IsNull());
 
-  auto port = PortMap::CreatePort(new FakeMessageHandler());
+  auto port = PortMap::CreatePort(new FakeMessageHandler(), PortMap::kLivePort);
   FfiCallbackMetadata::Metadata* list_head = nullptr;
 
   // Allocate and free one callback at a time, and verify that we don't reuse
@@ -456,7 +458,8 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
                                                  sync_func, &list_head);
       } else {
         // 50% chance of creating an async callback.
-        tramp.port = PortMap::CreatePort(new FakeMessageHandler());
+        tramp.port =
+            PortMap::CreatePort(new FakeMessageHandler(), PortMap::kLivePort);
         tramp.tramp = fcm->CreateAsyncFfiCallback(
             isolate, thread->zone(), async_func, tramp.port, &list_head);
       }

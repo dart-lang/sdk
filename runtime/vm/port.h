@@ -25,15 +25,15 @@ class PortMapTestPeer;
 class PortMap : public AllStatic {
  public:
   enum PortState {
-    kNewPort = 0,      // a newly allocated port
+    kUnusedEntry = 0,
     kLivePort = 1,     // a regular port (has a ReceivePort)
-    kControlPort = 2,  // a special control port (has a ReceivePort)
+    kControlPort = 2,  // a special control port
     kInactivePort =
         3,  // an inactive port (has a ReceivePort) not considered live.
   };
 
   // Allocate a port for the provided handler and return its VM-global id.
-  static Dart_Port CreatePort(MessageHandler* handler);
+  static Dart_Port CreatePort(MessageHandler* handler, PortState initial_state);
 
   // Indicates that a port has had a ReceivePort created for it at the
   // dart language level.  The port remains live until it is closed.
@@ -54,10 +54,7 @@ class PortMap : public AllStatic {
   static bool PostMessage(std::unique_ptr<Message> message,
                           bool before_events = false);
 
-  // Returns whether a port is local to the current isolate.
-  static bool IsLocalPort(Dart_Port id);
-
-  // Returns whether a port is live (e.g., is not new or inactive).
+  // Returns whether a port is live (i.e. not inactive)
   static bool IsLivePort(Dart_Port id);
 
   // Returns the owning Isolate for port 'id'.
@@ -82,7 +79,7 @@ class PortMap : public AllStatic {
   friend class dart::PortMapTestPeer;
 
   struct Entry : public PortSet<Entry>::Entry {
-    Entry() : handler(nullptr), state(kNewPort) {}
+    Entry() : handler(nullptr), state(kUnusedEntry) {}
 
     MessageHandler* handler;
     PortState state;
