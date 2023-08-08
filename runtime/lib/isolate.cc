@@ -61,9 +61,7 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_factory, 0, 2) {
   ASSERT(
       TypeArguments::CheckedHandle(zone, arguments->NativeArgAt(0)).IsNull());
   GET_NON_NULL_NATIVE_ARGUMENT(String, debug_name, arguments->NativeArgAt(1));
-  Dart_Port port_id =
-      PortMap::CreatePort(isolate->message_handler(), PortMap::kLivePort);
-  return ReceivePort::New(port_id, debug_name);
+  return isolate->CreateReceivePort(debug_name);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
@@ -74,16 +72,14 @@ DEFINE_NATIVE_ENTRY(RawReceivePort_get_id, 0, 1) {
 DEFINE_NATIVE_ENTRY(RawReceivePort_closeInternal, 0, 1) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   Dart_Port id = port.Id();
-  PortMap::ClosePort(id);
+  isolate->CloseReceivePort(port);
   return Integer::New(id);
 }
 
 DEFINE_NATIVE_ENTRY(RawReceivePort_setActive, 0, 2) {
   GET_NON_NULL_NATIVE_ARGUMENT(ReceivePort, port, arguments->NativeArgAt(0));
   GET_NON_NULL_NATIVE_ARGUMENT(Bool, active, arguments->NativeArgAt(1));
-  Dart_Port id = port.Id();
-  PortMap::SetPortState(
-      id, active.value() ? PortMap::kLivePort : PortMap::kInactivePort);
+  isolate->SetReceivePortKeepAliveState(port, active.value());
   return Object::null();
 }
 

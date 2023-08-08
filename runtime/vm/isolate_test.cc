@@ -2,11 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#include "vm/isolate.h"
 #include "include/dart_api.h"
+
 #include "platform/assert.h"
+
 #include "vm/globals.h"
+#include "vm/isolate.h"
 #include "vm/lockers.h"
+#include "vm/port.h"
 #include "vm/thread_barrier.h"
 #include "vm/thread_pool.h"
 #include "vm/unit_test.h"
@@ -169,6 +172,69 @@ TEST_CASE(StackLimitInterrupts) {
   }
   barrier->Sync();
   barrier->Release();
+}
+
+ISOLATE_UNIT_TEST_CASE(Isolate_Ports) {
+  auto isolate = thread->isolate();
+  auto& port = ReceivePort::Handle();
+
+  EXPECT(!isolate->HasLivePorts());
+
+  {
+    // Make port.
+    port = isolate->CreateReceivePort(String::null_string());
+    EXPECT(port.is_open());
+    EXPECT(port.keep_isolate_alive());
+    EXPECT(port.Id() != ILLEGAL_PORT);
+    EXPECT(PortMap::IsLivePort(port.Id()));
+    EXPECT(isolate->HasLivePorts());
+
+    // Make port not keep isolate alive.
+    isolate->SetReceivePortKeepAliveState(port, false);
+    EXPECT(port.is_open());
+    EXPECT(!port.keep_isolate_alive());
+    EXPECT(!isolate->HasLivePorts());
+
+    // Mark it alive again.
+    isolate->SetReceivePortKeepAliveState(port, true);
+    EXPECT(port.is_open());
+    EXPECT(port.keep_isolate_alive());
+    EXPECT(isolate->HasLivePorts());
+
+    // Close the port.
+    isolate->CloseReceivePort(port);
+    EXPECT(!port.is_open());
+    EXPECT(!port.keep_isolate_alive());
+    EXPECT(!isolate->HasLivePorts());
+
+    // Closing again should be a NOP.
+    isolate->CloseReceivePort(port);
+    EXPECT(!port.is_open());
+    EXPECT(!port.keep_isolate_alive());
+    EXPECT(!isolate->HasLivePorts());
+  }
+
+  {
+    // Make port.
+    port = isolate->CreateReceivePort(String::null_string());
+    EXPECT_NE(0, port.Id());
+    EXPECT(PortMap::IsLivePort(port.Id()));
+    EXPECT(isolate->HasLivePorts());
+
+    // Make port not keep isolate alive.
+    isolate->SetReceivePortKeepAliveState(port, false);
+    EXPECT(port.is_open());
+    EXPECT(!port.keep_isolate_alive());
+    EXPECT(!isolate->HasLivePorts());
+
+    // Close the port while it's not keep alive port.
+    isolate->CloseReceivePort(port);
+    EXPECT(!port.is_open());
+    EXPECT(!port.keep_isolate_alive());
+    EXPECT(!isolate->HasLivePorts());
+  }
+
+  EXPECT(!isolate->HasLivePorts());
 }
 
 }  // namespace dart

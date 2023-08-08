@@ -1020,11 +1020,18 @@ class IsolateMessageHandler : public MessageHandler {
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
-  void CheckAccess();
+  void CheckAccess() const;
 #endif
   bool IsCurrentIsolate() const;
   virtual Isolate* isolate() const { return isolate_; }
   virtual IsolateGroup* isolate_group() const { return isolate_->group(); }
+
+  virtual bool KeepAliveLocked() {
+    // If the message handler was asked to shutdown we shut down.
+    if (!MessageHandler::KeepAliveLocked()) return false;
+    // Otherwise we only stay alive as long as there's active receive ports.
+    return isolate_->HasLivePorts();
+  }
 
  private:
   // A result of false indicates that the isolate should terminate the
@@ -1430,7 +1437,7 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
 #endif  // !PRODUCT
 
 #if defined(DEBUG)
-void IsolateMessageHandler::CheckAccess() {
+void IsolateMessageHandler::CheckAccess() const {
   ASSERT(IsCurrentIsolate());
 }
 #endif
@@ -1782,9 +1789,7 @@ Isolate* Isolate::InitIsolate(const char* name_prefix,
   Thread::EnterIsolate(result);
 
   // Setup the isolate message handler.
-  MessageHandler* handler = new IsolateMessageHandler(result);
-  ASSERT(handler != nullptr);
-  result->set_message_handler(handler);
+  result->message_handler_ = new IsolateMessageHandler(result);
 
   result->set_main_port(
       PortMap::CreatePort(result->message_handler(), PortMap::kControlPort));
@@ -2327,6 +2332,10 @@ void Isolate::Run() {
                          reinterpret_cast<uword>(this));
 }
 
+MessageHandler* Isolate::message_handler() const {
+  return message_handler_;
+}
+
 void Isolate::RunAndCleanupFinalizersOnShutdown() {
   if (finalizers_ == GrowableObjectArray::null()) return;
 
@@ -2398,8 +2407,8 @@ void Isolate::LowLevelShutdown() {
   PortMap::ClosePorts(message_handler());
 
   // Fail fast if anybody tries to post any more messages to this isolate.
-  delete message_handler();
-  set_message_handler(nullptr);
+  delete message_handler_;
+  message_handler_ = nullptr;
 
   // Clean up any synchronous FFI callbacks registered with this isolate. Skip
   // if this isolate never registered any.
@@ -3020,7 +3029,7 @@ void Isolate::PrintJSON(JSONStream* stream, bool ref) {
   }
 
   jsobj.AddProperty("runnable", is_runnable());
-  jsobj.AddProperty("livePorts", message_handler()->live_ports());
+  jsobj.AddProperty("livePorts", open_ports_keepalive_);
   jsobj.AddProperty("pauseOnExit", message_handler()->should_pause_on_exit());
 #if !defined(DART_PRECOMPILED_RUNTIME)
   jsobj.AddProperty("_isReloading", group()->IsReloading());
@@ -3622,6 +3631,56 @@ FfiCallbackMetadata::Trampoline Isolate::CreateAsyncFfiCallback(
     Dart_Port send_port) {
   return FfiCallbackMetadata::Instance()->CreateAsyncFfiCallback(
       this, zone, send_function, send_port, &ffi_callback_list_head_);
+}
+
+bool Isolate::HasLivePorts() {
+  ASSERT(0 <= open_ports_ && 0 <= open_ports_keepalive_ &&
+         open_ports_keepalive_ <= open_ports_);
+  return open_ports_keepalive_ > 0;
+}
+
+ReceivePortPtr Isolate::CreateReceivePort(const String& debug_name) {
+  Dart_Port port_id =
+      PortMap::CreatePort(message_handler(), PortMap::kLivePort);
+  ++open_ports_;
+  ++open_ports_keepalive_;
+  return ReceivePort::New(port_id, debug_name);
+}
+
+void Isolate::SetReceivePortKeepAliveState(const ReceivePort& receive_port,
+                                           bool keep_isolate_alive) {
+  // Changing keep-isolate-alive state of a closed port is a NOP.
+  if (!receive_port.is_open()) return;
+
+  ASSERT(0 < open_ports_);
+
+  // If the state doesn't change it's a NOP.
+  if (receive_port.keep_isolate_alive() == keep_isolate_alive) return;
+
+  if (keep_isolate_alive) {
+    ASSERT(open_ports_keepalive_ < open_ports_);
+    ++open_ports_keepalive_;
+  } else {
+    ASSERT(0 < open_ports_keepalive_);
+    --open_ports_keepalive_;
+  }
+  receive_port.set_keep_isolate_alive(keep_isolate_alive);
+}
+
+void Isolate::CloseReceivePort(const ReceivePort& receive_port) {
+  // Closing an already closed port is a NOP.
+  if (!receive_port.is_open()) return;
+
+  ASSERT(open_ports_ > 0);
+  const bool ok = PortMap::ClosePort(receive_port.Id());
+  RELEASE_ASSERT(ok);
+
+  if (receive_port.keep_isolate_alive()) {
+    --open_ports_keepalive_;
+    receive_port.set_keep_isolate_alive(false);
+  }
+  --open_ports_;
+  receive_port.set_is_open(false);
 }
 
 void Isolate::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {

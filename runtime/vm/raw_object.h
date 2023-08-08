@@ -3421,6 +3421,7 @@ class UntaggedReceivePort : public UntaggedInstance {
 
   COMPRESSED_POINTER_FIELD(SendPortPtr, send_port)
   VISIT_FROM(send_port)
+  COMPRESSED_POINTER_FIELD(SmiPtr, bitfield)
   COMPRESSED_POINTER_FIELD(InstancePtr, handler)
 #if defined(PRODUCT)
   VISIT_TO(handler)

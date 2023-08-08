@@ -25,11 +25,8 @@ class NativeMessageHandler : public MessageHandler {
 
 #if defined(DEBUG)
   // Check that it is safe to access this handler.
-  void CheckAccess();
+  void CheckAccess() const;
 #endif
-
-  // Delete this handlers when its last live port is closed.
-  virtual bool OwnedByPortMap() const { return true; }
 
  private:
   char* name_;

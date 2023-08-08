@@ -188,6 +188,7 @@ namespace dart {
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \
   F(ReceivePort, handler_)                                                     \
+  F(ReceivePort, bitfield_)                                                    \
   F(StackTrace, async_link_)                                                   \
   F(StackTrace, code_array_)                                                   \
   F(StackTrace, pc_offset_array_)                                              \

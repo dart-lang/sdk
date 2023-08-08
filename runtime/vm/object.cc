@@ -26254,6 +26254,8 @@ ReceivePortPtr ReceivePort::New(Dart_Port id,
   const auto& result =
       ReceivePort::Handle(zone, Object::Allocate<ReceivePort>(space));
   result.untag()->set_send_port(send_port.ptr());
+  result.untag()->set_bitfield(
+      Smi::New(IsOpen::encode(true) | IsKeepIsolateAlive::encode(true)));
 #if !defined(PRODUCT)
   result.untag()->set_debug_name(debug_name.ptr());
   result.untag()->set_allocation_location(allocation_location_.ptr());

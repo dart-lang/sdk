@@ -84,10 +84,16 @@ class MessageHandler {
   // handler.
   bool HasMessages();
 
-  // A message handler tracks how many live ports it has.
-  bool HasLivePorts() const { return live_ports_ > 0; }
+  // Whether to keep this message handler alive or whether it should shutdown.
+  virtual bool KeepAliveLocked() {
+    // By default we keep alive until the message handler was asked to shutdown
+    // via [RequestDeletion].
+    return !delete_me_;
+  }
 
-  intptr_t live_ports() const { return live_ports_; }
+  // Requests deletion of this message handler when the next task
+  // completes.
+  void RequestDeletion();
 
   bool paused() const { return paused_ > 0; }
 
@@ -161,7 +167,7 @@ class MessageHandler {
   // For example, if this MessageHandler is an isolate, then it is
   // only safe to access it when the MessageHandler is the current
   // isolate.
-  virtual void CheckAccess();
+  virtual void CheckAccess() const;
 #endif
 
  protected:
@@ -186,17 +192,6 @@ class MessageHandler {
   // Notifies this handler that all ports are being closed.
   void CloseAllPorts();
 
-  // Returns true if the handler is owned by the PortMap.
-  //
-  // This is used to delete handlers when their last live port is closed.
-  virtual bool OwnedByPortMap() const { return false; }
-
-  // Requests deletion of this message handler when the next task
-  // completes.
-  void RequestDeletion();
-
-  void increment_live_ports();
-  void decrement_live_ports();
   // ------------ END PortMap API ------------
 
   // Custom message notification.  Optionally provided by subclass.
@@ -261,7 +256,6 @@ class MessageHandler {
   bool paused_for_messages_;
   PortSet<PortSetEntry>
       ports_;  // Only accessed by [PortMap], protected by [PortMap]s lock.
-  intptr_t live_ports_;  // The number of open ports, including control ports.
   intptr_t paused_;      // The number of pause messages received.
 #if !defined(PRODUCT)
   bool should_pause_on_start_;
