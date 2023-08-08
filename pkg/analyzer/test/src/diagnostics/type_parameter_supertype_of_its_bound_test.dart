@@ -17,7 +17,28 @@ main() {
 
 @reflectiveTest
 class TypeParameterSupertypeOfItsBoundTest extends PubPackageResolutionTest
-    with TypeParameterSupertypeOfItsBoundTestCases {}
+    with TypeParameterSupertypeOfItsBoundTestCases {
+  test_1of1_viaExtensionType() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(T it) {}
+
+class B<U extends A<U>> {}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 1),
+    ]);
+  }
+
+  test_2of2_viaExtensionType() async {
+    await assertErrorsInCode(r'''
+extension type A<T>(T it) {}
+
+class B<T1 extends A<T2>, T2 extends T1> {}
+''', [
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 38, 2),
+      error(CompileTimeErrorCode.TYPE_PARAMETER_SUPERTYPE_OF_ITS_BOUND, 56, 2),
+    ]);
+  }
+}
 
 mixin TypeParameterSupertypeOfItsBoundTestCases on PubPackageResolutionTest {
   test_1of1() async {
