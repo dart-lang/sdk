@@ -6,6 +6,7 @@ import 'package:analyzer/src/error/codes.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -51,6 +52,28 @@ void f(A a, A? aq) {
     ]);
   }
 
+  test_const() async {
+    await assertErrorsInCode('''
+class A {
+  const A(String p);
+}
+main() {
+  const A(42);
+}''', [
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        44,
+        11,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 52, 2,
+              text:
+                  "The exception is 'A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.' and occurs here."),
+        ],
+      ),
+      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
+    ]);
+  }
+
   test_downcast() async {
     await assertErrorsInCode(r'''
 m() {
@@ -93,7 +116,16 @@ enum E {
 }
 ''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 13, 1),
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 13, 1),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        11,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 13, 1,
+              text:
+                  "The exception is 'A value of type 'int' can't be assigned to a parameter of type 'String' in a const constructor.' and occurs here."),
+        ],
+      ),
     ]);
   }
 
@@ -315,19 +347,6 @@ main() {
   a..  ma().mb(0);
 }''', [
       error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 186, 1),
-    ]);
-  }
-
-  test_const() async {
-    await assertErrorsInCode('''
-class A {
-  const A(String p);
-}
-main() {
-  const A(42);
-}''', [
-      error(CompileTimeErrorCode.CONST_CONSTRUCTOR_PARAM_TYPE_MISMATCH, 52, 2),
-      error(CompileTimeErrorCode.ARGUMENT_TYPE_NOT_ASSIGNABLE, 52, 2),
     ]);
   }
 

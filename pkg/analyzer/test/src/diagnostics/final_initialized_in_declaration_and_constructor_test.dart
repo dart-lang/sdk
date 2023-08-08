@@ -5,6 +5,7 @@
 import 'package:analyzer/src/error/codes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
+import '../../generated/test_support.dart';
 import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
@@ -38,7 +39,16 @@ enum E {
   const E(this.x);
 }
 ''', [
-      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 11, 4),
+      error(
+        CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION,
+        11,
+        4,
+        contextMessages: [
+          ExpectedContextMessage(testFile.path, 11, 4,
+              text:
+                  "The exception is 'Evaluation of this constant expression throws an exception.' and occurs here."),
+        ],
+      ),
       error(
           CompileTimeErrorCode.FINAL_INITIALIZED_IN_DECLARATION_AND_CONSTRUCTOR,
           47,
