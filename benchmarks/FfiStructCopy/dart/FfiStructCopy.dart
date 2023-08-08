@@ -10,6 +10,7 @@
 import 'dart:ffi';
 import 'dart:math';
 
+import 'package:args/args.dart';
 import 'package:ffi/ffi.dart';
 
 import 'benchmark_generated.dart';
@@ -82,7 +83,11 @@ abstract class StructCopyBenchmark {
   void run(int batchSize);
 }
 
+final argParser = ArgParser()
+  ..addFlag('verbose', abbr: 'v', help: 'Verbose output', defaultsTo: false);
+
 void main(List<String> args) {
+  final results = argParser.parse(args);
   final benchmarks = [
     Copy1Bytes.new,
     Copy32Bytes.new,
@@ -90,11 +95,11 @@ void main(List<String> args) {
     Copy32768Bytes.new,
   ];
 
-  final filter = args.firstOrNull;
+  final filter = results.rest.firstOrNull;
   for (var constructor in benchmarks) {
     final benchmark = constructor();
     if (filter == null || benchmark.name.contains(filter)) {
-      benchmark.report();
+      benchmark.report(verbose: results['verbose']);
     }
   }
 }
