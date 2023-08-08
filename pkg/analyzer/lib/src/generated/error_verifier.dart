@@ -29,6 +29,7 @@ import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/element/well_bounded.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/dart/resolver/variance.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart';
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
 import 'package:analyzer/src/error/codes.dart';
 import 'package:analyzer/src/error/constructor_fields_verifier.dart';
@@ -710,7 +711,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
       _checkForExtensionTypeRepresentationDependsOnItself(node, element);
-      // TODO(scheglov) Add checks.
+      _checkForExtensionTypeMemberConflicts(
+        node: node,
+        element: element,
+      );
 
       super.visitExtensionTypeDeclaration(node);
     } finally {
@@ -2887,6 +2891,45 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
         field.name,
       );
+    }
+  }
+
+  void _checkForExtensionTypeMemberConflicts({
+    required ExtensionTypeDeclaration node,
+    required ExtensionTypeElement element,
+  }) {
+    void report(String memberName, List<ExecutableElement> candidates) {
+      final contextMessages = candidates.map<DiagnosticMessage>((executable) {
+        final container = executable.enclosingElement as InterfaceElement;
+        return DiagnosticMessageImpl(
+          filePath: executable.source.fullName,
+          offset: executable.nameOffset,
+          length: executable.nameLength,
+          message: "Inherited from '${container.name}'",
+          url: null,
+        );
+      }).toList();
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_INHERITED_MEMBER_CONFLICT,
+        node.name,
+        [node.name.lexeme, memberName],
+        contextMessages,
+      );
+    }
+
+    final interface = _inheritanceManager.getInterface(element);
+    for (final conflict in interface.conflicts) {
+      switch (conflict) {
+        case CandidatesConflict _:
+          report(conflict.name.name, conflict.candidates);
+        case HasNonExtensionAndExtensionMemberConflict _:
+          report(conflict.name.name, [
+            ...conflict.nonExtension,
+            ...conflict.extension,
+          ]);
+        case NotUniqueExtensionMemberConflict _:
+          report(conflict.name.name, conflict.candidates);
+      }
     }
   }
 

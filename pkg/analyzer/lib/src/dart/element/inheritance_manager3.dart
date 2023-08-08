@@ -44,6 +44,19 @@ class GetterMethodConflict extends Conflict {
   });
 }
 
+/// The extension type has both an extension and non-extension member
+/// signature with the same name.
+class HasNonExtensionAndExtensionMemberConflict extends Conflict {
+  final List<ExecutableElement> nonExtension;
+  final List<ExecutableElement> extension;
+
+  HasNonExtensionAndExtensionMemberConflict({
+    required super.name,
+    required this.nonExtension,
+    required this.extension,
+  });
+}
+
 /// Manages knowledge about interface types and their members.
 class InheritanceManager3 {
   static final _noSuchMethodName =
@@ -681,10 +694,11 @@ class InheritanceManager3 {
     for (final interface in augmented.interfaces) {
       for (final entry in getInterface(interface.element).map.entries) {
         final name = entry.key;
-        if (interface.element is ExtensionTypeElement) {
-          (extensionCandidates[name] ??= []).add(entry.value);
+        final executable = entry.value;
+        if (executable.enclosingElement is ExtensionTypeElement) {
+          (extensionCandidates[name] ??= []).add(executable);
         } else {
-          (notExtensionCandidates[name] ??= []).add(entry.value);
+          (notExtensionCandidates[name] ??= []).add(executable);
         }
       }
     }
@@ -696,10 +710,23 @@ class InheritanceManager3 {
     for (final entry in extensionCandidates.entries) {
       final name = entry.key;
       final candidates = entry.value;
-      redeclared[name] = candidates;
+      (redeclared[name] ??= []).addAll(candidates);
 
       // Stop if redeclared.
       if (implemented.containsKey(name)) {
+        continue;
+      }
+
+      // If not redeclared, can have either non-extension, or extension.
+      final nonExtensionSignatures = notExtensionCandidates[name];
+      if (nonExtensionSignatures != null) {
+        conflicts.add(
+          HasNonExtensionAndExtensionMemberConflict(
+            name: name,
+            nonExtension: nonExtensionSignatures,
+            extension: candidates,
+          ),
+        );
         continue;
       }
 
@@ -734,6 +761,12 @@ class InheritanceManager3 {
 
       // Stop if redeclared.
       if (implemented.containsKey(name)) {
+        continue;
+      }
+
+      // Skip, if also has extension candidates.
+      // The conflict is already reported.
+      if (extensionCandidates.containsKey(name)) {
         continue;
       }
 
