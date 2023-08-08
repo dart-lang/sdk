@@ -118,6 +118,20 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     expect(fileEdits, isEmpty);
   }
 
+  Future<void> assertOrganize(String expectedCode) async {
+    var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
+    var analysisContext = contextFor(testFile);
+    tracker.addContext(analysisContext);
+    processor = BulkFixProcessor(TestInstrumentationService(), await workspace,
+        useConfigFiles: useConfigFiles);
+    await processor.organizeDirectives([analysisContext]);
+    var change = processor.builder.sourceChange;
+    var fileEdits = change.edits;
+    expect(fileEdits, hasLength(1));
+    resultCode = SourceEdit.applySequence(testCode, change.edits[0].edits);
+    expect(resultCode, expectedCode);
+  }
+
   /// Computes fixes for the specified [testUnit].
   Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);

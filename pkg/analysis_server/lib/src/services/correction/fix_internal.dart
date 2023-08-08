@@ -1733,6 +1733,9 @@ class FixProcessor extends BaseProcessor {
   /// A map from error codes to a list of fix generators that work with only
   /// parsed results.
   static final Map<String, List<ProducerGenerator>> parseLintProducerMap = {
+    LintNames.prefer_generic_function_type_aliases: [
+      ConvertToGenericFunctionSyntax.new,
+    ],
     LintNames.slash_for_doc_comments: [
       ConvertDocumentationIntoLine.new,
     ],
@@ -1744,6 +1747,9 @@ class FixProcessor extends BaseProcessor {
     ],
     LintNames.unnecessary_string_escapes: [
       RemoveUnnecessaryStringEscape.new,
+    ],
+    LintNames.use_function_type_syntax_for_parameters: [
+      ConvertToGenericFunctionSyntax.new,
     ],
   };
 
