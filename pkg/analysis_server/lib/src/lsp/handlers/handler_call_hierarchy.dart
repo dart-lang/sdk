@@ -144,7 +144,7 @@ class OutgoingCallHierarchyHandler extends _AbstractCallHierarchyCallsHandler<
 /// The target returned by this handler will be sent back to the server for
 /// incoming/outgoing calls as the user navigates the call hierarchy in the
 /// client.
-class PrepareCallHierarchyHandler extends LspMessageHandler<
+class PrepareCallHierarchyHandler extends SharedMessageHandler<
     CallHierarchyPrepareParams,
     TextDocumentPrepareCallHierarchyResult> with _CallHierarchyUtils {
   PrepareCallHierarchyHandler(super.server);
@@ -222,7 +222,7 @@ class PrepareCallHierarchyHandler extends LspMessageHandler<
 /// An abstract base class for incoming and outgoing CallHierarchy handlers
 /// which perform largely the same task using different LSP classes.
 abstract class _AbstractCallHierarchyCallsHandler<P, R, C>
-    extends LspMessageHandler<P, R> with _CallHierarchyUtils {
+    extends SharedMessageHandler<P, R> with _CallHierarchyUtils {
   _AbstractCallHierarchyCallsHandler(super.server);
 
   /// Gets the appropriate types of calls for this handler.

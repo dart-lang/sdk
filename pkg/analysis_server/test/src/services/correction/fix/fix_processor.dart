@@ -100,8 +100,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
     return DartChangeWorkspace([await session]);
   }
 
-  Future<void> assertHasFix(String expected) async {
-    change = await _computeSourceChange();
+  Future<void> assertHasFix(String expected, {bool isParse = false}) async {
+    change = await _computeSourceChange(isParse: isParse);
 
     // apply to "file"
     var fileEdits = change.edits;
@@ -119,14 +119,18 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Computes fixes for the specified [testUnit].
-  Future<BulkFixProcessor> computeFixes() async {
+  Future<BulkFixProcessor> computeFixes({bool isParse = false}) async {
     var tracker = DeclarationsTracker(MemoryByteStore(), resourceProvider);
     var analysisContext = contextFor(testFile);
     tracker.addContext(analysisContext);
     var processor = BulkFixProcessor(
         TestInstrumentationService(), await workspace,
         useConfigFiles: useConfigFiles);
-    await processor.fixErrors([analysisContext]);
+    if (isParse) {
+      await processor.fixErrorsUsingParsedResult([analysisContext]);
+    } else {
+      await processor.fixErrors([analysisContext]);
+    }
     return processor;
   }
 
@@ -149,8 +153,8 @@ abstract class BulkFixProcessorTest extends AbstractSingleUnitTest {
   }
 
   /// Returns the source change for computed fixes in the specified [testUnit].
-  Future<SourceChange> _computeSourceChange() async {
-    processor = await computeFixes();
+  Future<SourceChange> _computeSourceChange({bool isParse = false}) async {
+    processor = await computeFixes(isParse: isParse);
     return processor.builder.sourceChange;
   }
 

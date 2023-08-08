@@ -16,13 +16,17 @@ class Local {
 }
 
 /// An (imported or defined) function.
-abstract class BaseFunction implements Exportable {
-  final int index;
+abstract class BaseFunction with Indexable implements Exportable {
+  @override
+  final FinalizableIndex finalizableIndex;
   final FunctionType type;
   final String? functionName;
   String? exportedName;
 
-  BaseFunction(this.index, this.type, this.functionName);
+  BaseFunction(this.finalizableIndex, this.type, this.functionName);
+
+  @override
+  String get name => functionName ?? super.name;
 
   /// Creates an export of this function in this module.
   @override
@@ -40,7 +44,8 @@ class DefinedFunction extends BaseFunction implements Serializable {
   /// All local variables defined in the function, including its inputs.
   List<Local> get locals => body.locals;
 
-  DefinedFunction(this.body, super.index, super.type, [super.functionName]);
+  DefinedFunction(this.body, super.finalizableIndex, super.type,
+      [super.functionName]);
 
   @override
   void serialize(Serializer s) {
@@ -69,7 +74,7 @@ class DefinedFunction extends BaseFunction implements Serializable {
   }
 
   @override
-  String toString() => exportedName ?? "#$index";
+  String toString() => exportedName ?? "#$finalizableIndex";
 }
 
 /// An imported function.
@@ -79,7 +84,7 @@ class ImportedFunction extends BaseFunction implements Import {
   @override
   final String name;
 
-  ImportedFunction(this.module, this.name, super.index, super.type,
+  ImportedFunction(this.module, this.name, super.finalizableIndex, super.type,
       [super.functionName]);
 
   @override

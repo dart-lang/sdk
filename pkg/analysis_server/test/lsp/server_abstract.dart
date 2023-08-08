@@ -10,13 +10,11 @@ import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/json_parsing.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
-import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/plugin/plugin_manager.dart';
 import 'package:analysis_server/src/server/crash_reporting_attachments.dart';
 import 'package:analysis_server/src/services/user_prompts/dart_fix_prompt_manager.dart';
 import 'package:analysis_server/src/utilities/mocks.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
-import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk.dart';
@@ -427,13 +425,28 @@ mixin ClientCapabilitiesHelperMixin {
     }
   }
 
+  void setAllSupportedTextDocumentDynamicRegistrations() {
+    textDocumentCapabilities = withAllSupportedTextDocumentDynamicRegistrations(
+        textDocumentCapabilities);
+  }
+
   void setApplyEditSupport([bool supported = true]) {
     workspaceCapabilities =
         withApplyEditSupport(workspaceCapabilities, supported);
   }
 
+  void setCompletionItemSnippetSupport([bool supported = true]) {
+    textDocumentCapabilities =
+        withCompletionItemSnippetSupport(textDocumentCapabilities, supported);
+  }
+
   void setConfigurationSupport() {
     workspaceCapabilities = withConfigurationSupport(workspaceCapabilities);
+  }
+
+  void setDidChangeConfigurationDynamicRegistration() {
+    workspaceCapabilities =
+        withDidChangeConfigurationDynamicRegistration(workspaceCapabilities);
   }
 
   void setDocumentChangesSupport([bool supported = true]) {
@@ -603,11 +616,12 @@ mixin ClientCapabilitiesHelperMixin {
   }
 
   TextDocumentClientCapabilities withCompletionItemSnippetSupport(
-    TextDocumentClientCapabilities source,
-  ) {
+    TextDocumentClientCapabilities source, [
+    bool supported = true,
+  ]) {
     return extendTextDocumentCapabilities(source, {
       'completion': {
-        'completionItem': {'snippetSupport': true}
+        'completionItem': {'snippetSupport': supported}
       }
     });
   }
@@ -899,10 +913,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
       analysisOptionsPath;
   late Uri projectFolderUri, mainFileUri, pubspecFileUri, analysisOptionsUri;
   final String simplePubspecContent = 'name: my_project';
-  final startOfDocPos = Position(line: 0, character: 0);
-  final startOfDocRange = Range(
-      start: Position(line: 0, character: 0),
-      end: Position(line: 0, character: 0));
 
   /// The client capabilities sent to the server during initialization.
   ///
@@ -952,65 +962,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
 
   Stream<Message> get serverToClient;
 
-  String applyTextEdit(String content, TextEdit edit) {
-    final startPos = edit.range.start;
-    final endPos = edit.range.end;
-    final lineInfo = LineInfo.fromContent(content);
-    final start = lineInfo.getOffsetOfLine(startPos.line) + startPos.character;
-    final end = lineInfo.getOffsetOfLine(endPos.line) + endPos.character;
-    return content.replaceRange(start, end, edit.newText);
-  }
-
-  String applyTextEdits(String content, List<TextEdit> changes) {
-    // Complex text manipulations are described with an array of TextEdit's,
-    // representing a single change to the document.
-    //
-    // All text edits ranges refer to positions in the original document. Text
-    // edits ranges must never overlap, that means no part of the original
-    // document must be manipulated by more than one edit. It is possible
-    // that multiple edits have the same start position (eg. multiple inserts in
-    // reverse order), however since that involves complicated tracking and we
-    // only apply edits here sequentially, we don't supported them. We do sort
-    // edits to ensure we apply the later ones first, so we can assume the locations
-    // in the edit are still valid against the new string as each edit is applied.
-
-    /// Ensures changes are simple enough to apply easily without any complicated
-    /// logic.
-    void validateChangesCanBeApplied() {
-      /// Check if a position is before (but not equal) to another position.
-      bool isBeforeOrEqual(Position p, Position other) =>
-          p.line < other.line ||
-          (p.line == other.line && p.character <= other.character);
-
-      /// Check if a position is after (but not equal) to another position.
-      bool isAfterOrEqual(Position p, Position other) =>
-          p.line > other.line ||
-          (p.line == other.line && p.character >= other.character);
-      // Check if two ranges intersect.
-      bool rangesIntersect(Range r1, Range r2) {
-        var endsBefore = isBeforeOrEqual(r1.end, r2.start);
-        var startsAfter = isAfterOrEqual(r1.start, r2.end);
-        return !(endsBefore || startsAfter);
-      }
-
-      for (final change1 in changes) {
-        for (final change2 in changes) {
-          if (change1 != change2 &&
-              rangesIntersect(change1.range, change2.range)) {
-            throw 'Test helper applyTextEdits does not support applying multiple edits '
-                'where the edits are not in reverse order.';
-          }
-        }
-      }
-    }
-
-    validateChangesCanBeApplied();
-
-    final indexedEdits = changes.mapIndexed(TextEditWithIndex.new).toList();
-    indexedEdits.sort(TextEditWithIndex.compare);
-    return indexedEdits.map((e) => e.edit).fold(content, applyTextEdit);
-  }
-
   Future<void> changeFile(
     int newVersion,
     Uri uri,
@@ -1049,12 +1000,6 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
     );
     await sendNotificationToServer(notification);
   }
-
-  /// Gets the entire range for [code].
-  Range entireRange(String code) => Range(
-        start: startOfDocPos,
-        end: positionFromOffset(code.length, code),
-      );
 
   Future<Object?> executeCodeAction(
       Either2<Command, CodeAction> codeAction) async {
@@ -1388,13 +1333,15 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   Position positionFromMarker(String contents) =>
       positionFromOffset(withoutRangeMarkers(contents).indexOf('^'), contents);
 
+  @override
   Position positionFromOffset(int offset, String contents) {
-    final lineInfo = LineInfo.fromContent(withoutMarkers(contents));
-    return toPosition(lineInfo.getLocation(offset));
+    return super.positionFromOffset(offset, withoutMarkers(contents));
   }
 
   /// Calls the supplied function and responds to any `workspace/configuration`
   /// request with the supplied config.
+  ///
+  /// Automatically enables `workspace/configuration` support.
   Future<T> provideConfig<T>(
     Future<T> Function() f,
     FutureOr<Map<String, Object?>> globalConfig, {
@@ -1787,35 +1734,5 @@ mixin LspAnalysisServerTestMixin on LspRequestHelpersMixin
   bool _isErrorNotification(NotificationMessage notification) {
     return notification.method == Method.window_logMessage ||
         notification.method == Method.window_showMessage;
-  }
-}
-
-class TextEditWithIndex {
-  final int index;
-  final TextEdit edit;
-
-  TextEditWithIndex(this.index, this.edit);
-
-  TextEditWithIndex.fromUnion(
-      this.index, Either3<AnnotatedTextEdit, SnippetTextEdit, TextEdit> edit)
-      : edit = edit.map((e) => e, (e) => e, (e) => e);
-
-  /// Compares two [TextEditWithIndex] to sort them by the order in which they
-  /// can be sequentially applied to a String to match the behaviour of an LSP
-  /// client.
-  static int compare(TextEditWithIndex edit1, TextEditWithIndex edit2) {
-    final end1 = edit1.edit.range.end;
-    final end2 = edit2.edit.range.end;
-
-    // VS Code's implementation of this is here:
-    // https://github.com/microsoft/vscode/blob/856a306d1a9b0879727421daf21a8059e671e3ea/src/vs/editor/common/model/pieceTreeTextBuffer/pieceTreeTextBuffer.ts#L475
-
-    if (end1.line != end2.line) {
-      return end1.line.compareTo(end2.line) * -1;
-    } else if (end1.character != end2.character) {
-      return end1.character.compareTo(end2.character) * -1;
-    } else {
-      return edit1.index.compareTo(edit2.index) * -1;
-    }
   }
 }

@@ -1568,10 +1568,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void _resolveImplementsClause(ImplementsClause? clause) {
     if (clause == null) return;
 
-    _resolveTypes(
-      clause.interfaces,
-      CompileTimeErrorCode.IMPLEMENTS_NON_CLASS,
-    );
+    final ErrorCode errorCode;
+    switch (clause.parent) {
+      case ExtensionTypeDeclaration _:
+        errorCode =
+            CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE;
+      default:
+        errorCode = CompileTimeErrorCode.IMPLEMENTS_NON_CLASS;
+    }
+
+    _resolveTypes(clause.interfaces, errorCode);
   }
 
   void _resolveOnClause(OnClause? clause) {
@@ -1612,7 +1618,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    DartType type = namedType.typeOrThrow;
+    final type = namedType.typeOrThrow;
+
+    if (errorCode ==
+        CompileTimeErrorCode.EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE) {
+      final typeSystem = _libraryElement.typeSystem;
+      if (!typeSystem.isValidExtensionTypeSuperinterface(type)) {
+        _errorReporter.reportErrorForNode(errorCode, namedType, [type]);
+      }
+      return;
+    }
+
     if (type is InterfaceType) {
       final element = type.element;
       if (element is EnumElement || element is MixinElement && asClass) {
@@ -1622,12 +1638,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
+    final firstToken = namedType.importPrefix?.name ?? namedType.name2;
+    final offset = firstToken.offset;
+    final length = namedType.name2.end - offset;
+
     // If the type is not an InterfaceType, then visitNamedType() sets the type
     // to be a DynamicTypeImpl
     if (!_libraryElement.shouldIgnoreUndefinedNamedType(namedType)) {
-      final firstToken = namedType.importPrefix?.name ?? namedType.name2;
-      final offset = firstToken.offset;
-      final length = namedType.name2.end - offset;
       _errorReporter.reportErrorForOffset(errorCode, offset, length);
     }
   }

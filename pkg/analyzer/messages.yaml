@@ -5055,6 +5055,16 @@ CompileTimeErrorCode:
 
       If there are multiple cascaded accesses, you'll need to duplicate the
       extension override for each one.
+  EXTENSION_TYPE_DECLARES_MEMBER_OF_OBJECT:
+    problemMessage: "Extension types can't declare members with the same name as a member declared by 'Object'."
+    correctionMessage: Try specifying a different name for the member.
+    comment: No parameters.
+  EXTENSION_TYPE_IMPLEMENTS_DISALLOWED_TYPE:
+    problemMessage: "Extension types can't implement '{0}'."
+    correctionMessage: Try specifying a different type, or remove the type from the list.
+    comment: |-
+      Parameters:
+      0: the display string of the disallowed type
   EXTERNAL_FIELD_CONSTRUCTOR_INITIALIZER:
     sharedName: EXTERNAL_WITH_INITIALIZER
     problemMessage: External fields can't have initializers.

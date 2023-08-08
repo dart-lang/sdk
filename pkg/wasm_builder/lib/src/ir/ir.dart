@@ -7,6 +7,8 @@
 
 export 'data_segments.dart' show BaseDataSegment, DataSegment, DataSegments;
 export 'exports.dart' show Export, Exportable, Exports;
+export 'finalizable.dart' show Finalizable, FinalizableIndex;
+export 'indexable.dart' show Indexable;
 export 'imports.dart' show Import;
 export 'globals.dart' show DefinedGlobal, Global, Globals, ImportedGlobal;
 export 'functions.dart'

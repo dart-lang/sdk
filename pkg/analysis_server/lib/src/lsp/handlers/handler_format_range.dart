@@ -8,8 +8,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
-class FormatRangeHandler
-    extends LspMessageHandler<DocumentRangeFormattingParams, List<TextEdit>?> {
+class FormatRangeHandler extends SharedMessageHandler<
+    DocumentRangeFormattingParams, List<TextEdit>?> {
   FormatRangeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_rangeFormatting;

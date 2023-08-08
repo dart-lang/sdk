@@ -3190,6 +3190,33 @@ A
 ''');
   }
 
+  test_assertInitializer_enum_false() async {
+    await assertErrorsInCode('''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != E.a);
+}
+const c = const A(E.a);
+''', [
+      error(CompileTimeErrorCode.CONST_EVAL_THROWS_EXCEPTION, 73, 12),
+    ]);
+  }
+
+  test_assertInitializer_enum_true() async {
+    await assertNoErrorsInCode('''
+enum E { a, b }
+class A {
+  const A(E e) : assert(e != E.a);
+}
+const c = const A(E.b);
+''');
+    final result = _topLevelVar('c');
+    assertDartObjectText(result, '''
+A
+  variable: self::@variable::c
+''');
+  }
+
   test_assertInitializer_intInDoubleContext_assertIsDouble_true() async {
     await assertErrorsInCode('''
 class A {

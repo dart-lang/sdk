@@ -5,13 +5,14 @@
 part of 'tables.dart';
 
 /// An (imported or defined) table.
-class Table implements Exportable, Serializable {
-  final int index;
+class Table with Indexable implements Exportable, Serializable {
+  @override
+  final FinalizableIndex finalizableIndex;
   final RefType type;
   final int minSize;
   final int? maxSize;
 
-  Table(this.index, this.type, this.minSize, this.maxSize);
+  Table(this.finalizableIndex, this.type, this.minSize, this.maxSize);
 
   @override
   void serialize(Serializer s) {
@@ -35,8 +36,8 @@ class Table implements Exportable, Serializable {
 class DefinedTable extends Table {
   final List<BaseFunction?> elements;
 
-  DefinedTable(
-      this.elements, super.index, super.type, super.minSize, super.maxSize);
+  DefinedTable(this.elements, super.finalizableIndex, super.type, super.minSize,
+      super.maxSize);
 }
 
 /// An imported table.
@@ -46,8 +47,8 @@ class ImportedTable extends Table implements Import {
   @override
   final String name;
 
-  ImportedTable(this.module, this.name, super.index, super.type, super.minSize,
-      super.maxSize);
+  ImportedTable(this.module, this.name, super.finalizableIndex, super.type,
+      super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) {

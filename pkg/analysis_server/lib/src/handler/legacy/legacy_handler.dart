@@ -56,6 +56,13 @@ abstract class LegacyHandler {
   LegacyHandler(
       this.server, this.request, this.cancellationToken, this.performance);
 
+  /// Whether this command records its own analytics and should be excluded from
+  /// logging by the server.
+  ///
+  /// This is useful if a command is generic (for example "lsp.handle") and
+  /// can record a more specific command name.
+  bool get recordsOwnAnalytics => false;
+
   /// Handle the [request].
   Future<void> handle();
 

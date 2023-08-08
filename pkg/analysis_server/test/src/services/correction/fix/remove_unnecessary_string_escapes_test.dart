@@ -22,16 +22,16 @@ class RemoveUnnecessaryStringEscapeBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.unnecessary_string_escapes;
 
   Future<void> test_in_file() async {
-    await resolveTestCode(r'''
+    await parseTestCode(r'''
 var a = '\a\c\e';
 ''');
     await assertHasFix('''
 var a = 'ace';
-''');
+''', isParse: true);
   }
 
   Future<void> test_interpolation_multiple() async {
-    await resolveTestCode(r'''
+    await parseTestCode(r'''
 void f(String s1, String s2) {
   print('a$s1\b$s2\c\9d');
 }
@@ -40,7 +40,7 @@ void f(String s1, String s2) {
 void f(String s1, String s2) {
   print('a$s1\b${s2}c9d');
 }
-''');
+''', isParse: true);
   }
 }
 

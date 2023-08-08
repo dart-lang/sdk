@@ -3,9 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../serialize/serialize.dart';
+import 'ir.dart';
 
 /// Any import (function, table, memory or global).
-abstract class Import implements Serializable {
+abstract class Import implements Indexable, Serializable {
   String get module;
+  @override
   String get name;
 }

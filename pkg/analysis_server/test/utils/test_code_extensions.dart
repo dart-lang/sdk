@@ -7,6 +7,20 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 
+extension ListTestCodePositionExtension on List<TestCodePosition> {
+  /// Return the LSP [Position]s of the markers.
+  ///
+  /// Positions are based on [TestCode.code], with all parsed markers removed.
+  List<Position> get positions => map((position) => position.position).toList();
+}
+
+extension ListTestCodeRangeExtension on List<TestCodeRange> {
+  /// The LSP [Range]s indicated by the markers.
+  ///
+  /// Ranges are based on [TestCode.code], with all parsed markers removed.
+  List<Range> get ranges => map((range) => range.range).toList();
+}
+
 extension TestCodePositionExtension on TestCodePosition {
   /// Return the LSP [Position] of the marker.
   ///

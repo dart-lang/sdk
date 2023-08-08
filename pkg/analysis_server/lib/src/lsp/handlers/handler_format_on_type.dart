@@ -8,8 +8,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/source_edits.dart';
 
-class FormatOnTypeHandler
-    extends LspMessageHandler<DocumentOnTypeFormattingParams, List<TextEdit>?> {
+class FormatOnTypeHandler extends SharedMessageHandler<
+    DocumentOnTypeFormattingParams, List<TextEdit>?> {
   FormatOnTypeHandler(super.server);
   @override
   Method get handlesMessage => Method.textDocument_onTypeFormatting;

@@ -557,7 +557,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `call_indirect` instruction.
   void call_indirect(ir.FunctionType type, [ir.Table? table]) {
     assert(_verifyTypes([...type.inputs, ir.NumType.i32], type.outputs,
-        trace: ['call_indirect', type, if (table != null) table.index]));
+        trace: ['call_indirect', type, if (table != null) table.name]));
     _add(ir.CallIndirect(type, table));
   }
 
@@ -632,21 +632,21 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   /// Emit a `table.get` instruction.
   void table_get(ir.Table table) {
     assert(_verifyTypes(const [ir.NumType.i32], [table.type],
-        trace: ['table.get', table.index]));
+        trace: ['table.get', table.name]));
     _add(ir.TableSet(table));
   }
 
   /// Emit a `table.set` instruction.
   void table_set(ir.Table table) {
     assert(_verifyTypes([ir.NumType.i32, table.type], const [],
-        trace: ['table.set', table.index]));
+        trace: ['table.set', table.name]));
     _add(ir.TableGet(table));
   }
 
   /// Emit a `table.size` instruction.
   void table_size(ir.Table table) {
     assert(_verifyTypes(const [], const [ir.NumType.i32],
-        trace: ['table.size', table.index]));
+        trace: ['table.size', table.name]));
     _add(ir.TableSize(table));
   }
 
@@ -662,7 +662,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_load(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
-        trace: ['i32.load', memory.index, offset, align]));
+        trace: ['i32.load', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Load.new, memory, offset: offset, align: align);
   }
 
@@ -670,7 +670,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load', memory.index, offset, align]));
+        trace: ['i64.load', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load.new, memory, offset: offset, align: align);
   }
 
@@ -678,7 +678,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void f32_load(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f32],
-        trace: ['f32.load', memory.index, offset, align]));
+        trace: ['f32.load', memory.name, offset, align]));
     _addMemoryInstruction(ir.F32Load.new, memory, offset: offset, align: align);
   }
 
@@ -686,7 +686,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void f64_load(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.f64],
-        trace: ['f64.load', memory.index, offset, align]));
+        trace: ['f64.load', memory.name, offset, align]));
     _addMemoryInstruction(ir.F64Load.new, memory, offset: offset, align: align);
   }
 
@@ -694,7 +694,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_load8_s(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
-        trace: ['i32.load8_s', memory.index, offset, align]));
+        trace: ['i32.load8_s', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Load8S.new, memory,
         offset: offset, align: align);
   }
@@ -703,7 +703,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_load8_u(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
-        trace: ['i32.load8_u', memory.index, offset, align]));
+        trace: ['i32.load8_u', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Load8U.new, memory,
         offset: offset, align: align);
   }
@@ -712,7 +712,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_load16_s(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
-        trace: ['i32.load16_s', memory.index, offset, align]));
+        trace: ['i32.load16_s', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Load16S.new, memory,
         offset: offset, align: align);
   }
@@ -721,7 +721,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_load16_u(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i32],
-        trace: ['i32.load16_u', memory.index, offset, align]));
+        trace: ['i32.load16_u', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Load16U.new, memory,
         offset: offset, align: align);
   }
@@ -730,7 +730,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load8_s(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load8_s', memory.index, offset, align]));
+        trace: ['i64.load8_s', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load8S.new, memory,
         offset: offset, align: align);
   }
@@ -739,7 +739,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load8_u(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load8_u', memory.index, offset, align]));
+        trace: ['i64.load8_u', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load8U.new, memory,
         offset: offset, align: align);
   }
@@ -748,7 +748,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load16_s(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load16_s', memory.index, offset, align]));
+        trace: ['i64.load16_s', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load16S.new, memory,
         offset: offset, align: align);
   }
@@ -757,7 +757,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load16_u(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load16_u', memory.index, offset, align]));
+        trace: ['i64.load16_u', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load16U.new, memory,
         offset: offset, align: align);
   }
@@ -766,7 +766,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load32_s(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load32_s', memory.index, offset, align]));
+        trace: ['i64.load32_s', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load32S.new, memory,
         offset: offset, align: align);
   }
@@ -775,7 +775,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_load32_u(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32], const [ir.NumType.i64],
-        trace: ['i64.load32_u', memory.index, offset, align]));
+        trace: ['i64.load32_u', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Load32U.new, memory,
         offset: offset, align: align);
   }
@@ -784,7 +784,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_store(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
-        trace: ['i32.store', memory.index, offset, align]));
+        trace: ['i32.store', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Store.new, memory,
         offset: offset, align: align);
   }
@@ -793,7 +793,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_store(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
-        trace: ['i64.store', memory.index, offset, align]));
+        trace: ['i64.store', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Store.new, memory,
         offset: offset, align: align);
   }
@@ -802,7 +802,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void f32_store(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.f32], const [],
-        trace: ['f32.store', memory.index, offset, align]));
+        trace: ['f32.store', memory.name, offset, align]));
     _addMemoryInstruction(ir.F32Store.new, memory,
         offset: offset, align: align);
   }
@@ -811,7 +811,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void f64_store(ir.Memory memory, int offset, [int align = 3]) {
     assert(align >= 0 && align <= 3);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.f64], const [],
-        trace: ['f64.store', memory.index, offset, align]));
+        trace: ['f64.store', memory.name, offset, align]));
     _addMemoryInstruction(ir.F64Store.new, memory,
         offset: offset, align: align);
   }
@@ -820,7 +820,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_store8(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
-        trace: ['i32.store8', memory.index, offset, align]));
+        trace: ['i32.store8', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Store8.new, memory,
         offset: offset, align: align);
   }
@@ -829,7 +829,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i32_store16(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i32], const [],
-        trace: ['i32.store16', memory.index, offset, align]));
+        trace: ['i32.store16', memory.name, offset, align]));
     _addMemoryInstruction(ir.I32Store16.new, memory,
         offset: offset, align: align);
   }
@@ -838,7 +838,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_store8(ir.Memory memory, int offset, [int align = 0]) {
     assert(align == 0);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
-        trace: ['i64.store8', memory.index, offset, align]));
+        trace: ['i64.store8', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Store8.new, memory,
         offset: offset, align: align);
   }
@@ -847,7 +847,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_store16(ir.Memory memory, int offset, [int align = 1]) {
     assert(align >= 0 && align <= 1);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
-        trace: ['i64.store16', memory.index, offset, align]));
+        trace: ['i64.store16', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Store16.new, memory,
         offset: offset, align: align);
   }
@@ -856,7 +856,7 @@ class InstructionsBuilder with Builder<ir.Instructions> {
   void i64_store32(ir.Memory memory, int offset, [int align = 2]) {
     assert(align >= 0 && align <= 2);
     assert(_verifyTypes(const [ir.NumType.i32, ir.NumType.i64], const [],
-        trace: ['i64.store32', memory.index, offset, align]));
+        trace: ['i64.store32', memory.name, offset, align]));
     _addMemoryInstruction(ir.I64Store32.new, memory,
         offset: offset, align: align);
   }

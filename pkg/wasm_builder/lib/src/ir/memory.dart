@@ -5,13 +5,14 @@
 part of 'memories.dart';
 
 /// An (imported or defined) memory.
-class Memory implements Exportable {
-  final int index;
+class Memory with Indexable implements Exportable {
+  @override
+  final FinalizableIndex finalizableIndex;
   final bool shared;
   final int minSize;
   final int? maxSize;
 
-  Memory(this.index, this.shared, this.minSize, [this.maxSize]) {
+  Memory(this.finalizableIndex, this.shared, this.minSize, [this.maxSize]) {
     if (shared && maxSize == null) {
       throw "Shared memory must specify a maximum size.";
     }
@@ -40,7 +41,8 @@ class Memory implements Exportable {
 
 /// A memory defined in a module.
 class DefinedMemory extends Memory implements Serializable {
-  DefinedMemory(super.index, super.shared, super.minSize, super.maxSize);
+  DefinedMemory(
+      super.finalizableIndex, super.shared, super.minSize, super.maxSize);
 
   @override
   void serialize(Serializer s) => _serializeLimits(s);
@@ -53,7 +55,7 @@ class ImportedMemory extends Memory implements Import {
   @override
   final String name;
 
-  ImportedMemory(this.module, this.name, super.index, super.shared,
+  ImportedMemory(this.module, this.name, super.finalizableIndex, super.shared,
       super.minSize, super.maxSize);
 
   @override

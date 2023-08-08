@@ -86,7 +86,7 @@ class _Override {
   const _Override();
 }
 
-/// Annotation on an instance members which override an interface member.
+/// Annotation on instance members which override an interface member.
 ///
 /// Annotations have no effect on the meaning of a Dart program.
 /// This annotation is recognized by the Dart analyzer, and it allows the

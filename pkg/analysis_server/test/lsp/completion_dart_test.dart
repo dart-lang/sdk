@@ -63,6 +63,12 @@ abstract class AbstractCompletionTest extends AbstractLspAnalysisServerTest
     );
     expect(docs, matcher);
   }
+
+  @override
+  void setUp() {
+    super.setUp();
+    setApplyEditSupport();
+  }
 }
 
 @reflectiveTest
@@ -77,9 +83,7 @@ class CompletionDocumentationResolutionTest extends AbstractCompletionTest {
 
   Future<void> initializeServer() async {
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
   }
@@ -242,9 +246,7 @@ A^
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withConfigurationSupport(
-              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       {
         if (preference != null) 'documentation': preference,
       },
@@ -293,9 +295,7 @@ void f() {
 
     final initialAnalysis = waitForAnalysisComplete();
     await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withConfigurationSupport(
-              withApplyEditSupport(emptyWorkspaceClientCapabilities))),
+      initialize,
       {
         if (preference != null) 'documentation': preference,
       },
@@ -325,17 +325,13 @@ void f() {
   }
 
   Future<void> checkCompleteFunctionCallInsertText(
-      String content, String completion,
-      {required String? editText, InsertTextFormat? insertTextFormat}) async {
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    String content,
+    String completion, {
+    required String? editText,
+    InsertTextFormat? insertTextFormat,
+  }) async {
+    setCompletionItemSnippetSupport();
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere(
@@ -454,19 +450,11 @@ class B {
     final registrations = <Registration>[];
     // Provide empty config and collect dynamic registrations during
     // initialization.
-    await provideConfig(
-      () => monitorDynamicRegistrations(
-        registrations,
-        () => initialize(
-            textDocumentCapabilities:
-                withAllSupportedTextDocumentDynamicRegistrations(
-                    emptyTextDocumentClientCapabilities),
-            workspaceCapabilities:
-                withDidChangeConfigurationDynamicRegistration(
-                    withConfigurationSupport(
-                        emptyWorkspaceClientCapabilities))),
-      ),
-      {},
+    setDidChangeConfigurationDynamicRegistration();
+    setAllSupportedTextDocumentDynamicRegistrations();
+    await monitorDynamicRegistrations(
+      registrations,
+      () => provideConfig(initialize, {}),
     );
 
     Registration registration(Method method) =>
@@ -481,7 +469,9 @@ class B {
     // When we change config, we should get a re-registration (unregister then
     // register) for completion which now includes the commit characters.
     await monitorDynamicReregistration(
-        registrations, () => updateConfig({'previewCommitCharacters': true}));
+      registrations,
+      () => updateConfig({'previewCommitCharacters': true}),
+    );
     reg = registration(Method.textDocument_completion);
     options = CompletionRegistrationOptions.fromJson(
         reg.registerOptions as Map<String, Object?>);
@@ -652,15 +642,8 @@ class _MyWidgetState extends State<MyWidget> {
 }
 ''';
 
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    setCompletionItemSnippetSupport();
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label.startsWith('setState('));
@@ -737,15 +720,8 @@ class _MyWidgetState extends State<MyWidget> {
     }
 ''';
 
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    setCompletionItemSnippetSupport();
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'myFunction(…)');
@@ -770,16 +746,9 @@ class _MyWidgetState extends State<MyWidget> {
     }
 ''';
 
+    setCompletionItemSnippetSupport();
     final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities: withApplyEditSupport(
-            withConfigurationSupport(emptyWorkspaceClientCapabilities)),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
 
@@ -827,16 +796,9 @@ final a = Stri^
       );
     }
 
+    setCompletionItemSnippetSupport();
     final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -854,15 +816,8 @@ final a = Stri^
     import 'dart:math' show mi^
 ''';
 
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'completeFunctionCalls': true},
-    );
+    setCompletionItemSnippetSupport();
+    await provideConfig(initialize, {'completeFunctionCalls': true});
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     final item = res.singleWhere((c) => c.label == 'min(…)');
@@ -1655,9 +1610,7 @@ void f() {
     );
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -1689,12 +1642,7 @@ void f() {
     );
 
     final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withApplyEditSupport(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
-      {'maxCompletionItems': 200},
-    );
+    await provideConfig(initialize, {'maxCompletionItems': 200});
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -1854,12 +1802,7 @@ void f() {
     );
 
     final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-          workspaceCapabilities: withApplyEditSupport(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
-      {'maxCompletionItems': 10},
-    );
+    await provideConfig(initialize, {'maxCompletionItems': 10});
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -1896,15 +1839,9 @@ void f() {
       ].join('\n'),
     );
 
+    setCompletionItemSnippetSupport();
     final initialAnalysis = waitForAnalysisComplete();
-    await provideConfig(
-      () => initialize(
-          textDocumentCapabilities: withCompletionItemSnippetSupport(
-              emptyTextDocumentClientCapabilities),
-          workspaceCapabilities: withApplyEditSupport(
-              withConfigurationSupport(emptyWorkspaceClientCapabilities))),
-      {'maxCompletionItems': 10},
-    );
+    await provideConfig(initialize, {'maxCompletionItems': 10});
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -2116,9 +2053,8 @@ void f() { }
     void f() { }
 ''';
 
-    await initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities));
+    setCompletionItemSnippetSupport();
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
     expect(res.any((c) => c.label == 'one: '), isTrue);
@@ -2149,6 +2085,7 @@ void f() { }
     }
 ''';
 
+    setCompletionItemSnippetSupport();
     await initialize(
         textDocumentCapabilities: withCompletionItemSnippetSupport(
             emptyTextDocumentClientCapabilities));
@@ -2357,9 +2294,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2464,9 +2399,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
 
@@ -2508,9 +2441,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
 
@@ -2542,9 +2473,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2589,9 +2518,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2672,9 +2599,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2716,9 +2641,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2819,9 +2742,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -2857,8 +2778,6 @@ void f() {
     await initialize(
       textDocumentCapabilities: withCompletionItemInsertReplaceSupport(
           emptyTextDocumentClientCapabilities),
-      workspaceCapabilities:
-          withApplyEditSupport(emptyWorkspaceClientCapabilities),
     );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
@@ -2957,9 +2876,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -3008,13 +2925,12 @@ void f() {
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
-        initializationOptions: {
-          ...?defaultInitializationOptions,
-          // Set budget high to ensure it completes.
-          'completionBudgetMilliseconds': 100000,
-        },
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+      initializationOptions: {
+        ...?defaultInitializationOptions,
+        // Set budget high to ensure it completes.
+        'completionBudgetMilliseconds': 100000,
+      },
+    );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -3038,13 +2954,12 @@ void f() {
 
     final initialAnalysis = waitForAnalysisComplete();
     await initialize(
-        initializationOptions: {
-          ...?defaultInitializationOptions,
-          // Set budget low to ensure we don't complete.
-          'completionBudgetMilliseconds': 0,
-        },
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+      initializationOptions: {
+        ...?defaultInitializationOptions,
+        // Set budget low to ensure we don't complete.
+        'completionBudgetMilliseconds': 0,
+      },
+    );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res =
@@ -3066,9 +2981,7 @@ void f() {
 
     final mainFileContent = 'MyOtherClass^';
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(mainFileContent));
     await initialAnalysis;
 
@@ -3108,9 +3021,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -3183,10 +3094,7 @@ class BaseImpl extends Base {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-      workspaceCapabilities:
-          withApplyEditSupport(emptyWorkspaceClientCapabilities),
-    );
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -3306,14 +3214,12 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    // Support applyEdit, but explicitly disable the suggestions.
+    // applyEdit is supported in setUp, but explicitly disable the suggestions.
     await initialize(
       initializationOptions: {
         ...?defaultInitializationOptions,
         'suggestFromUnimportedLibraries': false,
       },
-      workspaceCapabilities:
-          withApplyEditSupport(emptyWorkspaceClientCapabilities),
     );
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
@@ -3329,6 +3235,8 @@ void f() {
   Future<void> test_unimportedSymbols_unavailableWithoutApplyEdit() async {
     // If client doesn't advertise support for workspace/applyEdit, we won't
     // include suggestion sets.
+    setApplyEditSupport(false);
+
     newFile(
       join(projectFolderPath, 'other_file.dart'),
       'class InOtherFile {}',
@@ -3391,9 +3299,7 @@ void f() {
     String expectedContent,
   ) async {
     final initialAnalysis = waitForAnalysisComplete();
-    await initialize(
-        workspaceCapabilities:
-            withApplyEditSupport(emptyWorkspaceClientCapabilities));
+    await initialize();
     await openFile(fileUri, withoutMarkers(content));
     await initialAnalysis;
     final res = await getCompletion(fileUri, positionFromMarker(content));
@@ -3445,7 +3351,7 @@ class DartSnippetCompletionTest extends SnippetCompletionTest {
 clas^
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: ClassDeclaration.prefix,
@@ -3464,17 +3370,8 @@ class ${1:ClassName} {
   Future<void> test_snippets_disabled() async {
     final content = '^';
 
-    // Advertise support (this is done by the editor), but with the user
-    // preference disabled.
-    await provideConfig(
-      () => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-        workspaceCapabilities:
-            withConfigurationSupport(emptyWorkspaceClientCapabilities),
-      ),
-      {'enableSnippets': false},
-    );
+    // Support is set in setUp, but here we disable the user preference.
+    await provideConfig(initialize, {'enableSnippets': false});
 
     await expectNoSnippets(content);
   }
@@ -3486,7 +3383,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: DoStatement.prefix,
@@ -3514,7 +3411,7 @@ void f() {
 ''';
 
     final initialAnalysis = waitForAnalysisComplete();
-    await initializeWithSnippetSupport();
+    await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     await initialAnalysis;
 
@@ -3549,7 +3446,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     await expectNoSnippet(
       content,
       FlutterStatelessWidget.prefix,
@@ -3563,7 +3460,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: ForStatement.prefix,
@@ -3586,7 +3483,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: ForInStatement.prefix,
@@ -3609,7 +3506,7 @@ class A {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FunctionDeclaration.prefix,
@@ -3632,7 +3529,7 @@ void a() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FunctionDeclaration.prefix,
@@ -3653,7 +3550,7 @@ void a() {
 fun^
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FunctionDeclaration.prefix,
@@ -3674,7 +3571,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: IfStatement.prefix,
@@ -3697,7 +3594,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: IfElseStatement.prefix,
@@ -3723,7 +3620,7 @@ main^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: MainFunction.prefix,
@@ -3746,6 +3643,7 @@ class B {}
 
     // If we don't send support for Snippet CompletionItem kinds, we don't
     // expect any snippets at all.
+    setCompletionItemSnippetSupport(false);
     await initialize();
     await openFile(mainFileUri, withoutMarkers(content));
     final res = await getCompletion(mainFileUri, positionFromMarker(content));
@@ -3759,7 +3657,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: SwitchStatement.prefix,
@@ -3787,7 +3685,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: TestDefinition.prefix,
@@ -3814,7 +3712,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: TestGroupDefinition.prefix,
@@ -3837,7 +3735,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: TryCatchStatement.prefix,
@@ -3862,7 +3760,7 @@ void f() {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: WhileStatement.prefix,
@@ -3908,7 +3806,7 @@ stful^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatefulWidget.prefix,
@@ -3949,7 +3847,7 @@ stanim^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatefulWidgetWithAnimationController.prefix,
@@ -4005,7 +3903,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidget.prefix,
@@ -4039,7 +3937,7 @@ stle^
 class B {}
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidget.prefix,
@@ -4069,7 +3967,7 @@ class B {}
 stless^
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidget.prefix,
@@ -4095,7 +3993,7 @@ class \${1:MyWidget} extends StatelessWidget {
 ^
 '''; // Deliberate trailing newline to ensure imports aren't inserted at "end".
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final updated = await expectAndApplySnippet(
       content,
       prefix: FlutterStatelessWidget.prefix,
@@ -4125,7 +4023,7 @@ class A {
 }
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     await expectNoSnippet(
       content,
       FlutterStatelessWidget.prefix,
@@ -4137,7 +4035,7 @@ class A {
 stle^
 ''';
 
-    await initializeWithSnippetSupport();
+    await initialize();
     final otherFileUri = pathContext.toUri(convertPath('/other/file.dart'));
     await openFile(otherFileUri, withoutMarkers(content));
     final res = await getCompletion(otherFileUri, positionFromMarker(content));
@@ -4229,8 +4127,9 @@ abstract class SnippetCompletionTest extends AbstractLspAnalysisServerTest
     return item;
   }
 
-  Future<void> initializeWithSnippetSupport() => initialize(
-        textDocumentCapabilities: withCompletionItemSnippetSupport(
-            emptyTextDocumentClientCapabilities),
-      );
+  @override
+  void setUp() {
+    super.setUp();
+    setCompletionItemSnippetSupport();
+  }
 }

@@ -22,7 +22,7 @@ class ConvertDocumentationIntoLineBulkTest extends BulkFixProcessorTest {
   String get lintCode => LintNames.slash_for_doc_comments;
 
   Future<void> test_singleFile() async {
-    await resolveTestCode('''
+    await parseTestCode('''
 /**
  * C
  */
@@ -55,7 +55,7 @@ class C {
 
 /// f
 void f() {}
-''');
+''', isParse: true);
   }
 }
 
