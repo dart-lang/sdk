@@ -6,12 +6,12 @@ import 'package:dev_compiler/src/compiler/module_builder.dart'
     show ModuleFormat;
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_shared.dart';
 import 'expression_compiler_e2e_suite.dart';
-import 'setup_compiler_options.dart';
 
 void main(List<String> args) async {
-  var driver = await TestDriver.init();
+  var driver = await ExpressionEvaluationTestDriver.init();
 
   group('(Legacy code shard 1)', () {
     tearDownAll(() async {

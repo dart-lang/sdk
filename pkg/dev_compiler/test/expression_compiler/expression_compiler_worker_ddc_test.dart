@@ -5,8 +5,8 @@
 import 'package:dev_compiler/dev_compiler.dart';
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_worker_shared.dart';
-import 'setup_compiler_options.dart';
 
 void main(List<String> args) async {
   // Set to true to enable debug output

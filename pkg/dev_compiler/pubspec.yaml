@@ -35,5 +35,4 @@ dev_dependencies:
   stack_trace: any
   test: any
   testing: any
-  vm: any
   webkit_inspection_protocol: any

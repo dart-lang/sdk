@@ -4,8 +4,8 @@
 
 import 'package:test/test.dart';
 
+import '../shared_test_options.dart';
 import 'expression_compiler_e2e_suite.dart';
-import 'setup_compiler_options.dart';
 
 const simpleClassSource = '''
 extension NumberParsing on String {
@@ -64,7 +64,8 @@ main() {
 /// Shared tests that require a language version >=2.12.0 <2.17.0.
 // TODO(nshahan) Merge with [runAgnosticSharedTests] after we no longer need to
 // test support for evaluation in legacy (pre-null safety) code.
-void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
+void runNullSafeSharedTests(
+    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('Exceptions', () {
     const exceptionSource = r'''
     void main() {
@@ -206,6 +207,17 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
           expression: '(C.factory)()',
           expectedResult: 'test.C.new { Symbol(_unusedField): 4, '
               'Symbol(C.field): 42, Symbol(_field): 0}');
+    });
+
+    test('map access', () async {
+      await driver.check(
+          breakpointId: 'methodBP',
+          expression: '''
+            (Map<String, String> params) {
+              return params["a"];
+            }({"a":"b"})
+          ''',
+          expectedResult: 'b');
     });
   });
 
@@ -470,7 +482,7 @@ void runNullSafeSharedTests(SetupCompilerOptions setup, TestDriver driver) {
 /// This group of tests has been sharded manually. The others are in
 /// [runAgnosticSharedTestsShard2].
 void runAgnosticSharedTestsShard1(
-    SetupCompilerOptions setup, TestDriver driver) {
+    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('Correct null safety mode used', () {
     var source = '''
         const soundNullSafety = !(<Null>[] is List<int>);
@@ -956,7 +968,7 @@ void runAgnosticSharedTestsShard1(
 /// This group of tests has been sharded manually. The others are in
 /// [runAgnosticSharedTestsShard1].
 void runAgnosticSharedTestsShard2(
-    SetupCompilerOptions setup, TestDriver driver) {
+    SetupCompilerOptions setup, ExpressionEvaluationTestDriver driver) {
   group('Expression compiler tests in constructor:', () {
     var source = simpleClassSource;
 
