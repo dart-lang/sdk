@@ -5630,6 +5630,10 @@ JsInteropStaticInteropWithInstanceMembers:
   problemMessage: "JS interop class '#name' with `@staticInterop` annotation cannot declare instance members."
   correctionMessage: "Try moving the instance member to a static extension."
 
+JsInteropStaticInteropWithInvalidJsTypesSupertype:
+  problemMessage: "`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes."
+  correctionMessage: "Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed."
+
 JsInteropStaticInteropWithNonStaticSupertype:
   problemMessage: "JS interop class '#name' has an `@staticInterop` annotation, but has supertype '#name2', which does not."
   correctionMessage: "Try marking the supertype as a static interop class using `@staticInterop`."

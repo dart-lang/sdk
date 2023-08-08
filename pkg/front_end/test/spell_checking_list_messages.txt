@@ -62,7 +62,9 @@ interop
 intervening
 irrefutable
 js_util
+jsany
 jsexport
+jsobject
 libraries.json
 list.filled
 loadlibrary

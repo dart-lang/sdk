@@ -646,6 +646,8 @@ JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/analyzerCode: Fail # We
 JsInteropStaticInteropTrustTypesUsedWithoutStaticInterop/example: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithInstanceMembers/example: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/analyzerCode: Fail # Web compiler specific
+JsInteropStaticInteropWithInvalidJsTypesSupertype/example: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/analyzerCode: Fail # Web compiler specific
 JsInteropStaticInteropWithNonStaticSupertype/example: Fail # Web compiler specific
 JsInteropFunctionToJSRequiresStaticType/analyzerCode: Fail # Web compiler specific

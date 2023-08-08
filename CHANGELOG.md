@@ -21,6 +21,10 @@
   `dart:js_interop` types like `JSNumber` when used in an external API. This
   only affects `dart:js_interop` classes and not `package:js` or other forms of
   JS interop.
+- **Subtyping `dart:js_interop` types**:
+  `@staticInterop` types can subtype only `JSObject` and `JSAny` from the set of
+  JS types in `dart:js_interop`. Subtyping other types from `dart:js_interop`
+  would result in confusing type errors before, so this makes it a static error.
 
 ## 3.1.0
 

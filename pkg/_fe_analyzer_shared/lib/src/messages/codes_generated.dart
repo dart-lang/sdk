@@ -8456,6 +8456,38 @@ Message _withArgumentsJsInteropStaticInteropWithInstanceMembers(String name) {
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function(String name, String name2)>
+    templateJsInteropStaticInteropWithInvalidJsTypesSupertype =
+    const Template<Message Function(String name, String name2)>(
+        problemMessageTemplate:
+            r"""`@staticInterop` class '#name' cannot have '#name2' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
+        correctionMessageTemplate:
+            r"""Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '#name' to '#name2' when needed.""",
+        withArguments:
+            _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Code<Message Function(String name, String name2)>
+    codeJsInteropStaticInteropWithInvalidJsTypesSupertype =
+    const Code<Message Function(String name, String name2)>(
+  "JsInteropStaticInteropWithInvalidJsTypesSupertype",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsJsInteropStaticInteropWithInvalidJsTypesSupertype(
+    String name, String name2) {
+  if (name.isEmpty) throw 'No name provided';
+  name = demangleMixinApplicationName(name);
+  if (name2.isEmpty) throw 'No name provided';
+  name2 = demangleMixinApplicationName(name2);
+  return new Message(codeJsInteropStaticInteropWithInvalidJsTypesSupertype,
+      problemMessage:
+          """`@staticInterop` class '${name}' cannot have '${name2}' as a supertype. `JSObject` and `JSAny` are the only valid supertypes from `dart:js_interop` for `@staticInterop` classes.""",
+      correctionMessage: """Try subtyping `JSObject` or `JSAny` instead, or try casting an object of type '${name}' to '${name2}' when needed.""",
+      arguments: {'name': name, 'name2': name2});
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function(String name, String name2)>
     templateJsInteropStaticInteropWithNonStaticSupertype =
     const Template<Message Function(String name, String name2)>(
         problemMessageTemplate:
