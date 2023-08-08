@@ -1580,7 +1580,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               mixinName, CompileTimeErrorCode.MIXIN_DEFERRED_CLASS)) {
             problemReported = true;
           }
-          if (mixinElement is MixinElement) {
+          if (mixinType.element is ExtensionTypeElement) {
+            // Already reported.
+          } else if (mixinElement is MixinElement) {
             if (_checkForMixinSuperclassConstraints(
                 mixinNameIndex, mixinName)) {
               problemReported = true;

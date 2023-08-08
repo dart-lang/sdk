@@ -58,6 +58,27 @@ OnClause
 ''');
   }
 
+  test_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+mixin M on A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_SUPER_CLASS_CONSTRAINT_NON_INTERFACE, 39,
+          1),
+    ]);
+
+    final node = findNode.singleOnClause;
+    assertResolvedNodeText(node, r'''
+OnClause
+  onKeyword: on
+  superclassConstraints
+    NamedType
+      name: A
+      element: self::@extensionType::A
+      type: A
+''');
+  }
+
   test_Never() async {
     await assertErrorsInCode('''
 mixin M on Never {}

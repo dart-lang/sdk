@@ -52,6 +52,25 @@ ExtendsClause
 ''');
   }
 
+  test_class_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+class B extends A {}
+''', [
+      error(CompileTimeErrorCode.EXTENDS_NON_CLASS, 44, 1),
+    ]);
+
+    final node = findNode.singleExtendsClause;
+    assertResolvedNodeText(node, r'''
+ExtendsClause
+  extendsKeyword: extends
+  superclass: NamedType
+    name: A
+    element: self::@extensionType::A
+    type: A
+''');
+  }
+
   test_class_mixin() async {
     await assertErrorsInCode(r'''
 mixin M {}

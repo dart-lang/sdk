@@ -17,12 +17,30 @@ main() {
 @reflectiveTest
 class MixinOfNonClassTest extends PubPackageResolutionTest
     with MixinOfNonClassTestCases {
+  test_class_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+class B with A {}
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 41, 1),
+    ]);
+  }
+
   test_enum_enum() async {
     await assertErrorsInCode(r'''
 enum E1 { v }
 enum E2 with E1 { v }
 ''', [
       error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 27, 2),
+    ]);
+  }
+
+  test_enum_extensionType() async {
+    await assertErrorsInCode(r'''
+extension type A(int it) {}
+enum E with A { v }
+''', [
+      error(CompileTimeErrorCode.MIXIN_OF_NON_CLASS, 40, 1),
     ]);
   }
 

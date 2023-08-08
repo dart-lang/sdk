@@ -8661,6 +8661,39 @@ library
 ''');
   }
 
+  test_class_interfaces_extensionType() async {
+    var library = await buildLibrary('''
+class A {}
+extension type B(int it) {}
+class C {}
+class D implements A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+      class D @56
+        interfaces
+          A
+          C
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_class_interfaces_Function() async {
     var library = await buildLibrary('''
 class A {}
@@ -9155,6 +9188,45 @@ library
       class G @73
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_mixins_extensionType() async {
+    var library = await buildLibrary('''
+mixin A {}
+extension type B(int it) {}
+mixin C {}
+class D extends Object with A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class D @56
+        supertype: Object
+        mixins
+          A
+          C
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin A @6
+        superclassConstraints
+          Object
+      mixin C @45
+        superclassConstraints
+          Object
 ''');
   }
 
@@ -10555,6 +10627,32 @@ library
       class A @6
         constructors
           synthetic @-1
+''');
+  }
+
+  test_class_supertype_extensionType() async {
+    var library = await buildLibrary('''
+extension type A(int it) {}
+class B extends A {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class B @34
+    extensionTypes
+      A @15
+        representation: self::@extensionType::A::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @21
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -23751,6 +23849,54 @@ library
 ''');
   }
 
+  test_enum_interfaces_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+enum E implements A, B, C { v }
+''');
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    enums
+      enum E @55
+        supertype: Enum
+        interfaces
+          A
+          C
+        fields
+          static const enumConstant v @78
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+''');
+  }
+
   test_enum_interfaces_generic() async {
     var library = await buildLibrary(r'''
 class I<T> {}
@@ -24053,6 +24199,54 @@ library
       mixin M @6
         superclassConstraints
           Object
+''');
+  }
+
+  test_enum_mixins_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+enum E with A, B, C { v }
+''');
+    configuration
+      ..withConstructors = false
+      ..withConstantInitializers = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    enums
+      enum E @55
+        supertype: Enum
+        mixins
+          A
+          C
+        fields
+          static const enumConstant v @72
+            type: E
+            shouldUseTypeForInitializerInference: false
+          synthetic static const values @-1
+            type: List<E>
+        accessors
+          synthetic static get v @-1
+            returnType: E
+          synthetic static get values @-1
+            returnType: List<E>
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
 ''');
   }
 
@@ -37641,6 +37835,42 @@ library
 ''');
   }
 
+  test_mixin_interfaces_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+mixin M implements A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin M @56
+        superclassConstraints
+          Object
+        interfaces
+          A
+          C
+''');
+  }
+
   test_mixin_method_invokesSuperSelf() async {
     var library = await buildLibrary(r'''
 mixin M on A {
@@ -37737,6 +37967,40 @@ library
               requiredPositional _ @29
                 type: int
             returnType: void
+''');
+  }
+
+  test_mixin_superclassConstraints_extensionType() async {
+    var library = await buildLibrary(r'''
+class A {}
+extension type B(int it) {}
+class C {}
+mixin M on A, B, C {}
+''');
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  definingUnit
+    classes
+      class A @6
+      class C @45
+    extensionTypes
+      B @26
+        representation: self::@extensionType::B::@field::it
+        typeErasure: int
+        interfaces
+          Object
+        fields
+          final it @32
+            type: int
+        accessors
+          synthetic get it @-1
+            returnType: int
+    mixins
+      mixin M @56
+        superclassConstraints
+          A
+          C
 ''');
   }
 
