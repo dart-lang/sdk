@@ -7,8 +7,8 @@ import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analyzer/src/dart/analysis/search.dart' as search;
 
-class WorkspaceSymbolHandler
-    extends LspMessageHandler<WorkspaceSymbolParams, List<SymbolInformation>> {
+class WorkspaceSymbolHandler extends SharedMessageHandler<WorkspaceSymbolParams,
+    List<SymbolInformation>> {
   WorkspaceSymbolHandler(super.server);
   @override
   Method get handlesMessage => Method.workspace_symbol;

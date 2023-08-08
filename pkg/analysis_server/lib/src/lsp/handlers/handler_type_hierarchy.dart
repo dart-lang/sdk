@@ -26,7 +26,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 /// The target returned by this handler will be sent back to the server for
 /// supertype/supertype items as the user navigates the type hierarchy in the
 /// client.
-class PrepareTypeHierarchyHandler extends LspMessageHandler<
+class PrepareTypeHierarchyHandler extends SharedMessageHandler<
     TypeHierarchyPrepareParams,
     TextDocumentPrepareTypeHierarchyResult> with _TypeHierarchyUtils {
   PrepareTypeHierarchyHandler(super.server);
@@ -70,7 +70,7 @@ class PrepareTypeHierarchyHandler extends LspMessageHandler<
   }
 }
 
-class TypeHierarchySubtypesHandler extends LspMessageHandler<
+class TypeHierarchySubtypesHandler extends SharedMessageHandler<
     TypeHierarchySubtypesParams,
     TypeHierarchySubtypesResult> with _TypeHierarchyUtils {
   TypeHierarchySubtypesHandler(super.server);
@@ -106,7 +106,7 @@ class TypeHierarchySubtypesHandler extends LspMessageHandler<
   }
 }
 
-class TypeHierarchySupertypesHandler extends LspMessageHandler<
+class TypeHierarchySupertypesHandler extends SharedMessageHandler<
     TypeHierarchySupertypesParams,
     TypeHierarchySupertypesResult> with _TypeHierarchyUtils {
   TypeHierarchySupertypesHandler(super.server);
