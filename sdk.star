@@ -30,7 +30,7 @@ def sdk_builder_category():
             ["linux-arm64", "la"],
             ["linux-riscv64", "lv"],
             ["mac", "m"],
-            ["mac-arm64", "m1"],
+            ["mac-arm64", "ma"],
             ["win", "w"],
             ["win-arm64", "wa"],
         ]:
@@ -97,7 +97,7 @@ dart.try_builder(
 
 dart.try_builder(
     "dart-sdk-mac",
-    dimensions = mac,
+    dimensions = [mac, arm64],
     properties = [{"archs": ["x64"], "disable_bcid": True}],
     location_filters = paths.to_location_filters(paths.release),
     recipe = "release/sdk",
