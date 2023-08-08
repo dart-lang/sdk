@@ -2980,14 +2980,16 @@ class SsaNode<Type extends Object> {
   @visibleForTesting
   final ExpressionInfo<Type>? expressionInfo;
 
-  /// Map containing the set of properties of the value tracked by this SSA node
-  /// for the purpose of type promotion. Keys are the names of the properties.
-  ///
-  /// Note that all property accesses are tracked, regardless of whether they
-  /// are promotable, so that if an error occurs due to the absence of type
-  /// promotion, it will be possible to generate a message explaining to the
-  /// user why type promotion failed.
-  final Map<String, _PropertySsaNode<Type>> _properties = {};
+  /// Map containing the set of promotable properties of the value tracked by
+  /// this SSA node. Keys are the names of the properties.
+  final Map<String, _PropertySsaNode<Type>> _promotableProperties = {};
+
+  /// Map containing the set of non-promotable properties of the value tracked
+  /// by this SSA node. These are tracked even though they're not promotable, so
+  /// that if an error occurs due to the absence of type promotion, it will be
+  /// possible to generate a message explaining to the user why type promotion
+  /// failed.
+  final Map<String, _PropertySsaNode<Type>> _nonPromotableProperties = {};
 
   SsaNode(this.expressionInfo);
 
@@ -2998,9 +3000,29 @@ class SsaNode<Type extends Object> {
   /// [promotionKeyStore], so that type promotions for it can be tracked
   /// separately from other type promotions.
   _PropertySsaNode<Type> getProperty(
-          String propertyName, PromotionKeyStore<Object> promotionKeyStore) =>
-      _properties[propertyName] ??=
+      String propertyName, PromotionKeyStore<Object> promotionKeyStore,
+      {required bool isPromotable}) {
+    if (isPromotable) {
+      // The property is promotable, meaning it is known to produce the same (or
+      // equivalent) value every time it is queried. So we only create an SSA
+      // node if the property hasn't been accessed before; otherwise we return
+      // the old SSA node unchanged.
+      return _promotableProperties[propertyName] ??=
           new _PropertySsaNode(promotionKeyStore.makeTemporaryKey());
+    } else {
+      // The property isn't promotable, meaning it is not known to produce the
+      // same (or equivalent) value every time it is queried. So we create a
+      // fresh SSA node for every access; but we record the previous SSA node in
+      // `_PropertySsaNode.previousSsaNode` so that the "why not promoted" logic
+      // can figure out what promotions *would* have occurred if the field had
+      // been promotable.
+      _PropertySsaNode<Type>? previousSsaNode =
+          _nonPromotableProperties[propertyName];
+      return _nonPromotableProperties[propertyName] = new _PropertySsaNode(
+          promotionKeyStore.makeTemporaryKey(),
+          previousSsaNode: previousSsaNode);
+    }
+  }
 
   @override
   String toString() {
@@ -3055,7 +3077,6 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
       {required super.type,
       required super.after,
       required super.promotionKey,
-      required super.isPromotable,
       required super.isThisOrSuper,
       required super.ssaNode})
       : super.trivial();
@@ -3085,7 +3106,6 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
           promotionKey: promotionKey,
           after: current,
           type: _type,
-          isPromotable: isPromotable,
           isThisOrSuper: isThisOrSuper,
           ifTrue: previousExpressionInfo.ifTrue
               .rebaseForward(typeOperations, current),
@@ -3101,8 +3121,7 @@ class TrivialVariableReference<Type extends Object> extends _Reference<Type> {
 
   @override
   String toString() => 'TrivialVariableReference(type: $_type, after: $after, '
-      'promotionKey: $promotionKey, isPromotable: $isPromotable, '
-      'isThisOrSuper: $isThisOrSuper)';
+      'promotionKey: $promotionKey, isThisOrSuper: $isThisOrSuper)';
 }
 
 /// An instance of the [VariableModel] class represents the information gathered
@@ -5018,10 +5037,7 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       if (referenceWithType != null) {
         VariableModel<Type>? currentVariableInfo =
             _current.variableInfo[referenceWithType.promotionKey];
-        if (currentVariableInfo != null) {
-          return _getNonPromotionReasons(
-              referenceWithType, currentVariableInfo);
-        }
+        return _getNonPromotionReasons(referenceWithType, currentVariableInfo);
       }
     }
     return () => {};
@@ -5168,20 +5184,34 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
   }
 
   Map<Type, NonPromotionReason> Function() _getNonPromotionReasons(
-      _Reference<Type> reference, VariableModel<Type> currentVariableInfo) {
+      _Reference<Type> reference, VariableModel<Type>? currentVariableInfo) {
     if (reference is _PropertyReference<Type>) {
-      List<Type>? promotedTypes = currentVariableInfo.promotedTypes;
-      if (promotedTypes != null) {
+      _PropertySsaNode<Type>? ssaNode =
+          (reference.ssaNode as _PropertySsaNode<Type>).previousSsaNode;
+      List<List<Type>>? allPreviouslyPromotedTypes;
+      while (ssaNode != null) {
+        VariableModel<Type> previousVariableInfo =
+            _current._getInfo(ssaNode.promotionKey);
+        List<Type>? promotedTypes = previousVariableInfo.promotedTypes;
+        if (promotedTypes != null) {
+          (allPreviouslyPromotedTypes ??= []).add(promotedTypes);
+        }
+        ssaNode = ssaNode.previousSsaNode;
+      }
+      if (allPreviouslyPromotedTypes != null) {
         return () {
           Map<Type, NonPromotionReason> result = <Type, NonPromotionReason>{};
-          for (Type type in promotedTypes) {
-            result[type] = new PropertyNotPromoted(reference.propertyName,
-                reference.propertyMember, reference._type);
+          for (List<Type> previouslyPromotedTypes
+              in allPreviouslyPromotedTypes!) {
+            for (Type type in previouslyPromotedTypes) {
+              result[type] = new PropertyNotPromoted(reference.propertyName,
+                  reference.propertyMember, reference._type);
+            }
           }
           return result;
         };
       }
-    } else {
+    } else if (currentVariableInfo != null) {
       Variable? variable =
           promotionKeyStore.variableForKey(reference.promotionKey);
       if (variable == null) {
@@ -5317,34 +5347,23 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
       case ExpressionPropertyTarget(:var expression):
         _Reference<Type>? targetReference = _getExpressionReference(expression);
         if (targetReference == null) return null;
-        // If `targetReference` refers to a non-promotable property or variable,
-        // then the result of the property access is also non-promotable (e.g.
-        // `x._nonFinalField._finalField` is not promotable, because
-        // `_nonFinalField` might change at any time). Note that even though the
-        // control flow paths for `SuperPropertyTarget` and `ThisPropertyTarget`
-        // skip this code, we still need to check `isThisOrSuper`, because
-        // `ThisPropertyTarget` is only used for property accesses via
-        // *implicit* `this`.
-        if (!targetReference.isPromotable && !targetReference.isThisOrSuper) {
-          isPromotable = false;
-        }
         targetSsaNode = targetReference.ssaNode;
     }
-    _PropertySsaNode<Type> propertySsaNode =
-        targetSsaNode.getProperty(propertyName, promotionKeyStore);
+    _PropertySsaNode<Type> propertySsaNode = targetSsaNode.getProperty(
+        propertyName, promotionKeyStore,
+        isPromotable: isPromotable);
     _PropertyReference<Type> propertyReference = new _PropertyReference<Type>(
         propertyName: propertyName,
         propertyMember: propertyMember,
         promotionKey: propertySsaNode.promotionKey,
         after: _current,
         type: staticType,
-        isPromotable: isPromotable,
         ssaNode: propertySsaNode);
     if (wholeExpression != null) {
       _storeExpressionInfo(wholeExpression, propertyReference);
       _storeExpressionReference(wholeExpression, propertyReference);
     }
-    if (!propertyReference.isPromotable) {
+    if (!isPromotable) {
       return null;
     }
     Type? promotedType =
@@ -5412,7 +5431,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         promotionKey: promotionKey,
         after: _current,
         type: type,
-        isPromotable: true,
         isThisOrSuper: false,
         ssaNode: ssaNode);
   }
@@ -5535,7 +5553,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
           promotionKey: promotionKeyStore.thisPromotionKey,
           after: _current,
           type: staticType,
-          isPromotable: false,
           isThisOrSuper: true,
           ssaNode: isSuper ? _superSsaNode : _thisSsaNode);
 
@@ -5546,7 +5563,6 @@ class _FlowAnalysisImpl<Node extends Object, Statement extends Node,
         promotionKey: variableKey,
         after: _current,
         type: info.promotedTypes?.last ?? unpromotedType,
-        isPromotable: true,
         isThisOrSuper: false,
         ssaNode: info.ssaNode ?? new SsaNode<Type>(null));
   }
@@ -6440,7 +6456,6 @@ class _PatternContext<Type extends Object> extends _FlowContext {
           promotionKey: _matchedValueInfo.promotionKey,
           after: current,
           type: matchedType,
-          isPromotable: true,
           isThisOrSuper: false,
           ssaNode: new SsaNode<Type>(null));
 }
@@ -6461,15 +6476,13 @@ class _PropertyReference<Type extends Object> extends _Reference<Type> {
       required this.propertyName,
       required this.propertyMember,
       required super.promotionKey,
-      required super.isPromotable,
       required super.ssaNode})
       : super.trivial(isThisOrSuper: false);
 
   @override
   String toString() => '_PropertyReference('
       'type: $_type, after: $after, propertyName: $propertyName, '
-      'propertyMember: $propertyMember, promotionKey: $promotionKey, '
-      'isPromotable: $isPromotable)';
+      'propertyMember: $propertyMember, promotionKey: $promotionKey)';
 }
 
 /// Data structure representing a unique value returned by the invocation of a
@@ -6479,7 +6492,14 @@ class _PropertySsaNode<Type extends Object> extends SsaNode<Type> {
   /// promotion.
   final int promotionKey;
 
-  _PropertySsaNode(this.promotionKey) : super(null);
+  /// If this property is not promotable, then a fresh SSA node is assigned at
+  /// the time of each access; when that occurs, this field points to the
+  /// previous SSA node associated with the same property; otherwise it is
+  /// `null`. This is used by the "why not promoted" logic to figure out what
+  /// promotions *would* have occurred if the property had been promotable.
+  final _PropertySsaNode<Type>? previousSsaNode;
+
+  _PropertySsaNode(this.promotionKey, {this.previousSsaNode}) : super(null);
 }
 
 /// Specialization of [ExpressionInfo] for the case where the expression is a
@@ -6488,9 +6508,6 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
   /// The integer key representing the thing referred to by this expression in
   /// [FlowModel.variableInfo].
   final int promotionKey;
-
-  /// Whether the thing referred to by this expression is promotable.
-  final bool isPromotable;
 
   /// Whether the thing referred to by this expression is `this` (or the
   /// pseudo-expression `super`).
@@ -6505,7 +6522,6 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
       required super.ifTrue,
       required super.ifFalse,
       required this.promotionKey,
-      required this.isPromotable,
       required this.isThisOrSuper,
       required this.ssaNode});
 
@@ -6513,7 +6529,6 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
       {required super.type,
       required super.after,
       required this.promotionKey,
-      required this.isPromotable,
       required this.isThisOrSuper,
       required this.ssaNode})
       : super.trivial();
@@ -6521,8 +6536,7 @@ class _Reference<Type extends Object> extends ExpressionInfo<Type> {
   @override
   String toString() => '_Reference(type: $_type, after: $after, '
       'ifTrue: $ifTrue, ifFalse: $ifFalse, promotionKey: $promotionKey, '
-      'isPromotable: $isPromotable, isThisOrSuper: $isThisOrSuper, '
-      'ssaNode: $ssaNode)';
+      'isThisOrSuper: $isThisOrSuper, ssaNode: $ssaNode)';
 }
 
 /// [_FlowContext] representing a construct that can contain one or more
