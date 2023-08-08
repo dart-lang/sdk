@@ -547,14 +547,18 @@ class Intrinsifier {
     Member target = node.target;
 
     // ClassID getters
-    String? className = translator.getPragma(target, "wasm:class-id");
-    if (className != null) {
-      List<String> libAndClass = className.split("#");
+    String? libAndClassName = translator.getPragma(target, "wasm:class-id");
+    if (libAndClassName != null) {
+      List<String> libAndClassNameParts = libAndClassName.split("#");
+      final String lib = libAndClassNameParts[0];
+      final String className = libAndClassNameParts[1];
       Class cls = translator.libraries
-          .firstWhere(
-              (l) => l.name == libAndClass[0] && l.importUri.scheme == 'dart')
+          .firstWhere((l) => l.name == lib && l.importUri.scheme == 'dart',
+              orElse: () => throw 'Library $lib not found (${target.location})')
           .classes
-          .firstWhere((c) => c.name == libAndClass[1]);
+          .firstWhere((c) => c.name == className,
+              orElse: () => throw 'Class $className not found in library $lib '
+                  '(${target.location})');
       int classId = translator.classInfo[cls]!.classId;
       b.i64_const(classId);
       return w.NumType.i64;
