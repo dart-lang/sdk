@@ -71,7 +71,10 @@ class _SummaryNormalizer implements StatementVisitor {
     }
 
     for (final st in statements) {
-      if (st is Call || st is TypeCheck || st is NarrowNotNull) {
+      if (st is Call ||
+          st is TypeCheck ||
+          st is NarrowNotNull ||
+          st is WriteVariable) {
         _normalizeExpr(st, false);
       } else if (st is Use) {
         _normalizeExpr(st.arg, true);
@@ -251,6 +254,18 @@ class _SummaryNormalizer implements StatementVisitor {
     expr.arg1 = _normalizeExpr(expr.arg1, true);
     if (_inLoop) return;
     expr.arg2 = _normalizeExpr(expr.arg2, true);
+  }
+
+  @override
+  void visitReadVariable(ReadVariable expr) {
+    visitStatement(expr);
+  }
+
+  @override
+  void visitWriteVariable(WriteVariable expr) {
+    visitStatement(expr);
+    if (_inLoop) return;
+    expr.arg = _normalizeExpr(expr.arg, true);
   }
 }
 
@@ -465,6 +480,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   final TypesBuilder _typesBuilder;
   final NativeCodeOracle _nativeCodeOracle;
   final GenericInterfacesInfo _genericInterfacesInfo;
+  final SharedVariableBuilder _sharedVariableBuilder;
   final ProtobufHandler? _protobufHandler;
 
   final Map<TreeNode, Call> callSites = <TreeNode, Call>{};
@@ -483,17 +499,20 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   // (e.g. after return or throw).
   List<TypeExpr?> _variableValues = const <TypeExpr?>[];
 
-  // Contains Joins which accumulate all values of certain variables.
-  // Used only when all variable values should be merged regardless of control
-  // flow. Such accumulating joins are used for
-  // 1. captured variables, as closures may potentially see any value;
+  // Flags indicating that all values of variables should be merged
+  // regardless of control flow. Such aggregated values are used for
+  // 1. shared captured variables, as closures may potentially see any value;
   // 2. variables modified inside try blocks (while in the try block), as
   // catch can potentially see any value assigned to a variable inside try
   // block.
-  // If _variableCells[i] != null, then all values are accumulated in the
-  // _variableCells[i]. _variableValues[i] does not change and remains equal
-  // to _variableCells[i].
-  List<Join?> _variableCells = const <Join?>[];
+  //
+  // If _aggregateVariable[i], then all values are accumulated
+  // and  _variableValues[i] should not be changed.
+  List<bool> _aggregateVariable = const <bool>[];
+
+  // Cached unconditional reads of captured variables
+  // (can be reused to avoid repetitive reads).
+  Map<VariableDeclaration, ReadVariable>? _capturedVariableReads;
 
   // Counts number of Joins inserted for each variable. Only used to set
   // readable names for such joins (foo_0, foo_1 etc.)
@@ -522,6 +541,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       this._typesBuilder,
       this._nativeCodeOracle,
       this._genericInterfacesInfo,
+      this._sharedVariableBuilder,
       this._protobufHandler) {
     constantAllocationCollector = new ConstantAllocationCollector(this);
     _nullMethodsAndGetters.addAll(getSelectors(
@@ -545,7 +565,9 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     _variablesInfo = new _VariablesInfoCollector(member);
     _variableValues =
         new List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
-    _variableCells = new List<Join?>.filled(_variablesInfo.numVariables, null);
+    _aggregateVariable =
+        new List<bool>.filled(_variablesInfo.numVariables, false);
+    _capturedVariableReads = null;
     _variableVersions = new List<int>.filled(_variablesInfo.numVariables, 0);
     _jumpHandlers = null;
     _returnValue = null;
@@ -895,22 +917,61 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     assert(_variablesInfo.varDeclarations[varIndex] == decl);
     assert(_variableValues[varIndex] == null);
     if (_variablesInfo.isCaptured(decl)) {
-      final join = _makeJoin(varIndex, initialValue);
-      _variableCells[varIndex] = join;
-      _variableValues[varIndex] = join;
+      assert(!_aggregateVariable[varIndex]);
+      _aggregateVariable[varIndex] = true;
+      if (initialValue is! EmptyType) {
+        _writeVariable(decl, initialValue);
+      }
     } else {
       _variableValues[varIndex] = initialValue;
     }
   }
 
   void _writeVariable(VariableDeclaration variable, TypeExpr value) {
+    if (_variablesInfo.isCaptured(variable)) {
+      assert(_aggregateVariable[_variablesInfo.varIndex[variable]!]);
+      final sharedVar = _sharedVariableBuilder.getSharedVariable(variable);
+      final write = WriteVariable(sharedVar, value)
+        ..condition = _currentCondition;
+      _summary.add(write);
+      return;
+    }
     final int varIndex = _variablesInfo.varIndex[variable]!;
-    final Join? join = _variableCells[varIndex];
-    if (join != null) {
+    if (_aggregateVariable[varIndex]) {
+      final Join join = _variableValues[varIndex] as Join;
       _addValueToJoin(join, value);
     } else {
       _variableValues[varIndex] = value;
     }
+  }
+
+  TypeExpr _readVariable(VariableDeclaration variable, TreeNode node) {
+    if (_variablesInfo.isCaptured(variable)) {
+      assert(_aggregateVariable[_variablesInfo.varIndex[variable]!]);
+      final cachedRead = _capturedVariableReads?[variable];
+      if (cachedRead != null) {
+        assert(cachedRead.variable ==
+                _sharedVariableBuilder.getSharedVariable(variable) &&
+            cachedRead.condition == null);
+        if (_currentCondition == null) {
+          return cachedRead;
+        } else {
+          return _makeUnaryOperation(UnaryOp.Move, cachedRead);
+        }
+      }
+      final sharedVar = _sharedVariableBuilder.getSharedVariable(variable);
+      final read = ReadVariable(sharedVar)..condition = _currentCondition;
+      _summary.add(read);
+      if (_currentCondition == null) {
+        (_capturedVariableReads ??= {})[variable] = read;
+      }
+      return read;
+    }
+    final v = _variableValues[_variablesInfo.varIndex[variable]!];
+    if (v == null) {
+      throw 'Unable to find variable ${variable} at ${node.location}';
+    }
+    return v;
   }
 
   List<TypeExpr?> _cloneVariableValues(List<TypeExpr?> values) =>
@@ -920,7 +981,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final values =
         new List<TypeExpr?>.filled(_variablesInfo.numVariables, null);
     for (int i = 0; i < values.length; ++i) {
-      if (_variableCells[i] != null) {
+      if (_aggregateVariable[i]) {
         values[i] = _variableValues[i];
       } else if (_variableValues[i] != null) {
         values[i] = emptyType;
@@ -977,6 +1038,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
               srcValue.condition == _currentCondition)) {
         dst[i] = srcValue;
       } else {
+        assert(!_aggregateVariable[i]);
         final Join join = _makeJoin(i, dstValue);
         join.values.add(srcValue);
         dst[i] = join;
@@ -1005,9 +1067,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final List<Join?> joins =
         new List<Join?>.filled(_variablesInfo.numVariables, null);
     for (var i in _variablesInfo.getModifiedVariables(node)) {
-      if (_variableCells[i] != null) {
-        assert(_variableCells[i] == _variableValues[i]);
-      } else {
+      if (!_aggregateVariable[i]) {
         final join = _makeJoin(i, _variableValues[i]!);
         joins[i] = join;
         _variableValues[i] = join;
@@ -1015,7 +1075,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           // Inside try blocks all values of modified variables are merged,
           // as catch can potentially see any value (in case exception
           // is thrown after each assignment).
-          _variableCells[i] = join;
+          _aggregateVariable[i] = true;
         }
       }
     }
@@ -1023,12 +1083,11 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   }
 
   /// Stops accumulating values in [joins] by removing them from
-  /// _variableCells.
-  void _restoreVariableCellsAfterTry(List<Join?> joins) {
+  /// _aggregateVariable.
+  void _restoreModifiedVariablesAfterTry(List<Join?> joins) {
     for (int i = 0; i < joins.length; ++i) {
       if (joins[i] != null) {
-        assert(_variableCells[i] == joins[i]);
-        _variableCells[i] = null;
+        _aggregateVariable[i] = false;
       }
     }
   }
@@ -1206,7 +1265,10 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
   void _addUse(TypeExpr arg) {
     if (arg is Narrow) {
       _addUse(arg.arg);
-    } else if (arg is Join || arg is Call || arg is TypeCheck) {
+    } else if (arg is Join ||
+        arg is Call ||
+        arg is TypeCheck ||
+        arg is ReadVariable) {
       _summary.add(new Use(arg));
     } else if (arg is UnaryOperation) {
       _addUse(arg.arg);
@@ -1388,7 +1450,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final variableGet =
           (node is AsExpression ? node.operand : node) as VariableGet;
       final int varIndex = _variablesInfo.varIndex[variableGet.variable]!;
-      if (_variableCells[varIndex] == null) {
+      if (!_aggregateVariable[varIndex]) {
         trueState[varIndex] = _boolTrue;
         falseState[varIndex] = _boolFalse;
       }
@@ -1409,7 +1471,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
         final result = _visit(node);
         _addUse(result);
         final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
-        if (_variableCells[varIndex] == null) {
+        if (!_aggregateVariable[varIndex]) {
           trueState[varIndex] = _visit(rhs);
         }
         _variableValues = const <TypeExpr?>[]; // Should not be used.
@@ -1423,7 +1485,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           Args<TypeExpr>([expr, _nullType]));
       final narrowedNotNull = _makeNarrowNotNull(node, expr);
       final int varIndex = _variablesInfo.varIndex[lhs.variable]!;
-      if (_variableCells[varIndex] == null) {
+      if (!_aggregateVariable[varIndex]) {
         trueState[varIndex] = _nullType;
         falseState[varIndex] = narrowedNotNull;
       }
@@ -1437,7 +1499,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
           _typeCheck(_visit(operand), node.type, node, SubtypeTestKind.IsTest);
       isTests[node] = typeCheck;
       final int varIndex = _variablesInfo.varIndex[operand.variable]!;
-      if (_variableCells[varIndex] == null) {
+      if (!_aggregateVariable[varIndex]) {
         trueState[varIndex] = typeCheck;
       }
       final result = _makeUnaryOperation(
@@ -1460,7 +1522,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
       final nullSelectors = isSetter ? _nullSetters : _nullMethodsAndGetters;
       if (!nullSelectors.contains(selector)) {
         final int varIndex = _variablesInfo.varIndex[receiverNode.variable]!;
-        if (_variableCells[varIndex] == null) {
+        if (!_aggregateVariable[varIndex]) {
           _variableValues[varIndex] =
               _makeNarrow(receiverValue, anyInstanceType);
         }
@@ -1483,7 +1545,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     explicitCasts[node] = result;
     if (operandNode is VariableGet) {
       final int varIndex = _variablesInfo.varIndex[operandNode.variable]!;
-      if (_variableCells[varIndex] == null) {
+      if (!_aggregateVariable[varIndex]) {
         _variableValues[varIndex] = result;
       }
     }
@@ -1496,7 +1558,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final TypeExpr result = _makeNarrowNotNull(node, _visit(operandNode));
     if (operandNode is VariableGet) {
       final int varIndex = _variablesInfo.varIndex[operandNode.variable]!;
-      if (_variableCells[varIndex] == null) {
+      if (!_aggregateVariable[varIndex]) {
         _variableValues[varIndex] = result;
       }
     }
@@ -2032,11 +2094,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
 
   @override
   TypeExpr visitVariableGet(VariableGet node) {
-    final v = _variableValues[_variablesInfo.varIndex[node.variable]!];
-    if (v == null) {
-      throw 'Unable to find variable ${node.variable} at ${node.location}';
-    }
-    return v;
+    return _readVariable(node.variable, node);
   }
 
   @override
@@ -2281,7 +2339,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final stateDuringTry = _cloneVariableValues(_variableValues);
     final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
-    _restoreVariableCellsAfterTry(joins);
+    _restoreModifiedVariablesAfterTry(joins);
     for (var catchClause in node.catches) {
       final conditionAfterTry = _currentCondition;
       final stateAfterTry = _variableValues;
@@ -2318,7 +2376,7 @@ class SummaryCollector extends RecursiveResultVisitor<TypeExpr?> {
     final stateDuringTry = _cloneVariableValues(_variableValues);
     final conditionOnEntry = _currentCondition;
     _visitWithoutResult(node.body);
-    _restoreVariableCellsAfterTry(joins);
+    _restoreModifiedVariablesAfterTry(joins);
     final conditionAfterTry = _currentCondition;
     _jumpHandlers = outerJumpHandlers;
 

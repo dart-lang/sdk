@@ -983,6 +983,39 @@ class _FieldValue extends _DependencyTracker {
   String toString() => "_FieldValue $field => $value";
 }
 
+class _SharedVariableImpl extends _DependencyTracker implements SharedVariable {
+  final String name;
+  Type value = emptyType;
+
+  _SharedVariableImpl(VariableDeclaration decl) : name = decl.name ?? '__tmp';
+
+  @override
+  Type getValue(
+      TypeHierarchy typeHierarchy, covariant TypeFlowAnalysis callHandler) {
+    addDependentInvocation(callHandler.currentInvocation);
+    return value;
+  }
+
+  @override
+  void setValue(
+      Type newValue, TypeHierarchy hierarchy, CallHandler callHandler) {
+    // Make sure type cones are specialized before putting them into shared
+    // variables, in order to ensure that dependency is established between
+    // cone's base type and corresponding invocation accessing variable.
+    newValue = value.union(newValue, hierarchy).specialize(hierarchy);
+    assert(newValue.isSpecialized);
+
+    if (newValue != value) {
+      invalidateDependentInvocations(
+          (callHandler as TypeFlowAnalysis).workList);
+      value = newValue;
+    }
+  }
+
+  @override
+  String toString() => name;
+}
+
 class _DynamicTargetSet extends _DependencyTracker {
   final DynamicSelector selector;
   final Set<Member> targets = new Set<Member>();
@@ -1552,7 +1585,8 @@ class _WorkList {
   }
 }
 
-class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
+class TypeFlowAnalysis
+    implements EntryPointsListener, CallHandler, SharedVariableBuilder {
   final Target target;
   final TypeEnvironment environment;
   final CoreTypes coreTypes;
@@ -1568,6 +1602,8 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
 
   final Map<Member, Summary> _summaries = <Member, Summary>{};
   final Map<Field, _FieldValue> _fieldValues = <Field, _FieldValue>{};
+  final Map<VariableDeclaration, _SharedVariableImpl> _sharedCapturedVariables =
+      {};
   final Set<Member> _tearOffTaken = new Set<Member>();
   final Set<Member> _methodsAndSettersCalledDynamically = new Set<Member>();
   final Set<Member> _gettersCalledDynamically = new Set<Member>();
@@ -1597,6 +1633,7 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
         hierarchyCache,
         nativeCodeOracle,
         hierarchyCache,
+        this,
         protobufHandler);
     _invocationsCache = new _InvocationsCache(this);
     workList = new _WorkList(this);
@@ -1692,6 +1729,9 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   NarrowNotNull? nullTest(TreeNode node) => summaryCollector.nullTests[node];
 
   Type? fieldType(Field field) => _fieldValues[field]?.value;
+
+  Type? capturedVariableType(VariableDeclaration v) =>
+      _sharedCapturedVariables[v]?.value;
 
   Args<Type>? argumentTypes(Member member) => _summaries[member]?.argumentTypes;
 
@@ -1825,4 +1865,10 @@ class TypeFlowAnalysis implements EntryPointsListener, CallHandler {
   void recordTearOff(Member target) {
     _tearOffTaken.add(target);
   }
+
+  /// ---- Implementation of [SharedVariableBuilder] interface. ----
+
+  @override
+  SharedVariable getSharedVariable(VariableDeclaration variable) =>
+      _sharedCapturedVariables[variable] ??= _SharedVariableImpl(variable);
 }
