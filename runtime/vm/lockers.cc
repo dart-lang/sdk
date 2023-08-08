@@ -109,7 +109,11 @@ bool SafepointRwLock::EnterRead() {
   auto thread = Thread::Current();
   // Attempt to acquire a lock while owning a safepoint could lead to a deadlock
   // (some other thread might be forced to a safepoint while holding this lock).
-  ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks());
+  //
+  // Though if the lock was already acquired by this thread before entering a
+  // safepoint, we do allow the nested acquire (which is a NOP).
+  DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
+               IsCurrentThreadReader());
 
   const bool can_block_without_safepoint = thread == nullptr;
 
@@ -169,6 +173,14 @@ void SafepointRwLock::LeaveRead() {
 void SafepointRwLock::EnterWrite() {
   // No need to safepoint if the current thread is not attached.
   auto thread = Thread::Current();
+  // Attempt to acquire a lock while owning a safepoint could lead to a deadlock
+  // (some other thread might be forced to a safepoint while holding this lock).
+  //
+  // Though if the lock was already acquired by this thread before entering a
+  // safepoint, we do allow the nested acquire (which is a NOP).
+  DEBUG_ASSERT(thread == nullptr || thread->CanAcquireSafepointLocks() ||
+               IsCurrentThreadWriter());
+
   const bool can_block_without_safepoint = thread == nullptr;
 
   if (!TryEnterWrite(can_block_without_safepoint)) {
