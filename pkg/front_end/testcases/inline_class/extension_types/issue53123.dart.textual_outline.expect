@@ -1,0 +1,2 @@
+extension type V<T extends V<T>>(T id) {}
+test(V v) {}

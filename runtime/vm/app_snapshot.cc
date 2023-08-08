@@ -6435,7 +6435,6 @@ class ProgramDeserializationRoots : public DeserializationRoots {
   void PostLoad(Deserializer* d, const Array& refs) {
     auto isolate_group = d->isolate_group();
     {
-      SafepointWriteRwLocker ml(d->thread(), isolate_group->program_lock());
       isolate_group->class_table()->CopySizesFromClassObjects();
     }
     d->heap()->old_space()->EvaluateAfterLoading();
@@ -8762,7 +8761,6 @@ void Deserializer::Deserialize(DeserializationRoots* roots) {
 
     {
       TIMELINE_DURATION(thread(), Isolate, "ReadFill");
-      SafepointWriteRwLocker ml(thread(), isolate_group()->program_lock());
       for (intptr_t i = 0; i < num_clusters_; i++) {
         clusters_[i]->ReadFill(this, primary);
 #if defined(DEBUG)
@@ -9166,6 +9164,11 @@ ApiErrorPtr FullSnapshotReader::ReadVMSnapshot() {
     return ConvertToApiError(error);
   }
 
+  // Even though there's no concurrent threads we have to guard agains, some
+  // logic we do in deserialization triggers common code that asserts the
+  // program lock is held.
+  SafepointWriteRwLocker ml(thread_, isolate_group()->program_lock());
+
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, /*is_non_root_unit=*/false,
                             offset);
@@ -9206,6 +9209,11 @@ ApiErrorPtr FullSnapshotReader::ReadProgramSnapshot() {
   if (error != nullptr) {
     return ConvertToApiError(error);
   }
+
+  // Even though there's no concurrent threads we have to guard agains, some
+  // logic we do in deserialization triggers common code that asserts the
+  // program lock is held.
+  SafepointWriteRwLocker ml(thread_, isolate_group()->program_lock());
 
   Deserializer deserializer(thread_, kind_, buffer_, size_, data_image_,
                             instructions_image_, /*is_non_root_unit=*/false,
