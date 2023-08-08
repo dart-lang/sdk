@@ -688,7 +688,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+  void visitExtensionTypeDeclaration(
+    covariant ExtensionTypeDeclarationImpl node,
+  ) {
     var outerClass = _enclosingClass;
     try {
       final element = node.declaredElement!;
@@ -707,6 +709,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       _constructorFieldsVerifier.enterExtensionType(node, declarationElement);
       _checkForNonCovariantTypeParameterPositionInRepresentationType(
           node, element);
+      _checkForExtensionTypeRepresentationDependsOnItself(node, element);
       // TODO(scheglov) Add checks.
 
       super.visitExtensionTypeDeclaration(node);
@@ -2883,6 +2886,18 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       errorReporter.reportErrorForToken(
         CompileTimeErrorCode.EXTENSION_TYPE_DECLARES_INSTANCE_FIELD,
         field.name,
+      );
+    }
+  }
+
+  void _checkForExtensionTypeRepresentationDependsOnItself(
+    ExtensionTypeDeclarationImpl node,
+    ExtensionTypeElementImpl element,
+  ) {
+    if (element.hasSelfReference) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_REPRESENTATION_DEPENDS_ON_ITSELF,
+        node.name,
       );
     }
   }
