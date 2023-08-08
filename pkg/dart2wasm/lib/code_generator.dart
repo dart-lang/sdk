@@ -168,7 +168,7 @@ class CodeGenerator extends ExpressionVisitor1<w.ValueType, w.ValueType>
   /// Generate code for the member.
   void generate() {
     // Build closure information.
-    closures = Closures(this);
+    closures = Closures(this.translator, this.member);
 
     Member member = this.member;
 
