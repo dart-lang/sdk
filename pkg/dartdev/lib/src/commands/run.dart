@@ -306,15 +306,13 @@ class RunCommand extends DartdevCommand {
         return errorExitCode;
       }
     } else {
-      try {
-        nativeAssets = (await compileNativeAssetsJitYamlFile(verbose: verbose))
-            ?.toFilePath();
-      } on Exception catch (e, stacktrace) {
+      final (success, assets) =
+          await compileNativeAssetsJitYamlFile(verbose: verbose);
+      if (!success) {
         log.stderr('Error: Compiling native assets failed.');
-        log.stderr(e.toString());
-        log.stderr(stacktrace.toString());
         return errorExitCode;
       }
+      nativeAssets = assets?.toFilePath();
     }
 
     final hasServerInfoOption = args.wasParsed(serverInfoOption);
