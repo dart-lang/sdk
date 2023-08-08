@@ -49,51 +49,51 @@ typedef Contravariant<contravariant T extends core::Object? = dynamic> = (T%) �
 typedef Invariant<invariant T extends core::Object? = dynamic> = <S extends T% = dynamic>() → void;
 typedef Covariant<T extends core::Object? = dynamic> = () → T%;
 typedef Bivariant<invariant T extends core::Object? = dynamic> = (T%) → T%;
-inline class ET_Contravariant<T extends core::Object? = dynamic> /* declaredRepresentationType = (T%) → void */ {
+extension type ET_Contravariant<T extends core::Object? = dynamic>((T%) → void f) {
   constructor • = self::ET_Contravariant|;
   tearoff • = self::ET_Contravariant|_#new#tearOff;
 }
-inline class ET_Invariant<T extends core::Object? = dynamic> /* declaredRepresentationType = <S extends T% = dynamic>() → void */ {
+extension type ET_Invariant<T extends core::Object? = dynamic>(<S extends T% = dynamic>() → void f) {
   constructor • = self::ET_Invariant|;
   tearoff • = self::ET_Invariant|_#new#tearOff;
 }
-inline class ET_Covariant<T extends core::Object? = dynamic> /* declaredRepresentationType = () → T% */ {
+extension type ET_Covariant<T extends core::Object? = dynamic>(() → T% f) {
   constructor • = self::ET_Covariant|;
   tearoff • = self::ET_Covariant|_#new#tearOff;
 }
-inline class ET_Bivariant<T extends core::Object? = dynamic> /* declaredRepresentationType = (T%) → T% */ {
+extension type ET_Bivariant<T extends core::Object? = dynamic>((T%) → T% f) {
   constructor • = self::ET_Bivariant|;
   tearoff • = self::ET_Bivariant|_#new#tearOff;
 }
-inline class ET_ContravariantAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = (T%) → void */ {
+extension type ET_ContravariantAlias<T extends core::Object? = dynamic>((T%) → void f) {
   constructor • = self::ET_ContravariantAlias|;
   tearoff • = self::ET_ContravariantAlias|_#new#tearOff;
 }
-inline class ET_InvariantAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = <S extends T% = dynamic>() → void */ {
+extension type ET_InvariantAlias<T extends core::Object? = dynamic>(<S extends T% = dynamic>() → void f) {
   constructor • = self::ET_InvariantAlias|;
   tearoff • = self::ET_InvariantAlias|_#new#tearOff;
 }
-inline class ET_CovariantAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = () → T% */ {
+extension type ET_CovariantAlias<T extends core::Object? = dynamic>(() → T% f) {
   constructor • = self::ET_CovariantAlias|;
   tearoff • = self::ET_CovariantAlias|_#new#tearOff;
 }
-inline class ET_BivariantAlias<T extends core::Object? = dynamic> /* declaredRepresentationType = (T%) → T% */ {
+extension type ET_BivariantAlias<T extends core::Object? = dynamic>((T%) → T% f) {
   constructor • = self::ET_BivariantAlias|;
   tearoff • = self::ET_BivariantAlias|_#new#tearOff;
 }
-inline class ET_ContravariantAlias1<T extends core::Object? = dynamic> /* declaredRepresentationType = () → (T%) → void */ {
+extension type ET_ContravariantAlias1<T extends core::Object? = dynamic>(() → (T%) → void f) {
   constructor • = self::ET_ContravariantAlias1|;
   tearoff • = self::ET_ContravariantAlias1|_#new#tearOff;
 }
-inline class ET_ContravariantAlias2<T extends core::Object? = dynamic> /* declaredRepresentationType = (() → T%) → void */ {
+extension type ET_ContravariantAlias2<T extends core::Object? = dynamic>((() → T%) → void f) {
   constructor • = self::ET_ContravariantAlias2|;
   tearoff • = self::ET_ContravariantAlias2|_#new#tearOff;
 }
-inline class ET_CovariantAlias1<T extends core::Object? = dynamic> /* declaredRepresentationType = () → () → T% */ {
+extension type ET_CovariantAlias1<T extends core::Object? = dynamic>(() → () → T% f) {
   constructor • = self::ET_CovariantAlias1|;
   tearoff • = self::ET_CovariantAlias1|_#new#tearOff;
 }
-inline class ET_CovariantAlias2<T extends core::Object? = dynamic> /* declaredRepresentationType = ((T%) → void) → void */ {
+extension type ET_CovariantAlias2<T extends core::Object? = dynamic>(((T%) → void) → void f) {
   constructor • = self::ET_CovariantAlias2|;
   tearoff • = self::ET_CovariantAlias2|_#new#tearOff;
 }

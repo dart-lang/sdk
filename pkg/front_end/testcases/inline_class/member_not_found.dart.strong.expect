@@ -9,7 +9,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class A /* declaredRepresentationType = core::int */ {
+extension type A(core::int value) {
   constructor name1 = self::A|name1;
   tearoff name1 = self::A|_#name1#tearOff;
 }

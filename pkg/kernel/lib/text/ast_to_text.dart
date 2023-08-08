@@ -1369,12 +1369,13 @@ class Printer extends Visitor<void> with VisitorVoidMixin {
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     writeAnnotationList(node.annotations);
     writeIndentation();
-    writeWord('inline class');
+    writeWord('extension type');
     writeWord(getExtensionTypeDeclarationName(node));
     writeTypeParameterList(node.typeParameters);
-    writeWord('/* declaredRepresentationType =');
+    writeSymbol('(');
     writeType(node.declaredRepresentationType);
-    writeWord('*/');
+    writeWord(node.representationName);
+    writeSymbol(')');
     if (node.implements.isNotEmpty) {
       writeSpaced('implements');
       writeList(node.implements, writeType);

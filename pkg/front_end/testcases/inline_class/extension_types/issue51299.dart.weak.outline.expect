@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class I /* declaredRepresentationType = core::int */ {
+extension type I(core::int _i) {
   get i = self::I|get#i;
   set i = self::I|set#i;
   constructor • = self::I|;

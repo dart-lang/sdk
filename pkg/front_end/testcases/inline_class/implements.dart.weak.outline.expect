@@ -2,31 +2,31 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class A /* declaredRepresentationType = core::int */ {
+extension type A(core::int it) {
   method methodA = self::A|methodA;
   tearoff methodA = self::A|get#methodA;
   constructor • = self::A|;
   tearoff • = self::A|_#new#tearOff;
 }
-inline class B<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type B<T extends core::Object? = dynamic>(T% it) {
   method methodB = self::B|methodB;
   tearoff methodB = self::B|get#methodB;
   constructor • = self::B|;
   tearoff • = self::B|_#new#tearOff;
 }
-inline class C1 /* declaredRepresentationType = core::int */ implements self::A {
+extension type C1(core::int it) implements self::A {
   method methodC1 = self::C1|methodC1;
   tearoff methodC1 = self::C1|get#methodC1;
   constructor • = self::C1|;
   tearoff • = self::C1|_#new#tearOff;
 }
-inline class C2 /* declaredRepresentationType = core::int */ implements self::A, self::B<core::int> {
+extension type C2(core::int it) implements self::A, self::B<core::int> {
   method methodC2 = self::C2|methodC2;
   tearoff methodC2 = self::C2|get#methodC2;
   constructor • = self::C2|;
   tearoff • = self::C2|_#new#tearOff;
 }
-inline class D1 /* declaredRepresentationType = core::int */ implements self::C1 {
+extension type D1(core::int it) implements self::C1 {
   method methodD1 = self::D1|methodD1;
   tearoff methodD1 = self::D1|get#methodD1;
   constructor • = self::D1|;

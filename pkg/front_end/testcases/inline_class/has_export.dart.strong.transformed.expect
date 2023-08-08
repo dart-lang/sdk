@@ -12,7 +12,7 @@ import self as has;
 import "dart:core" as core;
 
 part has_part_of_lib.dart;
-inline class C /* declaredRepresentationType = core::int */ { // from org-dartlang-testcase:///has_part_of_lib.dart
+extension type C(core::int i) { // from org-dartlang-testcase:///has_part_of_lib.dart
   constructor • = has::C|;
   tearoff • = has::_#new#tearOff;
 }

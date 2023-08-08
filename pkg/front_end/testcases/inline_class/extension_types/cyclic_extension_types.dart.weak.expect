@@ -29,27 +29,27 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class A /* declaredRepresentationType = core::int */ {
+extension type A(core::int it) {
   constructor • = self::A|;
   tearoff • = self::A|_#new#tearOff;
 }
-inline class B /* declaredRepresentationType = core::int */ {
+extension type B(core::int it) {
   constructor • = self::B|;
   tearoff • = self::B|_#new#tearOff;
 }
-inline class C /* declaredRepresentationType = core::int */ {
+extension type C(core::int it) {
   constructor • = self::C|;
   tearoff • = self::C|_#new#tearOff;
 }
-inline class D /* declaredRepresentationType = core::int */ {
+extension type D(core::int it) {
   constructor • = self::D|;
   tearoff • = self::D|_#new#tearOff;
 }
-inline class E /* declaredRepresentationType = core::int */ {
+extension type E(core::int it) {
   constructor • = self::E|;
   tearoff • = self::E|_#new#tearOff;
 }
-inline class F /* declaredRepresentationType = core::int */ {
+extension type F(core::int it) {
   constructor • = self::F|;
   tearoff • = self::F|_#new#tearOff;
 }

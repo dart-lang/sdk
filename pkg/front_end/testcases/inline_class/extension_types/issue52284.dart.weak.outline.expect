@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Id /* declaredRepresentationType = core::int */ {
+extension type Id(core::int id) {
   constructor • = self::Id|;
   tearoff • = self::Id|_#new#tearOff;
 }

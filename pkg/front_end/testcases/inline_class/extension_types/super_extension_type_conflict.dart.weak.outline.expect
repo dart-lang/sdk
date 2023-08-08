@@ -13,23 +13,23 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class A<T extends core::Object? = dynamic> /* declaredRepresentationType = core::int */ {
+extension type A<T extends core::Object? = dynamic>(core::int it) {
   constructor • = self::A|;
   tearoff • = self::A|_#new#tearOff;
 }
-inline class B<T extends core::Object? = dynamic> /* declaredRepresentationType = core::int */ implements self::A<T%> {
+extension type B<T extends core::Object? = dynamic>(core::int it) implements self::A<T%> {
   constructor • = self::B|;
   tearoff • = self::B|_#new#tearOff;
 }
-inline class C<T extends core::Object? = dynamic> /* declaredRepresentationType = core::int */ implements self::A<T%> {
+extension type C<T extends core::Object? = dynamic>(core::int it) implements self::A<T%> {
   constructor • = self::C|;
   tearoff • = self::C|_#new#tearOff;
 }
-inline class D /* declaredRepresentationType = core::int */ implements self::A<core::int>, self::B<core::String> {
+extension type D(core::int it) implements self::A<core::int>, self::B<core::String> {
   constructor • = self::D|;
   tearoff • = self::D|_#new#tearOff;
 }
-inline class E /* declaredRepresentationType = core::int */ implements self::B<core::int>, self::C<core::String> {
+extension type E(core::int it) implements self::B<core::int>, self::C<core::String> {
   constructor • = self::E|;
   tearoff • = self::E|_#new#tearOff;
 }

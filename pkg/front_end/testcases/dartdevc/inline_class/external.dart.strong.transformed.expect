@@ -18,7 +18,7 @@ class A extends core::Object {
     return new self::A::•();
 }
 @#C2
-inline class B /* declaredRepresentationType = self::A */ {
+extension type B(self::A a) {
   get field = self::B|get#field;
   set field = self::B|set#field;
   method method = self::B|method;

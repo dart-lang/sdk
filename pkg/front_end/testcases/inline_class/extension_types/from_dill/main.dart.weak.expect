@@ -48,7 +48,7 @@ library;
 import self as mai2;
 import "dart:core" as core;
 
-inline class ExtensionType /* declaredRepresentationType = core::int */ {
+extension type ExtensionType(core::int it) {
   static field staticField = mai2::ExtensionType|staticField;
   method instanceMethod = mai2::ExtensionType|instanceMethod;
   tearoff instanceMethod = mai2::ExtensionType|get#instanceMethod;

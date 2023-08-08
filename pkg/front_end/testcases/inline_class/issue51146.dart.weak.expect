@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> /* declaredRepresentationType = X% */ {
+extension type I<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(X% value) {
   constructor • = self::I|;
   tearoff • = self::I|_#new#tearOff;
 }

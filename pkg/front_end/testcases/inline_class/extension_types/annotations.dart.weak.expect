@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 
 @#C2
-inline class A /* declaredRepresentationType = core::int */ {
+extension type A(core::int i) {
   method m = self::A|m;
   tearoff m = self::A|get#m;
   constructor • = self::A|;

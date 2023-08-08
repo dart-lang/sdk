@@ -17,35 +17,35 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Class1 /* declaredRepresentationType = core::int */ {
+extension type Class1(core::int field) {
   constructor _ = self::Class1|_;
   tearoff _ = self::Class1|_#_#tearOff;
   constructor • = self::Class1|;
   tearoff • = self::Class1|_#new#tearOff;
 }
-inline class Class2 /* declaredRepresentationType = core::int */ {
+extension type Class2(core::int field) {
   constructor _ = self::Class2|_;
   tearoff _ = self::Class2|_#_#tearOff;
   constructor • = self::Class2|;
   tearoff • = self::Class2|_#new#tearOff;
 }
-inline class Class3 /* declaredRepresentationType = core::int */ {
+extension type Class3(core::int field) {
   constructor _ = self::Class3|_;
   tearoff _ = self::Class3|_#_#tearOff;
 }
-inline class Class4 /* declaredRepresentationType = core::int */ {
+extension type Class4(core::int field) {
   constructor _ = self::Class4|_;
   tearoff _ = self::Class4|_#_#tearOff;
   constructor • = self::Class4|;
   tearoff • = self::Class4|_#new#tearOff;
 }
-inline class Class5 /* declaredRepresentationType = core::int */ {
+extension type Class5(core::int field) {
   constructor _ = self::Class5|_;
   tearoff _ = self::Class5|_#_#tearOff;
   constructor • = self::Class5|;
   tearoff • = self::Class5|_#new#tearOff;
 }
-inline class Class6 /* declaredRepresentationType = core::int */ {
+extension type Class6(core::int field) {
   constructor _ = self::Class6|_;
   tearoff _ = self::Class6|_#_#tearOff;
   constructor • = self::Class6|;

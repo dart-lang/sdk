@@ -12,18 +12,18 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Missing /* declaredRepresentationType = invalid-type */ {
+extension type Missing(invalid-type #) {
 }
-inline class Static /* declaredRepresentationType = core::bool */ {
+extension type Static(core::bool instanceField) {
   static field staticField = self::Static|staticField;
   constructor • = self::Static|;
   tearoff • = self::Static|_#new#tearOff;
 }
-inline class Multiple /* declaredRepresentationType = core::bool */ {
+extension type Multiple(core::bool instanceField1) {
   constructor • = self::Multiple|;
   tearoff • = self::Multiple|_#new#tearOff;
 }
-inline class Duplicate /* declaredRepresentationType = core::bool */ {
+extension type Duplicate(core::bool instanceField) {
   constructor • = self::Duplicate|;
   tearoff • = self::Duplicate|_#new#tearOff;
 }

@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class Foo /* declaredRepresentationType = core::int */ {
+extension type Foo(core::int i) {
   constructor • = self::Foo|;
   tearoff • = self::Foo|_#new#tearOff;
   constructor _ = self::Foo|_;
@@ -16,7 +16,7 @@ inline class Foo /* declaredRepresentationType = core::int */ {
   constructor erroneous = self::Foo|erroneous;
   tearoff erroneous = self::Foo|_#erroneous#tearOff;
 }
-inline class Bar<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type Bar<T extends core::Object? = dynamic>(T% i) {
   constructor • = self::Bar|;
   tearoff • = self::Bar|_#new#tearOff;
   constructor _ = self::Bar|_;

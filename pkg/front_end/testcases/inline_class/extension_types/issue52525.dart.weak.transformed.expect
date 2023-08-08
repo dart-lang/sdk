@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class IC1 /* declaredRepresentationType = core::int */ {
+extension type IC1(core::int id) {
   constructor • = self::IC1|;
   tearoff • = self::IC1|_#new#tearOff;
   static redirecting-factory f = self::IC1|f;

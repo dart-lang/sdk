@@ -2,7 +2,7 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class I /* declaredRepresentationType = invalid-type */ {
+extension type I(invalid-type #) {
   get i = self::I|get#i;
   set i = self::I|set#i;
 }

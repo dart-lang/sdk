@@ -2,17 +2,17 @@ library;
 import self as self;
 import "dart:core" as core;
 
-inline class I /* declaredRepresentationType = core::int */ {
+extension type I(core::int i) {
   static factory • = self::I|;
   static tearoff • = self::I|_#new#tearOff;
 }
-inline class J /* declaredRepresentationType = core::int */ {
+extension type J(core::int i) {
   static factory • = self::J|;
   static tearoff • = self::J|_#new#tearOff;
   constructor _ = self::J|_;
   tearoff _ = self::J|_#_#tearOff;
 }
-inline class K<T extends core::Object? = dynamic> /* declaredRepresentationType = T% */ {
+extension type K<T extends core::Object? = dynamic>(T% i) {
   static factory • = self::K|;
   static tearoff • = self::K|_#new#tearOff;
   constructor _ = self::K|_;
