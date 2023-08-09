@@ -149,7 +149,7 @@ class CompletionResolveHandler
                 // Compute the relative path and then put into a URI so the display
                 // always uses forward slashes (as a URI) regardless of platform.
                 ? pathContext.toUri(pathContext.relative(
-                    libraryUri.toFilePath(),
+                    pathContext.fromUri(libraryUri),
                     from: pathContext.dirname(file),
                   ))
                 : libraryUri;
