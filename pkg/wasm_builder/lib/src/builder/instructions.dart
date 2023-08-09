@@ -1163,14 +1163,16 @@ class InstructionsBuilder with Builder<ir.Instructions> {
 
   /// Emit a `br_on_cast` instruction.
   void br_on_cast(Label label, ir.RefType inputType, ir.RefType targetType) {
-    assert(_verifyCast(inputType, targetType, inputType, trace: [
-      'br_on_cast',
-      label,
-      if (inputType.nullable) 'null',
-      inputType.heapType,
-      if (targetType.nullable) 'null',
-      targetType.heapType
-    ]));
+    assert(_verifyCast(inputType, targetType,
+        inputType.withNullability(inputType.nullable && !targetType.nullable),
+        trace: [
+          'br_on_cast',
+          label,
+          if (inputType.nullable) 'null',
+          inputType.heapType,
+          if (targetType.nullable) 'null',
+          targetType.heapType
+        ]));
     assert(_verifyBranchTypes(label, 1, [targetType]));
     _add(ir.BrOnCast(_labelIndex(label), inputType, targetType));
   }
@@ -1186,7 +1188,9 @@ class InstructionsBuilder with Builder<ir.Instructions> {
       if (targetType.nullable) 'null',
       targetType.heapType
     ]));
-    assert(_verifyBranchTypes(label, 1, [inputType]));
+    assert(_verifyBranchTypes(label, 1, [
+      inputType.withNullability(inputType.nullable && !targetType.nullable)
+    ]));
     _add(ir.BrOnCastFail(_labelIndex(label), inputType, targetType));
   }
 

@@ -1031,7 +1031,7 @@ class Instruction : public ZoneAllocated {
 
   virtual bool ComputeCanDeoptimizeAfterCall() const {
     // TODO(dartbug.com/45213): Incrementally migrate IR instructions from using
-    // [ComputeCanDeoptimize] to either [ComputeCanDeoptimizeAfterCall] if they
+    // [ComputeCanDeoptimize] to [ComputeCanDeoptimizeAfterCall] if they
     // can only lazy deoptimize.
     return false;
   }
@@ -3365,7 +3365,8 @@ class ThrowInstr : public TemplateInstruction<1, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
   Value* exception() const { return inputs_[0]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -3405,7 +3406,8 @@ class ReThrowInstr : public TemplateInstruction<2, Throws> {
   Value* exception() const { return inputs_[0]; }
   Value* stacktrace() const { return inputs_[1]; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -5326,7 +5328,8 @@ class StaticCallInstr : public TemplateDartCall<0> {
     return ic_data() == nullptr ? call_count_ : ic_data()->AggregateCount();
   }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -5724,7 +5727,8 @@ class FfiCallInstr : public VariadicDefinition {
   }
 
   // FfiCallInstr calls C code, which can call back into Dart.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -6773,7 +6777,8 @@ class InstanceOfInstr : public TemplateDefinition<3, Throws> {
   const AbstractType& type() const { return type_; }
   virtual TokenPosition token_pos() const { return token_pos_; }
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -9235,7 +9240,8 @@ class CheckStackOverflowInstr : public TemplateInstruction<0, NoThrow> {
 
   DECLARE_INSTRUCTION(CheckStackOverflow)
 
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -9908,7 +9914,8 @@ class CheckNullInstr : public TemplateDefinition<1, Throws, Pure> {
 
   // CheckNull can implicitly call Dart code (NoSuchMethodError constructor),
   // so it needs a deopt ID in optimized and unoptimized code.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
   virtual bool CanBecomeDeoptimizationTarget() const { return true; }
@@ -10085,7 +10092,8 @@ class GenericCheckBoundInstr : public CheckBoundBase {
 
   // GenericCheckBound can implicitly call Dart code (RangeError or
   // ArgumentError constructor), so it can lazily deopt.
-  virtual bool ComputeCanDeoptimize() const {
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const {
     return !CompilerState::Current().is_aot();
   }
 
@@ -10604,7 +10612,8 @@ class Call1ArgStubInstr : public TemplateDefinition<1, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const { return true; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
     return InputCount();
@@ -10669,7 +10678,8 @@ class SuspendInstr : public TemplateDefinition<2, Throws> {
   virtual TokenPosition token_pos() const { return token_pos_; }
 
   virtual bool CanCallDart() const { return true; }
-  virtual bool ComputeCanDeoptimize() const { return true; }
+  virtual bool ComputeCanDeoptimize() const { return false; }
+  virtual bool ComputeCanDeoptimizeAfterCall() const { return true; }
   virtual bool HasUnknownSideEffects() const { return true; }
   virtual intptr_t NumberOfInputsConsumedBeforeCall() const {
     return InputCount();
