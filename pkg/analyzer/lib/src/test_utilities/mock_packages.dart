@@ -104,6 +104,9 @@ const _OptionalTypeArgs optionalTypeArgs = _OptionalTypeArgs();
 
 const _Protected protected = _Protected();
 
+@experimental
+const _Redeclare redeclare = _Redeclare();
+
 const _Reopen reopen = _Reopen();
 
 const Required required = Required();
@@ -123,6 +126,15 @@ class Immutable {
   final String reason;
 
   const Immutable([this.reason = '']);
+}
+
+@Target({
+  TargetKind.getter,
+  TargetKind.setter,
+  TargetKind.method,
+})
+class _Redeclare {
+  const _Redeclare();
 }
 
 @Target({
