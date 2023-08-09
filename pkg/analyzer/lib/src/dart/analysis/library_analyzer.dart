@@ -48,6 +48,7 @@ import 'package:analyzer/src/lint/linter_visitor.dart';
 import 'package:analyzer/src/services/lint.dart';
 import 'package:analyzer/src/task/strong/checker.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
+import 'package:analyzer/src/utilities/extensions/version.dart';
 import 'package:collection/collection.dart';
 import 'package:path/path.dart' as path;
 
@@ -478,7 +479,11 @@ class LibraryAnalyzer {
     var sdkVersionConstraint = _analysisOptions.sdkVersionConstraint;
     if (sdkVersionConstraint != null) {
       SdkConstraintVerifier verifier = SdkConstraintVerifier(
-          errorReporter, _libraryElement, _typeProvider, sdkVersionConstraint);
+        errorReporter,
+        _libraryElement,
+        _typeProvider,
+        sdkVersionConstraint.withoutPreRelease,
+      );
       unit.accept(verifier);
     }
   }
