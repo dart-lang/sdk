@@ -1411,15 +1411,14 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
   __ j(ZERO, &skip_marking);
 
   {
-    // Atomically clear kOldAndNotMarkedBit.
+    // Atomically clear kNotMarkedBit.
     Label retry, done;
     __ movl(EAX, FieldAddress(EBX, target::Object::tags_offset()));
     __ Bind(&retry);
     __ movl(ECX, EAX);
-    __ testl(ECX, Immediate(1 << target::UntaggedObject::kOldAndNotMarkedBit));
+    __ testl(ECX, Immediate(1 << target::UntaggedObject::kNotMarkedBit));
     __ j(ZERO, &done);  // Marked by another thread.
-    __ andl(ECX,
-            Immediate(~(1 << target::UntaggedObject::kOldAndNotMarkedBit)));
+    __ andl(ECX, Immediate(~(1 << target::UntaggedObject::kNotMarkedBit)));
     // Cmpxchgq: compare value = implicit operand EAX, new value = ECX.
     // On failure, EAX is updated with the current value.
     __ LockCmpxchgl(FieldAddress(EBX, target::Object::tags_offset()), ECX);

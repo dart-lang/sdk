@@ -596,8 +596,8 @@ void ImageWriter::WriteROData(NonStreamingWriteStream* stream, bool vm) {
 }
 
 static constexpr uword kReadOnlyGCBits =
-    UntaggedObject::OldBit::encode(true) |
-    UntaggedObject::OldAndNotMarkedBit::encode(false) |
+    UntaggedObject::AlwaysSetBit::encode(true) |
+    UntaggedObject::NotMarkedBit::encode(false) |
     UntaggedObject::OldAndNotRememberedBit::encode(true) |
     UntaggedObject::NewBit::encode(false);
 

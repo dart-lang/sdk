@@ -126,7 +126,7 @@ class _FixAllOperation extends TemporaryOverlayOperation
     );
 
     var changes = await processor.fixErrorsForFile(message.performance, path,
-        removeUnusedImports: !autoTriggered);
+        autoTriggered: autoTriggered);
     if (changes.isEmpty) {
       return success(null);
     }

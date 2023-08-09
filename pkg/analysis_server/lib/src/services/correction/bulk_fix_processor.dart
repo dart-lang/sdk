@@ -243,7 +243,7 @@ class BulkFixProcessor {
   /// diagnostics in [file] in the given [context].
   Future<ChangeBuilder> fixErrorsForFile(OperationPerformanceImpl performance,
       AnalysisContext context, String path,
-      {bool removeUnusedImports = true}) async {
+      {required bool autoTriggered}) async {
     var pathContext = context.contextRoot.resourceProvider.pathContext;
 
     if (file_paths.isDart(pathContext, path) && !file_paths.isGenerated(path)) {
@@ -252,8 +252,7 @@ class BulkFixProcessor {
         (_) => context.currentSession.getResolvedLibrary(path),
       );
       if (!isCancelled && library is ResolvedLibraryResult) {
-        await _fixErrorsInLibrary(library,
-            removeUnusedImports: removeUnusedImports);
+        await _fixErrorsInLibrary(library, autoTriggered: autoTriggered);
       }
     }
 
@@ -298,7 +297,10 @@ class BulkFixProcessor {
       CorrectionProducerContext context) async {
     for (var generator in generators) {
       var producer = generator();
-      if (producer.canBeAppliedInBulk) {
+      var shouldFix = (context.dartFixContext?.autoTriggered ?? false)
+          ? producer.canBeAppliedAutomatically
+          : producer.canBeAppliedInBulk;
+      if (shouldFix) {
         await _generateFix(context, producer, codeName);
         if (isCancelled) {
           return;
@@ -465,25 +467,31 @@ class BulkFixProcessor {
   /// Use the change [builder] to create fixes for the diagnostics in the
   /// library associated with the analysis [result].
   Future<void> _fixErrorsInLibrary(ResolvedLibraryResult result,
-      {bool stopAfterFirst = false, bool removeUnusedImports = true}) async {
+      {bool stopAfterFirst = false, bool autoTriggered = false}) async {
     var analysisOptions = result.session.analysisContext.analysisOptions;
 
     DartFixContextImpl fixContext(
-        ResolvedUnitResult result, AnalysisError diagnostic) {
+      ResolvedUnitResult result,
+      AnalysisError diagnostic, {
+      required bool autoTriggered,
+    }) {
       return DartFixContextImpl(
         instrumentationService,
         workspace,
         result,
         diagnostic,
+        autoTriggered: autoTriggered,
       );
     }
 
     CorrectionProducerContext<ResolvedUnitResult>? correctionContext(
         ResolvedUnitResult result, AnalysisError diagnostic) {
       var overrideSet = _readOverrideSet(result);
+      var context =
+          fixContext(result, diagnostic, autoTriggered: autoTriggered);
       return CorrectionProducerContext.createResolved(
         applyingBulkFixes: true,
-        dartFixContext: fixContext(result, diagnostic),
+        dartFixContext: context,
         diagnostic: diagnostic,
         overrideSet: overrideSet,
         resolvedResult: result,
@@ -499,8 +507,9 @@ class BulkFixProcessor {
     for (var unitResult in result.units) {
       var overrideSet = _readOverrideSet(unitResult);
       for (var error in _filterErrors(analysisOptions, unitResult.errors)) {
-        await _fixSingleError(
-            fixContext(unitResult, error), unitResult, error, overrideSet);
+        var context =
+            fixContext(unitResult, error, autoTriggered: autoTriggered);
+        await _fixSingleError(context, unitResult, error, overrideSet);
         if (isCancelled || (stopAfterFirst && changeMap.hasFixes)) {
           return;
         }
@@ -513,7 +522,7 @@ class BulkFixProcessor {
     var definingUnit = result.units[0];
     AnalysisError? directivesOrderingError;
     var unusedImportErrors = <AnalysisError>[];
-    if (removeUnusedImports && !builder.hasEditsFor(definingUnit.path)) {
+    if (!autoTriggered && !builder.hasEditsFor(definingUnit.path)) {
       for (var error in _filterErrors(analysisOptions, definingUnit.errors)) {
         var errorCode = error.errorCode;
         if (errorCode is LintCode) {
@@ -834,7 +843,7 @@ class IterativeBulkFixProcessor {
   Future<List<SourceFileEdit>> fixErrorsForFile(
     OperationPerformanceImpl performance,
     String path, {
-    bool removeUnusedImports = true,
+    required bool autoTriggered,
   }) async {
     return performance.runAsync('IterativeBulkFixProcessor.fixErrorsForFile',
         (performance) async {
@@ -850,7 +859,7 @@ class IterativeBulkFixProcessor {
           'BulkFixProcessor.fixErrorsForFile pass $i',
           (performance) => processor.fixErrorsForFile(
               performance, context, path,
-              removeUnusedImports: removeUnusedImports),
+              autoTriggered: autoTriggered),
         );
 
         if (isCancelled) {

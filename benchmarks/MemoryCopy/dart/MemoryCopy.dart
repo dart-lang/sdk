@@ -64,7 +64,11 @@ abstract class MemoryCopyBenchmark {
       }
       // If not, then adjust our estimate of how many iterations are needed to
       // reach the minimum and try again.
-      rounds *= (minDuration.inMicroseconds / elapsed.inMicroseconds).ceil();
+      if (elapsed.inMilliseconds == 0) {
+        rounds *= 1000;
+      } else {
+        rounds *= (minDuration.inMicroseconds / elapsed.inMicroseconds).ceil();
+      }
     }
   }
 

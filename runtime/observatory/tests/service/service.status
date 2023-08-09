@@ -38,6 +38,9 @@ dev_fs_http_put_weird_char_test: Skip # Windows disallows carriage returns in pa
 dev_fs_weird_char_test: Skip # Windows disallows question mark in paths
 uri_mappings_lookup_test: SkipByDesign # Relies on file paths in the SDK.
 
+[ $arch == arm64 && $system == linux ]
+*: Skip # dartbug.com/52589 Builder timing out. Re-enable after we migrate from the Cavium to GCE.
+
 [ $compiler == dartk && $runtime == vm && $system == fuchsia ]
 *: Skip # Not yet triaged.
 

@@ -1286,6 +1286,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     );
     _isInConstructorInitializer = true;
     try {
+      _checkForExtensionTypeConstructorWithSuperInvocation(node);
       super.visitSuperConstructorInvocation(node);
     } finally {
       _isInConstructorInitializer = false;
@@ -2874,6 +2875,17 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           node.name,
         );
       }
+    }
+  }
+
+  void _checkForExtensionTypeConstructorWithSuperInvocation(
+    SuperConstructorInvocation node,
+  ) {
+    if (_enclosingClass is ExtensionTypeElement) {
+      errorReporter.reportErrorForToken(
+        CompileTimeErrorCode.EXTENSION_TYPE_CONSTRUCTOR_WITH_SUPER_INVOCATION,
+        node.superKeyword,
+      );
     }
   }
 

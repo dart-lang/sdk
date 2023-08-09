@@ -238,6 +238,8 @@ import 'extension_override_with_cascade_test.dart'
     as extension_override_with_cascade;
 import 'extension_override_without_access_test.dart'
     as extension_override_without_access;
+import 'extension_type_constructor_with_super_invocation_test.dart'
+    as extension_type_constructor_with_super_invocation;
 import 'extension_type_declares_instance_field_test.dart'
     as extension_type_declares_instance_field;
 import 'extension_type_declares_member_of_object_test.dart'
@@ -1046,6 +1048,7 @@ main() {
     extension_override_argument_not_assignable.main();
     extension_override_with_cascade.main();
     extension_override_without_access.main();
+    extension_type_constructor_with_super_invocation.main();
     extension_type_declares_instance_field.main();
     extension_type_declares_member_of_object.main();
     extension_type_implements_disallowed_type.main();
