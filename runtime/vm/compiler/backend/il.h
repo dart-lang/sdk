@@ -10839,6 +10839,9 @@ class Environment : public ZoneAllocated {
 
   void MarkAsLazyDeoptToBeforeDeoptId() {
     bitfield_ = LazyDeoptToBeforeDeoptId::update(true, bitfield_);
+    // As eager and lazy deopts will target the before environment, we do not
+    // want to prune inputs on lazy deopts.
+    bitfield_ = LazyDeoptPruningBits::update(0, bitfield_);
   }
 
   // This environment belongs to an optimistically hoisted instruction.
@@ -10847,6 +10850,9 @@ class Environment : public ZoneAllocated {
   void MarkAsHoisted() { bitfield_ = Hoisted::update(true, bitfield_); }
 
   Environment* GetLazyDeoptEnv(Zone* zone) {
+    if (LazyDeoptToBeforeDeoptId()) {
+      ASSERT(LazyDeoptPruneCount() == 0);
+    }
     const intptr_t num_args_to_prune = LazyDeoptPruneCount();
     if (num_args_to_prune == 0) return this;
     return DeepCopy(zone, Length() - num_args_to_prune);
